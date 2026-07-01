@@ -65,7 +65,7 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
   Base64 b64;
   std::vector<float> data;
   std::vector<float> res;
-  String dest;
+  std::string dest;
 
   b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
   TEST_EQUAL(dest, "");
@@ -96,11 +96,11 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
 }
 END_SECTION
 
-START_SECTION((template < typename ToType > void decode(const String &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
+START_SECTION((template < typename ToType > void decode(const std::string &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
   TOLERANCE_ABSOLUTE(0.001)
 {
   Base64 b64;
-  String src;
+  std::string src;
   std::vector<float> res;
   std::vector<double> res_double;
 
@@ -166,7 +166,7 @@ START_SECTION([EXTRA] zlib functionality)
 {
   TOLERANCE_ABSOLUTE(0.001)
   Base64 b64;
-  String str,src;
+  std::string str,src;
   std::vector<float> data, res;
   std::vector<double> data_double, res_double;
   
@@ -231,14 +231,14 @@ START_SECTION([EXTRA] zlib functionality)
 }
 END_SECTION
 
-START_SECTION(( void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_zero_byte = true)))
+START_SECTION(( void encodeStrings(const std::vector<std::string> & in, String & out, bool zlib_compression = false, bool append_zero_byte = true)))
 {
   Base64 b64;
-  String src,str;
+  std::string src,str;
   
   //without zlib compression
   src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0";
-  vector<String> strings;
+  vector<std::string> strings;
   b64.decodeStrings(src,strings,false);
   TEST_EQUAL(strings.size() == 5,true   )
   TEST_EQUAL(strings[0],"das")
@@ -247,7 +247,7 @@ START_SECTION(( void encodeStrings(const std::vector<String> & in, String & out,
   TEST_EQUAL(strings[3],"test")
   TEST_EQUAL(strings[4],"1234")
 
-  //same as above but this time the whole String is null-terminated as well
+  //same as above but this time the whole std::string is null-terminated as well
   src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
   b64.decodeStrings(src,strings,false);
   TEST_EQUAL(strings.size() == 5,true   )
@@ -297,20 +297,20 @@ START_SECTION(( void encodeStrings(const std::vector<String> & in, String & out,
 }
 END_SECTION
   
-START_SECTION((void decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression = false)))
+START_SECTION((void decodeStrings(const std::string& in, std::vector<std::string>& out, bool zlib_compression = false)))
   //this functionality is tested in the encodeString test
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression)))
+START_SECTION((void decodeSingleString(const std::string & in, QByteArray & base64_uncompressed, bool zlib_compression)))
   //this functionality is tested in the decodeStrings test
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION((template < typename ToType > void decodeIntegers(const String &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
+START_SECTION((template < typename ToType > void decodeIntegers(const std::string &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
 {
   Base64 b64;
-  String src,str;
+  std::string src,str;
   vector<Int32> res;
   vector<Int64> double_res;
   //with zlib compression
@@ -394,10 +394,10 @@ START_SECTION((template < typename ToType > void decodeIntegers(const String &in
 }
 END_SECTION
 
-START_SECTION((template <typename FromType> void encodeIntegers(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression=false)))
+START_SECTION((template <typename FromType> void encodeIntegers(std::vector<FromType>& in, ByteOrder to_byte_order, std::string& out, bool zlib_compression=false)))
 {
   Base64 b64;
-  String tmp;
+  std::string tmp;
   
   //64 bit tests
   vector<Int64> vec64, vec64_in, vec64_out;

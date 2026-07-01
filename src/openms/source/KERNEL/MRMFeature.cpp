@@ -62,29 +62,29 @@ namespace OpenMS
     pg_scores_ = scores;
   }
 
-  void MRMFeature::addScore(const String & score_name, double score)
+  void MRMFeature::addScore(const std::string & score_name, double score)
   {
     setMetaValue(score_name, score);
   }
 
-  void MRMFeature::addFeature(const Feature & feature, const String& key)
+  void MRMFeature::addFeature(const Feature & feature, const std::string& key)
   {
     features_.push_back(feature);
     feature_map_[key] = Int(features_.size()) - 1;
   }
 
-  void MRMFeature::addFeature(Feature && feature, const String& key)
+  void MRMFeature::addFeature(Feature && feature, const std::string& key)
   {
     features_.push_back(std::move(feature));
     feature_map_[key] = Int(features_.size()) - 1;
   }
 
-  Feature & MRMFeature::getFeature(const String& key) 
+  Feature & MRMFeature::getFeature(const std::string& key) 
   {
     return features_.at(feature_map_[key]);
   }
 
-  const Feature & MRMFeature::getFeature(const String& key) const 
+  const Feature & MRMFeature::getFeature(const std::string& key) const 
   {
     return features_.at(feature_map_.at(key));
   }
@@ -94,47 +94,47 @@ namespace OpenMS
     return features_;
   }
 
-  void MRMFeature::getFeatureIDs(std::vector<String> & result) const
+  void MRMFeature::getFeatureIDs(std::vector<std::string> & result) const
   {
-    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); ++it)
+    for (std::map<std::string, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); ++it)
     {
       result.push_back(it->first);
     }
   }
 
-  void MRMFeature::addPrecursorFeature(const Feature & feature, const String& key)
+  void MRMFeature::addPrecursorFeature(const Feature & feature, const std::string& key)
   {
     precursor_features_.push_back(feature);
     precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
   }
 
-  void MRMFeature::addPrecursorFeature(Feature && feature, const String& key)
+  void MRMFeature::addPrecursorFeature(Feature && feature, const std::string& key)
   {
     precursor_features_.push_back(std::move(feature));
     precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
   }
 
-  void MRMFeature::getPrecursorFeatureIDs(std::vector<String> & result) const
+  void MRMFeature::getPrecursorFeatureIDs(std::vector<std::string> & result) const
   {
-    for (std::map<String, int>::const_iterator it = precursor_feature_map_.begin(); it != precursor_feature_map_.end(); ++it)
+    for (std::map<std::string, int>::const_iterator it = precursor_feature_map_.begin(); it != precursor_feature_map_.end(); ++it)
     {
       result.push_back(it->first);
     }
   }
 
-  Feature & MRMFeature::getPrecursorFeature(const String& key)
+  Feature & MRMFeature::getPrecursorFeature(const std::string& key)
   {
     return precursor_features_.at(precursor_feature_map_[key]);
   }
 
-  const Feature & MRMFeature::getPrecursorFeature(const String& key) const
+  const Feature & MRMFeature::getPrecursorFeature(const std::string& key) const
   {
     return precursor_features_.at(precursor_feature_map_.at(key));
   }
 
   void MRMFeature::IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores)
   {
-    String id = "id_target_";
+    std::string id = "id_target_";
     if (decoy)
     {
       id = "id_decoy_";

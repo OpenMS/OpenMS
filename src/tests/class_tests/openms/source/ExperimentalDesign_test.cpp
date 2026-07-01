@@ -92,6 +92,13 @@ START_SECTION((const ExperimentalDesign::SampleSection& getSampleSection() const
 }
 END_SECTION
 
+START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label)))
+{
+  // an unknown (fraction_group, label) combination must throw instead of dereferencing end() (undefined behavior)
+  TEST_EXCEPTION(Exception::ElementNotFound, labelfree_unfractionated_design.getSample(99999, 99999))
+}
+END_SECTION
+
 START_SECTION((void setSampleSection(const ExperimentalDesign::SampleSection &sample_section)))
 {
   ExperimentalDesign labelfree_unfractionated_design2 = labelfree_unfractionated_design;
@@ -100,7 +107,7 @@ START_SECTION((void setSampleSection(const ExperimentalDesign::SampleSection &sa
 }
 END_SECTION
 
-START_SECTION((std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const ))
+START_SECTION((std::map<unsigned int, std::vector<std::string> > getFractionToMSFilesMapping() const ))
 {
   const auto lf = labelfree_unfractionated_design.getFractionToMSFilesMapping();
   const auto lfst = labelfree_unfractionated_single_table_design.getFractionToMSFilesMapping();
@@ -227,14 +234,14 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
     {
       // extract fraction group from file name
       int file(1); 
-      if (i.first.first.hasSubstring("TR2")) { file = 2; }
+      if (StringUtils::hasSubstring(i.first.first, "TR2")) { file = 2; }
       TEST_EQUAL(i.second, file); 
     }
   }
 }
 END_SECTION
 
-START_SECTION((std::set< String > ExperimentalDesign::SampleSection::getFactors() const))
+START_SECTION((std::set<std::string> ExperimentalDesign::SampleSection::getFactors() const))
   const auto lfac = labelfree_unfractionated_design.getSampleSection().getFactors();
   const auto lfacst = labelfree_unfractionated_single_table_design.getSampleSection().getFactors();
   const auto lfacstns = labelfree_unfractionated_single_table_no_sample_column.getSampleSection().getFactors();
@@ -286,7 +293,7 @@ START_SECTION((unsigned getNumberOfSamples() const ))
 END_SECTION
 
 
-START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const String &factor) const))
+START_SECTION((std::string SampleSection::getFactorValue(const unsigned sample, const std::string &factor) const))
   // Note: Number of samples are the same (correctness tested in ExperimentalDesign::SampleSection::getNumberOfSamples())
   // Note: Factors are the same (correctness tested in ExperimentalDesign::SampleSection::getFactors())
   const auto lns = labelfree_unfractionated_design.getNumberOfSamples();
@@ -301,9 +308,9 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
     for (const auto& factor : lss_tt.getFactors())
     {
       // check if single table and two table design agree
-      String f1 = lss_st.getFactorValue(sample, factor);
-      String f2 = lss_tt.getFactorValue(sample, factor);
-      String f3 = lss_stns.getFactorValue(sample, factor);
+      std::string f1 = lss_st.getFactorValue(sample, factor);
+      std::string f2 = lss_tt.getFactorValue(sample, factor);
+      std::string f3 = lss_stns.getFactorValue(sample, factor);
       cout << f1 << "\t" << f2 << "\t" << f3 << endl;
       TEST_EQUAL(f1, f2);
       TEST_EQUAL(f1, f3);
@@ -319,8 +326,8 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
     for (const auto& factor : fss_tt.getFactors())
     {
       // check if single table and two table design agree
-      String f1 = fss_st.getFactorValue(sample, factor);
-      String f2 = fss_tt.getFactorValue(sample, factor);
+      std::string f1 = fss_st.getFactorValue(sample, factor);
+      std::string f2 = fss_tt.getFactorValue(sample, factor);
       TEST_EQUAL(f1, f2);
     }
   }      
@@ -474,12 +481,12 @@ START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 }
 END_SECTION
 
-START_SECTION((Size filterByBasenames(const set<String>&) keeps sample and file section synchronized))
+START_SECTION((Size filterByBasenames(const set<std::string>&) keeps sample and file section synchronized))
 {
   ExperimentalDesign design = ExperimentalDesignFile::load(
     OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);
 
-  std::set<String> keep{
+  std::set<std::string> keep{
     "JD_06232014_sample1-A.raw",
     "JD_06232014_sample1_B.raw"
   };
@@ -602,8 +609,8 @@ END_SECTION
 
 START_SECTION((ProteomicsLFQ subset output keeps design fraction_group assignments across fractions))
 {
-  const String design_file = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_BSA_design_onetable_nonconsec.tsv");
-  const String subset_output = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML");
+  const std::string design_file = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_BSA_design_onetable_nonconsec.tsv");
+  const std::string subset_output = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML");
   TEST_EQUAL(File::exists(design_file), true);
   TEST_EQUAL(File::exists(subset_output), true);
 
@@ -645,13 +652,13 @@ START_SECTION((isValid_()))
 {
 
   // missing fractions and wrong orders should work now
-  String foo = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong.tsv");
+  std::string foo = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong.tsv");
   ExperimentalDesignFile::load(foo,false);
-  String baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
+  std::string baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
   ExperimentalDesignFile::load(baz,false);
 
   // fraction groups still need to be consecutive
-  String bar = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_2.tsv");
+  std::string bar = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_2.tsv");
   TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(bar,false));
 
 }

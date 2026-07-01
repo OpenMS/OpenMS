@@ -32,9 +32,9 @@ START_SECTION((~Bzip2InputStream()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(Bzip2InputStream(const String& file_name))
+START_SECTION(Bzip2InputStream(const std::string& file_name))
 	TEST_EXCEPTION(Exception::FileNotFound, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
-	String filename = OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2");
+	std::string filename = OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2");
 	ptr = new Bzip2InputStream(filename);
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getIsOpen(),true)
@@ -51,7 +51,7 @@ START_SECTION(virtual XMLSize_t readBytes(XMLByte *const to_fill, const XMLSize_
 	TEST_EQUAL(bzip.readBytes(xml_buffer,(XMLSize_t)10),10)
 	TEST_EQUAL(bzip.readBytes(&xml_buffer[10],(XMLSize_t)10),10)
 	TEST_EQUAL(bzip.readBytes(&xml_buffer[20],(XMLSize_t)9),9)
-	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 	TEST_EQUAL(bzip.getIsOpen(),true)
 	TEST_EQUAL(bzip.readBytes(&xml_buffer[30],(XMLSize_t)10),1)
 	TEST_EQUAL(bzip.getIsOpen(),false)

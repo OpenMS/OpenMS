@@ -23,6 +23,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 
 #include <cmath>
@@ -144,17 +145,24 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFile_("id", "<file>", "", "Input file: Metabolite identifications");
-    setValidFormats_("id", ListUtils::create<String>("tsv"));
+    setValidFormats_("id", ListUtils::create<std::string>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
-    setValidFormats_("lib_out", ListUtils::create<String>("traML"));
+    setValidFormats_("lib_out", ListUtils::create<std::string>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
-    setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("chrom_out", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("trafo_out", "<file>", "", "Output file: Retention times (expected vs. observed)", false);
-    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("trafo_out", ListUtils::create<std::string>("trafoXML"));
     registerFlag_("force", "Force processing of files with no MS1 spectra", true);
 
     Param ffmetaboident_params;
@@ -165,7 +173,7 @@ protected:
   ProgressLogger prog_log_; ///< progress logger
 
   /// Read input file with information about targets
-  vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> readTargets_(const String& in_path)
+  vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> readTargets_(const std::string& in_path)
   {
     vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> metaboIdentTable;
 
@@ -180,25 +188,25 @@ protected:
     }
     string line;
     getline(source, line);
-    if (!String(line).hasPrefix(header))
+    if (!StringUtils::hasPrefix(std::string(line), header))
     {
-      String msg = "expected header line starting with: '" + header + "'";
+      std::string msg = "expected header line starting with: '" + header + "'";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   line, msg);
     }
 
     // Check for optional IM columns in header
-    bool has_im_columns = String(line).hasSubstring("IonMobility");
+    bool has_im_columns = StringUtils::hasSubstring(std::string(line), "IonMobility");
     // Check for optional Adduct column in header
-    bool has_adduct_column = String(line).hasSubstring("Adduct");
+    bool has_adduct_column = StringUtils::hasSubstring(std::string(line), "Adduct");
 
     Size line_count = 1;
-    set<String> names;
+    set<std::string> names;
     while (getline(source, line))
     {
       line_count++;
       if (line[0] == '#') continue; // skip comments
-      vector<String> parts = ListUtils::create<String>(line, '\t'); // split
+      vector<std::string> parts = ListUtils::create<std::string>(line, '\t'); // split
       if (parts.size() < 7)
       {
         OPENMS_LOG_ERROR
@@ -207,7 +215,7 @@ protected:
           << " - skipping this line." << endl;
         continue;
       }
-      String name = parts[0];
+      std::string name = parts[0];
       if (name.empty())
       {
         OPENMS_LOG_ERROR << "Error: Empty name field in input line "
@@ -230,16 +238,16 @@ protected:
       }
 
       // Parse optional Adduct column
-      String adduct;
+      std::string adduct;
       Size adduct_col = has_im_columns ? 8 : 7; // Adduct column position depends on IM column presence
       if (has_adduct_column && parts.size() > adduct_col)
       {
-        adduct = parts[adduct_col].trim();
+        adduct = StringUtils::trim(parts[adduct_col]);
       }
 
       metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound(name,
                                  parts[1],
-                                 parts[2].toDouble(),
+                                 StringUtils::toDouble(parts[2]),
                                  ListUtils::create<Int>(parts[3]),
                                  ListUtils::create<double>(parts[4]),
                                  ListUtils::create<double>(parts[5]),
@@ -256,12 +264,12 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String id = getStringOption_("id");
-    String out = getStringOption_("out");
-    String lib_out = getStringOption_("lib_out");
-    String chrom_out = getStringOption_("chrom_out");
-    String trafo_out = getStringOption_("trafo_out");
+    std::string in = getStringOption_("in");
+    std::string id = getStringOption_("id");
+    std::string out = getStringOption_("out");
+    std::string lib_out = getStringOption_("lib_out");
+    std::string chrom_out = getStringOption_("chrom_out");
+    std::string trafo_out = getStringOption_("trafo_out");
     bool force = getFlag_("force");
 
     prog_log_.setLogType(log_type_);
@@ -280,7 +288,7 @@ protected:
     PeakMap exp;
     FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.loadExperiment(in, exp, {FileTypes::MZML});
+    mzml.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     if (exp.empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"

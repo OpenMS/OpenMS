@@ -164,7 +164,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
     setValidFormats_("id", {"idXML", "idparquet"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
@@ -196,10 +203,10 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String out = getStringOption_("out");
-    String candidates_out = getStringOption_("candidates_out");
-    String candidates_in = getStringOption_("candidates_in");
-    String id = getStringOption_("id");
+    std::string out = getStringOption_("out");
+    std::string candidates_out = getStringOption_("candidates_out");
+    std::string candidates_in = getStringOption_("candidates_in");
+    std::string id = getStringOption_("id");
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
@@ -221,10 +228,10 @@ protected:
 
     if (candidates_in.empty())
     {
-      String in = getStringOption_("in");
-      String id_ext = getStringOption_("id_ext");
-      String lib_out = getStringOption_("lib_out");
-      String chrom_out = getStringOption_("chrom_out");
+      std::string in = getStringOption_("in");
+      std::string id_ext = getStringOption_("id_ext");
+      std::string lib_out = getStringOption_("lib_out");
+      std::string chrom_out = getStringOption_("chrom_out");
 
       //-------------------------------------------------------------
       // load input
@@ -233,7 +240,7 @@ protected:
       PeakMap ms_data_full;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML}, log_type_);
+      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
       PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;

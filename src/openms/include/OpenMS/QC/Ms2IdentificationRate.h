@@ -41,7 +41,7 @@ namespace OpenMS
 
   private:
     /// name of the metric
-    const String name_ = "Ms2IdentificationRate";
+    const std::string name_ = "Ms2IdentificationRate";
 
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
@@ -108,7 +108,7 @@ namespace OpenMS
     void compute(const PeptideIdentificationList& pep_ids, const MSExperiment& exp, bool assume_all_target = false);
 
     /// returns the name of the metric
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     /// returns results
     const std::vector<IdentificationRateData>& getResults() const;

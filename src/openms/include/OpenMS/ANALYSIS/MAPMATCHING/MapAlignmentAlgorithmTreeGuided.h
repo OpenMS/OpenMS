@@ -106,13 +106,13 @@ public:
 
 protected:
     /// Type to store feature retention times given for individual peptide sequence
-    typedef std::map<String, DoubleList> SeqAndRTList;
+    typedef std::map<std::string, DoubleList> SeqAndRTList;
 
     // Update defaults model_type_, model_param_ and align_algorithm_
     void updateMembers_() override;
 
     /// Type of transformation model
-    String model_type_;
+    std::string model_type_;
 
     /// Default params of transformation models linear, b_spline, lowess and interpolated
     Param model_param_;

@@ -103,7 +103,7 @@ public:
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds = FeatureMap(),
-    const String& spectra_file = ""
+    const std::string& spectra_file = ""
     );
 
   /// Re-score / filter an existing candidate @ref FeatureMap in place using the configured classifier and quality cutoffs (entry point used to re-process candidates exported via the @c candidates_out parameter).
@@ -177,7 +177,7 @@ protected:
   /// mapping: sequence -> charge -> internal/external ID information
   typedef std::map<AASequence, ChargeMap> PeptideMap;
   /// mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
-  typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefRTMap;
+  typedef std::map<std::string, std::pair<RTMap, RTMap> > PeptideRefRTMap;
 
   PeptideMap peptide_map_;
 
@@ -200,18 +200,18 @@ protected:
   double min_peak_width_;
   double signal_to_noise_;
 
-  String elution_model_;
+  std::string elution_model_;
 
   // SVM related parameters
   double svm_min_prob_;
   StringList svm_predictor_names_;
-  String svm_xval_out_;
+  std::string svm_xval_out_;
   double svm_quality_cutoff;
   Size svm_n_parts_; ///< number of partitions for SVM cross-validation
   Size svm_n_samples_; ///< number of samples for SVM training
 
   // output file (before filtering)
-  String candidates_out_;
+  std::string candidates_out_;
 
   Size debug_level_;
 
@@ -266,8 +266,8 @@ protected:
     bool operator()(const PeptideIdentification& p1,
                     const PeptideIdentification& p2)
     {
-      const String& seq1 = p1.getHits()[0].getSequence().toString();
-      const String& seq2 = p2.getHits()[0].getSequence().toString();
+      const std::string& seq1 = p1.getHits()[0].getSequence().toString();
+      const std::string& seq2 = p2.getHits()[0].getSequence().toString();
       if (seq1 == seq2)
       {
         Int charge1 = p1.getHits()[0].getCharge();
@@ -287,8 +287,8 @@ protected:
   {
     bool operator()(const Feature& f1, const Feature& f2)
     {
-      const String& ref1 = f1.getMetaValue("PeptideRef");
-      const String& ref2 = f2.getMetaValue("PeptideRef");
+      const std::string ref1 = StringUtils::toStr(f1.getMetaValue("PeptideRef"));
+      const std::string ref2 = StringUtils::toStr(f2.getMetaValue("PeptideRef"));
       if (ref1 == ref2)
       {
         return f1.getRT() < f2.getRT();
@@ -318,7 +318,7 @@ protected:
   Size n_internal_features_; ///< internal feature counter (for FDR calculation)
   Size n_external_features_; ///< external feature counter (for FDR calculation)
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
-  std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  std::map<std::string, double> isotope_probs_; ///< isotope probabilities of transitions
   /**
    * @brief Ion mobility statistics per peptide reference (peptide sequence/charge:region)
    *
@@ -326,7 +326,7 @@ protected:
    * Populated during createAssayLibrary_() and used during annotateFeatures_()
    * to add IM_median, IM_min, and IM_max meta-values to features.
    */
-  std::map<String, IMStats> im_stats_;
+  std::map<std::string, IMStats> im_stats_;
 
   /**
    * @brief Global ion mobility statistics from all peptide identifications
@@ -343,7 +343,7 @@ protected:
   ProgressLogger prog_log_;
 
   /// generate transitions (isotopic traces) for a peptide ion and add them to the library:
-  void generateTransitions_(const String& peptide_id, double mz, Int charge,
+  void generateTransitions_(const std::string& peptide_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
@@ -439,7 +439,7 @@ protected:
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds,
-    const String& spectra_file);
+    const std::string& spectra_file);
 
   // seeds for untargeted extraction
   Size addSeeds_(PeptideIdentificationList& peptides, const FeatureMap& seeds);

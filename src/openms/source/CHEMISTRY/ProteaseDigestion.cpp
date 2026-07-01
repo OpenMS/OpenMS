@@ -18,13 +18,13 @@ using namespace std;
 
 namespace OpenMS
 {
-  void ProteaseDigestion::setEnzyme(const String& enzyme_name)
+  void ProteaseDigestion::setEnzyme(const std::string& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
     re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
-  bool ProteaseDigestion::isValidProduct(const String& protein,
+  bool ProteaseDigestion::isValidProduct(const std::string& protein,
                                           int pos,
                                           int length,
                                           bool ignore_missed_cleavages,
@@ -41,7 +41,7 @@ namespace OpenMS
                                          bool allow_nterm_protein_cleavage,
                                          bool allow_random_asp_pro_cleavage) const
   {
-    String seq = protein.toUnmodifiedString();
+    std::string seq = protein.toUnmodifiedString();
     return isValidProduct_(seq, pep_pos, pep_length, ignore_missed_cleavages, allow_nterm_protein_cleavage, allow_random_asp_pro_cleavage);
   }
 
@@ -94,7 +94,7 @@ namespace OpenMS
            specificity_ == Specificity::SPEC_SEMI))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest()."), String(specificity_));
+        std::string("Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest()."),StringUtils::toStr(specificity_));
     }
 
     // disable max length filter by setting to maximum length

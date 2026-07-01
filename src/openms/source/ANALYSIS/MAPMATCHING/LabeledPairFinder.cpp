@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 
@@ -278,8 +279,8 @@ namespace OpenMS
     for (ConsensusMap::const_iterator match = matches.begin(); match != matches.end(); ++match)
     {
       //check if features are not used yet
-      if (used_features.find(match->begin()->getUniqueId()) == used_features.end() &&
-          used_features.find(match->rbegin()->getUniqueId()) == used_features.end()
+      if (!used_features.contains(match->begin()->getUniqueId()) &&
+          !used_features.contains(match->rbegin()->getUniqueId())
           )
       {
         //if unused, add it to the final set of elements

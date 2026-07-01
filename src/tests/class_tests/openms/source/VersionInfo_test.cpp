@@ -13,7 +13,7 @@
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/openms_package_version.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 
 /////////////////////////////////////////////////////////////
@@ -25,16 +25,16 @@ START_TEST(VersionInfo, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-START_SECTION(static String getTime())
+START_SECTION(static std::string getTime())
 {
-  String t = VersionInfo::getTime();
+  std::string t = VersionInfo::getTime();
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION(static String getVersion() )
+START_SECTION(static std::string getVersion() )
 {
-  TEST_STRING_EQUAL(VersionInfo::getVersion(), String(OPENMS_PACKAGE_VERSION).trim());
+  TEST_STRING_EQUAL(VersionInfo::getVersion(),StringUtils::trimmed(std::string(OPENMS_PACKAGE_VERSION)));
 }
 END_SECTION
 
@@ -124,7 +124,7 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator>(const VersionDetails
 }
 END_SECTION
 
-START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const String &version)))
+START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const std::string &version)))
 {
   VersionInfo::VersionDetails detail = VersionInfo::VersionDetails::create("1.9.2");
   VersionInfo::VersionDetails c;

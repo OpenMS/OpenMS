@@ -84,14 +84,14 @@ START_SECTION (const PGScoresType & getScores() const)
 }
 END_SECTION
 
-START_SECTION (double getScore(const String & score_name))
+START_SECTION (double getScore(const std::string & score_name))
 {
   // tested with set/add score
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION (Feature & getFeature(String key))
+START_SECTION (Feature & getFeature(std::string key))
 {
   MRMFeature mrmfeature;
   Feature f1;
@@ -114,7 +114,7 @@ START_SECTION (void setScores(const PGScoresType & scores))
 }
 END_SECTION
 
-START_SECTION (void addScore(const String & score_name, double score))
+START_SECTION (void addScore(const std::string & score_name, double score))
 {
   MRMFeature mrmfeature;
   mrmfeature.addScore("score1",1);
@@ -124,7 +124,7 @@ START_SECTION (void addScore(const String & score_name, double score))
 }
 END_SECTION
 
-START_SECTION (void addFeature(Feature & feature, const String & key))
+START_SECTION (void addFeature(Feature & feature, const std::string & key))
 {
   // tested in getFeature
   NOT_TESTABLE
@@ -143,7 +143,7 @@ START_SECTION (const std::vector<Feature> & getFeatures() const)
 }
 END_SECTION
 
-START_SECTION (void getFeatureIDs(std::vector<String> & result) const)
+START_SECTION (void getFeatureIDs(std::vector<std::string> & result) const)
 {
   MRMFeature mrmfeature;
   Feature f1;
@@ -151,7 +151,7 @@ START_SECTION (void getFeatureIDs(std::vector<String> & result) const)
   Feature f2;
   mrmfeature.addFeature(f1, "chromatogram1");
   mrmfeature.addFeature(f1, "chromatogram2");
-  std::vector<String> result;
+  std::vector<std::string> result;
   mrmfeature.getFeatureIDs(result);
   TEST_EQUAL(result.size(), 2)
   TEST_EQUAL(result[0], "chromatogram1")
@@ -159,12 +159,12 @@ START_SECTION (void getFeatureIDs(std::vector<String> & result) const)
 }
 END_SECTION
 
-START_SECTION (void addPrecursorFeature(Feature & feature, const String & key))
+START_SECTION (void addPrecursorFeature(Feature & feature, const std::string & key))
 {
   // Initially, there should be no feature present
   MRMFeature mrmfeature;
   {
-    std::vector<String> result;
+    std::vector<std::string> result;
     mrmfeature.getPrecursorFeatureIDs(result);
     TEST_EQUAL(result.size(), 0)
   }
@@ -173,14 +173,14 @@ START_SECTION (void addPrecursorFeature(Feature & feature, const String & key))
   Feature f1;
   mrmfeature.addPrecursorFeature(f1, "precursor_chromatogram1");
   {
-    std::vector<String> result;
+    std::vector<std::string> result;
     mrmfeature.getPrecursorFeatureIDs(result);
     TEST_EQUAL(result.size(), 1)
   }
 }
 END_SECTION
 
-START_SECTION (void getPrecursorFeatureIDs(std::vector<String> & result) const)
+START_SECTION (void getPrecursorFeatureIDs(std::vector<std::string> & result) const)
 {
   MRMFeature mrmfeature;
   Feature f1;
@@ -188,7 +188,7 @@ START_SECTION (void getPrecursorFeatureIDs(std::vector<String> & result) const)
   Feature f2;
   mrmfeature.addPrecursorFeature(f1, "chromatogram1");
   mrmfeature.addPrecursorFeature(f1, "chromatogram2");
-  std::vector<String> result;
+  std::vector<std::string> result;
   mrmfeature.getPrecursorFeatureIDs(result);
   TEST_EQUAL(result.size(), 2)
   TEST_EQUAL(result[0], "chromatogram1")
@@ -196,7 +196,7 @@ START_SECTION (void getPrecursorFeatureIDs(std::vector<String> & result) const)
 }
 END_SECTION
 
-START_SECTION (Feature & getPrecursorFeature(String key))
+START_SECTION (Feature & getPrecursorFeature(std::string key))
 {
   MRMFeature mrmfeature;
   Feature f1;

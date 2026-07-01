@@ -56,13 +56,20 @@ namespace OpenMS
       this->setStyle("plastique");
     }
 
-    // customize look and feel via Qt style sheets
-    String filename = File::find("GUISTYLE/qtStyleSheet.qss");
-    QFile fh(toQString(filename));
-    fh.open(QFile::ReadOnly);
-    QString style_string = QLatin1String(fh.readAll());
-    //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
-    this->setStyleSheet(style_string);
+    // Customize look and feel via Qt style sheets.
+    // A non-empty stylesheet at this point means the user passed the generic Qt option
+    // '-stylesheet <file>' on the command line (already applied by the QApplication base-class
+    // constructor above, see https://doc.qt.io/qt-5/qapplication.html#QApplication); in that case
+    // we keep the user's stylesheet instead of overriding it with the OpenMS default.
+    if (this->styleSheet().isEmpty())
+    {
+      std::string filename = File::find("GUISTYLE/qtStyleSheet.qss");
+      QFile fh(toQString(filename));
+      fh.open(QFile::ReadOnly);
+      QString style_string = QLatin1String(fh.readAll());
+      //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
+      this->setStyleSheet(style_string);
+    }
   }
 
   QApplicationTOPP::~QApplicationTOPP() = default;
@@ -81,7 +88,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
+      std::string msg =std::string("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
       OPENMS_LOG_ERROR << msg << "\n";
       QMessageBox::warning(nullptr, QString("Unexpected error occurred"), toQString(msg));
       return false;

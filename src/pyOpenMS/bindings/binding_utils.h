@@ -26,23 +26,23 @@ template <typename T, typename Class>
 void def_MetaInfoInterface(Class& cls)
 {
     cls
-        .def("getMetaValue", [](const T& self, const OpenMS::String& name) {
+        .def("getMetaValue", [](const T& self, const std::string& name) {
             return self.getMetaValue(name);
         }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const T& self, const OpenMS::String& name) {
+        .def("metaValueExists", [](const T& self, const std::string& name) {
             return self.metaValueExists(name);
         }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](T& self, const OpenMS::String& name, const OpenMS::DataValue& value) {
+        .def("setMetaValue", [](T& self, const std::string& name, const OpenMS::DataValue& value) {
             return self.setMetaValue(name, value);
         }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](T& self, const OpenMS::String& name) {
+        .def("removeMetaValue", [](T& self, const std::string& name) {
             return self.removeMetaValue(name);
         }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
         .def_static("metaRegistry", []() {
             return T::metaRegistry();
         }, "Returns a reference to the MetaInfoRegistry")
         .def("getKeys", [](const T& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
+            std::vector<std::string> keys;
             self.getKeys(keys);
             py_keys.attr("clear")();
             for (const auto& k : keys) {
@@ -50,7 +50,7 @@ void def_MetaInfoInterface(Class& cls)
             }
         }, "keys"_a, "Fills the given list with all meta value keys")
         .def("getKeys", [](const T& self) {
-            std::vector<OpenMS::String> keys;
+            std::vector<std::string> keys;
             self.getKeys(keys);
             nb::list result;
             for (const auto& k : keys) {
@@ -93,7 +93,7 @@ void def_UniqueIdInterface(Class& cls)
         .def("setUniqueId", [](T& self, size_t rhs) {
             self.setUniqueId(rhs);
         }, "rhs"_a, "Assigns the given unique id")
-        .def("setUniqueId", [](T& self, const OpenMS::String& rhs) {
+        .def("setUniqueId", [](T& self, const std::string& rhs) {
             self.setUniqueId(rhs);
         }, "rhs"_a, "Assigns a unique id from a string (extracts UInt64 after last underscore)")
         .def("ensureUniqueId", [](T& self) {
@@ -107,19 +107,19 @@ template <typename T, typename Class>
 void def_DocumentIdentifier(Class& cls)
 {
     cls
-        .def("setIdentifier", [](T& self, const OpenMS::String& id) {
+        .def("setIdentifier", [](T& self, const std::string& id) {
             return self.setIdentifier(id);
         }, "id"_a, "Sets document identifier (e.g. an LSID)")
         .def("getIdentifier", [](const T& self) {
             return self.getIdentifier();
         }, "Retrieve document identifier (e.g. an LSID)")
-        .def("setLoadedFilePath", [](T& self, const OpenMS::String& file_name) {
+        .def("setLoadedFilePath", [](T& self, const std::string& file_name) {
             return self.setLoadedFilePath(file_name);
         }, "file_name"_a, "Sets the file_name according to absolute path of the file loaded, preferably done whilst loading")
         .def("getLoadedFilePath", [](const T& self) {
             return self.getLoadedFilePath();
         }, "Returns the file_name which is the absolute path to the file loaded")
-        .def("setLoadedFileType", [](T& self, const OpenMS::String& file_name) {
+        .def("setLoadedFileType", [](T& self, const std::string& file_name) {
             return self.setLoadedFileType(file_name);
         }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
         .def("getLoadedFileType", [](const T& self) -> const OpenMS::FileTypes::Type & {
@@ -145,10 +145,10 @@ void def_DefaultParamHandler(Class& cls)
         .def("getName", [](const T& self) {
             return self.getName();
         }, "Returns the name")
-        .def("setName", [](T& self, const OpenMS::String& name) {
+        .def("setName", [](T& self, const std::string& name) {
             return self.setName(name);
         }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const T& self) -> const std::vector<OpenMS::String> & {
+        .def("getSubsections", [](const T& self) -> const std::vector<std::string> & {
             return self.getSubsections();
         }, nb::rv_policy::reference_internal)
         ;
@@ -167,7 +167,7 @@ void def_ProgressLogger(Class& cls)
         .def("getLogType", [](const T& self) {
             return self.getLogType();
         }, "Returns the type of progress log being used")
-        .def("startProgress", [](const T& self, long begin, long end, const OpenMS::String& label) {
+        .def("startProgress", [](const T& self, long begin, long end, const std::string& label) {
             return self.startProgress(begin, end, label);
         }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const T& self, long value) {
@@ -192,13 +192,13 @@ void def_CVTermList(Class& cls)
         .def("replaceCVTerm", [](T& self, const OpenMS::CVTerm& cv_term) {
             return self.replaceCVTerm(cv_term);
         }, "cv_term"_a, "Replaces the specified CV term")
-        .def("replaceCVTerms", [](T& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) {
+        .def("replaceCVTerms", [](T& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) {
             self.replaceCVTerms(cv_term_map);
         }, "cv_term_map"_a, "Replaces all CV terms with the given map")
-        .def("consumeCVTerms", [](T& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) {
+        .def("consumeCVTerms", [](T& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) {
             return self.consumeCVTerms(cv_term_map);
         }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const T& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & {
+        .def("getCVTerms", [](const T& self) -> const std::map<std::string, std::vector<OpenMS::CVTerm>> & {
             return self.getCVTerms();
         }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
         .def("addCVTerm", [](T& self, const OpenMS::CVTerm& term) {
@@ -207,7 +207,7 @@ void def_CVTermList(Class& cls)
         .def("setCVTerms", [](T& self, const std::vector<OpenMS::CVTerm>& terms) {
             return self.setCVTerms(terms);
         }, "terms"_a, "Sets the CV terms from a vector")
-        .def("hasCVTerm", [](const T& self, const OpenMS::String& accession) {
+        .def("hasCVTerm", [](const T& self, const std::string& accession) {
             return self.hasCVTerm(accession);
         }, "accession"_a)
         .def("empty", [](const T& self) {

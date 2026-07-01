@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <boost/regex.hpp>
@@ -49,7 +49,7 @@ namespace OpenMS
     Int scan = SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768");  // returns 42
 
     // Get regex pattern from native ID format
-    String regex = SpectrumNativeIDParser::getRegExFromNativeID("scan=123");  // returns "scan=(?<GROUP>\d+)"
+    std::string regex = SpectrumNativeIDParser::getRegExFromNativeID("scan=123");  // returns "scan=(?<GROUP>\d+)"
 
     // Check if string is a native ID
     bool is_native = SpectrumNativeIDParser::isNativeID("scan=123");  // returns true
@@ -74,7 +74,7 @@ namespace OpenMS
        @note The regular expression must contain a capture group, and the last matching
              subgroup is used as the scan number.
     */
-    static Int extractScanNumber(const String& native_id,
+    static Int extractScanNumber(const std::string& native_id,
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
@@ -90,8 +90,8 @@ namespace OpenMS
        @note For WIFF files (MS:1000770), the return value is computed as cycle * 1000 + experiment.
        @note For index-based native IDs (MS:1000774), the return value is index + 1 for pepXML compatibility.
     */
-    static Int extractScanNumber(const String& native_id,
-                                 const String& native_id_type_accession);
+    static Int extractScanNumber(const std::string& native_id,
+                                 const std::string& native_id_type_accession);
 
     /**
        @brief Determine the regular expression to extract scan/index numbers from native IDs
@@ -110,7 +110,7 @@ namespace OpenMS
        - `file=` → `file=(?<GROUP>\d+)`
        - Plain number → `(?<GROUP>\d+)`
     */
-    static std::string getRegExFromNativeID(const String& native_id);
+    static std::string getRegExFromNativeID(const std::string& native_id);
 
     /**
        @brief Check if a spectrum identifier is a native ID from a vendor file
@@ -121,7 +121,7 @@ namespace OpenMS
 
        Recognized prefixes: scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=
     */
-    static bool isNativeID(const String& id);
+    static bool isNativeID(const std::string& id);
 
   };
 

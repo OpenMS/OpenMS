@@ -45,13 +45,13 @@ public:
       ///Representation of a parsed CV term
       struct CVTerm
       {
-        String accession;
-        String name;
-        String value;
+        std::string accession;
+        std::string name;
+        std::string value;
         bool has_value{};
-        String unit_accession;
+        std::string unit_accession;
         bool has_unit_accession{};
-        String unit_name;
+        std::string unit_name;
         bool has_unit_name{};
       };
 
@@ -66,22 +66,22 @@ public:
 
           @exception Exception::FileNotFound is thrown if the file could not be opened
       */
-      bool validate(const String & filename, StringList & errors, StringList & warnings);
+      bool validate(const std::string & filename, StringList & errors, StringList & warnings);
 
       /// Checks if a CVTerm is allowed in a given path
-      bool locateTerm(const String & path, const CVTerm & parsed_term) const;
+      bool locateTerm(const std::string & path, const CVTerm & parsed_term) const;
 
       /// Sets the CV parameter tag name (default: 'cvParam')
-      void setTag(const String & tag);
+      void setTag(const std::string & tag);
 
       /// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'accession')
-      void setAccessionAttribute(const String & accession);
+      void setAccessionAttribute(const std::string & accession);
 
       /// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'name')
-      void setNameAttribute(const String & name);
+      void setNameAttribute(const std::string & name);
 
       /// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'value')
-      void setValueAttribute(const String & value);
+      void setValueAttribute(const std::string & value);
 
       /**
           @brief Set if CV term value types should be check (enabled by default)
@@ -103,10 +103,10 @@ public:
       void setCheckUnits(bool check);
 
       /// Sets the name of the unit accession attribute (default: 'unitAccession')
-      void setUnitAccessionAttribute(const String & accession);
+      void setUnitAccessionAttribute(const std::string & accession);
 
       /// Sets the name of the unit name attribute (default: 'unitName')
-      void setUnitNameAttribute(const String & name);
+      void setUnitNameAttribute(const std::string & name);
 
 protected:
 
@@ -120,7 +120,7 @@ protected:
       void characters(const XMLCh * const chars, const XMLSize_t /*length*/) override;
 
       /// Returns the current element path
-      virtual String getPath_(UInt remove_from_end = 0) const;
+      virtual std::string getPath_(UInt remove_from_end = 0) const;
 
       /// Parses the CV term accession (required), name (required) and value (optional) from the XML attributes
       virtual void getCVTerm_(const xercesc::Attributes & attributes, CVTerm & parsed_term);
@@ -130,7 +130,7 @@ protected:
       //~ virtual void makeCVTerm_(const ControlledVocabulary::CVTerm & lc, CVTerm & parsed_term);
 
       /// Handling of the term
-      virtual void handleTerm_(const String & path, const CVTerm & parsed_term);
+      virtual void handleTerm_(const std::string & path, const CVTerm & parsed_term);
 
       /// Reference to the mappings
       const CVMappings & mapping_;
@@ -148,22 +148,22 @@ protected:
       StringList open_tags_;
 
       /// Rules (location => rule)
-      std::map<String, std::vector<CVMappingRule> > rules_;
+      std::map<std::string, std::vector<CVMappingRule> > rules_;
 
       /// Fulfilled rules (location => rule ID => term ID => term count )
       /// When a tag is closed, the fulfilled rules of the current location are checked against the required rules
       /// The fulfilled rules for that location are then deleted.
-      std::map<String, std::map<String, std::map<String, UInt> > > fulfilled_;
+      std::map<std::string, std::map<std::string, std::map<std::string, UInt> > > fulfilled_;
 
 
       ///@name Tag and attribute names
       //@{
-      String cv_tag_;
-      String accession_att_;
-      String name_att_;
-      String value_att_;
-      String unit_accession_att_;
-      String unit_name_att_;
+      std::string cv_tag_;
+      std::string accession_att_;
+      std::string name_att_;
+      std::string value_att_;
+      std::string unit_accession_att_;
+      std::string unit_name_att_;
       bool check_term_value_types_;
       bool check_units_;
       //@}

@@ -24,7 +24,7 @@ namespace OpenMS
 
   ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) = default;
 
-  ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
+  ModificationDefinition::ModificationDefinition(const std::string& mod, bool fixed, UInt max_occur) :
     mod_(nullptr),
     fixed_modification_(fixed),
     max_occurrences_(max_occur)
@@ -79,7 +79,7 @@ namespace OpenMS
     return fixed_modification_;
   }
 
-  void ModificationDefinition::setModification(const String& modification)
+  void ModificationDefinition::setModification(const std::string& modification)
   {
     mod_ = ModificationsDB::getInstance()->getModification(modification);
   }
@@ -94,7 +94,7 @@ namespace OpenMS
     return *mod_;
   }
 
-  String ModificationDefinition::getModificationName() const
+  std::string ModificationDefinition::getModificationName() const
   {
     if (mod_ != nullptr)
     {

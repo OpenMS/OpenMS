@@ -65,31 +65,31 @@ protected:
     std::optional<OpenSwathMatrixLevel> matrix_level;
   };
 
-  static bool toBool_(const String& value)
+  static bool toBool_(const std::string& value)
   {
     return value == "true";
   }
 
-  static OpenSwathExportFileFormat toExportFormat_(const String& value)
+  static OpenSwathExportFileFormat toExportFormat_(const std::string& value)
   {
     return value == "parquet" ? OpenSwathExportFileFormat::Parquet : OpenSwathExportFileFormat::TSV;
   }
 
-  static OpenSwathIPFExportMode toIPFMode_(const String& value)
+  static OpenSwathIPFExportMode toIPFMode_(const std::string& value)
   {
     if (value == "augmented") return OpenSwathIPFExportMode::Augmented;
     if (value == "disable") return OpenSwathIPFExportMode::Disable;
     return OpenSwathIPFExportMode::Peptidoform;
   }
 
-  static OpenSwathMatrixNormalization toNormalization_(const String& value)
+  static OpenSwathMatrixNormalization toNormalization_(const std::string& value)
   {
     if (value == "median") return OpenSwathMatrixNormalization::Median;
     if (value == "medianmedian") return OpenSwathMatrixNormalization::MedianMedian;
     return OpenSwathMatrixNormalization::None;
   }
 
-  OpenSwathExportFilterConfig getFilterConfig_(const String& prefix) const
+  OpenSwathExportFilterConfig getFilterConfig_(const std::string& prefix) const
   {
     OpenSwathExportFilterConfig config;
     config.ipf_mode = toIPFMode_(getStringOption_(prefix + ":ipf"));
@@ -128,7 +128,7 @@ protected:
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Parameter 'matrix:top_n' must be >= 1 for peptide/protein/gene matrix export and >= 0 for precursor export.",
-        String(top_n));
+        StringUtils::toStr(top_n));
     }
     config.top_n = static_cast<Size>(top_n);
     config.consistent_top = toBool_(getStringOption_("matrix:consistent_top"));
@@ -144,19 +144,19 @@ protected:
     return config;
   }
 
-  static String makeOutputDir_(const String& input_file, const String& requested_out_dir)
+  static std::string makeOutputDir_(const std::string& input_file, const std::string& requested_out_dir)
   {
     if (!requested_out_dir.empty())
     {
       return requested_out_dir;
     }
-    const String input_dir = File::path(input_file);
+    const std::string input_dir = File::path(input_file);
     return input_dir.empty() ? "." : input_dir;
   }
 
-  static String makeBasePath_(const String& input_file, const String& out_dir)
+  static std::string makeBasePath_(const std::string& input_file, const std::string& out_dir)
   {
-    const String dir = makeOutputDir_(input_file, out_dir);
+    const std::string dir = makeOutputDir_(input_file, out_dir);
     return dir + "/" + File::stemName(input_file);
   }
 
@@ -195,7 +195,7 @@ protected:
     return tasks;
   }
 
-  static String taskLabel_(const ExportTask& task)
+  static std::string taskLabel_(const ExportTask& task)
   {
     switch (task.type)
     {
@@ -288,16 +288,16 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    const String input_file = getStringOption_("in");
-    if (input_file.hasSuffix(".oswpq") || input_file.hasSuffix(".oswpq.zip"))
+    const std::string input_file = getStringOption_("in");
+    if (StringUtils::hasSuffix(input_file, ".oswpq") || StringUtils::hasSuffix(input_file, ".oswpq.zip"))
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "OpenSwathExport currently supports OSW input only. .oswpq support is reserved for future work.");
     }
 
-    const String out_dir = makeOutputDir_(input_file, getOutputDirOption("out_dir"));
+    const std::string out_dir = makeOutputDir_(input_file, getOutputDirOption("out_dir"));
     File::makeDir(out_dir);
-    const String base_path = makeBasePath_(input_file, out_dir);
+    const std::string base_path = makeBasePath_(input_file, out_dir);
     const auto tasks = getTasks_();
 
     OSWFile osw(input_file);
@@ -314,7 +314,7 @@ protected:
         {
           const auto parquet_config = getParquetConfig_();
           const auto feature_table = osw.readOpenSwathFeatureScoreTable(parquet_config);
-          const String feature_out = base_path + ".precursor.feature.scores.parquet";
+          const std::string feature_out = base_path + ".precursor.feature.scores.parquet";
           OpenSwathParquetExporter::writeFeatureScores(feature_out, feature_table);
           OPENMS_LOG_INFO << "Wrote " << feature_table.rows.size() << " precursor feature score rows to '" << feature_out << "'." << std::endl;
           if (parquet_config.include_transition_data)
@@ -322,7 +322,7 @@ protected:
             const auto transition_table = osw.readOpenSwathTransitionScoreTable(parquet_config);
             if (!transition_table.rows.empty())
             {
-              const String transition_out = base_path + ".transition.feature.scores.parquet";
+              const std::string transition_out = base_path + ".transition.feature.scores.parquet";
               OpenSwathParquetExporter::writeTransitionScores(transition_out, transition_table);
               OPENMS_LOG_INFO << "Wrote " << transition_table.rows.size() << " transition feature score rows to '" << transition_out << "'." << std::endl;
             }
@@ -333,8 +333,8 @@ protected:
         {
           const auto results_config = getResultsConfig_();
           const auto rows = osw.readOpenSwathExportRows(results_config.filters);
-          const String suffix = results_config.format == OpenSwathExportFileFormat::Parquet ? ".results.parquet" : ".results.tsv";
-          const String output = base_path + suffix;
+          const std::string suffix = results_config.format == OpenSwathExportFileFormat::Parquet ? ".results.parquet" : ".results.tsv";
+          const std::string output = base_path + suffix;
           OpenSwathResultsExporter::write(output, rows, results_config);
           OPENMS_LOG_INFO << "Wrote " << rows.size() << " filtered result rows to '" << output << "'." << std::endl;
           break;
@@ -347,8 +347,8 @@ protected:
             matrix_rows_cache = osw.readOpenSwathExportRows(matrix_config.filters);
           }
           const auto matrix = OpenSwathMatrixExporter::buildMatrix(*matrix_rows_cache, matrix_config);
-          const String suffix = matrix_config.format == OpenSwathExportFileFormat::Parquet ? ".matrix.parquet" : ".matrix.tsv";
-          const String output = base_path + "." + toString(*task.matrix_level) + suffix;
+          const std::string suffix = matrix_config.format == OpenSwathExportFileFormat::Parquet ? ".matrix.parquet" : ".matrix.tsv";
+          const std::string output = base_path + "." + toString(*task.matrix_level) + suffix;
           OpenSwathMatrixExporter::writeMatrix(output, matrix, matrix_config);
           OPENMS_LOG_INFO << "Wrote " << matrix.identifier_rows.size() << " " << toString(*task.matrix_level)
                           << " matrix rows to '" << output << "'." << std::endl;

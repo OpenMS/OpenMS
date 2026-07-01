@@ -71,23 +71,23 @@ public:
     //@{
 
     /// Write complete spectra as a dump to the disk
-    void writeMemdump(const MapType& exp, const String& out) const;
+    void writeMemdump(const MapType& exp, const std::string& out) const;
 
     /// Write only the meta data of an MSExperiment
-    void writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue=false);
+    void writeMetadata(MapType exp, const std::string& out_meta, bool addCacheMetaValue=false);
 
     /// Write only the meta data of an MSExperiment
-    void writeMetadata_x(const MapType& exp, const String& out_meta, bool addCacheMetaValue=false);
+    void writeMetadata_x(const MapType& exp, const std::string& out_meta, bool addCacheMetaValue=false);
 
     /// Read all spectra from a dump from the disk
-    void readMemdump(MapType& exp_reading, const String& filename) const;
+    void readMemdump(MapType& exp_reading, const std::string& filename) const;
     //@}
 
     /** @name Access and creation of the binary indices
     */
     //@{
     /// Create an index on the location of all the spectra and chromatograms
-    void createMemdumpIndex(const String& filename);
+    void createMemdumpIndex(const std::string& filename);
 
     /// Access to a constant copy of the binary spectra index
     const std::vector<std::streampos>& getSpectraIndex() const;

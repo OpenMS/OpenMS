@@ -152,6 +152,9 @@ namespace OpenMS
      */
     const std::vector<Peptide>& getPeptides() const;
 
+    /// Number of theoretical fragments stored in the index (0 before build()).
+    Size getNumFragments() const noexcept { return fi_fragments_.size(); }
+
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
      * @brief Manually adds a peptide to the internal peptide list (debug builds only).

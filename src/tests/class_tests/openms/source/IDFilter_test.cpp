@@ -16,11 +16,15 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 ///////////////////////////
@@ -131,15 +135,15 @@ START_SECTION((template <class IdentificationType> static bool getBestHit(const 
 }
 END_SECTION
 
-START_SECTION((static void extractPeptideSequences(const PeptideIdentificationList& peptides, set<String>& sequences, bool ignore_mods = false)))
+START_SECTION((static void extractPeptideSequences(const PeptideIdentificationList& peptides, set<std::string>& sequences, bool ignore_mods = false)))
 {
-  set<String> seqs;
+  set<std::string> seqs;
   IDFilter::extractPeptideSequences(global_peptides, seqs);
   TEST_EQUAL(seqs.size(), 11);
-  vector<String> expected = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
-  vector<String> expected_unmodified = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<std::string> expected = ListUtils::create<std::string>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<std::string> expected_unmodified = ListUtils::create<std::string>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
   Size counter = 0;
-  for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
+  for (set<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {
     TEST_EQUAL(*it, expected[counter]);
@@ -149,7 +153,7 @@ START_SECTION((static void extractPeptideSequences(const PeptideIdentificationLi
   IDFilter::extractPeptideSequences(global_peptides, seqs, true);
   TEST_EQUAL(seqs.size(), 10);
   counter = 0;
-  for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
+  for (set<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {
     if (counter == 6) counter++; // skip the modified sequence
@@ -269,6 +273,126 @@ START_SECTION((static void removeDanglingProteinReferences(PeptideIdentification
   // remove peptide hits without any reference to an existing proteins:
   IDFilter::removeDanglingProteinReferences(peptides, proteins, true);
   TEST_EQUAL(peptide_hits.size(), 2);
+}
+END_SECTION
+
+START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false)))
+{
+  // Build a ConsensusMap whose run "run1" knows PROT1/PROT2 but NOT the decoys.
+  // An assigned PSM references PROT1 + DECOY_PROT1; a second assigned PSM
+  // references only DECOY_PROT1; an unassigned PSM references PROT2 + DECOY_PROT2.
+  auto make_cmap = []() {
+    ConsensusMap cmap;
+
+    ProteinIdentification prot;
+    prot.setIdentifier("run1");
+    ProteinHit ph1; ph1.setAccession("PROT1");
+    ProteinHit ph2; ph2.setAccession("PROT2");
+    prot.insertHit(ph1);
+    prot.insertHit(ph2);
+    cmap.setProteinIdentifications({prot});
+
+    // assigned PSMs on a consensus feature
+    PeptideHit hitA;
+    hitA.setSequence(AASequence::fromString("PEPTIDEA"));
+    { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
+    PeptideHit hitB;
+    hitB.setSequence(AASequence::fromString("PEPTIDEB"));
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitB.addPeptideEvidence(e); }
+    PeptideIdentification pid;
+    pid.setIdentifier("run1");
+    pid.setHits({hitA, hitB});
+
+    ConsensusFeature cf;
+    cf.setRT(1.0); cf.setMZ(100.0);
+    cf.getPeptideIdentifications().push_back(pid);
+    cmap.push_back(cf);
+
+    // unassigned PSM
+    PeptideHit hitC;
+    hitC.setSequence(AASequence::fromString("PEPTIDEC"));
+    { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT2"); hitC.addPeptideEvidence(e); }
+    PeptideIdentification upid;
+    upid.setIdentifier("run1");
+    upid.setHits({hitC});
+    cmap.getUnassignedPeptideIdentifications().push_back(upid);
+
+    return cmap;
+  };
+
+  // (1) keep PSMs, drop the dangling (decoy) evidences only
+  {
+    ConsensusMap cmap = make_cmap();
+    IDFilter::removeDanglingProteinReferences(cmap, false);
+
+    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(assigned.size(), 2);
+    TEST_EQUAL(assigned[0].getPeptideEvidences().size(), 1);
+    TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+    TEST_EQUAL(assigned[1].getPeptideEvidences().size(), 0); // only DECOY_PROT1 -> removed
+
+    // unassigned PSMs are processed too (include_unassigned defaults to true)
+    const vector<PeptideHit>& unassigned = cmap.getUnassignedPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(unassigned.size(), 1);
+    TEST_EQUAL(unassigned[0].getPeptideEvidences().size(), 1);
+    TEST_STRING_EQUAL(unassigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT2");
+  }
+
+  // (2) remove_peptides_without_reference: the PSM with only dangling refs is dropped
+  {
+    ConsensusMap cmap = make_cmap();
+    IDFilter::removeDanglingProteinReferences(cmap, true);
+    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(assigned.size(), 1); // hitB removed (no surviving evidence)
+    TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+  }
+}
+END_SECTION
+
+START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false)))
+{
+  // Filter ALL peptides against a single reference run that knows only PROT1,
+  // so PROT2 (and both decoys) become dangling everywhere -- independent of the
+  // per-run ProteinIdentifications stored on the map.
+  ConsensusMap cmap;
+  ProteinIdentification prot; prot.setIdentifier("run1");
+  ProteinHit ph1; ph1.setAccession("PROT1");
+  ProteinHit ph2; ph2.setAccession("PROT2");
+  prot.insertHit(ph1);
+  prot.insertHit(ph2);
+  cmap.setProteinIdentifications({prot});
+
+  PeptideHit hitA;
+  hitA.setSequence(AASequence::fromString("PEPTIDEA"));
+  { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
+  { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
+  PeptideIdentification pid; pid.setIdentifier("run1"); pid.setHits({hitA});
+  ConsensusFeature cf; cf.setRT(1.0); cf.setMZ(100.0);
+  cf.getPeptideIdentifications().push_back(pid);
+  cmap.push_back(cf);
+
+  PeptideHit hitC;
+  hitC.setSequence(AASequence::fromString("PEPTIDEC"));
+  { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
+  PeptideIdentification upid; upid.setIdentifier("run1"); upid.setHits({hitC});
+  cmap.getUnassignedPeptideIdentifications().push_back(upid);
+
+  ProteinIdentification ref_run;
+  ProteinHit only1; only1.setAccession("PROT1");
+  ref_run.insertHit(only1);
+
+  IDFilter::removeDanglingProteinReferences(cmap, ref_run, false);
+
+  // assigned hitA: PROT1 kept, DECOY_PROT1 removed
+  const PeptideHit& a = cmap[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(a.getPeptideEvidences().size(), 1);
+  TEST_STRING_EQUAL(a.getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+
+  // unassigned hitC: PROT2 is NOT in ref_run -> removed (ref_run overrides per-run)
+  const PeptideHit& c = cmap.getUnassignedPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(c.getPeptideEvidences().size(), 0);
 }
 END_SECTION
 
@@ -432,9 +556,9 @@ START_SECTION((template <class IdentificationType> static void removeDecoyHits(v
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void removeHitsMatchingProteins(vector<IdentificationType>& ids, const set<String> accessions)))
+START_SECTION((template <class IdentificationType> static void removeHitsMatchingProteins(vector<IdentificationType>& ids, const set<std::string> accessions)))
 {
-  set<String> accessions;
+  set<std::string> accessions;
   accessions.insert("Q824A5");
   accessions.insert("Q872T5");
 
@@ -461,9 +585,9 @@ START_SECTION((template <class IdentificationType> static void removeHitsMatchin
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void keepHitsMatchingProteins(vector<IdentificationType>& ids, const set<String> accessions)))
+START_SECTION((template <class IdentificationType> static void keepHitsMatchingProteins(vector<IdentificationType>& ids, const set<std::string> accessions)))
 {
-  set<String> accessions;
+  set<std::string> accessions;
   accessions.insert("Q824A5");
   accessions.insert("Q872T5");
 
@@ -615,7 +739,7 @@ START_SECTION((static void filterPeptidesByMZError(PeptideIdentificationList& pe
 }
 END_SECTION
 
-START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold = 0.05)))
+START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const std::string& metavalue_key, double threshold = 0.05)))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
@@ -650,10 +774,10 @@ START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)))
+START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  set<String> mods;
+  set<std::string> mods;
   mods.insert("Carbamidomethyl (C)"); // not present in the data
   IDFilter::removePeptidesWithMatchingModifications(peptides, mods);
   TEST_TRUE(peptides == global_peptides); // no changes
@@ -679,10 +803,10 @@ START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdenti
 }
 END_SECTION
 
-START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex)))
+START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const std::string& regex)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  String re{"[BJXZ]"};
+  std::string re{"[BJXZ]"};
 
   IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
   TEST_TRUE(peptides == global_peptides); // no changes
@@ -707,10 +831,10 @@ START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)))
+START_SECTION((static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  set<String> mods;
+  set<std::string> mods;
   mods.insert("Oxidation (M)");
   IDFilter::keepPeptidesWithMatchingModifications(peptides, mods);
   TEST_EQUAL(peptides[0].getHits().size(), 1);

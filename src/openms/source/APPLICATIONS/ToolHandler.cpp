@@ -146,6 +146,8 @@ namespace OpenMS
     tools_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", cat_targeted);
     tools_map["OpenSwathInfer"] = Internal::ToolDescription("OpenSwathInfer", cat_targeted);
     tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", cat_targeted);
+    tools_map["OpenSwathPeakMapExtractor"] = Internal::ToolDescription("OpenSwathPeakMapExtractor", cat_targeted);
+    tools_map["OpenSwathPercolatorScoring"] = Internal::ToolDescription("OpenSwathPercolatorScoring", cat_targeted);
     tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", cat_targeted);
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
@@ -160,7 +162,6 @@ namespace OpenMS
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
-    tools_map["QPXConverter"] = Internal::ToolDescription("QPXConverter", cat_file_converter);
     tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
@@ -191,6 +192,7 @@ namespace OpenMS
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
+    tools_map["UniPEFF"] = Internal::ToolDescription("UniPEFF", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
 
@@ -201,7 +203,6 @@ namespace OpenMS
     StringList GUI_tools = {
       "ExecutePipeline",
       "ImageCreator",
-      "INIUpdater",
     };
     for (const auto& tool : GUI_tools) {
       tools_map.erase(tool);
@@ -213,7 +214,7 @@ namespace OpenMS
     std::vector<Internal::ToolDescription> internal_tools = getInternalTools_();
     for (std::vector<Internal::ToolDescription>::const_iterator it = internal_tools.begin(); it != internal_tools.end(); ++it)
     {
-      if (tools_map.find(it->name) == tools_map.end())
+      if (!tools_map.contains(it->name))
       {
         tools_map[it->name] = *it;
       }
@@ -226,11 +227,11 @@ namespace OpenMS
     return tools_map;
   }
 
-  StringList ToolHandler::getTypes(const String& toolname)
+  StringList ToolHandler::getTypes(const std::string& toolname)
   {
     Internal::ToolDescription ret;
     ToolListType tools = getTOPPToolList();
-    if (tools.find(toolname) != tools.end())
+    if (tools.contains(toolname))
     {
       return tools[toolname].types;
     }
@@ -247,12 +248,12 @@ namespace OpenMS
     return tools_internal_;
   }
 
-  String ToolHandler::getExternalToolsPath()
+  std::string ToolHandler::getExternalToolsPath()
   {
     return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
   }
 
-  String ToolHandler::getInternalToolsPath()
+  std::string ToolHandler::getInternalToolsPath()
   {
     return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
   }
@@ -287,7 +288,7 @@ namespace OpenMS
     // additional environment
     if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
-      paths.push_back(String(getenv("OPENMS_TTD_INTERNAL_PATH")));
+      paths.push_back(std::string(getenv("OPENMS_TTD_INTERNAL_PATH")));
     }
 
     StringList all_files;
@@ -300,11 +301,11 @@ namespace OpenMS
     return all_files;
   }
 
-  String ToolHandler::getCategory(const String& toolname)
+  std::string ToolHandler::getCategory(const std::string& toolname)
   {
     ToolListType tools = getTOPPToolList();
-    String s;
-    if (tools.find(toolname) != tools.end())
+    std::string s;
+    if (tools.contains(toolname))
     {
       s = tools[toolname].category;
     }

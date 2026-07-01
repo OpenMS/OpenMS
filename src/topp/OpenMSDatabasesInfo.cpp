@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,9 +51,9 @@ protected:
   {
     // Output CSV file
     registerOutputFile_("enzymes_out", "<out>", "", "Currently supported enzymes as TSV", true, false);
-    setValidFormats_("enzymes_out", ListUtils::create<String>("tsv"));
+    setValidFormats_("enzymes_out", ListUtils::create<std::string>("tsv"));
     registerOutputFile_("mods_out", "<out>", "", "Currently supported modifications as TSV", true, false);
-    setValidFormats_("mods_out", ListUtils::create<String>("tsv"));
+    setValidFormats_("mods_out", ListUtils::create<std::string>("tsv"));
   }
 
   // the main_ function is called after all parameters are read

@@ -74,7 +74,7 @@ namespace OpenMS
     /** represents the middle layer of an implicit tripartite graph:
     consists of single protein accessions and their mapping to the (indist.)
     group's indices */
-    std::unordered_map<String, Size> prot_acc_to_indist_prot_grp_;
+    std::unordered_map<std::string, Size> prot_acc_to_indist_prot_grp_;
     
     /// log debug information?
     bool statistics_;

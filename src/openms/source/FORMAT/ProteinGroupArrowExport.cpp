@@ -482,7 +482,7 @@ namespace
 
 bool ProteinGroupArrowExport::exportToParquet(
   const ConsensusMap& cmap,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportToArrow(cmap);
@@ -496,7 +496,7 @@ bool ProteinGroupArrowExport::exportToParquet(
 
 bool ProteinGroupArrowExport::exportToParquet(
   const std::shared_ptr<arrow::Table>& table,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   if (!table)
@@ -892,7 +892,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
 bool ProteinGroupArrowExport::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportToArrow(protein_identifications, peptide_identifications);

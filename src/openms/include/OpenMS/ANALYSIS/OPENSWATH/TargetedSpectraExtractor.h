@@ -119,7 +119,7 @@ public:
       */
       virtual void init(
         const std::vector<MSSpectrum>& library,
-        const std::map<String,DataValue>& options
+        const std::map<std::string,DataValue>& options
       ) = 0;
 
       /// Return the reference library passed to the most recent @ref init call.
@@ -186,7 +186,7 @@ public:
         @c BinnedSpectrum objects are cleared and rebuilt on every call. Emits one
         @c OPENMS_LOG_INFO line reporting the loaded library size.
       */
-      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override;
+      void init(const std::vector<MSSpectrum>& library, const std::map<std::string,DataValue>& options) override;
 
     private:
       BinnedSpectralContrastAngle cmp_bs_;
@@ -537,7 +537,7 @@ public:
       @param[in] filename the filename of the file to write
       @param[in] experiment the experiment to store
     */
-    void storeSpectraMSP(const String& filename, MSExperiment& experiment) const;
+    void storeSpectraMSP(const std::string& filename, MSExperiment& experiment) const;
     
     /**
       @brief organize into a map by combining features and subordinates with the same `identifier`
@@ -558,7 +558,7 @@ protected:
     void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
 
     /// organize into a map by combining features and subordinates with the same `identifier`
-    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const;
+    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const;
 
   private:
     /**

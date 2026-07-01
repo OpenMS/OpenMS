@@ -283,7 +283,7 @@ START_SECTION(exportToParquet - basic export)
 {
   ConsensusMap cmap = createTestConsensusMap();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -300,7 +300,7 @@ START_SECTION(exportToParquet - empty consensus map)
 {
   ConsensusMap cmap;
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -316,7 +316,7 @@ START_SECTION(exportToParquet - with compression options)
 {
   ConsensusMap cmap = createTestConsensusMap();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -336,7 +336,7 @@ START_SECTION(exportToParquet - ZSTD compression)
 {
   ConsensusMap cmap = createTestConsensusMap();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -355,7 +355,7 @@ START_SECTION(exportToParquet - no compression)
 {
   ConsensusMap cmap = createTestConsensusMap();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 

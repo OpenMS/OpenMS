@@ -12,7 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <vector>
 using namespace OpenMS;
@@ -66,7 +66,7 @@ START_SECTION((Size getMissedCleavages() const))
     TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(), 0)
 END_SECTION
 
-START_SECTION((String getEnzymeName() const))
+START_SECTION((std::string getEnzymeName() const))
     TEST_EQUAL(EnzymaticDigestion().getEnzymeName(), "Trypsin")
 END_SECTION
 
@@ -95,153 +95,153 @@ START_SECTION((void setSpecificity(Specificity spec)))
     NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((static Specificity getSpecificityByName(const String& name)))
+START_SECTION((static Specificity getSpecificityByName(const std::string& name)))
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[2]), EnzymaticDigestion::SPEC_FULL);
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[1]), EnzymaticDigestion::SPEC_SEMI);
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[0]), EnzymaticDigestion::SPEC_NONE);
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName("DoesNotExist"), EnzymaticDigestion::SPEC_UNKNOWN);
 END_SECTION
 
-START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length)))
+START_SECTION((Size digestUnmodified(const std::string_view sequence, std::vector<std::string_view>& output, Size min_length, Size max_length)))
 {
     EnzymaticDigestion ed;
-    vector<StringView> out;
+    vector<std::string_view> out;
 
     // end without cutting site
     std::string s = "ACDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].getString(), s)
+    TEST_EQUAL(std::string(out[0]), s)
 
     // end with cutting site
     s = "ACDEK";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].getString(), "ACDEK")
+    TEST_EQUAL(std::string(out[0]), "ACDEK")
 
     s = "ACKDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].getString(), "ACK")
-    TEST_EQUAL(out[1].getString(), "DE")
+    TEST_EQUAL(std::string(out[0]), "ACK")
+    TEST_EQUAL(std::string(out[1]), "DE")
 
     s = "ACRDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].getString(), "ACR")
-    TEST_EQUAL(out[1].getString(), "DE")
+    TEST_EQUAL(std::string(out[0]), "ACR")
+    TEST_EQUAL(std::string(out[1]), "DE")
 
     s = "ACKPDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].getString(), "ACKPDE")
+    TEST_EQUAL(std::string(out[0]), "ACKPDE")
 
     s = "ACRPDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].getString(), "ACRPDE")
+    TEST_EQUAL(std::string(out[0]), "ACRPDE")
 
     s = "ARCRDRE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 4)
-    TEST_EQUAL(out[0].getString(), "AR")
-    TEST_EQUAL(out[1].getString(), "CR")
-    TEST_EQUAL(out[2].getString(), "DR")
-    TEST_EQUAL(out[3].getString(), "E")
+    TEST_EQUAL(std::string(out[0]), "AR")
+    TEST_EQUAL(std::string(out[1]), "CR")
+    TEST_EQUAL(std::string(out[2]), "DR")
+    TEST_EQUAL(std::string(out[3]), "E")
 
     s = "RKR";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 3)
-    TEST_EQUAL(out[0].getString(), "R")
-    TEST_EQUAL(out[1].getString(), "K")
-    TEST_EQUAL(out[2].getString(), "R")
+    TEST_EQUAL(std::string(out[0]), "R")
+    TEST_EQUAL(std::string(out[1]), "K")
+    TEST_EQUAL(std::string(out[2]), "R")
 
     ed.setMissedCleavages(1);
 
     s = "ACDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].getString(), "ACDE")
+    TEST_EQUAL(std::string(out[0]), "ACDE")
 
     s = "ACRDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 3)
-    TEST_EQUAL(out[0].getString(), "ACR")
-    TEST_EQUAL(out[1].getString(), "DE")
-    TEST_EQUAL(out[2].getString(), "ACRDE")
+    TEST_EQUAL(std::string(out[0]), "ACR")
+    TEST_EQUAL(std::string(out[1]), "DE")
+    TEST_EQUAL(std::string(out[2]), "ACRDE")
 
     s = "ARCDRE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].getString(), "AR")
-    TEST_EQUAL(out[1].getString(), "CDR")
-    TEST_EQUAL(out[2].getString(), "E")
-    TEST_EQUAL(out[3].getString(), "ARCDR")
-    TEST_EQUAL(out[4].getString(), "CDRE")
+    TEST_EQUAL(std::string(out[0]), "AR")
+    TEST_EQUAL(std::string(out[1]), "CDR")
+    TEST_EQUAL(std::string(out[2]), "E")
+    TEST_EQUAL(std::string(out[3]), "ARCDR")
+    TEST_EQUAL(std::string(out[4]), "CDRE")
 
     s = "ARCDRER";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].getString(), "AR")
-    TEST_EQUAL(out[1].getString(), "CDR")
-    TEST_EQUAL(out[2].getString(), "ER")
-    TEST_EQUAL(out[3].getString(), "ARCDR")
-    TEST_EQUAL(out[4].getString(), "CDRER")
+    TEST_EQUAL(std::string(out[0]), "AR")
+    TEST_EQUAL(std::string(out[1]), "CDR")
+    TEST_EQUAL(std::string(out[2]), "ER")
+    TEST_EQUAL(std::string(out[3]), "ARCDR")
+    TEST_EQUAL(std::string(out[4]), "CDRER")
 
     s = "RKR";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].getString(), "R")
-    TEST_EQUAL(out[1].getString(), "K")
-    TEST_EQUAL(out[2].getString(), "R")
-    TEST_EQUAL(out[3].getString(), "RK")
-    TEST_EQUAL(out[4].getString(), "KR")
+    TEST_EQUAL(std::string(out[0]), "R")
+    TEST_EQUAL(std::string(out[1]), "K")
+    TEST_EQUAL(std::string(out[2]), "R")
+    TEST_EQUAL(std::string(out[3]), "RK")
+    TEST_EQUAL(std::string(out[4]), "KR")
 
     s = "(ICPL:2H(4))ARCDRE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].getString(), "(ICPL:2H(4))AR")
-    TEST_EQUAL(out[1].getString(), "CDR")
-    TEST_EQUAL(out[2].getString(), "E")
-    TEST_EQUAL(out[3].getString(), "(ICPL:2H(4))ARCDR")
-    TEST_EQUAL(out[4].getString(), "CDRE")
+    TEST_EQUAL(std::string(out[0]), "(ICPL:2H(4))AR")
+    TEST_EQUAL(std::string(out[1]), "CDR")
+    TEST_EQUAL(std::string(out[2]), "E")
+    TEST_EQUAL(std::string(out[3]), "(ICPL:2H(4))ARCDR")
+    TEST_EQUAL(std::string(out[4]), "CDRE")
 
     s = "ARCDRE(Amidated)";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].getString(), "AR")
-    TEST_EQUAL(out[1].getString(), "CDR")
-    TEST_EQUAL(out[2].getString(), "E(Amidated)")
-    TEST_EQUAL(out[3].getString(), "ARCDR")
-    TEST_EQUAL(out[4].getString(), "CDRE(Amidated)")
+    TEST_EQUAL(std::string(out[0]), "AR")
+    TEST_EQUAL(std::string(out[1]), "CDR")
+    TEST_EQUAL(std::string(out[2]), "E(Amidated)")
+    TEST_EQUAL(std::string(out[3]), "ARCDR")
+    TEST_EQUAL(std::string(out[4]), "CDRE(Amidated)")
 
     ed.setMissedCleavages(2);
     s = "RKR";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 6)
-    TEST_EQUAL(out[0].getString(), "R")
-    TEST_EQUAL(out[1].getString(), "K")
-    TEST_EQUAL(out[2].getString(), "R")
-    TEST_EQUAL(out[3].getString(), "RK")
-    TEST_EQUAL(out[4].getString(), "KR")
-    TEST_EQUAL(out[5].getString(), "RKR")
+    TEST_EQUAL(std::string(out[0]), "R")
+    TEST_EQUAL(std::string(out[1]), "K")
+    TEST_EQUAL(std::string(out[2]), "R")
+    TEST_EQUAL(std::string(out[3]), "RK")
+    TEST_EQUAL(std::string(out[4]), "KR")
+    TEST_EQUAL(std::string(out[5]), "RKR")
 
     // min size
     ed.digestUnmodified(s, out, 2);
     TEST_EQUAL(out.size(), 3)
-    TEST_EQUAL(out[0].getString(), "RK")
-    TEST_EQUAL(out[1].getString(), "KR")
-    TEST_EQUAL(out[2].getString(), "RKR")
+    TEST_EQUAL(std::string(out[0]), "RK")
+    TEST_EQUAL(std::string(out[1]), "KR")
+    TEST_EQUAL(std::string(out[2]), "RKR")
 
     ed.digestUnmodified(s, out, 3);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].getString(), "RKR")
+    TEST_EQUAL(std::string(out[0]), "RKR")
 
     // max size
     ed.digestUnmodified(s, out, 2,2);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].getString(), "RK")
-    TEST_EQUAL(out[1].getString(), "KR")
+    TEST_EQUAL(std::string(out[0]), "RK")
+    TEST_EQUAL(std::string(out[1]), "KR")
 
     // ------------------------
     // Trypsin/P
@@ -251,14 +251,14 @@ START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<Stri
     s = "ACKPDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].getString(), "ACK")
-    TEST_EQUAL(out[1].getString(), "PDE")
+    TEST_EQUAL(std::string(out[0]), "ACK")
+    TEST_EQUAL(std::string(out[1]), "PDE")
 
     s = "ACRPDE";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].getString(), "ACR")
-    TEST_EQUAL(out[1].getString(), "PDE")
+    TEST_EQUAL(std::string(out[0]), "ACR")
+    TEST_EQUAL(std::string(out[1]), "PDE")
 
     // ------------------------
     // unspecific cleavage
@@ -272,8 +272,8 @@ START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<Stri
     ed.digestUnmodified(s, out, 5, 6);
     for (auto & a : out)
     {
-      TEST_EQUAL(a.getString().size() == 5 
-      || a.getString().size() == 6, true)    
+      TEST_EQUAL(a.size() == 5 
+      || a.size() == 6, true)    
     }
 
     s = "ABC";
@@ -294,7 +294,7 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
   std::vector<std::pair<size_t, size_t>> out_pairs;
 
   // 8..10mers: 8mers=3, 9mers=2, 10mers=1 → 6 total
-  ed_none.digestUnmodified(StringView(s), out_pairs, 8, 10);
+  ed_none.digestUnmodified(s, out_pairs, 8, 10);
   TEST_EQUAL(out_pairs.size(), 6)
   for (const auto& p : out_pairs)
   {
@@ -304,12 +304,12 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
   // Sequence shorter than min_length: must not crash, must return zero peptides
   // (this used to underflow when sequence.size() < min_length).
   std::string short_s = "ACD";
-  ed_none.digestUnmodified(StringView(short_s), out_pairs, 8, 12);
+  ed_none.digestUnmodified(short_s, out_pairs, 8, 12);
   TEST_EQUAL(out_pairs.size(), 0)
 
   // Empty sequence: defensive check.
-  std::string empty_s = "";
-  ed_none.digestUnmodified(StringView(empty_s), out_pairs, 1, 10);
+  std::string empty_s;
+  ed_none.digestUnmodified(empty_s, out_pairs, 1, 10);
   TEST_EQUAL(out_pairs.size(), 0)
 
   // SPEC_SEMI: in addition to fully-specific products, semi-specific (one terminus free) variants.
@@ -321,7 +321,7 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
   // Semi-specific adds: every prefix of "BCDEFG" of length >= min, plus every suffix of "AK"
   // of length >= min, plus every prefix/suffix straddling the K cut, etc.
   std::string s2 = "AKBCDEFG"; // length 8, single cleavage after K (pos 2)
-  ed_semi.digestUnmodified(StringView(s2), out_pairs, 1, 100);
+  ed_semi.digestUnmodified(s2, out_pairs, 1, 100);
   // We don't pin an exact count (semiSpecificDigestion_ enumeration is well-tested elsewhere),
   // but assert: (a) more peptides than fully-specific (which would yield 2), (b) the two
   // fully-specific products are still present.
@@ -341,7 +341,7 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
   EnzymaticDigestion ed_full;
   ed_full.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
   ed_full.setSpecificity(EnzymaticDigestion::SPEC_FULL); // default, but explicit
-  ed_full.digestUnmodified(StringView(s2), out_pairs, 1, 100);
+  ed_full.digestUnmodified(s2, out_pairs, 1, 100);
   TEST_EQUAL(out_pairs.size(), 2)
 }
 END_SECTION
@@ -378,13 +378,13 @@ START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_posi
 }
 END_SECTION
 
-START_SECTION((bool isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages)))
+START_SECTION((bool isValidProduct(const std::string& sequence, int pos, int length, bool ignore_missed_cleavages)))
 {
     EnzymaticDigestion ed;
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
     ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
-    String prot = "ABCDEFGKABCRAAAKAARPBBBB";
+    std::string prot = "ABCDEFGKABCRAAAKAARPBBBB";
     TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
     TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
     TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
@@ -576,7 +576,7 @@ START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<int>& cleavag
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), true);  // has 3 MC's, should be valid
 END_SECTION
 
-START_SECTION(Size countInternalCleavageSites(const String& sequence) )
+START_SECTION(Size countInternalCleavageSites(const std::string& sequence) )
   EnzymaticDigestion ed;
   ed.setMissedCleavages(0); // setting max missed cleavages should not have any impact
   TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites

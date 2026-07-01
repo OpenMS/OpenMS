@@ -11,10 +11,12 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
+#include <map>
 #include <set>
 
 namespace OpenMS
 {
+  class Element;
   /**
     * @ingroup Chemistry
     * @brief Isotope pattern generator for coarse isotope distributions.
@@ -101,6 +103,25 @@ namespace OpenMS
 
     /// returns the current value of the flag to return expected masses (true) or atomic numbers (false).
     bool getRoundMasses() const;
+
+    /**
+      @brief Override the isotope distribution used for a specific element when computing patterns.
+
+      During run(), the given @p isotopes are used in place of @p element 's natural
+      isotope distribution (from the ElementDB) wherever @p element occurs in the formula
+      (and for the implicit H+ adduct if @p element is hydrogen). This enables computing
+      isotope-labeled patterns (e.g. varying 13C / 15N incorporation) without mutating the
+      shared, global ElementDB, so the generator is self-contained and thread-safe.
+
+      Pass the same @c Element* obtained from ElementDB (e.g. getElement("Carbon")) as the key.
+    */
+    void setIsotopeOverride(const Element* element, const IsotopeDistribution& isotopes);
+
+    /// removes all isotope overrides previously set via setIsotopeOverride()
+    void clearIsotopeOverrides();
+
+    /// returns the currently registered per-element isotope overrides (may be empty)
+    const std::map<const Element*, IsotopeDistribution>& getIsotopeOverrides() const;
     ///@}
 
     /**
@@ -378,6 +399,8 @@ namespace OpenMS
     Size max_isotope_;
     /// flag to determine whether masses should be rounded or not
     bool round_masses_;
+    /// per-element isotope distribution overrides applied in run() (empty = use ElementDB defaults)
+    std::map<const Element*, IsotopeDistribution> isotope_overrides_;
 
   };
 

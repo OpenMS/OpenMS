@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 // calculate pearson distance
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -112,7 +113,7 @@ namespace OpenMS
     {
       if (!peptide.getHits().empty())
       {
-        const String& sequence = peptide.getHits()[0].getSequence().toString();
+        const std::string& sequence = peptide.getHits()[0].getSequence().toString();
         peptide_rts[sequence].push_back(feature_rt);
         map_range.push_back(feature_rt);
       }

@@ -13,10 +13,10 @@
 
 namespace OpenMS
 {
-  std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > MetaboTargetedTargetDecoy::constructTransitionsMap_(const TargetedExperiment& t_exp)
+  std::map<std::string, std::vector<OpenMS::ReactionMonitoringTransition> > MetaboTargetedTargetDecoy::constructTransitionsMap_(const TargetedExperiment& t_exp)
   {
     // mapping of the transitions to a specific compound reference
-    std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
+    std::map<std::string, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
     for (const auto& tr_it : t_exp.getTransitions())
     {
       auto pair_it_success = TransitionsMap.emplace(tr_it.getCompoundRef(), std::vector<OpenMS::ReactionMonitoringTransition>());
@@ -27,7 +27,7 @@ namespace OpenMS
 
   std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(const TargetedExperiment& t_exp)
   {
-    std::vector<String> identifier;
+    std::vector<std::string> identifier;
     for (const auto &it : t_exp.getCompounds())
     {
       // only need to extract identifier from the targets, since targets and decoys have the same
@@ -74,10 +74,10 @@ namespace OpenMS
     return mappings;
   }
 
-  void MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit)
+  void MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const std::string& mz_tol_unit)
   {
     // Define a map to hold compound references and their corresponding sets of decoy m/z values.
-    std::map<String, std::set<double>> match_compound_refs_decoy_mz;
+    std::map<std::string, std::set<double>> match_compound_refs_decoy_mz;
 
     // Iterate over each mapping in the provided mappings list.
     for (const auto& map : mappings) {
@@ -117,7 +117,7 @@ namespace OpenMS
         auto found = match_compound_refs_decoy_mz.find(tr.getCompoundRef());
 
         // Check if the compound reference is found and if the product m/z matches any in the set.
-        if (found != match_compound_refs_decoy_mz.end() && found->second.count(tr.getProductMZ()) > 0) {
+        if (found != match_compound_refs_decoy_mz.end() && found->second.contains(tr.getProductMZ())) {
             // Create a new transition object based on the current transition.
             ReactionMonitoringTransition new_tr = tr;
 
@@ -156,7 +156,7 @@ namespace OpenMS
       }
     }
 
-    std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
+    std::map<std::string, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
 
     std::vector<TargetedExperiment::Compound> compounds;
     std::vector<ReactionMonitoringTransition> transitions;
@@ -181,7 +181,7 @@ namespace OpenMS
       if (it_target != t_exp.getCompounds().end())
       {
         compounds.emplace_back(*it_target);
-        if (TransitionsMap.find(it_target->id) != TransitionsMap.end())
+        if (TransitionsMap.contains(it_target->id))
         {
           transitions.insert(transitions.end(),
                                TransitionsMap[it_target->id].begin(),
@@ -191,7 +191,7 @@ namespace OpenMS
       if (it_decoy != t_exp.getCompounds().end())
       {
         compounds.emplace_back(*it_decoy);
-        if (TransitionsMap.find(it_decoy->id) != TransitionsMap.end())
+        if (TransitionsMap.contains(it_decoy->id))
         {
           transitions.insert(transitions.end(),
                                TransitionsMap[it_decoy->id].begin(),
@@ -205,12 +205,12 @@ namespace OpenMS
         TargetedExperiment::Compound potential_decoy_compound = *it_target;
         std::vector<ReactionMonitoringTransition> potential_decoy_transitions;
 
-        String current_compound_name = potential_decoy_compound.getMetaValue("CompoundName");
-        potential_decoy_compound.setMetaValue("CompoundName", String(current_compound_name + "_decoy"));
+        std::string current_compound_name = StringUtils::toStr(potential_decoy_compound.getMetaValue("CompoundName"));
+        potential_decoy_compound.setMetaValue("CompoundName",std::string(current_compound_name + "_decoy"));
         potential_decoy_compound.id = it.decoy_compound_ref;
         potential_decoy_compound.setMetaValue("decoy", DataValue(1));
 
-        if (TransitionsMap.find(it_target->id) != TransitionsMap.end())
+        if (TransitionsMap.contains(it_target->id))
         {
           potential_decoy_transitions = TransitionsMap[it_target->id];
           for (size_t i = 0; i < potential_decoy_transitions.size(); ++i)

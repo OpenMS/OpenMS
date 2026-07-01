@@ -66,16 +66,16 @@ START_SECTION((const ToolMapping& getNameMapping()))
   ToolMapping m = i.getNameMapping();
 
   TEST_NOT_EQUAL(m.size(), 0)
-  TEST_EQUAL(m[Internal::ToolDescriptionInternal("FeatureFinder",ListUtils::create<String>("centroided"))]
-             == Internal::ToolDescriptionInternal("FeatureFinderCentroided",ListUtils::create<String>("")), true)
+  TEST_EQUAL(m[Internal::ToolDescriptionInternal("FeatureFinder",ListUtils::create<std::string>("centroided"))]
+             == Internal::ToolDescriptionInternal("FeatureFinderCentroided",ListUtils::create<std::string>("")), true)
 
 }
 END_SECTION
 
-START_SECTION((bool getNewToolName(const String &old_name, const String &tools_type, String &new_name)))
+START_SECTION((bool getNewToolName(const std::string &old_name, const std::string &tools_type, String &new_name)))
 {
   INIUpdater i;
-  String new_name;
+  std::string new_name;
   i.getNewToolName("FeatureFinder", "centroided", new_name);
   TEST_EQUAL(new_name, "FeatureFinderCentroided");
 

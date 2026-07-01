@@ -51,7 +51,7 @@ START_SECTION(ConstIterator end())
 }
 END_SECTION
 
-START_SECTION((const Ribonucleotide& getRibonucleotide(const String& code)))
+START_SECTION((const Ribonucleotide& getRibonucleotide(const std::string& code)))
 {
   // These three load from the Modomics.json
   const Ribonucleotide * ribo = ptr->getRibonucleotide("Am");
@@ -74,7 +74,7 @@ START_SECTION( (pair<RibonucleotideDB::ConstRibonucleotidePtr, RibonucleotideDB:
 }
 END_SECTION
 
-START_SECTION((const Ribonucleotide& getRibonucleotidePrefix(const String& seq)))
+START_SECTION((const Ribonucleotide& getRibonucleotidePrefix(const std::string& seq)))
 {
   const Ribonucleotide* ribo = ptr->getRibonucleotidePrefix("m1AmCGU");
   TEST_STRING_EQUAL(ribo->getCode(), "m1Am");

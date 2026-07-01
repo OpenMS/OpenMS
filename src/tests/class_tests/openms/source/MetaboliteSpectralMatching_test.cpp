@@ -166,7 +166,7 @@ START_SECTION(CCS filtering disabled reports all matches with CCS columns)
   msm.setParameters(makeParams(0.0)); // filtering disabled
 
   MzTab mztab;
-  String out_spectra;
+  std::string out_spectra;
   msm.run(msexp, spec_db, mztab, out_spectra);
 
   const auto& rows = mztab.getSmallMoleculeSectionRows();
@@ -223,7 +223,7 @@ START_SECTION(CCS filtering enabled keeps only within-tolerance matches)
   msm.setParameters(makeParams(5.0)); // 5% CCS tolerance
 
   MzTab mztab;
-  String out_spectra;
+  std::string out_spectra;
   msm.run(msexp, spec_db, mztab, out_spectra);
 
   const auto& rows = mztab.getSmallMoleculeSectionRows();
@@ -266,7 +266,7 @@ START_SECTION(CCS filtering converts 1/K0 (VSSC) drift time to CCS)
   msm.setParameters(makeParams(5.0));
 
   MzTab mztab;
-  String out_spectra;
+  std::string out_spectra;
   msm.run(msexp, spec_db, mztab, out_spectra);
 
   // Without the 1/K0 -> CCS conversion the observed CCS would be unknown and both compounds
@@ -308,7 +308,7 @@ START_SECTION(CCS filtering keeps matches when CCS is missing)
   msm.setParameters(makeParams(5.0)); // enabled, but no experimental CCS -> not filtered
 
   MzTab mztab;
-  String out_spectra;
+  std::string out_spectra;
   msm.run(msexp, spec_db, mztab, out_spectra);
 
   const auto& rows = mztab.getSmallMoleculeSectionRows();

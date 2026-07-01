@@ -53,17 +53,17 @@ public:
     /** @name Accessors
     */
     //@{
-    void setName(const String & name);
+    void setName(const std::string & name);
 
-    const String & getName() const;
+    const std::string & getName() const;
 
-    void setPeptideRef(const String & peptide_ref);
+    void setPeptideRef(const std::string & peptide_ref);
 
-    const String & getPeptideRef() const;
+    const std::string & getPeptideRef() const;
 
-    void setCompoundRef(const String & compound_ref);
+    void setCompoundRef(const std::string & compound_ref);
 
-    const String & getCompoundRef() const;
+    const std::string & getCompoundRef() const;
 
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);
@@ -123,7 +123,7 @@ protected:
 
     void updateMembers_();
 
-    String name_;
+    std::string name_;
 
     double precursor_mz_;
 
@@ -135,9 +135,9 @@ protected:
 
     std::vector<CVTermList> interpretation_list_;
 
-    String peptide_ref_;
+    std::string peptide_ref_;
 
-    String compound_ref_;
+    std::string compound_ref_;
 
     std::vector<Configuration> configurations_;
 

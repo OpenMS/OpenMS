@@ -218,7 +218,7 @@ START_SECTION((virtual ~StopWatch()))
   NOT_TESTABLE; // done above
 END_SECTION
 
-START_SECTION((static String toString(double time)))
+START_SECTION((static std::string toString(double time)))
   
   TEST_EQUAL(StopWatch::toString(0), "0.00 s")
 

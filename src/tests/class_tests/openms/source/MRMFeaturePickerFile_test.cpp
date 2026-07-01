@@ -23,7 +23,7 @@ START_TEST(MRMFeaturePickerFile, "$Id$")
 
 MRMFeaturePickerFile* ptr = nullptr;
 MRMFeaturePickerFile* null_ptr = nullptr;
-const String filepath = OPENMS_GET_TEST_DATA_PATH("MRMFeaturePickerFile.csv");
+const std::string filepath = OPENMS_GET_TEST_DATA_PATH("MRMFeaturePickerFile.csv");
 
 START_SECTION(MRMFeaturePickerFile())
 {
@@ -39,7 +39,7 @@ START_SECTION(~MRMFeaturePickerFile())
 END_SECTION
 
 START_SECTION(void load(
-  const String& filename,
+  const std::string& filename,
   std::vector<MRMFeaturePicker::ComponentParams>& cp_list,
   std::vector<MRMFeaturePicker::ComponentGroupParams>& cgp_list
 ))

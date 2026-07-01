@@ -88,7 +88,7 @@ namespace OpenMS
     QTableWidget* fragment_window_ = nullptr;
     QSplitter* tables_splitter_ = nullptr;
     bool is_first_time_loading_ = true;
-    std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
+    std::unordered_map<std::string, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
 
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file

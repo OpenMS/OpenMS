@@ -22,7 +22,7 @@ namespace OpenMS
 
   }
 
-  void PepXMLFileMascot::load(const String & filename, map<String, vector<AASequence> > & peptides)
+  void PepXMLFileMascot::load(const std::string & filename, map<std::string, vector<AASequence> > & peptides)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -36,13 +36,13 @@ namespace OpenMS
     //reset members
     actual_title_ = "";
     actual_sequence_ = "";
-    actual_modifications_ = vector<pair<String, UInt> >();
+    actual_modifications_ = vector<pair<std::string, UInt> >();
     peptides_ = nullptr;
-    variable_modifications_ = vector<pair<String, double> >();
-    fixed_modifications_ = vector<String>();
+    variable_modifications_ = vector<pair<std::string, double> >();
+    fixed_modifications_ = vector<std::string>();
   }
 
-  void PepXMLFileMascot::matchModification_(double mass, String & modification_description)
+  void PepXMLFileMascot::matchModification_(double mass, std::string & modification_description)
   {
     UInt i = 0;
     bool found = false;
@@ -65,14 +65,14 @@ namespace OpenMS
 
   void PepXMLFileMascot::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
   {
-    String element = sm_.convert(qname);
+    std::string element = sm_.convert(qname);
 
     //cout << "Start: " << element << "\n";
 
     //SEARCH PARAMETERS
     if (element == "aminoacid_modification")
     {
-      String temp_string = attributeAsString_(attributes, "variable");
+      std::string temp_string = attributeAsString_(attributes, "variable");
       if (temp_string == "Y")
       {
         variable_modifications_.emplace_back(attributeAsString_(attributes, "description"),
@@ -87,7 +87,7 @@ namespace OpenMS
     // <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
     if (element == "terminal_modification")
     {
-      String temp_string = attributeAsString_(attributes, "variable");
+      std::string temp_string = attributeAsString_(attributes, "variable");
       if (temp_string == "Y")
       {
         variable_modifications_.emplace_back(attributeAsString_(attributes, "description"),
@@ -110,7 +110,7 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass")
     {
-      String temp_description = "";
+      std::string temp_description;
       UInt modification_position = attributeAsInt_(attributes, "position");
       double modification_mass = attributeAsDouble_(attributes, "mass");
 
@@ -123,7 +123,7 @@ namespace OpenMS
 
   void PepXMLFileMascot::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
   {
-    String element = sm_.convert(qname);
+    std::string element = sm_.convert(qname);
 
     ///SEARCH PARAMETERS
     if (element == "search_hit")
@@ -131,16 +131,16 @@ namespace OpenMS
       AASequence temp_aa_sequence = AASequence::fromString(actual_sequence_);
 
       // modification position is 1-based
-      for (vector<pair<String, UInt> >::const_iterator it = actual_modifications_.begin(); it != actual_modifications_.end(); ++it)
+      for (vector<pair<std::string, UInt> >::const_iterator it = actual_modifications_.begin(); it != actual_modifications_.end(); ++it)
       {
         // e.g. Carboxymethyl (C)
-        vector<String> mod_split;
-        it->first.split(' ', mod_split);
-        if (it->first.hasSubstring("C-term"))
+        vector<std::string> mod_split;
+        StringUtils::split(it->first, ' ', mod_split);
+        if (StringUtils::hasSubstring(it->first, "C-term"))
         {
           temp_aa_sequence.setCTerminalModification(it->first);
         }
-        else if (it->first.hasSubstring("N-term"))
+        else if (StringUtils::hasSubstring(it->first, "N-term"))
         {
           temp_aa_sequence.setNTerminalModification(it->first);
         }
@@ -150,16 +150,16 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD, String("Cannot parse modification '") + it->first + "@" + it->second + "'");
+          error(LOAD,std::string("Cannot parse modification '") + it->first + "@" + it->second + "'");
         }
       }
 
       // fixed modifications
-      for (const String& it : fixed_modifications_)
+      for (const std::string& it : fixed_modifications_)
       {
         // e.g. Carboxymethyl (C)
-        vector<String> mod_split;
-        it.split(' ', mod_split);
+        vector<std::string> mod_split;
+        StringUtils::split(it, ' ', mod_split);
         if (mod_split.size() == 2)
         {
           if (mod_split[1] == "(C-term)")
@@ -174,13 +174,13 @@ namespace OpenMS
             }
             else
             {
-              String origin = mod_split[1];
-              origin.remove(')');
-              origin.remove('(');
+              std::string origin = mod_split[1];
+              StringUtils::remove(origin, ')');
+              StringUtils::remove(origin, '(');
               for (Size i = 0; i != temp_aa_sequence.size(); ++i)
               {
                 // best way we can check; because origin can be e.g. (STY)
-                if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
+                if (StringUtils::hasSubstring(origin, temp_aa_sequence[i].getOneLetterCode()))
                 {
                   temp_aa_sequence.setModification(i, mod_split[0]);
                 }
@@ -190,7 +190,7 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD, String("Cannot parse fixed modification '") + it + "'");
+          error(LOAD,std::string("Cannot parse fixed modification '") + it + "'");
         }
       }
 

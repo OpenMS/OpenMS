@@ -54,7 +54,7 @@ namespace OpenMS
       polarity_->setCurrentIndex(static_cast<int>(temp_.getPolarity()));
     }
 
-    order_->setText(String(temp_.getOrder()).c_str());
+    order_->setText(StringUtils::toStr(temp_.getOrder()).c_str());
   }
 
   void IonSourceVisualizer::store()

@@ -223,7 +223,7 @@ namespace OpenMS
     {
       setProgress(i);
 
-      if (used_already.find(i) != used_already.end()) 
+      if (used_already.contains(i)) 
       {
         continue;
       }

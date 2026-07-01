@@ -48,7 +48,7 @@ START_SECTION((MassDecomposition(const MassDecomposition &deco)))
 }
 END_SECTION
 
-START_SECTION((MassDecomposition(const String &deco)))
+START_SECTION((MassDecomposition(const std::string &deco)))
 {
   MassDecomposition md("C3 M4 S200");
 	TEST_EQUAL(md.getNumberOfMaxAA(), 200)
@@ -85,7 +85,7 @@ START_SECTION((MassDecomposition& operator+=(const MassDecomposition &d)))
 }
 END_SECTION
 
-START_SECTION((String toString() const ))
+START_SECTION((std::string toString() const ))
 {
   MassDecomposition md1("C3");
   MassDecomposition md2("C3 M4");
@@ -102,7 +102,7 @@ START_SECTION((String toString() const ))
 }
 END_SECTION
 
-START_SECTION((String toExpandedString() const ))
+START_SECTION((std::string toExpandedString() const ))
 {
   MassDecomposition md1("C3");
   MassDecomposition md2("C3 M4");
@@ -163,7 +163,7 @@ START_SECTION((bool operator<(const MassDecomposition &rhs) const ))
 }
 END_SECTION
 
-START_SECTION((bool operator==(const String &deco) const ))
+START_SECTION((bool operator==(const std::string &deco) const ))
 {
 	MassDecomposition md;
   MassDecomposition md1("C3");
@@ -178,7 +178,7 @@ START_SECTION((bool operator==(const String &deco) const ))
 }
 END_SECTION
 
-START_SECTION((bool containsTag(const String &tag) const ))
+START_SECTION((bool containsTag(const std::string &tag) const ))
 {
   MassDecomposition md;
   MassDecomposition md1("C3");

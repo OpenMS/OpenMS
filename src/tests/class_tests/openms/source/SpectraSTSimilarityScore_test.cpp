@@ -18,7 +18,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 /// typedef for the index into the sparse vector
 #include <Eigen/Sparse>
@@ -66,7 +66,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
   PeakSpectrum s1;
   MSPFile msp;
   PeptideIdentificationList ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
+  const std::string filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
   {
@@ -85,7 +85,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
   PeakMap exp;
   MSPFile msp;
   PeptideIdentificationList ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
+  const std::string filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
   {
@@ -125,7 +125,7 @@ START_SECTION((double operator()(const BinnedSpectrum &bin1, const BinnedSpectru
   PeakMap exp;
   MSPFile msp;
   PeptideIdentificationList ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
+  const std::string filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
   {
@@ -165,7 +165,7 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_th
   PeakMap exp;
   MSPFile msp;
   PeptideIdentificationList ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
+  const std::string filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
   {

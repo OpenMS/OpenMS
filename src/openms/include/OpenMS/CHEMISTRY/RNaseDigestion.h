@@ -30,7 +30,7 @@ namespace OpenMS
     void setEnzyme(const DigestionEnzyme* enzyme) override;
 
     /// Sets the enzyme for the digestion (by name)
-    void setEnzyme(const String& name);
+    void setEnzyme(const std::string& name);
 
     /**
        @brief Performs the enzymatic digestion of a (potentially modified) RNA

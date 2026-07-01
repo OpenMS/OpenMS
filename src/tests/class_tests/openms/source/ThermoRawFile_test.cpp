@@ -9,7 +9,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -20,7 +22,7 @@ using namespace std;
 
 START_TEST(ThermoRawFile, "$Id$")
 
-START_SECTION(void load(const String& path, MSExperiment& exp))
+START_SECTION(void load(const std::string& path, MSExperiment& exp))
 {
   ThermoRawFile file;
   MSExperiment exp;
@@ -68,7 +70,7 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   }
   TEST_EQUAL(found_positive, true)
 
-  String tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
+  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, original);
 
   MSExperiment reloaded;
@@ -102,6 +104,65 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   TEST_EQUAL(found_msn_precursor, true)
   // Bridge reports at least one activation method for the dependent MS2 scans.
   TEST_EQUAL(activation_methods_seen.empty(), false)
+
+  // --- Extended instrument metadata ---
+  // All Angiotensin scans are FTMS on an Orbitrap, acquired by ESI.
+  TEST_EQUAL(original.getInstrument().getMassAnalyzers().empty(), false)
+  TEST_EQUAL(original.getInstrument().getIonSources().empty(), false)
+  TEST_EQUAL(original.getInstrument().getIonDetectors().empty(), false)
+  TEST_EQUAL(original.getInstrument().getSoftware().getVersion().empty(), false)
+  bool has_orbitrap = false;
+  for (const MassAnalyzer& ma : original.getInstrument().getMassAnalyzers())
+  {
+    if (ma.getType() == MassAnalyzer::AnalyzerType::ORBITRAP) { has_orbitrap = true; }
+  }
+  TEST_EQUAL(has_orbitrap, true)
+
+  // --- Extended per-spectrum metadata ---
+  Size with_filter = 0, with_tic = 0, with_basepeak = 0, with_window = 0, with_mzrange = 0, with_injection = 0;
+  for (const MSSpectrum& s : original.getSpectra())
+  {
+    if (s.metaValueExists("filter string")) { ++with_filter; }
+    if (s.metaValueExists("total ion current")) { ++with_tic; }
+    if (s.metaValueExists("base peak m/z")) { ++with_basepeak; }
+    if (s.metaValueExists("lowest observed m/z") && s.metaValueExists("highest observed m/z")) { ++with_mzrange; }
+    if (!s.getInstrumentSettings().getScanWindows().empty()) { ++with_window; }
+    for (Size ai = 0; ai < s.getAcquisitionInfo().size(); ++ai)
+    {
+      if (s.getAcquisitionInfo()[ai].metaValueExists("ion injection time")) { ++with_injection; break; }
+    }
+  }
+  TEST_EQUAL(with_filter > 0, true)
+  TEST_EQUAL(with_tic > 0, true)
+  TEST_EQUAL(with_basepeak > 0, true)
+  TEST_EQUAL(with_mzrange > 0, true)
+  TEST_EQUAL(with_window > 0, true)
+  TEST_EQUAL(with_injection > 0, true)
+
+  // --- TIC chromatogram extracted and surviving the mzML round-trip ---
+  TEST_EQUAL(original.getChromatograms().empty(), false)
+  TEST_EQUAL(reloaded.getChromatograms().empty(), false)
+  bool reloaded_has_tic = false;
+  for (const MSChromatogram& c : reloaded.getChromatograms())
+  {
+    if (c.getChromatogramType() == ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
+    {
+      reloaded_has_tic = true;
+    }
+  }
+  TEST_EQUAL(reloaded_has_tic, true)
+
+  // --- Spectrum metadata survives the mzML round-trip ---
+  Size rt_filter = 0, rt_tic = 0, rt_window = 0;
+  for (const MSSpectrum& s : reloaded.getSpectra())
+  {
+    if (s.metaValueExists("filter string")) { ++rt_filter; }
+    if (s.metaValueExists("total ion current")) { ++rt_tic; }
+    if (!s.getInstrumentSettings().getScanWindows().empty()) { ++rt_window; }
+  }
+  TEST_EQUAL(rt_filter > 0, true)
+  TEST_EQUAL(rt_tic > 0, true)
+  TEST_EQUAL(rt_window > 0, true)
 }
 END_SECTION
 #endif

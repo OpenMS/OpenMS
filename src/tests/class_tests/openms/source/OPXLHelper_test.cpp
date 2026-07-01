@@ -35,7 +35,7 @@ file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta_db);
 
 
 ProteaseDigestion digestor;
-String enzyme_name = "Trypsin";
+std::string enzyme_name = "Trypsin";
 digestor.setEnzyme(enzyme_name);
 digestor.setMissedCleavages(2);
 
@@ -73,7 +73,7 @@ double cross_link_mass = 150.0;
 double precursor_mass_tolerance = 10;
 bool precursor_mass_tolerance_unit_ppm = true;
 
-std::vector<String> mono_masses;
+std::vector<std::string> mono_masses;
 mono_masses.push_back("50.0");
 DoubleList cross_link_mass_mono_link = ListUtils::create<double>(mono_masses);
 
@@ -86,11 +86,16 @@ for (Size i = 0; i < 1000; i++)
 }
 std::sort(spectrum_precursors.begin(), spectrum_precursors.end());
 
+// The O(n^2) cross-link enumeration is the heaviest operation in this test and
+// its inputs are byte-identical in the three places it was previously called.
+// Run it once here (the result is deterministic) and reuse it below.
+std::vector< int > spectrum_precursor_correction_positions;
+std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
 START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
 
   std::cout << std::endl;
-  std::vector< int > spectrum_precursor_correction_positions;
-  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+  // 'precursors' and 'spectrum_precursor_correction_positions' were enumerated once at file scope above
   // std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   TOLERANCE_ABSOLUTE(1e-3)
@@ -115,25 +120,25 @@ START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLin
 
 END_SECTION
 
-// building more data structures required in the following test
-std::cout << std::endl;
-std::vector< int > spectrum_precursor_correction_positions;
-std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
-
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, String cross_link_name))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, std::string cross_link_name))
   double precursor_mass = 11814.50296;
   double allowed_error = 0.1;
-  String cross_link_name = "MyLinker";
+  std::string cross_link_name = "MyLinker";
 
   std::vector< OPXLDataStructs::XLPrecursor > filtered_precursors;
+
+  // buildCandidates needs the precursors sorted by mass for the binary search;
+  // sort a local copy so the shared 'precursors' stays aligned with
+  // 'spectrum_precursor_correction_positions' for the filterPrecursorsByTags test below.
+  std::vector< OPXLDataStructs::XLPrecursor > sorted_precursors(precursors);
+  std::sort(sorted_precursors.begin(), sorted_precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   // determine MS2 precursors that match to the current peptide mass
   std::vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
   std::vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
-  low_it = std::lower_bound(precursors.begin(), precursors.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-  up_it = std::upper_bound(precursors.begin(), precursors.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+  low_it = std::lower_bound(sorted_precursors.begin(), sorted_precursors.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+  up_it = std::upper_bound(sorted_precursors.begin(), sorted_precursors.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
 
   if (low_it != up_it) // no matching precursor in data
   {
@@ -370,14 +375,14 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
 
 END_SECTION
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name, bool use_sequence_tags, std::vector<std::string>& tags))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, std::string cross_link_name, bool use_sequence_tags, std::vector<std::string>& tags))
 
   IntList precursor_correction_steps;
   precursor_correction_steps.push_back(2);
   precursor_correction_steps.push_back(1);
 
   double precursor_mass = 10668.85060;
-  String cross_link_name = "MyLinker";
+  std::string cross_link_name = "MyLinker";
   precursor_mass_tolerance = 10;
 
   std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps, precursor_mass, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, cross_link_name);
@@ -456,17 +461,19 @@ END_SECTION
 START_SECTION(filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector<std::string>& tags))
 
   std::cout << std::endl;
-  std::vector< int > spectrum_precursor_correction_positions;
-  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+  // reuse the precursors enumerated once at file scope; filterPrecursorsByTags
+  // mutates its arguments in place, so operate on copies
+  std::vector<OPXLDataStructs::XLPrecursor> precursors_to_filter = precursors;
+  std::vector< int > positions_to_filter = spectrum_precursor_correction_positions;
 
   // set of tags
   std::vector<std::string> tags = {"DE", "PP", "FDA", "CIA", "FTC", "ESA", "ISRO", "NASA", "JAXA"};
 
-  TEST_EQUAL(precursors.size(), 9604);
+  TEST_EQUAL(precursors_to_filter.size(), 9604);
 
   // filter candidates
-  OPXLHelper::filterPrecursorsByTags(precursors, spectrum_precursor_correction_positions, tags);
-  TEST_EQUAL(precursors.size(), 4372);
+  OPXLHelper::filterPrecursorsByTags(precursors_to_filter, positions_to_filter, tags);
+  TEST_EQUAL(precursors_to_filter.size(), 4372);
 
 
   // // hasSubstring method runtime benchmark: search those 4372 candidates that do not contain the tags many times

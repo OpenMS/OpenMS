@@ -33,7 +33,7 @@ namespace OpenMS
     }
   }
 
-  HDF5Connector::HDF5Connector(const String& filename, bool createNewFile)
+  HDF5Connector::HDF5Connector(const std::string& filename, bool createNewFile)
   {
     // H5F_ACC_TRUNC - Truncate file, if it already exists, erasing all data previously stored in the file.
     // H5F_ACC_EXCL - Fail if file already exists. H5F_ACC_TRUNC and H5F_ACC_EXCL are mutually exclusive

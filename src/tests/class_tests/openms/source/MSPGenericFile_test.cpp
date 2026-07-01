@@ -26,7 +26,7 @@ START_TEST(MSPGenericFile, "$Id$")
 
 MSPGenericFile* ptr = nullptr;
 MSPGenericFile* null_ptr = nullptr;
-const String input_filepath = OPENMS_GET_TEST_DATA_PATH("MSPGenericFile_input.msp");
+const std::string input_filepath = OPENMS_GET_TEST_DATA_PATH("MSPGenericFile_input.msp");
 
 START_SECTION(MSPGenericFile())
 {
@@ -41,7 +41,7 @@ START_SECTION(~MSPGenericFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void load(const std::string& filename, MSExperiment& experiment) const)
 {
   MSPGenericFile msp;
   MSExperiment experiment;
@@ -164,11 +164,11 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   // CCS metadata: a plain numeric value (Angstrom^2, as written by MS-DIAL/MoNA) is stored as a typed double under MSM_CCS
   {
     MSExperiment ccs_exp;
-    String ccs_content = "Name: ccs_test\n"
+    std::string ccs_content = "Name: ccs_test\n"
                          "CCS: 123.45\n"
                          "Num Peaks: 1\n"
                          "100:100\n";
-    String ccs_path;
+    std::string ccs_path;
     NEW_TMP_FILE(ccs_path)
     {
       ofstream ofs(ccs_path.c_str());
@@ -184,11 +184,11 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   // CCS metadata: a non-numeric value is kept verbatim as a string meta value (no data loss, not fatal)
   {
     MSExperiment ccs_exp;
-    String ccs_content = "Name: ccs_text\n"
+    std::string ccs_content = "Name: ccs_text\n"
                          "CCS: not_a_number\n"
                          "Num Peaks: 1\n"
                          "100:100\n";
-    String ccs_path;
+    std::string ccs_path;
     NEW_TMP_FILE(ccs_path)
     {
       ofstream ofs(ccs_path.c_str());
@@ -202,7 +202,7 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, const MSExperiment& library) const)
+START_SECTION(void store(const std::string& filename, const MSExperiment& library) const)
 {
   MSPGenericFile msp;
 
@@ -273,7 +273,7 @@ START_SECTION(void store(const String& filename, const MSExperiment& library) co
   spec.push_back(peak);
   exp.addSpectrum(spec);
   
-  String output_filepath;
+  std::string output_filepath;
   NEW_TMP_FILE(output_filepath)
   msp.store(output_filepath, exp);
 

@@ -10,15 +10,16 @@
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
-  const String ItraqEightPlexQuantitationMethod::name_ = "itraq8plex";
 
-  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod()
+  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod() :
+    IsobaricQuantitationMethod(MethodType::ITRAQ_8PLEX)
   {
-    setName("ItraqFourPlexQuantitationMethod");
+    setName("ItraqEightPlexQuantitationMethod");
 
     // create the channel map
     channels_.push_back(IsobaricChannelInformation("113", 0, "", 113.1078, {-1, -1, 1, 2}));
@@ -114,17 +115,13 @@ namespace OpenMS
     }
     else if (ref_ch == 120)
     {
-      OPENMS_LOG_WARN << "Invalid channel selection." << std::endl;
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ItraqEightPlexQuantitationMethod: 'reference_channel' value 120 is not a valid channel for the 8-plex method (valid: 113-119, 121).");
     }
     else
     {
       reference_channel_ = ref_ch - 113;
     }
-  }
-
-  const String& ItraqEightPlexQuantitationMethod::getMethodName() const
-  {
-    return ItraqEightPlexQuantitationMethod::name_;
   }
 
   const IsobaricQuantitationMethod::IsobaricChannelList& ItraqEightPlexQuantitationMethod::getChannelInformation() const

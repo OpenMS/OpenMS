@@ -204,30 +204,30 @@ namespace OpenMS
 
     /// Read DIA SWATH boundaries and spectrum counts from a .d directory (SQL only, no peak data).
     /// Also populates exp_settings with source file metadata.
-    DIAStreamingMetadata readDIAMetadata(const String& path, ExperimentalSettings& exp_settings);
+    DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings);
     /// @overload with explicit configuration
-    DIAStreamingMetadata readDIAMetadata(const String& path, ExperimentalSettings& exp_settings,
+    DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings,
                                          const Config& config);
 
     /// Stream DIA spectra to a consumer one-at-a-time without accumulating.
     /// MS2 spectra are always raw (no aggregation/denoising/centroiding).
     /// MS1 centroiding respects the Config settings.
-    void loadDIAStreaming(const String& path, FullSwathFileConsumer& consumer);
+    void loadDIAStreaming(const std::string& path, FullSwathFileConsumer& consumer);
     /// @overload with explicit configuration
-    void loadDIAStreaming(const String& path, FullSwathFileConsumer& consumer,
+    void loadDIAStreaming(const std::string& path, FullSwathFileConsumer& consumer,
                           const Config& config);
 
     /// Load entire .d directory into MSExperiment
-    void load(const String& path, MSExperiment& exp);
+    void load(const std::string& path, MSExperiment& exp);
     /// @overload with explicit configuration
-    void load(const String& path, MSExperiment& exp, const Config& config);
+    void load(const std::string& path, MSExperiment& exp, const Config& config);
 
     /// Feed spectra from a .d directory to a consumer.
     /// @note Currently loads the full dataset into memory before streaming to the consumer.
     ///       A future optimization should iterate frame-by-frame for true constant-memory operation.
-    void transform(const String& path, Interfaces::IMSDataConsumer* consumer);
+    void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer);
     /// @overload with explicit configuration
-    void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
+    void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
   private:
     /// Load DDA-PASEF data: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
@@ -240,10 +240,10 @@ namespace OpenMS
     void loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
 
     /// Detect DDA vs DIA by checking for SWATH windows
-    bool isDIA_(const String& tdf_path) const;
+    bool isDIA_(const std::string& tdf_path) const;
 
     /// Populate SourceFile metadata from the .d path (no peak data read)
-    void loadExperimentalSettings_(const String& path, ExperimentalSettings& settings);
+    void loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings);
   };
 
 } // namespace OpenMS

@@ -266,7 +266,7 @@ START_SECTION(ProForma::parse - cross-link labels)
   TEST_EQUAL(elem2.modifications.size(), 1)
 
   // Verify roundtrip - label-only [#XL1] should be preserved
-  String roundtrip = ProForma::toString(pf);
+  std::string roundtrip = ProForma::toString(pf);
   TEST_EQUAL(roundtrip, "EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]")
 }
 END_SECTION
@@ -516,7 +516,7 @@ START_SECTION(ProForma::parseIon - chimeric spectra with plus)
   TEST_EQUAL(ion.chains[1].sequence.size(), 10)
 
   // Verify roundtrip
-  String output = ProForma::toString(ion);
+  std::string output = ProForma::toString(ion);
   TEST_EQUAL(output, "EMEVEESPEK+ELVISLIVER")
 }
 END_SECTION
@@ -539,7 +539,7 @@ START_SECTION(ProForma::parseIon - chimeric spectra with charges)
   TEST_EQUAL(*charge1, 3)
 
   // Verify roundtrip
-  String output = ProForma::toString(ion);
+  std::string output = ProForma::toString(ion);
   TEST_EQUAL(output, "EMEVEESPEK/2+ELVISLIVER/3")
 }
 END_SECTION
@@ -604,7 +604,7 @@ START_SECTION(ProForma::parseIon - gene prefix)
   TEST_EQUAL(ion.chains[1].name.value(), "Keratin")
 
   // Verify roundtrip
-  String output = ProForma::toString(ion);
+  std::string output = ProForma::toString(ion);
   TEST_EQUAL(output, "(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA")
 }
 END_SECTION
@@ -617,7 +617,7 @@ START_SECTION(ProForma::parse - gene prefix single chain)
   TEST_EQUAL(pf.sequence.size(), 7)
 
   // Verify roundtrip
-  String output = ProForma::toString(pf);
+  std::string output = ProForma::toString(pf);
   TEST_EQUAL(output, "(>sp|P12345|PROT_HUMAN)PEPTIDE")
 }
 END_SECTION
@@ -800,7 +800,7 @@ START_SECTION(ProForma::parse - position constraints on modifications)
   }
 
   // Test roundtrip
-  String output = ProForma::toString(pf);
+  std::string output = ProForma::toString(pf);
   TEST_EQUAL(output, "PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE")
 }
 END_SECTION
@@ -826,7 +826,7 @@ START_SECTION(ProForma::parse - position constraints with multiple residues)
   TEST_EQUAL(pos->residues[2], 'Y')
 
   // Test roundtrip
-  String output = ProForma::toString(pf);
+  std::string output = ProForma::toString(pf);
   TEST_EQUAL(output, "PEPTIDE[Phospho|Position:STY]")
 }
 END_SECTION
@@ -1118,7 +1118,7 @@ END_SECTION
 START_SECTION(ProForma::toString - simple sequences)
 {
   Peptidoform pf = ProForma::parse("PEPTIDE");
-  String result = ProForma::toString(pf);
+  std::string result = ProForma::toString(pf);
   TEST_EQUAL(result, "PEPTIDE")
 }
 END_SECTION
@@ -1126,7 +1126,7 @@ END_SECTION
 START_SECTION(ProForma::toString - modifications)
 {
   Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
-  String result = ProForma::toString(pf);
+  std::string result = ProForma::toString(pf);
   TEST_EQUAL(result, "EM[UNIMOD:35]K")
 }
 END_SECTION
@@ -1134,7 +1134,7 @@ END_SECTION
 START_SECTION(ProForma::toString - terminal modifications)
 {
   Peptidoform pf = ProForma::parse("[Acetyl]-PEPTIDE-[Amidated]");
-  String result = ProForma::toString(pf);
+  std::string result = ProForma::toString(pf);
   TEST_EQUAL(result, "[Acetyl]-PEPTIDE-[Amidated]")
 }
 END_SECTION
@@ -1163,7 +1163,7 @@ START_SECTION(Roundtrip tests from positive fixture)
   for (const auto& test : test_cases)
   {
     Peptidoform pf = ProForma::parse(test);
-    String result = ProForma::toString(pf);
+    std::string result = ProForma::toString(pf);
     // Re-parse and compare structure
     Peptidoform pf2 = ProForma::parse(result);
     TEST_EQUAL(pf.sequence.size(), pf2.sequence.size())
@@ -1197,7 +1197,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 {
   // Test 1: Position way beyond input.size() should be clamped
   {
-    String input = "ABC";
+    std::string input = "ABC";
     size_t out_of_bounds_position = 100;
 
     ProForma::ParseError err(
@@ -1209,15 +1209,15 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
     );
 
     TEST_EQUAL(err.getPosition(), input.size())
-    String formatted = err.getFormattedMessage();
+    std::string formatted = err.getFormattedMessage();
     TEST_EQUAL(formatted.empty(), false)
     // Should show end of input marker since position is at end
-    TEST_EQUAL(formatted.hasSubstring("END OF INPUT"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(formatted, "END OF INPUT"), true)
   }
 
   // Test 2: Position exactly at input.size() (boundary case)
   {
-    String input = "ABCDEF";
+    std::string input = "ABCDEF";
     size_t boundary_position = input.size(); // Position 6, exactly at end
 
     ProForma::ParseError err(
@@ -1235,7 +1235,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 
   // Test 3: Empty input with position 0
   {
-    String input = "";
+    std::string input;
     size_t position = 0;
 
     ProForma::ParseError err(
@@ -1253,7 +1253,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 
   // Test 4: Different error code (verify error code is preserved)
   {
-    String input = "PEP[";
+    std::string input = "PEP[";
     size_t position = 3;
 
     ProForma::ParseError err(
@@ -1265,8 +1265,8 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
     );
 
     TEST_EQUAL(err.getErrorCode(), ErrorCode::UNCLOSED_BRACKET)
-    String formatted = err.getFormattedMessage();
-    TEST_EQUAL(formatted.hasSubstring("Unclosed bracket"), true)
+    std::string formatted = err.getFormattedMessage();
+    TEST_EQUAL(StringUtils::hasSubstring(formatted, "Unclosed bracket"), true)
   }
 }
 END_SECTION
@@ -1280,7 +1280,7 @@ START_SECTION(JSON serialization - Peptidoform)
   Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
   // Serialize to JSON
-  String json = ProForma::toJSON(pf);
+  std::string json = ProForma::toJSON(pf);
   TEST_EQUAL(json.empty(), false)
 
   // Deserialize back
@@ -1294,7 +1294,7 @@ START_SECTION(JSON serialization - PeptidoformIon)
   PeptidoformIon ion = ProForma::parseIon("PEPTIDE//SEQUENCE/2");
 
   // Serialize to JSON
-  String json = ProForma::toJSON(ion);
+  std::string json = ProForma::toJSON(ion);
   TEST_EQUAL(json.empty(), false)
 
   // Deserialize back
@@ -1313,7 +1313,7 @@ START_SECTION(WriteMode - lossless preserves original mass format)
   Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
   // Lossless mode should preserve the original text
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
   TEST_EQUAL(lossless, "EM[+15.99]K")
 }
 END_SECTION
@@ -1324,7 +1324,7 @@ START_SECTION(WriteMode - canonical uses fixed precision)
   Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
   // Canonical mode should use fixed 4 decimal places
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
   TEST_EQUAL(canonical, "EM[+15.9900]K")
 }
 END_SECTION
@@ -1335,7 +1335,7 @@ START_SECTION(WriteMode - canonical normalizes mass precision)
   Peptidoform pf = ProForma::parse("EM[+15.99491234]K");
 
   // Canonical mode should normalize to 4 decimal places
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
   TEST_EQUAL(canonical, "EM[+15.9949]K")
 }
 END_SECTION
@@ -1345,8 +1345,8 @@ START_SECTION(WriteMode - CV accessions in both modes)
   // CV accessions should be the same in both modes
   Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
 
   // Both should produce the same output for CV accessions
   TEST_EQUAL(lossless, "EM[UNIMOD:35]K")
@@ -1359,8 +1359,8 @@ START_SECTION(WriteMode - named modifications in both modes)
   // Named modifications should be the same in both modes
   Peptidoform pf = ProForma::parse("EM[Oxidation]K");
 
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
 
   // Both should produce the same output for named mods
   TEST_EQUAL(lossless, "EM[Oxidation]K")
@@ -1373,8 +1373,8 @@ START_SECTION(WriteMode - default is LOSSLESS)
   // Default mode should be lossless
   Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
-  String default_output = ProForma::toString(pf);
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string default_output = ProForma::toString(pf);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
 
   TEST_EQUAL(default_output, lossless)
 }
@@ -1543,6 +1543,51 @@ START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)
 }
 END_SECTION
 
+START_SECTION([EXTRA] toAASequence - mass-delta mods without CV accession - lossy contract)
+{
+  // A mass-delta modification (e.g. M[+15.9949]) carries no UNIMOD/PSI-MOD
+  // accession. toAASequence resolves it by mass to the matching named
+  // modification when one exists (lossless), and otherwise drops it under
+  // BEST_EFFORT (lossy) or throws under FAIL_ON_LOSS. This pins that contract.
+
+  // (1) matchable side-chain mass delta -> resolved to Oxidation
+  {
+    Peptidoform pf = ProForma::parse("EM[+15.9949]K");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toUnmodifiedString(), "EMK")
+    TEST_EQUAL(seq.toString(), "EM(Oxidation)K")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("EM(Oxidation)K").getMonoWeight())
+  }
+
+  // (2) matchable mass delta on S -> Phospho
+  {
+    Peptidoform pf = ProForma::parse("PES[+79.96633]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PES(Phospho)TIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PES(Phospho)TIDE").getMonoWeight())
+  }
+
+  // (3) matchable N-terminal mass delta -> Acetyl
+  {
+    Peptidoform pf = ProForma::parse("[+42.0106]-PEPTIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), ".(Acetyl)PEPTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("(Acetyl)PEPTIDE").getMonoWeight())
+  }
+
+  // (4) unmatchable mass delta: BEST_EFFORT drops it (lossy); FAIL_ON_LOSS throws
+  {
+    Peptidoform pf = ProForma::parse("PEM[+0.12345]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PEMTIDE")            // mass delta dropped
+    TEST_EQUAL(seq.toUnmodifiedString(), "PEMTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEMTIDE").getMonoWeight())
+    TEST_EXCEPTION(Exception::ConversionError,
+                   ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
+  }
+}
+END_SECTION
+
 START_SECTION(fromAASequence - simple sequence)
 {
   // Create AASequence and convert to Peptidoform
@@ -1585,7 +1630,7 @@ START_SECTION(fromAASequence - roundtrip)
   Peptidoform pf = ProForma::fromAASequence(orig);
 
   // Convert to string
-  String proforma_str = ProForma::toString(pf);
+  std::string proforma_str = ProForma::toString(pf);
 
   // Parse back
   Peptidoform pf2 = ProForma::parse(proforma_str);
@@ -1602,7 +1647,7 @@ END_SECTION
 START_SECTION(ProForma to AASequence roundtrip)
 {
   // Test roundtrip: ProForma -> Peptidoform -> AASequence -> Peptidoform -> ProForma
-  String orig = "EM[UNIMOD:35]K";
+  std::string orig = "EM[UNIMOD:35]K";
 
   // Parse
   Peptidoform pf = ProForma::parse(orig);
@@ -1615,6 +1660,50 @@ START_SECTION(ProForma to AASequence roundtrip)
 
   // The result should be similar (may use different notation for the same mod)
   TEST_EQUAL(pf2.sequence.size(), pf.sequence.size())
+}
+END_SECTION
+
+START_SECTION([EXTRA] QPX/Parquet lane peptidoform round-trip preserves modifications)
+{
+  // QPXFile and FeatureMapArrowIO serialize each PSM peptidoform as a canonical ProForma
+  // string and reconstruct the AASequence on read, using exactly this chain:
+  //   write: ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL)
+  //   read:  ProForma::toAASequence(ProForma::parse(str), ConversionPolicy::BEST_EFFORT)
+  // Pin that chain here so a silent modification drop/mangle in the Parquet/QPX lane (which
+  // feeds the new quant outputs) is caught at the unit level, not only in end-to-end data.
+  // Asserting positions-modified (rather than exact toString) mirrors the other round-trip
+  // sections above: notation may normalize, but a dropped modification must fail the test.
+  std::vector<std::string> seqs;
+  seqs.push_back("PEPTIDER");                  // unmodified backbone
+  seqs.push_back("PEPM(Oxidation)TIDEK");      // variable mod (UNIMOD:35)
+  seqs.push_back("PEPT(Phospho)IDESK");        // phospho (UNIMOD:21)
+  seqs.push_back("PEPC(Carbamidomethyl)IDEK"); // fixed mod (UNIMOD:4)
+
+  for (const std::string& s : seqs)
+  {
+    AASequence orig = AASequence::fromString(s);
+
+    // write side (CANONICAL) then read side (BEST_EFFORT) -- exactly as QPXFile does
+    std::string canonical = ProForma::toString(ProForma::fromAASequence(orig), WriteMode::CANONICAL);
+    AASequence result = ProForma::toAASequence(ProForma::parse(canonical), ConversionPolicy::BEST_EFFORT);
+
+    // backbone and length must survive unchanged
+    TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
+    TEST_EQUAL(result.size(), orig.size())
+
+    // monoisotopic mass must match -- catches a modification being dropped or changed
+    // to a different mass, which the per-position isModified() check below would miss
+    TEST_REAL_SIMILAR(result.getMonoWeight(), orig.getMonoWeight())
+
+    // every residue that was modified must remain modified at the same position
+    if (result.size() == orig.size())
+    {
+      for (Size i = 0; i < orig.size(); ++i)
+      {
+        TEST_EQUAL(result[i].isModified(), orig[i].isModified())
+      }
+    }
+  }
 }
 END_SECTION
 
