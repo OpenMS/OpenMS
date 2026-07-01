@@ -17,7 +17,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -95,6 +94,20 @@ namespace OpenMS
           Creates and adds Comet specific Percolator features and registers them in feature_set
          */
         static void addCOMETFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
+
+        /**
+          @brief addANDESFeatures
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] feature_set register of added features
+
+          Collects and registers the andes search engine specific Percolator features.
+          andes annotates every PSM with its own numeric features as MetaValues named
+          with the "andes:" prefix (e.g. "andes:RankScore", "andes:RawScore", ...). Rather
+          than hard-coding the (currently 47) feature names here, all numeric "andes:"-prefixed
+          MetaValues found on the hits are collected, keeping the andes side the single source
+          of truth for its feature set.
+         */
+        static void addANDESFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
           @brief addMASCOTFeatures

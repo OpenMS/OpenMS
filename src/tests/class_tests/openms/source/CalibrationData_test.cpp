@@ -10,6 +10,7 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 ///////////////////////////
 
 #include <OpenMS/MATH/MathFunctions.h>

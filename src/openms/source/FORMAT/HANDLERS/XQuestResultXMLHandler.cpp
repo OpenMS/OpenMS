@@ -14,6 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 #include <cassert>

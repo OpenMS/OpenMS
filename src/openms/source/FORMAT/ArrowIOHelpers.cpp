@@ -230,14 +230,18 @@ void readMetaValues(
 {
   if (!array || array->IsNull(row)) return;
   auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-  auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-  if (!struct_arr || struct_arr->length() == 0) return;
+  const int64_t off = list_arr->value_offset(row);
+  const int64_t len = list_arr->value_length(row);
+  if (len == 0) return;
 
+  // Index the shared child struct via value_offset/length instead of value_slice(row),
+  // which allocates a sliced array on every call (once per metavalue list per row).
+  auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
   auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
   auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
   auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
 
-  for (int64_t i = 0; i < struct_arr->length(); ++i)
+  for (int64_t i = off; i < off + len; ++i)
   {
     std::string name = name_arr->GetString(i);
     if (excluded_keys.contains(name)) continue;
