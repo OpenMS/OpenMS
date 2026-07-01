@@ -17,10 +17,20 @@ namespace OpenMS
 {
   /**
     @brief Reader for extracted ion peak-map Parquet files (.xipm).
+
+    Supports loading single or multiple files, either the full set of peak maps
+    (load()) or a subset restricted by metadata columns such as precursor id,
+    transition id, or MS level (getPeakMaps()).
+
+    @note The .xipm schema is defined by XIPMSchema / XIPMParquetConsumer.
+    @see OpenMS::XIPMParquetConsumer
   */
   class OPENMS_DLLAPI XIPMParquetFile
   {
   public:
+    /**
+      @brief Targeted raw peak map (mz/RT/ion-mobility/intensity arrays) for one analyte.
+    */
     struct OPENMS_DLLAPI XIPMPeakMap
     {
       Int64 run_id{0};
@@ -64,22 +74,67 @@ namespace OpenMS
       std::vector<double> intensity;
     };
 
+    /**
+      @brief Unique run information (run_id, source_file).
+    */
     struct OPENMS_DLLAPI XIPMRunInfo
     {
       Int64 run_id{0};
       std::string source_file;
     };
 
+    /**
+      @brief Construct from a single .xipm file.
+
+      @param[in] filename Path to an OpenSWATH peak-map parquet file.
+    */
     explicit XIPMParquetFile(const std::string& filename);
+
+    /**
+      @brief Construct from multiple .xipm files.
+
+      @param[in] filenames Paths to OpenSWATH peak-map parquet files.
+    */
     explicit XIPMParquetFile(const std::vector<std::string>& filenames);
     XIPMParquetFile(const XIPMParquetFile& rhs) = default;
     XIPMParquetFile& operator=(const XIPMParquetFile& rhs) = default;
 
+    /**
+      @brief Return the primary filename.
+
+      For multi-file instances this is the first file in the list.
+
+      @return Primary filename.
+    */
     const std::string& getFilename() const;
+
+    /**
+      @brief Return all filenames associated with this instance.
+
+      @return All filenames associated with this instance.
+    */
     const std::vector<std::string>& getFilenames() const;
 
+    /**
+      @brief Load all peak maps from the file(s).
+
+      @param[out] output Output peak maps.
+    */
     void load(std::vector<XIPMPeakMap>& output) const;
 
+    /**
+      @brief Load peak maps with optional filtering.
+
+      @param[out] output Output peak maps
+      @param[in] precursor_id Optional precursor id filter (-1 to ignore)
+      @param[in] transition_id Optional transition id filter (-1 to ignore)
+      @param[in] modified_sequence Optional sequence filter (empty to ignore)
+      @param[in] precursor_charge Optional precursor charge filter (-1 to ignore)
+      @param[in] product_charge Optional product charge filter (-1 to ignore)
+      @param[in] ms_level Optional MS level filter (-1 to ignore)
+      @param[in] run_id Optional run_id filter (-1 to ignore)
+      @param[in] peakmap_type Optional peak-map type filter (empty to ignore)
+    */
     void getPeakMaps(std::vector<XIPMPeakMap>& output,
                      Int64 precursor_id = -1,
                      Int64 transition_id = -1,
@@ -90,7 +145,16 @@ namespace OpenMS
                      Int64 run_id = -1,
                      const std::string& peakmap_type = "") const;
 
+    /**
+      @brief Return unique run metadata (run_id, source_file).
+    */
     void getRuns(std::vector<XIPMRunInfo>& output) const;
+
+    /**
+      @brief Return the parquet schema column names.
+
+      @param[out] output Column names.
+    */
     void getColumns(std::vector<std::string>& output) const;
 
   private:

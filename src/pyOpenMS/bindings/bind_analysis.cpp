@@ -52,6 +52,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
@@ -1794,6 +1795,56 @@ The result can be flushed to disk using writeLines (either line by line or after
         .def("prepareLine", [](const OpenMS::OpenSwathOSWWriter& self, const OpenSwath::LightCompound& pep, const OpenSwath::LightTransition& transition, const OpenMS::FeatureMap& output, const std::string& id) {
             return self.prepareLine(pep, &transition, output, id);
         }, "pep"_a, "transition"_a, "output"_a, "id"_a, "Prepare a single line (feature) for output")
+        ;
+
+    // -----------------------------------------------------------------------
+    // OpenSwathPercolatorScoring
+    // -----------------------------------------------------------------------
+    auto openswath_percolator_scoring_class = nb::class_<OpenMS::OpenSwathPercolatorScoring>(m, "OpenSwathPercolatorScoring",
+        R"doc(
+In-process Percolator scoring for OpenSWATH OSW and OSWPQ results.
+
+Reads OpenSWATH feature tables, converts them into a domain-agnostic
+Percolator::RescoreInput, performs target/decoy rescoring, and writes the
+resulting score, q-value, PEP, and peak-group rank back to the source format.
+
+DefaultParamHandler
+)doc");
+    openswath_percolator_scoring_class
+        .def(nb::init<>())
+        .def("score", [](OpenMS::OpenSwathPercolatorScoring& self, const std::string& input_path, OpenMS::OpenSwathPercolatorScoring::Level level, const std::string& output_path) {
+            return self.score(input_path, level, output_path);
+        }, "input_path"_a, "level"_a, "output_path"_a = std::string(""),
+            R"doc(
+Score an OpenSWATH OSW / OSWPQ file in place or into a copy.
+:param input_path: Input '.osw' SQLite file or '.oswpq' directory/archive
+:param level: OpenSWATH scoring level to rescore
+:param output_path: Optional output path. If empty, score in place. Non-empty outputs preserve the input container kind (SQLite -> SQLite, directory -> directory, archive -> archive).
+:return: Small execution summary for the rescored rows
+)doc")
+        ;
+    def_DefaultParamHandler<OpenMS::OpenSwathPercolatorScoring>(openswath_percolator_scoring_class);
+
+    // Nested Level enum
+    nb::enum_<OpenMS::OpenSwathPercolatorScoring::Level>(openswath_percolator_scoring_class, "Level")
+        .value("MS1", OpenMS::OpenSwathPercolatorScoring::Level::MS1)
+        .value("MS2", OpenMS::OpenSwathPercolatorScoring::Level::MS2)
+        .value("MS1MS2", OpenMS::OpenSwathPercolatorScoring::Level::MS1MS2)
+        .value("TRANSITION", OpenMS::OpenSwathPercolatorScoring::Level::TRANSITION)
+        .value("SIZE_OF_LEVEL", OpenMS::OpenSwathPercolatorScoring::Level::SIZE_OF_LEVEL)
+        ;
+
+    // Nested ScoreSummary struct
+    nb::class_<OpenMS::OpenSwathPercolatorScoring::ScoreSummary>(openswath_percolator_scoring_class, "ScoreSummary",
+        "Small execution summary returned by OpenSwathPercolatorScoring.score()")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSwathPercolatorScoring::ScoreSummary &>())
+        .def("__copy__", [](const OpenMS::OpenSwathPercolatorScoring::ScoreSummary& self) { return OpenMS::OpenSwathPercolatorScoring::ScoreSummary(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSwathPercolatorScoring::ScoreSummary& self, nb::dict) { return OpenMS::OpenSwathPercolatorScoring::ScoreSummary(self); }, "memo"_a)
+        .def_rw("total_rows", &OpenMS::OpenSwathPercolatorScoring::ScoreSummary::total_rows)
+        .def_rw("target_rows", &OpenMS::OpenSwathPercolatorScoring::ScoreSummary::target_rows)
+        .def_rw("decoy_rows", &OpenMS::OpenSwathPercolatorScoring::ScoreSummary::decoy_rows)
+        .def_rw("feature_count", &OpenMS::OpenSwathPercolatorScoring::ScoreSummary::feature_count)
         ;
 
     // -----------------------------------------------------------------------
