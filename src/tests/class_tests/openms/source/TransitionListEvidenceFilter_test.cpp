@@ -262,6 +262,7 @@ START_SECTION((filter() - peak picking path))
   TransitionListEvidenceFilter filter = makeFilter("ms2");
   Param params = filter.getParameters();
   params.setValue("peak_picking:enabled", "true");
+  params.setValue("peak_picking:use_gauss", "false");
   params.setValue("peak_picking:PeakPickerHiRes:signal_to_noise", 0.0);
   filter.setParameters(params);
 

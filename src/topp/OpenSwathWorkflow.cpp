@@ -451,6 +451,8 @@ protected:
     {
       Param p = TransitionTSVFile().getDefaults();
       p.insert("prefilter:", TransitionListEvidenceFilter().getDefaults());
+      p.setValue("prefilter:enabled", "false",
+        "Enable one shared evidence-driven transition-library prefilter across all input runs before calibration and extraction.");
       p.setValue("prefilter:aggregation_method", "any",
         "How to combine Library:prefilter evidence across input runs. 'any' keeps a target precursor if it is supported in at least one run; 'all' requires support in every run.");
       p.setValidStrings("prefilter:aggregation_method", {"any", "all"});

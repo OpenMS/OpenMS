@@ -131,7 +131,7 @@ public:
                   int threads = 1) const;
 
 private:
-    bool enabled_{true};
+    bool enabled_{false};
     std::string evidence_sources_{"hybrid"};
     Size ms1_top_peaks_per_spectrum_{1000};
     Size ms2_top_peaks_per_spectrum_{1000};
