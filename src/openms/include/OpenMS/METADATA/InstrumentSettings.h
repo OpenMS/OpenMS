@@ -10,7 +10,7 @@
 
 #include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/METADATA/IonSource.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 namespace OpenMS
 {

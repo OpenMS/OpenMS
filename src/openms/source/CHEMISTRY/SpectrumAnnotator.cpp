@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/MATH/MathFunctions.h>
