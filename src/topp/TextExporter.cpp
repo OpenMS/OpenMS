@@ -74,7 +74,7 @@ Depending on the input and the parameters, the output contains the following col
 - a @p FEATURE line contains data of a single feature; further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p quality, @p rt_quality, @p mz_quality, @p rt_start, @p rt_end
 - a @p PEPTIDE line contains data of a peptide hit annotated to the previous feature; further columns: same as for @p UNASSIGNEDPEPTIDE
 
-With the @p id:add_usi flag, peptide-identification rows gain an additional @p USI column.
+With the @p id:add_usi flag, peptide-identification rows gain an additional @p USI column; set @p id:usi_dataset_id to a ProteomeXchange accession (e.g., @p PXD000561) for complete USIs.
 
 With the @p no_ids flag, only @p FEATURE lines (without the @p FEATURE indicator) are written.
 
