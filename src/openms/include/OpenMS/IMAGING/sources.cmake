@@ -6,6 +6,7 @@ set(sources_list_h
 IonImage.h
 MSImagingGeometry.h
 MSImagingExperiment.h
+MSImagingRegion.h
 )
 
 ### add path to the filenames

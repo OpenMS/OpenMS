@@ -108,6 +108,36 @@ protected:
 
   };
 
+  /// Helper template to hash any type with getCVTerms() method (CVTermList, CVTermListInterface)
+  template<typename T>
+  inline std::size_t hashCVTerms(const T& obj) noexcept
+  {
+    std::size_t seed = 0;
+    const auto& cv_terms = obj.getCVTerms();
+    for (const auto& [accession, terms] : cv_terms)
+    {
+      hash_combine(seed, fnv1a_hash_string(accession));
+      for (const auto& term : terms)
+      {
+        hash_combine(seed, fnv1a_hash_string(term.getAccession()));
+        hash_combine(seed, fnv1a_hash_string(term.getName()));
+        hash_combine(seed, fnv1a_hash_string(term.getCVIdentifierRef()));
+        if (term.hasValue())
+        {
+          hash_combine(seed, fnv1a_hash_string(term.getValue().toString()));
+        }
+        if (term.hasUnit())
+        {
+          hash_combine(seed, fnv1a_hash_string(term.getUnit().accession));
+        }
+      }
+    }
+    return seed;
+  }
+
+  // Convenience wrappers for backward compatibility
+  inline std::size_t hashCVTermList(const CVTermList& cvtl) noexcept { return hashCVTerms(cvtl); }
+
 } // namespace OpenMS
 
 // Hash function specialization for CVTermList

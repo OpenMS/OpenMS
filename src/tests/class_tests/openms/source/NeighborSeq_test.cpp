@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 
 

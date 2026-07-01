@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
 #include <numeric>

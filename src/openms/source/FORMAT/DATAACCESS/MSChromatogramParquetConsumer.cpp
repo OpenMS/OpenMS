@@ -330,24 +330,45 @@ namespace OpenMS
     {
       // Build lookup tables for precursor- and transition-level metadata.
 
+      std::unordered_map<std::string, bool> precursor_has_target_transition;
+      std::unordered_map<std::string, bool> precursor_has_decoy_transition;
+      precursor_has_target_transition.reserve(transition_exp.getTransitions().size());
+      precursor_has_decoy_transition.reserve(transition_exp.getTransitions().size());
+      for (const auto& transition : transition_exp.getTransitions())
+      {
+        if (transition.getDecoy())
+        {
+          precursor_has_decoy_transition[transition.peptide_ref] = true;
+        }
+        else
+        {
+          precursor_has_target_transition[transition.peptide_ref] = true;
+        }
+      }
+
+      // IPF libraries can contain target detecting transitions and decoy
+      // identifying transitions for the same precursor. Treat the precursor as
+      // decoy only if it has no target transitions at all.
+      const auto resolve_precursor_decoy = [&](const std::string& peptide_ref) -> int64_t
+      {
+        const bool has_target = precursor_has_target_transition.find(peptide_ref) != precursor_has_target_transition.end();
+        const bool has_decoy = precursor_has_decoy_transition.find(peptide_ref) != precursor_has_decoy_transition.end();
+        return (!has_target && has_decoy) ? 1 : 0;
+      };
+
       std::unordered_map<std::string, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
-
-      std::unordered_map<std::string, int64_t> precursor_decoy;
-      precursor_decoy.reserve(transition_exp.getCompounds().size());
-
       for (const auto& compound : transition_exp.getCompounds())
       {
         const std::string compound_id = compound.id;
         const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id_, used_precursor_ids_);
         precursor_ids[compound_id] = precursor_id;
-        precursor_decoy[compound_id] = 0;
 
         CompoundInfo info;
         info.precursor_id = precursor_id;
         info.modified_sequence = compound.sequence;
         info.precursor_charge = compound.charge;
-        info.precursor_decoy = 0;
+        info.precursor_decoy = resolve_precursor_decoy(compound_id);
         compound_info_.emplace(compound_id, std::move(info));
       }
 
@@ -373,27 +394,17 @@ namespace OpenMS
         {
           const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id_, used_precursor_ids_);
           precursor_ids[peptide_ref] = precursor_id;
-          precursor_decoy[peptide_ref] = 0;
 
           CompoundInfo info;
           info.precursor_id = precursor_id;
           info.modified_sequence = "";
           info.precursor_charge = 0;
-          info.precursor_decoy = 0;
+          info.precursor_decoy = resolve_precursor_decoy(peptide_ref);
           compound_info_.emplace(peptide_ref, std::move(info));
           precursor_it = precursor_ids.find(peptide_ref);
         }
 
         const bool is_decoy = transition.getDecoy();
-        if (is_decoy)
-        {
-          precursor_decoy[peptide_ref] = 1;
-          auto comp_it = compound_info_.find(peptide_ref);
-          if (comp_it != compound_info_.end())
-          {
-            comp_it->second.precursor_decoy = 1;
-          }
-        }
 
         TransitionInfo info;
         info.transition_id = transition_id;
@@ -441,9 +452,8 @@ namespace OpenMS
         appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
         appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
         appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
-        return;
       }
-      if (use_lossy_compression)
+      else if (use_lossy_compression)
       {
         // MSNumpress encodes doubles to byte strings, then zlib compresses.
         MSNumpressCoder::NumpressConfig npconfig_mz;
@@ -474,14 +484,16 @@ namespace OpenMS
         ZlibCompression::compressString(int_bytes, int_encoded);
       }
 
-      appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
-      appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
-      appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
-      appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
+      if (!rt_data.empty())
+      {
+        appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
+        appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
+        appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
+        appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
+      }
       
-      // Track accumulated binary size and row count. Flush BEFORE the next
-      // append if the thresholds would be exceeded, so we never exceed Arrow's
-      // int32 capacity limits within a single batch.
+      // Track accumulated binary size and row count for both populated and
+      // empty chromatograms so trailing empty rows are flushed as well.
       accumulated_rows_++;
       accumulated_binary_bytes_ += rt_encoded.size();
       accumulated_binary_bytes_ += int_encoded.size();

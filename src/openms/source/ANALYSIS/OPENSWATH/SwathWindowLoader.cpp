@@ -12,8 +12,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <sstream>

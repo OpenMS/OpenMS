@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <boost/regex.hpp>
 
