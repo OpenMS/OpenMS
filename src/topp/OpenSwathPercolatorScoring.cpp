@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
 using namespace OpenMS;
@@ -72,7 +73,7 @@ protected:
     return levels;
   }
 
-  static Level toLevel_(const String& value)
+  static Level toLevel_(const std::string& value)
   {
     const auto it = std::find(Scorer::names_of_level.begin(),
                               Scorer::names_of_level.end(),
@@ -123,13 +124,13 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    const String input_file = getStringOption_("in");
-    const String output_file = getStringOption_("out");
+    const std::string input_file = getStringOption_("in");
+    const std::string output_file = getStringOption_("out");
     const vector<Level> levels = parseLevels_(getStringList_("level"));
 
     scorer_.setParameters(getParam_().copySubset(scorer_.getDefaults()));
 
-    const String working_file = output_file.empty() ? input_file : output_file;
+    const std::string working_file = output_file.empty() ? input_file : output_file;
     bool first_pass = true;
     for (const Level level : levels)
     {

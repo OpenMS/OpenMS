@@ -19,19 +19,20 @@
 #include <sqlite3.h>
 
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace OpenMS;
 
 namespace
 {
-  void copyFixture_(const String& fixture_name, const String& target_path)
+  void copyFixture_(const std::string& fixture_name, const std::string& target_path)
   {
     File::remove(target_path);
     TEST_TRUE(File::copy(OPENMS_GET_TEST_DATA_PATH(fixture_name), target_path))
   }
 
-  Int64 querySqliteInt64_(const String& filename, const String& query)
+  Int64 querySqliteInt64_(const std::string& filename, const std::string& query)
   {
     sqlite3* db = nullptr;
     TEST_EQUAL(sqlite3_open_v2(filename.c_str(), &db, SQLITE_OPEN_READONLY, nullptr), SQLITE_OK)
@@ -53,7 +54,7 @@ namespace
     return out;
   }
 
-  void executeSqlite_(const String& filename, const String& query)
+  void executeSqlite_(const std::string& filename, const std::string& query)
   {
     sqlite3* db = nullptr;
     TEST_EQUAL(sqlite3_open_v2(filename.c_str(), &db, SQLITE_OPEN_READWRITE, nullptr), SQLITE_OK)
@@ -74,18 +75,18 @@ namespace
 
   struct ExtractedArchive
   {
-    String base_dir;
+    std::string base_dir;
     std::unique_ptr<File::TempDir> temp_dir;
   };
 
-  ExtractedArchive unzipArchive_(const String& archive_path)
+  ExtractedArchive unzipArchive_(const std::string& archive_path)
   {
     ExtractedArchive archive;
     archive.base_dir = ZipArchiveFile::unzipDirectory(archive_path, archive.temp_dir);
     return archive;
   }
 
-  std::vector<Int64> readRunIds_(const String& base_dir)
+  std::vector<Int64> readRunIds_(const std::string& base_dir)
   {
     const auto runs_table = ParquetFile::readTable(base_dir + "/runs/runs.parquet");
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
@@ -103,9 +104,9 @@ namespace
     return array == nullptr ? 0 : static_cast<Size>(array->length() - array->null_count());
   }
 
-  void checkParquetFeatureColumns_(const String& base_dir,
-                                   const std::vector<String>& expected_columns,
-                                   const String& non_null_score_column)
+  void checkParquetFeatureColumns_(const std::string& base_dir,
+                                   const std::vector<std::string>& expected_columns,
+                                   const std::string& non_null_score_column)
   {
     Size total_rows = 0;
     Size total_non_null = 0;
@@ -123,9 +124,9 @@ namespace
     TEST_TRUE(total_non_null > 0)
   }
 
-  void checkParquetTransitionColumns_(const String& base_dir,
-                                      const std::vector<String>& expected_columns,
-                                      const String& non_null_score_column)
+  void checkParquetTransitionColumns_(const std::string& base_dir,
+                                      const std::vector<std::string>& expected_columns,
+                                      const std::string& non_null_score_column)
   {
     Size total_rows = 0;
     Size total_non_null = 0;
@@ -155,11 +156,11 @@ START_SECTION(OpenSwathPercolatorScoring())
 }
 END_SECTION
 
-START_SECTION(ScoreSummary score(const String& input_path, Level level, const String& output_path))
+START_SECTION(ScoreSummary score(const std::string& input_path, Level level, const std::string& output_path))
 {
   OpenSwathPercolatorScoring scorer;
 
-  String ms1_osw;
+  std::string ms1_osw;
   NEW_TMP_FILE(ms1_osw);
   ms1_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms1_osw);
@@ -172,7 +173,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   TEST_EQUAL(querySqliteInt64_(ms1_osw, "SELECT COUNT(*) FROM SCORE_MS1 WHERE RANK < 1;"), 0)
   TEST_EQUAL(querySqliteInt64_(ms1_osw, "SELECT COUNT(*) FROM SCORE_MS1 WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
 
-  String ms2_osw;
+  std::string ms2_osw;
   NEW_TMP_FILE(ms2_osw);
   ms2_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms2_osw);
@@ -183,7 +184,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   TEST_EQUAL(querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE RANK < 1;"), 0)
   TEST_EQUAL(querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
 
-  String ms2_nullfiltered_osw;
+  std::string ms2_nullfiltered_osw;
   NEW_TMP_FILE(ms2_nullfiltered_osw);
   ms2_nullfiltered_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms2_nullfiltered_osw);
@@ -205,7 +206,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   TEST_EQUAL(querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM SCORE_TRANSITION WHERE RANK != 1;"), 0)
   TEST_EQUAL(querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM SCORE_TRANSITION WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
 
-  String ms1ms2_osw;
+  std::string ms1ms2_osw;
   NEW_TMP_FILE(ms1ms2_osw);
   ms1ms2_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms1ms2_osw);
@@ -214,13 +215,13 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   TEST_EQUAL(querySqliteInt64_(ms1ms2_osw, "SELECT COUNT(*) FROM SCORE_MS2;"),
              querySqliteInt64_(ms1ms2_osw, "SELECT COUNT(*) FROM FEATURE_MS2;"))
 
-  String ms1_oswpq;
+  std::string ms1_oswpq;
   NEW_TMP_FILE(ms1_oswpq);
   ms1_oswpq += ".oswpq";
   copyFixture_("OpenSwathWorkflow_tworuns_1_17.output.oswpq", ms1_oswpq);
   TEST_EXCEPTION(Exception::InvalidValue, scorer.score(ms1_oswpq, OpenSwathPercolatorScoring::Level::MS1))
 
-  String ms2_oswpq;
+  std::string ms2_oswpq;
   NEW_TMP_FILE(ms2_oswpq);
   ms2_oswpq += ".oswpq";
   copyFixture_("OpenSwathWorkflow_tworuns_1_17.output.oswpq", ms2_oswpq);
@@ -230,14 +231,14 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   checkParquetFeatureColumns_(transition_archive.base_dir,
                               {"score_ms2_score", "score_ms2_peak_group_rank", "score_ms2_qvalue", "score_ms2_pep"},
                               "score_ms2_score");
-  String invalid_dir_output;
+  std::string invalid_dir_output;
   NEW_TMP_FILE(invalid_dir_output);
   invalid_dir_output += ".oswpq.zip";
   TEST_EXCEPTION(Exception::InvalidValue,
                  scorer.score(transition_archive.base_dir, OpenSwathPercolatorScoring::Level::MS2, invalid_dir_output))
   TEST_EXCEPTION(Exception::InvalidValue, scorer.score(ms2_oswpq, OpenSwathPercolatorScoring::Level::TRANSITION))
 
-  String ms1ms2_oswpq;
+  std::string ms1ms2_oswpq;
   NEW_TMP_FILE(ms1ms2_oswpq);
   ms1ms2_oswpq += ".oswpq";
   copyFixture_("OpenSwathWorkflow_tworuns_1_17.output.oswpq", ms1ms2_oswpq);

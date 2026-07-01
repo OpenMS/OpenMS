@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/config.h>
 
@@ -92,9 +91,9 @@ namespace OpenMS
       @throws Exception::Precondition if required prerequisite scores are missing
       @throws Exception::InvalidValue if no usable feature columns are available
     */
-    ScoreSummary score(const String& input_path,
+    ScoreSummary score(const std::string& input_path,
                        Level level,
-                       const String& output_path = "");
+                       const std::string& output_path = "");
 
   protected:
     void updateMembers_() override;

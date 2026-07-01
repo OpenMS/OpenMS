@@ -40,6 +40,8 @@
 
 namespace OpenMS
 {
+  using String = std::string;
+
   const std::array<std::string, static_cast<Size>(OpenSwathPercolatorScoring::Level::SIZE_OF_LEVEL)>
     OpenSwathPercolatorScoring::names_of_level = {"ms1", "ms2", "ms1ms2", "transition"};
 
@@ -1510,9 +1512,9 @@ namespace OpenMS
     impl_->percolator.setParameters(param_.copy("percolator:", true));
   }
 
-  OpenSwathPercolatorScoring::ScoreSummary OpenSwathPercolatorScoring::score(const String& input_path,
+  OpenSwathPercolatorScoring::ScoreSummary OpenSwathPercolatorScoring::score(const std::string& input_path,
                                                                               const Level level,
-                                                                              const String& output_path)
+                                                                              const std::string& output_path)
   {
     if (!File::exists(input_path))
     {
