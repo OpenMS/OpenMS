@@ -77,6 +77,41 @@ class TestImzMLFile(unittest.TestCase):
         self.assertTrue(imaging.hasPixel(2, 2))
         self.assertGreater(imaging.getSpectrum(2, 2).size(), 0)
 
+    def test_on_disc_extract_ion_image(self):
+        # On-disc extraction must match the in-memory MSImagingExperiment path:
+        # both share the geometry and peak-summation logic, the on-disc path just
+        # reads each pixel from the .ibd lazily.
+        imaging = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, imaging)
+
+        od = pyopenms.OnDiscImzMLExperiment()
+        try:
+            od.open(self.imzml_path)
+            first = od.getSpectrum(0)
+            self.assertGreater(first.size(), 0)
+            mz = first[0].getMZ()
+            tol_ppm = 1000.0
+
+            mem = imaging.extractIonImage(mz, tol_ppm)
+            disc = od.extractIonImage(mz, tol_ppm)
+
+            self.assertEqual(disc.getWidth(), mem.getWidth())
+            self.assertEqual(disc.getHeight(), mem.getHeight())
+            for y in range(mem.getHeight()):
+                for x in range(mem.getWidth()):
+                    self.assertEqual(disc.hasPixel(x, y), mem.hasPixel(x, y))
+                    if mem.hasPixel(x, y):
+                        self.assertAlmostEqual(
+                            disc.getIntensity(x, y),
+                            mem.getIntensity(x, y),
+                            places=3,
+                        )
+
+            with self.assertRaises(Exception):
+                od.extractIonImage(-1.0, tol_ppm)
+        finally:
+            od.close()
+
     def test_load_spectra_index(self):
         meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
         self.assertEqual(meta.imaging_mode, "continuous")

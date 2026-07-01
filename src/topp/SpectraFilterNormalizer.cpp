@@ -8,6 +8,7 @@
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
