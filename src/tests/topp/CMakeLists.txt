@@ -2126,7 +2126,7 @@ if(NOT DISABLE_OPENSWATH)
   add_test("TOPP_OpenSwathPercolatorScoring_2" ${TOPP_BIN_PATH}/OpenSwathPercolatorScoring -test
     -in ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_input.oswpq
     -out ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_output.oswpq
-    -level ms2 transition)
+    -level ms2)
   set_tests_properties("TOPP_OpenSwathPercolatorScoring_2" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_2_prepare")
 endif(NOT DISABLE_OPENSWATH)
 

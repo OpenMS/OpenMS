@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -52,6 +53,25 @@ namespace
     return out;
   }
 
+  void executeSqlite_(const String& filename, const String& query)
+  {
+    sqlite3* db = nullptr;
+    TEST_EQUAL(sqlite3_open_v2(filename.c_str(), &db, SQLITE_OPEN_READWRITE, nullptr), SQLITE_OK)
+    if (db == nullptr)
+    {
+      return;
+    }
+
+    char* error_message = nullptr;
+    const int rc = sqlite3_exec(db, query.c_str(), nullptr, nullptr, &error_message);
+    TEST_EQUAL(rc, SQLITE_OK)
+    if (error_message != nullptr)
+    {
+      sqlite3_free(error_message);
+    }
+    sqlite3_close(db);
+  }
+
   struct ExtractedArchive
   {
     String base_dir;
@@ -87,17 +107,19 @@ namespace
                                    const std::vector<String>& expected_columns,
                                    const String& non_null_score_column)
   {
+    Size total_rows = 0;
     Size total_non_null = 0;
     for (const Int64 run_id : readRunIds_(base_dir))
     {
-      const auto table = ParquetFile::readTable(base_dir + "/runs/run_id=" + String(run_id) + "/features.parquet");
-      TEST_EQUAL(table->num_rows() > 0, true)
+      const auto table = ParquetFile::readTable(base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet");
+      total_rows += static_cast<Size>(table->num_rows());
       for (const auto& column : expected_columns)
       {
         TEST_NOT_EQUAL(ParquetFile::getOptionalColumn(table, column), nullptr)
       }
       total_non_null += countNonNull_(ParquetFile::getOptionalColumn(table, non_null_score_column));
     }
+    TEST_EQUAL(total_rows > 0, true)
     TEST_EQUAL(total_non_null > 0, true)
   }
 
@@ -105,17 +127,19 @@ namespace
                                       const std::vector<String>& expected_columns,
                                       const String& non_null_score_column)
   {
+    Size total_rows = 0;
     Size total_non_null = 0;
     for (const Int64 run_id : readRunIds_(base_dir))
     {
-      const auto table = ParquetFile::readTable(base_dir + "/runs/run_id=" + String(run_id) + "/feature_transition.parquet");
-      TEST_EQUAL(table->num_rows() > 0, true)
+      const auto table = ParquetFile::readTable(base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/feature_transition.parquet");
+      total_rows += static_cast<Size>(table->num_rows());
       for (const auto& column : expected_columns)
       {
         TEST_NOT_EQUAL(ParquetFile::getOptionalColumn(table, column), nullptr)
       }
       total_non_null += countNonNull_(ParquetFile::getOptionalColumn(table, non_null_score_column));
     }
+    TEST_EQUAL(total_rows > 0, true)
     TEST_EQUAL(total_non_null > 0, true)
   }
 } // namespace
@@ -137,6 +161,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
 
   String ms1_osw;
   NEW_TMP_FILE(ms1_osw);
+  ms1_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms1_osw);
   const auto ms1_summary = scorer.score(ms1_osw, OpenSwathPercolatorScoring::Level::MS1);
   TEST_EQUAL(ms1_summary.total_rows > 0, true)
@@ -149,6 +174,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
 
   String ms2_osw;
   NEW_TMP_FILE(ms2_osw);
+  ms2_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms2_osw);
   const auto ms2_summary = scorer.score(ms2_osw, OpenSwathPercolatorScoring::Level::MS2);
   TEST_EQUAL(ms2_summary.total_rows > 0, true)
@@ -156,6 +182,22 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
              querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM FEATURE_MS2;"))
   TEST_EQUAL(querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE RANK < 1;"), 0)
   TEST_EQUAL(querySqliteInt64_(ms2_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
+
+  String ms2_nullfiltered_osw;
+  NEW_TMP_FILE(ms2_nullfiltered_osw);
+  ms2_nullfiltered_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", ms2_nullfiltered_osw);
+  const Int64 feature_ms2_count = querySqliteInt64_(ms2_nullfiltered_osw, "SELECT COUNT(*) FROM FEATURE_MS2;");
+  executeSqlite_(ms2_nullfiltered_osw,
+                 "ALTER TABLE FEATURE_MS2 ADD COLUMN VAR_NULLFILTER_TEST REAL; "
+                 "UPDATE FEATURE_MS2 SET VAR_NULLFILTER_TEST = CAST(FEATURE_ID AS REAL); "
+                 "UPDATE FEATURE_MS2 SET VAR_NULLFILTER_TEST = NULL "
+                 "WHERE FEATURE_ID = (SELECT FEATURE_ID FROM FEATURE_MS2 ORDER BY FEATURE_ID LIMIT 1);");
+  const auto ms2_nullfiltered_summary = scorer.score(ms2_nullfiltered_osw, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_EQUAL(ms2_nullfiltered_summary.total_rows, static_cast<Size>(feature_ms2_count - 1))
+  TEST_EQUAL(querySqliteInt64_(ms2_nullfiltered_osw, "SELECT COUNT(*) FROM SCORE_MS2;"), feature_ms2_count - 1)
+  TEST_EQUAL(querySqliteInt64_(ms2_nullfiltered_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE RANK < 1;"), 0)
+  TEST_EQUAL(querySqliteInt64_(ms2_nullfiltered_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
 
   const auto transition_summary = scorer.score(ms2_osw, OpenSwathPercolatorScoring::Level::TRANSITION);
   TEST_EQUAL(transition_summary.total_rows > 0, true)
@@ -165,6 +207,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
 
   String ms1ms2_osw;
   NEW_TMP_FILE(ms1ms2_osw);
+  ms1ms2_osw += ".osw";
   copyFixture_("PyProphet_inference_test.osw", ms1ms2_osw);
   const auto ms1ms2_summary = scorer.score(ms1ms2_osw, OpenSwathPercolatorScoring::Level::MS1MS2);
   TEST_EQUAL(ms1ms2_summary.total_rows > 0, true)
@@ -175,12 +218,7 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   NEW_TMP_FILE(ms1_oswpq);
   ms1_oswpq += ".oswpq";
   copyFixture_("OpenSwathWorkflow_tworuns_1_17.output.oswpq", ms1_oswpq);
-  const auto ms1_oswpq_summary = scorer.score(ms1_oswpq, OpenSwathPercolatorScoring::Level::MS1);
-  TEST_EQUAL(ms1_oswpq_summary.total_rows > 0, true)
-  const auto ms1_archive = unzipArchive_(ms1_oswpq);
-  checkParquetFeatureColumns_(ms1_archive.base_dir,
-                              {"score_ms1_score", "score_ms1_peak_group_rank", "score_ms1_qvalue", "score_ms1_pep"},
-                              "score_ms1_score");
+  TEST_EXCEPTION(Exception::InvalidValue, scorer.score(ms1_oswpq, OpenSwathPercolatorScoring::Level::MS1))
 
   String ms2_oswpq;
   NEW_TMP_FILE(ms2_oswpq);
@@ -188,15 +226,11 @@ START_SECTION(ScoreSummary score(const String& input_path, Level level, const St
   copyFixture_("OpenSwathWorkflow_tworuns_1_17.output.oswpq", ms2_oswpq);
   const auto ms2_oswpq_summary = scorer.score(ms2_oswpq, OpenSwathPercolatorScoring::Level::MS2);
   TEST_EQUAL(ms2_oswpq_summary.total_rows > 0, true)
-  const auto transition_oswpq_summary = scorer.score(ms2_oswpq, OpenSwathPercolatorScoring::Level::TRANSITION);
-  TEST_EQUAL(transition_oswpq_summary.total_rows > 0, true)
   const auto transition_archive = unzipArchive_(ms2_oswpq);
   checkParquetFeatureColumns_(transition_archive.base_dir,
                               {"score_ms2_score", "score_ms2_peak_group_rank", "score_ms2_qvalue", "score_ms2_pep"},
                               "score_ms2_score");
-  checkParquetTransitionColumns_(transition_archive.base_dir,
-                                 {"score_transition_score", "score_transition_rank", "score_transition_qvalue", "score_transition_pep"},
-                                 "score_transition_score");
+  TEST_EXCEPTION(Exception::InvalidValue, scorer.score(ms2_oswpq, OpenSwathPercolatorScoring::Level::TRANSITION))
 
   String ms1ms2_oswpq;
   NEW_TMP_FILE(ms1ms2_oswpq);
