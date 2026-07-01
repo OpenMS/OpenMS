@@ -88,6 +88,7 @@
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/KERNEL/BinnedSpectrum.h>

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <ostream>
 
 

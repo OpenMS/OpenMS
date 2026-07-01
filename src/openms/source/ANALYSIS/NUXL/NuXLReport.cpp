@@ -11,6 +11,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <boost/range/adaptor/reversed.hpp>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

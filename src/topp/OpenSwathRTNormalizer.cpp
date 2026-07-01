@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 

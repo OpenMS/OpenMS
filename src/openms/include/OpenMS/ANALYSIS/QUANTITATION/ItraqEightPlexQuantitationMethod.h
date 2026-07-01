@@ -60,6 +60,7 @@ public:
     void setDefaultParams_();
 
     /// implemented for DefaultParamHandler
+    /// @throw Exception::InvalidParameter if the 'reference_channel' parameter is not a valid 8-plex channel (valid: 113-119, 121; 120 is not a valid channel)
     void updateMembers_() override;
   };
 } // namespace

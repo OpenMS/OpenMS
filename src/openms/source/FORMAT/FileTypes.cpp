@@ -92,6 +92,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::CHROMPARQUET, "xic", "OpenSwath Parquet chromatogram output", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MOBILPARQUET, "xim", "OpenSwath Parquet mobilogram output", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::PEAKMAPPARQUET, "xipm", "OpenSwath Parquet peak-map output", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::PSMS, "psms", "Percolator tab-delimited output (PSM level)", {PROP::READABLE}),
     TypeNameBinding(FileTypes::PIN, "pin", "Percolator tab-delimited input (PSM level)", {}),
     TypeNameBinding(FileTypes::PARAMXML, "paramXML", "OpenMS internal XML file", {}),
@@ -112,6 +113,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::CONSENSUSPARQUET, "consensusparquet", "OpenMS consensus map parquet bundle (directory)", {PROP::PROVIDES_CONSENSUSFEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::BRUKER_TDF, "d", "Bruker TDF", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
     TypeNameBinding(FileTypes::IMZML, "imzML", "imzML mass spectrometry imaging file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::YAML, "yaml", "YAML file", {PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
