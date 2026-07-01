@@ -8,11 +8,14 @@
 
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 
 #include <arrow/api.h>
@@ -51,11 +54,11 @@ namespace // anonymous
     std::shared_ptr<arrow::StructBuilder>& struct_b,
     const std::unordered_set<std::string>& excluded_keys)
   {
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
-      if (excluded_keys.count(key)) continue;
+      if (excluded_keys.contains(key)) continue;
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
@@ -81,7 +84,7 @@ namespace // anonymous
   /// @return true on success, false on error
   bool writeArrowTableToParquet_(
     std::shared_ptr<arrow::Table> table,
-    const String& filename,
+    const std::string& filename,
     const std::string& file_type,
     const ParquetWriteConfig& config)
   {
@@ -187,7 +190,7 @@ namespace // anonymous
   // ==================== Import helpers ====================
 
   /// Read a single Parquet file into an Arrow table.
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -258,7 +261,7 @@ namespace // anonymous
   }
 
   /// Get string value at a row, returning empty string if null.
-  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  std::string getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
     if (!array || array->IsNull(row)) return "";
     return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
@@ -292,9 +295,9 @@ namespace // anonymous
   }
 
   /// Read a list<utf8> column at a given row into a vector of Strings.
-  std::vector<String> readStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  std::vector<std::string> readStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
-    std::vector<String> result;
+    std::vector<std::string> result;
     if (!array || array->IsNull(row)) return result;
     auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
     auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->value_slice(row));
@@ -304,80 +307,6 @@ namespace // anonymous
       result.emplace_back(values->GetString(i));
     }
     return result;
-  }
-
-  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  /// Sets them on the target MetaInfoInterface, excluding specified keys.
-  void readMetaValues_(
-    const std::shared_ptr<arrow::Array>& array,
-    int64_t row,
-    MetaInfoInterface& target,
-    const std::unordered_set<std::string>& excluded_keys = {})
-  {
-    if (!array || array->IsNull(row)) return;
-    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!struct_arr || struct_arr->length() == 0) return;
-
-    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
-    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
-    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
-
-    for (int64_t i = 0; i < struct_arr->length(); ++i)
-    {
-      std::string name = name_arr->GetString(i);
-      if (excluded_keys.count(name)) continue;
-
-      std::string value_str = value_arr->GetString(i);
-      std::string type_str = type_arr->GetString(i);
-
-      if (type_str == "int")
-      {
-        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double" || type_str == "float")
-      {
-        try { target.setMetaValue(name, std::stod(value_str)); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "int_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "string_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<String>(s);
-          for (auto& e : sl) { e = e.trim(); }
-          target.setMetaValue(name, DataValue(sl));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else
-      {
-        target.setMetaValue(name, value_str);
-      }
-    }
   }
 
   /// Build a map from run_identifier to index in the protein_identifications vector.
@@ -467,7 +396,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
   for (const auto& prot_id : protein_identifications)
   {
-    const String& run_id = prot_id.getIdentifier();
+    const std::string& run_id = prot_id.getIdentifier();
 
     for (const auto& hit : prot_id.getHits())
     {
@@ -492,7 +421,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
       }
 
       // === sequence (nullable, null if empty) ===
-      const String& seq = hit.getSequence();
+      const std::string& seq = hit.getSequence();
       if (seq.empty())
       {
         (void)sequence_builder.AppendNull();
@@ -505,7 +434,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
       // === description (nullable, null if empty or not set) ===
       if (hit.metaValueExists("Description"))
       {
-        String desc = hit.getDescription();
+        std::string desc = hit.getDescription();
         if (desc.empty())
         {
           (void)description_builder.AppendNull();
@@ -613,7 +542,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
 bool ProteinIdentificationArrowIO::exportProteinsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportProteinsToArrow(protein_identifications);
@@ -680,7 +609,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   // Lambda to append a single ProteinGroup row
   auto append_group = [&](const ProteinIdentification::ProteinGroup& group,
                           const std::string& type_str,
-                          const String& run_id,
+                          const std::string& run_id,
                           int32_t index) -> bool
   {
     // group_type
@@ -771,7 +700,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   // Iterate over all ProteinIdentifications
   for (const auto& prot_id : protein_identifications)
   {
-    const String& run_id = prot_id.getIdentifier();
+    const std::string& run_id = prot_id.getIdentifier();
 
     // Protein groups with separate 0-based index
     int32_t pg_index = 0;
@@ -834,7 +763,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
 
 bool ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportProteinGroupsToArrow(protein_identifications);
@@ -961,7 +890,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     (void)search_engine_builder.Append(prot_id.getSearchEngine());
 
     // === search_engine_version (nullable, null if empty) ===
-    const String& se_version = prot_id.getSearchEngineVersion();
+    const std::string& se_version = prot_id.getSearchEngineVersion();
     if (se_version.empty())
     {
       (void)search_engine_version_builder.AppendNull();
@@ -972,7 +901,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     }
 
     // === inference_engine (nullable, null if empty) ===
-    const String inference_engine = prot_id.getInferenceEngine();
+    const std::string inference_engine = prot_id.getInferenceEngine();
     if (inference_engine.empty())
     {
       (void)inference_engine_builder.AppendNull();
@@ -983,7 +912,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     }
 
     // === inference_engine_version (nullable, null if empty) ===
-    const String inference_engine_version = prot_id.getInferenceEngineVersion();
+    const std::string inference_engine_version = prot_id.getInferenceEngineVersion();
     if (inference_engine_version.empty())
     {
       (void)inference_engine_version_builder.AppendNull();
@@ -996,7 +925,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     // === date (nullable, null if unset) ===
     {
       const DateTime& dt = prot_id.getDateTime();
-      String date_str = dt.toString("yyyy-MM-ddThh:mm:ss");
+      std::string date_str = dt.toString("yyyy-MM-ddThh:mm:ss");
       if (date_str.empty())
       {
         (void)date_builder.AppendNull();
@@ -1100,7 +1029,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     (void)fragment_mass_tolerance_ppm_builder.Append(sp.fragment_mass_tolerance_ppm);
 
     // === digestion_enzyme (nullable, null if empty or "unknown_enzyme") ===
-    const String& enzyme_name = sp.digestion_enzyme.getName();
+    const std::string& enzyme_name = sp.digestion_enzyme.getName();
     if (enzyme_name.empty() || enzyme_name == "unknown_enzyme")
     {
       (void)digestion_enzyme_builder.AppendNull();
@@ -1265,7 +1194,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
 
 bool ProteinIdentificationArrowIO::exportSearchParamsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportSearchParamsToArrow(protein_identifications);
@@ -1342,11 +1271,33 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
     prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
 
-    // Date (timestamp seconds since epoch)
+    // Date (timestamp; normalize to seconds based on the column's actual time unit).
+    // The schema declares timestamp(SECOND), but Parquet may persist/restore the column
+    // as nanoseconds, so we have to inspect the runtime unit rather than assume seconds.
     if (!isNull_(col_date, row))
     {
       auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
-      int64_t epoch_secs = ts_arr->Value(row);
+      auto ts_type = std::static_pointer_cast<arrow::TimestampType>(ts_arr->type());
+      int64_t raw = ts_arr->Value(row);
+      // Floor-style division so a small negative sub-second value (e.g. raw = -500
+      // ms) maps to -1 second instead of 0; with C++'s truncating integer division
+      // it would otherwise pass the epoch_secs >= 0 check below and silently render
+      // as 1970-01-01.  Quotient/remainder form avoids UB at INT64_MIN that the
+      // simpler `-((-r + d - 1) / d)` formulation would hit by negating r.
+      auto floor_div = [](int64_t r, int64_t d) -> int64_t {
+        int64_t q = r / d;
+        int64_t rem = r % d;
+        if (rem != 0 && ((rem < 0) != (d < 0))) { --q; }
+        return q;
+      };
+      int64_t epoch_secs = raw;
+      switch (ts_type->unit())
+      {
+        case arrow::TimeUnit::SECOND: epoch_secs = raw; break;
+        case arrow::TimeUnit::MILLI:  epoch_secs = floor_div(raw, 1000LL); break;
+        case arrow::TimeUnit::MICRO:  epoch_secs = floor_div(raw, 1000000LL); break;
+        case arrow::TimeUnit::NANO:   epoch_secs = floor_div(raw, 1000000000LL); break;
+      }
       if (epoch_secs >= 0) // negative epochs are invalid on Windows
       {
         time_t t = static_cast<time_t>(epoch_secs);
@@ -1370,10 +1321,12 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       }
     }
 
-    // Primary MS run paths
-    auto ms_run_paths = readStringList_(col_ms_run_paths, row);
-    if (!ms_run_paths.empty())
+    // Primary MS run paths — only call when the column is present.
+    // Missing column → no spectra_data UserParam (preserves round-trip semantics).
+    // Present-but-empty column → empty spectra_data UserParam (matches idXML behaviour).
+    if (col_ms_run_paths)
     {
+      auto ms_run_paths = readStringList_(col_ms_run_paths, row);
       StringList sl(ms_run_paths.begin(), ms_run_paths.end());
       prot_id.setPrimaryMSRunPath(sl);
     }
@@ -1385,7 +1338,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.taxonomy = getStringValue_(col_taxonomy, row);
     sp.charges = getStringValue_(col_charges, row);
 
-    String mass_type_str = getStringValue_(col_mass_type, row);
+    std::string mass_type_str = getStringValue_(col_mass_type, row);
     sp.mass_type = (mass_type_str == "AVERAGE") ?
       ProteinIdentification::PeakMassType::AVERAGE :
       ProteinIdentification::PeakMassType::MONOISOTOPIC;
@@ -1397,7 +1350,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.missed_cleavages = static_cast<UInt>(getInt32Value_(col_missed_cleavages, row));
 
     // Enzyme
-    String enzyme_name = getStringValue_(col_enzyme, row);
+    std::string enzyme_name = getStringValue_(col_enzyme, row);
     if (!enzyme_name.empty())
     {
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
@@ -1411,7 +1364,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     }
 
     // Enzyme term specificity
-    String spec_str = getStringValue_(col_enzyme_spec, row);
+    std::string spec_str = getStringValue_(col_enzyme_spec, row);
     if (spec_str == "FULL") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     else if (spec_str == "SEMI") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
     else if (spec_str == "NONE") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
@@ -1428,16 +1381,16 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.variable_modifications.assign(var_mods.begin(), var_mods.end());
 
     // SearchParameters metavalues (restore before setSearchParameters)
-    readMetaValues_(col_sp_metavalues, row, sp);
+    ArrowIOHelpers::readMetaValues(col_sp_metavalues, row, sp);
 
     prot_id.setSearchParameters(sp);
 
     // Inference engine (must be set after setSearchParameters)
-    String inf_engine = getStringValue_(col_inf_engine, row);
+    std::string inf_engine = getStringValue_(col_inf_engine, row);
     if (!inf_engine.empty())
     {
       prot_id.setInferenceEngine(inf_engine);
-      String inf_version = getStringValue_(col_inf_version, row);
+      std::string inf_version = getStringValue_(col_inf_version, row);
       if (!inf_version.empty())
       {
         prot_id.setInferenceEngineVersion(inf_version);
@@ -1449,7 +1402,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       "InferenceEngine", "InferenceEngineVersion",
       "spectra_data", "spectra_data_raw"
     };
-    readMetaValues_(col_metavalues, row, prot_id, excluded_prot_id_mvs);
+    ArrowIOHelpers::readMetaValues(col_metavalues, row, prot_id, excluded_prot_id_mvs);
 
     protein_identifications.push_back(std::move(prot_id));
   }
@@ -1500,7 +1453,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
 
   for (int64_t row = 0; row < table->num_rows(); ++row)
   {
-    String run_id = getStringValue_(col_run_id, row);
+    std::string run_id = getStringValue_(col_run_id, row);
 
     // Find or create matching ProteinIdentification
     auto it = run_id_map.find(run_id);
@@ -1568,7 +1521,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
         for (int64_t i = 0; i < struct_arr->length(); ++i)
         {
           Size position = static_cast<Size>(pos_arr->Value(i));
-          String mod_id = mod_name_arr->GetString(i);
+          std::string mod_id = mod_name_arr->GetString(i);
           try
           {
             const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_id);
@@ -1584,7 +1537,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
     }
 
     // MetaValues
-    readMetaValues_(col_metavalues, row, hit, excluded_hit_mvs);
+    ArrowIOHelpers::readMetaValues(col_metavalues, row, hit, excluded_hit_mvs);
 
     protein_identifications[prot_id_idx].insertHit(std::move(hit));
   }
@@ -1700,7 +1653,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 
   for (int64_t row = 0; row < table->num_rows(); ++row)
   {
-    String run_id = getStringValue_(col_run_id, row);
+    std::string run_id = getStringValue_(col_run_id, row);
 
     // Find or create matching ProteinIdentification
     auto it = run_id_map.find(run_id);
@@ -1730,7 +1683,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
     readIntegerDataArrays(col_integer_data, row, group);
 
     // Insert into appropriate vector
-    String group_type = getStringValue_(col_group_type, row);
+    std::string group_type = getStringValue_(col_group_type, row);
     if (group_type == "indistinguishable")
     {
       protein_identifications[prot_id_idx].insertIndistinguishableProteins(std::move(group));
@@ -1746,7 +1699,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 
 
 bool ProteinIdentificationArrowIO::importSearchParamsFromParquet(
-  const String& filename,
+  const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   auto table = readParquetTable_(filename);
@@ -1756,7 +1709,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromParquet(
 
 
 bool ProteinIdentificationArrowIO::importProteinsFromParquet(
-  const String& filename,
+  const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   auto table = readParquetTable_(filename);
@@ -1766,7 +1719,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromParquet(
 
 
 bool ProteinIdentificationArrowIO::importProteinGroupsFromParquet(
-  const String& filename,
+  const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   auto table = readParquetTable_(filename);
@@ -1776,9 +1729,9 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromParquet(
 
 
 bool ProteinIdentificationArrowIO::importFromParquet(
-  const String& proteins_filename,
-  const String& protein_groups_filename,
-  const String& search_params_filename,
+  const std::string& proteins_filename,
+  const std::string& protein_groups_filename,
+  const std::string& search_params_filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   protein_identifications.clear();
@@ -1805,6 +1758,80 @@ bool ProteinIdentificationArrowIO::importFromParquet(
   }
 
   return true;
+}
+
+
+// ==================== Identifier handling parity with XML lane ====================
+
+std::map<std::string, std::string> ProteinIdentificationArrowIO::synthesizeRunIdentifiers(
+  std::vector<ProteinIdentification>& protein_identifications)
+{
+  std::map<std::string, std::string> rename;
+  for (auto& prot_id : protein_identifications)
+  {
+    // Mirror IdXMLFile.cpp:530 — `<search_engine>_<date>_<UniqueIdGenerator>`.
+    const std::string se = prot_id.getSearchEngine().empty() ? std::string("unknown") : prot_id.getSearchEngine();
+    const std::string dt = prot_id.getDateTime().isValid()
+                          ? prot_id.getDateTime().toString()
+                          : std::string("1900-01-01T00:00:00");
+    const std::string stored = prot_id.getIdentifier();
+    const std::string synthesized = se + "_" + dt + "_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+
+    // Multiple ProtIDs sharing the stored identifier each get their own distinct
+    // synthesized identifier; the rename map collapses to the last-seen entry
+    // (matches XML-lane behavior should pre-fix files reach the loader). One
+    // ProtID ends up orphaned of its pep_ids; warn once per collision so the
+    // upstream data corruption is visible.
+    auto existing = rename.find(stored);
+    if (existing != rename.end())
+    {
+      OPENMS_LOG_WARN << "ProteinIdentificationArrowIO: multiple ProtIDs share stored identifier '"
+                      << stored << "'; pep_id assignment ambiguity resolved by load order — "
+                      << "regenerate input from a fixed-code build to eliminate." << std::endl;
+      existing->second = synthesized;
+    }
+    else
+    {
+      rename[stored] = synthesized;
+    }
+
+    prot_id.setIdentifier(synthesized);
+  }
+  return rename;
+}
+
+void ProteinIdentificationArrowIO::applyRunIdentifierRename(
+  const std::map<std::string, std::string>& rename,
+  PeptideIdentificationList& pep_ids)
+{
+  for (auto& pid : pep_ids)
+  {
+    auto it = rename.find(pid.getIdentifier());
+    if (it != rename.end())
+    {
+      pid.setIdentifier(it->second);
+    }
+    // Orphan pep_ids (no matching ProtID identifier) keep their stored identifier —
+    // same as the XML lane, where they organically surface upstream-corruption signals.
+  }
+}
+
+void ProteinIdentificationArrowIO::checkUniqueIdentifiers(
+  const std::vector<ProteinIdentification>& protein_identifications)
+{
+  // Mirror XMLHandler::checkUniqueIdentifiers_ exactly — identical message text
+  // so log-grepping finds both lanes.
+  std::set<std::string> s;
+  for (const auto& p : protein_identifications)
+  {
+    if (s.insert(p.getIdentifier()).second == false)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ProteinIdentification run identifiers are not unique. This can lead to "
+        "loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:",
+        p.getIdentifier());
+    }
+  }
 }
 
 

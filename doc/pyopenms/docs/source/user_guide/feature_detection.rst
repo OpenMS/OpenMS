@@ -168,6 +168,12 @@ The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py
    "deoxyadenosine","C10H13N5O3",0,1,243.0,0,0
    "inosine","C10H12N4O5",0,1,264.0,0,0
 
+Two optional columns can be appended after ``IsoDistribution``:
+
+- ``IonMobility`` — target ion mobility value used to filter extraction windows (ion mobility data only).
+- ``Adduct`` — adduct string in standard notation (e.g. ``[M+H]+``, ``[M+Na]+``, ``[M-H]-``, ``[2M+H]+``).
+  When present, the m/z is computed via the specified adduct; if omitted, ``[M+H]+`` is assumed for positive charges and ``[M-H]-`` for negative charges.
+
 .. code-block:: python
 
   import csv
@@ -178,8 +184,14 @@ The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py
       metaboTable = []
       with open(path_to_library_file, "r") as tsv_file:
           tsv_reader = csv.reader(tsv_file, delimiter="\t")
-          next(tsv_reader)  # skip header
+          header = next(tsv_reader)
+          has_im = "IonMobility" in header
+          has_adduct = "Adduct" in header
           for row in tsv_reader:
+              ion_mobilities = (
+                  [float(im) for im in row[7].split(",")] if has_im and len(row) > 7 else []
+              )
+              adduct = row[8] if has_adduct and len(row) > 8 else (row[7] if has_adduct and not has_im and len(row) > 7 else "")
               metaboTable.append(
                   oms.FeatureFinderMetaboIdentCompound(
                       row[0],  # name
@@ -193,6 +205,8 @@ The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py
                       [
                           float(iso_distrib) for iso_distrib in row[6].split(",")
                       ],  # isotope distributions
+                      ion_mobilities,  # ion mobilities (empty if column absent)
+                      adduct,          # adduct string (empty string if column absent)
                   )
               )
       return metaboTable

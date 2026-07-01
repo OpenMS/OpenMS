@@ -374,6 +374,23 @@ START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
 }
 END_SECTION
 
+// A FASTA entry longer than 65535 residues would overflow the 16-bit peptide start offset in
+// Peptide::sequence_ and silently index fragments from the wrong subsequence. build() must reject it.
+START_SECTION([EXTRA] build() rejects FASTA entries longer than 65535 residues)
+{
+  // 70000-residue contig (> uint16 max): the guard fires on length before digestion.
+  const std::vector<FASTAFile::FASTAEntry> too_long{{"contig1", "long metaproteomic contig", std::string(70000, 'A')}};
+  FragmentIndex fi_long;
+  TEST_EXCEPTION(Exception::InvalidParameter, fi_long.build(too_long))
+
+  // Boundary: exactly 65535 residues is the largest allowed and must NOT throw.
+  const std::vector<FASTAFile::FASTAEntry> ok{{"contig_ok", "ok", std::string(65535, 'A')}};
+  FragmentIndex fi_ok;
+  fi_ok.build(ok); // must not throw
+  TEST_EQUAL(fi_ok.isBuild(), true)
+}
+END_SECTION
+
 // Verify that clear() resets the internal peptide container.
 START_SECTION(clear())
 {
@@ -1586,6 +1603,93 @@ START_SECTION((SNES index admits a candidate whose sub-peptide matches an observ
 }
 END_SECTION
 
+START_SECTION((SNES query is safe and correct when a smaller index is queried after a larger one on the same thread))
+{
+  // Regression for an out-of-bounds access in querySpectrumSNES_'s touched-only reset.
+  // Its score_table / viable_words / emitted scratch buffers are thread_local and persist
+  // across queries AND across different / rebuilt FragmentIndex instances on the same
+  // thread (e.g. the smaller final chunk of a chunked search). The reset must NOT walk the
+  // previous query's touched-id list after the buffers were resized to a SMALLER index, or
+  // it indexes past the new size. The defect is silent in a release build (std::vector
+  // keeps capacity on assign), but aborts under _GLIBCXX_DEBUG / _GLIBCXX_ASSERTIONS / ASan
+  // — which is where this test has teeth (run the suite under one of those to catch a
+  // regression; the assertions below also cover the result staying correct after the shrink).
+  auto make_snes = [](FragmentIndex_test& fi) {
+    Param p = fi.getParameters();
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("precursor:mass_tolerance_lower", 20.0);
+    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    p.setValue("snes_enabled", "true");
+    p.setValue("fragment:min_matched_ions", 3);
+    fi.setParameters(p);
+  };
+  auto make_spectrum = [](const std::string& seq) {
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_p = tsg.getParameters();
+    tsg_p.setValue("add_metainfo", "true");
+    tsg.setParameters(tsg_p);
+    AASequence target = AASequence::fromString(seq);
+    PeakSpectrum theo;
+    tsg.getSpectrum(theo, target, 1, 1);
+    theo.sortByPosition();
+    MSSpectrum spec;
+    for (const auto& peak : theo) spec.push_back(peak);
+    Precursor prec;
+    prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U); // (M+H)+ as charge-1 m/z
+    prec.setCharge(1);
+    spec.getPrecursors().push_back(prec);
+    spec.setMSLevel(2);
+    return spec;
+  };
+
+  // (1) Large index: several distinct 20-aa proteins -> a large mother set. Querying it
+  //     populates the thread_local touched-id scratch lists with large mother ids.
+  std::vector<FASTAFile::FASTAEntry> large_entries{
+    {"L0", "L0", "ACDEFGHIKLMNPQRSTVWY"}, {"L1", "L1", "WYVTSRPNMLKIHGFEDCAQ"},
+    {"L2", "L2", "GASTCVLIMPFWYHKRDENQ"}, {"L3", "L3", "MKVLAGDESTPNQRIHFYWC"},
+    {"L4", "L4", "PQRSTVWYACDEFGHIKLMN"}, {"L5", "L5", "HRKDENQSTGAVLIMPFWYC"}};
+  FragmentIndex_test fi_large;
+  make_snes(fi_large);
+  fi_large.build(large_entries);
+  TEST_EQUAL(fi_large.isSnesMode(), true)
+  const size_t large_mothers = fi_large.getPeptides().size();
+  {
+    MSSpectrum spec = make_spectrum("ACDEFGHIKL"); // 10-mer present in L0
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi_large.querySpectrum(spec, large_entries, sms); // leaves large ids in the thread_local touched lists
+  }
+
+  // (2) Small index: one short protein -> far fewer mothers. Querying it shrinks the
+  //     thread_local buffers; the buggy reset would walk the stale large ids out of bounds.
+  std::vector<FASTAFile::FASTAEntry> small_entries{{"S", "S", "ACDEFGHIKLM"}}; // 11 aa
+  FragmentIndex_test fi_small;
+  make_snes(fi_small);
+  fi_small.build(small_entries);
+  const size_t small_mothers = fi_small.getPeptides().size();
+  TEST_EQUAL(small_mothers < large_mothers, true) // the index genuinely shrank
+
+  MSSpectrum spec_small = make_spectrum("ACDEFGHIK"); // 9-mer sub-peptide of the small protein
+  FragmentIndex::SpectrumMatchesTopN sms_small;
+  fi_small.querySpectrum(spec_small, small_entries, sms_small); // <-- shrink path: must not OOB
+
+  // Correctness after the shrink: the sub-peptide is still found.
+  bool any_matched = false;
+  for (const auto& hit : sms_small.hits_) { if (hit.num_matched_ >= 3u) { any_matched = true; break; } }
+  TEST_EQUAL(any_matched, true)
+}
+END_SECTION
+
 START_SECTION((SNES matches candidates when a fixed N-terminal modification is configured))
 {
   // Build a SNES index with Acetyl (N-term) as a fixed modification and verify
@@ -2458,6 +2562,99 @@ START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
     if (mother.sequence_.first == 0 && mother.sequence_.second == 8) { found_prefix = true; break; }
   }
   TEST_EQUAL(found_prefix, true)
+}
+END_SECTION
+
+START_SECTION((SNES mother generation truncates Single-N mother to unambiguous prefix on X/B/Z))
+{
+  // Issue #9192 item 2: a Single-N mother anchored at position 0 with proposed
+  // length 12 spans the X at position 8. The whole mother used to be dropped;
+  // now the unambiguous prefix [0, 8) length 8 must still be emitted.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"p", "p", "ACDEFGHIXKLMNPQSTVWY"}}; // X at 0-based position 8
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Truncated Single-N mother [0, 8) of length 8 must exist.
+  bool found_truncated_prefix = false;
+  for (const auto& mother : fi.getPeptides())
+  {
+    const bool is_single_c = FragmentIndex::isSingleCMother(mother.mod_bitmask_);
+    if (!is_single_c
+        && mother.sequence_.first == 0
+        && mother.sequence_.second == 8)
+    {
+      found_truncated_prefix = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_truncated_prefix, true)
+
+  // Invariant: no kept mother spans the X at position 8.
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+  }
+}
+END_SECTION
+
+START_SECTION((SNES mother generation truncates Single-C mother to unambiguous suffix on X/B/Z))
+{
+  // Issue #9192 item 2: a Single-C mother anchored at the last residue (j=19)
+  // with proposed length 12 spans [8, 20) and covers the X. The whole mother
+  // used to be dropped; the unambiguous suffix [9, 20) length 11 must now
+  // be emitted (length capped per-span at e - s = 11).
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"p", "p", "ACDEFGHIXKLMNPQSTVWY"}}; // X at 0-based position 8
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Truncated Single-C mother [9, 20) of length 11 must exist.
+  bool found_truncated_suffix = false;
+  for (const auto& mother : fi.getPeptides())
+  {
+    const bool is_single_c = FragmentIndex::isSingleCMother(mother.mod_bitmask_);
+    if (is_single_c
+        && mother.sequence_.first == 9
+        && mother.sequence_.second == 11)
+    {
+      found_truncated_suffix = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_truncated_suffix, true)
+
+  // Invariant: no kept mother spans the X at position 8.
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+  }
 }
 END_SECTION
 

@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QFile>
 #include <QFileDialog>
@@ -291,7 +291,7 @@ namespace OpenMS
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
     if (ti == nullptr)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + StringUtils::toStr(header_column) + " not found!");
     }
     ti->setData(Qt::UserRole, export_name);
   }
@@ -302,7 +302,7 @@ namespace OpenMS
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
     if (ti == nullptr)
     {
-      throw  Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+      throw  Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + StringUtils::toStr(header_column) + " not found!");
     }
     // prefer user role over display role
     if (ti->data(Qt::UserRole).isValid())
@@ -314,7 +314,7 @@ namespace OpenMS
       return ti->data(Qt::DisplayRole).toString();
     }
 
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + StringUtils::toStr(header_column) + " has no data!");
   }
 
   QString TableView::getHeaderName(const int header_column)
@@ -322,14 +322,14 @@ namespace OpenMS
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
     if (ti == nullptr)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + StringUtils::toStr(header_column) + " not found!");
     }
     if (ti->data(Qt::DisplayRole).isValid())
     {
       return ti->data(Qt::DisplayRole).toString();
     }
 
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + StringUtils::toStr(header_column) + " has no data!");
   }
 
   void TableView::resizeEvent(QResizeEvent* /*event*/)

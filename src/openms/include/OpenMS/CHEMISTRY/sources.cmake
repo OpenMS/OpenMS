@@ -20,6 +20,7 @@ EmpiricalFormula.h
 EnzymaticDigestion.h
 EnzymeXMLDataProvider.h
 HydrophobicityProfile.h
+IsoelectricPoint.h
 ModificationDataProvider.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h

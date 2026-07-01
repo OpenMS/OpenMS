@@ -81,42 +81,42 @@ namespace OpenMS
     return true;
   }
 
-  const String & Sample::getName() const
+  const std::string & Sample::getName() const
   {
     return name_;
   }
 
-  void Sample::setName(const String & name)
+  void Sample::setName(const std::string & name)
   {
     name_ = name;
   }
 
-  const String & Sample::getOrganism() const
+  const std::string & Sample::getOrganism() const
   {
     return organism_;
   }
 
-  void Sample::setOrganism(const String & organism)
+  void Sample::setOrganism(const std::string & organism)
   {
     organism_ = organism;
   }
 
-  const String & Sample::getNumber() const
+  const std::string & Sample::getNumber() const
   {
     return number_;
   }
 
-  void Sample::setNumber(const String & number)
+  void Sample::setNumber(const std::string & number)
   {
     number_ = number;
   }
 
-  const String & Sample::getComment() const
+  const std::string & Sample::getComment() const
   {
     return comment_;
   }
 
-  void Sample::setComment(const String & comment)
+  void Sample::setComment(const std::string & comment)
   {
     comment_ = comment;
   }

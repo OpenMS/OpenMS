@@ -146,13 +146,13 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
        true, // decreasing isotope model
        2, // enforce only starting from second peak
        true);
-   String temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
+   std::string temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
    MzMLFile().store(temp_file1, input1);
    File::remove(temp_file1);
 
    // load data with small intensity satellite peaks (e.g., amidation)
    MSExperiment input2;
-   String input2_path = OPENMS_GET_TEST_DATA_PATH("Deisotoper_input2.mzML");
+   std::string input2_path = OPENMS_GET_TEST_DATA_PATH("Deisotoper_input2.mzML");
    if (File::exists(input2_path))
    {
      MzMLFile().load(input2_path, input2);
@@ -176,7 +176,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
        true, // decreasing isotope model
        2, // enforce only starting from second peak
        true);
-   String temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
+   std::string temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
    MzMLFile().store(temp_file2, input2);
    File::remove(temp_file2);
 }
@@ -338,6 +338,22 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
   Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, -1, 1, 3, true);// do not remove low intensity peaks beforehand, but keep only deisotoped
   TEST_EQUAL(theo1.size(), 104);
+}
+END_SECTION
+
+START_SECTION((static bool isToleranceSupported(double fragment_tolerance, bool fragment_unit_ppm)))
+{
+  // Non-throwing mirror of the deisotopeAndSingleCharge() precondition (<= 100 ppm / <= 0.1 Da).
+  // ppm: supported iff tolerance <= 100
+  TEST_EQUAL(Deisotoper::isToleranceSupported(100.0, true), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(20.0, true), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(100.0001, true), false)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(150.0, true), false)
+  // Da: supported iff tolerance <= 0.1
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.1, false), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.02, false), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.10001, false), false)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.5, false), false)
 }
 END_SECTION
 

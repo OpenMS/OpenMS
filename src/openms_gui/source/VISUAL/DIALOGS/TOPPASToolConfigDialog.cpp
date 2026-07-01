@@ -30,7 +30,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget* parent, Param& param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries) :
+  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget* parent, Param& param, const std::string& default_dir, const std::string& tool_name, const std::string& tool_type, const std::string& tool_desc, const QVector<std::string>& hidden_entries) :
     QDialog(parent),
     param_(&param),
     default_dir_(default_dir),
@@ -117,7 +117,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.what()).c_str());
+      QMessageBox::critical(this, "Error", (std::string("Error loading INI file: ") + e.what()).c_str());
       arg_param_.clear();
       return;
     }
@@ -128,7 +128,7 @@ namespace OpenMS
     //param_->remove("debug");
 
     //remove parameters already explained by edges and the "type" parameter
-    for (const String &name : hidden_entries_)
+    for (const std::string &name : hidden_entries_)
     {
       param_->remove(name);
     }
@@ -179,13 +179,13 @@ namespace OpenMS
 
       if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + fromQString(executable) + "\" \"" + fromQString(args.join("\" \"")) + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(nullptr, "Error", (std::string("Could not execute '\"")  + fromQString(executable) + "\" \"" + fromQString(args.join("\" \"")) + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.what()).c_str());
+      QMessageBox::critical(this, "Error", (std::string("Error storing INI file: ") + e.what()).c_str());
       return;
     }
   }

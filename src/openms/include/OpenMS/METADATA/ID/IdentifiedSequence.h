@@ -65,7 +65,7 @@ namespace OpenMS
       {
         if (parent_matches.empty())
         {
-          String msg = "no parent found for identified molecule";
+          std::string msg = "no parent found for identified molecule";
           throw Exception::MissingInformation(__FILE__, __LINE__,
                                               OPENMS_PRETTY_FUNCTION, msg);
         }

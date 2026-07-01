@@ -1,0 +1,298 @@
+"""
+Tests for IMAGING bindings: IonImage, MSImagingGeometry, MSImagingExperiment.
+"""
+
+import pytest
+import numpy as np
+
+
+def _make_fixture():
+    """2x2 grid; pixel (1, 1) intentionally missing."""
+    from pyopenms import MSExperiment, MSSpectrum, MSImagingExperiment, MSImagingGeometry
+
+    exp = MSExperiment()
+    s0 = MSSpectrum(); s0.set_peaks(([499.95, 500.05], [10.0, 20.0])); exp.addSpectrum(s0)
+    s1 = MSSpectrum(); s1.set_peaks(([490.0],          [5.0]));        exp.addSpectrum(s1)
+    s2 = MSSpectrum(); s2.set_peaks(([500.0],          [100.0]));      exp.addSpectrum(s2)
+
+    geom = MSImagingGeometry()
+    geom.setDimensions(2, 2)
+    geom.addPixel(0, 0, 0)
+    geom.addPixel(1, 0, 1)
+    geom.addPixel(0, 1, 2)
+
+    mie = MSImagingExperiment(exp)
+    mie.setGeometry(geom)
+    return mie
+
+
+def test_ion_image_basic():
+    from pyopenms import IonImage
+
+    img = IonImage(3, 2)
+    assert img.getWidth() == 3
+    assert img.getHeight() == 2
+    assert img.hasPixel(0, 0) is False
+
+    img.setIntensity(1, 0, 7.5)
+    assert img.hasPixel(1, 0) is True
+    assert img.getIntensity(1, 0) == pytest.approx(7.5)
+
+
+def test_ion_image_get_data_zero_copy():
+    from pyopenms import IonImage
+
+    img = IonImage(3, 2)
+    img.setIntensity(1, 0, 7.5)
+
+    data = img.get_data()
+    assert data.shape == (2, 3)
+    assert data.dtype == np.float64
+    assert data[0, 1] == pytest.approx(7.5)
+
+    # Zero-copy: writes through the view are reflected in the C++ object
+    data[1, 2] = 42.0
+    assert img.getIntensity(2, 1) == pytest.approx(42.0)
+
+
+def test_ion_image_get_mask_copy():
+    from pyopenms import IonImage
+
+    img = IonImage(2, 2)
+    img.setIntensity(0, 0, 1.0)
+    img.setIntensity(1, 1, 2.0)
+
+    mask = img.get_mask()
+    assert mask.shape == (2, 2)
+    assert mask.dtype == np.uint8
+    assert mask[0, 0] == 1
+    assert mask[1, 1] == 1
+    assert mask[0, 1] == 0
+    assert mask[1, 0] == 0
+
+
+def test_ion_image_oob_raises():
+    from pyopenms import IonImage
+
+    img = IonImage(3, 2)
+    with pytest.raises(Exception):
+        img.getIntensity(5, 0)
+
+
+def test_ms_imaging_geometry_basic():
+    from pyopenms import MSImagingGeometry
+
+    g = MSImagingGeometry()
+    g.setDimensions(4, 3)
+    g.setPixelSize(25.0, 25.0, "micrometer")
+    g.addPixel(0, 0, 100)
+    g.addPixel(1, 0, 101)
+    assert g.getWidth() == 4
+    assert g.getHeight() == 3
+    assert g.getNumberOfPixels() == 2
+    assert g.hasPixel(0, 0) is True
+    assert g.hasPixel(2, 0) is False
+    assert g.getSpectrumIndex(1, 0) == 101
+
+
+def test_ms_imaging_geometry_pixels_struct():
+    g = _make_fixture().getGeometry()
+    pix = g.get_pixels_struct()
+    assert pix.dtype.names == ("x", "y", "spectrum_index")
+    assert pix.dtype.itemsize == 16
+    assert pix.shape == (3,)
+    assert pix["x"].tolist() == [0, 1, 0]
+    assert pix["y"].tolist() == [0, 0, 1]
+    assert pix["spectrum_index"].tolist() == [0, 1, 2]
+
+
+def test_ms_imaging_geometry_rejects_oob():
+    from pyopenms import MSImagingGeometry
+
+    g = MSImagingGeometry()
+    g.setDimensions(2, 2)
+    g.addPixel(1, 1, 0)
+    with pytest.raises(Exception):
+        g.addPixel(2, 0, 1)
+    with pytest.raises(Exception):
+        g.addPixel(1, 1, 99)  # duplicate
+
+
+def test_ms_imaging_experiment_extract_ion_image():
+    mie = _make_fixture()
+    assert mie.getNumberOfPixels() == 3
+    assert mie.getNumberOfSpectra() == 3
+    assert mie.hasPixel(1, 1) is False
+
+    # 200 ppm @ 500 Da -> window [499.9, 500.1]
+    img = mie.extractIonImage(500.0, 200.0)
+    assert img.getWidth() == 2
+    assert img.getHeight() == 2
+
+    data = img.get_data()
+    assert data[0, 0] == pytest.approx(30.0)   # 10 + 20
+    assert data[0, 1] == pytest.approx(0.0)    # spectrum 1 has only 490
+    assert data[1, 0] == pytest.approx(100.0)  # spectrum 2 has 500
+    assert data[1, 1] == pytest.approx(0.0)    # pixel missing, but data buffer reads 0
+
+    valid = img.get_mask()
+    assert valid[1, 1] == 0  # pixel (1, 1) absent -> masked out
+
+    assert img.getMzRange().getMinMZ() == pytest.approx(499.9)
+    assert img.getMzRange().getMaxMZ() == pytest.approx(500.1)
+
+
+def test_ms_imaging_experiment_extract_rejects_bad_inputs():
+    mie = _make_fixture()
+    with pytest.raises(Exception):
+        mie.extractIonImage(-1.0, 100.0)
+    with pytest.raises(Exception):
+        mie.extractIonImage(500.0, -1.0)
+
+
+def test_ms_imaging_experiment_get_spectrum():
+    mie = _make_fixture()
+    sp = mie.getSpectrum(0, 1)
+    mz, intens = sp.get_peaks()
+    assert list(mz) == pytest.approx([500.0])
+    assert list(intens) == pytest.approx([100.0])
+
+    with pytest.raises(Exception):
+        mie.getSpectrum(1, 1)
+
+
+def test_ms_imaging_experiment_assignment_clears_geometry():
+    from pyopenms import MSExperiment, MSSpectrum
+
+    mie = _make_fixture()
+    fresh = MSExperiment()
+    fresh.addSpectrum(MSSpectrum())
+    mie.setMSExperiment(fresh)
+    # setMSExperiment keeps the geometry
+    assert mie.getNumberOfPixels() == 3
+    # operator= is exposed in C++ but we can re-create via constructor + reassign:
+    mie2 = type(mie)(fresh)
+    assert mie2.getNumberOfSpectra() == 1
+    assert mie2.getNumberOfPixels() == 0
+
+def test_ms_imaging_region_rectangle():
+    from pyopenms import MSImagingRegion
+
+    r = MSImagingRegion.rectangle(7, "region", 1,2,4,7)
+    assert r.getId() == 7
+    assert r.getName() == "region"
+    assert r.getShape() == MSImagingRegion.Shape.Rectangle
+    assert r.getBBoxWidth() == 4
+    assert r.getBBoxHeight() == 6
+    assert r.area() == 24
+    assert r.contains(1,2) is True
+    assert r.contains(0,2) is False
+
+    mask = r.get_mask()
+    assert mask.shape == (6,4)
+    assert mask.dtype == np.uint8
+    assert mask.min() == 1  #check we have fully true values
+
+    # intersects: r covers x in [1,4], y in [2,7]
+    assert r.intersects(MSImagingRegion.rectangle(8, "overlap", 3, 3, 9, 9)) is True
+    assert r.intersects(MSImagingRegion.rectangle(9, "disjoint", 10, 10, 12, 12)) is False
+
+
+def test_ms_imaging_region_from_mask():
+    from pyopenms import MSImagingRegion
+
+    r = MSImagingRegion.fromMask(3, "m", 10, 20, 2, 2, [True, False, False, True])
+    assert r.getShape() == MSImagingRegion.Shape.Mask
+    assert r.area() == 2
+    assert r.contains(10, 20) is True
+    assert r.contains(11, 20) is False   # dropout bit
+
+    mask = r.get_mask()
+    assert mask.shape == (2, 2)
+    assert mask.dtype == np.uint8
+    assert mask[0, 0] == 1
+    assert mask[0, 1] == 0
+    assert mask[1, 1] == 1
+
+
+def test_ms_imaging_region_from_mask_numpy():
+    from pyopenms import MSImagingRegion
+
+    # 1D numpy bool array (explicit width/height)
+    m1d = np.array([True, False, False, True], dtype=bool)
+    r = MSImagingRegion.fromMask(1, "m1d", 10, 20, 2, 2, m1d)
+    assert r.getShape() == MSImagingRegion.Shape.Mask
+    assert r.area() == 2
+    assert r.contains(10, 20) is True    # bit 0
+    assert r.contains(11, 20) is False   # bit 1
+    assert r.contains(11, 21) is True    # bit 3
+
+    # 2D numpy bool array (height, width); width/height inferred from shape
+    m2d = np.array([[True, False],
+                    [False, True]], dtype=bool)
+    r2 = MSImagingRegion.fromMask(2, "m2d", 10, 20, m2d)   # no width/height args
+    assert r2.getShape() == MSImagingRegion.Shape.Mask
+    assert r2.getBBoxWidth() == 2
+    assert r2.getBBoxHeight() == 2
+    assert r2.area() == 2
+    assert r2.contains(10, 20) is True    # [row 0, col 0] -> (x=10, y=20)
+    assert r2.contains(11, 20) is False   # [0, 1]
+    assert r2.contains(11, 21) is True    # [1, 1]
+
+    # non-contiguous (strided) array must be normalized correctly by c_contig
+    full = np.array([[True, False, False],
+                     [False, True, False]], dtype=bool)   # shape (2, 3)
+    strided = full[:, ::2]   # shape (2, 2), columns 0 and 2 -> non-contiguous
+    assert not strided.flags["C_CONTIGUOUS"]
+    r3 = MSImagingRegion.fromMask(3, "strided", 0, 0, strided)
+    # logical strided cells: [[True, False], [False, False]] -> only (0,0) set
+    assert r3.area() == 1
+    assert r3.contains(0, 0) is True
+    assert r3.contains(1, 1) is False
+
+
+def test_ms_imaging_geometry_regions():
+    from pyopenms import MSImagingGeometry, MSImagingRegion
+
+    g = _make_fixture().getGeometry()
+    g.addRegion(MSImagingRegion.rectangle(1, "col_0", 0,0,0,1)) # cover column 0 of our data
+
+    assert g.getNumberOfRegions() == 1
+    assert g.regionOf(0,0) == 1
+    assert g.regionOf(1,0) == MSImagingGeometry.NO_REGION
+    assert g.regionOf(10,10) == MSImagingGeometry.NO_REGION
+
+    assert g.getRegion(1).getId() == 1
+    spec = g.getRegionSpectrumIndices(1)
+    assert list(spec) == [0,2]
+
+    # duplicate id is rejected
+    with pytest.raises(Exception):
+        g.addRegion(MSImagingRegion.rectangle(1, "duplicate", 5,5,6,6))
+
+    # a distinct id whose footprint overlaps region 1's column 0 is rejected as overlapping
+    with pytest.raises(Exception):
+        g.addRegion(MSImagingRegion.rectangle(2, "overlapping", 0,0,1,1))
+
+    g.removeRegion(1)
+    assert g.getNumberOfRegions() == 0
+    assert g.getNumberOfPixels() == 3
+
+def test_ms_imaging_experiment_extract_region():
+    from pyopenms import MSImagingRegion
+
+    mie = _make_fixture()
+    mie.getGeometry().addRegion(MSImagingRegion.rectangle(1, "col0", 0, 0, 0, 1))
+    img = mie.extractIonImage(500.0, 200.0, 1)   # region overload (3 args)
+
+    assert img.getWidth() == 2 and img.getHeight() == 2   # global dims
+    data = img.get_data()
+    assert data[0, 0] == pytest.approx(30.0)
+    assert data[1, 0] == pytest.approx(100.0)   # (0,1) in region
+
+    mask = img.get_mask()
+    assert mask[0, 0] == 1
+    assert mask[0, 1] == 0   # (1,0) acquired but OUTSIDE region -> masked
+
+    with pytest.raises(Exception):
+        mie.extractIonImage(500.0, 200.0, 99)   # unknown region id

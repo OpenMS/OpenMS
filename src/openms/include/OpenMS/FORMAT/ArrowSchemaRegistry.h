@@ -187,7 +187,10 @@ namespace OpenMS
     static constexpr const char* SCORE = "score";
     static constexpr const char* SCORE_TYPE = "score_type";
     static constexpr const char* HIGHER_SCORE_BETTER = "higher_score_better";
-    static constexpr const char* RANK = "rank";
+    /// 0-based positional column: hit position within parent identification.
+    /// Distinct from PeptideHit::getRank(), which is round-tripped via the
+    /// "rank" UserParam carried in PSM_METAVALUES.
+    static constexpr const char* HIT_INDEX = "hit_index";
     static constexpr const char* PEPTIDE_IDENTIFICATION_INDEX = "peptide_identification_index";
     static constexpr const char* PSM_METAVALUES = "psm_metavalues";
     static constexpr const char* SPECTRUM_METAVALUES = "spectrum_metavalues";
@@ -200,6 +203,10 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> modificationsType();
     static std::shared_ptr<arrow::DataType> additionalScoresType();
     static std::shared_ptr<arrow::DataType> metavaluesType();
+    /**
+      @brief Arrow type for protein_accessions: list<struct{accession, aa_before, aa_after, start, end}>
+    */
+    static std::shared_ptr<arrow::DataType> proteinAccessionsType();
     static std::shared_ptr<arrow::Schema> schema();
   };
 
@@ -640,6 +647,49 @@ namespace OpenMS
     static constexpr const char* ANNOTATION = "ANNOTATION";
     static constexpr const char* MOBILITY_DATA = "MOBILITY_DATA";
     static constexpr const char* INTENSITY_DATA = "INTENSITY_DATA";
+    static constexpr const char* MOBILITY_COMPRESSION = "MOBILITY_COMPRESSION";
+    static constexpr const char* INTENSITY_COMPRESSION = "INTENSITY_COMPRESSION";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  /**
+    @brief Schema for extracted ion peak-map (XIPM) data table.
+
+    Defines the Arrow/Parquet column contract for targeted peak-map
+    extraction, including run and transition metadata, target coordinates,
+    encoded peak payloads, and per-payload compression codes.
+
+    @ingroup FileIO
+  */
+  struct OPENMS_DLLAPI XIPMSchema
+  {
+    static constexpr const char* RUN_ID = "RUN_ID";
+    static constexpr const char* SOURCE_FILE = "SOURCE_FILE";
+    static constexpr const char* MS_LEVEL = "MS_LEVEL";
+    static constexpr const char* PEAKMAP_TYPE = "PEAKMAP_TYPE";
+    static constexpr const char* PRECURSOR_ID = "PRECURSOR_ID";
+    static constexpr const char* TRANSITION_ID = "TRANSITION_ID";
+    static constexpr const char* MODIFIED_SEQUENCE = "MODIFIED_SEQUENCE";
+    static constexpr const char* PRECURSOR_CHARGE = "PRECURSOR_CHARGE";
+    static constexpr const char* PRODUCT_CHARGE = "PRODUCT_CHARGE";
+    static constexpr const char* DETECTING_TRANSITION = "DETECTING_TRANSITION";
+    static constexpr const char* PRECURSOR_DECOY = "PRECURSOR_DECOY";
+    static constexpr const char* PRODUCT_DECOY = "PRODUCT_DECOY";
+    static constexpr const char* TRANSITION_ORDINAL = "TRANSITION_ORDINAL";
+    static constexpr const char* TRANSITION_TYPE = "TRANSITION_TYPE";
+    static constexpr const char* ANNOTATION = "ANNOTATION";
+    static constexpr const char* TARGET_MZ = "TARGET_MZ";
+    static constexpr const char* TARGET_RT = "TARGET_RT";
+    static constexpr const char* TARGET_ION_MOBILITY = "TARGET_ION_MOBILITY";
+    static constexpr const char* RT_START = "RT_START";
+    static constexpr const char* RT_END = "RT_END";
+    static constexpr const char* MZ_DATA = "MZ_DATA";
+    static constexpr const char* RT_DATA = "RT_DATA";
+    static constexpr const char* MOBILITY_DATA = "MOBILITY_DATA";
+    static constexpr const char* INTENSITY_DATA = "INTENSITY_DATA";
+    static constexpr const char* MZ_COMPRESSION = "MZ_COMPRESSION";
+    static constexpr const char* RT_COMPRESSION = "RT_COMPRESSION";
     static constexpr const char* MOBILITY_COMPRESSION = "MOBILITY_COMPRESSION";
     static constexpr const char* INTENSITY_COMPRESSION = "INTENSITY_COMPRESSION";
 

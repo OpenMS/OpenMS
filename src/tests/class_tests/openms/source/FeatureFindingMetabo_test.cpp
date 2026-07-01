@@ -88,7 +88,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 
   // test annotation of input
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file);
   FeatureXMLFile().store(tmp_file, test_fm);
   TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML")), true);

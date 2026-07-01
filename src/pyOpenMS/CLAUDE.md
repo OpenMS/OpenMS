@@ -32,6 +32,7 @@ Pick `bindings/bind_<domain>.cpp` based on the C++ header path:
 | `KERNEL/MSSpectrum.h` | `bind_spectrum.cpp` |
 | `KERNEL/MSChromatogram.h` | `bind_chromatogram.cpp` |
 | `KERNEL/MSExperiment.h` | `bind_experiment.cpp` |
+| `IMAGING/` | `bind_experiment.cpp` |
 | `FORMAT/` | `bind_format.cpp` |
 | `ANALYSIS/` | `bind_analysis.cpp` |
 | `CHEMISTRY/` | `bind_chemistry.cpp` |

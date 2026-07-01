@@ -44,7 +44,7 @@ START_SECTION((static MetaInfoRegistry& registry()))
 	TEST_EQUAL(mi.registry().getIndex("testname"), 1024);
 END_SECTION
 
-START_SECTION((void setValue(const String& name, const DataValue& value)))
+START_SECTION((void setValue(const std::string& name, const DataValue& value)))
 	NOT_TESTABLE //tested in the get method
 END_SECTION
 
@@ -55,19 +55,19 @@ END_SECTION
 START_SECTION((const DataValue& getValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const))
 {
 	string tmp;
-	mi.setValue(1024, String("testtesttest"));
-	tmp = String(mi.getValue(1024));
+	mi.setValue(1024,std::string("testtesttest"));
+	tmp =StringUtils::toStr(mi.getValue(1024));
   TEST_EQUAL(tmp, "testtesttest");
 	TEST_EQUAL(mi.getValue(1025) == DataValue::EMPTY, true);
 	TEST_EQUAL(mi.getValue(1025, 10) == DataValue(10), true);
 }
 END_SECTION
 
-START_SECTION((const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const))
+START_SECTION((const DataValue& getValue(const std::string& name, const DataValue& default_value = DataValue::EMPTY) const))
 {
 	string tmp;
-	mi.setValue("testname", String("testtesttest2"));
-	tmp = String(mi.getValue("testname"));
+	mi.setValue("testname",std::string("testtesttest2"));
+	tmp =StringUtils::toStr(mi.getValue("testname"));
 	TEST_EQUAL(tmp, "testtesttest2");
 	TEST_EQUAL(mi.getValue("notdefined") == DataValue::EMPTY, true);
 	TEST_EQUAL(mi.getValue("notdefined", 10) == DataValue(10), true);
@@ -80,7 +80,7 @@ mi.setValue(2,4712.12f);
 START_SECTION((bool empty() const))
 	MetaInfo tmp;
 	TEST_EQUAL(tmp.empty(),true)
-	tmp.setValue(1024,String("testtesttest"));
+	tmp.setValue(1024,std::string("testtesttest"));
 	TEST_EQUAL(tmp.empty(),false)
 END_SECTION
 
@@ -97,8 +97,8 @@ START_SECTION((MetaInfo& operator = (const MetaInfo& rhs)))
 	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
 END_SECTION
 
-START_SECTION((void getKeys(std::vector<String>& keys) const))
-	vector<String> tmp,tmp2;
+START_SECTION((void getKeys(std::vector<std::string>& keys) const))
+	vector<std::string> tmp,tmp2;
 	tmp.push_back("cluster_id");
 	tmp.push_back("testname");
 	mi.getKeys(tmp2);
@@ -133,8 +133,8 @@ END_SECTION
 
 START_SECTION((void getKeys(std::vector< UInt > &keys) const))
 	MetaInfo mi;
-	mi.setValue("label",String("tag"));
-	mi.setValue("icon",String("kreis"));
+	mi.setValue("label",std::string("tag"));
+	mi.setValue("icon",std::string("kreis"));
 	vector<UInt> vec;
 	mi.getKeys(vec);
 	TEST_EQUAL(vec.size(),2)
@@ -154,7 +154,7 @@ START_SECTION((void getKeys(std::vector< UInt > &keys) const))
 	TEST_EQUAL(vec[4],1027)
 END_SECTION
 
-START_SECTION((bool exists(const String& name) const))
+START_SECTION((bool exists(const std::string& name) const))
 	MetaInfo mi4;
 	TEST_EQUAL(mi4.exists("cluster_id"),false)
 	mi4.setValue("cluster_id",4712.1234);
@@ -171,7 +171,7 @@ END_SECTION
 START_SECTION((void clear()))
 	MetaInfo i;
 	TEST_EQUAL(i.empty(),true)
-	i.setValue("label",String("test"));
+	i.setValue("label",std::string("test"));
 	TEST_EQUAL(i.empty(),false)
 	i.clear();
 	TEST_EQUAL(i.empty(),true)
@@ -181,10 +181,10 @@ START_SECTION((bool operator== (const MetaInfo& rhs) const))
 	MetaInfo i,i2;
 	TEST_EQUAL(i==i2,true)
 	TEST_EQUAL(i2==i,true)
-	i.setValue("label",String("test"));
+	i.setValue("label",std::string("test"));
 	TEST_EQUAL(i==i2,false)
 	TEST_EQUAL(i2==i,false)
-	i2.setValue("label",String("test"));
+	i2.setValue("label",std::string("test"));
 	TEST_EQUAL(i==i2,true)
 	TEST_EQUAL(i2==i,true)
 END_SECTION
@@ -193,10 +193,10 @@ START_SECTION((bool operator!= (const MetaInfo& rhs) const))
 	MetaInfo i,i2;
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)
-	i.setValue("label",String("test"));
+	i.setValue("label",std::string("test"));
 	TEST_EQUAL(i!=i2,true)
 	TEST_EQUAL(i2!=i,true)
-	i2.setValue("label",String("test"));
+	i2.setValue("label",std::string("test"));
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)
 END_SECTION
@@ -204,15 +204,15 @@ END_SECTION
 START_SECTION((MetaInfo & operator+=(const MetaInfo& rhs)))
   MetaInfo m_new, m_base;
 
-  m_base.setValue("label", String("old"));
+  m_base.setValue("label",std::string("old"));
   m_base.setValue("exists_no_overwrite", 5.2);
   
-  m_new.setValue("label", String("new")); // will be overwritten
+  m_new.setValue("label",std::string("new")); // will be overwritten
   m_new.setValue("icon", 4.3);            // will be added
   
   m_base += m_new;
 
-  TEST_EQUAL(m_base.getValue("label"), String("new"));
+  TEST_EQUAL(m_base.getValue("label"),std::string("new"));
   TEST_EQUAL(m_base.getValue("icon"), 4.3);
   TEST_EQUAL(m_base.getValue("exists_no_overwrite"), 5.2);
 END_SECTION
@@ -220,7 +220,7 @@ END_SECTION
 START_SECTION((void removeValue(UInt index)))
 	MetaInfo i,i2;
 
-	i.setValue(1,String("bla"));
+	i.setValue(1,std::string("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeValue(1);
 	TEST_EQUAL(i==i2,true)
@@ -229,10 +229,10 @@ START_SECTION((void removeValue(UInt index)))
 	i.removeValue(1234);
 END_SECTION
 
-START_SECTION((void removeValue(const String& name)))
+START_SECTION((void removeValue(const std::string& name)))
 	MetaInfo i,i2;
 
-	i.setValue("label",String("bla"));
+	i.setValue("label",std::string("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeValue("label");
 	TEST_EQUAL(i==i2,true)
@@ -268,9 +268,9 @@ END_SECTION
 
 START_SECTION((const_iterator cbegin() const))
 	MetaInfo mi_citer;
-	mi_citer.setValue("key", String("value"));
+	mi_citer.setValue("key",std::string("value"));
 	auto it = mi_citer.cbegin();
-	TEST_EQUAL(it->second, DataValue(String("value")))
+	TEST_EQUAL(it->second, DataValue(std::string("value")))
 END_SECTION
 
 START_SECTION((const_iterator cend() const))

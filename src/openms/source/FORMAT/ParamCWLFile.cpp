@@ -244,9 +244,9 @@ namespace OpenMS
       auto& name = element.name;
 
       // strip of the tool namespace part and ignore entries that aren't part of the name space (like ToolName:version)
-      if (name.size() >= toolNamespace.size() && name.substr(0, toolNamespace.size()) == toolNamespace)
+      if (name.size() >= toolNamespace.size() && StringUtils::substr(name, 0, toolNamespace.size()) == toolNamespace)
       {
-        name = name.substr(toolNamespace.size());
+        name = StringUtils::substr(name, toolNamespace.size());
       }
       else
       {
@@ -258,7 +258,7 @@ namespace OpenMS
         name = replaceAll(name, ":", "__");
       } else {
         if (auto pos = name.rfind(':'); pos != std::string::npos) {
-            name = name.substr(pos+1);
+            name = StringUtils::substr(name, pos+1);
         }
       }
 

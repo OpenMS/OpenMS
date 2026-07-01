@@ -26,12 +26,12 @@
 namespace OpenMS
 {
 
-void ZipArchiveFile::zipDirectory(const String& directory_path, const String& output_zip)
+void ZipArchiveFile::zipDirectory(const std::string& directory_path, const std::string& output_zip)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   const std::filesystem::path dirpath = std::filesystem::u8path(std::string(directory_path));
   const std::filesystem::path outpath = std::filesystem::u8path(std::string(output_zip));
-  const String output_zip_abs = File::absolutePath(output_zip);
+  const std::string output_zip_abs = File::absolutePath(output_zip);
   if (File::exists(output_zip_abs))
   {
     File::remove(output_zip_abs);
@@ -87,7 +87,7 @@ void ZipArchiveFile::zipDirectory(const String& directory_path, const String& ou
 #endif
 }
 
-String ZipArchiveFile::unzipDirectory(const String& input_path, std::unique_ptr<File::TempDir>& temp_dir)
+std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::unique_ptr<File::TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   if (File::isDirectory(input_path))
@@ -101,7 +101,7 @@ String ZipArchiveFile::unzipDirectory(const String& input_path, std::unique_ptr<
   }
 
   temp_dir = std::make_unique<File::TempDir>();
-  const String unpack_dir = temp_dir->getPath() + "/parquet_unpacked";
+  const std::string unpack_dir = temp_dir->getPath() + "/parquet_unpacked";
   File::makeDir(unpack_dir);
 
   int err = 0;
@@ -200,7 +200,7 @@ String ZipArchiveFile::unzipDirectory(const String& input_path, std::unique_ptr<
 
 
 
-void ZipArchiveFile::addOrReplaceFromFile(const String& archive_path, const String& entry_name, const String& source_file_path)
+void ZipArchiveFile::addOrReplaceFromFile(const std::string& archive_path, const std::string& entry_name, const std::string& source_file_path)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   int err = 0;
@@ -228,7 +228,7 @@ void ZipArchiveFile::addOrReplaceFromFile(const String& archive_path, const Stri
       zip_source_free(src);
       zip_close(za);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_replace failed: " + String(zip_strerror(za)), "");
+                                    "zip_replace failed: " + std::string(zip_strerror(za)), "");
     }
   }
   else
@@ -238,7 +238,7 @@ void ZipArchiveFile::addOrReplaceFromFile(const String& archive_path, const Stri
       zip_source_free(src);
       zip_close(za);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_file_add failed: " + String(zip_strerror(za)), "");
+                                    "zip_file_add failed: " + std::string(zip_strerror(za)), "");
     }
   }
 
@@ -262,9 +262,9 @@ void ZipArchiveFile::addOrReplaceFromFile(const String& archive_path, const Stri
 #endif
 }
 
-std::vector<String> ZipArchiveFile::listEntries(const String& archive_path)
+std::vector<std::string> ZipArchiveFile::listEntries(const std::string& archive_path)
 {
-  std::vector<String> out;
+  std::vector<std::string> out;
 #if defined(OPENMS_HAVE_LIBZIP)
   int err = 0;
   zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
@@ -282,7 +282,7 @@ std::vector<String> ZipArchiveFile::listEntries(const String& archive_path)
   return out;
 }
 
-void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
+void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   // If path is a directory, scan files under it
@@ -373,7 +373,7 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
       zip_source_free(src);
       zip_close(za2);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_replace failed for sidecar: " + String(zip_strerror(za2)), "");
+                                    "zip_replace failed for sidecar: " + std::string(zip_strerror(za2)), "");
     }
   }
   else
@@ -383,7 +383,7 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
       zip_source_free(src);
       zip_close(za2);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_file_add failed for sidecar: " + String(zip_strerror(za2)), "");
+                                    "zip_file_add failed for sidecar: " + std::string(zip_strerror(za2)), "");
     }
   }
 
@@ -405,7 +405,7 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
 #endif
 }
 
-String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
+std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   // If archive_path is actually a directory (tests create a .oswpq directory),
@@ -418,7 +418,7 @@ String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const 
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry_path.string());
     }
-    return String(entry_path.string());
+    return std::string(entry_path.string());
   }
 
   if (!File::readable(archive_path))
@@ -450,7 +450,7 @@ String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const 
   }
 
   if (!temp_dir) temp_dir = std::make_unique<File::TempDir>();
-  const String base = temp_dir->getPath();
+  const std::string base = temp_dir->getPath();
 
   // construct output path and create parent dirs
   const std::filesystem::path entry_path = std::filesystem::u8path(std::string(entry_name));
@@ -478,7 +478,7 @@ String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const 
     std::filesystem::create_directories(outpath);
     zip_fclose(zf);
     zip_close(za);
-    return String(outpath.string());
+    return std::string(outpath.string());
   }
 
   if (outpath.has_parent_path()) std::filesystem::create_directories(outpath.parent_path());
@@ -516,7 +516,7 @@ String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const 
   zip_fclose(zf);
   zip_close(za);
 
-  return String(outpath.string());
+  return std::string(outpath.string());
 #else
   (void)archive_path;
   (void)entry_name;

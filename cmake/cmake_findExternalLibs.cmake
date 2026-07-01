@@ -88,25 +88,84 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# COIN-OR
-# Our find module creates an imported CoinOR::CoinOR target
-find_package(COIN)
-if (COIN_FOUND)
-  set(OPENMS_HAS_COINOR 1)
-  set(LPTARGET "CoinOR::CoinOR")
-else()
-  #------------------------------------------------------------------------------
-  # GLPK
-  # creates GLPK::GLPK target
-  find_package(GLPK)
+# LP Solver selection
+# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
+# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
+set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+  find_package(COIN QUIET)
+  if (COIN_FOUND)
+    set(OPENMS_HAS_COINOR 1)
+    set(LPTARGET "CoinOR::CoinOR")
+    message(STATUS "LP solver: COIN-OR")
+  elseif(LP_SOLVER STREQUAL "COIN")
+    message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
+  endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+  find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
     set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
-  else()
-    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
+    message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
+  elseif(LP_SOLVER STREQUAL "GLPK")
+    message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
   endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
+  # Try to find a system-installed HiGHS first
+  find_package(highs QUIET CONFIG)
+  if (highs_FOUND)
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs::highs")
+    message(STATUS "LP solver: HiGHS (system)")
+  else()
+    # Fetch HiGHS via FetchContent
+    include(FetchContent)
+    FetchContent_Declare(
+      highs
+      GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
+      GIT_TAG        v1.14.0
+      GIT_SHALLOW    TRUE
+    )
+    set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(highs)
+    # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
+    # annotate its C++ API for export, so a shared HiGHS build must opt out of
+    # hidden visibility or libOpenMS cannot link against those symbols.
+    if (TARGET highs)
+      set_target_properties(highs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    if (TARGET libhighs)
+      set_target_properties(libhighs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs")
+    message(STATUS "LP solver: HiGHS (FetchContent)")
+  endif()
+endif()
+
+if (NOT LPTARGET)
+  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
+endif()
+
+# Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
+if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
+  set(CF_OPENMS_GLPK_VERSION_MAJOR 0)
+  set(CF_OPENMS_GLPK_VERSION_MINOR 0)
+  set(CF_OPENMS_GLPK_VERSION "0.0")
 endif()
 
 #------------------------------------------------------------------------------
@@ -289,6 +348,54 @@ if(ArrowDataset_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
+# wnetalign (Wasserstein network spectral alignment)
+option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" ON)
+
+set(WNETALIGN_INCLUDE_DIRS "")
+
+if(WITH_WNETALIGN)
+  include(FetchContent)
+
+  # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+  # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+  # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
+  FetchContent_Declare(
+    pylmcf
+    GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+    GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  _no_cmake
+  )
+  FetchContent_Declare(
+    wnet
+    GIT_REPOSITORY https://github.com/michalsta/wnet.git
+    GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  _no_cmake
+  )
+  FetchContent_Declare(
+    wnetalign
+    GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+    GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  _no_cmake
+  )
+
+  # MakeAvailable populates source dirs without running the top-level
+  # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
+  # nanobind Python modules are never configured.
+  FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+  set(WNETALIGN_INCLUDE_DIRS
+    "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+    "${wnet_SOURCE_DIR}/src/wnet/cpp"
+    "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+  )
+
+  message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+endif()
+
+#------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
@@ -464,6 +571,111 @@ if (WITH_OPENTIMS)
     openms_register_export_target(opentims_cpp)
 
     message(STATUS "opentims: built from source (${opentims_SOURCE_DIR})")
+  endif()
+endif()
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# openms-thermo-bridge (Thermo RAW file reading)
+if (WITH_THERMO_RAW)
+  find_package(OpenMSThermoBridge QUIET)
+
+  if(OpenMSThermoBridge_FOUND)
+    message(STATUS "openms-thermo-bridge: using system installation")
+  else()
+    # No system install found — fetch and build from source.
+    message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
+    include(FetchContent)
+
+    FetchContent_Declare(
+      OpenMSThermoBridge
+      GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
+      # Pin to a specific reviewed upstream revision to keep builds reproducible.
+      GIT_TAG        v0.2.3
+    )
+
+    # Configure the thermo bridge build options
+    set(OPENMS_THERMO_BRIDGE_BUILD_CLI         OFF CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD ON CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_DOWNLOAD_TEST_DATA OFF CACHE BOOL "" FORCE)
+
+    # Build the bridge as a shared library. This avoids a typeinfo duplication
+    # issue on macOS: when the bridge was static, its object files introduced a
+    # second copy of typeinfo for std::exception inside libOpenMS.dylib that
+    # didn't coalesce with libc++abi's copy, breaking catch(std::exception&) for
+    # exceptions thrown across translation-unit boundaries. As a shared library,
+    # the bridge resolves standard typeinfo from libc++abi at load time — no
+    # duplication.
+    #
+    # The bridge .so/.dylib is installed alongside libOpenMS and registered in
+    # the CMake export set so downstream consumers resolve it via RPATH.
+    set(_openms_saved_build_testing ${BUILD_TESTING})
+    set(BUILD_TESTING OFF)
+    # The sub-project's install() calls have no COMPONENT, so CMake defaults them
+    # to "Unspecified". On macOS, that creates an unsigned dylib in Unspecified.pkg
+    # that fails Apple notarization. Route them to "library" instead — the same
+    # component used by install_library() below — so the existing signing step
+    # in cmake/package_mac_productbuild.cmake covers the library.
+    set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME library)
+    FetchContent_MakeAvailable(OpenMSThermoBridge)
+    unset(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME)
+    set(BUILD_TESTING ${_openms_saved_build_testing})
+
+    # Place the bridge shared library next to libOpenMS in the build tree so
+    # test executables find it via RPATH without extra configuration.
+    if(TARGET openms_thermo_bridge)
+      set_target_properties(openms_thermo_bridge PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+      )
+    endif()
+
+    # Install the bridge alongside libOpenMS and register it in the CMake export
+    # set so OpenMSTargets.cmake includes it as an imported shared library.
+    # Downstream consumers (e.g. pyOpenMS) don't link it directly — it is a
+    # PRIVATE dependency of libOpenMS and is resolved at runtime via RPATH.
+    # DotNetHost::nethost is PRIVATE in the bridge's own CMakeLists, so it does
+    # NOT appear in the bridge's exported INTERFACE and won't be required from
+    # consumers that don't have the .NET SDK.
+    install_library(openms_thermo_bridge)
+    openms_register_export_target(openms_thermo_bridge)
+
+    message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
+
+    # Download and install the Thermo Fisher RawFileReader license.
+    # OPENMS_THERMO_BRIDGE_THERMO_COMMIT is a CMake cache variable set inside
+    # the bridge's CMakeLists.txt and is visible here after FetchContent_MakeAvailable.
+    # We pin the download to that exact commit so we always get the license that
+    # corresponds to the vendored DLL packages being used.
+    if(OPENMS_THERMO_BRIDGE_THERMO_COMMIT)
+      set(_openms_thermo_license_url
+          "https://raw.githubusercontent.com/thermofisherlsms/RawFileReader/${OPENMS_THERMO_BRIDGE_THERMO_COMMIT}/License.doc")
+      set(_openms_thermo_license_file
+          "${CMAKE_CURRENT_BINARY_DIR}/ThermoRawFileReader-License.doc")
+      if(NOT EXISTS "${_openms_thermo_license_file}")
+        message(STATUS "openms-thermo-bridge: downloading Thermo RawFileReader license")
+        file(DOWNLOAD
+            "${_openms_thermo_license_url}"
+            "${_openms_thermo_license_file}"
+            STATUS _openms_thermo_license_status
+            TLS_VERIFY ON)
+        list(GET _openms_thermo_license_status 0 _openms_thermo_license_code)
+        list(GET _openms_thermo_license_status 1 _openms_thermo_license_message)
+        if(NOT _openms_thermo_license_code EQUAL 0)
+          file(REMOVE "${_openms_thermo_license_file}")
+          message(WARNING
+              "openms-thermo-bridge: failed to download Thermo RawFileReader license "
+              "(${_openms_thermo_license_message}). "
+              "The install will not include the license file.")
+        endif()
+      endif()
+      if(EXISTS "${_openms_thermo_license_file}")
+        install(FILES "${_openms_thermo_license_file}"
+                DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+                RENAME "ThermoRawFileReader-License.doc")
+      endif()
+    endif()
   endif()
 endif()
 #------------------------------------------------------------------------------

@@ -24,7 +24,6 @@ class QMouseEvent;
 namespace OpenMS
 {
   class AxisWidget;
-  class String;
 
   /**
       @brief Widget which can visualize a histogram.
@@ -55,7 +54,7 @@ public:
     double getRightSplitter() const;
 
     /// Set axis legends
-    void setLegend(const String & legend);
+    void setLegend(const std::string & legend);
 
 public slots:
     /// Shows the splitters if @p on is true. Hides them otherwise.

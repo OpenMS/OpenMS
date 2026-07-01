@@ -54,6 +54,14 @@ START_SECTION(double bwNrd0(const std::vector<double>&))
     // Fallback uses IQR/1.34 which can vary
     TEST_EQUAL(bw > 0.0, true)
   }
+
+  // Degenerate data exactly at zero must still receive a positive fallback
+  // bandwidth. 
+  {
+    std::vector<double> zero_constant_data(10, 0.0);
+    bw = KernelDensityEstimation::bwNrd0(zero_constant_data);
+    TEST_REAL_SIMILAR(bw, 0.9 * std::pow(10.0, -0.2))
+  }
   
   // Test with insufficient data
   std::vector<double> single_point = {1.0};
@@ -423,7 +431,7 @@ START_SECTION("kde reference (statsmodels) regression")
     while (std::getline(ss, item, ','))
     {
       if (!item.empty() && item.front() == '"' && item.back() == '"')
-        item = item.substr(1, item.size()-2);
+        item = StringUtils::substr(item, 1, item.size()-2);
       parts.push_back(item);
     }
     
@@ -488,7 +496,38 @@ START_SECTION("kde reference (statsmodels) regression")
       total_tests++;
     }
   }
-  
+
+}
+END_SECTION
+
+START_SECTION("kde density vs scipy.stats.gaussian_kde reference")
+{
+  // Cross-check kdeFFTEval against scipy.stats.gaussian_kde (issue #9460 §7, L291). The companion
+  // statsmodels section above pins the bandwidth rule + FFT KDE; this pins the density values against
+  // a second, independent reference (scipy). Reference computed offline with a *fixed* bandwidth so the
+  // comparison isolates the density evaluation from the bandwidth rule:
+  //   import numpy as np; from scipy.stats import gaussian_kde
+  //   data = [0,1,2,3,4,5,6,7,8,9,2.5,3.5,3.0,4.5]; sd = np.std(data, ddof=1)
+  //   bw = 1.2298580108  # R nrd0 bandwidth for this data
+  //   kde = gaussian_kde(data, bw_method=bw/sd); dens = kde(data)
+  // scipy evaluates an exact Gaussian sum while OpenMS uses an FFT grid, so a modest tolerance is used.
+  std::vector<double> data = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 2.5, 3.5, 3.0, 4.5};
+  const double bw = 1.2298580108;
+  std::vector<double> scipy_density = {
+    0.05184986, 0.08447517, 0.12205155, 0.14815310, 0.14174787, 0.11287841, 0.08684046,
+    0.07360770, 0.06438698, 0.04732923, 0.13832075, 0.14919717, 0.14815310, 0.12843312};
+
+  // the fixed bandwidth is the nrd0 bandwidth OpenMS computes for this data (ties it to the rule)
+  double our_bw = KernelDensityEstimation::bwNrd0(data);
+  TEST_EQUAL(std::fabs(our_bw - bw) / bw <= 0.05, true)
+
+  auto our_density = KernelDensityEstimation::kdeFFTEval(data, bw);
+  TEST_EQUAL(our_density.size(), scipy_density.size())
+  for (std::size_t i = 0; i < scipy_density.size(); ++i)
+  {
+    double rel = std::fabs(our_density[i] - scipy_density[i]) / std::fabs(scipy_density[i]);
+    TEST_EQUAL(rel <= 0.10 || std::fabs(our_density[i] - scipy_density[i]) <= 0.01, true)
+  }
 }
 END_SECTION
 

@@ -54,6 +54,16 @@ include(${PROJECT_SOURCE_DIR}/configh.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
+# Vendored, namespace-isolated Percolator subtree.
+# Built as a standalone static library (OpenMS_Percolator) with its OWN compile
+# flags and linked PRIVATE into libOpenMS below. Keeping it a separate target
+# isolates the vendored upstream code from the OpenMS target's treat-warning-as-
+# error flags (/we4100, /we4189, -Werror) — folding the sources into libOpenMS
+# made a clean build depend on the (generator-specific) flag ordering — and
+# keeps the upstream sources out of the OpenMS target's file list in IDEs.
+add_subdirectory(thirdparty/percolator)
+
+#------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES
   LibSVM::LibSVM
@@ -83,6 +93,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
+  OpenMS_Percolator
   )
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
@@ -98,6 +109,10 @@ endif()
 
 if (WITH_OPENTIMS)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMSThermoBridge::openms_thermo_bridge)
 endif()
 
 if (ENABLE_TDL)
@@ -138,6 +153,11 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
+# The vendored percolator headers (#include "X.h", no subdir) are used only by
+# libOpenMS's Percolator pimpl TU. Their directory is made visible via the
+# PUBLIC include dir propagated from the linked OpenMS_Percolator target (see
+# thirdparty/percolator/CMakeLists.txt), so no explicit include dir is needed.
+
 if (OPENMS_ARROW_DATASET_TARGET)
   target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
 endif()
@@ -168,6 +188,20 @@ target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
+endif()
+
+if (WITH_THERMO_RAW)
+    target_compile_definitions(OpenMS PUBLIC WITH_THERMO_RAW=1)
+    # Copy the thermo bridge managed runtime files (.dll + .runtimeconfig.json)
+    # to the OpenMS library output directory so they can be found at runtime.
+    if (COMMAND openms_thermo_bridge_copy_runtime_files)
+      openms_thermo_bridge_copy_runtime_files(TARGET OpenMS)
+    endif()
+endif()
+
+if(WITH_WNETALIGN)
+  target_include_directories(OpenMS SYSTEM PRIVATE ${WNETALIGN_INCLUDE_DIRS})
+  target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES OPENMS_HAS_WNETALIGN)
 endif()
 
 ## Enable test-only hooks when class tests are being built.

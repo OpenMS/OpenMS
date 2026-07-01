@@ -132,6 +132,7 @@ static constexpr cstr past_last_slash(cstr str)
 
 #cmakedefine OPENMS_HAS_COINOR
 #cmakedefine OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
+#cmakedefine OPENMS_HAS_HIGHS
 
 #define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
 #define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@

@@ -59,7 +59,7 @@ public:
           @param[in] filename The sqMass filename
           @param[in] run_id Unique identifier which links the sqMass and OSW file. It is currently only used for storing and ignored when reading an sqMass file.
       */
-      MzMLSqliteHandler(const String& filename, const UInt64 run_id);
+      MzMLSqliteHandler(const std::string& filename, const UInt64 run_id);
 
       /**@name Functions for reading files 
        *
@@ -218,7 +218,7 @@ protected:
       void createIndices_();
       //@}
 
-      String filename_;
+      std::string filename_;
 
       /*
        * These are spectra and chromatogram ids that are global for a specific

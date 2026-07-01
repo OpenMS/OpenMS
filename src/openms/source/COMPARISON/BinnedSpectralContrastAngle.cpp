@@ -55,6 +55,14 @@ namespace OpenMS
     const double sum1 = spec1.getBins()->dot(*spec1.getBins());
     const double sum2 = spec2.getBins()->dot(*spec2.getBins());
     const double numerator = spec1.getBins()->dot(*spec2.getBins());
+
+    // guard against an empty / all-zero spectrum: sqrt(sum1 * sum2) would be 0
+    // and the division 0.0 / 0.0 would yield NaN. Return a defined score of 0.
+    if (sum1 * sum2 == 0.0)
+    {
+      return 0.0;
+    }
+
     const double score = numerator / (sqrt(sum1 * sum2));
 
     return score;

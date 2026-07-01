@@ -1,6 +1,11 @@
 name: Deploy container images
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Name to publish the containers under in ghcr.io (e.g. 3.6.0-rc1, my-test). Run the workflow from the branch/commit you want to package. Leave empty to auto-derive (develop/nightly -> latest)."
+        required: false
+        default: ""
   push:
     branches:
       - nightly
@@ -31,39 +36,53 @@ jobs:
           sudo rm -rf "/opt/ghc"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           df -h
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-        id: extract_branch
       - name: Define tag name
         shell: bash
+        # Pass externally-influenced values through env so they are never
+        # expanded into the shell script directly (avoids script injection).
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-            BRANCH=${{ steps.extract_branch.outputs.branch }}
-            ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
-            then 
-              BRANCH="latest"
+            if [[ -n "$INPUT_TAG" ]]; then
+              ## Manual run: publish under the user-provided name
+              TAG="$INPUT_TAG"
+            elif [[ "$REF" == refs/tags/* ]]; then
+              ## Release tag (e.g. Release3.6.0 or Release/3.6.0) -> 3.6.0
+              TAG="${REF_NAME#Release}"
+              TAG="${TAG#/}"
+            elif [[ "$REF_NAME" == "develop" || "$REF_NAME" == "nightly" || "$REF_NAME" == "feat/singularity" ]]; then
+              ## use latest to follow docker conventions
+              TAG="latest"
+            else
+              ## Remove release/ from release branch name (or keep the non-release name)
+              TAG="${REF_NAME#release/}"
             fi
-            ## Remove release/ from release branch name (or keep the non-release name)
-            echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
+            ## Docker/OCI tags may not contain '/' and have a limited charset
+            TAG="${TAG//[^a-zA-Z0-9._-]/_}"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
         id: tag_name
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          # No authenticated git operations follow; the later steps only build
+          # and push Docker images. Avoid leaving the token in the workspace.
+          persist-credentials: false
       - name: Test docker build in runtime base
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           load: true # so other build steps can make use of cache layers from this build
           file: dockerfiles/Dockerfile
@@ -76,7 +95,7 @@ jobs:
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
       - name: Build and push library image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
@@ -92,7 +111,7 @@ jobs:
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
       - name: Build and push tools image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
@@ -109,7 +128,7 @@ jobs:
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
       - name: Build and push tools + thirdparty image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
@@ -129,7 +148,7 @@ jobs:
     needs: deploy-docker
     steps:
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

@@ -36,7 +36,7 @@ To check if the created evidence.txt is writable use the function isValid.
 private:
   std::fstream file_; ///< Stream where the data is added to create evidence.txt
   OpenMS::Size id_ = 0; ///< number of rows in evidence.txt to give each row a specific id
-  OpenMS::String filename_; ///< path and name of the evidence.txt
+  std::string filename_; ///< path and name of the evidence.txt
 
   /**
     @brief Writes the header of evidence.txt (Names of columns)
@@ -63,11 +63,11 @@ private:
     const OpenMS::Feature& f,
     const OpenMS::ConsensusMap& cmap,
     const OpenMS::Size c_feature_number,
-    const OpenMS::String& raw_file,
-    const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+    const std::string& raw_file,
+    const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
     const OpenMS::ProteinIdentification::Mapping& mp_f,
     const OpenMS::MSExperiment& exp= {},
-    const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
+    const std::map<std::string,std::string>& prot_map = {});
 
 public:
   /**
@@ -82,7 +82,7 @@ public:
     @param[in] path that is the path where evidence.txt has to be stored
 
   */
-  explicit MQEvidence(const OpenMS::String& path);
+  explicit MQEvidence(const std::string& path);
 
   /**
     @brief Closes f_stream
@@ -106,5 +106,5 @@ public:
     const OpenMS::FeatureMap& feature_map,
     const OpenMS::ConsensusMap& cmap,
     const OpenMS::MSExperiment& exp= {},
-    const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
+    const std::map<std::string,std::string>& prot_map = {});
 };

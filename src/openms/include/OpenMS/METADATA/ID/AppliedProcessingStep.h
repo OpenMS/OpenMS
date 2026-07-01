@@ -84,7 +84,7 @@ namespace OpenMS
         }
         for (const auto& pair: scores)
         {
-          if (!scores_done.count(pair.first))
+          if (!scores_done.contains(pair.first))
           {
             result.push_back(pair);
             if (primary_only) return result;

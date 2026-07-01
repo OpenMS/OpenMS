@@ -24,6 +24,7 @@ MapAlignmentEvaluationAlgorithm.cpp
 MapAlignmentEvaluationAlgorithmPrecision.cpp
 MapAlignmentEvaluationAlgorithmRecall.cpp
 MapAlignmentTransformer.cpp
+PipEchoAlgorithm.cpp
 PoseClusteringAffineSuperimposer.cpp
 PoseClusteringShiftSuperimposer.cpp
 QTClusterFinder.cpp
@@ -44,6 +45,13 @@ endforeach(i)
 
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${sources})
+
+if(WITH_WNETALIGN)
+  list(APPEND OpenMS_sources
+    ${directory}/FeatureGroupingAlgorithmWNet.cpp
+    ${directory}/WNetMatcher.cpp
+  )
+endif()
 
 ### source group definition
 source_group("Source Files\\ANALYSIS\\MAPMATCHING" FILES ${sources})

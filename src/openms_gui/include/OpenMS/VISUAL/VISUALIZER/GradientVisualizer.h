@@ -75,7 +75,7 @@ protected:
     /** @name Arrays of string values containing eluent, timepoint and percentage values.
     */
     //@{
-    std::vector<String> eluents_;
+    std::vector<std::string> eluents_;
     std::vector<Int> timepoints_;
     //@}
 

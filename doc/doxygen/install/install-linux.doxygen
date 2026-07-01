@@ -19,6 +19,21 @@
   you want to use the most recent source files from our Git
   repository.
 
+  @section install_linux_compiler Compiler Requirements
+
+  %OpenMS uses modern C++23 and therefore requires a recent C++
+  compiler.  The minimum supported compilers on GNU/Linux are:
+
+  - GCC 13 or later
+  - Clang 17 or later
+
+  On Ubuntu 24.04 (and newer) the default `g++` provided by the
+  `build-essential` package already satisfies this requirement.  On
+  older distributions the system compiler is usually too old to build
+  %OpenMS; install a newer toolchain (for example the `gcc-13` /
+  `g++-13` packages) and point CMake at it via `-DCMAKE_C_COMPILER` and
+  `-DCMAKE_CXX_COMPILER` (see also @ref install_linux_cmake_flags).
+
   @section install_linux_deps Installing Dependencies
 
   We recommend installing all dependencies using your distribution's
@@ -27,7 +42,7 @@
   directory.  Details can be found in the section entitled @ref
   install_linux_contrib.
 
-  @subsection install_linux_deps_ubuntu Ubuntu/Debian (>= 22.04)
+  @subsection install_linux_deps_ubuntu Ubuntu/Debian (>= 24.04)
 
   The %OpenMS continuous build system uses Ubuntu and therefore build
   instructions for Ubuntu will be the most accurate.

@@ -10,6 +10,9 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 
+#include <string>
+#include <vector>
+
 namespace OpenMS
 {
   class ResidueModification;
@@ -39,7 +42,7 @@ public:
 
       @ingroup FileIO
     */
-    void load(const String & filename, std::vector<ResidueModification *> & modifications);
+    void load(const std::string & filename, std::vector<ResidueModification *> & modifications);
 
 private:
 

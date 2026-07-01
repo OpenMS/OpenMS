@@ -18,7 +18,7 @@ namespace OpenMS
 {
   Int MRMFeatureSelector::addVariable_(
     LPWrapper& problem,
-    const String& name,
+    const std::string& name,
     const bool bounded,
     const double obj,
     const VariableType variableType
@@ -58,7 +58,7 @@ namespace OpenMS
     LPWrapper& problem,
     const std::vector<Int>& indices,
     const std::vector<double>& values,
-    const String& name,
+    const std::string& name,
     const double lb,
     const double ub,
     const LPWrapper::Type param
@@ -68,23 +68,23 @@ namespace OpenMS
   }
 
   void MRMFeatureSelectorScore::optimize(
-    const std::vector<std::pair<double, String>>& time_to_name,
-    const std::map<String, std::vector<Feature>>& feature_name_map,
-    std::vector<String>& result,
+    const std::vector<std::pair<double, std::string>>& time_to_name,
+    const std::map<std::string, std::vector<Feature>>& feature_name_map,
+    std::vector<std::string>& result,
     const SelectorParameters& parameters
   ) const
   {
     result.clear();
-    std::set<String> variables;
+    std::set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
-    for (const std::pair<double, String>& elem : time_to_name)
+    for (const std::pair<double, std::string>& elem : time_to_name)
     {
       std::vector<Int> constraints;
       for (const Feature& feature : feature_name_map.at(elem.second))
       {
-        const String name1 = elem.second + "_" + String(feature.getUniqueId());
-        if (variables.count(name1) == 0)
+        const std::string name1 = elem.second + "_" + StringUtils::toStr(feature.getUniqueId());
+        if (!variables.contains(name1))
         {
           const double score = computeScore_(feature, parameters.score_weights);
           const Int col_idx = addVariable_(problem, name1, true, score, parameters.variable_type);
@@ -106,22 +106,22 @@ namespace OpenMS
     }
   }
 
-  String MRMFeatureSelector::removeSpaces_(String str) const
+  std::string MRMFeatureSelector::removeSpaces_(std::string str) const
   {
-    String::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
+    auto end_pos = std::remove(str.begin(), str.end(), ' ');
     str.erase(end_pos, str.end());
     return str;
   }
 
   void MRMFeatureSelectorQMIP::optimize(
-    const std::vector<std::pair<double, String>>& time_to_name,
-    const std::map<String, std::vector<Feature>>& feature_name_map,
-    std::vector<String>& result,
+    const std::vector<std::pair<double, std::string>>& time_to_name,
+    const std::map<std::string, std::vector<Feature>>& feature_name_map,
+    std::vector<std::string>& result,
     const SelectorParameters& parameters
   ) const
   {
     result.clear();
-    std::set<String> variables;
+    std::set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
     for (Int cnt1 = 0; static_cast<Size>(cnt1) < time_to_name.size(); ++cnt1)
@@ -133,9 +133,9 @@ namespace OpenMS
 
       for (Size i = 0; i < feature_row1.size(); ++i)
       {
-        const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
+        const std::string name1 = time_to_name[cnt1].second + "_" + StringUtils::toStr(feature_row1[i].getUniqueId());
 
-        if (variables.count(name1) == 0)
+        if (!variables.contains(name1))
         {
           constraints.push_back(addVariable_(problem, name1, true, 0, parameters.variable_type));
           variables.insert(name1);
@@ -170,14 +170,14 @@ namespace OpenMS
 
           for (Size j = 0; j < feature_row2.size(); ++j)
           {
-            const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
-            if (variables.count(name2) == 0)
+            const std::string name2 = time_to_name[cnt2].second + "_" + StringUtils::toStr(feature_row2[j].getUniqueId());
+            if (!variables.contains(name2))
             {
               addVariable_(problem, name2, true, 0, parameters.variable_type);
               variables.insert(name2);
             }
 
-            const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
+            const std::string var_qp_name = time_to_name[cnt1].second + "_" + StringUtils::toStr(i) + "-" + time_to_name[cnt2].second + "_" + StringUtils::toStr(j);
 
             const Int index_var_qp = addVariable_(problem, var_qp_name, true, 0, VariableType::CONTINUOUS);
             const Int index_var_abs = addVariable_(problem, var_qp_name + "-ABS", false, 1, VariableType::CONTINUOUS);
@@ -210,7 +210,7 @@ namespace OpenMS
     problem.solve(param);
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
-      const String name = problem.getColumnName(c);
+      const std::string name = problem.getColumnName(c);
       if (problem.getColumnValue(c) > parameters.optimal_threshold && variables.count(name))
       {
         result.push_back(name);
@@ -220,24 +220,24 @@ namespace OpenMS
 
   void MRMFeatureSelector::constructTargTransList_(
     const FeatureMap& features,
-    std::vector<std::pair<double, String>>& time_to_name,
-    std::map<String, std::vector<Feature>>& feature_name_map,
+    std::vector<std::pair<double, std::string>>& time_to_name,
+    std::map<std::string, std::vector<Feature>>& feature_name_map,
     const bool select_transition_group
   ) const
   {
     time_to_name.clear();
     feature_name_map.clear();
-    std::set<String> names;
+    std::set<std::string> names;
     for (const Feature& feature : features)
     {
-      const String component_group_name = removeSpaces_(feature.getMetaValue("PeptideRef").toString());
-      const double assay_retention_time = feature.getMetaValue("assay_rt");
-      if (names.count(component_group_name) == 0)
+      const std::string component_group_name = removeSpaces_(feature.getMetaValue("PeptideRef").toString());
+      const double assay_retention_time = (double)feature.getMetaValue("assay_rt");
+      if (!names.contains(component_group_name))
       {
         time_to_name.emplace_back(assay_retention_time, component_group_name);
         names.insert(component_group_name);
       }
-      if (feature_name_map.count(component_group_name) == 0)
+      if (!feature_name_map.contains(component_group_name))
       {
         feature_name_map[component_group_name] = std::vector<Feature>();
       }
@@ -248,13 +248,13 @@ namespace OpenMS
       }
       for (const Feature& subordinate : feature.getSubordinates())
       {
-        const String component_name = removeSpaces_(subordinate.getMetaValue("native_id").toString());
-        if (names.count(component_name))
+        const std::string component_name = removeSpaces_(subordinate.getMetaValue("native_id").toString());
+        if (names.contains(component_name))
         {
           time_to_name.emplace_back(assay_retention_time, component_name);
           names.insert(component_name);
         }
-        if (feature_name_map.count(component_name) == 0)
+        if (!feature_name_map.contains(component_name))
         {
           feature_name_map[component_name] = std::vector<Feature>();
         }
@@ -276,8 +276,8 @@ namespace OpenMS
       return;
     }
 
-    std::vector<std::pair<double, String>> time_to_name;
-    std::map<String, std::vector<Feature>> feature_name_map;
+    std::vector<std::pair<double, std::string>> time_to_name;
+    std::map<std::string, std::vector<Feature>> feature_name_map;
     constructTargTransList_(features, time_to_name, feature_name_map, parameters.select_transition_group);
 
     sort(time_to_name.begin(), time_to_name.end());
@@ -292,28 +292,28 @@ namespace OpenMS
     {
       ++n_segments;
     }
-    std::vector<String> result_names;
+    std::vector<std::string> result_names;
 
     for (Size i = 0; i < n_segments; ++i)
     {
       const Size start = step_length * i;
       const Size end = std::min(start + window_length, time_to_name.size());
-      const std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
-      std::vector<String> result;
+      const std::vector<std::pair<double, std::string>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
+      std::vector<std::string> result;
       optimize(time_slice, feature_name_map, result, parameters);
       result_names.insert(result_names.end(), result.begin(), result.end());
     }
-    const std::set<String> result_names_set(result_names.begin(), result_names.end());
+    const std::set<std::string> result_names_set(result_names.begin(), result_names.end());
     for (const Feature& feature : features)
     {
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates())
       {
-        const String feature_name = parameters.select_transition_group
-          ? removeSpaces_(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
-          : removeSpaces_(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
+        const std::string feature_name = parameters.select_transition_group
+          ? removeSpaces_(feature.getMetaValue("PeptideRef").toString()) + "_" + StringUtils::toStr(feature.getUniqueId())
+          : removeSpaces_(subordinate.getMetaValue("native_id").toString()) + "_" + StringUtils::toStr(feature.getUniqueId());
 
-        if (result_names_set.count(feature_name))
+        if (result_names_set.contains(feature_name))
         {
           subordinates_filtered.push_back(subordinate);
         }
@@ -327,12 +327,12 @@ namespace OpenMS
     }
   }
 
-  double MRMFeatureSelector::computeScore_(const Feature& feature, const std::map<String, MRMFeatureSelector::LambdaScore>& score_weights) const
+  double MRMFeatureSelector::computeScore_(const Feature& feature, const std::map<std::string, MRMFeatureSelector::LambdaScore>& score_weights) const
   {
     double score_1 = 1.0;
-    for (const std::pair<const String, LambdaScore>& score_weight : score_weights)
+    for (const std::pair<const std::string, LambdaScore>& score_weight : score_weights)
     {
-      const String& metavalue_name = score_weight.first;
+      const std::string& metavalue_name = score_weight.first;
       const LambdaScore lambda_score = score_weight.second;
       if (!feature.metaValueExists(metavalue_name))
       {

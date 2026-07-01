@@ -1,0 +1,113 @@
+name: "OpenMS Vcpkg CI"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  configure-build-test:
+    permissions:
+      contents: read
+    name: ${{ matrix.variant_name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            compiler: g++
+            compiler_ver: 13
+            preset: linux-x64-ci
+            variant_name: linux-x64-gcc
+
+          - os: ubuntu-24.04
+            compiler: clang++
+            compiler_ver: 18
+            preset: linux-x64-ci
+            variant_name: linux-x64-clang
+
+          - os: ubuntu-24.04-arm
+            compiler: g++
+            compiler_ver: 13
+            preset: linux-arm64-ci
+            variant_name: linux-arm64-gcc
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ninja-build \
+            autoconf \
+            autoconf-archive \
+            automake \
+            ccache  \
+            libtool
+
+      - name: Add THIRDPARTY
+        shell: bash
+        run: |
+          # initialize THIRDPARTY
+          git submodule update --init THIRDPARTY
+
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+
+          tp_folder=${{ runner.os }}
+          if [ "$tp_folder" = "macOS" ]; then
+            tp_folder=MacOS
+          fi
+
+          # Copy the correct architecture
+          cp -R "THIRDPARTY/$tp_folder/$(uname -m)"/* _thirdparty/
+
+          # Copy architecture independent tools
+          cp -R THIRDPARTY/All/* _thirdparty/
+
+          # add third-party binaries to PATH
+          for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*; do
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              echo "${thirdpartytool//\//\\}" >> "$GITHUB_PATH"
+            else
+              echo "${thirdpartytool}" >> "$GITHUB_PATH"
+            fi
+          done
+
+      - name: Select compiler
+        shell: bash
+        run: |
+          if [[ "${{ matrix.compiler }}" == clang* ]]; then
+            echo "CC=clang-${{ matrix.compiler_ver }}" >> $GITHUB_ENV
+            echo "CXX=clang++-${{ matrix.compiler_ver }}" >> $GITHUB_ENV
+          else
+            echo "CC=gcc-${{ matrix.compiler_ver }}" >> $GITHUB_ENV
+            echo "CXX=g++-${{ matrix.compiler_ver }}" >> $GITHUB_ENV
+          fi
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          doNotCache: true
+
+      - name: Disable vcpkg binary cache
+        run: |
+          echo "VCPKG_BINARY_SOURCES=clear" >> "$GITHUB_ENV"
+
+      - name: Run CMake consuming CMakePreset.json and run vcpkg to build packages
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: ${{ matrix.preset }}
+          configurePresetAdditionalArgs: "[ '-DENABLE_DOCS=OFF',
+            '-DENABLE_TUTORIALS=OFF' ]"
+          buildPreset: ${{ matrix.preset }}
+          testPreset: ${{ matrix.preset }}

@@ -22,7 +22,6 @@
 
 namespace OpenMS
 {
-  class String;
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
@@ -94,7 +93,7 @@ public:
 
       @throw throws ParseError if the formula cannot be parsed
     */
-    explicit EmpiricalFormula(const String& rhs);
+    explicit EmpiricalFormula(const std::string& rhs);
 
     /// Constructor with element pointer and number
     EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
@@ -110,7 +109,7 @@ public:
 
      @throws Exception::ParseError if the formula cannot be parsed
    */
-    static EmpiricalFormula fromString(const String& rhs)
+    static EmpiricalFormula fromString(const std::string& rhs)
     {
       EmpiricalFormula ef(rhs);
       return ef;
@@ -214,7 +213,7 @@ public:
     void setCharge(Int charge);
 
     /// returns the formula as a string (charges are not included)
-    String toString() const;
+    std::string toString() const;
 
     /// returns the formula as a map (charges are not included)
     std::map<std::string, int> toMap() const;
@@ -308,7 +307,7 @@ protected:
 
     Int charge_;
 
-    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
+    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const std::string& formula) const;
 
   };
 

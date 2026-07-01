@@ -16,7 +16,7 @@
 #include <functional>
 
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 ///////////////////////////
 
@@ -168,12 +168,12 @@ START_SECTION((void setPeptideEvidences(const vector<PeptideEvidence> & peptide_
      pes[1].setProteinAccession("ACD392");
      hit.setPeptideEvidences(pes);
     TEST_EQUAL(hit.getPeptideEvidences().size(), 2)
-    TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession() == String("ACC392"), true)
-    TEST_EQUAL(hit.getPeptideEvidences()[1].getProteinAccession() == String("ACD392"), true)
+    TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession() ==std::string("ACC392"), true)
+    TEST_EQUAL(hit.getPeptideEvidences()[1].getProteinAccession() ==std::string("ACD392"), true)
 END_SECTION
 
 
-START_SECTION((const std::set<String>& extractProteinAccessionsSet() const))
+START_SECTION((const std::set<std::string>& extractProteinAccessionsSet() const))
      PeptideHit hit;
      vector<PeptideEvidence> pes(2, PeptideEvidence());
      pes[0].setProteinAccession("ACC392");

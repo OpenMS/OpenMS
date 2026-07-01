@@ -27,6 +27,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="sp|P00338|LDHA_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1.mzXML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="804.383175031900009" RT="383.87700000000001" spectrum_reference="scan=1671" >
 			<PeptideHit score="0.7911" sequence=".(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR.(MOD:00266)" charge="2" aa_before="R" aa_after="N" protein_refs="PH_0" >
@@ -48,7 +49,6 @@
 				<UserParam type="float" name="_ar_1_score" value="0.0"/>
 				<UserParam type="string" name="_ar_1_higher_is_better" value="false"/>
 			</PeptideHit>
-			<UserParam type="string" name="base_name" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="863.492925031899972" RT="4120.789999999999964" spectrum_reference="scan=30513" >
 			<PeptideHit score="0.9938" sequence=".(Dimethyl:2H(4)13C(2))DLADELALVDVIEDK(Dimethyl:2H(4)13C(2)).(MOD:00266)" charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
@@ -70,7 +70,6 @@
 				<UserParam type="float" name="_ar_1_score" value="0.0"/>
 				<UserParam type="string" name="_ar_1_higher_is_better" value="false"/>
 			</PeptideHit>
-			<UserParam type="string" name="base_name" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2015-01-06T13:43:07" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_1" >
@@ -79,6 +78,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="sp|P19338|NUCL_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1.mzXML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="587.947991698566625" RT="374.115999999999985" spectrum_reference="scan=1594" >
 			<PeptideHit score="1.0" sequence=".(Dimethyl)GDTPGHATPGHGGATSSAR.(MOD:00266)" charge="3" aa_before="R" aa_after="K" protein_refs="PH_2" >
@@ -100,7 +100,6 @@
 				<UserParam type="float" name="_ar_1_score" value="0.0"/>
 				<UserParam type="string" name="_ar_1_higher_is_better" value="false"/>
 			</PeptideHit>
-			<UserParam type="string" name="base_name" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="853.11645836523337" RT="4131.050000000000182" spectrum_reference="scan=30586" >
 			<PeptideHit score="1.0" sequence=".(Dimethyl)TLVLSNLSYSATEETLQEVFEK(Dimethyl).(MOD:00266)" charge="3" aa_before="K" aa_after="A" protein_refs="PH_3" >
@@ -122,7 +121,6 @@
 				<UserParam type="float" name="_ar_1_score" value="0.0"/>
 				<UserParam type="string" name="_ar_1_higher_is_better" value="false"/>
 			</PeptideHit>
-			<UserParam type="string" name="base_name" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

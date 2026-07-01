@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>

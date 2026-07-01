@@ -38,7 +38,7 @@ START_SECTION(~ItraqFourPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getMethodName() const ))
+START_SECTION((const std::string& getMethodName() const ))
 {
   ItraqFourPlexQuantitationMethod quant_meth;
   TEST_STRING_EQUAL(quant_meth.getMethodName(), "itraq4plex")

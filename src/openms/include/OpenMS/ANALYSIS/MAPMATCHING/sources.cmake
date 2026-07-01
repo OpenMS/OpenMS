@@ -14,7 +14,9 @@ FeatureGroupingAlgorithmLabeled.h
 FeatureGroupingAlgorithmKD.h
 FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
+FeatureGroupingAlgorithmWNet.h
 FeatureMapping.h
+WNetMatcher.h
 LabeledPairFinder.h
 MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmKD.h
@@ -24,6 +26,7 @@ MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
 MapAlignmentEvaluationAlgorithmRecall.h
 MapAlignmentTransformer.h
+PipEchoAlgorithm.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 QTClusterFinder.h

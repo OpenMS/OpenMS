@@ -6,7 +6,7 @@ This file provides context and instructions for AI coding agents working on Open
 
 **NEVER do these things:**
 - Build the project unless explicitly asked (extremely resource-intensive)
-- Modify files in `src/openms/extern/` (third-party vendored code)
+- Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies
@@ -60,7 +60,7 @@ OpenMS/
 
 ## Build and Install
 
-- **CMake minimum**: 3.21; **C++ standard**: C++20
+- **CMake minimum**: 3.21; **C++ standard**: C++23
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
@@ -69,10 +69,12 @@ OpenMS/
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl
+- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR, GLPK, or HiGHS (LP solver; use `-DLP_SOLVER=AUTO/COIN/GLPK/HIGHS`), ZLIB, BZip2, libcurl
 - Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
 
-**Optional:** HDF5 (`-DWITH_HDF5=ON`)
+**Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)
+
+**Enabled by default (fetched via FetchContent; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=OFF` to disable)
 
 **Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 
@@ -80,7 +82,7 @@ OpenMS/
 
 ### Windows
 - **MSYS/MinGW NOT supported** — must use Visual Studio environment
-- **MSVC 2019+ required** (version 1920+); AddressSanitizer needs this minimum
+- **Visual Studio 2022 (v17.6+) required** for C++23; AddressSanitizer needs at least MSVC 1920 (VS 2019)
 - **64-bit only**; use Visual Studio generator (not Ninja/Make)
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults
@@ -91,6 +93,7 @@ OpenMS/
 
 ### macOS
 - **Apple Clang (Xcode) required**; Homebrew for dependencies
+- **Xcode 16+ (AppleClang 16+) required** for C++23
 - **AppleClang >= 15.0.0**: Requires `-ld_classic` linker flag (set automatically)
 - Remove older Qt versions if they interfere with Qt6
 - Qt6 requires `PrintSupport` component for platform plugin
@@ -131,6 +134,7 @@ OpenMS/
 - Use `FuzzyDiff` for numeric comparisons; keep test data small; use whitelist for unstable lines.
 - Test templates: `tools/create_test.php` (requires `make xml`).
 - `START_SECTION` macro pitfalls: wrap template methods with 2+ arguments in parentheses.
+- Prefer `TEST_TRUE(expr)`/`TEST_FALSE(expr)` over `TEST_EQUAL(expr, true)`/`TEST_EQUAL(expr, false)` when checking boolean results (clearer intent and better failure messages).
 - pyOpenMS tests: `ctest -R pyopenms` or `pytest` with `PYTHONPATH=/path/to/OpenMS-build/pyOpenMS` (run outside the source tree to avoid shadowing).
 
 **Unit test example:**

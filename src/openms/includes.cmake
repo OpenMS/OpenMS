@@ -1,4 +1,11 @@
 set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+# Private implementation headers that live next to their .cpp under source/ (see
+# doc/doxygen/public/developer_coding_conventions.doxygen). They are NOT
+# installed, NOT exported, and NOT part of the public API; they are merged into
+# OpenMS_sources at the end purely so IDEs list them. Populated by the
+# sources.cmake of private subdirectories (e.g. ANALYSIS/MAPMATCHING/PIPECHO).
+# Must be initialised here, before the source-phase includes below append to it.
+set(OpenMS_private_headers  CACHE INTERNAL "Private (non-installed) libOpenMS headers; IDE listing only" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
 include(source/INTERFACES_IMPL/sources.cmake)
@@ -32,8 +39,10 @@ include(source/FORMAT/VALIDATORS/sources.cmake)
 include(source/FORMAT/OPTIONS/sources.cmake)
 include(source/FORMAT/sources.cmake)
 include(source/IONMOBILITY/sources.cmake)
+include(source/IMAGING/sources.cmake)
 include(source/ANALYSIS/QUANTITATION/sources.cmake)
 include(source/ANALYSIS/SEQUENCE/sources.cmake)
+include(source/ANALYSIS/MAPMATCHING/PIPECHO/sources.cmake)
 include(source/ANALYSIS/MAPMATCHING/sources.cmake)
 include(source/ANALYSIS/DECHARGING/sources.cmake)
 include(source/ANALYSIS/ID/sources.cmake)
@@ -96,6 +105,7 @@ include(include/OpenMS/FORMAT/MSNUMPRESS/sources.cmake)
 include(include/OpenMS/FORMAT/VALIDATORS/sources.cmake)
 include(include/OpenMS/FORMAT/OPTIONS/sources.cmake)
 include(include/OpenMS/IONMOBILITY/sources.cmake)
+include(include/OpenMS/IMAGING/sources.cmake)
 
 include(include/OpenMS/ANALYSIS/DECHARGING/sources.cmake)
 include(include/OpenMS/ANALYSIS/ID/sources.cmake)
@@ -141,7 +151,9 @@ include(include/OpenMS/APPLICATIONS/sources.cmake)
 ## add configured config.h&Co to source group
 source_group("Header Files\\OpenMS" FILES ${OpenMS_configured_headers})
 ## merge all headers to sources (for source group view in VS)
-list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OpenMS_configured_headers})
+## OpenMS_private_headers are listed for IDEs too, but (unlike OpenMS_sources_h)
+## are never passed to HEADER_FILES, so they are not installed or exported.
+list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OpenMS_private_headers} ${OpenMS_configured_headers})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?

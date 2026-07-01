@@ -299,7 +299,7 @@ namespace OpenMS
     const LayerDataBase& layer = getCurrentLayer();
 
     // determine proposed filename
-    String proposed_name = param_.getValue("default_path").toString();
+    std::string proposed_name = param_.getValue("default_path").toString();
     if (visible == false && layer.filename != "")
     {
       proposed_name = layer.filename;
@@ -397,7 +397,7 @@ namespace OpenMS
   }
 
 
-  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const String& filename, const String& caption)
+  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const std::string& filename, const std::string& caption)
   {
     new_layer->param = param;
     new_layer->filename = filename;
@@ -421,8 +421,8 @@ namespace OpenMS
 
   bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map,
                                 ODExperimentSharedPtrType od_map,
-                                const String& filename,
-                                const String& caption,
+                                const std::string& filename,
+                                const std::string& caption,
                                 const bool use_noise_cutoff)
   {
     if (map->getMSExperiment().getSpectra().empty())
@@ -466,7 +466,7 @@ namespace OpenMS
   }
 
   
-  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const String& caption)
+  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const std::string& filename, const std::string& caption)
   {
     if (map->getMSExperiment().getChromatograms().empty())
     {
@@ -490,7 +490,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename, const String& caption)
+  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const std::string& filename, const std::string& caption)
   {
     LayerDataFeatureUPtr new_layer(new LayerDataFeature);
     new_layer->getFeatureMap() = std::move(map);
@@ -500,7 +500,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename, const String& caption)
+  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const std::string& filename, const std::string& caption)
   {
     LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
@@ -509,7 +509,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(PeptideIdentificationList& peptides, const String& filename, const String& caption)
+  bool PlotCanvas::addLayer(PeptideIdentificationList& peptides, const std::string& filename, const std::string& caption)
   {
     LayerDataIdent* new_layer(new LayerDataIdent); // ownership will be transferred to unique_ptr below; no need to delete
     new_layer->setPeptideIds(std::move(peptides));
@@ -525,7 +525,7 @@ namespace OpenMS
       QMessageBox::critical(this, "Error", error_message);
   }
 
-  void PlotCanvas::setLayerName(Size i, const String& name)
+  void PlotCanvas::setLayerName(Size i, const std::string& name)
   {
     getLayer(i).setName(name);
     if (i == 0 && spectrum_widget_)
@@ -534,7 +534,7 @@ namespace OpenMS
     }
   }
 
-  String PlotCanvas::getLayerName(const Size i)
+  std::string PlotCanvas::getLayerName(const Size i)
   {
     return getLayer(i).getName();
   }

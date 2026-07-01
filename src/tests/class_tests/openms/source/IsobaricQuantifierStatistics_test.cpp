@@ -58,7 +58,7 @@ START_SECTION((void reset()))
   stats.iso_total_intensity_negative = 134.3;
   stats.number_ms2_total = 200;
   stats.number_ms2_empty = 3;
-  stats.empty_channels[114] = 4;
+  stats.empty_channels[StringUtils::toStr(114)] = 4;
   
   stats.reset();
   
@@ -87,7 +87,7 @@ START_SECTION((IsobaricQuantifierStatistics(const IsobaricQuantifierStatistics &
   stats.iso_total_intensity_negative = 134.3;
   stats.number_ms2_total = 200;
   stats.number_ms2_empty = 3;
-  stats.empty_channels[114] = 4;
+  stats.empty_channels[StringUtils::toStr(114)] = 4;
   
   IsobaricQuantifierStatistics stats2(stats);
   TEST_EQUAL(stats2.channel_count, 4)
@@ -98,8 +98,8 @@ START_SECTION((IsobaricQuantifierStatistics(const IsobaricQuantifierStatistics &
   TEST_EQUAL(stats2.iso_total_intensity_negative, 134.3)
   TEST_EQUAL(stats2.number_ms2_total, 200)
   TEST_EQUAL(stats2.number_ms2_empty, 3)
-  TEST_EQUAL(stats2.empty_channels.find(114) != stats2.empty_channels.end(), true)
-  TEST_EQUAL(stats2.empty_channels[114], 4)
+  TEST_EQUAL(stats2.empty_channels.find(StringUtils::toStr(114)) != stats2.empty_channels.end(), true)
+  TEST_EQUAL(stats2.empty_channels[StringUtils::toStr(114)], 4)
 }
 END_SECTION
 
@@ -115,7 +115,7 @@ START_SECTION((IsobaricQuantifierStatistics& operator=(const IsobaricQuantifierS
   stats.iso_total_intensity_negative = 134.3;
   stats.number_ms2_total = 200;
   stats.number_ms2_empty = 3;
-  stats.empty_channels[114] = 4;
+  stats.empty_channels[StringUtils::toStr(114)] = 4;
   
   IsobaricQuantifierStatistics stats2;
   stats2 = stats;
@@ -128,8 +128,8 @@ START_SECTION((IsobaricQuantifierStatistics& operator=(const IsobaricQuantifierS
   TEST_EQUAL(stats2.iso_total_intensity_negative, 134.3)
   TEST_EQUAL(stats2.number_ms2_total, 200)
   TEST_EQUAL(stats2.number_ms2_empty, 3)
-  TEST_EQUAL(stats2.empty_channels.find(114) != stats2.empty_channels.end(), true)
-  TEST_EQUAL(stats2.empty_channels[114], 4)
+  TEST_EQUAL(stats2.empty_channels.find(StringUtils::toStr(114)) != stats2.empty_channels.end(), true)
+  TEST_EQUAL(stats2.empty_channels[StringUtils::toStr(114)], 4)
 
 }
 END_SECTION

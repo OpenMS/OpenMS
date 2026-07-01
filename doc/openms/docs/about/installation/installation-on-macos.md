@@ -116,5 +116,29 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 
 To build OpenMS from source, follow the build instructions for [macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html).
 
+## OpenMP / SIMD on macOS
+
+OpenMS uses `#pragma omp simd` directives to enable SIMD vectorization in
+performance-critical loops. Apple's stock Clang does not ship the OpenMP
+runtime library, so by default OpenMS automatically falls back to the
+`-fopenmp-simd` compiler flag — SIMD pragmas vectorize, but `#pragma omp parallel`
+regions do not. **No extra installation is required for SIMD support.**
+
+To get **full OpenMP** (parallel regions) on macOS, install Homebrew's libomp
+and point CMake at it:
+
+```bash
+brew install libomp
+cmake -DOpenMP_ROOT=$(brew --prefix libomp) [other cmake options]
+```
+
+To skip OpenMP entirely, pass:
+
+```bash
+cmake -DMT_ENABLE_OPENMP=OFF [other cmake options]
+```
+
+This disables both OpenMP parallel regions and the `-fopenmp-simd` fallback. The `#pragma omp simd` directives in the source remain but have no effect on the generated code; `cmake/compiler_flags.cmake` silences the warning that would otherwise fire by passing `-Wno-source-uses-openmp` to Apple Clang (and `-Wno-unknown-pragmas` to GCC).
+
 
 

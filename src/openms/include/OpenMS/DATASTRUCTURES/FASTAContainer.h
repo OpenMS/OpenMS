@@ -10,9 +10,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <functional>
@@ -70,7 +69,7 @@ public:
   FASTAContainer() = delete;
 
   /// C'tor with FASTA filename
-  FASTAContainer(const String& FASTA_file)
+  FASTAContainer(const std::string& FASTA_file)
     : f_(),
     offsets_(),
     data_fg_(),
@@ -320,7 +319,7 @@ public:
   struct Result
   {
     bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
-    String name; ///< on success, what was the decoy string?
+    std::string name; ///< on success, what was the decoy string?
     bool is_prefix; ///< on success, was it a prefix or suffix
 
     bool operator==(const Result& rhs) const
@@ -365,9 +364,15 @@ public:
     For tested decoy strings see DecoyHelper::affixes.
     Both prefix and suffix is tested and if one of the candidates above is found in at least 40% of all proteins,
     it is returned as the winner (see DecoyHelper::Result).
+
+    @param proteins The protein accessions to inspect.
+    @param quiet If true, suppress the ERROR/WARN log messages emitted when no
+                 decoy string can be determined. Useful for callers that treat a
+                 negative result as a normal outcome (e.g. a target-only database)
+                 and handle it themselves.
   */
   template<typename T>
-  static Result findDecoyString(FASTAContainer<T>& proteins)
+  static Result findDecoyString(FASTAContainer<T>& proteins, bool quiet = false)
   {
     // calls function to search for decoys in input data
     DecoyStatistics decoy_stats = countDecoys(proteins);
@@ -382,13 +387,13 @@ public:
     // return default values
     if (static_cast<double>(decoy_stats.all_prefix_occur + decoy_stats.all_suffix_occur) < 0.4 * static_cast<double>(decoy_stats.all_proteins_count))
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
+      if (!quiet) OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
       return {false, "?", true};
     }
 
     if (decoy_stats.all_prefix_occur == decoy_stats.all_suffix_occur)
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
+      if (!quiet) OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
       return {false, "?", true};
     }
 
@@ -402,7 +407,7 @@ public:
 
       if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
       {
-        if (prefix_suffix_counts.first != decoy_stats.all_prefix_occur)
+        if (!quiet && prefix_suffix_counts.first != decoy_stats.all_prefix_occur)
         {
           OPENMS_LOG_WARN << "More than one decoy prefix observed!" << std::endl;
           OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << std::endl;
@@ -422,7 +427,7 @@ public:
 
       if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
       {
-        if (prefix_suffix_counts.second != decoy_stats.all_suffix_occur)
+        if (!quiet && prefix_suffix_counts.second != decoy_stats.all_suffix_occur)
         {
           OPENMS_LOG_WARN << "More than one decoy suffix observed!" << std::endl;
           OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << std::endl;
@@ -432,7 +437,7 @@ public:
       }
     }
 
-    OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
+    if (!quiet) OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
     return {false, "?", true};
   }
 
@@ -467,10 +472,10 @@ public:
       boost::smatch sm;
       for (SignedSize i = 0; i < prot_count; ++i)
       {
-        String seq = proteins.chunkAt(i).identifier;
+        std::string seq = proteins.chunkAt(i).identifier;
 
-        String seq_lower = seq;
-        seq_lower.toLower();
+        std::string seq_lower = seq;
+        StringUtils::toLower(seq_lower);
 
         // search for prefix
         bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);

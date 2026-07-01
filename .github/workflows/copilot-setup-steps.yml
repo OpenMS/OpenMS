@@ -1,0 +1,89 @@
+name: "Copilot Setup Steps"
+
+# Automatically run the setup steps when they are changed to allow for easy
+# validation, and allow manual testing through the repository's "Actions" tab
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    # Do not recompile by default – install deps and restore the compiler cache
+    # so the agent is ready to compile quickly if asked.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Extract branch/PR info for cache key
+        id: extract_branch
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.pull_request.number }}" ]; then
+            echo "RUN_NAME=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "RUN_NAME=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install system dependencies
+        shell: bash
+        run: |
+          bash tools/ci/deps-ubuntu.sh --skip-gui-deps
+
+      - name: Install ccache
+        shell: bash
+        run: |
+          # ccache is installed by deps-ubuntu.sh, verify it's available
+          ccache --version
+
+      - name: Restore compiler cache (ccache)
+        uses: actions/cache/restore@v4
+        with:
+          path: .ccache
+          key: Linux-X64-g++-13-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
+          restore-keys: |
+            Linux-X64-g++-13-ccache-develop
+            Linux-X64-g++-13-ccache-nightly
+            Linux-X64-g++-13-ccache-
+
+      - name: Show ccache stats
+        shell: bash
+        run: |
+          mkdir -p "${{ github.workspace }}/.ccache"
+          CCACHE_DIR="${{ github.workspace }}/.ccache" ccache -s || echo "Warning: ccache stats unavailable"
+
+      - name: Initialize THIRDPARTY submodule
+        shell: bash
+        run: |
+          git submodule update --init THIRDPARTY
+
+          mkdir -p _thirdparty
+          cp -R "THIRDPARTY/Linux/$(uname -m)"/* _thirdparty/ || { echo "Failed to copy THIRDPARTY/Linux files"; exit 1; }
+          cp -R THIRDPARTY/All/* _thirdparty/ || { echo "Failed to copy THIRDPARTY/All files"; exit 1; }
+
+      - name: Print environment summary
+        shell: bash
+        run: |
+          echo "=== Copilot cloud agent environment ready ==="
+          echo "OS: $(lsb_release -ds)"
+          echo "Compiler: $(g++-13 --version | head -1)"
+          echo "CMake: $(cmake --version | head -1)"
+          echo "Ninja: $(ninja --version)"
+          echo "ccache dir: ${{ github.workspace }}/.ccache"
+          echo ""
+          echo "To build OpenMS, run something like:"
+          echo "  mkdir build && cd build"
+          echo "  cmake -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \\"
+          echo "    -DCMAKE_CXX_COMPILER=g++-13 \\"
+          echo "    -DCCACHE_DIR=${{ github.workspace }}/.ccache .."
+          echo "  ninja"

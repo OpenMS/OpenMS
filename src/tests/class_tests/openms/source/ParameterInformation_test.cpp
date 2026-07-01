@@ -52,9 +52,9 @@ START_SECTION(~ParameterInformation())
 }
 END_SECTION
 
-START_SECTION((ParameterInformation(const String &n, ParameterTypes t, const String &arg, const DataValue &def, const String &desc, bool req, bool adv, const StringList &tag_values=StringList())))
+START_SECTION((ParameterInformation(const std::string &n, ParameterTypes t, const std::string &arg, const DataValue &def, const std::string &desc, bool req, bool adv, const StringList &tag_values=StringList())))
 {
-  ParameterInformation pi1("pi1_name", ParameterInformation::STRING, "<STRING>", "def_value", "this is a description", false, true, ListUtils::create<String>("tag1,tag2"));
+  ParameterInformation pi1("pi1_name", ParameterInformation::STRING, "<STRING>", "def_value", "this is a description", false, true, ListUtils::create<std::string>("tag1,tag2"));
 
 	TEST_EQUAL(pi1.name, "pi1_name")
   TEST_EQUAL(pi1.type, ParameterInformation::STRING)
@@ -78,7 +78,7 @@ END_SECTION
 
 START_SECTION((ParameterInformation& operator=(const ParameterInformation &rhs)))
 {
- ParameterInformation pi1("pi1_name", ParameterInformation::STRING, "<STRING>", "def_value", "this is a description", false, true, ListUtils::create<String>("tag1,tag2"));
+ ParameterInformation pi1("pi1_name", ParameterInformation::STRING, "<STRING>", "def_value", "this is a description", false, true, ListUtils::create<std::string>("tag1,tag2"));
 
 	TEST_EQUAL(pi1.name, "pi1_name")
   TEST_EQUAL(pi1.type, ParameterInformation::STRING)

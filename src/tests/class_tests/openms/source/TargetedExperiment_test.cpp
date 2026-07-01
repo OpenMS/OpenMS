@@ -208,7 +208,7 @@ START_SECTION((const std::vector<Protein>& getProteins() const ))
 }
 END_SECTION
 
-START_SECTION((bool hasProtein(const String & ref) const))
+START_SECTION((bool hasProtein(const std::string & ref) const))
 {
   TargetedExperiment t; 
   TargetedExperiment::Protein p;
@@ -246,7 +246,7 @@ START_SECTION((const std::vector<Compound>& getCompounds() const ))
 }
 END_SECTION
 
-START_SECTION((bool hasCompound(const String & ref) const))
+START_SECTION((bool hasCompound(const std::string & ref) const))
 {
   TargetedExperiment t; 
   TargetedExperiment::Compound c;
@@ -294,7 +294,7 @@ START_SECTION((void addPeptide(const Peptide &rhs)))
 }
 END_SECTION
 
-START_SECTION((bool hasPeptide(const String & ref) const))
+START_SECTION((bool hasPeptide(const std::string & ref) const))
 {
   TargetedExperiment t; 
   TargetedExperiment::Peptide p;
@@ -457,7 +457,7 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   peptide.mods.push_back(modification);
 
   OpenMS::AASequence aas = TargetedExperimentHelper::getAASequence(peptide);
-  OpenMS::String modified_sequence = "TES(Phospho)TPEPTIDE";
+  std::string modified_sequence = "TES(Phospho)TPEPTIDE";
   TEST_EQUAL(aas.toUnmodifiedString(),peptide.sequence)
   //TEST_EQUAL(aas.toString(),modified_sequence)
 
@@ -470,7 +470,7 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   peptide2.mods.push_back(modification2);
 
   OpenMS::AASequence aas2 = TargetedExperimentHelper::getAASequence(peptide2);
-  OpenMS::String modified_sequence2 = "TESTPEPTIDER(Label:13C(6)15N(4))";
+  std::string modified_sequence2 = "TESTPEPTIDER(Label:13C(6)15N(4))";
   TEST_EQUAL(aas2.toUnmodifiedString(),peptide2.sequence)
 
   OpenMS::TargetedExperiment::Peptide peptide3;
@@ -482,7 +482,7 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   peptide3.mods.push_back(modification3);
 
   OpenMS::AASequence aas3 = TargetedExperimentHelper::getAASequence(peptide3);
-  OpenMS::String modified_sequence3 = "TESTM(Oxidation)PEPTIDE";
+  std::string modified_sequence3 = "TESTM(Oxidation)PEPTIDE";
   TEST_EQUAL(aas3.toUnmodifiedString(),peptide3.sequence)
 }
 END_SECTION
