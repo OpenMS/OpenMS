@@ -55,6 +55,13 @@ endforeach(_class_test)
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
+# PipEchoAlgorithm_realistic_test synthesises ~10k features across 3 runs and
+# drives the LIBSVM-based MBR FDR path over many rounds. It is slow (seconds to
+# minutes) and skips silently unless OPENMS_RUN_SLOW_TESTS is set, so it does
+# not bloat the default CI run. Labelled "slow" so it can be excluded/selected
+# explicitly (e.g. ctest -LE slow) and given a generous timeout for when it runs.
+set_tests_properties(PipEchoAlgorithm_realistic_test PROPERTIES LABELS "slow" TIMEOUT 1800)
+
 # Percolator_subprocess_parity_test runs side-by-side comparisons against the
 # external `percolator` binary. Tests that need it are gated via the
 # PERCOLATOR_BINARY environment variable and skip silently when unset. Search
@@ -147,6 +154,14 @@ target_link_libraries(ConsensusMapArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+target_link_libraries(XICParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+target_link_libraries(XIMParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(Libzip_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
@@ -186,6 +201,13 @@ if (TARGET OpenSwathExport_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathPercolatorScoring_test)
+  target_link_libraries(OpenSwathPercolatorScoring_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+    sqlite3
+  )
+endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
     ${OPENMS_ARROW_TARGET}
@@ -194,6 +216,18 @@ if (TARGET ArrowSchemaRegistry_test)
 endif()
 if (TARGET OpenSwathResultsExporter_test)
   target_link_libraries(OpenSwathResultsExporter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathParquetExporter_test)
+  target_link_libraries(OpenSwathParquetExporter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET ArrowIOHelpers_test)
+  target_link_libraries(ArrowIOHelpers_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )

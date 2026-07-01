@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -95,6 +96,72 @@ namespace OpenMS
   void ProteinIdentification::ProteinGroup::setIntegerDataArrays(const ProteinIdentification::ProteinGroup::IntegerDataArrays& ida)
   {
     integer_data_arrays_ = ida;
+  }
+
+  ProteinIdentification::ProteinGroup::IntegerDataArray& ProteinIdentification::ProteinGroup::getIntegerDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+      [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    if (it == integer_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IntegerDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  ProteinIdentification::ProteinGroup::StringDataArray& ProteinIdentification::ProteinGroup::getStringDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+      [&name](const StringDataArray& da) { return da.getName() == name; } );
+    if (it == string_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("StringDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  ProteinIdentification::ProteinGroup::FloatDataArray& ProteinIdentification::ProteinGroup::getFloatDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+      [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    if (it == float_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("FloatDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::IntegerDataArray& ProteinIdentification::ProteinGroup::getIntegerDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+      [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    if (it == integer_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IntegerDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::StringDataArray& ProteinIdentification::ProteinGroup::getStringDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+      [&name](const StringDataArray& da) { return da.getName() == name; } );
+    if (it == string_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("StringDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::FloatDataArray& ProteinIdentification::ProteinGroup::getFloatDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+      [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    if (it == float_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("FloatDataArray: ") + name);
+    }
+    return *it;
   }
 
   ProteinIdentification::SearchParameters::SearchParameters() :
@@ -544,7 +611,10 @@ namespace OpenMS
       {
         if (StringUtils::hasPrefix(mvkey, se))
         {
-          result.emplace_back(StringUtils::substr(mvkey, se.size()+1), params.getMetaValue(mvkey));
+          // Lenient stringification: settings meta values may be non-string (e.g. an
+          // Int like missed_cleavages). DataValue's implicit operator std::string() is
+          // strict (throws on non-string), so convert explicitly like the cases above.
+          result.emplace_back(StringUtils::substr(mvkey, se.size()+1), StringUtils::toStr(params.getMetaValue(mvkey)));
         }
       }
     }

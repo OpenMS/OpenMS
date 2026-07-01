@@ -83,6 +83,18 @@ START_SECTION((void setValue(SizeType i, SizeType j, ValueType value)))
 	TEST_EQUAL(dm.getValue(dm.getMinElementCoordinates().first, dm.getMinElementCoordinates().second),0.5)
 	dm.setValue(3,4,1);
 	TEST_EQUAL(dm.getValue(dm.getMinElementCoordinates().first, dm.getMinElementCoordinates().second),1.0)
+	// regression (issue #9488, DATA-24): writing a value smaller than the current minimum
+	// into a cell that shares exactly ONE index with the min coordinate must update the
+	// cached minimum. Cell (2,4) shares column 4 with the current min cell (3,4).
+	dm.setValue(2,4,0.1);
+	// the cached minimum must now reflect the new smaller value at cell (2,4); with the
+	// stale-min bug getMinElementCoordinates() would still point at (3,4)=1.0
+	TEST_REAL_SIMILAR(dm.getValue(dm.getMinElementCoordinates().first, dm.getMinElementCoordinates().second),0.1)
+	TEST_REAL_SIMILAR(dm.getValue(2,4),0.1)
+	// restore the matrix to the state the following sections expect
+	dm.setValue(2,4,2);
+	TEST_EQUAL(dm.getValue(dm.getMinElementCoordinates().first, dm.getMinElementCoordinates().second),1.0)
+	TEST_EQUAL(dm.getValue(2,4),2)
 	//more tested below
 }
 END_SECTION

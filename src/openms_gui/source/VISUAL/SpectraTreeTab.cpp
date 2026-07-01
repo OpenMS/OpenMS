@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/TreeView.h>

@@ -12,11 +12,18 @@ def test_enum_values_accessible():
         "CSV", "TXT", "OBO", "HTML", "ANALYSISXML", "XSD", "PSQ", "MRM",
         "SQMASS", "PQP", "MS", "OSW", "PSMS", "PIN", "PARAMXML", "SPLIB",
         "NOVOR", "XQUESTXML", "SPECXML", "JSON", "RAW", "OMS", "EXE", "XML",
-        "BZ2", "GZ", "PARQUET", "SIZE_OF_TYPE",
+        "BZ2", "GZ", "ZIP", "PARQUET", "IDPARQUET", "FEATUREPARQUET",
+        "CONSENSUSPARQUET", "BRUKER_TDF", "CHROMPARQUET", "MOBILPARQUET",
+        "PEAKMAPPARQUET", "OSWPQ", "PEFF", "YAML", "SIZE_OF_TYPE",
     ]
     for name in expected:
         val = getattr(pyopenms.FileType, name)
         assert val is not None
+
+    # Exhaustiveness: the listed names minus the SIZE_OF_TYPE sentinel must equal the C++
+    # type count, so adding a FileTypes::Type in C++ forces this binding + list to be updated.
+    real_types = [n for n in expected if n != "SIZE_OF_TYPE"]
+    assert len(real_types) == int(pyopenms.FileType.SIZE_OF_TYPE)
 
 
 def test_typeToName():

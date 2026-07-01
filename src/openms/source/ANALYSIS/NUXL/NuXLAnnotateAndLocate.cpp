@@ -402,7 +402,7 @@ namespace OpenMS
         // we don't localize on non-cross-links (only annotate)
         if (precursor_na_adduct == "none") 
         { 
-          a.fragment_annotations = fas;
+          a.fragment_annotations = std::move(fas);
           continue; 
         }
 
@@ -512,7 +512,7 @@ namespace OpenMS
 
         if (alignment.empty())
         {
-          a.fragment_annotations = fas;
+          a.fragment_annotations = std::move(fas);
           continue;
         }
 
@@ -821,7 +821,7 @@ namespace OpenMS
         a.best_localization = best_localization;
         a.best_localization_score = best_localization_score;
         a.best_localization_position = best_localization_position;
-        a.fragment_annotations = fas;
+        a.fragment_annotations = std::move(fas);
 
         #ifdef DEBUG_OpenNuXL1
           OPENMS_LOG_DEBUG << "Ion centric annotation: " << endl;
