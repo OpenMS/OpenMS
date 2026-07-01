@@ -147,6 +147,7 @@ namespace OpenMS
     tools_map["OpenSwathInfer"] = Internal::ToolDescription("OpenSwathInfer", cat_targeted);
     tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", cat_targeted);
     tools_map["OpenSwathPeakMapExtractor"] = Internal::ToolDescription("OpenSwathPeakMapExtractor", cat_targeted);
+    tools_map["OpenSwathPercolatorScoring"] = Internal::ToolDescription("OpenSwathPercolatorScoring", cat_targeted);
     tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", cat_targeted);
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
