@@ -29,7 +29,7 @@ OpenSwathPercolatorScoring operates directly on existing OpenSWATH result contai
 One or more scoring levels can be requested sequentially via @p level:
 - @c ms1 rescoring writes @c SCORE_MS1 or @c score_ms1_*
 - @c ms2 rescoring writes @c SCORE_MS2 or @c score_ms2_*
-- @c ms1ms2 combines MS2 and MS1 features and writes the historical MS2 score table/columns
+- @c ms1ms2 combines MS2 and MS1 features and writes @c SCORE_MS2 or @c score_ms2_*
 - @c transition rescoring writes @c SCORE_TRANSITION or @c score_transition_*
 
 Rows with missing active @c VAR_* features are excluded from rescoring rather
@@ -113,8 +113,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output path. If empty, the input is updated in place.", false);
     setValidFormats_("out", {"osw", "oswpq"});
 
-    registerStringList_("level", "<levels>", StringList{"ms2"},
-                        "One or more scoring levels to run sequentially. Use 'ms2 transition' or 'ms1ms2 transition' to derive transition scores from an unscored input.",
+    registerStringList_("level", "<levels>", StringList{"ms1ms2"},
+                        "One or more scoring levels to run sequentially. Use 'ms2 transition' or 'ms1ms2 transition' to derive peak-group and transition scores from an unscored input.",
                         false);
     setValidStrings_("level", validLevels_());
 
