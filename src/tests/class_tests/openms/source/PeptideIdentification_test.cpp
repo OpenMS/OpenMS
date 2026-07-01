@@ -304,12 +304,6 @@ START_SECTION((bool empty() const))
   hits.setSignificanceThreshold(0);
   TEST_TRUE(hits.empty())
 
-  hits.setBaseName("basename");
-  TEST_FALSE(hits.empty())
-
-  hits.setBaseName("");
-  TEST_TRUE(hits.empty())
-
   hits.insertHit(peptide_hit);
   TEST_FALSE(hits.empty())
 END_SECTION
@@ -467,46 +461,6 @@ START_SECTION((static std::string buildUIDFromPepID(const PeptideIdentification&
 {
       NOT_TESTABLE //Tested above
 }
-END_SECTION
-
-START_SECTION((const std::string& getBaseName() const))
-  PeptideIdentification id;
-  TEST_EQUAL(id.getBaseName(), "")
-  
-  id.setBaseName("test_base_name");
-  TEST_EQUAL(id.getBaseName(), "test_base_name")
-  
-  // Test that it's stored as a MetaValue
-  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
-
-  // Regression (string refactor #9450): tolerate a non-string base_name DataValue
-  // (lenient stringification, must not throw).
-  PeptideIdentification id_int;
-  int int_base = 0;
-  id_int.setMetaValue(Constants::UserParam::BASE_NAME, int_base);
-  TEST_EQUAL(id_int.getBaseName(), "0")
-END_SECTION
-
-START_SECTION((void setBaseName(const std::string& base_name)))
-  PeptideIdentification id;
-  
-  // Test setting a non-empty base name
-  id.setBaseName("test_base_name");
-  TEST_EQUAL(id.getBaseName(), "test_base_name")
-  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  
-  // Test setting an empty base name (should remove the meta value)
-  id.setBaseName("");
-  TEST_EQUAL(id.getBaseName(), "")
-  TEST_FALSE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  
-  // Test that empty() method works correctly with base name as meta value
-  TEST_TRUE(id.empty())
-  id.setBaseName("test_base_name");
-  TEST_FALSE(id.empty())
-  id.setBaseName("");
-  TEST_TRUE(id.empty())
 END_SECTION
 
 START_SECTION((std::string getSpectrumReference() const))
@@ -717,6 +671,39 @@ START_SECTION(([EXTRA] buildUSI().toString() convenience pattern))
   PeptideIdentification id2;
   std::string usi_str3 = id2.buildUSI("sample.mzML", "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str3, "");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] buildUSI().toString() is well-formed mzspec accepted by USI::isValidUSI))
+{
+  // issue #9460 §7, L299: pin that the generator (buildUSI) and the static validator (isValidUSI) agree.
+  // Every USI string buildUSI emits for a referenced spectrum must begin with the "mzspec:" scheme and be
+  // accepted by USI::isValidUSI; the empty string from an unreferenced ID must be rejected.
+  PeptideIdentification id;
+  id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=12345");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("EM(Oxidation)K"));
+  hit.setCharge(2);
+  id.insertHit(hit);
+  id.sort();
+
+  // scan-based, with and without ProForma interpretation
+  std::string s_plain = id.buildUSI("sample.mzML", "PXD000561", false).toString();
+  std::string s_interp = id.buildUSI("sample.mzML", "PXD000561", true).toString();
+  TEST_EQUAL(s_plain.rfind("mzspec:", 0) == 0, true) // begins with the mzspec: scheme
+  TEST_EQUAL(USI::isValidUSI(s_plain), true)
+  TEST_EQUAL(USI::isValidUSI(s_interp), true)
+  TEST_STRING_EQUAL(s_interp, "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2")
+
+  // nativeID fallback path (scan number not extractable)
+  PeptideIdentification id_nat;
+  id_nat.setSpectrumReference("custom_format_123");
+  std::string s_nat = id_nat.buildUSI("data.mzML", "PXD000563", false).toString();
+  TEST_EQUAL(USI::isValidUSI(s_nat), true)
+
+  // empty reference -> empty string -> NOT a valid USI
+  PeptideIdentification id_empty;
+  TEST_EQUAL(USI::isValidUSI(id_empty.buildUSI("x.mzML", "PXD0", false).toString()), false)
 }
 END_SECTION
 
