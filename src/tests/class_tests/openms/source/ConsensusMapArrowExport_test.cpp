@@ -436,14 +436,14 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
 
   // --- Streaming write with a small batch (multiple row groups: 2500 / 1000) ---
   std::string stream_file; NEW_TMP_FILE(stream_file)
-  TEST_EQUAL(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_file, 1000), true)
+  TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_file, 1000))
   auto st_table = read_combined(stream_file);
   TEST_NOT_EQUAL(st_table, nullptr)
   TEST_EQUAL(st_table->num_rows(), (int64_t)N)
 
   // --- One-shot reference ---
   std::string ref_file; NEW_TMP_FILE(ref_file)
-  TEST_EQUAL(ConsensusMapArrowExport::exportToParquet(cmap, ref_file), true)
+  TEST_TRUE(ConsensusMapArrowExport::exportToParquet(cmap, ref_file))
   auto ref_table = read_combined(ref_file);
   TEST_NOT_EQUAL(ref_table, nullptr)
   TEST_EQUAL(ref_table->num_rows(), st_table->num_rows())
@@ -470,19 +470,19 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
       if (rt_s->Value(r)      != rt_r->Value(r))      { all_eq = false; break; } // order-sensitive
       if (dec_s->Value(r)     != dec_r->Value(r))     { all_eq = false; break; }
     }
-    TEST_EQUAL(all_eq, true)
+    TEST_TRUE(all_eq)
   }
 
   // --- Full logical equivalence: also covers nested/list columns (modifications,
   // intensities, pg_accessions, gg_*) and lookup-derived columns (pg_global_qvalue).
   // Both tables were CombineChunks()ed and round-tripped through parquet the same way,
   // so schema (incl. nested types) and values must match; ignore schema metadata. ---
-  TEST_EQUAL(st_table->Equals(*ref_table), true)
+  TEST_TRUE(st_table->Equals(*ref_table))
 
   // --- batch_size >= N: single batch, still correct ---
   {
     std::string one_batch; NEW_TMP_FILE(one_batch)
-    TEST_EQUAL(ConsensusMapArrowExport::exportToParquetStreaming(cmap, one_batch, N + 1000), true)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, one_batch, N + 1000))
     auto t = read_combined(one_batch);
     TEST_NOT_EQUAL(t, nullptr)
     TEST_EQUAL(t->num_rows(), (int64_t)N)
@@ -491,7 +491,7 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
   // --- batch_size == 0 guard: treated as default, valid file ---
   {
     std::string zero_batch; NEW_TMP_FILE(zero_batch)
-    TEST_EQUAL(ConsensusMapArrowExport::exportToParquetStreaming(cmap, zero_batch, 0), true)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, zero_batch, 0))
     auto t = read_combined(zero_batch);
     TEST_NOT_EQUAL(t, nullptr)
     TEST_EQUAL(t->num_rows(), (int64_t)N)
@@ -501,12 +501,12 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
   {
     ConsensusMap empty;
     std::string empty_file; NEW_TMP_FILE(empty_file)
-    TEST_EQUAL(ConsensusMapArrowExport::exportToParquetStreaming(empty, empty_file, 1000), true)
-    TEST_EQUAL(File::exists(empty_file), true)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(empty, empty_file, 1000))
+    TEST_TRUE(File::exists(empty_file))
     auto t = read_combined(empty_file);
     TEST_NOT_EQUAL(t, nullptr)
     TEST_EQUAL(t->num_rows(), 0)
-    TEST_EQUAL(t->num_columns() > 0, true)
+    TEST_TRUE(t->num_columns() > 0)
   }
 }
 END_SECTION
