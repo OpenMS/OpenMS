@@ -27,6 +27,12 @@ namespace OpenMS
         PeakMap::ConstIterator prec_it =
           experiment.getPrecursorSpectrum(exp_it);
         const vector<Precursor>& precursors = exp_it->getPrecursors();
+        // skip MS2 spectra without a precursor spectrum or without precursor information
+        // (dereferencing end() or indexing precursors[0] would otherwise be undefined behavior)
+        if (prec_it == experiment.end() || precursors.empty())
+        {
+          continue;
+        }
         DPosition<2> point(prec_it->getRT(), precursors[0].getMZ());
         seeds.push_back(point);
       }

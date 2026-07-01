@@ -311,6 +311,10 @@ START_SECTION((static float toFloat(const std::string &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" abc "))
+  // subnormal value: underflows below the smallest *normal* float but is still representable --> must parse (no out-of-range)
+  TEST_TRUE(StringUtils::toFloat("1e-40") > 0.0f)
+  // overflow above FLT_MAX --> error
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat("1e40"))
 }
 END_SECTION
 
@@ -327,6 +331,11 @@ START_SECTION((static double toDouble(const std::string &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" abc "))
+  // subnormal value: underflows below the smallest *normal* double but is still representable --> must parse (no out-of-range)
+  TEST_EQUAL(StringUtils::toDouble("2.17388884170148e-321"), 2.17388884170148e-321)
+  TEST_TRUE(StringUtils::toDouble("4.9e-324") > 0.0) // ~smallest positive subnormal double
+  // overflow above DBL_MAX --> error
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble("1e400"))
 }
 END_SECTION
 
@@ -396,6 +405,14 @@ START_SECTION((template <typename IteratorT> static bool extractDouble(IteratorT
     auto it = ss.begin();
     TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), false);
     TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
+  {
+    // subnormal value (underflow): must be parsed, not rejected as out-of-range
+    std::string ss("2.17388884170148e-321 x");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_EQUAL(d, 2.17388884170148e-321);
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 21); // was the iterator advanced past the full number?
   }
 }
 END_SECTION

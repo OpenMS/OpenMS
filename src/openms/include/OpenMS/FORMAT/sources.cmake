@@ -35,6 +35,7 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FileInfo.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
 GNPSMetaValueFile.h
@@ -105,6 +106,7 @@ ToolDescriptionFile.h
 TransformationXMLFile.h
 TriqlerFile.h
 UnimodXMLFile.h
+UniProtXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
@@ -125,10 +127,13 @@ endif()
 list(APPEND sources_list_h ZipArchiveFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
+list(APPEND sources_list_h ArrowSchemaRegistry.h)
+list(APPEND sources_list_h ArrowIOHelpers.h)
 list(APPEND sources_list_h ParquetFile.h)
 list(APPEND sources_list_h ParquetFilter.h)
 list(APPEND sources_list_h XICParquetFile.h)
 list(APPEND sources_list_h XIMParquetFile.h)
+list(APPEND sources_list_h XIPMParquetFile.h)
 list(APPEND sources_list_h QPXFile.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)

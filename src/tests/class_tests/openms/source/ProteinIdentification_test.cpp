@@ -351,6 +351,35 @@ START_SECTION((void setSearchParameters(const SearchParameters& search_parameter
 END_SECTION
 
 
+START_SECTION((std::vector<std::pair<std::string, std::string> > getSearchEngineSettingsAsPairs(const std::string& se = "") const))
+{
+	// Regression (ProteomicsLFQ mzTab export crash): non-string search settings such
+	// as an Int missed_cleavages must be stringified, not throw. DataValue's implicit
+	// operator std::string() is strict (throws on non-string) since the String class
+	// was removed, so this method must convert leniently (StringUtils::toStr).
+	ProteinIdentification prot;
+	prot.setSearchEngine("ConsensusID"); // merged run: per-engine settings live as meta values
+	ProteinIdentification::SearchParameters sp;
+	sp.setMetaValue("Comet:missed_cleavages", 2);    // Int    -- used to crash here
+	sp.setMetaValue("Comet:fragment_bin_tol", 0.02); // Double
+	sp.setMetaValue("Comet:enzyme", "Trypsin");      // String
+	prot.setSearchParameters(sp);
+
+	std::string missed, enzyme;
+	bool have_tol = false;
+	for (const std::pair<std::string, std::string>& kv : prot.getSearchEngineSettingsAsPairs("Comet"))
+	{
+		if (kv.first == "missed_cleavages") { missed = kv.second; }
+		else if (kv.first == "enzyme") { enzyme = kv.second; }
+		else if (kv.first == "fragment_bin_tol") { have_tol = true; }
+	}
+	TEST_EQUAL(missed == "2", true)
+	TEST_EQUAL(enzyme == "Trypsin", true)
+	TEST_EQUAL(have_tol, true)
+}
+END_SECTION
+
+
 START_SECTION((void sort()))
 {
 	ProteinIdentification id;
