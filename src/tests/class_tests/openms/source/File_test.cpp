@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -88,8 +89,23 @@ START_SECTION((static std::string find(const std::string &filename, StringList d
   std::string s_obo = File::find("CV/psi-ms.obo");
   TEST_EQUAL(s_obo.empty(), false);
   TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
-  
+
   TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
+
+  // a missing standard data file should point the user at the resolved data path and OPENMS_DATA_PATH (issue #9636)
+  {
+    std::string msg;
+    try
+    {
+      File::find("CHEMISTRY/this_file_does_not_exist_9636.xml");
+    }
+    catch (Exception::FileNotFound& e)
+    {
+      msg = e.getMessage();
+    }
+    TEST_EQUAL(msg.find("OPENMS_DATA_PATH") != std::string::npos, true)
+    TEST_EQUAL(msg.find(File::getOpenMSDataPath()) != std::string::npos, true)
+  }
 END_SECTION
 
 #ifdef ENABLE_DOCS
@@ -371,7 +387,7 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
 }
 END_SECTION
 
-START_SECTION(static StringList getPathLocations(const std::string& path = std::getenv("PATH")))
+START_SECTION(static StringList getPathLocations(const std::string& path))
 {
   // set env-variables is not portable across platforms, thus we inject the PATH values
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -385,6 +401,13 @@ START_SECTION(static StringList getPathLocations(const std::string& path = std::
 #else
   TEST_EQUAL(ListUtils::contains(l, "/usr/bin/"), true)
 #endif
+
+  StringList empty = File::getPathLocations("");
+  TEST_EQUAL(empty.empty(), true)
+
+  // Also exercise the no-argument overload, which reads PATH safely even when the
+  // environment lookup would otherwise return nullptr.
+  File::getPathLocations();
 }
 END_SECTION
 

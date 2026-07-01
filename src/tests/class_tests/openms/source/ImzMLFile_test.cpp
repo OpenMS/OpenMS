@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/METADATA/Instrument.h>
@@ -254,6 +255,53 @@ START_SECTION(const MSImagingGeometry& getGeometry() const)
   const auto& e0 = od.getIndex(0);
   TEST_EQUAL(geom.hasPixel(e0.x - 1, e0.y - 1), true)
   TEST_EQUAL(geom.getSpectrumIndex(e0.x - 1, e0.y - 1), 0)
+}
+END_SECTION
+
+
+START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm) const)
+{
+  // The on-disc extraction must match the in-memory MSImagingExperiment path bit-for-bit:
+  // both walk the same shared geometry and sum the same decoded peaks, the on-disc path just
+  // reads each pixel's spectrum from the .ibd lazily instead of holding the dataset in memory.
+  MSImagingExperiment img;
+  ImzMLFile().load(imzml_path, img);
+
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+
+  // Pick a real m/z present in the data (first peak of pixel 0) and a wide tolerance window.
+  const MSSpectrum first = od.getSpectrum(0);
+  TEST_EQUAL(first.empty(), false)
+  const double mz = first[0].getMZ();
+  const double tol_ppm = 1000.0;
+
+  IonImage mem = img.extractIonImage(mz, tol_ppm);
+  IonImage disc = od.extractIonImage(mz, tol_ppm);
+
+  TEST_EQUAL(disc.getWidth(), mem.getWidth())
+  TEST_EQUAL(disc.getHeight(), mem.getHeight())
+
+  bool masks_match = true;
+  for (UInt y = 0; y < mem.getHeight(); ++y)
+  {
+    for (UInt x = 0; x < mem.getWidth(); ++x)
+    {
+      if (mem.hasPixel(x, y) != disc.hasPixel(x, y))
+      {
+        masks_match = false;
+      }
+      if (mem.hasPixel(x, y) && disc.hasPixel(x, y))
+      {
+        TEST_REAL_SIMILAR(disc.getIntensity(x, y), mem.getIntensity(x, y))
+      }
+    }
+  }
+  TEST_EQUAL(masks_match, true)
+
+  // Invalid arguments must throw.
+  TEST_EXCEPTION(Exception::InvalidValue, od.extractIonImage(-1.0, tol_ppm))
+  TEST_EXCEPTION(Exception::InvalidValue, od.extractIonImage(mz, -1.0))
 }
 END_SECTION
 
@@ -784,6 +832,56 @@ START_SECTION(void store metadata round-trip)
     TEST_REAL_SIMILAR(reloaded[0].getRT(), 12.34)
     TEST_EQUAL(reloaded[0].getMSLevel(), 1)
   }
+}
+END_SECTION
+
+
+START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm, Size region_id) const)
+{
+  // On-disc region extraction must produce the same result as in-memory for the same region.
+  // This covers the 3-arg overload of OnDiscImzMLExperiment which was previously untested.
+  MSImagingExperiment img;
+  ImzMLFile().load(imzml_path, img);
+
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+
+  const MSSpectrum first = od.getSpectrum(0);
+  TEST_EQUAL(first.empty(), false)
+  const double mz      = first[0].getMZ();
+  const double tol_ppm = 1000.0;
+
+  // Add the same region (single-pixel rectangle at origin) to both geometries,
+  // then compare the extracted images pixel-for-pixel.
+  const MSImagingRegion region = MSImagingRegion::rectangle(1, "roi", 0, 0, 0, 0);
+  img.getGeometry().addRegion(region);
+  od.getGeometry().addRegion(region);
+
+  IonImage mem  = img.extractIonImage(mz, tol_ppm, 1);
+  IonImage disc = od.extractIonImage(mz, tol_ppm, 1);
+
+  TEST_EQUAL(disc.getWidth(),  mem.getWidth())
+  TEST_EQUAL(disc.getHeight(), mem.getHeight())
+
+  bool masks_match = true;
+  bool compared_region_pixel = false;
+  for (UInt y = 0; y < mem.getHeight(); ++y)
+  {
+    for (UInt x = 0; x < mem.getWidth(); ++x)
+    {
+      if (mem.hasPixel(x, y) != disc.hasPixel(x, y)) { masks_match = false; }
+      if (mem.hasPixel(x, y) && disc.hasPixel(x, y))
+      {
+        compared_region_pixel = true;
+        TEST_REAL_SIMILAR(disc.getIntensity(x, y), mem.getIntensity(x, y))
+      }
+    }
+  }
+  TEST_EQUAL(masks_match, true)
+  TEST_TRUE(compared_region_pixel)
+
+  // Unknown region id must throw.
+  TEST_EXCEPTION(Exception::ElementNotFound, od.extractIonImage(mz, tol_ppm, 99))
 }
 END_SECTION
 

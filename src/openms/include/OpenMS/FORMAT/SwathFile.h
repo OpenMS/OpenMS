@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>

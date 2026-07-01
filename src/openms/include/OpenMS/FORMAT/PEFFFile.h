@@ -321,6 +321,10 @@ namespace OpenMS
       @param include_reference Include reference peptides (default: true)
       @param include_peff_variants Enumerate PEFF variants (default: true)
       @param include_peff_modifications Enumerate PEFF modifications (default: true)
+      @param max_peff_mods_per_proteoform Maximum number of annotated PEFF modifications applied
+             simultaneously per generated peptide/proteoform (0 = unlimited; default: 0).
+             With @em n annotated PEFF mod sites in range, a value of @em k restricts the output
+             to subsets of size <= @em k, i.e. sum_{j=0..k} C(n, j) combinations instead of 2^n.
     */
     void generatePeptides(
       const ProteaseDigestion& digestor,
@@ -333,7 +337,8 @@ namespace OpenMS
       Size max_length = 40,
       bool include_reference = true,
       bool include_peff_variants = true,
-      bool include_peff_modifications = true) const;
+      bool include_peff_modifications = true,
+      Size max_peff_mods_per_proteoform = 0) const;
 
   private:
     /**
@@ -346,12 +351,17 @@ namespace OpenMS
       @param peptide The base peptide sequence
       @param peff_mods PEFF modifications with positions relative to the peptide (0-based)
       @param base_description Base description to prepend to modification descriptions
+      @param max_selected Maximum number of modifications applied simultaneously per combination
+             (0 = unlimited). Combinations selecting more than @em max_selected mods are skipped,
+             so the result holds subsets of size <= @em max_selected. The unmodified peptide
+             (empty selection) is always retained.
       @return Vector of pairs: (description, modified AASequence)
     */
     static std::vector<std::pair<std::string, AASequence>> enumeratePEFFModifications_(
       const AASequence& peptide,
       const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
-      const std::string& base_description);
+      const std::string& base_description,
+      Size max_selected = 0);
   };
 
   /**
