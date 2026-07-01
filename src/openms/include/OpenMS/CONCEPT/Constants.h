@@ -592,7 +592,7 @@ namespace OpenMS
       inline const std::string   ADDUCT_GROUP = "Group";
 
       /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
-              vector<String>
+              vector<std::string>
       */
       inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
 
@@ -635,6 +635,11 @@ namespace OpenMS
               String
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
+
+      /** User parameter name for the collision cross section (CCS, in Angstrom^2) of a metabolite. (Used by MetaboliteSpectralMatcher for ion-mobility filtering)
+              double
+      */
+      inline const std::string   MSM_CCS = "CCS";
 
       /** User parameter name for the base name which links to underlying peak map
               String

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <vector>
 
@@ -50,11 +50,11 @@ public:
 
         @exception Exception::InvalidValue is thrown if the same eluent name is used twice.
     */
-    void addEluent(const String & eluent);
+    void addEluent(const std::string & eluent);
     /// removes all eluents
     void clearEluents();
     /// returns a const reference to the list of eluents
-    const std::vector<String> & getEluents() const;
+    const std::vector<std::string> & getEluents() const;
 
     /**
         @brief Adds a timepoint at the end of the timepoint array
@@ -72,7 +72,7 @@ public:
 
         @exception Exception::InvalidValue is thrown if the eluent, timepoint or percentage is invalid.
     */
-    void setPercentage(const String & eluent, Int timepoint, UInt percentage);
+    void setPercentage(const std::string & eluent, Int timepoint, UInt percentage);
 
     /**
         @brief returns a const reference to the percentages
@@ -86,7 +86,7 @@ public:
 
         @exception Exception::InvalidValue is thrown if the eluent or timepoint is invalid.
     */
-    UInt getPercentage(const String & eluent, Int timepoint) const;
+    UInt getPercentage(const std::string & eluent, Int timepoint) const;
 
     /// sets all percentage values to 0
     void clearPercentages();
@@ -95,7 +95,7 @@ public:
     bool isValid() const;
 
 protected:
-    std::vector<String> eluents_;
+    std::vector<std::string> eluents_;
     std::vector<Int> times_;
     // first dimension is eluents, second is times
     std::vector<std::vector<UInt> > percentages_;

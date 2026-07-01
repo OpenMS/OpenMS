@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -48,11 +49,11 @@ namespace // anonymous
     std::shared_ptr<arrow::StructBuilder>& struct_b,
     const std::unordered_set<std::string>& excluded_keys)
   {
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
-      if (excluded_keys.count(key)) continue;
+      if (excluded_keys.contains(key)) continue;
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
@@ -192,7 +193,7 @@ namespace // anonymous
       json += "]";
 
       json += ",\"metavalues\":[";
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       dp.getKeys(keys);
       bool first_mv = true;
       for (const auto& key : keys)
@@ -246,7 +247,7 @@ namespace // anonymous
         raw += s[pos + 1];
         if (s[pos + 1] == 'u' && pos + 5 < s.size())
         {
-          raw += s.substr(pos + 2, 4);
+          raw += StringUtils::substr(s, pos + 2, 4);
           pos += 6;
         }
         else
@@ -371,8 +372,8 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
                     dp.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -381,8 +382,8 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
                     dp.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -391,10 +392,10 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-                    auto sl = ListUtils::create<String>(s);
-                    for (auto& e : sl) { e = e.trim(); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
+                    auto sl = ListUtils::create<std::string>(s);
+                    for (auto& e : sl) { e = StringUtils::trim(e); }
                     dp.setMetaValue(mv_name, DataValue(sl));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -443,7 +444,7 @@ namespace // anonymous
   std::string serializeMetaValues_(const MetaInfoInterface& mii)
   {
     std::string json = "[";
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     bool first = true;
     for (const auto& key : keys)
@@ -522,8 +523,8 @@ namespace // anonymous
         {
           try
           {
-            String s(mv_value);
-            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
             target.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
           }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -532,8 +533,8 @@ namespace // anonymous
         {
           try
           {
-            String s(mv_value);
-            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
             target.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
           }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -542,10 +543,10 @@ namespace // anonymous
         {
           try
           {
-            String s(mv_value);
-            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-            auto sl = ListUtils::create<String>(s);
-            for (auto& e : sl) { e = e.trim(); }
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
+            auto sl = ListUtils::create<std::string>(s);
+            for (auto& e : sl) { e = StringUtils::trim(e); }
             target.setMetaValue(mv_name, DataValue(sl));
           }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -640,7 +641,7 @@ namespace // anonymous
               else if (json[pos] == '"') { ++pos; while (pos < json.size() && json[pos] != '"') { if (json[pos] == '\\') ++pos; ++pos; } }
               ++pos;
             }
-            deserializeMetaValues_(json.substr(start, pos - start), header);
+            deserializeMetaValues_(StringUtils::substr(json, start, pos - start), header);
           }
         }
         else
@@ -660,7 +661,7 @@ namespace // anonymous
   /// Write an Arrow table to a Parquet file with QPX-style metadata.
   bool writeArrowTableToParquet_(
     std::shared_ptr<arrow::Table> table,
-    const String& filename,
+    const std::string& filename,
     const std::string& file_type,
     const ParquetWriteConfig& config,
     const std::unordered_map<std::string, std::string>& extra_metadata = {})
@@ -773,7 +774,7 @@ namespace // anonymous
   // ==================== Import helpers ====================
 
   /// Read a single Parquet file into an Arrow table.
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -1079,7 +1080,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
 
 bool ConsensusMapArrowIO::exportToParquet(
   const ConsensusMap& cmap,
-  const String& directory,
+  const std::string& directory,
   const ParquetWriteConfig& config)
 {
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
@@ -1351,7 +1352,7 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
 }
 
 bool ConsensusMapArrowIO::importFromParquet(
-  const String& directory,
+  const std::string& directory,
   ConsensusMap& cmap)
 {
   cmap = ConsensusMap{};

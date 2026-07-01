@@ -47,7 +47,7 @@ IdentifiedPeptideRef IdentifiedMolecule::getIdentifiedPeptideRef() const
   {
     return *ref_ptr;
   }
-  String msg = "matched molecule is not a peptide";
+  std::string msg = "matched molecule is not a peptide";
   throw Exception::IllegalArgument(__FILE__, __LINE__,
                                     OPENMS_PRETTY_FUNCTION, msg);
 }
@@ -59,7 +59,7 @@ IdentifiedCompoundRef IdentifiedMolecule::getIdentifiedCompoundRef() const
   {
     return *ref_ptr;
   }
-  String msg = "matched molecule is not a compound";
+  std::string msg = "matched molecule is not a compound";
   throw Exception::IllegalArgument(__FILE__, __LINE__,
                                     OPENMS_PRETTY_FUNCTION, msg);
 }
@@ -72,7 +72,7 @@ IdentifiedOligoRef IdentifiedMolecule::getIdentifiedOligoRef() const
   {
     return *ref_ptr;
   }
-  String msg = "matched molecule is not an oligonucleotide";
+  std::string msg = "matched molecule is not an oligonucleotide";
   throw Exception::IllegalArgument(__FILE__, __LINE__,
                                     OPENMS_PRETTY_FUNCTION, msg);
 }
@@ -102,7 +102,7 @@ EmpiricalFormula IdentifiedMolecule::getFormula(Size fragment_type /*= 0*/, Int 
   }
 }
 
-String IdentifiedMolecule::toString() const
+std::string IdentifiedMolecule::toString() const
 {
   switch (getMoleculeType())
   {

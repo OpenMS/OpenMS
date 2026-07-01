@@ -24,6 +24,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
 
 using namespace OpenMS;
@@ -104,7 +105,7 @@ protected:
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
     setValidFormats_("in", {"idXML","consensusXML"});
     registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
-    setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
+    setValidFormats_("exp_design", ListUtils::create<std::string>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", {"idXML","consensusXML"});
     registerStringOption_("out_type", "<file>", "", "Output type: auto detected by file extension but can be overwritten here.", false);
@@ -158,7 +159,7 @@ protected:
     registerSubsection_("algorithm", "Parameters for the Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     return BayesianProteinInferenceAlgorithm().getParameters();
   }
@@ -191,8 +192,8 @@ protected:
     //convert all scores to PPs
     for (auto& pep_id : mergedpeps)
     {
-      String score_l = pep_id.getScoreType();
-      score_l = score_l.toLower();
+      std::string score_l = pep_id.getScoreType();
+      score_l = StringUtils::toLower(score_l);
       if (score_l == "pep" || score_l == "posterior error probability")
       {
         for (auto& pep_hit : pep_id.getHits())
@@ -246,13 +247,13 @@ protected:
     }
 
     FileTypes::Type in_type = FileHandler::getType(files[0]);
-    String exp_des = getStringOption_("exp_design");
+    std::string exp_des = getStringOption_("exp_design");
 
     StopWatch sw;
     sw.start();
 
-    String out_file = getStringOption_("out");
-    String out_type = getStringOption_("out_type");
+    std::string out_file = getStringOption_("out");
+    std::string out_type = getStringOption_("out_type");
 
     if (!files.empty() && (in_type == FileTypes::CONSENSUSXML))
     {
@@ -347,7 +348,7 @@ protected:
       PeptideIdentificationList mergedpeps;
       if (files.size() > 1)
       {
-        for (String& file : files)
+        for (std::string& file : files)
         {
           vector<ProteinIdentification> prots;
           PeptideIdentificationList peps;
@@ -458,7 +459,7 @@ protected:
   // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
   //   of the proteins for every sample
 
-  static std::optional<const ExperimentalDesign> maybeGetExpDesign_(const String& filename)
+  static std::optional<const ExperimentalDesign> maybeGetExpDesign_(const std::string& filename)
   {
     if (filename.empty()) return std::nullopt;
     return std::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));

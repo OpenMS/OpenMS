@@ -45,7 +45,7 @@ namespace OpenMS
       tags.insert(t[i]);
     }
     //check name
-    if (name.find(':') != std::string::npos)
+    if (name.contains(':'))
     {
       OPENMS_LOG_ERROR << "Error ParamEntry name must not contain ':' characters!" << std::endl;
     }
@@ -185,7 +185,7 @@ namespace OpenMS
     entries(),
     nodes()
   {
-      if (name.find(':') != std::string::npos)
+      if (name.contains(':'))
       {
         OPENMS_LOG_WARN << "Error ParamNode name must not contain ':' characters!\n";
       }
@@ -245,10 +245,10 @@ namespace OpenMS
   Param::ParamNode* Param::ParamNode::findParentOf(const std::string& local_name)
   {
     //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << '\n';
-    if (local_name.find(':') != std::string::npos) //several subnodes to browse through
+    if (local_name.contains(':')) //several subnodes to browse through
     {
         size_t pos = local_name.find(':');
-        std::string prefix = local_name.substr(0, pos);
+        std::string prefix = StringUtils::substr(local_name, 0, pos);
 
         //cout << " - Prefix: '" << prefix << "'\n";
         NodeIterator it = findNode(prefix);
@@ -257,7 +257,7 @@ namespace OpenMS
           return nullptr;
         }
         //recursively call findNode for the rest of the path
-        std::string new_name = local_name.substr(it->name.size() + 1);
+        std::string new_name = StringUtils::substr(local_name, it->name.size() + 1);
         //cout << " - Next name: '" << new_name << "'\n";
         return it->findParentOf(new_name);
     }
@@ -305,10 +305,10 @@ namespace OpenMS
     std::string prefix2 = prefix + node.name;
 
     ParamNode* insert_node = this;
-    while (prefix2.find(':') != std::string::npos)
+    while (prefix2.contains(':'))
     {
       size_t pos = prefix2.find(':');
-      std::string local_name = prefix2.substr(0, pos);
+      std::string local_name = StringUtils::substr(prefix2, 0, pos);
       //check if the node already exists
       NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
@@ -322,7 +322,7 @@ namespace OpenMS
         //std::cerr << " - Created new node: " << insert_node->name << '\n';
       }
       //remove prefix
-      prefix2 = prefix2.substr(local_name.size() + 1);
+      prefix2 = StringUtils::substr(prefix2, local_name.size() + 1);
     }
 
     // check if the node exists as ParamEntry
@@ -368,10 +368,10 @@ namespace OpenMS
     //std::cerr << " - inserting: " << prefix2 << '\n';
 
     ParamNode* insert_node = this;
-    while (prefix2.find(':') != std::string::npos)
+    while (prefix2.contains(':'))
     {
       size_t pos = prefix2.find(':');
-      std::string local_name = prefix2.substr(0, pos);
+      std::string local_name = StringUtils::substr(prefix2, 0, pos);
       //std::cerr << " - looking for node: " << name << '\n';
       //look up if the node already exists
       NodeIterator it = insert_node->findNode(local_name);
@@ -386,7 +386,7 @@ namespace OpenMS
         //std::cerr << " - Created new node: " << insert_node->name << '\n';
       }
       //remove prefix
-      prefix2 = prefix2.substr(local_name.size() + 1);
+      prefix2 = StringUtils::substr(prefix2, local_name.size() + 1);
       //std::cerr << " - new prefix: " << prefix2 << '\n';
     }
 
@@ -437,7 +437,7 @@ namespace OpenMS
     size_t pos = key.rfind(':');
     if (pos != std::string::npos)
     {
-      return key.substr(++pos);
+      return StringUtils::substr(key, ++pos);
     }
     return key;
   }
@@ -479,7 +479,7 @@ namespace OpenMS
     //check for commas
     for (size_t i = 0; i < strings.size(); ++i)
     {
-      if (strings[i].find(',') != std::string::npos)
+      if (strings[i].contains(','))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Comma characters in Param string restrictions are not allowed!");
       }
@@ -545,8 +545,8 @@ namespace OpenMS
 
   const std::string& Param::getSectionDescription(const std::string& key) const
   {
-    //This variable is used instead of String::EMPTY as the method is used in
-    //static initialization and thus cannot rely on String::EMPTY been initialized.
+    //This variable is used instead of "" as the method is used in
+    //static initialization and thus cannot rely on "" been initialized.
     static std::string empty;
 
     ParamNode* node = root_.findParentOf(key);
@@ -631,7 +631,7 @@ namespace OpenMS
         {
           pathname.resize(pathname.size() - it2->name.size() - 1);
         }
-        std::string real_pathname = pathname.substr(0, pathname.length() - 1); //remove ':' at the end
+        std::string real_pathname = StringUtils::substr(pathname, 0, pathname.length() - 1); //remove ':' at the end
         if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
@@ -652,7 +652,7 @@ namespace OpenMS
     std::string keyname = key;
     if (!key.empty() && key.back() == ':') // delete section
     {
-      keyname = key.substr(0, key.length() - 1);
+      keyname = StringUtils::substr(key, 0, key.length() - 1);
 
       ParamNode* node_parent = root_.findParentOf(keyname);
       if (node_parent != nullptr)
@@ -665,7 +665,7 @@ namespace OpenMS
           if (node_parent->nodes.empty()  && node_parent->entries.empty())
           {
             // delete last section name (could be partial)
-            remove(keyname.substr(0, keyname.size() - name.size())); // keep last ':' to indicate deletion of a section
+            remove(StringUtils::substr(keyname, 0, keyname.size() - name.size())); // keep last ':' to indicate deletion of a section
           }
         }
       }
@@ -683,7 +683,7 @@ namespace OpenMS
           if (node->nodes.empty()  && node->entries.empty())
           {
             // delete if section is now empty
-            remove(keyname.substr(0, keyname.length() - entryname.length())); // keep last ':' to indicate deletion of a section
+            remove(StringUtils::substr(keyname, 0, keyname.length() - entryname.length())); // keep last ':' to indicate deletion of a section
           }
         }
       }
@@ -694,10 +694,10 @@ namespace OpenMS
   {
     if (!prefix.empty() && prefix.back() == ':')//we have to delete one node only (and its subnodes)
     {
-      ParamNode* node = root_.findParentOf(prefix.substr(0, prefix.length() - 1));
+      ParamNode* node = root_.findParentOf(StringUtils::substr(prefix, 0, prefix.length() - 1));
       if (node != nullptr)
       {
-        Param::ParamNode::NodeIterator it = node->findNode(node->suffix(prefix.substr(0, prefix.length() - 1)));
+        Param::ParamNode::NodeIterator it = node->findNode(node->suffix(StringUtils::substr(prefix, 0, prefix.length() - 1)));
         if (it != node->nodes.end())
         {
           std::string name = it->name;
@@ -705,7 +705,7 @@ namespace OpenMS
           if (node->nodes.empty()  && node->entries.empty())
           {
             // delete last section name (could be partial)
-            removeAll(prefix.substr(0, prefix.length() - name.length() - 1));// '-1' for the tailing ':'
+            removeAll(StringUtils::substr(prefix, 0, prefix.length() - name.length() - 1));// '-1' for the tailing ':'
           }
         }
       }
@@ -743,7 +743,7 @@ namespace OpenMS
         if (node->nodes.empty() && node->entries.empty())
         {
           // delete last section name (could be partial)
-          removeAll(prefix.substr(0, prefix.size() - suffix.size()));
+          removeAll(StringUtils::substr(prefix, 0, prefix.size() - suffix.size()));
         }
       }
     }
@@ -799,7 +799,7 @@ namespace OpenMS
       }
       else
       {
-        out.insert(*node, prefix.substr(0, prefix.size() - node->name.size() - 1));
+        out.insert(*node, StringUtils::substr(prefix, 0, prefix.size() - node->name.size() - 1));
       }
     }
     else //we have to copy all entries and nodes starting with the right suffix
@@ -812,12 +812,12 @@ namespace OpenMS
           if (remove_prefix)
           {
             ParamNode tmp = *it;
-            tmp.name = tmp.name.substr(suffix.size());
+            tmp.name = StringUtils::substr(tmp.name, suffix.size());
             out.insert(tmp);
           }
           else
           {
-            out.insert(*it, prefix.substr(0, prefix.size() - suffix.size()));
+            out.insert(*it, StringUtils::substr(prefix, 0, prefix.size() - suffix.size()));
           }
         }
       }
@@ -828,12 +828,12 @@ namespace OpenMS
           if (remove_prefix)
           {
             ParamEntry tmp = *it;
-            tmp.name = tmp.name.substr(suffix.size());
+            tmp.name = StringUtils::substr(tmp.name, suffix.size());
             out.insert(tmp);
           }
           else
           {
-            out.insert(*it, prefix.substr(0, prefix.size() - suffix.size()));
+            out.insert(*it, StringUtils::substr(prefix, 0, prefix.size() - suffix.size()));
           }
         }
       }
@@ -848,7 +848,7 @@ namespace OpenMS
     std::string prefix2 = prefix;
     if (!prefix2.empty())
     {
-      //prefix2.ensureLastChar(':');
+      //StringUtils::ensureLastChar(prefix2, ':');
       if (prefix2.back() != ':')
       {
         prefix2.append(1, ':');
@@ -944,7 +944,7 @@ namespace OpenMS
       }
 
       //with multiple argument
-      if (options_with_multiple_argument.find(arg) != options_with_multiple_argument.end())
+      if (options_with_multiple_argument.contains(arg))
       {
         //next argument is an option
         if (arg1_is_option)
@@ -971,12 +971,12 @@ namespace OpenMS
         }
       }
       //without argument
-      else if (options_without_argument.find(arg) != options_without_argument.end())
+      else if (options_without_argument.contains(arg))
       {
         root_.insert(ParamEntry("", "true", ""), options_without_argument.find(arg)->second);
       }
       //with one argument
-      else if (options_with_one_argument.find(arg) != options_with_one_argument.end())
+      else if (options_with_one_argument.contains(arg))
       {
         //next argument is not an option
         if (!arg1_is_option)
@@ -1293,7 +1293,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set.\n";
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
-            std::string prefix = "";
+            std::string prefix;
             if (it.getName().find(':') != std::string::npos)
             {
               prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
@@ -1381,7 +1381,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     // augment
     for (Param::ParamIterator it = toMerge.begin(); it != toMerge.end(); ++it)
     {
-      std::string prefix = "";
+      std::string prefix;
       if (it.getName().find(':') != std::string::npos)
         prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
 
@@ -1409,7 +1409,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           if (suffix.size() <= pathname.size() && pathname.compare(pathname.size() - suffix.size(), suffix.size(), suffix) == 0)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }
-        std::string real_pathname = pathname.substr(0, pathname.size() - 1);//remove ':' at the end
+        std::string real_pathname = StringUtils::substr(pathname, 0, pathname.size() - 1);//remove ':' at the end
         if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
@@ -1620,7 +1620,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   void Param::addTag(const std::string& key, const std::string& tag)
   {
-    if (tag.find(',') != std::string::npos)
+    if (tag.contains(','))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Param tags may not contain comma characters", tag);
     }
@@ -1632,7 +1632,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     ParamEntry& entry = getEntry_(key);
     for (size_t i = 0; i != tags.size(); ++i)
     {
-      if (tags[i].find(',') != std::string::npos)
+      if (tags[i].contains(','))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Param tags may not contain comma characters", tags[i]);
       }
@@ -1671,7 +1671,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     if (key.back() == ':')
     {
       // Remove trailing colon from key
-      return root_.findParentOf(key.substr(0, key.size() - 1)) != nullptr;
+      return root_.findParentOf(StringUtils::substr(key, 0, key.size() - 1)) != nullptr;
     }
     else
     {

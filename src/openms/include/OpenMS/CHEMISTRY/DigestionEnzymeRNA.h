@@ -32,41 +32,41 @@ namespace OpenMS
   {
   public:
     /// sets the "cuts after ..." regular expression
-    void setCutsAfterRegEx(const String& value);
+    void setCutsAfterRegEx(const std::string& value);
 
     /// returns the "cuts after ..." regular expression
-    String getCutsAfterRegEx() const;
+    std::string getCutsAfterRegEx() const;
 
     /// sets the "cuts before ..." regular expression
-    void setCutsBeforeRegEx(const String& value);
+    void setCutsBeforeRegEx(const std::string& value);
 
     /// returns the "cuts before ..." regular expression
-    String getCutsBeforeRegEx() const;
+    std::string getCutsBeforeRegEx() const;
 
     /// sets the 3' gain (as a nucleotide modification code)
-    void setThreePrimeGain(const String& value);
+    void setThreePrimeGain(const std::string& value);
 
     /// returns the 3' gain (as a nucleotide modification code)
-    String getThreePrimeGain() const;
+    std::string getThreePrimeGain() const;
 
     /// sets the 5' gain (as a nucleotide modification code)
-    void setFivePrimeGain(const String& value);
+    void setFivePrimeGain(const std::string& value);
 
     /// returns the 5' gain (as a nucleotide modification code)
-    String getFivePrimeGain() const;
+    std::string getFivePrimeGain() const;
 
     /**
        @brief Set the value of a member variable based on an entry from an input file
 
        Returns whether the key was recognized and the value set successfully.
     */
-    bool setValueFromFile(const String& key, const String& value) override;
+    bool setValueFromFile(const std::string& key, const std::string& value) override;
 
   protected:
-    String three_prime_gain_;
-    String five_prime_gain_;
-    String cuts_after_regex_;
-    String cuts_before_regex_;
+    std::string three_prime_gain_;
+    std::string five_prime_gain_;
+    std::string cuts_after_regex_;
+    std::string cuts_before_regex_;
   };
 
   typedef DigestionEnzymeRNA RNase;

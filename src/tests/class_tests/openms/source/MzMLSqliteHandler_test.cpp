@@ -125,7 +125,7 @@ START_TEST(MzMLSqliteHandler, "$Id$")
 
 MzMLSqliteHandler* ptr = nullptr;
 MzMLSqliteHandler* nullPointer = nullptr;
-START_SECTION((MzMLSqliteHandler(const String& filename, const UInt64 run_id)))
+START_SECTION((MzMLSqliteHandler(const std::string& filename, const UInt64 run_id)))
   ptr = new MzMLSqliteHandler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION

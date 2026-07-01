@@ -316,17 +316,6 @@ class TestUniqueIdGenerator:
         assert uid1 == uid2
 
 
-class TestStringView:
-    """StringView — lightweight string reference."""
-
-    def test_exists(self):
-        assert hasattr(pyopenms, 'StringView')
-
-    def test_construct(self):
-        sv = pyopenms.StringView()
-        assert sv is not None
-
-
 class TestSignalToNoiseEstimatorMedianChrom:
     """SignalToNoiseEstimatorMedianChrom — S/N for chromatograms."""
 

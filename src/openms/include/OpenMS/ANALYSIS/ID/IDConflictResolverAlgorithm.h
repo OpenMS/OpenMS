@@ -115,7 +115,7 @@ protected:
 
     for (auto& c : map)
     {
-      c.setMetaValue("feature_id", String(c.getUniqueId()));
+      c.setMetaValue("feature_id",StringUtils::toStr(c.getUniqueId()));
       if (!keep_matching)
       {
         resolveConflict_(c.getPeptideIdentifications(),
@@ -163,7 +163,7 @@ protected:
 
     for (auto& c : map)
     {
-      c.setMetaValue("feature_id", String(c.getUniqueId()));
+      c.setMetaValue("feature_id",StringUtils::toStr(c.getUniqueId()));
       resolveAggregateConflict_(c.getPeptideIdentifications(),
                                 map.getUnassignedPeptideIdentifications(),
                                 c.getUniqueId());

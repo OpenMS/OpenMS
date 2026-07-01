@@ -25,7 +25,7 @@ START_TEST(FileHandler, "Id")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static String typeToName(Type type)))
+START_SECTION((static std::string typeToName(Type type)))
 {
   TEST_EQUAL(FileTypes::typeToName(FileTypes::UNKNOWN), "unknown");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA), "dta");
@@ -52,13 +52,13 @@ START_SECTION((static String typeToName(Type type)))
 }
 END_SECTION
 
-START_SECTION((static Type nameToType(const String& name)))
+START_SECTION((static Type nameToType(const std::string& name)))
   TEST_EQUAL(FileTypes::typeToDescription(FileTypes::DTA2D), "dta2d raw data file");
   TEST_EQUAL(FileTypes::typeToDescription(FileTypes::UNKNOWN), "unknown file extension");
 END_SECTION
 
 
-START_SECTION((static Type nameToType(const String& name)))
+START_SECTION((static Type nameToType(const std::string& name)))
 {
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
@@ -73,6 +73,7 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::TOPPAS, FileTypes::nameToType("toppas"));
   TEST_EQUAL(FileTypes::TRANSFORMATIONXML, FileTypes::nameToType("trafoXML"));
   TEST_EQUAL(FileTypes::MZML, FileTypes::nameToType("mzML"));
+  TEST_EQUAL(FileTypes::IMZML, FileTypes::nameToType("imzML"));
   TEST_EQUAL(FileTypes::MS2, FileTypes::nameToType("ms2"));
   TEST_EQUAL(FileTypes::PEPXML, FileTypes::nameToType("pepXML"));
   TEST_EQUAL(FileTypes::PROTXML, FileTypes::nameToType("protXML"));
@@ -133,7 +134,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 
-  // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
+  // testing Type FileTypeList::fromFileDialogFilter(const std::string& filter, const Type fallback = Type::UNKNOWN) const
   TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
   TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::UNKNOWN);
   TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::MZML);
@@ -153,7 +154,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 48);
+    TEST_EQUAL(g.getTypes().size(), 49); // YAML is WRITEABLE-only, so the READABLE count is unchanged
     // Test that empty filter returns the full list, equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__

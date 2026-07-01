@@ -102,8 +102,8 @@ private:
       @param[in] mono
 
      */
-    void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
-                      const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
+    void fdr_xprophet_(std::map< std::string, Math::Histogram<> >& cum_histograms,
+                      const std::string& targetclass, const std::string& decoyclass, const std::string& fulldecoyclass,
                       std::vector< double >& fdr, bool mono) const;
 
     /**
@@ -117,7 +117,7 @@ private:
 
     void writeArgumentsLog_() const;
 
-    String getId_(const PeptideHit& ph) const;
+    std::string getId_(const PeptideHit& ph) const;
 
     static Size getMinIonsMatched_(const PeptideHit& ph)
     {
@@ -140,14 +140,14 @@ private:
      *  @brief Determines whether the Peptide Evidences belong to the same protein, modulo decoy
      */
     static bool isSameProtein_(
-            String prot1,
-            String prot2,
-            const String &decoy_string)
+            std::string prot1,
+            std::string prot2,
+            const std::string &decoy_string)
     {
-      prot1.substitute(decoy_string, "");
-      prot2.substitute(decoy_string, "");
-      assert( ! prot1.hasSubstring(decoy_string));
-      assert( ! prot2.hasSubstring(decoy_string));
+      StringUtils::substitute(prot1, decoy_string, "");
+      StringUtils::substitute(prot2, decoy_string, "");
+      assert( ! StringUtils::hasSubstring(prot1, decoy_string));
+      assert( ! StringUtils::hasSubstring(prot2, decoy_string));
       return prot1 == prot2;
     }
 
@@ -156,14 +156,14 @@ private:
     Int max_score_;
 
     // unique top hits
-    std::vector<String> unique_ids_;
+    std::vector<std::string> unique_ids_;
     std::vector<double> unique_id_scores_;
 
     // maps index of peptide id all_pep_ids_ to vector of cross link class
-    std::map<String, std::vector<String>> cross_link_classes_;
+    std::map<std::string, std::vector<std::string>> cross_link_classes_;
 
     // Program arguments
-    String decoy_string_;
+    std::string decoy_string_;
     double arg_mindeltas_;
     double arg_minborder_;
     double arg_maxborder_;
@@ -174,28 +174,28 @@ private:
     double arg_binsize_;
 
     // Names of the class parameters
-    static const String param_decoy_string_;
-    static const String param_minborder_;
-    static const String param_maxborder_;
-    static const String param_mindeltas_;
-    static const String param_minionsmatched_;
-    static const String param_uniquexl_;
-    static const String param_no_qvalues_;
-    static const String param_minscore_;
-    static const String param_binsize_;
+    static const std::string param_decoy_string_;
+    static const std::string param_minborder_;
+    static const std::string param_maxborder_;
+    static const std::string param_mindeltas_;
+    static const std::string param_minionsmatched_;
+    static const std::string param_uniquexl_;
+    static const std::string param_no_qvalues_;
+    static const std::string param_minscore_;
+    static const std::string param_binsize_;
 
     // Constants related to particular crosslink classes
-    static const String crosslink_class_intradecoys_;
-    static const String crosslink_class_fulldecoysintralinks_;
-    static const String crosslink_class_interdecoys_;
-    static const String crosslink_class_fulldecoysinterlinks_;
-    static const String crosslink_class_monodecoys_;
-    static const String crosslink_class_intralinks_;
-    static const String crosslink_class_interlinks_;
-    static const String crosslink_class_monolinks_;
-    static const String crosslink_class_decoys_;
-    static const String crosslink_class_targets_;
-    static const String crosslink_class_hybriddecoysintralinks_;
-    static const String crosslink_class_hybriddecoysinterlinks_;
+    static const std::string crosslink_class_intradecoys_;
+    static const std::string crosslink_class_fulldecoysintralinks_;
+    static const std::string crosslink_class_interdecoys_;
+    static const std::string crosslink_class_fulldecoysinterlinks_;
+    static const std::string crosslink_class_monodecoys_;
+    static const std::string crosslink_class_intralinks_;
+    static const std::string crosslink_class_interlinks_;
+    static const std::string crosslink_class_monolinks_;
+    static const std::string crosslink_class_decoys_;
+    static const std::string crosslink_class_targets_;
+    static const std::string crosslink_class_hybriddecoysintralinks_;
+    static const std::string crosslink_class_hybriddecoysinterlinks_;
   };
 }

@@ -67,7 +67,7 @@ namespace OpenMS
       The returned pointer is owned by the database and must @em not be
       deleted by the caller.
     */
-    inline static CrossLinksDB* getInstance()
+    inline static const CrossLinksDB* getInstance()
     {
       static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;
@@ -85,7 +85,7 @@ namespace OpenMS
       @param[out] modifications Sorted list of search-eligible modification
                                 full-IDs. Any previous contents are cleared.
     */
-    void getAllSearchModifications(std::vector<String>& modifications) const;
+    void getAllSearchModifications(std::vector<std::string>& modifications) const;
 
   private:
 

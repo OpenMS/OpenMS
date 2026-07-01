@@ -100,7 +100,7 @@ START_SECTION(void apply(PeptideIdentificationList& ids))
   consensus.setParameters(param);
   // apply:
   PeptideIdentificationList f = ids;
-  map<String,String> empty;
+  map<std::string, std::string> empty;
   consensus.apply(f, empty);
 
   TEST_EQUAL(f.size(), 1);
@@ -155,7 +155,7 @@ START_SECTION([EXTRA] void apply(PeptideIdentificationList& ids))
   id[0].getHits().resize(2);
   id[0].getHits()[0].setSequence(AASequence::fromString("PEPTIDE"));
   id[0].getHits()[1] = id[0].getHits()[0]; // duplicated peptide hit
-  map<String,String> empty;
+  map<std::string, std::string> empty;
   consensus.apply(id, empty, 2); // two runs, but one produced no hits
 
   TEST_EQUAL(id.size(), 1);

@@ -114,7 +114,7 @@ namespace OpenMS
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
     */
-    TOPPOpenSwathBase(String name, String description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPOpenSwathBase(std::string name, std::string description, bool official = true, const std::vector<Citation>& citations = {});
 
     /// Destructor
     ~TOPPOpenSwathBase() override;
@@ -148,11 +148,11 @@ namespace OpenMS
     bool loadSwathFiles(const StringList& file_list,
                         std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
-                        std::vector<String> & swath_map_sources,
+                        std::vector<std::string> & swath_map_sources,
                         const bool split_file,
-                        const String& tmp,
-                        const String& readoptions,
-                        const String& swath_windows_file,
+                        const std::string& tmp,
+                        const std::string& readoptions,
+                        const std::string& swath_windows_file,
                         const double min_upper_edge_dist,
                         const bool force,
                         const bool sort_swath_maps,
@@ -176,9 +176,9 @@ namespace OpenMS
     void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                             const std::shared_ptr<ExperimentalSettings>& exp_meta,
                             const OpenSwath::LightTargetedExperiment& transition_exp,
-                            const String& out_chrom,
+                            const std::string& out_chrom,
                             const UInt64 run_id,
-                            const String& source_file);
+                            const std::string& source_file);
 
     /**
      * @brief Prepare mobilogram output
@@ -196,9 +196,9 @@ namespace OpenMS
     void prepareMobilogramOutput(std::unique_ptr<class MobilogramParquetConsumer>& mobilogramConsumer,
                   const std::shared_ptr<ExperimentalSettings>& exp_meta,
                   const OpenSwath::LightTargetedExperiment& transition_exp,
-                  const String& out_mobilogram,
+                  const std::string& out_mobilogram,
                   const UInt64 run_id,
-                  const String& source_file);
+                  const std::string& source_file);
 
     /**
      * @brief Loads transition list from TraML / TSV or PQP
@@ -209,17 +209,17 @@ namespace OpenMS
      *
      */
     OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
-                                                          const String& tr_file,
+                                                          const std::string& tr_file,
                                                           const Param& tsv_reader_param);
 
   private:
     void loadSwathFiles_(const StringList& file_list,
                          const bool split_file,
-                         const String& tmp,
-                         const String& readoptions,
+                         const std::string& tmp,
+                         const std::string& readoptions,
                          std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
-                         std::vector<String> & swath_map_sources,
+                         std::vector<std::string> & swath_map_sources,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase
 } //  end NS OpenMS

@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -51,7 +52,7 @@ void convertINI2HTML(const Param& p, ostream& os)
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
-  String indentation = "  ";
+  std::string indentation = "  ";
 
   while (it != p.end())
   {
@@ -63,12 +64,12 @@ void convertINI2HTML(const Param& p, ostream& os)
     {
       if (it2->opened) //opened node
       {
-        String d = it2->description;
-        d.substitute("\n", "<br>");
+        std::string d = it2->description;
+        StringUtils::substitute(d, "\n", "<br>");
         os << indentation
            << R"(<div class="node"><span class="node_name">)"
            // TODO replace/remove weird "(TOPPAS) instance 1" nodes that only confuse people.
-           << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
+           << (StringUtils::fillLeft(std::string(), '+', (UInt) indentation.size() / 2) + it2->name)
            << "</span><span class=\"node_description\">"
            << (d)
            << "</span></div>"
@@ -83,8 +84,8 @@ void convertINI2HTML(const Param& p, ostream& os)
     }
 
     //write item
-    String s_attr;
-    String s_req;
+    std::string s_attr;
+    std::string s_req;
     if (it->tags.find("advanced") != it->tags.end())
       s_attr += " item_advanced"; // optionally add advanced class
     if (it->tags.find("required") != it->tags.end())
@@ -106,12 +107,12 @@ void convertINI2HTML(const Param& p, ostream& os)
        << "\n";
 
     //replace all critical characters in description
-    String d = it->description;
-    d.substitute("\n", "<br>");
+    std::string d = it->description;
+    StringUtils::substitute(d, "\n", "<br>");
     os << "<span class=\"item_description\">" << (d) << "</span>";
 
     //tags
-    String list;
+    std::string list;
     for (auto tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
     {
       if (*tag_it == "advanced")
@@ -125,7 +126,7 @@ void convertINI2HTML(const Param& p, ostream& os)
     os << "<span class=\"item_tags\">" << (list) << "</span>";
 
     //restrictions
-    String restrictions = "";
+    std::string restrictions;
     switch (value_type)
     {
     case ParamValue::INT_VALUE:
@@ -138,12 +139,12 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (max_set || min_set)
       {
         if (min_set)
-          restrictions += String(it->min_int);
+          restrictions += StringUtils::toStr(it->min_int);
         else
           restrictions += "-&#8734;"; // infinity symbol
         restrictions += ':';
         if (max_set)
-          restrictions += String(it->max_int);
+          restrictions += StringUtils::toStr(it->max_int);
         else
           restrictions += "&#8734;";
       }
@@ -158,12 +159,12 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (max_set || min_set)
       {
         if (min_set)
-          restrictions += String(it->min_float);
+          restrictions += StringUtils::toStr(it->min_float);
         else
           restrictions += "-&#8734;"; // infinity symbol
         restrictions += ':';
         if (max_set)
-          restrictions += String(it->max_float);
+          restrictions += StringUtils::toStr(it->max_float);
         else
           restrictions += "&#8734;";
       }
@@ -178,13 +179,13 @@ void convertINI2HTML(const Param& p, ostream& os)
         // TODO: If param name is *modification* just add a link to
         //  a page with all modifications otherwise you get a HUGE list.
         //  Also think about a different separator, in case the restrictions have commas.
-        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+        restrictions = StringUtils::concatenate(it->valid_strings, ", ");
       }
       else if (value_type == ParamValue::STRING_VALUE)
       {
         // Issue #8475: Flag parameters are written as type="bool" in INI, which loads
         // as STRING_VALUE with no valid_strings. Detect these by checking if value is boolean.
-        String val = it->value.toString();
+        std::string val = it->value.toString();
         if (val == "true" || val == "false")
         {
           restrictions = "(flag)";
@@ -208,7 +209,7 @@ void convertINI2HTML(const Param& p, ostream& os)
   os << "</div>\n"; // end global div
 }
 
-bool generate(const ToolListType& tools, const String& prefix, const String& binary_directory)
+bool generate(const ToolListType& tools, const std::string& prefix, const std::string& binary_directory)
 {
   // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
   qputenv("COLUMNS", "110"); 
@@ -219,7 +220,7 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
   {
-    String command = binary_directory + it->first;
+    std::string command = binary_directory + it->first;
 #if defined(__APPLE__)
     if (it->first == "TOPPView" || it->first == "TOPPAS")
     {
@@ -230,7 +231,7 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     command += ".exe"; // otherwise File::exists() will fail
 #endif
 
-    ofstream f((String("output/") + prefix + it->first + ".cli").c_str());
+    ofstream f((std::string("output/") + prefix + it->first + ".cli").c_str());
     if (!File::exists(command))
     {
       stringstream ss;
@@ -244,17 +245,17 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     }
     else
     {
-      ExternalProcess ep([&](const String& s) { f << s; }, 
-                         [&](const String& s) { f << s; });
-      String error_msg;
-      if (ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
+      ExternalProcess ep([&](const std::string& s) { f << s; },
+                         [&](const std::string& s) { f << s; });
+      std::string error_msg;
+      if (ep.run(command, std::vector<std::string>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS)
       { // error while generation cli docu
         stringstream ss;
         ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
         ss << "Output was: \n";
-        ep.setCallbacks([&](const String& s) { ss << s; }, [&](const String& s) { ss << s; });
-        ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
+        ep.setCallbacks([&](const std::string& s) { ss << s; }, [&](const std::string& s) { ss << s; });
+        ep.run(command, std::vector<std::string>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
         ss << "\nCommand line was: \n " << command << endl;
         f << ss.str();
         cerr << ss.str();
@@ -271,18 +272,18 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     if (it->first != "TOPPView" && // do not support -write_ini
         it->first != "TOPPAS")
     {
-      String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      const std::vector<String> ini_command_args = {"-write_ini", tmp_file};
+      std::string tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
+      const std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
 
-      ExternalProcess ep([&](const String& s) { f << s; }, [&](const String& s) { f << s; });
-      String error_msg;
+      ExternalProcess ep([&](const std::string& s) { f << s; }, [&](const std::string& s) { f << s; });
+      std::string error_msg;
       if (ep.run(command, ini_command_args, "", false, error_msg,
                  ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS
           || ! File::exists(tmp_file))
       { // error while generation cli docu
         std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
-        String args_str;
+        std::string args_str;
         for (const auto& a : ini_command_args) args_str += " " + a;
         std::cerr << "Command line was: \n " << command << args_str << std::endl;
         errors_occured = true;
@@ -294,7 +295,7 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
       ParamXMLFile pf;
       pf.load(tmp_file, p);
       File::remove(tmp_file);
-      ofstream f_html((String("output/") + prefix + it->first + ".html").c_str());
+      ofstream f_html((std::string("output/") + prefix + it->first + ".html").c_str());
       convertINI2HTML(p, f_html);
       f_html.close();
     }
@@ -310,7 +311,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  String binary_directory = String(argv[1]).ensureLastChar('/');
+  std::string binary_directory = StringUtils::ensureLastChar(argv[1], '/');
 
   if (!File::exists(binary_directory))
   {

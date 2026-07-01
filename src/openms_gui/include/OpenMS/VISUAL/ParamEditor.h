@@ -30,7 +30,6 @@ namespace Ui
 
 namespace OpenMS
 {
-  class String;
   class Param;
   class ParamEditor;
   /**
@@ -193,7 +192,7 @@ protected slots:
 
 protected:
     /// recursive helper method for method storeRecursive()
-    void storeRecursive_(QTreeWidgetItem * child, String path, std::map<String, String> & section_descriptions);
+    void storeRecursive_(QTreeWidgetItem * child, std::string path, std::map<std::string, std::string> & section_descriptions);
 
     /// Pointer to the tree widget
     Internal::ParamTree* tree_;

@@ -42,9 +42,9 @@ END_SECTION
 // 123.000363  65857.38    3.36    122.999604  C7H3Cl
 
 // test function 
-START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
+START_SECTION(static void extractSiriusFragmentAnnotationMapping(const std::string& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
 {
-    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
+    std::string test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
     MSSpectrum annotated_msspectrum = SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(test_path, 1, false, false)[0];
 
     TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=676 experiment=4|sample=1 period=1 cycle=677 experiment=5|sample=1 period=1 cycle=678 experiment=3");
@@ -63,9 +63,9 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
 END_SECTION
 
 // test exact mass output 
-START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
+START_SECTION(static void extractSiriusFragmentAnnotationMapping(const std::string& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
 {
-    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
+    std::string test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
     MSSpectrum annotated_msspectrum = SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(test_path, 1, false, true)[0];
 
     TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=676 experiment=4|sample=1 period=1 cycle=677 experiment=5|sample=1 period=1 cycle=678 experiment=3");
@@ -84,9 +84,9 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
 END_SECTION
 
 // test decoy extraction
-START_SECTION(static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill))
+START_SECTION(static void extractSiriusDecoyAnnotationMapping(const std::string& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill))
 {
-    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
+    std::string test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
     MSSpectrum decoy_msspectrum = SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(test_path, 1, true, false)[0];
 
     TEST_STRING_SIMILAR(decoy_msspectrum.getNativeID(), "sample=1 period=1 cycle=676 experiment=4|sample=1 period=1 cycle=677 experiment=5|sample=1 period=1 cycle=678 experiment=3");

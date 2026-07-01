@@ -611,7 +611,14 @@ if (WITH_THERMO_RAW)
     # the CMake export set so downstream consumers resolve it via RPATH.
     set(_openms_saved_build_testing ${BUILD_TESTING})
     set(BUILD_TESTING OFF)
+    # The sub-project's install() calls have no COMPONENT, so CMake defaults them
+    # to "Unspecified". On macOS, that creates an unsigned dylib in Unspecified.pkg
+    # that fails Apple notarization. Route them to "library" instead — the same
+    # component used by install_library() below — so the existing signing step
+    # in cmake/package_mac_productbuild.cmake covers the library.
+    set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME library)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
+    unset(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME)
     set(BUILD_TESTING ${_openms_saved_build_testing})
 
     # Place the bridge shared library next to libOpenMS in the build tree so

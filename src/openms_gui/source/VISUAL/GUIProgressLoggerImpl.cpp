@@ -8,7 +8,7 @@
 
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QApplication>
 #include <QProgressDialog>
@@ -24,7 +24,7 @@ namespace OpenMS
   {
   }
 
-  void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
+  void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int /* current_recursion_depth */) const
   {
     begin_ = begin;
     current_ = begin_;

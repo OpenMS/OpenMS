@@ -15,12 +15,15 @@
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
+#include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
+#include <map>
+#include <string>      // std::string (renderRunSummaryJson return / manifest)
+#include <utility>     // std::pair (renderRunSummaryJson manifest)
 #include <vector>
 
 namespace OpenMS
@@ -60,12 +63,81 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+     * @brief Per-run identification statistics for the end-of-search report.
+     *
+     * Populated by collectRunStatistics_() once a single spectrum file has been
+     * searched (post-FDR), plus a few fields captured at well-defined points
+     * during search() (target/decoy counts pre-FDR, achieved q-value, timing).
+     * All counts refer to one input file. Cross-file/shared facts (database,
+     * fragment index, configuration) live in SharedSearchStats instead.
+     */
+    struct RunStatistics
+    {
+      std::string input_file;                  ///< spectrum file this run searched (basename or path)
+      Size ms2_spectra = 0;                    ///< number of MS2 spectra in the input
+      Size matched_spectra = 0;                ///< spectra with >=1 retained PSM in the final IDs (after FDR, if applied)
+      Size target_psms = 0;                    ///< target PSMs in the final IDs (after FDR, if applied)
+      Size decoy_psms = 0;                     ///< decoy PSMs in the final IDs (after FDR, if applied)
+      bool fdr_applied = false;                ///< true if PSM-level FDR filtering ran
+      double achieved_psm_fdr = -1.0;          ///< max retained q-value after FDR (<0 = n/a)
+      Size unique_peptides = 0;                ///< distinct peptide sequences among top hits
+      Size unique_proteins = 0;                ///< distinct protein accessions among top hits
+      std::map<Int, Size> charge_histogram;    ///< precursor charge -> PSM count
+      std::map<Size, Size> missed_cleavage_histogram; ///< missed cleavages -> PSM count
+      bool score_stats_valid = false;          ///< true if hyperscore_* below are meaningful
+      double hyperscore_min = 0.0;
+      double hyperscore_median = 0.0;
+      double hyperscore_max = 0.0;
+      bool prec_tol_valid = false;             ///< true if precursor-error estimate present
+      double prec_err_median = 0.0, prec_err_mad = 0.0, prec_err_recommended = 0.0;
+      bool frag_tol_valid = false;             ///< true if fragment-error estimate present
+      double frag_err_median = 0.0, frag_err_mad = 0.0, frag_err_recommended = 0.0;
+      double seconds_search = 0.0;             ///< scoring + post-processing wall time
+      double seconds_calibration = 0.0;        ///< calibration pass wall time (0 if disabled)
+      double seconds_fdr = 0.0;                ///< FDR filtering wall time (0 if not applied)
+    };
+
+    /**
+     * @brief Configuration, database and fragment-index facts shared across all
+     * input files of one ProSE invocation.
+     *
+     * Computed once (the fragment index is built once and reused), so these
+     * costs/counts must NOT be summed per file. Populated by the multi-file
+     * searchWithModificationAnalysis() overloads.
+     */
+    struct SharedSearchStats
+    {
+      std::string database_file;               ///< FASTA path (empty for in-memory db)
+      std::string enzyme;
+      double precursor_tol_lower = 0.0, precursor_tol_upper = 0.0;
+      std::string precursor_tol_unit;
+      double fragment_tol = 0.0;
+      std::string fragment_tol_unit;
+      Int min_charge = 0, max_charge = 0;
+      Size missed_cleavages = 0;
+      std::vector<std::string> fixed_mods, variable_mods, ion_series;
+      bool open_search = false;
+      bool calibration_enabled = false;
+      bool snes_mode = false;
+      bool chunked = false;
+      std::string decoy_mode;                  ///< "generated" | "external" | "none (target-only)"
+      double psm_fdr_threshold = 0.0, protein_fdr_threshold = 0.0;
+      Size db_target_proteins = 0;             ///< target entries in the searched (augmented) db
+      Size db_decoy_proteins = 0;              ///< decoy entries in the searched (augmented) db
+      Size indexed_peptides = 0;               ///< peptides in the fragment index (summed over chunks)
+      Size indexed_fragments = 0;              ///< theoretical fragments in the index (summed over chunks)
+      double seconds_index_build = 0.0;        ///< decoy generation + fragment index build wall time
+      double seconds_total = 0.0;              ///< whole-search wall time (set by the caller)
+    };
+
+    /**
      * @brief Comprehensive search result including modification analysis
      *
      * This structure contains all outputs from an open search including:
      * - Standard protein and peptide identifications
      * - Delta mass statistics table (histogram of mass shifts)
      * - PTM statistics table (mapped modifications with residue analysis)
+     * - Per-run identification statistics for the end-of-search report
      */
     struct SearchResult
     {
@@ -74,6 +146,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList peptide_ids;
       OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
       bool is_open_search = false;
+      RunStatistics stats;
     };
 
     /**
@@ -104,6 +177,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::vector<SearchResult> per_file;
       SearchResult aggregate;
+
+      /// Effective decoy marker resolved from the shared database, for a
+      /// caller-side merged-PSM protein-FDR step (e.g. the ProSE TOPP tool's
+      /// -out_merged path). Empty when the search was target-only (decoys=ignore).
+      std::string decoy_string;
+      /// Position of @c decoy_string (true = prefix, false = suffix).
+      bool decoy_is_prefix = true;
+      /// True when the searched databases contained decoys (FDR possible).
+      bool have_decoys = false;
+
+      /// Configuration / database / fragment-index facts shared across all input
+      /// files (the index is built once and reused), for the end-of-search report.
+      SharedSearchStats shared;
     };
 
     /**
@@ -129,6 +215,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// for callers that built ctx via prepareContext() and want to
       /// run multiple search() calls against it.
       bool release_fragment_index_after_scoring = false;
+
+      /// Effective decoy marker carried by `db` (auto-detected for external
+      /// decoys, or the configured prefix for internally generated ones).
+      /// Empty when the search is target-only. Feeds PeptideIndexing and the
+      /// protein-level FDR so they recognise the same decoys that were searched.
+      std::string decoy_string;
+      /// Position of `decoy_string` (true = prefix, false = suffix).
+      bool decoy_is_prefix = true;
+      /// True when `db` contains decoy entries (generated or external), i.e.
+      /// target-decoy FDR is possible.
+      bool have_decoys = false;
     };
 
     /**
@@ -152,10 +249,40 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *  - May signal invalid parameters via ILLEGAL_PARAMETERS exit code.
      *  - May propagate OpenMS exceptions (e.g., I/O or parse errors) from underlying components.
      */
-    ExitCodes search(const String& in_spectra,
-      const String& in_db,
+    ExitCodes search(const std::string& in_spectra,
+      const std::string& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
+
+    /**
+     * @brief Finalize protein-level FDR on a COMPLETE protein set (a single input file,
+     * or a merged cross-file aggregate).
+     *
+     * Runs protein inference (BasicProteinInferenceAlgorithm), picked-protein FDR
+     * (Savitski et al. 2015), threshold filtering at @p protein_fdr, then removes decoys
+     * and repairs indistinguishable-protein / protein-group / peptide-evidence references
+     * so the result stores as schema-valid, decoy-free idXML.
+     *
+     * Shared by the file-based single-file search() above and the ProSE TOPP tool's
+     * single-file finalization, so the exact IDFilter sequence and ordering live in one
+     * place (they previously existed as two copies that could drift).
+     *
+     * Precondition: @p protein_ids is non-empty and the set is statistically complete —
+     * picked-protein FDR does not compose across runs. The caller gates on "decoys present"
+     * and "FDR requested"; this helper additionally skips (with a warning) when no decoy
+     * proteins survive inference, to avoid target-only q-values.
+     *
+     * @param[in,out] protein_ids Protein identifications (operates on protein_ids[0]).
+     * @param[in,out] peptide_ids PSMs feeding inference; decoy PSMs are removed.
+     * @param[in] decoy_string Accession marker identifying decoy proteins.
+     * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
+     * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
+     */
+    static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
+                                           PeptideIdentificationList& peptide_ids,
+                                           const std::string& decoy_string,
+                                           bool decoy_is_prefix,
+                                           double protein_fdr);
 
     /**
      * @brief Search with comprehensive results including modification analysis tables
@@ -202,9 +329,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * }
      * @endcode
      */
-    SearchResult searchWithModificationAnalysis(const String& in_spectra,
-                                                const String& in_db,
-                                                const String& output_base_name = "") const;
+    SearchResult searchWithModificationAnalysis(const std::string& in_spectra,
+                                                const std::string& in_db,
+                                                const std::string& output_base_name = "") const;
 
     /**
      * @brief In-memory search: search spectra against a protein database without file I/O.
@@ -285,7 +412,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     SearchResult searchWithModificationAnalysis(PeakMap& spectra,
                                                 const std::vector<FASTAFile::FASTAEntry>& fasta_db,
-                                                const String& output_base_name = "") const;
+                                                const std::string& output_base_name = "") const;
 
     /**
      * @brief Multi-file search with modification analysis (in-memory FASTA).
@@ -314,10 +441,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    non-empty and its size differs from @p in_spectra_files.
      */
     MultiFileSearchResult searchWithModificationAnalysis(
-        const std::vector<String>& in_spectra_files,
+        const std::vector<std::string>& in_spectra_files,
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
-        const std::vector<String>& output_base_names = {},
-        const String& aggregate_base_name = "") const;
+        const std::vector<std::string>& output_base_names = {},
+        const std::string& aggregate_base_name = "") const;
 
     /**
      * @brief Multi-file search with modification analysis (FASTA file path).
@@ -327,13 +454,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * is recorded in each per-file ProteinIdentification's SearchParameters
      * (and on the aggregate result).
      *
-     * @see searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const
+     * @see searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const
      */
     MultiFileSearchResult searchWithModificationAnalysis(
-        const std::vector<String>& in_spectra_files,
-        const String& in_db,
-        const std::vector<String>& output_base_names = {},
-        const String& aggregate_base_name = "") const;
+        const std::vector<std::string>& in_spectra_files,
+        const std::string& in_db,
+        const std::vector<std::string>& output_base_names = {},
+        const std::string& aggregate_base_name = "") const;
 
   protected:
     void updateMembers_() override;
@@ -343,7 +470,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       AASequence sequence;
       /*
-      StringView sequence;
+      std::string_view sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       */
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
@@ -365,17 +492,66 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
+
+    /// How decoys are obtained/recognised for a search (parameter "decoys").
+    enum class DecoyMode_
+    {
+      AUTO,     ///< ensure decoys: use those already present, otherwise generate
+      GENERATE, ///< always (re)generate decoys from the targets (strip existing first)
+      IGNORE    ///< search targets only; remove any decoys present in the database
+    };
 
     /**
-     * @brief Build a decoy-augmented copy of the input FASTA.
+     * @brief Resolved decoy handling for one concrete input database.
      *
-     * Used by prepareContext() and the chunked search path. Produces FASTA
-     * entries only — does not construct a FragmentIndex. If decoys_ is false
-     * the input is returned unchanged.
+     * Produced by resolveDecoyStrategy_() and consumed by
+     * buildDecoyAugmentedDB_() and the downstream PeptideIndexing / FDR steps,
+     * so the same decoys that are searched are also the ones scored.
+     */
+    struct DecoyStrategy_
+    {
+      bool generate{false};       ///< reverse target proteins to synthesise decoys
+      bool strip_existing{false}; ///< drop pre-existing decoy entries before searching
+      bool have_decoys{false};    ///< searched DB will contain decoys (FDR possible)
+      std::string decoy_string;   ///< effective marker for PeptideIndexing + protein FDR
+      bool is_prefix{true};       ///< position of decoy_string
+      std::string strip_string;   ///< marker of pre-existing decoys to strip
+      bool strip_is_prefix{true}; ///< position of strip_string
+    };
+
+    /**
+     * @brief Decide how to obtain/recognise decoys for @p db.
+     *
+     * Detects pre-existing decoys via the common-marker heuristic
+     * (OpenMS::DecoyHelper), falling back to the configured decoy_prefix for
+     * custom markers, then maps the "decoys" mode (auto/generate/ignore) onto a
+     * concrete DecoyStrategy_.
+     */
+    DecoyStrategy_ resolveDecoyStrategy_(
+        const std::vector<FASTAFile::FASTAEntry>& db) const;
+
+    /**
+     * @brief ProSE parameters made safe to hand to a FragmentIndex.
+     *
+     * FragmentIndex declares its own (unused) boolean "decoys" flag with
+     * restrictions {true,false}. ProSE's "decoys" parameter is the richer
+     * auto/generate/ignore enum and manages decoys at the database level, so
+     * forwarding it verbatim would trip FragmentIndex's validation. This returns
+     * getParameters() with "decoys" overridden to "false".
+     */
+    Param fragmentIndexParameters_() const;
+
+    /**
+     * @brief Build the searched database according to @p strategy.
+     *
+     * Optionally strips pre-existing decoys and/or generates fresh decoys by
+     * reversing the target proteins. Produces FASTA entries only — does not
+     * construct a FragmentIndex.
      */
     std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
-        const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
+        const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+        const DecoyStrategy_& strategy) const;
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -398,9 +574,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * Splits full_db into chunks of database_chunk_size_ proteins, builds a
      * FragmentIndex per chunk, scores all spectra against each chunk, and
-     * accumulates hits before a single post-processing pass. full_db must
-     * already contain decoys if decoys_ is true. Taken by non-const reference
-     * because PeptideIndexing::run() mutates it.
+     * accumulates hits before a single post-processing pass. full_db is the
+     * already-resolved database (decoys generated/stripped per @p strategy);
+     * @p strategy carries the effective decoy marker for PeptideIndexing and
+     * FDR. Taken by non-const reference because PeptideIndexing::run() mutates it.
      *
      * @return EXECUTION_OK on success; INPUT_FILE_EMPTY / UNEXPECTED_RESULT /
      *         UNKNOWN_ERROR on PeptideIndexing failure.
@@ -408,6 +585,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     ExitCodes searchChunked_(
         PeakMap& spectra,
         std::vector<FASTAFile::FASTAEntry>& full_db,
+        const DecoyStrategy_& strategy,
         std::vector<ProteinIdentification>& protein_ids,
         PeptideIdentificationList& peptide_ids) const;
 
@@ -428,7 +606,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool fragment_mass_tolerance_unit_ppm,
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
-        const String& progress_label) const;
+        const std::string& progress_label) const;
 
     /**
      * @brief Filter and annotate search results.
@@ -464,19 +642,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       Int peptide_missed_cleavages,
       double precursor_mass_tolerance,
       double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
+      const std::string& precursor_mass_tolerance_unit_ppm,
+      const std::string& fragment_mass_tolerance_unit_ppm,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const;
+      const std::string& enzyme,
+      const std::string& database_name) const;
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
     /// of search(), matching the `mutable` pattern used by last_calibration_result_.
-    mutable double precursor_mass_tolerance_lower_{20.0};   ///< positive magnitude
-    mutable double precursor_mass_tolerance_upper_{20.0};   ///< positive magnitude
-    String precursor_mass_tolerance_unit_{"ppm"};
+    mutable double precursor_mass_tolerance_lower_{10.0};   ///< positive magnitude (default matches the param)
+    mutable double precursor_mass_tolerance_upper_{10.0};   ///< positive magnitude (default matches the param)
+    std::string precursor_mass_tolerance_unit_{"ppm"};
 
     Size precursor_min_charge_;
     Size precursor_max_charge_;
@@ -485,7 +663,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     double fragment_mass_tolerance_;
 
-    String fragment_mass_tolerance_unit_;
+    std::string fragment_mass_tolerance_unit_;
+
+    /// Resolved MS2 deisotoping request (param fragment:deisotope != "false").
+    /// preprocessSpectra_ still gates on Deisotoper::isToleranceSupported() so the
+    /// deisotoper is never called out of range (it would throw -> terminate in the
+    /// OpenMP region). See OpenMS#9619.
+    bool deisotope_requested_{true};
+    Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
+    Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
 
     StringList modifications_fixed_;
 
@@ -493,10 +679,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     Size modifications_max_variable_mods_per_peptide_;
 
-    String enzyme_;
+    std::string enzyme_;
 
-    bool decoys_;
-    String decoy_prefix_;
+    DecoyMode_ decoy_mode_{DecoyMode_::AUTO};
+    std::string decoy_prefix_;
 
     double fdr_psm_{0.0};
     double fdr_protein_{0.0};
@@ -508,7 +694,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peptide_missed_cleavages_;
     EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
-    String peptide_motif_;
+    std::string peptide_motif_;
 
     Size report_top_hits_;
 
@@ -548,6 +734,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Stored for test observability and diagnostics. Marked `mutable` because it is pure
     /// diagnostic/telemetry state that doesn't affect the logical const-ness of search().
     mutable CalibrationResult_ last_calibration_result_;
+
+    /// Per-run statistics of the most recent search(spectra, ctx, ...) call.
+    /// Bridges the const search() (which returns ExitCodes, not a SearchResult)
+    /// to its callers, which copy this into SearchResult::stats. Reset at the
+    /// start of each search() call. `mutable` for the same reason as above:
+    /// pure diagnostic state, orthogonal to logical const-ness.
+    mutable RunStatistics last_run_stats_;
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
@@ -591,14 +784,78 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            FragmentIndex& fragment_index,
                                            const std::vector<FASTAFile::FASTAEntry>& db) const;
 
-    /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
-    void logModificationAnalysisSummary_(const SearchResult& result,
-                                         const String& output_base_name) const;
+    /// Helper: does @p accession carry the decoy @p marker at the given position?
+    /// Empty marker → false. Pure std::string (no String dependency).
+    static bool accessionHasDecoyMarker_(const std::string& accession,
+                                         const std::string& marker, bool is_prefix);
 
-    /// Helper: log search summary statistics and per-run tolerance estimation
-    void logSearchDiagnostics_(const PeakMap& spectra,
+    /// Helper: capture statistics that must be read BEFORE FDR filtering, namely
+    /// target/decoy PSM counts (via the "target_decoy" meta set by PeptideIndexing;
+    /// "target+decoy" counts as target, matching OpenMS FDR semantics) and the
+    /// HyperScore distribution (FDR overwrites each hit's score with its q-value).
+    /// Fills stats.target_psms, stats.decoy_psms, stats.hyperscore_* and
+    /// stats.score_stats_valid.
+    static void capturePreFdrStats_(const PeptideIdentificationList& peptide_ids,
+                                    RunStatistics& stats);
+
+    /// Helper: maximum top-hit score among retained PSMs. After PSM-FDR the score
+    /// is the q-value, so this is the achieved FDR of the filtered set
+    /// (-1.0 if empty).
+    static double maxRetainedScore_(const PeptideIdentificationList& peptide_ids);
+
+    /// Helper: fill a RunStatistics with identification counts, distributions and
+    /// per-run tolerance estimation for one searched file (post-FDR). Silent;
+    /// rendering is done separately (ProSE TOPP tool or renderRunSummary()).
+    /// Fields filled at other points (target/decoy counts, achieved FDR, timing)
+    /// are left untouched.
+    void collectRunStatistics_(const PeakMap& spectra,
                                const std::vector<ProteinIdentification>& protein_ids,
-                               const PeptideIdentificationList& peptide_ids) const;
+                               const PeptideIdentificationList& peptide_ids,
+                               RunStatistics& stats) const;
+
+  public:
+    /// Recompute result-level statistics (matched count, unique peptide/protein
+    /// counts, charge & missed-cleavage histograms, target/decoy counts and
+    /// achieved PSM FDR) from a FINAL, post-processed PSM list. Use this when the
+    /// identifications are mutated AFTER search() returns — e.g. the ProSE TOPP
+    /// tool's Percolator rescoring + deferred FDR — so the report reflects what
+    /// the user actually receives. Does NOT touch @c ms2_spectra, the HyperScore
+    /// distribution (captured pre-FDR during the search) or any timing field.
+    /// @p fdr_applied records whether a PSM-level FDR filter was applied; when
+    /// true @c achieved_psm_fdr is set to the maximum retained q-value.
+    static void updateFinalStats(RunStatistics& stats,
+                                 const PeptideIdentificationList& peptide_ids,
+                                 const std::string& enzyme,
+                                 bool fdr_applied);
+
+    /// Render a human-readable single-run summary block (configuration recap,
+    /// database/index stats, identification results, tolerance estimate, timing
+    /// and — for open searches — modification discovery) to @p os.
+    /// @p shared carries the configuration/db/index context (built once).
+    static void renderRunSummary(const RunStatistics& stats,
+                                 const SharedSearchStats& shared,
+                                 const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+                                 bool is_open_search,
+                                 std::ostream& os);
+
+    /// Render the modification-discovery section (top PTMs, unknown delta masses)
+    /// to @p os. Shared by the per-file and aggregate report blocks.
+    static void renderModificationSummary(const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+                                          std::ostream& os);
+
+    /// Serialize the complete end-of-search report to a machine-readable YAML string:
+    /// shared configuration/database/index facts, per-file identification statistics,
+    /// the output-file @p manifest (label -> written paths) and failed/total file counts.
+    /// Hand-rolled (no YAML library dependency); every string scalar is double-quoted so
+    /// values containing ':' (e.g. Windows paths) or other YAML metacharacters round-trip
+    /// safely, and non-finite numbers are emitted as null.
+    static std::string renderRunSummaryYaml(
+        const MultiFileSearchResult& mfres,
+        const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest,
+        Size files_failed,
+        Size files_total);
+
+  private:
 
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const

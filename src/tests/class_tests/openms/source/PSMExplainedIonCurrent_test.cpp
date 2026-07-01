@@ -37,7 +37,7 @@ void addRandomPeaks(MSSpectrum& spec, double total_intensity = 1.0, Int number_o
 }
 
 // create a MSSpectrum with Precursor, MSLevel and RT without Peaks
-const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const std::string& id, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
 {
   Precursor precursor;
   std::set<Precursor::ActivationMethod> am;
@@ -54,7 +54,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
 }
 
 // create a MSSpectrum with Precursor, MSLevel, RT and fill it with Peaks
-const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, const AASequence& seq, Int charge, const Param& theo_gen_params,
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const std::string& id, const AASequence& seq, Int charge, const Param& theo_gen_params,
                                   Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
 {
   MSSpectrum ms_spec;
@@ -76,7 +76,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, co
 
 // create a PeptideIdentifiaction with a PeptideHit (sequence, charge), rt and mz
 // default values for sequence PEPTIDE
-const PeptideIdentification createPeptideIdentification(const String& id, const String& sequence = String("PEPTIDE"), Int charge = 3, double mz = 266)
+const PeptideIdentification createPeptideIdentification(const std::string& id, const std::string& sequence =std::string("PEPTIDE"), Int charge = 3, double mz = 266)
 {
   PeptideHit peptide_hit;
   peptide_hit.setSequence(AASequence::fromString(sequence));
@@ -364,7 +364,7 @@ START_SECTION(compute(PeptideIdentificationList& pep_ids, const ProteinIdentific
 }
 END_SECTION
 
-START_SECTION(const String& getName() const override)
+START_SECTION(const std::string& getName() const override)
 {
   TEST_EQUAL(psm_corr.getName(), "PSMExplainedIonCurrent");
 }

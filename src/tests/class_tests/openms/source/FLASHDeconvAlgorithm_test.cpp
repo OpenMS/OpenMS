@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 

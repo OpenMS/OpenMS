@@ -60,7 +60,7 @@ START_SECTION(QCBase::Status requirements() const override)
 }
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
 {
   TEST_EQUAL(PeptideMass().getName(), "PeptideMass");
 }

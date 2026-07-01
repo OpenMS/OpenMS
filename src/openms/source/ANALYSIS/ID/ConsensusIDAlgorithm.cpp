@@ -50,7 +50,7 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
-                                   const map<String, String>& se_info,
+                                   const map<std::string, std::string>& se_info,
                                    Size number_of_runs)
   {
     // abort if no IDs present
@@ -77,7 +77,7 @@ namespace OpenMS
     SequenceGrouping results;
     apply_(ids, se_info, results); // actual (subclass-specific) processing
 
-    String score_type = ids[0].getScoreType();
+    std::string score_type = ids[0].getScoreType();
     bool higher_better = ids[0].isHigherScoreBetter();
     ids.clear();
     ids.resize(1);
@@ -120,7 +120,7 @@ namespace OpenMS
   void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
                                    Size number_of_runs)
   {
-    const auto empty = map<String,String>();
+    const auto empty = map<std::string, std::string>();
     apply(ids, empty, number_of_runs);
   }
 
@@ -134,11 +134,11 @@ namespace OpenMS
     }
     else if ((new_charge != 0) && (recorded_charge != new_charge))
     { // maybe TODO: calculate correct charge from prec. m/z and peptide mass?
-      String msg = "Conflicting charge states found for peptide '" +
-        peptide.toString() + "': " + String(recorded_charge) + ", " + 
-        String(new_charge);
+      std::string msg = "Conflicting charge states found for peptide '" +
+        peptide.toString() + "': " + StringUtils::toStr(recorded_charge) + ", " + 
+        StringUtils::toStr(new_charge);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                    msg, String(new_charge));
+                                    msg,StringUtils::toStr(new_charge));
     }
   }
 

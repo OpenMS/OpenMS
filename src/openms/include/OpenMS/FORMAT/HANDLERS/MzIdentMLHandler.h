@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 namespace OpenMS
 {
@@ -169,7 +170,7 @@ public:
 
 protected:
 
-    String id_; ///< Identifier
+    std::string id_; ///< Identifier
     std::vector<IdentificationHit> hits_; ///< Single peptide hits
   };
 
@@ -226,7 +227,7 @@ protected:
       const std::vector<SpectrumIdentification> & getSpectrumIdentifications() const;
       //@}
   protected:
-      String id_; ///< Identifier
+      std::string id_; ///< Identifier
       DateTime creation_date_; ///< Date and time the search was performed
       std::vector<SpectrumIdentification> spectrum_identifications_;
     };
@@ -247,10 +248,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
+      MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& filename, const std::string& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
+      MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& filename, const std::string& version, const ProgressLogger& logger);
 
       /// Destructor
       ~MzIdentMLHandler() override;
@@ -281,7 +282,7 @@ protected:
       //~ PeakMap* ms_exp_;
 
       ///XML tag parse element
-      String tag_;
+      std::string tag_;
 
       ///Identification Item
       Identification* id_;
@@ -301,67 +302,73 @@ protected:
       IdentificationHit current_id_hit_;
 
       /// Handles CV terms
-      void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* ,  const String& unit_accession="" */);
+      void handleCVParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const xercesc::Attributes& attributes, const std::string& cv_ref /* ,  const std::string& unit_accession="" */);
 
       /// Handles user terms
-      void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
+      void handleUserParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const std::string& name, const std::string& type, const std::string& value);
 
       /// Writes user terms
-      void writeMetaInfos_(String& s, const MetaInfoInterface& meta, UInt indent) const;
+      void writeMetaInfos_(std::string& s, const MetaInfoInterface& meta, UInt indent) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+      ControlledVocabulary::CVTerm getChildWithName_(const std::string& parent_accession, const std::string& name) const;
 
       /// Helper method that writes a source file
-      //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
+      //void writeSourceFile_(std::ostream& os, const std::string& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(std::string& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
-      void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
+      void writeModParam_(std::string& s, const std::vector<std::string>& mod_names, bool fixed, UInt indent) const;
 
       /// Helper method that writes the FragmentAnnotations section of a spectrum identification
-      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
+      void writeFragmentAnnotations_(std::string& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
       /// Convenience method to remove the [] from OpenMS internal file uri representation
-      String trimOpenMSfileURI(const String& file) const;
+      std::string trimOpenMSfileURI(const std::string& file) const;
 
       /// Abstraction of PeptideHit loop for most PeptideHits
       void writePeptideHit(const PeptideHit& hit,
                                 PeptideIdentificationList::const_iterator& it,
-                                std::map<String, String>& pep_ids,
-                                const String& cv_ns, std::set<String>& sen_set,
-                                std::map<String, String>& sen_ids,
-                                std::map<String, std::vector<String> >& pep_evis,
-                                std::map<String, double>& pp_identifier_2_thresh,
-                                String& sidres);
+                                std::map<std::string, std::string>& pep_ids,
+                                const std::string& cv_ns, std::set<std::string>& sen_set,
+                                std::map<std::string, std::string>& sen_ids,
+                                std::map<std::string, std::vector<std::string> >& pep_evis,
+                                std::map<std::string, double>& pp_identifier_2_thresh,
+                                std::string& sidres);
 
       /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
       void writeXLMSPeptideHit(const PeptideHit& hit,
                                 PeptideIdentificationList::const_iterator& it,
-                                const String& ppxl_linkid, std::map<String, String>& pep_ids,
-                                const String& cv_ns, std::set<String>& sen_set,
-                                std::map<String, String>& sen_ids,
-                                std::map<String, std::vector<String> >& pep_evis,
-                                std::map<String, double>& pp_identifier_2_thresh,
+                                const std::string& ppxl_linkid, std::map<std::string, std::string>& pep_ids,
+                                const std::string& cv_ns, std::set<std::string>& sen_set,
+                                std::map<std::string, std::string>& sen_ids,
+                                std::map<std::string, std::vector<std::string> >& pep_evis,
+                                std::map<std::string, double>& pp_identifier_2_thresh,
                                 double ppxl_crosslink_mass,
-                                std::map<String, String>& ppxl_specref_2_element,
-                                String& sid, bool alpha_peptide);
+                                std::map<std::string, std::string>& ppxl_specref_2_element,
+                                std::string& sid, bool alpha_peptide);
 
 private:
       MzIdentMLHandler();
+
+      /// Load CVs and precompute the cached CV child-term set; shared by both constructors.
+      void initCvCaches_();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
-      std::map<String, AASequence> pep_sequences_;
-      std::map<String, String> pp_identifier_2_sil_; ///< mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
-      std::map<String, String> sil_2_sdb_; ///< mapping spectrumidentificationlist to the search data bases
-      std::map<String, String> sil_2_sdat_; ///< mapping spectrumidentificationlist to the search input
-      std::map<String, String> ph_2_sdat_; ///< mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
-      std::map<String, String> sil_2_sip_; ///< mapping spectrumidentificationlist to the search protocol (where the params are at)
+      std::map<std::string, AASequence> pep_sequences_;
+      std::map<std::string, std::string> pp_identifier_2_sil_; ///< mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
+      std::map<std::string, std::string> sil_2_sdb_; ///< mapping spectrumidentificationlist to the search data bases
+      std::map<std::string, std::string> sil_2_sdat_; ///< mapping spectrumidentificationlist to the search input
+      std::map<std::string, std::string> ph_2_sdat_; ///< mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
+      std::map<std::string, std::string> sil_2_sip_; ///< mapping spectrumidentificationlist to the search protocol (where the params are at)
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
+
+      /// cached CV child terms for "MS:1001143"
+      std::set<std::string> peptide_result_details_;
 
     };
   } // namespace Internal

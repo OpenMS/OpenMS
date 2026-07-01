@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/config.h>
 
 #include <vector>
@@ -32,7 +32,7 @@ namespace OpenMS
     /// Lambda grid for pi0 estimation for non-parametric p-value estimation.
     std::vector<double> pi0_lambda {0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45};
     /// Method for choosing the pi0 tuning parameter ("smoother", "bootstrap").
-    String pi0_method = "bootstrap";
+    std::string pi0_method = "bootstrap";
     /// Degrees of freedom for smoother-based pi0 estimation.
     Int32 pi0_smooth_df = 3;
     /// If true, smooth log(pi0) instead of pi0 directly.
@@ -42,7 +42,7 @@ namespace OpenMS
     /// If true, enforce non-decreasing local FDR values with increasing p-values.
     bool lfdr_monotone = true;
     /// Transformation applied to p-values for local FDR estimation ("probit", "logit").
-    String lfdr_transformation = "probit";
+    std::string lfdr_transformation = "probit";
     /// Smoothing bandwidth multiplier used during local FDR density estimation.
     double lfdr_adj = 1.5;
     /// Tail clipping threshold used during local FDR calculation.

@@ -22,7 +22,7 @@ namespace OpenMS
   {
   }
 
-  void TransformationXMLFile::load(const String& filename, TransformationDescription& transformation, bool fit_model)
+  void TransformationXMLFile::load(const std::string& filename, TransformationDescription& transformation, bool fit_model)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -41,7 +41,7 @@ namespace OpenMS
     }
   }
 
-  void TransformationXMLFile::store(const String& filename, const TransformationDescription& transformation)
+  void TransformationXMLFile::store(const std::string& filename, const TransformationDescription& transformation)
   {
     if (transformation.getModelType().empty())
     {
@@ -60,7 +60,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     //add XSLT file if it can be found
     os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/"
-       << schema_location_.suffix('/') << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+       << StringUtils::suffix(schema_location_, '/') << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // open tag
     os << "\t<Transformation name=\"" << transformation.getModelType()
@@ -90,7 +90,7 @@ namespace OpenMS
           break;
 
         default:         // no other value types are supported!
-          fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "'");
+          fatalError(STORE,std::string("Unsupported parameter type of parameter '") + it->name + "'");
           break;
         }
       }
@@ -126,15 +126,15 @@ namespace OpenMS
   void TransformationXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
 
-    String element = sm_.convert(qname);
+    std::string element = sm_.convert(qname);
 
     if (element == "TrafoXML")
     {
       //check file version against schema version
       double file_version = attributeAsDouble_(attributes, "version");
-      if (file_version > version_.toDouble())
+      if (file_version > StringUtils::toDouble(version_))
       {
-        warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
+        warning(LOAD,std::string("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
     }
     else if (element == "Transformation")
@@ -143,7 +143,7 @@ namespace OpenMS
     }
     else if (element == "Param")
     {
-      String type = attributeAsString_(attributes, "type");
+      std::string type = attributeAsString_(attributes, "type");
       if (type == "int")
       {
         params_.setValue(attributeAsString_(attributes, "name"), attributeAsInt_(attributes, "value"));
@@ -154,11 +154,11 @@ namespace OpenMS
       }
       else if (type == "string")
       {
-        params_.setValue(attributeAsString_(attributes, "name"), String(attributeAsString_(attributes, "value")));
+        params_.setValue(attributeAsString_(attributes, "name"),std::string(attributeAsString_(attributes, "value")));
       }
       else
       {
-        error(LOAD, String("Unsupported parameter type: '") + type + "'");
+        error(LOAD,std::string("Unsupported parameter type: '") + type + "'");
       }
 
     }
@@ -176,7 +176,7 @@ namespace OpenMS
     }
     else
     {
-      warning(LOAD, String("Unknown element: '") + element + "'");
+      warning(LOAD,std::string("Unknown element: '") + element + "'");
     }
   }
 

@@ -188,7 +188,7 @@ protected:
 #endif
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "algorithm")
     {
@@ -209,7 +209,7 @@ protected:
     BrukerTimsFile::Config c;
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
-    String mode = getStringOption_("bruker:export_mode");
+    std::string mode = getStringOption_("bruker:export_mode");
     if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
@@ -219,7 +219,7 @@ protected:
     c.dia_ms2_centroid = (getStringOption_("bruker:dia_ms2_centroid") == "true");
 
     using CA = BrukerTimsFile::Config::CentroidAlgo;
-    auto parse_algo = [](const String& s) {
+    auto parse_algo = [](const std::string& s) {
       if (s == "greedy2d")  return CA::GREEDY2D;
       if (s == "hillbased") return CA::HILL_BASED;
       return CA::OFF;
@@ -242,7 +242,7 @@ protected:
   class Consumer : public MSDataWritingConsumer
   {
   public:
-    Consumer(String filename, const String& method, const PeakPickerIM& pp) :
+    Consumer(std::string filename, const std::string& method, const PeakPickerIM& pp) :
         MSDataWritingConsumer(std::move(filename)), pp_(pp), method_(method) {}
 
     void processSpectrum_(MapType::SpectrumType& spectrum) override
@@ -265,7 +265,7 @@ protected:
 
   private:
     PeakPickerIM pp_;
-    String method_;
+    std::string method_;
   };
 
   // -------------------- Format detection consumer (reads first MS1 spectrum only) --------------------
@@ -292,14 +292,14 @@ protected:
   class PassthroughConsumer : public MSDataWritingConsumer
   {
   public:
-    PassthroughConsumer(const String& filename) : MSDataWritingConsumer(filename) {}
+    PassthroughConsumer(const std::string& filename) : MSDataWritingConsumer(filename) {}
     void processSpectrum_(MapType::SpectrumType&) override {} // No processing
     void processChromatogram_(MapType::ChromatogramType&) override {}
   };
 
   // -------------------- Helper for low-memory path --------------------
-  ExitCodes doLowMemAlgorithm(const String& method, const PeakPickerIM& pp,
-                              const String& input_file, const String& output_file)
+  ExitCodes doLowMemAlgorithm(const std::string& method, const PeakPickerIM& pp,
+                              const std::string& input_file, const std::string& output_file)
   {
     MzMLFile mzml;
     mzml.setLogType(log_type_);
@@ -345,10 +345,10 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    const String input_file  = getStringOption_("in");
-    const String output_file = getStringOption_("out");
-    const String process_opt = getStringOption_("processOption");
-    const String method      = getStringOption_("method");
+    const std::string input_file  = getStringOption_("in");
+    const std::string output_file = getStringOption_("out");
+    const std::string process_opt = getStringOption_("processOption");
+    const std::string method      = getStringOption_("method");
 
     // Collect algorithm parameters from 'algorithm:' We strip and pass the remaining keys directly to PeakPickerIM.
     Param algo = getParam_().copy("algorithm:",true);

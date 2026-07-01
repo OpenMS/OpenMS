@@ -62,7 +62,7 @@ jobs:
         run: |
           wget -c https://abibuilder.cs.uni-tuebingen.de/archive/openms/Tutorials/Example_Data.tar.gz -O - | tar -xz
             
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Tutorial Workflows
         run: |

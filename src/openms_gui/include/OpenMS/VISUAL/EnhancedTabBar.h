@@ -18,7 +18,6 @@ class QMimeData;
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief Convenience tab bar implementation
@@ -46,7 +45,7 @@ public:
     void setTabText(const QString& text);
 
     /// Adds a new tab with the name @p text and the identifier @p id
-    int addTab(const String & text, int id);
+    int addTab(const std::string & text, int id);
 
     /// Selects the tab with identifier @p id
     void show(int id);

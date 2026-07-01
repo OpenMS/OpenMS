@@ -41,7 +41,7 @@ namespace // anonymous
   /// Try to extract a scan number from a native ID string.
   /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
   /// Returns -1 on failure.
-  Int extractScan(const String& native_id)
+  Int extractScan(const std::string& native_id)
   {
     std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
     if (regex_str.empty())
@@ -50,6 +50,19 @@ namespace // anonymous
     }
     boost::regex scan_regex(regex_str);
     return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
+  }
+
+  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
+  /// The MetaInfoRegistry::getName() lookup takes an `omp critical` lock, so caching
+  /// by index means the lock is paid at most once per unique key for the whole export
+  /// instead of once per metavalue per PSM (as getKeys()/getMetaValue() would).
+  /// Registered names are non-empty, so an empty cache slot reliably means "not yet resolved".
+  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
+  {
+    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
+    std::string& name = cache[index];
+    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
+    return name;
   }
 
 } // anonymous namespace
@@ -212,7 +225,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build file name lookup from ProteinIdentification primary MS run paths
-  std::map<String, String> id_to_filename;
+  std::map<std::string, std::string> id_to_filename;
   for (const auto& prot_id : protein_identifications)
   {
     StringList ms_runs;
@@ -235,6 +248,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   // metavalue path is the canonical store for rank semantics.
 
   IDScoreSwitcherAlgorithm idsa;
+
+  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
+  std::vector<std::string> meta_name_cache;
 
   Int p_id_index = 0;
   for (const auto& pep_id : peptide_identifications)
@@ -309,7 +325,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
             std::string pos_str = std::string(residue.getOneLetterCode()) + "." + std::to_string(pos + 1);
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -328,7 +344,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
           std::string pos_str = "C-term." + std::to_string(seq.size() + 1);
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -381,7 +397,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       if (hit.metaValueExists("target_decoy"))
       {
         std::string td = hit.getMetaValue("target_decoy").toString();
-        (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
+        (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
       }
       else
       {
@@ -411,33 +427,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         }
       }
 
-      // === additional_scores from hit metavalues ===
-      (void)additional_scores_builder.Append();
-      {
-        std::vector<String> keys;
-        hit.getKeys(keys);
-        for (const auto& key : keys)
-        {
-          if (excluded_hit_mvs_psm.count(key)) continue;
-          const DataValue& val = hit.getMetaValue(key);
-          if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
-              && Scores::isKnownScoreType(key))
-          {
-            (void)as_struct_b->Append();
-            (void)as_name_b->Append(key);
-            (void)as_value_b->Append(static_cast<double>(val));
-            try
-            {
-              auto st = IDScoreSwitcherAlgorithm::toScoreTypeEnum(key);
-              (void)as_hb_b->Append(idsa.isScoreTypeHigherBetter(st));
-            }
-            catch (...)
-            {
-              (void)as_hb_b->AppendNull();
-            }
-          }
-        }
-      }
+      // additional_scores + psm_metavalues are built together below (single metavalue pass).
 
       // === protein_accessions (list<struct{accession, aa_before, aa_after, start, end}>) ===
       (void)protein_accessions_builder.Append();
@@ -561,26 +551,41 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === run_identifier ===
       (void)run_identifier_builder.Append(pep_id.getIdentifier());
 
-      // === psm_metavalues ===
+      // === additional_scores + psm_metavalues ===
+      // Single pass over the hit's metavalues: known numeric score types go to
+      // additional_scores, the rest to psm_metavalues (was two passes -> double getKeys()).
+      (void)additional_scores_builder.Append();
       (void)psm_metavalues_builder.Append();
       {
-        std::vector<String> keys;
-        hit.getKeys(keys);
-        for (const auto& key : keys)
+        for (auto mv_it = hit.metaBegin(); mv_it != hit.metaEnd(); ++mv_it)
         {
-          if (excluded_hit_mvs_psm.count(key)) continue;
-          const DataValue& val = hit.getMetaValue(key);
-          // Skip known scores (already in additional_scores)
-          if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
+          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+          if (excluded_hit_mvs_psm.contains(key)) continue;
+          const DataValue& val = mv_it->second;
+          const auto vt = val.valueType();
+          if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
           {
+            // known score -> additional_scores
+            (void)as_struct_b->Append();
+            (void)as_name_b->Append(key);
+            (void)as_value_b->Append(static_cast<double>(val));
+            try
+            {
+              auto st = IDScoreSwitcherAlgorithm::toScoreTypeEnum(key);
+              (void)as_hb_b->Append(idsa.isScoreTypeHigherBetter(st));
+            }
+            catch (...)
+            {
+              (void)as_hb_b->AppendNull();
+            }
             continue;
           }
+          // everything else -> psm_metavalues
           (void)pmv_struct_b->Append();
           (void)pmv_name_b->Append(key);
           (void)pmv_value_b->Append(val.toString());
-
-          switch (val.valueType())
+          switch (vt)
           {
             case DataValue::INT_VALUE: (void)pmv_type_b->Append("int"); break;
             case DataValue::DOUBLE_VALUE: (void)pmv_type_b->Append("double"); break;
@@ -596,13 +601,12 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === spectrum_metavalues ===
       (void)spectrum_metavalues_builder.Append();
       {
-        std::vector<String> keys;
-        pep_id.getKeys(keys);
-        for (const auto& key : keys)
+        for (auto mv_it = pep_id.metaBegin(); mv_it != pep_id.metaEnd(); ++mv_it)
         {
+          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
           // Skip keys that have dedicated columns
           if (key == "spectrum_reference" || key == "ion_mobility" || key == "IM") continue;
-          const DataValue& val = pep_id.getMetaValue(key);
+          const DataValue& val = mv_it->second;
           (void)smv_struct_b->Append();
           (void)smv_name_b->Append(key);
           (void)smv_value_b->Append(val.toString());
@@ -889,7 +893,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: missed_cleavages_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build file name lookup from ProteinIdentification primary MS run paths
-  std::map<String, String> id_to_filename;
+  std::map<std::string, std::string> id_to_filename;
   for (const auto& prot_id : protein_identifications)
   {
     StringList ms_runs;
@@ -908,6 +912,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   };
 
   IDScoreSwitcherAlgorithm idsa;
+
+  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
+  std::vector<std::string> meta_name_cache;
 
   for (const auto& pep_id : peptide_identifications)
   {
@@ -981,7 +988,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -999,7 +1006,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
           {
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -1060,7 +1067,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
       if (hit.metaValueExists("target_decoy"))
       {
         std::string td = hit.getMetaValue("target_decoy").toString();
-        (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
+        (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
       }
       else
       {
@@ -1094,12 +1101,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
       // === additional_scores from hit metavalues ===
       (void)additional_scores_builder.Append();
       {
-        std::vector<String> keys;
-        hit.getKeys(keys);
-        for (const auto& key : keys)
+        for (auto mv_it = hit.metaBegin(); mv_it != hit.metaEnd(); ++mv_it)
         {
-          if (excluded_hit_mvs.count(key)) continue;
-          const DataValue& val = hit.getMetaValue(key);
+          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+          if (excluded_hit_mvs.contains(key)) continue;
+          const DataValue& val = mv_it->second;
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
           {
@@ -1377,7 +1383,7 @@ namespace
 bool QPXFile::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
-  const String& filename,
+  const std::string& filename,
   bool export_all_psms,
   const ParquetWriteConfig& config)
 {
@@ -1392,7 +1398,7 @@ bool QPXFile::exportToParquet(
 
 bool QPXFile::exportToParquet(
   const std::shared_ptr<arrow::Table>& table,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   if (!table)
@@ -1494,6 +1500,32 @@ bool QPXFile::importFromArrow(
   // run path on round-trip.
   std::unordered_map<std::string, std::string> run_id_to_ref_file;
 
+  // Hoist loop-invariant child arrays out of the row loop (GetFieldByName() is a
+  // linear field search); rows index them via value_offset/length.
+  std::shared_ptr<arrow::ListArray> pa_list;
+  std::shared_ptr<arrow::StringArray> pa_acc, pa_before, pa_after;
+  std::shared_ptr<arrow::Int32Array> pa_start, pa_end;
+  if (col_protein_accs)
+  {
+    pa_list = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
+    auto sa = std::static_pointer_cast<arrow::StructArray>(pa_list->values());
+    pa_acc    = std::static_pointer_cast<arrow::StringArray>(sa->GetFieldByName("accession"));
+    pa_before = std::static_pointer_cast<arrow::StringArray>(sa->GetFieldByName("aa_before"));
+    pa_after  = std::static_pointer_cast<arrow::StringArray>(sa->GetFieldByName("aa_after"));
+    pa_start  = std::static_pointer_cast<arrow::Int32Array>(sa->GetFieldByName("start"));
+    pa_end    = std::static_pointer_cast<arrow::Int32Array>(sa->GetFieldByName("end"));
+  }
+  std::shared_ptr<arrow::ListArray> as_list;
+  std::shared_ptr<arrow::StringArray> as_names;
+  std::shared_ptr<arrow::DoubleArray> as_values;
+  if (col_additional_scores)
+  {
+    as_list = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
+    auto sa = std::static_pointer_cast<arrow::StructArray>(as_list->values());
+    as_names  = std::static_pointer_cast<arrow::StringArray>(sa->GetFieldByName("score_name"));
+    as_values = std::static_pointer_cast<arrow::DoubleArray>(sa->GetFieldByName("score_value"));
+  }
+
   for (int64_t row = 0; row < num_rows; ++row)
   {
     int32_t p_id = ArrowIOHelpers::getInt32Value(col_p_id, row, -1);
@@ -1541,7 +1573,7 @@ bool QPXFile::importFromArrow(
     bool sequence_set = false;
     if (col_peptidoform && !ArrowIOHelpers::isNull(col_peptidoform, row))
     {
-      const String peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
+      const std::string peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
       if (!peptidoform_str.empty())
       {
         try
@@ -1571,40 +1603,29 @@ bool QPXFile::importFromArrow(
 
     if (col_protein_accs && !ArrowIOHelpers::isNull(col_protein_accs, row))
     {
-      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
-      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
-      auto acc_arr    = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("accession"));
-      auto before_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_before"));
-      auto after_arr  = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_after"));
-      auto start_arr  = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("start"));
-      auto end_arr    = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("end"));
-      int64_t lstart = list_arr->value_offset(row);
-      int64_t lend = lstart + list_arr->value_length(row);
+      int64_t lstart = pa_list->value_offset(row);
+      int64_t lend = lstart + pa_list->value_length(row);
       for (int64_t k = lstart; k < lend; ++k)
       {
         PeptideEvidence ev;
-        ev.setProteinAccession(acc_arr->GetString(k));
-        const std::string before_s = before_arr->IsNull(k) ? std::string{} : before_arr->GetString(k);
+        ev.setProteinAccession(pa_acc->GetString(k));
+        const std::string before_s = pa_before->IsNull(k) ? std::string{} : pa_before->GetString(k);
         ev.setAABefore(before_s.empty() ? PeptideEvidence::UNKNOWN_AA : before_s[0]);
-        const std::string after_s = after_arr->IsNull(k) ? std::string{} : after_arr->GetString(k);
+        const std::string after_s = pa_after->IsNull(k) ? std::string{} : pa_after->GetString(k);
         ev.setAAAfter(after_s.empty() ? PeptideEvidence::UNKNOWN_AA : after_s[0]);
-        ev.setStart(start_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : start_arr->Value(k));
-        ev.setEnd  (end_arr  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : end_arr  ->Value(k));
+        ev.setStart(pa_start->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : pa_start->Value(k));
+        ev.setEnd  (pa_end  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : pa_end  ->Value(k));
         hit.addPeptideEvidence(ev);
       }
     }
 
     if (col_additional_scores && !ArrowIOHelpers::isNull(col_additional_scores, row))
     {
-      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
-      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
-      auto names_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("score_name"));
-      auto values_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->GetFieldByName("score_value"));
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
+      int64_t start = as_list->value_offset(row);
+      int64_t end = start + as_list->value_length(row);
       for (int64_t k = start; k < end; ++k)
       {
-        hit.setMetaValue(names_arr->GetString(k), values_arr->Value(k));
+        hit.setMetaValue(as_names->GetString(k), as_values->Value(k));
       }
     }
 
@@ -1622,7 +1643,7 @@ bool QPXFile::importFromArrow(
     }
     if (col_ref_file && !ArrowIOHelpers::isNull(col_ref_file, row))
     {
-      const String ref_file = ArrowIOHelpers::getStringValue(col_ref_file, row);
+      const std::string ref_file = ArrowIOHelpers::getStringValue(col_ref_file, row);
       hit.setMetaValue("reference_file_name", ref_file);
       if (!ref_file.empty())
       {

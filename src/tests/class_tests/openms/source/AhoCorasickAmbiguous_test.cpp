@@ -26,11 +26,11 @@ using namespace std;
 ///////////////////////////
 
 
-void compareHits(int line, const string& protein, String expected_s, StringList& observed)
+void compareHits(int line, const string& protein, std::string expected_s, StringList& observed)
 {
   std::cout << "results of test line " << line << " for protein " << protein << ":\n";
-  //expected_s.toUpper();
-  StringList expected = ListUtils::create<String>(expected_s.removeWhitespaces(), ',');
+  //StringUtils::toUpper(expected_s);
+  StringList expected = ListUtils::create<std::string>(StringUtils::removeWhitespaces(expected_s), ',');
   std::sort(expected.begin(), expected.end());
   std::sort(observed.begin(), observed.end());
   TEST_EQUAL(observed.size(), expected.size()) // results should have same number of entries
@@ -55,14 +55,14 @@ void compareHits(int line, const string& protein, String expected_s, StringList&
 
 void testCase(const ACTrie& t, const string& protein, const string& expected, vector<string>& needles, int line)
 {
-  std::vector<String> observed;
+  std::vector<std::string> observed;
   ACTrieState state;
   state.setQuery(protein);
   while (t.nextHits(state))
   {
     for (auto& hit : state.hits)
     {
-      observed.push_back(needles[hit.needle_index] + "@" + String(hit.query_pos));
+      observed.push_back(needles[hit.needle_index] + "@" + StringUtils::toStr(hit.query_pos));
     }
   }
   compareHits(line, protein, expected, observed);
@@ -429,6 +429,11 @@ START_SECTION(constexpr AA())
   static_assert(!AA('*').isValidForPeptide());
   static_assert(!AA('3').isValidForPeptide());
   static_assert(!AA('#').isValidForPeptide());
+
+  // extended / non-ASCII bytes (>= 128) must map to the invalid AA, not read past the table
+  // (regression: CharToAA used to have only 128 entries while AA(char) indexes it with 0..255)
+  static_assert(!AA((char)200).isValid());
+  static_assert(!AA((char)255).isValid());
 }
 END_SECTION
 

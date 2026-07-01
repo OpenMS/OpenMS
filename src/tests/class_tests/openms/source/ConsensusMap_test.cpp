@@ -309,12 +309,12 @@ END_SECTION
 const ConsensusMap map_const_1 = []() {
   ConsensusMap map1;
   map1.resize(3);
-  map1.setMetaValue("meta", String("value"));
+  map1.setMetaValue("meta",std::string("value"));
   map1.setIdentifier("lsid");
   map1.getColumnHeaders()[0].filename = "blub";
   map1.getColumnHeaders()[0].size = 47;
   map1.getColumnHeaders()[0].label = "label";
-  map1.getColumnHeaders()[0].setMetaValue("meta", String("meta"));
+  map1.getColumnHeaders()[0].setMetaValue("meta",std::string("meta"));
   map1.getDataProcessing().resize(1);
   map1.setExperimentType("labeled_MS2");
   map1.getProteinIdentifications().resize(1);
@@ -444,12 +444,12 @@ START_SECTION((ColumnHeaders& getColumnHeaders()))
   TEST_EQUAL(cons_map.getColumnHeaders()[0].filename == "blub", true)
 END_SECTION
 
-START_SECTION((const String& getExperimentType() const))
+START_SECTION((const std::string& getExperimentType() const))
   ConsensusMap cons_map;
 	TEST_EQUAL(cons_map.getExperimentType() == "label-free", true)
 END_SECTION
 
-START_SECTION((void setExperimentType(const String& experiment_type)))
+START_SECTION((void setExperimentType(const std::string& experiment_type)))
   ConsensusMap cons_map;
 	cons_map.setExperimentType("labeled_MS2");
   TEST_EQUAL(cons_map.getExperimentType(),"labeled_MS2")

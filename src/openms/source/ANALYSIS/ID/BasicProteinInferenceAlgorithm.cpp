@@ -72,7 +72,7 @@ namespace OpenMS
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
-    String requested_score_type_as_string = param_.getValue("score_type").toString();
+    std::string requested_score_type_as_string = param_.getValue("score_type").toString();
     auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(pep_ids, requested_score_type_as_string);
 
     processRun_(
@@ -105,7 +105,7 @@ namespace OpenMS
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
-    String agg_method_string(param_.getValue("score_aggregation_method").toString());
+    std::string agg_method_string(param_.getValue("score_aggregation_method").toString());
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
 
     //TODO think about only clearing values or using a big map for all runs together
@@ -125,7 +125,7 @@ namespace OpenMS
     IDFilter::keepNBestPeptideHits(cmap, 1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
 
     // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
-    String requested_score_type_as_string = param_.getValue("score_type").toString();
+    std::string requested_score_type_as_string = param_.getValue("score_type").toString();
 
     // switch scores to requested score type (e.g., "RAW" = a search engine score, "PEP", "q-value")
     // for convenience, the results als contain name, score orientation and type before and after switching
@@ -244,7 +244,7 @@ namespace OpenMS
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
     // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
-    String requested_score_type_as_string = param_.getValue("score_type").toString();
+    std::string requested_score_type_as_string = param_.getValue("score_type").toString();
     auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(pep_ids, requested_score_type_as_string);
 
     for (auto &prot_run : prot_ids)
@@ -268,7 +268,7 @@ namespace OpenMS
   void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       PeptideIdentificationList& pep_ids,
-      const String& overall_score_type,
+      const std::string& overall_score_type,
       bool higher_better,
       const std::string& run_id) const
   {
@@ -307,7 +307,7 @@ namespace OpenMS
         continue;
 
       //TODO refactor: this is very similar to IDFilter best per peptide functionality
-      String lookup_seq;
+      std::string lookup_seq;
       if (!treat_modification_variants_separately)
       {
         lookup_seq = hit.getSequence().toUnmodifiedString();
@@ -360,7 +360,7 @@ namespace OpenMS
 
     bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
 
-    String agg_method_string(param_.getValue("score_aggregation_method").toString());
+    std::string agg_method_string(param_.getValue("score_aggregation_method").toString());
 
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
     const auto& aggregation_fun = aggFunFromEnum_(aggregation_method, higher_better);
@@ -419,7 +419,7 @@ namespace OpenMS
   }
 
   void BasicProteinInferenceAlgorithm::checkCompat_(
-        const String& score_name,
+        const std::string& score_name,
         const AggregationMethod& aggregation_method
   ) const
   {
@@ -540,7 +540,7 @@ namespace OpenMS
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
 
-    String agg_method_string(param_.getValue("score_aggregation_method").toString());
+    std::string agg_method_string(param_.getValue("score_aggregation_method").toString());
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
 
     //TODO think about only clearing values or using a big map for all runs together
@@ -556,7 +556,7 @@ namespace OpenMS
     sp.setMetaValue("TOPPProteinInference:treat_modification_variants_separately", treat_modification_variants_separately);
     prot_run.setSearchParameters(sp);
 
-    String main_score_name;
+    std::string main_score_name;
     bool main_higher_better = true;
     IDScoreSwitcherAlgorithm::ScoreType main_score_type;
     IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(pep_ids, main_score_name, main_higher_better, main_score_type);

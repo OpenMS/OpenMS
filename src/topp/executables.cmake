@@ -55,6 +55,7 @@ IDRipper
 IDRTCalibration
 IDScoreSwitcher
 IDSplitter
+INIUpdater
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
@@ -139,6 +140,7 @@ StaticModification
 TICCalculator
 TextExporter
 TriqlerConverter
+UniPEFF
 XFDR
 XMLValidator
 )
@@ -158,7 +160,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(TOPP_executables
   ${TOPP_executables}
-  QPXConverter
   ParquetConverter
 )
 
