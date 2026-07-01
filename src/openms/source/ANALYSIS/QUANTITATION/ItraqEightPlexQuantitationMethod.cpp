@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
@@ -114,7 +115,8 @@ namespace OpenMS
     }
     else if (ref_ch == 120)
     {
-      OPENMS_LOG_WARN << "Invalid channel selection." << std::endl;
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ItraqEightPlexQuantitationMethod: 'reference_channel' value 120 is not a valid channel for the 8-plex method (valid: 113-119, 121).");
     }
     else
     {

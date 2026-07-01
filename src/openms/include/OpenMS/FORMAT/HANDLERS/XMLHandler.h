@@ -14,7 +14,6 @@
  
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 #include <xercesc/sax2/DefaultHandler.hpp>
@@ -678,34 +677,13 @@ protected:
       }
 
       /// Converts an attribute to a DoubleList
-      inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
-      {
-        std::string tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
-      }
+      DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const;
 
       /// Converts an attribute to an IntList
-      inline IntList attributeAsIntList_(const xercesc::Attributes & a, const char * name) const
-      {
-        std::string tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
-      }
+      IntList attributeAsIntList_(const xercesc::Attributes & a, const char * name) const;
 
       /// Converts an attribute to an StringList
-      inline StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
-      {
-        std::string tmp(expectList_(attributeAsString_(a, name)));         
-        StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
-  
-        if (StringUtils::hasSubstring(tmp, "\\|")) // check full string for escaped comma
-        {
-          for (std::string& s : tmp_list)
-          {
-            StringUtils::substitute(s, "\\|", ",");
-          }          
-        }
-        return tmp_list;
-      }
+      StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const;
 
       /**
           @brief Assigns the attribute content to the String @a value if the attribute is present
@@ -844,34 +822,13 @@ protected:
       }
 
       /// Converts an attribute to a DoubleList
-      inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
-      {
-        std::string tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
-      }
+      DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const;
 
       /// Converts an attribute to a IntList
-      inline IntList attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const
-      {
-        std::string tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
-      }
+      IntList attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const;
 
       /// Converts an attribute to a StringList
-      inline StringList attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
-      {
-        std::string tmp(expectList_(attributeAsString_(a, name)));
-        StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
-
-        if (StringUtils::hasSubstring(tmp, "\\|")) // check full string for escaped comma
-        {
-          for (std::string& s : tmp_list)
-          {
-            StringUtils::substitute(s, "\\|", ",");
-          }          
-        }
-        return tmp_list;
-      }
+      StringList attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const;
 
       /// Assigns the attribute content to the String @a value if the attribute is present
       inline bool optionalAttributeAsString_(std::string& value, const xercesc::Attributes & a, const XMLCh * name) const

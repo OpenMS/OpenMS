@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
 namespace OpenMS
 {
 
@@ -34,6 +36,21 @@ namespace OpenMS
     }
 
     ConsensusMap cons_map_tool = consensus_map_in;
+
+    // Guard against degenerate inputs that previously caused a division by zero below
+    // (integer 'gt_i / cons_map_tool.size()' at the end of the outer loop, and '1.0 / cons_map_gt.size()').
+    if (cons_map_gt.empty())
+    {
+      // no usable ground truth -> recall is undefined regardless of the tool map (also covers both-empty)
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Recall is undefined: the ground-truth consensus map contains no consensus feature with at least two elements.");
+    }
+    if (cons_map_tool.empty())
+    {
+      // the tool produced no consensus features -> nothing was recovered -> recall is 0
+      out = 0.0;
+      return;
+    }
 
     std::vector<Size> gt_subtend_tilde_tool;        //holds the numerators of the sum
     std::vector<Size> m;                //holds the denominators of the sum

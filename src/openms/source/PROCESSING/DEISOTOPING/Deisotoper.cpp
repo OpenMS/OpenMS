@@ -20,6 +20,15 @@ namespace OpenMS
 {
 
 // static
+bool Deisotoper::isToleranceSupported(double fragment_tolerance, bool fragment_unit_ppm)
+{
+  // Mirror of the precondition enforced by deisotopeAndSingleCharge(): isotope
+  // spacing is only resolvable up to 100 ppm / 0.1 Da. Single source of truth for
+  // that limit so callers can gate on it instead of replicating the constants.
+  return fragment_unit_ppm ? (fragment_tolerance <= 100.0) : (fragment_tolerance <= 0.1);
+}
+
+// static
 void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double fragment_tolerance,
   bool fragment_unit_ppm,
@@ -36,7 +45,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-    if ((fragment_unit_ppm && fragment_tolerance > 100) || (!fragment_unit_ppm && fragment_tolerance > 0.1))
+    if (!isToleranceSupported(fragment_tolerance, fragment_unit_ppm))
     {
         throw Exception::IllegalArgument(
                 __FILE__,
@@ -344,7 +353,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-    if ((fragment_unit_ppm && fragment_tolerance > 100) || (!fragment_unit_ppm && fragment_tolerance > 0.1))
+    if (!isToleranceSupported(fragment_tolerance, fragment_unit_ppm))
     {
         throw Exception::IllegalArgument(
                 __FILE__,

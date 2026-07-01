@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -78,6 +79,16 @@ TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+// new 3.6 directory-based parquet bundle types
+TEST_EQUAL(tmp.getTypeByFileName("test.idparquet"), FileTypes::IDPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.featureparquet"), FileTypes::FEATUREPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.consensusparquet"), FileTypes::CONSENSUSPARQUET)
+// Bruker TimsTOF: a ".d" directory and its zipped ".d.zip" form both resolve by name.
+// For ".d.zip" the ".zip" compression suffix is stripped, leaving ".d" -> BRUKER_TDF.
+TEST_EQUAL(tmp.getTypeByFileName("sample.d"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("sample.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("/data/run 1.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("plain_archive.zip"), FileTypes::UNKNOWN) // a plain .zip is not a Bruker .d
 END_SECTION
 
 START_SECTION((static bool hasValidExtension(const std::string& filename, const FileTypes::Type type)))
@@ -130,6 +141,24 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() resolves this to
+  // BRUKER_TDF for an existing, non-directory ".zip" whose name strips to ".d".
+  // SDK-free: only the name and the file's existence matter for type detection,
+  // not the archive contents.
+  {
+    std::string dzip_base;
+    NEW_TMP_FILE(dzip_base)
+    std::string dzip = dzip_base + ".d.zip";
+    { std::ofstream os(dzip.c_str()); os << "PK\003\004 placeholder (contents irrelevant for type detection)"; }
+    TEST_EQUAL(File::exists(dzip), true)
+#ifdef WITH_OPENTIMS
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::BRUKER_TDF)
+#else
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
+#endif
+    File::remove(dzip);
+  }
+
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
@@ -161,6 +190,14 @@ START_SECTION((static std::string swapExtension(const std::string& filename, con
   TEST_STRING_EQUAL(FileHandler::swapExtension("/home.with.dot/file", FileTypes::UNKNOWN), "/home.with.dot/file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("c:\\home.with.dot\\file", FileTypes::UNKNOWN), "c:\\home.with.dot\\file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("./filename", FileTypes::UNKNOWN), "./filename.unknown")
+  // new 3.6 directory-based parquet bundle types
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.txt", FileTypes::FEATUREPARQUET), "/home/doe/file.featureparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.idXML", FileTypes::IDPARQUET), "/home/doe/file.idparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.featureparquet", FileTypes::CONSENSUSPARQUET), "/home/doe/file.consensusparquet")
+  // round-trip: a swapped-in parquet extension is recognised back as the same type
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::FEATUREPARQUET)), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::IDPARQUET)), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::CONSENSUSPARQUET)), FileTypes::CONSENSUSPARQUET)
 END_SECTION
 
 START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)))
@@ -175,6 +212,15 @@ START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const st
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.unknown", "idxml"), FileTypes::IDXML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home.with.dot/file", "mzML"), FileTypes::MZML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("c:\\home.with.dot\\file", "mzML"), FileTypes::MZML)
+  // new 3.6 directory-based parquet bundle types: an explicit out_type fills in for a
+  // ".unknown" (or extension-less) output name, a matching extension is accepted, and a
+  // conflicting one is rejected.
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "idparquet"), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out", "consensusparquet"), FileTypes::CONSENSUSPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", ""), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "consensusparquet"), FileTypes::UNKNOWN) // inconsistent
 END_SECTION
 
 
@@ -454,6 +500,56 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_REAL_SIMILAR(h_in.getScore(), 0.8);
 
   File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeFeatures unknown extension adopts the single allowed type))
+{
+  // FileHandler::storeFeatures adopts a single allowed_type when the output
+  // filename has no informative extension (here ".unknown"): the type stays
+  // UNKNOWN from the name but allowed_types has exactly one entry, so
+  // FEATUREPARQUET is adopted and a parquet bundle is written. The
+  // .featureparquet round-trip above always detects the type from the
+  // extension, so this exercises the size-1 fallback branch instead.
+  FeatureMap fm;
+  Feature f;
+  f.setUniqueId(7);
+  f.setRT(11.5);
+  f.setMZ(222.22);
+  f.setIntensity(345.0f);
+  f.setCharge(3);
+  fm.push_back(f);
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  dir += ".unknown"; // getTypeByFileName -> UNKNOWN
+
+  // store: the single allowed type is adopted -- otherwise storeFeatures would
+  // throw InvalidFileType for an UNKNOWN type. A featureparquet bundle is written.
+  FileHandler().storeFeatures(dir, fm, {FileTypes::FEATUREPARQUET});
+
+  // Read the bundle back via the Arrow API and confirm the feature survived the
+  // adopted-type store. (loadFeatures resolves the type via getType(), which
+  // cannot classify a directory whose name ends in ".unknown", so we read the
+  // bundle directly here.)
+  FeatureMap fm_in;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir, fm_in), true);
+  TEST_EQUAL(fm_in.size(), 1);
+  TEST_EQUAL(fm_in[0].getUniqueId(), 7);
+  TEST_REAL_SIMILAR(fm_in[0].getRT(), 11.5);
+  TEST_REAL_SIMILAR(fm_in[0].getMZ(), 222.22);
+  TEST_EQUAL(fm_in[0].getCharge(), 3);
+
+  File::removeDirRecursively(dir);
+
+  // negative: an UNKNOWN extension with more than one allowed type is
+  // ambiguous, so the fallback does NOT fire and the type stays UNKNOWN ->
+  // InvalidFileType (proving the adoption is specifically the size-1 case).
+  std::string dir2;
+  NEW_TMP_FILE(dir2)
+  dir2 += ".unknown";
+  TEST_EXCEPTION(Exception::InvalidFileType,
+                 FileHandler().storeFeatures(dir2, fm, {FileTypes::FEATUREPARQUET, FileTypes::FEATUREXML}));
 }
 END_SECTION
 

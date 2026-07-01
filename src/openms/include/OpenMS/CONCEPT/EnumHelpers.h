@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 namespace OpenMS
 {

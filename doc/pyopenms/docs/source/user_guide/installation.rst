@@ -31,7 +31,7 @@ If you want the newest features you can also install nightly builds of pyOpenMS 
 
 .. code-block:: bash
 
-  pip install --index-url https://pypi.cs.uni-tuebingen.de/simple/ pyopenms
+  pip install --index-url https://pypi.openms.de/simple/ pyopenms
 
 Source (advanced users)
 -----------------------

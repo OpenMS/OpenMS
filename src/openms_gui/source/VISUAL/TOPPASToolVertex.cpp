@@ -20,6 +20,7 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMessageBox>

@@ -28,13 +28,26 @@ namespace OpenMS
     identifier_to_msrunpath_.clear();
     runpath_to_identifier_.clear();
 
+    // First pass: build the forward map (identifier -> ms-run-paths). This direction is
+    // always unambiguous - even when several runs share the same path - and is all that
+    // getPrimaryMSRunPath() needs. Building it completely up front means that if the
+    // reverse-map duplicate check below throws, callers that catch the exception still
+    // see a fully-populated forward map (i.e. USI resolution degrades cleanly, not in an
+    // order-dependent way).
+    for (const auto& prot_id : prot_ids)
+    {
+      StringList ms_run_paths;
+      prot_id.getPrimaryMSRunPath(ms_run_paths);
+      identifier_to_msrunpath_[prot_id.getIdentifier()] = ms_run_paths;
+    }
+
+    // Second pass: build the reverse map (ms-run-paths -> identifier), rejecting ambiguous
+    // input where different identifiers map to the same paths.
     for (const auto& prot_id : prot_ids)
     {
       StringList ms_run_paths;
       prot_id.getPrimaryMSRunPath(ms_run_paths);
       const std::string& identifier = prot_id.getIdentifier();
-
-      identifier_to_msrunpath_[identifier] = ms_run_paths;
 
       // Check for duplicate ms_run_paths (different identifiers mapping to same paths)
       const auto it = runpath_to_identifier_.find(ms_run_paths);
@@ -52,31 +65,33 @@ namespace OpenMS
   {
     const std::string& identifier = pepid.getIdentifier();
     auto it = identifier_to_msrunpath_.find(identifier);
-    if (it == identifier_to_msrunpath_.end())
+    if (it != identifier_to_msrunpath_.end() && !it->second.empty())
     {
-      return std::string();
+      const StringList& ms_run_paths = it->second;
+
+      // Determine which file to use (default to index 0)
+      Size merge_index = 0;
+      if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      {
+        merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      }
+
+      if (merge_index < ms_run_paths.size())
+      {
+        return ms_run_paths[merge_index];
+      }
     }
 
-    const StringList& ms_run_paths = it->second;
-    if (ms_run_paths.empty())
+    // Legacy fallback: data read from older idXML files or other formats may annotate
+    // the source file directly on the PeptideIdentification via the (deprecated) "base_name"
+    // meta value, instead of via the ProteinIdentification's primary MS run path. Honor it so
+    // that such files keep resolving to a source run after the removal of base_name accessors.
+    if (pepid.metaValueExists(Constants::UserParam::BASE_NAME))
     {
-      return std::string();
+      return StringUtils::toStr(pepid.getMetaValue(Constants::UserParam::BASE_NAME));
     }
 
-    // Determine which file to use (default to index 0)
-    Size merge_index = 0;
-    if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-    {
-      merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
-    }
-
-    // Check if index is valid
-    if (merge_index >= ms_run_paths.size())
-    {
-      return std::string(); // Invalid index
-    }
-
-    return ms_run_paths[merge_index];
+    return std::string();
   }
 
   bool IdentifierMSRunMapper::hasIdentifier(const std::string& identifier) const
