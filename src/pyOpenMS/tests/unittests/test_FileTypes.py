@@ -14,7 +14,7 @@ def test_enum_values_accessible():
         "NOVOR", "XQUESTXML", "SPECXML", "JSON", "RAW", "OMS", "EXE", "XML",
         "BZ2", "GZ", "ZIP", "PARQUET", "IDPARQUET", "FEATUREPARQUET",
         "CONSENSUSPARQUET", "BRUKER_TDF", "CHROMPARQUET", "MOBILPARQUET",
-        "OSWPQ", "PEFF", "YAML", "SIZE_OF_TYPE",
+        "PEAKMAPPARQUET", "OSWPQ", "PEFF", "YAML", "SIZE_OF_TYPE",
     ]
     for name in expected:
         val = getattr(pyopenms.FileType, name)
