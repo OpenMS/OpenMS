@@ -1402,6 +1402,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("PEPTIDE", OpenMS::OSWHierarchy::Level::PEPTIDE)
         .value("FEATURE", OpenMS::OSWHierarchy::Level::FEATURE)
         .value("TRANSITION", OpenMS::OSWHierarchy::Level::TRANSITION)
+        .value("SIZE_OF_VALUES", OpenMS::OSWHierarchy::Level::SIZE_OF_VALUES)
         .export_values();
 
     // -----------------------------------------------------------------------
