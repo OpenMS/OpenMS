@@ -1104,13 +1104,18 @@ namespace OpenMS::Internal
           {
             MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
             OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            encoded_strings_mz[k] = encoded_string;
+            encoded_strings_mz[k] = std::move(encoded_string);
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            std::string str_data;
+            if (!data_to_encode.empty())
+            {
+              str_data.assign(reinterpret_cast<const char*>(data_to_encode.data()),
+                              data_to_encode.size() * sizeof(double));
+            }
             OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            encoded_strings_mz[k] = encoded_string;
+            encoded_strings_mz[k] = std::move(encoded_string);
           }
         }
 
@@ -1129,13 +1134,18 @@ namespace OpenMS::Internal
           {
             MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
             OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            encoded_strings_int[k] = encoded_string;
+            encoded_strings_int[k] = std::move(encoded_string);
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            std::string str_data;
+            if (!data_to_encode.empty())
+            {
+              str_data.assign(reinterpret_cast<const char*>(data_to_encode.data()),
+                              data_to_encode.size() * sizeof(double));
+            }
             OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            encoded_strings_int[k] = encoded_string;
+            encoded_strings_int[k] = std::move(encoded_string);
           }
         }
       }
@@ -1334,13 +1344,18 @@ namespace OpenMS::Internal
           {
             MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
             OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            encoded_strings_rt[k] = encoded_string;
+            encoded_strings_rt[k] = std::move(encoded_string);
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            std::string str_data;
+            if (!data_to_encode.empty())
+            {
+              str_data.assign(reinterpret_cast<const char*>(data_to_encode.data()),
+                              data_to_encode.size() * sizeof(double));
+            }
             OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            encoded_strings_rt[k] = encoded_string;
+            encoded_strings_rt[k] = std::move(encoded_string);
           }
         }
 
@@ -1359,13 +1374,18 @@ namespace OpenMS::Internal
           {
             MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
             OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            encoded_strings_int[k] = encoded_string;
+            encoded_strings_int[k] = std::move(encoded_string);
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            std::string str_data;
+            if (!data_to_encode.empty())
+            {
+              str_data.assign(reinterpret_cast<const char*>(data_to_encode.data()),
+                              data_to_encode.size() * sizeof(double));
+            }
             OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            encoded_strings_int[k] = encoded_string;
+            encoded_strings_int[k] = std::move(encoded_string);
           }
         }
       }
