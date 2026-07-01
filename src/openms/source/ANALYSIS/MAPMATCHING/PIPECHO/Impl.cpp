@@ -311,7 +311,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
                   << mz_range.second << ", " << mz_grid_center << ", "
                   << mz_max_diff.mz_diff(mz_range.second - mz_range.first)
                   << ", " << rt_sec_max_window << ", " << mbr_fdr << ")"
-                  << std::endl;
+                  << '\n';
 
   // Local adaptive RT window (experimental; default off -> the global window).
   use_local_rt_ = params.getValue("local_rt:enabled").toString() == "true";
@@ -331,7 +331,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     else { lrt_rt_mode_ = RtScoreMode::Raw; }
     OPENMS_LOG_INFO << "PIP-ECHO: local adaptive RT window enabled"
                     << (use_auto_ ? " (auto window estimation)" : "")
-                    << " [rt_score=" << rt_mode << "]." << std::endl;
+                    << " [rt_score=" << rt_mode << "]." << '\n';
   }
 }
 
@@ -392,7 +392,7 @@ void Impl::estimate_auto_params(const RunMap& runs)
   if (gaps.empty())
   {
     OPENMS_LOG_WARN << "[LOCAL-RT] auto: no shared anchors found; keeping default windows."
-                    << std::endl;
+                    << '\n';
     return;
   }
   std::sort(gaps.begin(), gaps.end());
@@ -444,7 +444,7 @@ void Impl::estimate_auto_params(const RunMap& runs)
                   << "): cap=" << cap << "s floor=" << floor << "s locality=" << locality
                   << "s | local-sigma P25/50/75/90/95=" << p25 << "/" << p50 << "/" << p75 << "/"
                   << p90 << "/" << p95 << "s gap_med=" << gap_med << "s fwhm=" << host_fwhm_
-                  << "s n=" << sigmas.size() << std::endl;
+                  << "s n=" << sigmas.size() << '\n';
 }
 
 /******************************************************************************/
@@ -692,7 +692,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     const double frac = tot ? (100.0 * lrt_fallback_ / tot) : 0.0;
     OPENMS_LOG_INFO << "[LOCAL-RT] find_acceptor_for queries: supported="
                     << lrt_supported_ << " fallback=" << lrt_fallback_ << " ("
-                    << frac << "% fallback)" << std::endl;
+                    << frac << "% fallback)" << '\n';
   }
 
   using ident_val_t = std::set<FeatureRef, FeatureRefCmp>;
@@ -770,7 +770,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 
   OPENMS_LOG_INFO << "PIP-ECHO: added " << acceptors_seen
                   << " acceptors to the consensus map with " << decoys_seen
-                  << " decoys seen" << std::endl;
+                  << " decoys seen" << '\n';
 
   // We can now turn that IdentMap into a ConsensusMap.
   for (auto& group : ident_map)
@@ -807,7 +807,7 @@ std::string Impl::path_from_feature_map(const FeatureMap& map)
 
   if (paths.empty())
   {
-    OPENMS_LOG_WARN << "Warning: feature map has no MS run path!" << std::endl;
+    OPENMS_LOG_WARN << "Warning: feature map has no MS run path!" << '\n';
     return "unknown";
   }
   else
@@ -815,7 +815,7 @@ std::string Impl::path_from_feature_map(const FeatureMap& map)
     if (paths.size() > 1)
     {
       OPENMS_LOG_WARN << "Warning: feature map has more than one MS run path, "
-                      << "using first path: " << paths[0] << std::endl;
+                      << "using first path: " << paths[0] << '\n';
     }
 
     return paths[0];

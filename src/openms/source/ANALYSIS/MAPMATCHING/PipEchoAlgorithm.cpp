@@ -215,7 +215,7 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
   // scale and re-match, until estimable or the window saturates the global ceiling
   // (then the existing conservative FDR gate drops transfers). Baseline (env unset)
   // runs exactly one pass and is byte-identical.
-  const std::size_t target_decoys = impl.target_decoy_count();
+  const Size target_decoys = impl.target_decoy_count();
   for (double widen = 1.0;;)
   {
     impl.set_widen_factor(widen);
@@ -227,9 +227,9 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
     }
 
     auto logger = ProgressLogger();
-    std::size_t progress {};
+    Size progress {};
     logger.setLogType(ProgressLogger::CMD);
-    logger.startProgress(0, std::pow(runs.size(), 2), "matching donors and acceptors");
+    logger.startProgress(0, runs.size() * runs.size(), "matching donors and acceptors");
     for (auto& acceptor_run : runs)
     {
       PipEcho::RunStatistics stats(acceptor_run.second, enable_im);
@@ -251,7 +251,7 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
 
     if (! impl.local_rt_enabled()) { break; }  // baseline: single pass
 
-    std::size_t decoys = 0;
+    Size decoys = 0;
     for (auto& kv : runs)
     {
       for (auto& a : kv.second.acceptors.storage) { if (a->decoy.has_value()) { ++decoys; } }
@@ -259,19 +259,19 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
     if (decoys >= target_decoys)
     {
       OPENMS_LOG_INFO << "[LOCAL-RT] " << decoys << " decoy transfers (>= " << target_decoys
-                      << " needed) at widen x" << widen << "; FDR estimable." << std::endl;
+                      << " needed) at widen x" << widen << "; FDR estimable." << '\n';
       break;
     }
     if (widen >= impl.widen_ceiling())
     {
       OPENMS_LOG_WARN << "[LOCAL-RT] widened the local RT window to the global ceiling but only "
                       << decoys << " decoy transfer(s) (< " << target_decoys
-                      << " needed); the conservative FDR gate may drop transfers." << std::endl;
+                      << " needed); the conservative FDR gate may drop transfers." << '\n';
       break;
     }
     widen *= 2.0;
     OPENMS_LOG_INFO << "[LOCAL-RT] only " << decoys << " decoy transfer(s) (< " << target_decoys
-                    << " needed); widening local RT window x" << widen << " and re-matching." << std::endl;
+                    << " needed); widening local RT window x" << widen << " and re-matching." << '\n';
   }
 
   impl.generate_consensus_map(runs, consensus_map);

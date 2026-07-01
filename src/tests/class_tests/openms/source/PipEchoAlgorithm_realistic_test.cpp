@@ -256,7 +256,10 @@ namespace
     for (std::size_t i = 0; i < n_noise; ++i)
     {
       std::size_t r = std::uniform_int_distribution<size_t>(0, n_runs - 1)(rng);
-      double rt = u_rt(rng);
+      // Apply the same per-run systematic shift as the peptide-derived features
+      // (line above) so the noise/false-transfer RTs share the acceptor RT
+      // distribution across all stress-matrix regimes.
+      double rt = u_rt(rng) + run_shift[r];
       double mz;
       Int charge;
       // A realistic fraction of background ions interfere at a real peptide's
