@@ -10,6 +10,9 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 
+#include <string>
+#include <vector>
+
 namespace OpenMS
 {
   class ResidueModification;

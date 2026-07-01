@@ -1,0 +1,8 @@
+format-version: 1.2
+ontology: unimod
+remark: Minimal Unimod subset for the UniPEFF test fixture (only the accessions referenced by
+remark: comprehensive.xml). The full vocabulary lives at http://www.unimod.org/obo/unimod.obo
+
+[Term]
+id: UNIMOD:34
+name: Methyl

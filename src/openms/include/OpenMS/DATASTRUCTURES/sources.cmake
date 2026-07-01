@@ -43,6 +43,7 @@ QTCluster.h
 StringUtils.h
 StringListUtils.h
 ToolDescription.h
+TypeAliases.h
 )
 
 ### add path to the filenames
