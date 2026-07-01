@@ -838,12 +838,17 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
     auto chg_r = std::static_pointer_cast<arrow::Int16Array>(ref_table->GetColumnByName("charge")->chunk(0));
     auto sc_s  = std::static_pointer_cast<arrow::DoubleArray>(st_table->GetColumnByName("posterior_error_probability")->chunk(0));
     auto sc_r  = std::static_pointer_cast<arrow::DoubleArray>(ref_table->GetColumnByName("posterior_error_probability")->chunk(0));
+    // rt is unique per row (100.0 + i) -> comparing it makes this an ORDER-sensitive check that
+    // catches partition-reordering regressions, not just value equality.
+    auto rt_s  = std::static_pointer_cast<arrow::FloatArray>(st_table->GetColumnByName("rt")->chunk(0));
+    auto rt_r  = std::static_pointer_cast<arrow::FloatArray>(ref_table->GetColumnByName("rt")->chunk(0));
     bool all_eq = true;
     for (int64_t r = 0; r < st_table->num_rows(); ++r)
     {
       if (seq_s->GetString(r) != seq_r->GetString(r)) { all_eq = false; break; }
       if (pf_s->GetString(r)  != pf_r->GetString(r))  { all_eq = false; break; }
       if (chg_s->Value(r)     != chg_r->Value(r))     { all_eq = false; break; }
+      if (rt_s->Value(r)      != rt_r->Value(r))      { all_eq = false; break; } // order-sensitive
       if (sc_s->IsNull(r) != sc_r->IsNull(r))         { all_eq = false; break; }
       if (!sc_s->IsNull(r) && sc_s->Value(r) != sc_r->Value(r)) { all_eq = false; break; }
     }
@@ -918,11 +923,15 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
     auto pb = std::static_pointer_cast<arrow::StringArray>(b->GetColumnByName("peptidoform")->chunk(0));
     auto ca = std::static_pointer_cast<arrow::Int16Array>(a->GetColumnByName("charge")->chunk(0));
     auto cb = std::static_pointer_cast<arrow::Int16Array>(b->GetColumnByName("charge")->chunk(0));
+    // rt is unique per row (100.0 + i) -> order-sensitive check (catches partition reordering).
+    auto ra = std::static_pointer_cast<arrow::FloatArray>(a->GetColumnByName("rt")->chunk(0));
+    auto rb = std::static_pointer_cast<arrow::FloatArray>(b->GetColumnByName("rt")->chunk(0));
     for (int64_t r = 0; r < a->num_rows(); ++r)
     {
       if (sa->GetString(r) != sb->GetString(r)) return false;
       if (pa->GetString(r) != pb->GetString(r)) return false;
       if (ca->Value(r) != cb->Value(r)) return false;
+      if (ra->Value(r) != rb->Value(r)) return false;
     }
     return true;
   };
