@@ -9,12 +9,13 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -40,9 +41,9 @@ public:
     struct PrecursorEvidence
     {
       /// Compound/peptide identifier in the transition experiment.
-      String compound_id;
+      std::string compound_id;
       /// Peptide sequence, if present in the transition experiment.
-      String sequence;
+      std::string sequence;
       /// Precursor m/z used for matching.
       double precursor_mz{0.0};
       /// Library precursor ion mobility, or -1 if unavailable.
@@ -89,7 +90,7 @@ public:
       /// Number of candidates with both MS1 and MS2 evidence.
       Size hybrid_supported{0};
       /// Human-readable summary for logging.
-      String summary;
+      std::string summary;
       /// Scale factor applied to precursor ion mobility values for matching and filtered output.
       double precursor_im_scale{1.0};
       /// Whether precursor ion mobility values were also multiplied by precursor charge.
@@ -131,7 +132,7 @@ public:
 
 private:
     bool enabled_{true};
-    String evidence_sources_{"hybrid"};
+    std::string evidence_sources_{"hybrid"};
     Size ms1_top_peaks_per_spectrum_{1000};
     Size ms2_top_peaks_per_spectrum_{1000};
     Size ms2_top_transitions_per_precursor_{6};
