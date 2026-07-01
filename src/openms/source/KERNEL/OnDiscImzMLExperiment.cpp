@@ -10,9 +10,13 @@
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/IonImage.h>
+#include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <cmath>
 #include <cstdio>
+#include <numeric>
 #include <utility>
 
 namespace OpenMS
@@ -85,7 +89,6 @@ struct OnDiscImzMLExperiment::Impl
     return s;
   }
 
-private:
   std::vector<double> readMz_(const ImzMLSpectrumIndex& e) const
   {
     std::vector<double> out;
@@ -222,7 +225,34 @@ MSSpectrum OnDiscImzMLExperiment::getSpectrumAtCoord(uint32_t x, uint32_t y, uin
                                    "(" + StringConversions::toString(x) + "," + StringConversions::toString(y) + "," + StringConversions::toString(z) + ")");
 }
 
+IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm) const
+{
+  if (!pimpl_->ibd_)
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
+
+  std::vector<Size> all(pimpl_->geometry_.getNumberOfPixels());
+  std::iota(all.begin(), all.end(), Size(0));
+  return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, all, pimpl_->index_.size(),
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+}
+
+IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm, Size region_id) const
+{
+  if (!pimpl_->ibd_)
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
+
+  // getRegionPixels throws Exception::ElementNotFound for an unknown region_id.
+  const std::vector<Size> region = pimpl_->geometry_.getRegionPixels(region_id);
+  return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, region, pimpl_->index_.size(),
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+}
+
 const MSImagingGeometry& OnDiscImzMLExperiment::getGeometry() const
+{
+  return pimpl_->geometry_;
+}
+
+MSImagingGeometry& OnDiscImzMLExperiment::getGeometry()
 {
   return pimpl_->geometry_;
 }
