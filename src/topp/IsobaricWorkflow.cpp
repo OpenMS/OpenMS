@@ -914,21 +914,34 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
-        // PSM-level export: collect all peptide IDs from consensus map
-        PeptideIdentificationList all_pepids;
+        // PSM-level export: collect non-owning pointers to all peptide IDs in the
+        // consensus map (assigned per feature, then unassigned). Avoids deep-copying
+        // millions of PeptideIdentifications; pointers reference into `cmap`, which
+        // outlives the streaming export below.
+        std::vector<const PeptideIdentification*> all_pepid_ptrs;
+        size_t n_pep = cmap.getUnassignedPeptideIdentifications().size();
+        for (const auto& feature : cmap) { n_pep += feature.getPeptideIdentifications().size(); }
+        all_pepid_ptrs.reserve(n_pep);
         for (const auto& feature : cmap)
         {
           for (const auto& pepid : feature.getPeptideIdentifications())
           {
-            all_pepids.push_back(pepid);
+            all_pepid_ptrs.push_back(&pepid);
           }
         }
         for (const auto& pepid : cmap.getUnassignedPeptideIdentifications())
         {
-          all_pepids.push_back(pepid);
+          all_pepid_ptrs.push_back(&pepid);
         }
 
-        if (!QPXFile::exportToParquet(cmap.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+        // Streaming/batched write keeps peak memory bounded for very large PSM counts;
+        // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        if (!QPXFile::exportToParquetStreaming(cmap.getProteinIdentifications(), all_pepid_ptrs,
+                                               out_qpx + "/quantms.psm.parquet",
+                                               /*export_all_psms=*/false,
+                                               /*batch_size=*/1000000,
+                                               ParquetWriteConfig{},
+                                               /*n_threads=*/0))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
