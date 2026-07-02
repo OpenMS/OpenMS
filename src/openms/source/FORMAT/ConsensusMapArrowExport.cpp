@@ -22,6 +22,7 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <algorithm>
 #include <limits>
 #include <map>
 #include <unordered_map>
@@ -49,7 +50,91 @@ namespace // anonymous
 } // anonymous namespace
 
 
-std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
+namespace // anonymous (feature range builder + shared per-map lookups)
+{
+
+/// Per-map, read-only lookups derived once from the ConsensusMap's protein
+/// identifications. Shared by the whole-table and streaming feature export paths
+/// (built once, reused across all batches).
+struct FeatureIdLookups
+{
+  std::unordered_map<std::string, double> pg_qvalue;               ///< accession -> protein-group q-value
+  std::unordered_map<std::string, std::vector<std::string>> gg_accessions; ///< accession -> gene accessions
+  std::unordered_map<std::string, std::vector<std::string>> gg_names;      ///< accession -> gene names
+};
+
+/// Build the per-map protein-group q-value and gene-info lookups from the
+/// ConsensusMap's ProteinIdentifications.
+FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
+{
+  FeatureIdLookups lut;
+  for (const auto& prot_id : cmap.getProteinIdentifications())
+  {
+    // Gene info from ProteinHit metavalues
+    for (const auto& ph : prot_id.getHits())
+    {
+      const std::string& acc = ph.getAccession();
+      if (ph.metaValueExists("gene_accession"))
+      {
+        lut.gg_accessions[acc].push_back(ph.getMetaValue("gene_accession").toString());
+      }
+      if (ph.metaValueExists("gene_name"))
+      {
+        lut.gg_names[acc].push_back(ph.getMetaValue("gene_name").toString());
+      }
+    }
+
+    for (const auto& pg : prot_id.getProteinGroups())
+    {
+      for (const auto& acc : pg.accessions)
+      {
+        lut.pg_qvalue[acc] = pg.probability;
+      }
+    }
+    for (const auto& ig : prot_id.getIndistinguishableProteins())
+    {
+      for (const auto& acc : ig.accessions)
+      {
+        if (!lut.pg_qvalue.contains(acc))
+        {
+          lut.pg_qvalue[acc] = ig.probability;
+        }
+      }
+    }
+  }
+  return lut;
+}
+
+/// Build Parquet WriterProperties from the OpenMS config (shared by the one-shot
+/// and streaming feature export paths).
+std::shared_ptr<parquet::WriterProperties> makeFeatureWriterProperties(const ParquetWriteConfig& config)
+{
+  auto builder = parquet::WriterProperties::Builder();
+  switch (config.compression)
+  {
+    case ParquetWriteConfig::Compression::NONE:   builder.compression(arrow::Compression::UNCOMPRESSED); break;
+    case ParquetWriteConfig::Compression::SNAPPY: builder.compression(arrow::Compression::SNAPPY); break;
+    case ParquetWriteConfig::Compression::GZIP:   builder.compression(arrow::Compression::GZIP); builder.compression_level(config.compression_level); break;
+    case ParquetWriteConfig::Compression::LZ4:    builder.compression(arrow::Compression::LZ4); break;
+    case ParquetWriteConfig::Compression::ZSTD:   builder.compression(arrow::Compression::ZSTD); builder.compression_level(config.compression_level); break;
+  }
+  builder.data_pagesize(config.data_page_size);
+  if (config.write_statistics) { builder.enable_statistics(); }
+  else                         { builder.disable_statistics(); }
+  return builder.build();
+}
+
+/// Build a QPXFeatureSchema Arrow table for the half-open feature range
+/// [range_begin, range_end) of @p cmap. @p id_lut holds the prebuilt per-map
+/// protein-group/gene lookups. Each row is independent (no cross-row state), so
+/// any contiguous sub-range yields a self-contained, schema-valid table; this is
+/// what lets exportToParquetStreaming() flush one batch at a time. Shared by
+/// exportToArrow() (whole map) and exportToParquetStreaming() (one batch per call).
+std::shared_ptr<arrow::Table> buildFeatureTableRange(
+  const ConsensusMap& cmap,
+  const FeatureIdLookups& id_lut,
+  size_t range_begin,
+  size_t range_end)
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder, anchor_protein_builder;
@@ -205,7 +290,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   arrow::ListBuilder pg_positions_builder(arrow::default_memory_pool(), pgp_struct_b);
 
   arrow::Status status;
-  const Size num_features = cmap.size();
+  const Size num_features = range_end - range_begin;
 
   // Reserve capacity for simple column builders
   #define RESERVE_OR_FAIL(builder) \
@@ -239,45 +324,10 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   // Build column header lookup
   const auto& column_headers = cmap.getColumnHeaders();
 
-  // Build protein group q-value lookup and gene info lookup
-  std::unordered_map<std::string, double> pg_qvalue_lookup;
-  std::unordered_map<std::string, std::vector<std::string>> gg_accessions_lookup;
-  std::unordered_map<std::string, std::vector<std::string>> gg_names_lookup;
-
-  for (const auto& prot_id : cmap.getProteinIdentifications())
-  {
-    // Gene info from ProteinHit metavalues
-    for (const auto& ph : prot_id.getHits())
-    {
-      const std::string& acc = ph.getAccession();
-      if (ph.metaValueExists("gene_accession"))
-      {
-        gg_accessions_lookup[acc].push_back(ph.getMetaValue("gene_accession").toString());
-      }
-      if (ph.metaValueExists("gene_name"))
-      {
-        gg_names_lookup[acc].push_back(ph.getMetaValue("gene_name").toString());
-      }
-    }
-
-    for (const auto& pg : prot_id.getProteinGroups())
-    {
-      for (const auto& acc : pg.accessions)
-      {
-        pg_qvalue_lookup[acc] = pg.probability;
-      }
-    }
-    for (const auto& ig : prot_id.getIndistinguishableProteins())
-    {
-      for (const auto& acc : ig.accessions)
-      {
-        if (!pg_qvalue_lookup.contains(acc))
-        {
-          pg_qvalue_lookup[acc] = ig.probability;
-        }
-      }
-    }
-  }
+  // Per-map protein-group q-value and gene-info lookups (prebuilt once, shared across batches)
+  const auto& pg_qvalue_lookup = id_lut.pg_qvalue;
+  const auto& gg_accessions_lookup = id_lut.gg_accessions;
+  const auto& gg_names_lookup = id_lut.gg_names;
 
   // Metavalue keys excluded from additional_scores on PeptideHit
   static const std::unordered_set<std::string> excluded_hit_mvs = {
@@ -286,8 +336,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
   IDScoreSwitcherAlgorithm idsa;
 
-  for (const auto& cf : cmap)
+  for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
   {
+    const auto& cf = cmap[feat_idx];
     const auto& pep_ids = cf.getPeptideIdentifications();
     bool has_id = !pep_ids.empty() && !pep_ids[0].getHits().empty();
     const PeptideHit* best_hit = has_id ? &pep_ids[0].getHits()[0] : nullptr;
@@ -866,6 +917,14 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   return table;
 }
 
+} // anonymous namespace (feature range builder + shared per-map lookups)
+
+
+std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
+{
+  return buildFeatureTableRange(cmap, buildFeatureIdLookups(cmap), 0, cmap.size());
+}
+
 
 bool ConsensusMapArrowExport::exportToParquet(
   const ConsensusMap& cmap,
@@ -888,43 +947,7 @@ bool ConsensusMapArrowExport::exportToParquet(
   }
   const auto& outfile = *result;
 
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-
+  auto writer_props = makeFeatureWriterProperties(config);
   auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
 
   // Write
@@ -940,6 +963,98 @@ bool ConsensusMapArrowExport::exportToParquet(
   }
 
   return true;
+}
+
+
+bool ConsensusMapArrowExport::exportToParquetStreaming(
+  const ConsensusMap& cmap,
+  const std::string& filename,
+  size_t batch_size,
+  const ParquetWriteConfig& config)
+{
+  if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
+
+  // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
+  const auto id_lut = buildFeatureIdLookups(cmap);
+
+  // The writer's schema must match each batch table's schema exactly. buildFeatureTableRange()
+  // stamps QPXFeatureSchema::schema() on every batch, so open the writer with the same schema.
+  const auto schema = QPXFeatureSchema::schema();
+
+  auto file_result = arrow::io::FileOutputStream::Open(filename);
+  if (!file_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open " << filename << " for writing: "
+                     << file_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto outfile = file_result.ValueOrDie();
+
+  auto writer_props = makeFeatureWriterProperties(config);
+  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+
+  auto writer_result = parquet::arrow::FileWriter::Open(
+    *schema, arrow::default_memory_pool(), outfile, writer_props, arrow_props);
+  if (!writer_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open Parquet writer for " << filename << ": "
+                     << writer_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto writer = std::move(writer_result).ValueOrDie();
+
+  const int64_t rg = static_cast<int64_t>(config.row_group_size);
+
+  // Build one feature range [b, e) into a self-contained table and flush it. Peak memory stays
+  // bounded by one batch (one batch's rows) instead of the whole map's ~N-row table at once.
+  auto write_batch = [&](size_t b, size_t e) -> bool
+  {
+    auto batch = buildFeatureTableRange(cmap, id_lut, b, e);
+    if (!batch)
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch [" << b << ", " << e << ")" << std::endl;
+      return false;
+    }
+    auto st = writer->WriteTable(*batch, rg);
+    if (!st.ok())
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write feature batch to " << filename << ": "
+                       << st.ToString() << std::endl;
+      return false;
+    }
+    return true;
+  };
+
+  bool ok = true;
+  const size_t N = cmap.size();
+  if (N == 0)
+  {
+    ok = write_batch(0, 0); // valid 0-row file (schema only), matching the one-shot path
+  }
+  else
+  {
+    for (size_t b = 0; b < N && ok; b += batch_size)
+    {
+      ok = write_batch(b, std::min(b + batch_size, N));
+    }
+  }
+
+  // Close the writer (flushes the footer) then the sink, regardless of write outcome.
+  auto writer_close = writer->Close();
+  if (!writer_close.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close Parquet writer for " << filename << ": "
+                     << writer_close.ToString() << std::endl;
+    ok = false;
+  }
+  auto outfile_close = outfile->Close();
+  if (!outfile_close.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close output stream for " << filename << ": "
+                     << outfile_close.ToString() << std::endl;
+    ok = false;
+  }
+  return ok;
 }
 
 } // namespace OpenMS
