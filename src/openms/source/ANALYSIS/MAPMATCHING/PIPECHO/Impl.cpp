@@ -640,10 +640,12 @@ Impl::find_random_donor(const DonorMap& donors,
 
   const double mass_min_diff = 5.0 * Constants::PROTON_MASS_U;
   const double mass_max_diff = 11.0 * Constants::PROTON_MASS_U;
-  // [LOCAL-RT] with tight local windows, requiring the decoy anchor
-  // > 2*GLOBAL window away starves decoys; require only > ~2 local windows
-  // (>= 120 s) -- far enough to avoid the same elution event, near enough to
-  // keep decoys plentiful for FDR estimation.
+  // [LOCAL-RT] require the decoy anchor far enough in RT to be a genuine wrong-RT
+  // null, but SCALE that distance with the local window rather than a fixed floor:
+  // a fixed floor (formerly 120 s) is a large fraction of a short gradient and starves
+  // decoys there. Mirror FlashLFQ/PIP-ECHO (Alg 13): separation = 4 * half-window
+  // (== FlashLFQ's 2*Width), which shrinks on well-aligned/short gradients and grows
+  // on wide ones -- no fixed floor.
   double rt_min_diff = window.rt_tol * 2.0; // FIXME: Is this okay?
   if (use_local_rt_ && local_rt_)
   {
@@ -652,7 +654,7 @@ Impl::find_random_donor(const DonorMap& donors,
     // to the widened window would push decoy donors farther away on each widening
     // pass, opposing the decoy generation widening is meant to achieve (Codex review).
     const double lw = p.half_window / std::max(local_rt_->widen, 1.0);
-    rt_min_diff = std::max(2.0 * lw, 120.0);
+    rt_min_diff = 4.0 * lw;
   }
 
   const double start_mass = mass(start);
