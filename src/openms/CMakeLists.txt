@@ -65,8 +65,10 @@ add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
+## Note: XercesC::XercesC is PUBLIC because Xerces types are part of the public API
+## (e.g. Internal::XMLHandler derives from xercesc::DefaultHandler and takes
+## xercesc::Attributes in method signatures), so downstream consumers need it (see #8547).
 set(OPENMS_DEP_LIBRARIES
-  LibSVM::LibSVM
   XercesC::XercesC
   CURL::libcurl
 )
@@ -74,6 +76,8 @@ set(OPENMS_DEP_LIBRARIES
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 ## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
 ## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
+## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
+##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
@@ -85,6 +89,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Eigen3::Eigen
   Evergreen
   GTE
+  LibSVM::LibSVM
   Quadtree
   SIMDe
   SQLiteCpp

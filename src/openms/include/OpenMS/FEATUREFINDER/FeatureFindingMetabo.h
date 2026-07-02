@@ -15,12 +15,12 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
+#include <memory>
 #include <vector>
-
-struct svm_model;
 
 namespace OpenMS
 {
+  class SimpleSVM;
 
   /**
     @brief Internal structure used in @ref FeatureFindingMetabo that keeps
@@ -306,8 +306,8 @@ private:
     */
     void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
-    /// SVM parameters
-    svm_model* isotope_filt_svm_ = nullptr;
+    /// SVM model (wraps LIBSVM) used to filter isotope patterns; loaded via loadIsotopeModel_()
+    std::unique_ptr<SimpleSVM> isotope_filt_svm_;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 
