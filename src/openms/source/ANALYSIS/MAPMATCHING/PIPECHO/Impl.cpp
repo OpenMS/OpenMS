@@ -207,45 +207,73 @@ struct LocalRtModel
   }
 
   /// [LOCAL-RT calibrated] Build the run-pair RT prediction-error distribution
-  /// (rt_error) leave-one-out from the anchors. Must be called AFTER the gather
-  /// parameters (locality_s, n_anchors) are set, since it reuses gather(). Mirrors
-  /// FlashLFQ's AddRtPredErrorDistribution: prediction error per anchor =
-  /// actual residual - median(neighbouring residuals). Robust Normal(median,
-  /// IQR/1.349); leaves rt_error empty when too few usable anchors.
+  /// (rt_error). Must be called AFTER the gather parameters (locality_s, n_anchors)
+  /// are set, since it reuses gather(). Mirrors FlashLFQ's AddRtPredErrorDistribution:
+  /// for each anchor the prediction error = actual residual - the SAME local median shift
+  /// predict() applies at that RT (no shift when the anchor has no local neighbours),
+  /// fit as a robust Normal(median, IQR/1.349). A calibrated run pair ALWAYS yields a
+  /// distribution -- a generous window-scale default backs the estimate when anchors are
+  /// too few or their spread is degenerate -- rather than leaving rt_error empty. That
+  /// keeps the RT factor folded for EVERY pair, so the mbr_score geometric mean has a
+  /// constant number of factors across pairs; mixing 2- and 3-factor geomeans would make
+  /// mbr_score incomparable across the donor runs it is ranked against (Acceptor::push_back
+  /// and the FDR-fallback q-value sort). cf FlashLFQ, which substitutes a default Normal
+  /// rather than dropping the RT factor.
   void build_rt_error_dist()
   {
     rt_error.reset();
-    if (anchor_rt.size() < 3) { return; }
+
+    // Prediction error per anchor, using the SAME centring predict() applies at that RT:
+    // no local neighbours -> unshifted (error = residual); otherwise remove the local
+    // median shift. This keeps the fitted distribution consistent with how predict()
+    // centres each query -- including sparse pairs, whose queries mostly get an unshifted
+    // centre, so their errors reduce to the raw local shifts.
     std::vector<double> errs;
     errs.reserve(anchor_rt.size());
     for (std::size_t i = 0; i < anchor_rt.size(); ++i)
     {
       std::vector<double> nb = gather(anchor_rt[i]);  // leave-one-out (skips self)
-      if (nb.size() < 2) { continue; }
-      std::sort(nb.begin(), nb.end());
-      const double med_shift = nb[nb.size() / 2];
-      errs.push_back(residual[i] - med_shift);
+      double shift = 0.0;
+      if (! nb.empty()) { std::sort(nb.begin(), nb.end()); shift = nb[nb.size() / 2]; }
+      errs.push_back(residual[i] - shift);
     }
-    if (errs.size() < 4) { return; }
-    std::sort(errs.begin(), errs.end());
-    auto pct = [&](double p) {
-      return errs[std::min(errs.size() - 1, static_cast<std::size_t>(p * errs.size()))];
-    };
-    const double centre = errs[errs.size() / 2];  // robust centre (median)
-    double sd = (pct(0.75) - pct(0.25)) / 1.349;  // IQR -> stddev (cf RunStatistics)
+
+    // Robust Normal(median, IQR/1.349), with a sample-stddev fallback for a degenerate IQR
+    // (heavily tied errors) that keeps the robust median centre (Codex review).
+    double centre = 0.0, sd = 0.0;
+    if (errs.size() >= 4)
+    {
+      std::sort(errs.begin(), errs.end());
+      auto pct = [&](double p) {
+        return errs[std::min(errs.size() - 1, static_cast<std::size_t>(p * errs.size()))];
+      };
+      centre = errs[errs.size() / 2];
+      sd = (pct(0.75) - pct(0.25)) / 1.349;
+      if (! std::isfinite(sd) || sd <= 0.0)
+      {
+        double mean = 0.0;
+        for (double e : errs) { mean += e; }
+        mean /= static_cast<double>(errs.size());
+        double var = 0.0;
+        for (double e : errs) { var += (e - mean) * (e - mean); }
+        var /= static_cast<double>(errs.size() - 1);
+        sd = std::sqrt(var);
+      }
+    }
+
+    // [FIXED ARITY] Guarantee a valid distribution for every calibrated pair -- too few
+    // anchors, or a near-zero spread, back off to a generous window-scale sigma
+    // (cap = c*sigma_max), or the global window as an absolute last resort. Never leave
+    // rt_error empty: an empty distribution would drop the RT factor for this pair and
+    // desync the geomean arity across pairs (see the method doc above).
     if (! std::isfinite(sd) || sd <= 0.0)
     {
-      // Degenerate IQR (heavily tied residuals): fall back to the sample stddev
-      // only; keep the robust median centre (Codex review).
-      double mean = 0.0;
-      for (double e : errs) { mean += e; }
-      mean /= static_cast<double>(errs.size());
-      double var = 0.0;
-      for (double e : errs) { var += (e - mean) * (e - mean); }
-      var /= static_cast<double>(errs.size() - 1);
-      sd = std::sqrt(var);
+      centre = 0.0;
+      // Re-guard: extreme but parameter-valid c/cap_s could make cap_s/c non-finite or
+      // non-positive, so fall back to the global window (finite & positive) if so.
+      sd = (c > 0.0 && std::isfinite(cap_s) && cap_s > 0.0) ? cap_s / c : 0.0;
+      if (! std::isfinite(sd) || sd <= 0.0) { sd = std::max(hard_ceiling, 1.0); }
     }
-    if (! std::isfinite(sd) || sd <= 0.0) { return; }
     rt_error = boost::math::normal(centre, sd);
   }
 };

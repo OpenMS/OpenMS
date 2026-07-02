@@ -207,11 +207,14 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
     measures += 1.0;
   }
 
-  // Fold the calibrated RT score into the geometric mean only when it was
-  // actually calibrated against a real distribution. For a sparse pair with no
-  // RT distribution rt_score is the NEUTRAL 0.5; multiplying that in (and bumping
-  // the exponent) would NOT be neutral for mbr_score, so skip it there -- the
-  // 0.5 still goes to the SVM column for rectangularity (Codex review).
+  // Fold the calibrated RT score into the geometric mean. build_rt_error_dist()
+  // guarantees a distribution for every calibrated run pair (a window-scale default
+  // backs anchor-poor pairs), so rt_dist is non-null here for all pairs and the RT
+  // factor is folded uniformly -- keeping the geomean's factor count constant across
+  // the donor runs mbr_score is ranked against. The rt_dist != nullptr guard is a
+  // defensive fallback: were a distribution ever absent, rt_score would be the NEUTRAL
+  // 0.5 and folding it (bumping the exponent) would NOT be neutral for mbr_score, so we
+  // skip it there -- the 0.5 still goes to the SVM column for rectangularity (Codex review).
   if (rt_mode == RtScoreMode::SvmAndMbr && rt_dist != nullptr)
   {
     product *= s.rt_score;
