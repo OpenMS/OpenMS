@@ -60,6 +60,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
@@ -3962,6 +3963,99 @@ correct all maps according to the m/z shift found in those fixed
 points. *
 )doc")
         .def(nb::init<>())
+        ;
+
+    // -----------------------------------------------------------------------
+    // TransitionListEvidenceFilter::PrecursorEvidence
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransitionListEvidenceFilter::PrecursorEvidence>(
+        m, "TransitionListEvidenceFilter_PrecursorEvidence",
+        "Compact raw-data evidence summary for one target precursor candidate")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter::PrecursorEvidence(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter::PrecursorEvidence(self);
+        }, "memo"_a)
+        .def_rw("compound_id", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::compound_id)
+        .def_rw("sequence", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::sequence)
+        .def_rw("precursor_mz", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::precursor_mz)
+        .def_rw("precursor_im", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::precursor_im)
+        .def_rw("supported_ms1", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::supported_ms1)
+        .def_rw("supported_ms2", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::supported_ms2)
+        .def_rw("ms1_hit_count", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_hit_count)
+        .def_rw("ms1_max_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_max_intensity)
+        .def_rw("ms1_sum_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_sum_intensity)
+        .def_rw("ms1_best_rt", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_best_rt)
+        .def_rw("ms2_hit_count", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_hit_count)
+        .def_rw("ms2_best_fragment_hits", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_best_fragment_hits)
+        .def_rw("ms2_max_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_max_intensity)
+        .def_rw("ms2_sum_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_sum_intensity)
+        .def_rw("ms2_best_rt", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_best_rt)
+        ;
+
+    // -----------------------------------------------------------------------
+    // TransitionListEvidenceFilter::Result
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransitionListEvidenceFilter::Result>(m, "TransitionListEvidenceFilter_Result",
+        "Filtered target experiment and compact raw-data evidence summaries")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter::Result&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter::Result& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter::Result(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter::Result& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter::Result(self);
+        }, "memo"_a)
+        .def_rw("filtered_targets", &OpenMS::TransitionListEvidenceFilter::Result::filtered_targets)
+        .def_rw("evidence", &OpenMS::TransitionListEvidenceFilter::Result::evidence)
+        .def_rw("total_target_precursors", &OpenMS::TransitionListEvidenceFilter::Result::total_target_precursors)
+        .def_rw("supported_precursors", &OpenMS::TransitionListEvidenceFilter::Result::supported_precursors)
+        .def_rw("ms1_supported", &OpenMS::TransitionListEvidenceFilter::Result::ms1_supported)
+        .def_rw("ms2_supported", &OpenMS::TransitionListEvidenceFilter::Result::ms2_supported)
+        .def_rw("hybrid_supported", &OpenMS::TransitionListEvidenceFilter::Result::hybrid_supported)
+        .def_rw("summary", &OpenMS::TransitionListEvidenceFilter::Result::summary)
+        .def_rw("precursor_im_scale", &OpenMS::TransitionListEvidenceFilter::Result::precursor_im_scale)
+        .def_rw("precursor_im_scaled_by_charge", &OpenMS::TransitionListEvidenceFilter::Result::precursor_im_scaled_by_charge)
+        ;
+
+    // -----------------------------------------------------------------------
+    // TransitionListEvidenceFilter
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransitionListEvidenceFilter, OpenMS::DefaultParamHandler>(
+        m, "TransitionListEvidenceFilter",
+        "Prefilter transition-library precursors by quick raw-data evidence")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter(self);
+        }, "memo"_a)
+        .def("filter",
+             [](const OpenMS::TransitionListEvidenceFilter& self,
+                const std::vector<OpenSwath::SwathMap>& swath_maps,
+                const OpenSwath::LightTargetedExperiment& transition_exp,
+                const OpenMS::ChromExtractParams& ms1_params,
+                const OpenMS::ChromExtractParams& ms2_params,
+                bool pasef,
+                int threads)
+             {
+               nb::gil_scoped_release release;
+               return self.filter(swath_maps, transition_exp, ms1_params, ms2_params, pasef, threads);
+             },
+             "swath_maps"_a, "transition_exp"_a, "ms1_params"_a, "ms2_params"_a,
+             "pasef"_a, "threads"_a = 1,
+             "Filter target precursors by MS1/MS2 evidence observed in the current run")
         ;
 
     // -----------------------------------------------------------------------

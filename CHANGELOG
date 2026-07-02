@@ -389,6 +389,7 @@ TOPP tools:
     - UniPEFF: Convert UniProtKB XML protein databases (.xml or .xml.gz) to PEFF 1.0. Each entry is emitted with PName/GName/NcbiTaxId/TaxName/Length/SV/EV/PE/ID/AltAC metadata plus ModResPsi/ModResUnimod/ModRes, VariantSimple/VariantComplex, Processed and (with -AnnotationIdentifiers) DisulfideBond annotations. Modification accessions are resolved via UniProt ptmlist.txt (a snapshot is bundled at share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); canonical PSI-MOD/Unimod names come from the bundled PSI-MOD.obo and an optional unimod.obo. Half-cystines from disulfide-bond features are merged into the main modified-residue list in position-sorted order so a single emission pass produces a correctly ordered ModResPsi list. Output is byte-exact with the standalone C# UniPEFF tool (https://github.com/timosachsenberg/UniPEFF, feat/merge-half-cystines branch). New OpenMS library class UniProtXMLFile (FORMAT/) parses UniProtKB XML into a parser-neutral UniProtEntry POD via Xerces SAX with transparent gzip support. (#9649)
     - OpenSwathPeakMapExtractor: Added topp tool for extracting full peakmap points from mzML files using targeted extraction (#9684)
     - OpenSwathPercolatorScoring: Added topp tool for scoring OpenSwathWorkflow results with Percolator (#9695)
+    - TransitionListEvidenceFilter: Added topp tool for filtering transition lists based on preliminary evidence from mzML files (#9161)
 
 OpenMS Library:
   Added:

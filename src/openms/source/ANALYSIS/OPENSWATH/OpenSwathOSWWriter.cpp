@@ -1053,13 +1053,14 @@ namespace OpenMS
       const ScoreValueList masserror_ppm(feature_it, "masserror_ppm");
 
       const auto& subordinates = feature_it.getSubordinates();
+      Size ms2_subordinate_index = 0;
       for (Size i=0; i < subordinates.size(); i++)
       {
         const auto& sub_it = subordinates[i];
         if (cachedMetaValueExists(sub_it, "FeatureLevel") && cachedMetaValue(sub_it, "FeatureLevel") == "MS2")
         {
           OSWValue total_mi = oswValue(cachedMetaValue(sub_it, "total_mi")); // total_mi is not guaranteed to be set
-          OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, i); // masserror_ppm is not guaranteed to be set
+          OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, ms2_subordinate_index); // masserror_ppm is not guaranteed to be set
 
           FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
           transition_row[1] = oswValue(cachedMetaValue(sub_it, "native_id"));
@@ -1088,6 +1089,7 @@ namespace OpenMS
             transition_row[42] = oswValue(cachedMetaValue(sub_it, "points_across_half_height"));
           }
           ms2_transition_rows.push_back(std::move(transition_row));
+          ++ms2_subordinate_index;
         }
         else if (cachedMetaValueExists(sub_it, "FeatureLevel") && cachedMetaValue(sub_it, "FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
@@ -1243,8 +1245,13 @@ namespace OpenMS
         if (cachedMetaValueExists(feature_it, "id_target_num_transitions"))
         {
           int id_target_num_transitions = cachedMetaValue(feature_it, "id_target_num_transitions");
+          const int available_target_transition_names = static_cast<int>(id_target_transition_names.size());
+          const int target_transition_count =
+            available_target_transition_names > 0 ?
+            std::min(id_target_num_transitions, available_target_transition_names) :
+            0;
 
-          for (int i = 0; i < id_target_num_transitions; ++i)
+          for (int i = 0; i < target_transition_count; ++i)
           {
             FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
             transition_row[1] = oswValueAt(id_target_transition_names, i);
@@ -1346,8 +1353,13 @@ namespace OpenMS
         if (cachedMetaValueExists(feature_it, "id_decoy_num_transitions"))
         {
           int id_decoy_num_transitions = cachedMetaValue(feature_it, "id_decoy_num_transitions");
+          const int available_decoy_transition_names = static_cast<int>(id_decoy_transition_names.size());
+          const int decoy_transition_count =
+            available_decoy_transition_names > 0 ?
+            std::min(id_decoy_num_transitions, available_decoy_transition_names) :
+            0;
 
-          for (int i = 0; i < id_decoy_num_transitions; ++i)
+          for (int i = 0; i < decoy_transition_count; ++i)
           {
             FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
             transition_row[1] = oswValueAt(id_decoy_transition_names, i);
