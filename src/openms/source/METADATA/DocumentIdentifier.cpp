@@ -57,6 +57,11 @@ namespace OpenMS
     }
   }
 
+  void DocumentIdentifier::setLoadedNetFilePath(const String & file_name)
+  {
+    file_path_ = file_name;
+  }
+
   const std::string & DocumentIdentifier::getLoadedFilePath() const
   {
     return file_path_;
@@ -65,6 +70,11 @@ namespace OpenMS
   void DocumentIdentifier::setLoadedFileType(const std::string & file_name)
   {
     file_type_ = FileHandler::getTypeByContent(file_name);
+  }
+
+  void DocumentIdentifier::setLoadedFileType(FileTypes::Type type)
+  {
+    file_type_ = type;
   }
 
   const FileTypes::Type & DocumentIdentifier::getLoadedFileType() const

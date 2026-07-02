@@ -348,6 +348,14 @@ if(ArrowDataset_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
+# AWS S3 SDK (optional, for S3 loading support)
+# Uses the AWS SDK that may already be installed alongside Arrow (if ARROW_S3=ON).
+if(WITH_S3)
+  find_package(AWSSDK REQUIRED COMPONENTS s3)
+  message(STATUS "S3 support enabled (AWS SDK found)")
+endif()
+
+#------------------------------------------------------------------------------
 # wnetalign (Wasserstein network spectral alignment)
 option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" ON)
 
