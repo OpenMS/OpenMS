@@ -1655,16 +1655,23 @@ protected:
           Param prefilter_params = cal_params.copy("auto_irt:prefilter:", true);
           evidence_filter.setParameters(prefilter_params);
           evidence_filter.setLogType(log_type_);
-
-          TransitionListEvidenceFilter::Result prefilter_result = evidence_filter.filter(
-            swath_maps, transition_exp, cp_ms1_current, cp_irt_current, pasef, outer_loop_threads);
-          prefiltered_irt_targets = std::move(prefilter_result.filtered_targets);
-          irt_sampling_transition_exp = &prefiltered_irt_targets;
-
-          if (strategy == IrtStrategy::SAMPLE_ONCE)
+          try
           {
-            OPENMS_LOG_INFO << "Calibration:auto_irt:prefilter enabled: forcing run-specific auto-iRT sampling because evidence is run-specific." << std::endl;
-            strategy = IrtStrategy::SAMPLE_PER_RUN;
+            TransitionListEvidenceFilter::Result prefilter_result = evidence_filter.filter(
+              swath_maps, transition_exp, cp_ms1_current, cp_irt_current, pasef, outer_loop_threads);
+            prefiltered_irt_targets = std::move(prefilter_result.filtered_targets);
+            irt_sampling_transition_exp = &prefiltered_irt_targets;
+
+            if (strategy == IrtStrategy::SAMPLE_ONCE)
+            {
+              OPENMS_LOG_INFO << "Calibration:auto_irt:prefilter enabled: forcing run-specific auto-iRT sampling because evidence is run-specific.\n";
+              strategy = IrtStrategy::SAMPLE_PER_RUN;
+            }
+          }
+          catch (const Exception::IllegalArgument& e)
+          {
+            OPENMS_LOG_WARN << "Calibration:auto_irt:prefilter could not be applied (" << e.what()
+                            << "); falling back to unfiltered auto-iRT sampling.\n";
           }
         }
         

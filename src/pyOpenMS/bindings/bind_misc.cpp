@@ -3972,6 +3972,15 @@ points. *
         m, "TransitionListEvidenceFilter_PrecursorEvidence",
         "Compact raw-data evidence summary for one target precursor candidate")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter::PrecursorEvidence(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter::PrecursorEvidence(self);
+        }, "memo"_a)
         .def_rw("compound_id", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::compound_id)
         .def_rw("sequence", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::sequence)
         .def_rw("precursor_mz", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::precursor_mz)
@@ -3995,6 +4004,15 @@ points. *
     nb::class_<OpenMS::TransitionListEvidenceFilter::Result>(m, "TransitionListEvidenceFilter_Result",
         "Filtered target experiment and compact raw-data evidence summaries")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter::Result&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter::Result& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter::Result(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter::Result& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter::Result(self);
+        }, "memo"_a)
         .def_rw("filtered_targets", &OpenMS::TransitionListEvidenceFilter::Result::filtered_targets)
         .def_rw("evidence", &OpenMS::TransitionListEvidenceFilter::Result::evidence)
         .def_rw("total_target_precursors", &OpenMS::TransitionListEvidenceFilter::Result::total_target_precursors)
@@ -4032,6 +4050,7 @@ points. *
                 bool pasef,
                 int threads)
              {
+               nb::gil_scoped_release release;
                return self.filter(swath_maps, transition_exp, ms1_params, ms2_params, pasef, threads);
              },
              "swath_maps"_a, "transition_exp"_a, "ms1_params"_a, "ms2_params"_a,

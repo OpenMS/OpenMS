@@ -242,7 +242,7 @@ START_SECTION((filter() - hybrid support and decoy exclusion))
   TEST_EQUAL(transition_exp.transitions.size(), 9)
   for (const auto& transition : result.filtered_targets.transitions)
   {
-    TEST_EQUAL(transition.getDecoy(), false)
+    TEST_FALSE(transition.getDecoy())
     TEST_NOT_EQUAL(transition.getPeptideRef(), "DECOY_PEP")
   }
 }
@@ -317,7 +317,7 @@ START_SECTION((filter() - PASEF precursor ion mobility charge transform))
 
   TEST_EQUAL(result.supported_precursors, 1)
   TEST_REAL_SIMILAR(result.precursor_im_scale, 1.0)
-  TEST_EQUAL(result.precursor_im_scaled_by_charge, true)
+  TEST_TRUE(result.precursor_im_scaled_by_charge)
   TEST_REAL_SIMILAR(result.evidence[0].precursor_im, 0.7)
   TEST_REAL_SIMILAR(result.filtered_targets.compounds[0].getDriftTime(), 0.7)
   TEST_REAL_SIMILAR(result.filtered_targets.transitions[0].getPrecursorIM(), 0.7)
