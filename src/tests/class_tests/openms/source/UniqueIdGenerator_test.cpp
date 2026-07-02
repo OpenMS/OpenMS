@@ -70,15 +70,15 @@ START_SECTION((static std::string getUUID()))
   std::string u = OpenMS::UniqueIdGenerator::getUUID();
   STATUS("OpenMS::UniqueIdGenerator::getUUID(): " << u);
   TEST_EQUAL(u.size(), 36)
-  TEST_EQUAL(u[8] == '-' && u[13] == '-' && u[18] == '-' && u[23] == '-', true)
+  TEST_TRUE(u[8] == '-' && u[13] == '-' && u[18] == '-' && u[23] == '-')
 
   // version nibble must be '4' (UUIDv4)
   TEST_EQUAL(u[14], '4')
 
   // variant nibble encodes the 10xx bits -> one of 8, 9, a, b
   const char var = u[19];
-  TEST_EQUAL(var == '8' || var == '9' || var == 'a' || var == 'b' ||
-             var == 'A' || var == 'B', true)
+  TEST_TRUE(var == '8' || var == '9' || var == 'a' || var == 'b' ||
+            var == 'A' || var == 'B')
 
   // every non-hyphen character is a hex digit
   bool all_hex = true;
@@ -89,7 +89,7 @@ START_SECTION((static std::string getUUID()))
     const bool hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     if (!hex) { all_hex = false; break; }
   }
-  TEST_EQUAL(all_hex, true)
+  TEST_TRUE(all_hex)
 
   // uniqueness across many draws (no reseeding per call -> collisions negligible)
   std::set<std::string> seen;

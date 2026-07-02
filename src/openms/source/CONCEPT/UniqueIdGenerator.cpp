@@ -12,7 +12,6 @@
 
 #include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
 
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
@@ -46,7 +45,7 @@ namespace OpenMS
     // depend on std::random_device's entropy quality on every single call).
     UInt64 hi = getUniqueId();
     UInt64 lo = getUniqueId();
-    uint8_t bytes[16];
+    Byte bytes[16];
     std::memcpy(bytes, &hi, 8);
     std::memcpy(bytes + 8, &lo, 8);
     bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
