@@ -490,11 +490,34 @@ namespace OpenMS
       }
       if (pasef)
       {
-        return candidate.precursor_im >= 0.0 &&
-               map.imLower < candidate.precursor_im &&
+        if (map.imLower < 0.0 || map.imUpper < 0.0)
+        {
+          return true;
+        }
+        if (candidate.precursor_im < 0.0)
+        {
+          return true;
+        }
+        return map.imLower < candidate.precursor_im &&
                candidate.precursor_im < map.imUpper;
       }
       return true;
+    }
+
+    OpenSwath::SpectrumPtr getSpectrumForMap_(const OpenSwath::SpectrumAccessPtr& access,
+                                              const OpenSwath::SwathMap& map,
+                                              Size spectrum_index,
+                                              bool pasef)
+    {
+      if (!access)
+      {
+        return {};
+      }
+      if (pasef && map.imLower >= 0.0 && map.imUpper >= 0.0)
+      {
+        return access->getSpectrumById(static_cast<int>(spectrum_index), map.imLower, map.imUpper);
+      }
+      return access->getSpectrumById(static_cast<int>(spectrum_index));
     }
 
     Size countPasefWindowMatches_(const std::vector<PrecursorCandidate>& candidates,
@@ -728,6 +751,7 @@ namespace OpenMS
                            bool peak_picking_enabled,
                            const Param& picker_params,
                            bool peak_picking_use_gauss,
+                           bool pasef,
                            std::unordered_map<Size, EvidenceAccum>& local_evidence)
     {
       if (!map.sptr || product_index.empty() || map.sptr->getNrSpectra() == 0)
@@ -739,7 +763,7 @@ namespace OpenMS
       const Size nr_spectra = map.sptr->getNrSpectra();
       for (Size spectrum_index = 0; spectrum_index < nr_spectra; ++spectrum_index)
       {
-        OpenSwath::SpectrumPtr spectrum = access->getSpectrumById(static_cast<int>(spectrum_index));
+        OpenSwath::SpectrumPtr spectrum = getSpectrumForMap_(access, map, spectrum_index, pasef);
         const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
         const std::vector<PeakEvidence> peaks = extractPeaks_(
           spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
@@ -857,6 +881,7 @@ namespace OpenMS
                      bool peak_picking_enabled,
                      const Param& picker_params,
                      bool peak_picking_use_gauss,
+                     bool pasef,
                      int threads,
                      std::vector<EvidenceAccum>& merged_evidence)
     {
@@ -880,7 +905,7 @@ namespace OpenMS
 #pragma omp for schedule(dynamic, 16)
           for (SignedSize spectrum_index = 0; spectrum_index < static_cast<SignedSize>(nr_spectra); ++spectrum_index)
           {
-            OpenSwath::SpectrumPtr spectrum = access->getSpectrumById(static_cast<int>(spectrum_index));
+            OpenSwath::SpectrumPtr spectrum = getSpectrumForMap_(access, map, static_cast<Size>(spectrum_index), pasef);
             const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
             const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
             std::unordered_map<Size, SpectrumMS2Hit> spectrum_hits;
@@ -923,7 +948,7 @@ namespace OpenMS
 #endif
       {
         scanMS2MapSerial_(map, product_index, params, top_peaks_per_spectrum, min_fragment_hits,
-                          peak_picking_enabled, picker_params, peak_picking_use_gauss, local_results[0]);
+                          peak_picking_enabled, picker_params, peak_picking_use_gauss, pasef, local_results[0]);
       }
 
       mergeLocalEvidence_(merged_evidence, local_results);
@@ -950,7 +975,7 @@ namespace OpenMS
           const std::vector<ProductIndexEntry> product_index =
             buildProductIndexForMap_(candidates, precursor_index, map, params, pasef);
           scanMS2Map_(map, product_index, params, top_peaks_per_spectrum, min_fragment_hits,
-                      peak_picking_enabled, picker_params, peak_picking_use_gauss, 1, merged_evidence);
+                      peak_picking_enabled, picker_params, peak_picking_use_gauss, pasef, 1, merged_evidence);
         }
         return;
       }
@@ -990,7 +1015,7 @@ namespace OpenMS
           auto& local_evidence = local_results[0];
 #endif
           scanMS2MapSerial_(map, product_index, params, top_peaks_per_spectrum, min_fragment_hits,
-                            peak_picking_enabled, picker_params, peak_picking_use_gauss, local_evidence);
+                            peak_picking_enabled, picker_params, peak_picking_use_gauss, pasef, local_evidence);
         }
       }
 

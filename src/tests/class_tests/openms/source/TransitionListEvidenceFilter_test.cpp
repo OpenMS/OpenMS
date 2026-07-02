@@ -324,6 +324,40 @@ START_SECTION((filter() - PASEF precursor ion mobility charge transform))
 }
 END_SECTION
 
+START_SECTION((filter() - PASEF MS2 support without precursor ion mobility uses IM-sliced windows))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_NO_IM", 500.0, {100.0, 110.0, 120.0});
+
+  const MSSpectrum im_spectrum = makeIMSpectrum(
+    12.0,
+    {
+      {100.002, 1200.0, 0.70},
+      {110.002, 900.0, 0.70}
+    });
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(false, 400.0, 650.0, {im_spectrum}, 0.60, 0.80));
+  swath_maps.push_back(makeSwathMap(false, 400.0, 650.0, {im_spectrum}, 0.80, 1.00));
+
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), true, 1);
+
+  TEST_EQUAL(result.total_target_precursors, 1)
+  TEST_EQUAL(result.supported_precursors, 1)
+  TEST_EQUAL(result.ms2_supported, 1)
+  TEST_EQUAL(result.filtered_targets.compounds.size(), 1)
+  TEST_EQUAL(result.evidence[0].supported_ms2, true)
+  TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
+  TEST_EQUAL(result.evidence[0].ms2_hit_count, 2)
+  TEST_REAL_SIMILAR(result.evidence[0].precursor_im, -1.0)
+}
+END_SECTION
+
 START_SECTION((filter() - too few supported precursors))
 {
   LightTargetedExperiment transition_exp = makeLibrary();
