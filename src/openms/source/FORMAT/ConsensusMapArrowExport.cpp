@@ -12,7 +12,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
@@ -23,11 +27,16 @@
 #include <parquet/properties.h>
 
 #include <algorithm>
+#include <exception>
 #include <limits>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -46,6 +55,19 @@ namespace // anonymous
     }
     boost::regex scan_regex(regex_str);
     return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
+  }
+
+  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
+  /// MetaInfoRegistry::getName() takes an `omp critical` lock, so caching by index pays
+  /// that lock at most once per unique key for the whole range instead of once per
+  /// metavalue per feature (as getKeys()/getMetaValue() would). Registered names are
+  /// non-empty, so an empty cache slot reliably means "not yet resolved".
+  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
+  {
+    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
+    std::string& name = cache[index];
+    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
+    return name;
   }
 } // anonymous namespace
 
@@ -336,6 +358,32 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
 
   IDScoreSwitcherAlgorithm idsa;
 
+  // Lazily-filled MetaInfo index->name cache shared across all features in this range
+  // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
+  std::vector<std::string> meta_name_cache;
+
+  // Pre-resolve the fixed dedicated-column metavalue names to registry indices ONCE for this range.
+  // String-keyed exists()/getValue() take the MetaInfoRegistry omp-critical lock via getIndex() on
+  // every call; resolving once and using the index overloads (lock-free flat_map lookups) keeps the
+  // parallel build from serializing on that lock. UInt(-1) = name never registered on any object =>
+  // treated as absent (matches the sentinel check in the string-keyed exists()).
+  auto& mreg = MetaInfoInterface::metaRegistry();
+  const UInt idx_target_decoy       = mreg.getIndex("target_decoy");
+  const UInt idx_predicted_RT       = mreg.getIndex("predicted_RT");
+  const UInt idx_predicted_rt       = mreg.getIndex("predicted_rt");
+  const UInt idx_ion_mobility       = mreg.getIndex("ion_mobility");
+  const UInt idx_IM                 = mreg.getIndex("IM");
+  const UInt idx_spectrum_reference = mreg.getIndex("spectrum_reference");
+  const UInt idx_missed_cleavages   = mreg.getIndex("missed_cleavages");
+  const UInt idx_start_ion_mobility = mreg.getIndex("start_ion_mobility");
+  const UInt idx_stop_ion_mobility  = mreg.getIndex("stop_ion_mobility");
+  const UInt idx_rt_start           = mreg.getIndex("rt_start");
+  const UInt idx_rt_stop            = mreg.getIndex("rt_stop");
+  // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
+  // metaValueExists() does not special-case the sentinel the way the string overload does.
+  auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
+  { return idx != static_cast<UInt>(-1) && m.metaValueExists(idx); };
+
   for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
   {
     const auto& cf = cmap[feat_idx];
@@ -484,15 +532,17 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     if (has_id)
     {
       auto result = idsa.findScoreType(pep_ids[0], IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      // Resolve the (dynamic) PEP score name to an index once per feature (lock-free use below).
+      const UInt idx_pep = result.score_name.empty() ? static_cast<UInt>(-1) : mreg.getIndex(result.score_name);
       if (!result.score_name.empty() && best_hit)
       {
         if (result.is_main_score_type)
         {
           (void)pep_builder.Append(best_hit->getScore());
         }
-        else if (best_hit->metaValueExists(result.score_name))
+        else if (metaHas(*best_hit, idx_pep))
         {
-          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(result.score_name)));
+          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(idx_pep)));
         }
         else
         {
@@ -510,9 +560,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === is_decoy ===
-    if (best_hit && best_hit->metaValueExists("target_decoy"))
+    if (best_hit && metaHas(*best_hit, idx_target_decoy))
     {
-      std::string td = best_hit->getMetaValue("target_decoy").toString();
+      std::string td = best_hit->getMetaValue(idx_target_decoy).toString();
       (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
     }
     else
@@ -524,13 +574,16 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     (void)additional_scores_builder.Append();
     if (best_hit)
     {
-      std::vector<std::string> keys;
-      best_hit->getKeys(keys);
-      for (const auto& key : keys)
+      // Single index-based pass over the hit's metavalues (avoids getKeys()/getMetaValue(string),
+      // which take the MetaInfoRegistry lock per key); names resolved via the shared cache. Same
+      // iteration order (by index) and same filtering as the previous getKeys() loop.
+      for (auto mv_it = best_hit->metaBegin(); mv_it != best_hit->metaEnd(); ++mv_it)
       {
+        const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
         if (excluded_hit_mvs.contains(key)) continue;
-        const DataValue& val = best_hit->getMetaValue(key);
-        if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
+        const DataValue& val = mv_it->second;
+        const auto vt = val.valueType();
+        if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
             && Scores::isKnownScoreType(key))
         {
           (void)as_struct_b->Append();
@@ -550,13 +603,13 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === predicted_rt ===
-    if (best_hit && best_hit->metaValueExists("predicted_RT"))
+    if (best_hit && metaHas(*best_hit, idx_predicted_RT))
     {
-      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue("predicted_RT"))));
+      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue(idx_predicted_RT))));
     }
-    else if (best_hit && best_hit->metaValueExists("predicted_rt"))
+    else if (best_hit && metaHas(*best_hit, idx_predicted_rt))
     {
-      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue("predicted_rt"))));
+      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue(idx_predicted_rt))));
     }
     else
     {
@@ -590,9 +643,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       {
         // Prefer the dedicated member, fall back to metavalue
         spec_ref = pep_ids[0].getSpectrumReference();
-        if (spec_ref.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+        if (spec_ref.empty() && metaHas(pep_ids[0], idx_spectrum_reference))
         {
-          spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
+          spec_ref = pep_ids[0].getMetaValue(idx_spectrum_reference).toString();
         }
       }
 
@@ -611,31 +664,31 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     (void)cv_params_builder.AppendNull();
 
     // === ion_mobility, start/stop ===
-    if (!pep_ids.empty() && pep_ids[0].metaValueExists("ion_mobility"))
+    if (!pep_ids.empty() && metaHas(pep_ids[0], idx_ion_mobility))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue("ion_mobility"))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue(idx_ion_mobility))));
     }
-    else if (!pep_ids.empty() && pep_ids[0].metaValueExists("IM"))
+    else if (!pep_ids.empty() && metaHas(pep_ids[0], idx_IM))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue("IM"))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue(idx_IM))));
     }
     else
     {
       (void)ion_mobility_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("start_ion_mobility"))
+    if (metaHas(cf, idx_start_ion_mobility))
     {
-      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("start_ion_mobility"))));
+      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_start_ion_mobility))));
     }
     else
     {
       (void)im_start_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("stop_ion_mobility"))
+    if (metaHas(cf, idx_stop_ion_mobility))
     {
-      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("stop_ion_mobility"))));
+      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_stop_ion_mobility))));
     }
     else
     {
@@ -643,9 +696,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === missed_cleavages ===
-    if (best_hit && best_hit->metaValueExists("missed_cleavages"))
+    if (best_hit && metaHas(*best_hit, idx_missed_cleavages))
     {
-      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue("missed_cleavages"))));
+      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue(idx_missed_cleavages))));
     }
     else
     {
@@ -796,9 +849,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === rt_start / rt_stop ===
-    if (cf.metaValueExists("rt_start"))
+    if (metaHas(cf, idx_rt_start))
     {
-      (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("rt_start"))));
+      (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_start))));
     }
     else if (cf.getWidth() > 0)
     {
@@ -809,9 +862,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       (void)rt_start_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("rt_stop"))
+    if (metaHas(cf, idx_rt_stop))
     {
-      (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("rt_stop"))));
+      (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_stop))));
     }
     else if (cf.getWidth() > 0)
     {
@@ -970,12 +1023,30 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   const ConsensusMap& cmap,
   const std::string& filename,
   size_t batch_size,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  int n_threads)
 {
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
+  // Resolve the number of OpenMP threads used to build each batch's partitions.
+  // 1 = serial (default), 0 = all cores, N = fixed. Without OpenMP, always serial.
+  int threads = n_threads;
+#ifdef _OPENMP
+  if (threads <= 0) { threads = omp_get_max_threads(); }
+#endif
+  if (threads < 1) { threads = 1; }
+
   // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
   const auto id_lut = buildFeatureIdLookups(cmap);
+
+  // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
+  // cannot race across the OpenMP workers below. Runs once, serially. (ProForma and the
+  // SpectrumNativeIDParser scan path resolve through ModificationsDB/ResidueDB/AASequence, which are
+  // warmed here — the same set the PSM streaming path pre-warms.)
+  ModificationsDB::getInstance();
+  ResidueDB::getInstance();
+  (void)Scores::isKnownScoreType("q-value");
+  (void)AASequence::fromString("PEPTIDEK").getMZ(2); // inits AASequence static residue path
 
   // The writer's schema must match each batch table's schema exactly. buildFeatureTableRange()
   // stamps QPXFeatureSchema::schema() on every batch, so open the writer with the same schema.
@@ -1005,22 +1076,61 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
 
   const int64_t rg = static_cast<int64_t>(config.row_group_size);
 
-  // Build one feature range [b, e) into a self-contained table and flush it. Peak memory stays
-  // bounded by one batch (one batch's rows) instead of the whole map's ~N-row table at once.
+  // Build one feature batch [b, e): partition it into W contiguous sub-ranges, build each sub-table
+  // in parallel (OpenMP), then write them in index order (serial — the FileWriter is not thread-safe).
+  // Peak memory stays batch-bounded (the W sub-tables together hold one batch's rows). Row content and
+  // order are identical to the serial path (contiguous, in-order), so output is deterministic for any
+  // thread count.
   auto write_batch = [&](size_t b, size_t e) -> bool
   {
-    auto batch = buildFeatureTableRange(cmap, id_lut, b, e);
-    if (!batch)
+    const size_t rows = e - b;
+    const int W = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(rows, 1)));
+    std::vector<std::shared_ptr<arrow::Table>> parts(W);
+    std::vector<std::exception_ptr> errs(W);
+
+    #pragma omp parallel for num_threads(W) schedule(static)
+    for (int t = 0; t < W; ++t)
     {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch [" << b << ", " << e << ")" << std::endl;
-      return false;
+      try
+      {
+        const size_t base = rows / W, rem = rows % W;
+        const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
+        const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
+        parts[t] = buildFeatureTableRange(cmap, id_lut, sb, se);
+      }
+      catch (...)
+      {
+        errs[t] = std::current_exception(); // never let an exception escape the OpenMP region
+      }
     }
-    auto st = writer->WriteTable(*batch, rg);
-    if (!st.ok())
+
+    // Surface any worker exception as a logged failure (convert to the bool error contract).
+    for (int t = 0; t < W; ++t)
     {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write feature batch to " << filename << ": "
-                       << st.ToString() << std::endl;
-      return false;
+      if (errs[t])
+      {
+        try { std::rethrow_exception(errs[t]); }
+        catch (const std::exception& ex) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw: " << ex.what() << std::endl; }
+        catch (...)                      { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw (unknown exception)" << std::endl; }
+        return false;
+      }
+    }
+
+    // Write partitions in index order (serial — the FileWriter is not thread-safe).
+    for (int t = 0; t < W; ++t)
+    {
+      if (!parts[t])
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch partition " << t << std::endl;
+        return false;
+      }
+      auto st = writer->WriteTable(*parts[t], rg);
+      if (!st.ok())
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write feature batch to " << filename << ": "
+                         << st.ToString() << std::endl;
+        return false;
+      }
     }
     return true;
   };
