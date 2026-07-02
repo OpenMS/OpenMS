@@ -720,6 +720,7 @@ if(NOT DISABLE_OPENSWATH)
     PeakMapExtractor_test
     OpenSwathHelper_test
     OpenSwathOSWWriter_test
+    TransitionListEvidenceFilter_test
     OpenSwathScoring_test
     OpenSwathScores_test
     OpenSwathWorkflowScheduler_test

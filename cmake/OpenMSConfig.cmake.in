@@ -32,10 +32,10 @@ if(NOT TARGET Eigen3::Eigen)
     # Fall back to simple version check for older Eigen/CMake configurations
     find_dependency(Eigen3 3.4.0 REQUIRED)
 endif()
-find_dependency(LIBSVM 2.91)
 
 # Rest are private linked libraries
 #find_dependency(Boost COMPONENTS @OpenMS_BOOST_COMPONENTS@)
+#find_dependency(LIBSVM 2.91) # now PRIVATE: not exposed in the public API, encapsulated by SimpleSVM (see #8547)
 #find_dependency(COIN)
 #find_dependency(GLPK)
 #find_dependency(ZLIB)

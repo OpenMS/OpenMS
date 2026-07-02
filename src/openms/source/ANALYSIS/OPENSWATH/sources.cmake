@@ -37,6 +37,7 @@ set(sources_list
   OpenSwathOSWWriter.cpp
   PeakMapExtractor.cpp
   OpenSwathResultsExporter.cpp
+  TransitionListEvidenceFilter.cpp
   OpenSwathWorkflow.cpp
   OpenSwathWorkflowScheduler.cpp
   PeakIntegrator.cpp
