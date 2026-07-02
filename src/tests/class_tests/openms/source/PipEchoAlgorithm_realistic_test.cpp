@@ -430,6 +430,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       Param p = algo.getParameters();
       p.setValue("fdr", fdr);
       p.setValue("random_seed", 0); // deterministic decoy selection
+      p.setValue("local_rt:enabled", "false"); // baseline sweep exercises the global window
       algo.setParameters(p);
 
       ConsensusMap cm;
@@ -514,6 +515,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       Param p = a2.getParameters();
       p.setValue("fdr", 0.05);
       p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "false"); // match the global-window sweep output above
       a2.setParameters(p);
       ConsensusMap cm2;
       a2.group(ds.maps, cm2);
@@ -543,6 +545,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       p.setValue("fdr", 0.05);
       p.setValue("random_seed", 0);
       p.setValue("max_training_points", 500); // well below the per-fold training size
+      p.setValue("local_rt:enabled", "false"); // cap behaviour validated on the global-window baseline
       algo.setParameters(p);
 
       ConsensusMap cm;
@@ -564,6 +567,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       p2.setValue("fdr", 0.05);
       p2.setValue("random_seed", 0);
       p2.setValue("max_training_points", 500);
+      p2.setValue("local_rt:enabled", "false"); // match the baseline run above
       a2.setParameters(p2);
       ConsensusMap cm2;
       a2.group(ds.maps, cm2);
@@ -588,6 +592,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       p.setValue("fdr", 0.05);
       p.setValue("random_seed", 0);
       p.setValue("local_rt:enabled", "true");
+      p.setValue("local_rt:auto", "false"); // manual (fixed) window; auto is now the default
       algo.setParameters(p);
 
       ConsensusMap cm;

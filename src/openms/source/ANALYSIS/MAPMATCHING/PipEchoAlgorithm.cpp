@@ -102,8 +102,8 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      {"advanced"});
   defaults_.setMinInt("max_training_points", 0);
 
-  // --- Local adaptive RT window (EXPERIMENTAL; default off = the global window) ---
-  defaults_.setValue("local_rt:enabled", "false",
+  // --- Local adaptive RT window (default ON; set 'false' for the legacy global window) ---
+  defaults_.setValue("local_rt:enabled", "true",
                      "Use a LOCAL adaptive retention-time window for MBR candidate"
                      " search instead of the single global RT window"
                      " ('distance_RT:max_difference'). For each donor the expected"
@@ -111,7 +111,8 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      " runs (local alignment) and the search window is sized from the"
                      " local RT scatter, sharpening the RT feature and removing much of"
                      " the false in-window background. The window is widened adaptively"
-                     " if too few decoys are produced to resolve the FDR.",
+                     " if too few decoys are produced to resolve the FDR. Set 'false' to"
+                     " restore the legacy single global RT window.",
                      {"advanced"});
   defaults_.setValidStrings("local_rt:enabled", {"true", "false"});
 
@@ -145,7 +146,7 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      " available.", {"advanced"});
   defaults_.setMinFloat("local_rt:fallback_window", 0.0);
 
-  defaults_.setValue("local_rt:auto", "false",
+  defaults_.setValue("local_rt:auto", "true",
                      "Estimate the local RT window scales (max_window, min_window,"
                      " anchor_window, fallback_window) from the data instead of using the"
                      " fixed values above, so one configuration adapts across short and"
