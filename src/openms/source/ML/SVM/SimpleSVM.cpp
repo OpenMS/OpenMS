@@ -546,7 +546,7 @@ void SimpleSVM::loadModel(const std::string& filename)
   if (pimpl_->model_ == nullptr)
   {
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                "Could not load SVM model from '" + filename + "'", filename);
+                                filename, "Could not load SVM model");
   }
   // A loaded model carries no predictor names or scaling (they are not stored in
   // the LIBSVM model file), so only the vector-based predict() overload -- which
