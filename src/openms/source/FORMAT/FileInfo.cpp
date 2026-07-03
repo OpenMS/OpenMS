@@ -854,6 +854,7 @@ namespace OpenMS
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
+      file.setLogType(options.log_type);
 
       // loading input
       file.load(in, entries);
@@ -1080,7 +1081,7 @@ namespace OpenMS
       ff.getFeatOptions().setLoadSubordinates(false); // SO's currently not needed here
 
       // reading input
-      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML});
+      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML}, options.log_type);
 
       feat.updateRanges();
 
@@ -1145,7 +1146,7 @@ namespace OpenMS
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
       // reading input
-      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML}, options.log_type);
 
       cons.updateRanges();
 
@@ -1324,7 +1325,7 @@ namespace OpenMS
       // reading input
       if (in_type == FileTypes::MZIDENTML)
       {
-        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML});
+        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML}, options.log_type);
       }
       else
       {
@@ -1518,6 +1519,7 @@ namespace OpenMS
     {
       TargetedExperiment targeted_exp;
       TransitionPQPFile pqp_reader;
+      pqp_reader.setLogType(options.log_type);
       pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, true);
       const auto summary = targeted_exp.getSummary();
       os << summary;
@@ -1529,7 +1531,7 @@ namespace OpenMS
     }
     else // peaks
     {
-      fh.loadExperiment(in, exp, {in_type}, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(in, exp, {in_type}, options.log_type, false, false);
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
