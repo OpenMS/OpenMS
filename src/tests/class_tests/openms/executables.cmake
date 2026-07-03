@@ -459,6 +459,7 @@ set(chemistry_executables_list
   DecoyGenerator_test
   DigestionEnzyme_test
   DigestionEnzymeProtein_test
+  DigestionEnzymeRNA_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
