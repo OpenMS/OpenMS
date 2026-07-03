@@ -480,6 +480,7 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
+  MonosaccharideDB_test
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
@@ -487,6 +488,7 @@ set(chemistry_executables_list
   ProFormaParser_test
   ProteaseDB_test
   ProteaseDigestion_test
+  RNaseDB_test
   RNaseDigestion_test
   RealMassDecomposer_test
   ResidueDB_test
