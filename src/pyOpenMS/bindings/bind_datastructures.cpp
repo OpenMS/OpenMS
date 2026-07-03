@@ -566,9 +566,17 @@ Returns the objective value of the solution
         .value("FORMAT_GLPK", OpenMS::LPWrapper::WriteFormat::FORMAT_GLPK)
         .export_values();
     // SOLVER enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic())
-        .value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK)
-        .export_values();
+    {
+    auto solver_enum = nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic());
+    solver_enum.value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK);
+#ifdef OPENMS_HAS_COINOR
+    solver_enum.value("SOLVER_COINOR", OpenMS::LPWrapper::SOLVER::SOLVER_COINOR);
+#endif
+#ifdef OPENMS_HAS_HIGHS
+    solver_enum.value("SOLVER_HIGHS", OpenMS::LPWrapper::SOLVER::SOLVER_HIGHS);
+#endif
+    solver_enum.export_values();
+    }
     // SolverStatus enum nested under LPWrapper
     nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus", nb::is_arithmetic())
         .value("UNDEFINED", OpenMS::LPWrapper::SolverStatus::UNDEFINED)
@@ -1402,6 +1410,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("PEPTIDE", OpenMS::OSWHierarchy::Level::PEPTIDE)
         .value("FEATURE", OpenMS::OSWHierarchy::Level::FEATURE)
         .value("TRANSITION", OpenMS::OSWHierarchy::Level::TRANSITION)
+        .value("SIZE_OF_VALUES", OpenMS::OSWHierarchy::Level::SIZE_OF_VALUES)
         .export_values();
 
     // -----------------------------------------------------------------------
