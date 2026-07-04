@@ -9,15 +9,15 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <memory>
+#include <OpenMS/ML/ONNXPredictorBase.h>
 #include <string>
 #include <vector>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI PeptDeepRTInference
-  {
-  public:
+    class OPENMS_DLLAPI PeptDeepRTInference : public ONNXPredictorBase
+    {
+    public:
         /**
          * @brief Constructor initializes the ONNX environment and loads the model
          * @param model_path Absolute path to peptdeep_rt_dynamic.onnx
@@ -27,7 +27,7 @@ namespace OpenMS
         /**
          * @brief Destructor
          */
-        ~PeptDeepRTInference();
+        ~PeptDeepRTInference() override;
 
         /**
          * @brief Predicts Retention Times for a list of peptide sequences
@@ -35,10 +35,5 @@ namespace OpenMS
          * @return A vector of predicted RT values corresponding to the input peptides
          */
         std::vector<float> predictRT(const std::vector<std::string>& peptides);
-
-    private:
-        // Pimpl idiom: hide all ONNX internal objects and helper functions
-        struct Impl;
-        std::unique_ptr<Impl> pimpl_;
     };
 } // namespace OpenMS

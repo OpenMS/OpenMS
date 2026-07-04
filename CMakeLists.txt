@@ -529,9 +529,6 @@ include(cmake/cmake_findExternalLibs.cmake)
 ## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
-
-option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
-
 if(WITH_ONNX)
   # 1. Tell CMake to look for the package ONLY if the switch is ON
   find_package(ONNXRuntime REQUIRED)

@@ -4,7 +4,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
-#include <OpenMS/ML/AminoAcidVocabulary.h>
+#include <OpenMS/ML/PeptDeepUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -19,7 +19,6 @@ START_SECTION(AminoAcidVocabulary and Utilities)
     STATUS("Testing vocabulary tokenization for 'AGHCEWQMKYR'...");
     string pep = "AGHCEWQMKYR";
 
-    // Expected index vector matching Justin's code review
     vector<Int64> expected = {0, 1, 7, 8, 3, 5, 23, 17, 13, 11, 25, 18, 0};
 
     vector<Int64> actual;

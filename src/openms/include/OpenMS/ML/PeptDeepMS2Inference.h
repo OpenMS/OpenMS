@@ -10,8 +10,9 @@
 
 #include <string>
 #include <vector>
-#include <memory>
+#include <cstdint>
 #include <OpenMS/config.h>
+#include <OpenMS/ML/ONNXPredictorBase.h>
 
 namespace OpenMS {
 
@@ -19,7 +20,7 @@ namespace OpenMS {
 ///
 /// This class parses and tokenizes raw peptide string sequences into structural integer arrays
 /// and evaluates them through the ONNX Runtime backend to predict fragment intensities.
-class OPENMS_DLLAPI PeptDeepMS2Inference {
+class OPENMS_DLLAPI PeptDeepMS2Inference : public ONNXPredictorBase {
 public:
     /// @brief Constructor initializes the ONNX session with the specified model graph.
     /// @param model_path Absolute or relative path to the PeptDeep MS2 ONNX model file.
@@ -27,7 +28,7 @@ public:
     PeptDeepMS2Inference(const std::string& model_path);
 
     /// @brief Destructor
-    ~PeptDeepMS2Inference();
+    ~PeptDeepMS2Inference() override;
 
     /// @brief Predicts MS2 fragment intensities for a batch of peptide sequences.
     /// @param peptides A vector of raw uppercase peptide strings.
@@ -42,11 +43,6 @@ public:
         const std::vector<float>& charges,
         const std::vector<float>& nces,
         const std::vector<int64_t>& instrument_indices);
-
-private:
-    // Pimpl idiom: hide all ONNX internal objects
-    struct Impl;
-    std::unique_ptr<Impl> pimpl_;
 };
 
 } // namespace OpenMS

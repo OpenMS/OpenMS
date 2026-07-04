@@ -106,11 +106,34 @@ if(WITH_ONNX)
   get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
 
   if(ORT_LIB_PATH)
-      # install(PROGRAMS...) safely copies the .dylib/.so/.dll with executable permissions
-      install(PROGRAMS "${ORT_LIB_PATH}"
-          DESTINATION "${INSTALL_BIN_DIR}"
-      )
+      # Safely install ONNX shared libraries based on the operating system
+      if(WIN32)
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}")
+      else()
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}")
+      endif()
   endif()
+
+  # Download PeptDeep models to the global OpenMS share directory
+  set(PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models")
+  set(MODEL_DIR "${PROJECT_BINARY_DIR}/share/OpenMS/models")
+  file(MAKE_DIRECTORY "${MODEL_DIR}")
+
+  set(PEPTDEEP_MODELS
+      "peptdeep_ms2_dynamic.onnx"
+      "peptdeep_rt_dynamic.onnx"
+  )
+
+  foreach(MODEL ${PEPTDEEP_MODELS})
+      if(NOT EXISTS "${MODEL_DIR}/${MODEL}")
+          message(STATUS "Fetching PeptDeep model: ${MODEL} from archive...")
+          file(DOWNLOAD "${PEPTDEEP_MODEL_URL}/${MODEL}" "${MODEL_DIR}/${MODEL}" SHOW_PROGRESS)
+      endif()
+  endforeach()
+
+  # Ensure models are packaged during 'make install'
+  install(FILES "${MODEL_DIR}/peptdeep_ms2_dynamic.onnx" "${MODEL_DIR}/peptdeep_rt_dynamic.onnx"
+          DESTINATION "share/OpenMS/models")
 endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
@@ -257,6 +280,7 @@ openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 if(WITH_ONNX)
   target_sources(OpenMS PRIVATE
     source/ML/ONNXEnvironment.cpp
+    source/ML/ONNXPredictorBase.cpp
     source/ML/PeptDeepRTInference.cpp
     source/ML/PeptDeepMS2Inference.cpp
   )
