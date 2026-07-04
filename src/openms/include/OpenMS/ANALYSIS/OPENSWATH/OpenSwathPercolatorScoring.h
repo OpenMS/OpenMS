@@ -54,11 +54,11 @@ namespace OpenMS
     /// Supported OpenSWATH scoring levels
     enum class Level
     {
-      MS1,
-      MS2,
-      MS1MS2,
-      TRANSITION,
-      SIZE_OF_LEVEL
+      MS1, ///< MS1-level features; writes SCORE_MS1 / score_ms1_*
+      MS2, ///< MS2-level features; writes SCORE_MS2 / score_ms2_*
+      MS1MS2, ///< Combined MS1 + MS2 features; writes SCORE_MS2 / score_ms2_*
+      TRANSITION, ///< Transition-level features; writes SCORE_TRANSITION / score_transition_*
+      SIZE_OF_LEVEL ///< Number of supported levels; not a valid scoring level itself
     };
 
     /// String names of the supported scoring levels
@@ -67,10 +67,10 @@ namespace OpenMS
     /// Small execution summary returned by score()
     struct OPENMS_DLLAPI ScoreSummary
     {
-      Size total_rows = 0;
-      Size target_rows = 0;
-      Size decoy_rows = 0;
-      Size feature_count = 0;
+      Size total_rows = 0; ///< Total number of rows considered for rescoring
+      Size target_rows = 0; ///< Number of target (non-decoy) rows rescored
+      Size decoy_rows = 0; ///< Number of decoy rows rescored
+      Size feature_count = 0; ///< Number of feature columns used by Percolator
     };
 
     OpenSwathPercolatorScoring();
