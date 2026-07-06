@@ -133,6 +133,7 @@ protected:
     opt.check_corrupt = getFlag_("c");
     opt.validate      = getFlag_("v");
     opt.check_index   = getFlag_("i");
+    opt.log_type      = log_type_; // TOPPBase member: CMD by default, NONE under -no_progress
 
     FileInfo fi;
     FileInfo::Result r = fi.run(in, opt);
