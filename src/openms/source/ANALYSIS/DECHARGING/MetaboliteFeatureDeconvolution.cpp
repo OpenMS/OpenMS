@@ -469,9 +469,14 @@ namespace OpenMS
             double f1_length = f1.getConvexHull().getBoundingBox().maxX() - f1.getConvexHull().getBoundingBox().minX();
             double f2_length = f2.getConvexHull().getBoundingBox().maxX() - f2.getConvexHull().getBoundingBox().minX();
             reference_length = std::min(f1_length, f2_length);
+
+            // A degenerate (zero-width) feature has no RT extent to overlap with;
+            // fail closed and reject the pair instead of skipping the check.
+            if (reference_length <= 0.0)
+              continue;
           }
 
-          if (reference_length > 0.0 && intersect_length / reference_length < rt_min_overlap)
+          if (intersect_length / reference_length < rt_min_overlap)
             continue;
         }
 
