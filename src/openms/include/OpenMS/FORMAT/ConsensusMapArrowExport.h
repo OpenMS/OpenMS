@@ -31,7 +31,9 @@ namespace OpenMS
 
   This class provides static methods to export ConsensusMap data to Apache Arrow
   Tables and Parquet files. The schema follows the QPX (Quantitative Proteomics
-  Exchange) feature format.
+  Exchange) feature format. For very large maps, exportToParquetStreaming() writes
+  the table in row-batches (optionally built in parallel via OpenMP) to bound peak
+  memory, instead of materializing the whole table at once like exportToParquet().
 
   @experimental This API is experimental and may change in future versions.
 

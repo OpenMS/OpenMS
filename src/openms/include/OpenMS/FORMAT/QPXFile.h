@@ -33,7 +33,9 @@ namespace OpenMS
 
   This class provides static methods to export PeptideIdentification/ProteinIdentification
   data to Apache Arrow Tables and Parquet files. The schema follows the QPX (Quantitative
-  Proteomics Exchange) PSM format.
+  Proteomics Exchange) PSM format. For very large inputs, exportToParquetStreaming() writes
+  the table in row-batches (optionally built in parallel via OpenMP) to bound peak memory,
+  instead of materializing the whole table at once like exportToParquet().
 
   @experimental This API is experimental and may change in future versions.
 

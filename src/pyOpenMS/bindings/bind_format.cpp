@@ -2078,7 +2078,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XICParquetFile& self) { return OpenMS::XICParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XICParquetFile& self, nb::dict) { return OpenMS::XICParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH chromatogram Parquet files (.xic).")
+        .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Return the primary filename (for multi-file instances, the first file in the list).")
         .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
 
         .def("getColumns", [](const OpenMS::XICParquetFile& self) {
@@ -2277,7 +2277,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
+        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Return the primary filename (for multi-file instances, the first file in the list).")
         .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
 
         .def("getColumns", [](const OpenMS::XIMParquetFile& self) {
@@ -2489,7 +2489,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIPMParquetFile& self) { return OpenMS::XIPMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIPMParquetFile& self, nb::dict) { return OpenMS::XIPMParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH peak-map Parquet files (.xipm).")
+        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Return the primary filename (for multi-file instances, the first file in the list).")
         .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
 
         .def("getColumns", [](const OpenMS::XIPMParquetFile& self) {

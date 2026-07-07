@@ -44,17 +44,17 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI ExtractedPeakMap
     {
-      std::string native_id;
-      double target_mz{0.0};
-      double target_rt{std::numeric_limits<double>::quiet_NaN()};
-      double target_ion_mobility{-1.0};
-      double rt_start{0.0};
-      double rt_end{-1.0};
+      std::string native_id; ///< Identifier of the extraction coordinate (e.g. transition/precursor native id)
+      double target_mz{0.0}; ///< Extraction target m/z
+      double target_rt{std::numeric_limits<double>::quiet_NaN()}; ///< Extraction target RT; NaN if not applicable
+      double target_ion_mobility{-1.0}; ///< Extraction target ion mobility; negative if ion mobility filtering is disabled
+      double rt_start{0.0}; ///< Extraction window start in RT
+      double rt_end{-1.0}; ///< Extraction window end in RT; @p rt_end <= @p rt_start disables RT windowing (full range is extracted)
 
-      std::vector<double> mz;
-      std::vector<double> rt;
-      std::vector<double> ion_mobility;
-      std::vector<double> intensity;
+      std::vector<double> mz; ///< Extracted m/z array
+      std::vector<double> rt; ///< Extracted RT array
+      std::vector<double> ion_mobility; ///< Extracted ion mobility array
+      std::vector<double> intensity; ///< Extracted intensity array
     };
 
     /**
