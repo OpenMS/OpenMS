@@ -10,6 +10,7 @@
 #include <OpenMS/ML/ONNXEnvironment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <onnxruntime_cxx_api.h>
+#include <stdexcept>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -46,6 +47,83 @@ namespace OpenMS
         }
     }
 
+    ONNXPredictorBase::ONNXPredictorBase(ONNXPredictorBase&&) noexcept = default;
+
+    ONNXPredictorBase& ONNXPredictorBase::operator=(ONNXPredictorBase&&) noexcept = default;
+
     ONNXPredictorBase::~ONNXPredictorBase() = default;
+
+    Ort::Session& ONNXPredictorBase::session()
+    {
+        return *session_;
+    }
+
+    const Ort::Session& ONNXPredictorBase::session() const
+    {
+        return *session_;
+    }
+
+    Ort::MemoryInfo& ONNXPredictorBase::memoryInfo()
+    {
+        return *memory_info_;
+    }
+
+    const Ort::MemoryInfo& ONNXPredictorBase::memoryInfo() const
+    {
+        return *memory_info_;
+    }
+
+    std::vector<std::string> ONNXPredictorBase::getInputNames() const
+    {
+        Ort::AllocatorWithDefaultOptions allocator;
+        std::vector<std::string> names;
+        const size_t count = session_->GetInputCount();
+        names.reserve(count);
+        for (size_t i = 0; i < count; ++i)
+        {
+            Ort::AllocatedStringPtr name = session_->GetInputNameAllocated(i, allocator);
+            names.emplace_back(name.get());
+        }
+        return names;
+    }
+
+    std::vector<std::string> ONNXPredictorBase::getOutputNames() const
+    {
+        Ort::AllocatorWithDefaultOptions allocator;
+        std::vector<std::string> names;
+        const size_t count = session_->GetOutputCount();
+        names.reserve(count);
+        for (size_t i = 0; i < count; ++i)
+        {
+            Ort::AllocatedStringPtr name = session_->GetOutputNameAllocated(i, allocator);
+            names.emplace_back(name.get());
+        }
+        return names;
+    }
+
+    std::vector<int64_t> ONNXPredictorBase::getInputShape(size_t input_index) const
+    {
+        if (input_index >= session_->GetInputCount())
+        {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "ONNX input index is out of range.",
+                std::to_string(input_index));
+        }
+        Ort::TypeInfo type_info = session_->GetInputTypeInfo(input_index);
+        return type_info.GetTensorTypeAndShapeInfo().GetShape();
+    }
+
+    size_t ONNXPredictorBase::getInputCount() const
+    {
+        return session_->GetInputCount();
+    }
+
+    size_t ONNXPredictorBase::getOutputCount() const
+    {
+        return session_->GetOutputCount();
+    }
 
 } // namespace OpenMS

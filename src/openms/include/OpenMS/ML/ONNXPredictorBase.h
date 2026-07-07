@@ -9,8 +9,11 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <memory>
+#include <vector>
 
 // Forward declaration to avoid exposing ONNX headers globally
 namespace Ort {
@@ -30,7 +33,36 @@ namespace OpenMS
 
         virtual ~ONNXPredictorBase();
 
-    protected:
+        ONNXPredictorBase(const ONNXPredictorBase&) = delete;
+        ONNXPredictorBase& operator=(const ONNXPredictorBase&) = delete;
+
+        ONNXPredictorBase(ONNXPredictorBase&&) noexcept;
+        ONNXPredictorBase& operator=(ONNXPredictorBase&&) noexcept;
+
+        /// @brief Access the wrapped ONNX Runtime session.
+        Ort::Session& session();
+        const Ort::Session& session() const;
+
+        /// @brief Access CPU memory info used to construct input tensors.
+        Ort::MemoryInfo& memoryInfo();
+        const Ort::MemoryInfo& memoryInfo() const;
+
+        /// @brief Return model input names in ONNX graph order.
+        std::vector<std::string> getInputNames() const;
+
+        /// @brief Return model output names in ONNX graph order.
+        std::vector<std::string> getOutputNames() const;
+
+        /// @brief Return the declared input shape for an input index.
+        std::vector<int64_t> getInputShape(size_t input_index) const;
+
+        /// @brief Return the number of model inputs.
+        size_t getInputCount() const;
+
+        /// @brief Return the number of model outputs.
+        size_t getOutputCount() const;
+
+    private:
         std::unique_ptr<Ort::SessionOptions> session_options_;
         std::unique_ptr<Ort::Session> session_;
         std::unique_ptr<Ort::MemoryInfo> memory_info_;

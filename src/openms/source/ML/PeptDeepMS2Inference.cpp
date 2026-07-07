@@ -24,7 +24,7 @@ namespace
 namespace OpenMS {
 
 PeptDeepMS2Inference::PeptDeepMS2Inference(const std::string& model_path)
-    : ONNXPredictorBase(model_path) // Handled entirely by the new base class
+    : model_(model_path)
 {}
 
 PeptDeepMS2Inference::~PeptDeepMS2Inference() = default;
@@ -82,26 +82,20 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
 
     // 4. Dynamically map model inputs and their EXACT expected shapes
     Ort::AllocatorWithDefaultOptions ort_alloc;
-    size_t input_count = session_->GetInputCount();
+    size_t input_count = model_.getInputCount();
 
-    std::vector<std::string> input_names;
-    input_names.reserve(input_count);
+    std::vector<std::string> input_names = model_.getInputNames();
     std::vector<const char*> input_names_chars;
     input_names_chars.reserve(input_count);
     std::vector<Ort::Value> input_tensors;
     input_tensors.reserve(input_count);
 
     for (size_t i = 0; i < input_count; i++) {
-        Ort::AllocatedStringPtr name_ptr = session_->GetInputNameAllocated(i, ort_alloc);
-        input_names.push_back(name_ptr.get());
-    }
-
-    for (size_t i = 0; i < input_count; i++) {
         const std::string& name = input_names[i];
         input_names_chars.push_back(name.c_str());
 
         // Ask ONNX what shape it expects for this specific input
-        Ort::TypeInfo type_info = session_->GetInputTypeInfo(i);
+        Ort::TypeInfo type_info = model_.session().GetInputTypeInfo(i);
         auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
         std::vector<int64_t> expected_shape = tensor_info.GetShape();
 
@@ -112,25 +106,25 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
 
         if (name == "aa_indices") {
             expected_shape = {batch_size, padded_length}; // Explicitly enforce sequence length
-            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(*memory_info_, aa_indices.data(), aa_indices.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(model_.memoryInfo(), aa_indices.data(), aa_indices.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "mod_x") {
             expected_shape = {batch_size, padded_length, ML::PEPTDEEP_MOD_ELEMENTS};
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(*memory_info_, mod_x_data.data(), mod_x_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), mod_x_data.data(), mod_x_data.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "charges" || name == "charge") {
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(*memory_info_, charge_data.data(), charge_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), charge_data.data(), charge_data.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "nces" || name == "nce") {
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(*memory_info_, nce_data.data(), nce_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), nce_data.data(), nce_data.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "instrument_indices" || name == "instrument") {
-            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(*memory_info_, inst_data.data(), inst_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(model_.memoryInfo(), inst_data.data(), inst_data.size(), expected_shape.data(), expected_shape.size()));
         } else {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ONNX input: " + name);
         }
     }
 
-    Ort::AllocatedStringPtr out_name = session_->GetOutputNameAllocated(0, ort_alloc);
+    Ort::AllocatedStringPtr out_name = model_.session().GetOutputNameAllocated(0, ort_alloc);
     const char* output_names[] = { out_name.get() };
 
-    auto output_tensors = session_->Run(
+    auto output_tensors = model_.session().Run(
         Ort::RunOptions{nullptr}, input_names_chars.data(), input_tensors.data(), input_tensors.size(), output_names, 1
     );
 

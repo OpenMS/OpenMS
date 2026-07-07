@@ -16,7 +16,7 @@
 namespace OpenMS
 {
     PeptDeepRTInference::PeptDeepRTInference(const std::string& model_path)
-        : ONNXPredictorBase(model_path) // Handled by base class
+        : model_(model_path)
     {}
 
     PeptDeepRTInference::~PeptDeepRTInference() = default;
@@ -45,7 +45,7 @@ namespace OpenMS
         std::vector<int64_t> seq_shape = { static_cast<int64_t>(peptides.size()), static_cast<int64_t>(ML::PEPTDEEP_MAX_SEQUENCE_LENGTH) };
 
         // 2. Fetch expected mod_shape dynamically from ONNX
-        Ort::TypeInfo mod_type_info = session_->GetInputTypeInfo(1);
+        Ort::TypeInfo mod_type_info = model_.session().GetInputTypeInfo(1);
         auto mod_tensor_info = mod_type_info.GetTensorTypeAndShapeInfo();
         std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
 
@@ -64,23 +64,23 @@ namespace OpenMS
         std::vector<Ort::Value> input_tensors;
 
         input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
-            *memory_info_, input_tokens.data(), input_tokens.size(), seq_shape.data(), seq_shape.size()
+            model_.memoryInfo(), input_tokens.data(), input_tokens.size(), seq_shape.data(), seq_shape.size()
         ));
 
         input_tensors.push_back(Ort::Value::CreateTensor<float>(
-            *memory_info_, mod_x_data.data(), mod_x_data.size(), mod_shape.data(), mod_shape.size()
+            model_.memoryInfo(), mod_x_data.data(), mod_x_data.size(), mod_shape.data(), mod_shape.size()
         ));
 
         Ort::AllocatorWithDefaultOptions ort_alloc;
-        Ort::AllocatedStringPtr seq_name_ptr = session_->GetInputNameAllocated(0, ort_alloc);
-        Ort::AllocatedStringPtr mod_name_ptr = session_->GetInputNameAllocated(1, ort_alloc);
-        Ort::AllocatedStringPtr output_name_ptr = session_->GetOutputNameAllocated(0, ort_alloc);
+        Ort::AllocatedStringPtr seq_name_ptr = model_.session().GetInputNameAllocated(0, ort_alloc);
+        Ort::AllocatedStringPtr mod_name_ptr = model_.session().GetInputNameAllocated(1, ort_alloc);
+        Ort::AllocatedStringPtr output_name_ptr = model_.session().GetOutputNameAllocated(0, ort_alloc);
 
         const char* input_names[] = { seq_name_ptr.get(), mod_name_ptr.get() };
         const char* output_names[] = { output_name_ptr.get() };
 
         // 4. Run Inference
-        auto output_tensors = session_->Run(
+        auto output_tensors = model_.session().Run(
             Ort::RunOptions{nullptr}, input_names, input_tensors.data(), 2, output_names, 1
         );
 

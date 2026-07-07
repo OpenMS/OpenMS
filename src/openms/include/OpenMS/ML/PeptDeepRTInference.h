@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-    class OPENMS_DLLAPI PeptDeepRTInference : public ONNXPredictorBase
+    class OPENMS_DLLAPI PeptDeepRTInference
     {
     public:
         /**
@@ -27,7 +27,7 @@ namespace OpenMS
         /**
          * @brief Destructor
          */
-        ~PeptDeepRTInference() override;
+        ~PeptDeepRTInference();
 
         /**
          * @brief Predicts Retention Times for a list of peptide sequences
@@ -35,5 +35,8 @@ namespace OpenMS
          * @return A vector of predicted RT values corresponding to the input peptides
          */
         std::vector<float> predictRT(const std::vector<std::string>& peptides);
+
+    private:
+        ONNXPredictorBase model_;
     };
 } // namespace OpenMS
