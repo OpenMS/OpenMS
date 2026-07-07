@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <map>
 #include <sstream>
 
 using namespace OpenMS;
@@ -21,7 +22,50 @@ START_TEST(PeptDeepInference, "$Id$")
 // Note: These paths will be resolved by the OpenMS CMake testing environment
 const string rt_model = "data/peptdeep_rt_dynamic.onnx";
 const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
+const string irt_reference_data = OPENMS_GET_TEST_DATA_PATH("peptdeep_irt_peptides_predicted.csv");
 const string rt_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_retention_time_predicted.csv");
+const string ms2_spectra_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_spectra.csv");
+const string ms2_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_predicted_intensities.csv");
+
+vector<string> splitCSVLine(const string& line)
+{
+    vector<string> fields;
+    string field;
+    stringstream stream(line);
+    while (getline(stream, field, ','))
+    {
+        fields.push_back(field);
+    }
+    return fields;
+}
+
+map<string, size_t> csvHeaderIndex(const string& header)
+{
+    vector<string> fields = splitCSVLine(header);
+    map<string, size_t> index;
+    for (size_t i = 0; i < fields.size(); ++i)
+    {
+        index[fields[i]] = i;
+    }
+    return index;
+}
+
+const string& csvField(const vector<string>& fields, const map<string, size_t>& index, const string& name)
+{
+    static const string empty;
+    auto it = index.find(name);
+    TEST_EQUAL(it != index.end(), true);
+    if (it == index.end())
+    {
+        return empty;
+    }
+    TEST_EQUAL(it->second < fields.size(), true);
+    if (it->second >= fields.size())
+    {
+        return empty;
+    }
+    return fields[it->second];
+}
 
 START_SECTION(AminoAcidVocabulary and Utilities)
     STATUS("Testing vocabulary tokenization for 'AGHCEWQMKYR'...");
@@ -83,33 +127,49 @@ START_SECTION(PeptDeepInputBuilder)
 END_SECTION
 
 START_SECTION(PeptDeepRTInference)
-    STATUS("Verifying RT prediction for iRT peptide LGGNEQVTR...");
-    PeptDeepRTInference rt_engine(rt_model);
+    STATUS("Verifying RT prediction for iRT peptide LGGNEQVTR against Python ONNX Runtime...");
 
-    vector<string> peptides = {"LGGNEQVTR"};
-    auto rt_preds = rt_engine.predictRT(peptides);
+    ifstream input(irt_reference_data);
+    TEST_EQUAL(input.good(), true);
 
-    TEST_EQUAL(rt_preds.size(), 1);
+    if (input.good())
+    {
+        string header;
+        getline(input, header);
+        map<string, size_t> index = csvHeaderIndex(header);
 
-    // Check against expected AlphaPeptDeep Python Output
-    // Reference: https://github.com/MannLabs/alphapeptdeep/blob/main/nbs_tests/pretrained_models.ipynb
-    TEST_REAL_SIMILAR(rt_preds[0], -0.035467f);
+        string sequence;
+        float expected_rt_pred = 0.0f;
+
+        string line;
+        while (getline(input, line))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+
+            vector<string> fields = splitCSVLine(line);
+            if (csvField(fields, index, "sequence") == "LGGNEQVTR")
+            {
+                sequence = csvField(fields, index, "sequence");
+                expected_rt_pred = static_cast<float>(stod(csvField(fields, index, "rt_pred_onnx")));
+                break;
+            }
+        }
+
+        TEST_EQUAL(sequence.empty(), false);
+
+        PeptDeepRTInference rt_engine(rt_model);
+        auto rt_preds = rt_engine.predictRT({sequence});
+
+        TEST_EQUAL(rt_preds.size(), 1);
+        TEST_REAL_SIMILAR(rt_preds[0], expected_rt_pred);
+    }
 END_SECTION
 
 START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predictions)
-    STATUS("Verifying RT predictions against saved AlphaPeptDeep Python rt_pred values...");
-
-    auto split_csv_line = [](const string& line)
-    {
-        vector<string> fields;
-        string field;
-        stringstream stream(line);
-        while (getline(stream, field, ','))
-        {
-            fields.push_back(field);
-        }
-        return fields;
-    };
+    STATUS("Verifying RT predictions against saved Python ONNX Runtime rt_pred_onnx values...");
 
     ifstream input(rt_reference_data);
     if (!input.good())
@@ -120,6 +180,7 @@ START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predicti
     {
         string header;
         getline(input, header);
+        map<string, size_t> index = csvHeaderIndex(header);
 
         vector<string> peptides;
         vector<float> expected_rt_preds;
@@ -132,15 +193,10 @@ START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predicti
                 continue;
             }
 
-            vector<string> fields = split_csv_line(line);
-            TEST_EQUAL(fields.size() >= 7, true);
-            if (fields.size() < 7)
-            {
-                continue;
-            }
+            vector<string> fields = splitCSVLine(line);
 
-            peptides.push_back(fields[1]);
-            expected_rt_preds.push_back(static_cast<float>(stod(fields[6])));
+            peptides.push_back(csvField(fields, index, "sequence"));
+            expected_rt_preds.push_back(static_cast<float>(stod(csvField(fields, index, "rt_pred_onnx"))));
         }
 
         TEST_EQUAL(peptides.empty(), false);
@@ -190,6 +246,97 @@ START_SECTION(PeptDeepMS2Inference)
     }
     TEST_REAL_SIMILAR(max_intensity, 1.0f);
 
+END_SECTION
+
+START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predictions)
+    STATUS("Verifying MS2 fragment intensities against saved Python ONNX Runtime intensity_onnx values...");
+
+    ifstream spectra_input(ms2_spectra_data);
+    ifstream expected_input(ms2_reference_data);
+
+    TEST_EQUAL(spectra_input.good(), true);
+    TEST_EQUAL(expected_input.good(), true);
+
+    if (spectra_input.good() && expected_input.good())
+    {
+        string spectra_header;
+        getline(spectra_input, spectra_header);
+        map<string, size_t> spectra_index = csvHeaderIndex(spectra_header);
+
+        vector<string> peptides;
+        vector<float> charges;
+        vector<float> nces;
+        vector<int64_t> instruments;
+
+        string line;
+        while (getline(spectra_input, line))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+
+            vector<string> fields = splitCSVLine(line);
+            peptides.push_back(csvField(fields, spectra_index, "sequence"));
+            charges.push_back(static_cast<float>(stod(csvField(fields, spectra_index, "charge"))));
+            nces.push_back(static_cast<float>(stod(csvField(fields, spectra_index, "nce"))));
+            instruments.push_back(static_cast<int64_t>(stoll(csvField(fields, spectra_index, "instrument_index"))));
+        }
+
+        TEST_EQUAL(peptides.empty(), false);
+
+        string expected_header;
+        getline(expected_input, expected_header);
+        map<string, size_t> expected_index = csvHeaderIndex(expected_header);
+
+        vector<vector<float>> expected_intensities(peptides.size());
+        while (getline(expected_input, line))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+
+            vector<string> fields = splitCSVLine(line);
+            size_t row_id = static_cast<size_t>(stoul(csvField(fields, expected_index, "row_id")));
+            size_t fragment_position = static_cast<size_t>(stoul(csvField(fields, expected_index, "fragment_position")));
+            size_t ion_index = static_cast<size_t>(stoul(csvField(fields, expected_index, "ion_index")));
+            float intensity = static_cast<float>(stod(csvField(fields, expected_index, "intensity_onnx")));
+
+            TEST_EQUAL(row_id < expected_intensities.size(), true);
+            if (row_id >= expected_intensities.size())
+            {
+                continue;
+            }
+
+            size_t offset = fragment_position * 8 + ion_index;
+            if (expected_intensities[row_id].size() <= offset)
+            {
+                expected_intensities[row_id].resize(offset + 1, 0.0f);
+            }
+            expected_intensities[row_id][offset] = intensity;
+        }
+
+        PeptDeepMS2Inference ms2_engine(ms2_model);
+
+        float max_abs_error = 0.0f;
+        for (size_t i = 0; i < peptides.size(); ++i)
+        {
+            auto actual = ms2_engine.predictMS2({peptides[i]}, {charges[i]}, {nces[i]}, {instruments[i]});
+
+            TEST_EQUAL(actual.size(), 1);
+            TEST_EQUAL(actual[0].size(), expected_intensities[i].size());
+
+            const size_t n = min(actual[0].size(), expected_intensities[i].size());
+            for (size_t j = 0; j < n; ++j)
+            {
+                max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual[0][j] - expected_intensities[i][j])));
+            }
+        }
+
+        STATUS("Maximum absolute MS2 intensity error: " << max_abs_error);
+        TEST_EQUAL(max_abs_error < 1e-4f, true);
+    }
 END_SECTION
 
 END_TEST
