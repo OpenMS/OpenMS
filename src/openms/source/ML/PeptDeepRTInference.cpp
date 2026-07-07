@@ -24,6 +24,7 @@ namespace OpenMS
     std::vector<float> PeptDeepRTInference::predictRT(const std::vector<std::string>& peptides)
     {
         ML::PeptDeepInputConfig input_config;
+        input_config.add_terminal_tokens = false;
         const std::vector<int64_t> input_shape = model_.getInputShape(0);
         if (input_shape.size() >= 2 && input_shape[1] > 0)
         {
