@@ -652,6 +652,7 @@ set(applications_executables_list
   #MapAlignerBase_test
   SearchEngineBase_test
   TOPPBase_test
+  TOPPExternalToolBase_test
   ToolHandler_test
   ParameterInformation_test
   ConsoleUtils_test

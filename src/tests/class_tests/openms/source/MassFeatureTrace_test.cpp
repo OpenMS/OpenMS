@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
