@@ -663,7 +663,7 @@ namespace OpenMS
     {
       // Historic behavior: the overlap must exceed the given fraction of the
       // longer trace (default 0.7, i.e. 70 %, as described in Kenar et al.).
-      double proportion(overlap / max_length);
+      double proportion = (max_length > 0.0) ? (overlap / max_length) : 0.0;
       if (proportion < min_isotope_rt_overlap_)
       {
         return 0.0;
