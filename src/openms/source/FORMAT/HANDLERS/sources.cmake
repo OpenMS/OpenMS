@@ -30,6 +30,7 @@ set(sources_list
   TraMLHandler.cpp
   UnimodXMLHandler.cpp
   UniProtXMLHandler.cpp
+  XMLAttributes.cpp
   XMLHandler.cpp
   XQuestResultXMLHandler.cpp
 )

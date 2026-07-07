@@ -152,15 +152,33 @@ namespace OpenMS::Internal
 
     }
 
-    void XMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+    // Xerces callbacks — forward to the native (Xerces-free) overloads. XMLCh is
+    // guaranteed char16_t-sized, so the reinterpret_cast is a well-defined view.
+    void XMLHandler::characters(const XMLCh * const chars, const XMLSize_t length)
+    {
+      onCharacters(std::u16string_view(reinterpret_cast<const char16_t*>(chars), length));
+    }
+
+    void XMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const qname, const Attributes & attrs)
+    {
+      onStartElement(reinterpret_cast<const char16_t*>(qname), XMLAttributes(attrs));
+    }
+
+    void XMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const qname)
+    {
+      onEndElement(reinterpret_cast<const char16_t*>(qname));
+    }
+
+    // Native default implementations (overridden by migrated subclasses).
+    void XMLHandler::onStartElement(const char16_t * /*qname*/, const XMLAttributes & /*attributes*/)
     {
     }
 
-    void XMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/, const Attributes & /*attrs*/)
+    void XMLHandler::onEndElement(const char16_t * /*qname*/)
     {
     }
 
-    void XMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/)
+    void XMLHandler::onCharacters(std::u16string_view /*chars*/)
     {
     }
 
@@ -566,19 +584,19 @@ namespace OpenMS::Internal
 
     //*******************************************************************************************************************
 
-    DoubleList XMLHandler::attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
+    DoubleList XMLHandler::attributeAsDoubleList_(const XMLAttributes & a, const char * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    IntList XMLHandler::attributeAsIntList_(const xercesc::Attributes & a, const char * name) const
+    IntList XMLHandler::attributeAsIntList_(const XMLAttributes & a, const char * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    StringList XMLHandler::attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
+    StringList XMLHandler::attributeAsStringList_(const XMLAttributes & a, const char * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
@@ -593,19 +611,19 @@ namespace OpenMS::Internal
       return tmp_list;
     }
 
-    DoubleList XMLHandler::attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
+    DoubleList XMLHandler::attributeAsDoubleList_(const XMLAttributes & a, const XMLCh * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    IntList XMLHandler::attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const
+    IntList XMLHandler::attributeAsIntList_(const XMLAttributes & a, const XMLCh * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    StringList XMLHandler::attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
+    StringList XMLHandler::attributeAsStringList_(const XMLAttributes & a, const XMLCh * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]

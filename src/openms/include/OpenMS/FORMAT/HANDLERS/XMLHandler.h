@@ -14,6 +14,7 @@
  
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLAttributes.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 #include <xercesc/sax2/DefaultHandler.hpp>
@@ -21,6 +22,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <string_view>
 #include <memory>
 
 
@@ -369,12 +371,28 @@ public:
       /// Warning handler.
       void warning(ActionMode mode, const std::string & msg, UInt line = 0, UInt column = 0) const;
 
-      /// Parsing method for character data
+      /// Parsing method for character data (Xerces callback; forwards to the native overload below)
       void characters(const XMLCh * const chars, const XMLSize_t length) override;
-      /// Parsing method for opening tags
+      /// Parsing method for opening tags (Xerces callback; forwards to the native overload below)
       void startElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname, const xercesc::Attributes & attrs) override;
-      /// Parsing method for closing tags
+      /// Parsing method for closing tags (Xerces callback; forwards to the native overload below)
       void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname) override;
+
+      /**
+          @name Native (Xerces-free) SAX callbacks
+
+          Subclasses override these instead of the Xerces-typed callbacks above.
+          @c qname / @c chars are UTF-16 code units (as delivered by the parser);
+          attributes are exposed through the Xerces-free @ref XMLAttributes view.
+      */
+      //@{
+      /// Parsing method for opening tags
+      virtual void onStartElement(const char16_t * qname, const XMLAttributes & attributes);
+      /// Parsing method for closing tags
+      virtual void onEndElement(const char16_t * qname);
+      /// Parsing method for character data
+      virtual void onCharacters(std::u16string_view chars);
+      //@}
 
       /// Writes the contents to a stream.
       virtual void writeTo(std::ostream & /*os*/);
@@ -653,46 +671,46 @@ protected:
       //@{
 
       /// Converts an attribute to a String
-      inline std::string attributeAsString_(const xercesc::Attributes & a, const char * name) const
+      inline std::string attributeAsString_(const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return sm_.convert(val);
       }
 
       /// Converts an attribute to a Int
-      inline Int attributeAsInt_(const xercesc::Attributes & a, const char * name) const
+      inline Int attributeAsInt_(const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
 
       /// Converts an attribute to a double
-      inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
+      inline double attributeAsDouble_(const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return StringUtils::toDouble(sm_.convert(val));
       }
 
       /// Converts an attribute to a DoubleList
-      DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const;
+      DoubleList attributeAsDoubleList_(const XMLAttributes & a, const char * name) const;
 
       /// Converts an attribute to an IntList
-      IntList attributeAsIntList_(const xercesc::Attributes & a, const char * name) const;
+      IntList attributeAsIntList_(const XMLAttributes & a, const char * name) const;
 
       /// Converts an attribute to an StringList
-      StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const;
+      StringList attributeAsStringList_(const XMLAttributes & a, const char * name) const;
 
       /**
           @brief Assigns the attribute content to the String @a value if the attribute is present
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsString_(std::string & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsString_(std::string & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = sm_.convert(val);
@@ -706,9 +724,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsInt_(Int & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
@@ -722,9 +740,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsUInt_(UInt & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
@@ -738,9 +756,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsDouble_(double & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value =StringUtils::toDouble(sm_.convert(val));
@@ -754,9 +772,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
@@ -770,9 +788,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsStringList_(StringList & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
@@ -786,9 +804,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsIntList_(IntList & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);
@@ -798,42 +816,42 @@ protected:
       }
 
       /// Converts an attribute to a String
-      inline std::string attributeAsString_(const xercesc::Attributes & a, const XMLCh * name) const
+      inline std::string attributeAsString_(const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return sm_.convert(val);
       }
 
       /// Converts an attribute to a Int
-      inline Int attributeAsInt_(const xercesc::Attributes & a, const XMLCh * name) const
+      inline Int attributeAsInt_(const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
 
       /// Converts an attribute to a double
-      inline double attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
+      inline double attributeAsDouble_(const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return StringUtils::toDouble(sm_.convert(val));
       }
 
       /// Converts an attribute to a DoubleList
-      DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const;
+      DoubleList attributeAsDoubleList_(const XMLAttributes & a, const XMLCh * name) const;
 
       /// Converts an attribute to a IntList
-      IntList attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const;
+      IntList attributeAsIntList_(const XMLAttributes & a, const XMLCh * name) const;
 
       /// Converts an attribute to a StringList
-      StringList attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const;
+      StringList attributeAsStringList_(const XMLAttributes & a, const XMLCh * name) const;
 
       /// Assigns the attribute content to the String @a value if the attribute is present
-      inline bool optionalAttributeAsString_(std::string& value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsString_(std::string& value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = sm_.convert(val);
@@ -843,9 +861,9 @@ protected:
       }
 
       /// Assigns the attribute content to the Int @a value if the attribute is present
-      inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsInt_(Int & value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
@@ -855,9 +873,9 @@ protected:
       }
 
       /// Assigns the attribute content to the UInt @a value if the attribute is present
-      inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsUInt_(UInt & value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
@@ -867,9 +885,9 @@ protected:
       }
 
       /// Assigns the attribute content to the double @a value if the attribute is present
-      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsDouble_(double & value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = StringUtils::toDouble(sm_.convert(val));
@@ -883,9 +901,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
@@ -899,9 +917,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsIntList_(IntList & value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);
@@ -915,9 +933,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsStringList_(StringList & value, const XMLAttributes & a, const XMLCh * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const XMLCh * val = static_cast<const xercesc::Attributes*>(a.handle())->getValue(name);
         if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
