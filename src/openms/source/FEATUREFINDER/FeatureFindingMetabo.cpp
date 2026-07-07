@@ -271,7 +271,9 @@ namespace OpenMS
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
     defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
-    defaults_.setValue("min_isotope_rt_overlap", 0.95, "Minimum fraction of the shorter co-eluting mass trace (in RT, within FWHM) that must overlap the longer trace to be grouped as isotopes. Low-intensity isotope traces are usually much shorter than the monoisotopic trace, so the overlap is measured against the shorter trace. Only used if 'enable_RT_filtering' is enabled.", {"advanced"});
+    defaults_.setValue("isotope_rt_overlap_reference", "longer", "Reference trace the RT overlap is measured against when scoring two co-eluting mass traces (only used if 'enable_RT_filtering' is enabled): 'longer' measures the overlap against the longer trace (default, historic behavior); 'shorter' measures it against the shorter trace and additionally requires the apex of the longer trace to fall within the RT range of the shorter trace. Since low-intensity isotope traces are usually much shorter than the monoisotopic trace, 'shorter' better groups them (see issue #4483).", {"advanced"});
+    defaults_.setValidStrings("isotope_rt_overlap_reference", {"longer", "shorter"});
+    defaults_.setValue("min_isotope_rt_overlap", 0.7, "Minimum fraction of the reference trace (see 'isotope_rt_overlap_reference') in RT (within FWHM) that must overlap the other trace so the two are scored as isotopes. Only used if 'enable_RT_filtering' is enabled.", {"advanced"});
     defaults_.setMinFloat("min_isotope_rt_overlap", 0.0);
     defaults_.setMaxFloat("min_isotope_rt_overlap", 1.0);
 
@@ -322,6 +324,7 @@ namespace OpenMS
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
     min_isotope_rt_overlap_ = (double)param_.getValue("min_isotope_rt_overlap");
+    isotope_rt_overlap_use_shorter_ = (param_.getValue("isotope_rt_overlap_reference") == "shorter");
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
@@ -621,13 +624,8 @@ namespace OpenMS
 
     double tr1_length(tr1.getFWHM());
     double tr2_length(tr2.getFWHM());
+    double max_length = std::max(tr1_length, tr2_length);
     double min_length = std::min(tr1_length, tr2_length);
-
-    // The longer mass trace is expected to be the more intense one (usually, but
-    // not necessarily, the monoisotopic trace); the shorter one is e.g. a low
-    // intensity isotope trace.
-    const MassTrace& longer_trace = (tr1_length >= tr2_length) ? tr1 : tr2;
-    const MassTrace& shorter_trace = (tr1_length >= tr2_length) ? tr2 : tr1;
 
     // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << '\n';
 
@@ -661,10 +659,25 @@ namespace OpenMS
       overlap = std::fabs(end_rt - start_rt);
     }
 
-    // Require the shorter mass trace to lie almost entirely within the longer one.
-    // Measuring the overlap against the shorter trace (instead of the longer trace,
-    // as done previously) still groups low-intensity isotope traces that are much
-    // shorter than the monoisotopic trace (see issue #4483).
+    if (!isotope_rt_overlap_use_shorter_)
+    {
+      // Historic behavior: the overlap must exceed the given fraction of the
+      // longer trace (default 0.7, i.e. 70 %, as described in Kenar et al.).
+      double proportion(overlap / max_length);
+      if (proportion < min_isotope_rt_overlap_)
+      {
+        return 0.0;
+      }
+      return computeCosineSim_(x, y);
+    }
+
+    // 'shorter' reference: require the shorter mass trace to lie almost entirely
+    // within the longer one. Measuring the overlap against the shorter trace still
+    // groups low-intensity isotope traces that are much shorter than the
+    // monoisotopic trace (see issue #4483).
+    const MassTrace& longer_trace = (tr1_length >= tr2_length) ? tr1 : tr2;
+    const MassTrace& shorter_trace = (tr1_length >= tr2_length) ? tr2 : tr1;
+
     double proportion = (min_length > 0.0) ? (overlap / min_length) : 0.0;
     if (proportion < min_isotope_rt_overlap_)
     {

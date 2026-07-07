@@ -268,14 +268,16 @@ private:
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
-     * (see computeCosineSim_) if some conditions are fulfilled. The shorter of
-     * the two mass traces (in RT, at FWHM) must overlap the longer one by at
-     * least the fraction given by the 'min_isotope_rt_overlap' parameter
-     * (default 0.95); low-intensity isotope traces are usually much shorter
-     * than the monoisotopic trace, so the overlap is measured against the
-     * shorter trace. In addition, the apex (most intense peak) of the longer
-     * trace must fall within the RT range of the shorter trace, otherwise the
-     * two traces are not considered to belong together.
+     * (see computeCosineSim_) if some conditions are fulfilled. The RT overlap
+     * of the two peaks at FWHM must exceed the fraction given by the
+     * 'min_isotope_rt_overlap' parameter. By default ('isotope_rt_overlap_reference'
+     * = "longer") the overlap is measured against the longer trace with a
+     * threshold of 0.7 (i.e. 70 % overlap), as described in Kenar et al. When
+     * 'isotope_rt_overlap_reference' is set to "shorter", the overlap is measured
+     * against the shorter trace instead (better for low-intensity isotope traces
+     * that are much shorter than the monoisotopic trace) and, additionally, the
+     * apex (most intense peak) of the longer trace must fall within the RT range
+     * of the shorter trace.
      *
      * @note this only works for equally sampled mass traces, e.g. they need to
      * come from the same map (not for SRM measurements for example).
@@ -329,6 +331,7 @@ private:
     bool report_summed_ints_;
     bool enable_RT_filtering_;
     double min_isotope_rt_overlap_;
+    bool isotope_rt_overlap_use_shorter_;
     std::string isotope_filtering_model_;
     bool use_smoothed_intensities_;
     bool report_smoothed_intensities_;
