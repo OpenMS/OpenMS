@@ -281,6 +281,7 @@ if(WITH_ONNX)
   target_sources(OpenMS PRIVATE
     source/ML/ONNXEnvironment.cpp
     source/ML/ONNXPredictorBase.cpp
+    source/ML/PeptDeepInput.cpp
     source/ML/PeptDeepRTInference.cpp
     source/ML/PeptDeepMS2Inference.cpp
   )

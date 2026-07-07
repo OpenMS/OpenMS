@@ -8,18 +8,12 @@
 
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/ML/PeptDeepInput.h>
 #include <OpenMS/ML/PeptDeepUtils.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 #include <algorithm>
 #include <string>
-
-namespace
-{
-    // Local processing constants matching PeptDeep preprocessing logic
-    constexpr float CHARGE_SCALE = 0.1f;
-    constexpr float NCE_SCALE = 0.01f;
-}
 
 namespace OpenMS {
 
@@ -35,50 +29,13 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     const std::vector<float>& nces,
     const std::vector<int64_t>& instrument_indices)
 {
-    int64_t batch_size = peptides.size();
-    if (batch_size == 0) {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide batch cannot be empty.");
-    }
-    if (charges.size() != static_cast<size_t>(batch_size) || nces.size() != static_cast<size_t>(batch_size) || instrument_indices.size() != static_cast<size_t>(batch_size)) {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input vector sizes must perfectly match the peptide batch size.");
-    }
-
-    // 1. Validate all peptides and dynamically find the max sequence length in this batch
-    int64_t max_seq_len = 0;
-    for (const auto& p : peptides) {
-        ML::validatePeptide(p);
-        if (static_cast<int64_t>(p.size()) > max_seq_len) {
-            max_seq_len = p.size();
-        }
-    }
-
-    int64_t padded_length = max_seq_len + 2;
-
-    // 2. Allocate flat vectors for the batched ONNX inputs
-    std::vector<int64_t> aa_indices;  aa_indices.reserve(batch_size * padded_length);
-    std::vector<float> charge_data;   charge_data.reserve(batch_size);
-    std::vector<float> nce_data;      nce_data.reserve(batch_size);
-    std::vector<int64_t> inst_data;   inst_data.reserve(batch_size);
-
-    for (size_t k = 0; k < static_cast<size_t>(batch_size); ++k) {
-        const std::string& p = peptides[k];
-
-        aa_indices.push_back(0); // N-term
-        for (char aa : p) {
-            aa_indices.push_back(ML::getAAIndex(aa));
-        }
-        // Pad the remaining slots for shorter peptides in the batch
-        for (size_t i = p.size() + 1; i < static_cast<size_t>(padded_length); ++i) {
-            aa_indices.push_back(0);
-        }
-
-        charge_data.push_back(charges[k] * CHARGE_SCALE);
-        nce_data.push_back(nces[k] * NCE_SCALE);
-        inst_data.push_back(instrument_indices[k]);
-    }
-
-    // 3. Shared Utility: Generate unmodified tensor for the whole batch
-    std::vector<float> mod_x_data = ML::generateUnmodifiedModXTensor(batch_size, padded_length);
+    ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedInstrumentBatch(
+        peptides,
+        charges,
+        nces,
+        instrument_indices);
+    const int64_t batch_size = static_cast<int64_t>(batch.batch_size);
+    const int64_t padded_length = static_cast<int64_t>(batch.sequence_length);
 
     // 4. Dynamically map model inputs and their EXACT expected shapes
     Ort::AllocatorWithDefaultOptions ort_alloc;
@@ -106,16 +63,16 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
 
         if (name == "aa_indices") {
             expected_shape = {batch_size, padded_length}; // Explicitly enforce sequence length
-            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(model_.memoryInfo(), aa_indices.data(), aa_indices.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(model_.memoryInfo(), batch.aa_indices.data(), batch.aa_indices.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "mod_x") {
             expected_shape = {batch_size, padded_length, ML::PEPTDEEP_MOD_ELEMENTS};
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), mod_x_data.data(), mod_x_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), batch.mod_x.data(), batch.mod_x.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "charges" || name == "charge") {
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), charge_data.data(), charge_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), batch.charges.data(), batch.charges.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "nces" || name == "nce") {
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), nce_data.data(), nce_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<float>(model_.memoryInfo(), batch.nces.data(), batch.nces.size(), expected_shape.data(), expected_shape.size()));
         } else if (name == "instrument_indices" || name == "instrument") {
-            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(model_.memoryInfo(), inst_data.data(), inst_data.size(), expected_shape.data(), expected_shape.size()));
+            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(model_.memoryInfo(), batch.instrument_indices.data(), batch.instrument_indices.size(), expected_shape.data(), expected_shape.size()));
         } else {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ONNX input: " + name);
         }

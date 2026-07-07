@@ -7,6 +7,7 @@ set(sources_list_h
 
 if (WITH_ONNX)
     list(APPEND sources_list_h
+        PeptDeepInput.h
         PeptDeepMS2Inference.h
         PeptDeepRTInference.h
     )

@@ -8,7 +8,7 @@
 
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/ML/PeptDeepUtils.h>
+#include <OpenMS/ML/PeptDeepInput.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 #include <string>
@@ -23,26 +23,18 @@ namespace OpenMS
 
     std::vector<float> PeptDeepRTInference::predictRT(const std::vector<std::string>& peptides)
     {
-        if (peptides.empty()) {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide list cannot be empty.");
+        ML::PeptDeepInputConfig input_config;
+        const std::vector<int64_t> input_shape = model_.getInputShape(0);
+        if (input_shape.size() >= 2 && input_shape[1] > 0)
+        {
+            input_config.fixed_sequence_length = static_cast<size_t>(input_shape[1]);
         }
 
-        // 1. Tokenize peptides
-        std::vector<int64_t> input_tokens;
-        input_tokens.reserve(peptides.size() * ML::PEPTDEEP_MAX_SEQUENCE_LENGTH);
-
-        for (const auto& p : peptides) {
-            ML::validatePeptide(p);
-            for (size_t i = 0; i < ML::PEPTDEEP_MAX_SEQUENCE_LENGTH; ++i) {
-                if (i < p.length()) {
-                    input_tokens.push_back(ML::getAAIndex(p[i]));
-                } else {
-                    input_tokens.push_back(0); // Pad sequence
-                }
-            }
-        }
-
-        std::vector<int64_t> seq_shape = { static_cast<int64_t>(peptides.size()), static_cast<int64_t>(ML::PEPTDEEP_MAX_SEQUENCE_LENGTH) };
+        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch(peptides, input_config);
+        std::vector<int64_t> seq_shape = {
+            static_cast<int64_t>(batch.batch_size),
+            static_cast<int64_t>(batch.sequence_length)
+        };
 
         // 2. Fetch expected mod_shape dynamically from ONNX
         Ort::TypeInfo mod_type_info = model_.session().GetInputTypeInfo(1);
@@ -55,20 +47,17 @@ namespace OpenMS
                 std::to_string(mod_shape.size()));
         }
 
-        mod_shape[0] = peptides.size();
-        mod_shape[1] = ML::PEPTDEEP_MAX_SEQUENCE_LENGTH;
-
-        // 3. Shared utility generates the 109-element tensor for the batch
-        std::vector<float> mod_x_data = ML::generateUnmodifiedModXTensor(peptides.size(), ML::PEPTDEEP_MAX_SEQUENCE_LENGTH);
+        mod_shape[0] = static_cast<int64_t>(batch.batch_size);
+        mod_shape[1] = static_cast<int64_t>(batch.sequence_length);
 
         std::vector<Ort::Value> input_tensors;
 
         input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
-            model_.memoryInfo(), input_tokens.data(), input_tokens.size(), seq_shape.data(), seq_shape.size()
+            model_.memoryInfo(), batch.aa_indices.data(), batch.aa_indices.size(), seq_shape.data(), seq_shape.size()
         ));
 
         input_tensors.push_back(Ort::Value::CreateTensor<float>(
-            model_.memoryInfo(), mod_x_data.data(), mod_x_data.size(), mod_shape.data(), mod_shape.size()
+            model_.memoryInfo(), batch.mod_x.data(), batch.mod_x.size(), mod_shape.data(), mod_shape.size()
         ));
 
         Ort::AllocatorWithDefaultOptions ort_alloc;
@@ -85,14 +74,14 @@ namespace OpenMS
         );
 
         size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
-        if (output_count < peptides.size()) {
+        if (output_count < batch.batch_size) {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "ONNX model output shape mismatch.",
                 std::to_string(output_count));
         }
 
         float* floatarr = output_tensors.front().GetTensorMutableData<float>();
-        return std::vector<float>(floatarr, floatarr + peptides.size());
+        return std::vector<float>(floatarr, floatarr + batch.batch_size);
     }
 
 } // namespace OpenMS

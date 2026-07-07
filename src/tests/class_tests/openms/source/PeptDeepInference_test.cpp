@@ -5,6 +5,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
+#include <OpenMS/ML/PeptDeepInput.h>
 #include <OpenMS/ML/PeptDeepUtils.h>
 
 #include <algorithm>
@@ -39,6 +40,46 @@ START_SECTION(AminoAcidVocabulary and Utilities)
     for (size_t i = 0; i < expected.size(); ++i) {
         TEST_EQUAL(actual[i], expected[i]);
     }
+END_SECTION
+
+START_SECTION(PeptDeepInputBuilder)
+    STATUS("Testing shared PeptDeep input featurization...");
+
+    vector<string> peptides = {"AGHCEWQMKYR", "PEPTIDE"};
+    ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch(peptides);
+
+    TEST_EQUAL(batch.batch_size, 2);
+    TEST_EQUAL(batch.sequence_length, 13);
+    TEST_EQUAL(batch.aa_indices.size(), 26);
+    TEST_EQUAL(batch.mod_x.size(), 2 * 13 * ML::PEPTDEEP_MOD_ELEMENTS);
+
+    vector<int64_t> expected_first = {0, 1, 7, 8, 3, 5, 23, 17, 13, 11, 25, 18, 0};
+    for (size_t i = 0; i < expected_first.size(); ++i)
+    {
+        TEST_EQUAL(batch.aa_indices[i], expected_first[i]);
+    }
+
+    vector<float> charges = {2.0f, 3.0f};
+    vector<float> nces = {30.0f, 27.0f};
+    vector<int64_t> instruments = {0, 2};
+    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildUnmodifiedInstrumentBatch(peptides, charges, nces, instruments);
+
+    TEST_REAL_SIMILAR(instrument_batch.charges[0], 0.2f);
+    TEST_REAL_SIMILAR(instrument_batch.charges[1], 0.3f);
+    TEST_REAL_SIMILAR(instrument_batch.nces[0], 0.3f);
+    TEST_REAL_SIMILAR(instrument_batch.nces[1], 0.27f);
+    TEST_EQUAL(instrument_batch.instrument_indices[1], 2);
+
+    bool threw_on_modified_peptide = false;
+    try
+    {
+        ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch({"PEP(UniMod:21)TIDE"});
+    }
+    catch (...)
+    {
+        threw_on_modified_peptide = true;
+    }
+    TEST_EQUAL(threw_on_modified_peptide, true);
 END_SECTION
 
 START_SECTION(PeptDeepRTInference)
