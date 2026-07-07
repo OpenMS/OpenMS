@@ -152,11 +152,10 @@ namespace OpenMS::Internal
   void UniProtXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attrs)
   {
     ++depth_;
-    // Prefer local_name when the parser populates it (namespace-aware mode); fall back to
-    // qname otherwise. Real UniProtKB XML carries `xmlns="http://uniprot.org/uniprot"`, so
-    // a future switch to namespace-aware Xerces would deliver qname as `uniprot:entry` and
-    // local_name as `entry`; comparing against local_name keeps this handler working in both
-    // configurations.
+    // The SAX parser runs namespace-unaware (see XMLFile.cpp), so the element tag
+    // is delivered in qname (unprefixed). Real UniProtKB XML carries a default
+    // namespace (xmlns="http://uniprot.org/uniprot") with no prefixes, so qname
+    // equals the local name here.
     const std::string tag = xmlchToString(qname);
 
     // Inside the alternative-products comment? swallow the whole subtree.

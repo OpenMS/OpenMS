@@ -43,7 +43,7 @@ namespace OpenMS::Internal
     void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*localname*/,
                       const XMLCh* const qname, const xercesc::Attributes& attrs) override
     {
-      handler_.onStartElement(reinterpret_cast<const char16_t*>(qname), XMLAttributes(attrs));
+      handler_.onStartElement(reinterpret_cast<const char16_t*>(qname), XMLAttributes(static_cast<const void*>(&attrs)));
     }
 
     void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*localname*/,

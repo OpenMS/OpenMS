@@ -10,8 +10,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <type_traits>
-
 namespace OpenMS::Internal
 {
   /**
@@ -39,15 +37,12 @@ namespace OpenMS::Internal
     /**
       @brief Wrap a live attribute list (non-owning).
 
-      Templated so a @c xercesc::Attributes& (the SAX callback argument) converts
-      transparently without this header having to name any Xerces type. The
-      overload is disabled for @c XMLAttributes itself so copy construction is not
-      hijacked.
+      Takes an opaque handle so this header need not name any Xerces type. The
+      only caller is the internal SAX2HandlerAdapter, which passes the address of
+      the live @c xercesc::Attributes (recovered internally in @ref XMLAttributes.cpp).
     */
-    template <typename AttributesT,
-              typename = std::enable_if_t<!std::is_same_v<std::decay_t<AttributesT>, XMLAttributes>>>
-    XMLAttributes(const AttributesT& attributes) noexcept :
-      attributes_(static_cast<const void*>(&attributes))
+    explicit XMLAttributes(const void* attributes) noexcept :
+      attributes_(attributes)
     {
     }
 
