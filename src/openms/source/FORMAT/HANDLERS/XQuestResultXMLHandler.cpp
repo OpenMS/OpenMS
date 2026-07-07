@@ -20,7 +20,6 @@
 #include <cassert>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {

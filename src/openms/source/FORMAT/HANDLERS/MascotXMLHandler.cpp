@@ -10,7 +10,6 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
@@ -28,9 +27,9 @@ namespace OpenMS::Internal
 
     void MascotXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      static const XMLCh* s_protein_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh* s_queries_query_number = xercesc::XMLString::transcode("number");
-      static const XMLCh* s_peptide_query = xercesc::XMLString::transcode("query");
+      static const char16_t* s_protein_accession = u"accession";
+      static const char16_t* s_queries_query_number = u"number";
+      static const char16_t* s_peptide_query = u"query";
 
       tag_ =std::string(sm_.convert(qname));
       // cerr << "open: " << tag_ << endl;

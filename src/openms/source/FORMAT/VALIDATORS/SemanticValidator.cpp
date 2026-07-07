@@ -13,7 +13,6 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <map>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS::Internal

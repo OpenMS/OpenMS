@@ -31,27 +31,27 @@ const XMLCh russianHello[] = {
     0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x043C, 
     0x0438, 0x0440,0x0000 // "Привет мир" (Hello World in Russian)
 };
-XMLSize_t r_length = xercesc::XMLString::stringLen(russianHello);
+size_t r_length = StringManager::strLength(russianHello);
 
 const XMLCh ascii[] = { 
     0x0048,0x0065,0x006C,0x006C,0x006F,0x002C,0x0057,0x006F,
     0x0072,0x006C,0x0064,0x0021, 0x0000};
-XMLSize_t a_length = xercesc::XMLString::stringLen(ascii); 
+size_t a_length = StringManager::strLength(ascii); 
 
 const XMLCh mixed[] = { 
     0x0048, 0x0065,0x0432, 0x0435, 0x0442, 0x043C, 0x006F,
     0x0072,0x006C,0x0064, 0x0021, 0x0000 };
-XMLSize_t m_length = xercesc::XMLString::stringLen(mixed);
+size_t m_length = StringManager::strLength(mixed);
 
 const XMLCh empty[] = {0};
-XMLSize_t e_length = xercesc::XMLString::stringLen(empty);
+size_t e_length = StringManager::strLength(empty);
 
 const XMLCh upperBoundary [] = {0x00FF,0x00FF,0x0000};
-XMLSize_t u_length = xercesc::XMLString::stringLen(upperBoundary);
+size_t u_length = StringManager::strLength(upperBoundary);
 
 bool isAscii = false;
 
-START_SECTION(isASCII(const XMLCh * chars, const XMLSize_t length))
+START_SECTION(isASCII(const XMLCh * chars, const size_t length))
   isAscii = StringManager::isASCII(ascii,a_length);
   TEST_TRUE(isAscii)
 
@@ -127,7 +127,7 @@ std::string o7_str;
 std::string res7_str;
 
 
-START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & result))
+START_SECTION(appendASCII(const XMLCh * chars, const size_t length, String & result))
 
     StringManager::appendASCII(ascii,a_length,o5_str);
     TEST_STRING_EQUAL(o5_str, res5_str);

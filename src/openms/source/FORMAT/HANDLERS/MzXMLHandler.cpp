@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <stack>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS::Internal
 {
@@ -515,8 +516,8 @@ namespace OpenMS::Internal
 
       //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
-      static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
-      static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
+      static const char16_t* s_mzxml = u"mzXML";
+      static const char16_t* s_scan = u"scan";
 
       open_tags_.pop_back();
 

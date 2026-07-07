@@ -270,11 +270,11 @@ namespace OpenMS::Internal
 
       if (tag_ == "cvParam")
       {
-        static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-        static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-        //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+        static const char16_t* s_value = u"value";
+        static const char16_t* s_unit_accession = u"unitAccession";
+        static const char16_t* s_cv_ref = u"cvRef";
+        //~ static const char16_t* s_name = u"name";
+        static const char16_t* s_accession = u"accession";
 
         std::string value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);

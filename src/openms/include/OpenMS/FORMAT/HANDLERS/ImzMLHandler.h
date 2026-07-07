@@ -54,8 +54,7 @@ namespace Internal
 
     @b Inheritance diagram:
     @code
-    xercesc::DefaultHandler
-      └─ OpenMS::Internal::XMLHandler
+    OpenMS::Internal::XMLHandler
             └─ OpenMS::Internal::MzMLHandler
                   └─ OpenMS::Internal::ImzMLHandler  ← this class
                         └─ ImzMLInterceptConsumer : IMSDataConsumer

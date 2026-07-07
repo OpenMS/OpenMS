@@ -11,6 +11,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <utility>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS::Internal
 {

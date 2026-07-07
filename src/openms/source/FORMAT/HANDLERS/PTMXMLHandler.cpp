@@ -9,7 +9,6 @@
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {

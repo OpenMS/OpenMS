@@ -12,7 +12,6 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/SYSTEM/File.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS

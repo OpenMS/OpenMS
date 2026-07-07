@@ -10,7 +10,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS::Internal
@@ -28,8 +27,8 @@ namespace OpenMS::Internal
 
     void ParamXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      static const XMLCh* s_restrictions = xercesc::XMLString::transcode("restrictions");
-      static const XMLCh* s_supported_formats = xercesc::XMLString::transcode("supported_formats");
+      static const char16_t* s_restrictions = u"restrictions";
+      static const char16_t* s_supported_formats = u"supported_formats";
 
       std::string element = sm_.convert(qname);
       if (element == "ITEM")

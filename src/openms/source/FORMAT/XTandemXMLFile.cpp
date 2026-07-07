@@ -10,7 +10,6 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS

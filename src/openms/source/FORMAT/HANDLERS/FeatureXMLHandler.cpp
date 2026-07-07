@@ -240,17 +240,17 @@ namespace OpenMS::Internal
 
   void FeatureXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
   {
-    static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
-    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-    static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-    static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-    static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-    static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
-    static const XMLCh* s_document_id = xercesc::XMLString::transcode("document_id");
-    static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+    static const char16_t* s_dim = u"dim";
+    static const char16_t* s_name = u"name";
+    static const char16_t* s_version = u"version";
+    static const char16_t* s_value = u"value";
+    static const char16_t* s_type = u"type";
+    static const char16_t* s_completion_time = u"completion_time";
+    static const char16_t* s_document_id = u"document_id";
+    static const char16_t* s_id = u"id";
 
     // TODO The next line should be removed in OpenMS 1.7 or so!
-    static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
+    static const char16_t* s_unique_id = u"unique_id";
 
     std::string tag = sm_.convert(qname);
 

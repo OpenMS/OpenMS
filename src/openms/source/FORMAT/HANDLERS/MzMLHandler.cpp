@@ -20,6 +20,7 @@
 
 #include <atomic>
 #include <map>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS::Internal
 {

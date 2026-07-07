@@ -10,7 +10,6 @@
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
