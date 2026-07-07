@@ -78,9 +78,7 @@ namespace OpenMS::Internal
       load_detail_ = d;
     }
 
-    void MzXMLHandler::startElement(const XMLCh* const /*uri*/,
-      const XMLCh* const /*local_name*/, const XMLCh* const qname,
-      const xercesc::Attributes& attributes)
+    void MzXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       constexpr XMLCh s_value_[] = {'v', 'a', 'l', 'u', 'e', 0};
       constexpr XMLCh s_count_[] = {'s', 'c', 'a', 'n', 'C', 'o', 'u', 'n', 't', 0};
@@ -511,7 +509,7 @@ namespace OpenMS::Internal
       //std::cout << " -- !Start -- " << "\n";
     }
 
-    void MzXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void MzXMLHandler::onEndElement(const char16_t* qname)
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
@@ -545,7 +543,7 @@ namespace OpenMS::Internal
       //std::cout << " -- End -- " << "\n";
     }
 
-    void MzXMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
+    void MzXMLHandler::onCharacters(const char16_t* chars, Size length)
     {
       //Abort if this spectrum should be skipped
       if (skip_spectrum_)

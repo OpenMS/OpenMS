@@ -45,7 +45,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+  void CVMappingFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
 
     tag_ =std::string(sm_.convert(qname));
@@ -197,7 +197,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void CVMappingFile::onEndElement(const char16_t* qname)
   {
     tag_ =std::string(sm_.convert(qname));
 
@@ -211,7 +211,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
+  void CVMappingFile::onCharacters(const char16_t* /*chars*/, Size /*length*/)
   {
     // good XML format, nothing to do here
   }

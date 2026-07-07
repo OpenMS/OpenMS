@@ -391,7 +391,7 @@ public:
       /// Parsing method for closing tags
       virtual void onEndElement(const char16_t * qname);
       /// Parsing method for character data
-      virtual void onCharacters(std::u16string_view chars);
+      virtual void onCharacters(const char16_t * chars, Size length);
       //@}
 
       /// Writes the contents to a stream.

@@ -59,7 +59,7 @@ namespace OpenMS::Internal
     return options_;
   }
 
-  void ConsensusXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void ConsensusXMLHandler::onEndElement(const char16_t* qname)
   {
     std::string tag = sm_.convert(qname);
     open_tags_.pop_back();
@@ -126,11 +126,11 @@ namespace OpenMS::Internal
     }
   }
 
-  void ConsensusXMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
+  void ConsensusXMLHandler::onCharacters(const char16_t* /*chars*/, Size /*length*/)
   {
   }
 
-  void ConsensusXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void ConsensusXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
   {
     const std::string& parent_tag = (open_tags_.empty() ? "" : open_tags_.back());
     open_tags_.push_back(sm_.convert(qname));
@@ -483,7 +483,7 @@ namespace OpenMS::Internal
       pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
+      const char16_t* refs = attributes.value(sm_.convert("protein_refs").c_str());
       if (refs != nullptr)
       {
         std::string accession_string = sm_.convert(refs);

@@ -26,7 +26,7 @@ namespace OpenMS::Internal
     ParamXMLHandler::~ParamXMLHandler()
     = default;
 
-    void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+    void ParamXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       static const XMLCh* s_restrictions = xercesc::XMLString::transcode("restrictions");
       static const XMLCh* s_supported_formats = xercesc::XMLString::transcode("supported_formats");
@@ -110,10 +110,10 @@ namespace OpenMS::Internal
         else
         {
           // parse restrictions if present
-          Int restrictions_index = attributes.getIndex(s_restrictions);
+          Int restrictions_index = attributes.index(s_restrictions);
           if (restrictions_index != -1)
           {
-            std::string val = sm_.convert(attributes.getValue(restrictions_index));
+            std::string val = sm_.convert(attributes.valueByIndex(restrictions_index));
             std::vector<std::string> parts;
             if (type == "int")
             {
@@ -171,10 +171,10 @@ namespace OpenMS::Internal
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
         if ((ListUtils::contains(tags, "input file") || ListUtils::contains(tags, "output file")) && (type == "string" || type == "input-file" || type == "output-file"))
         {
-          Int supported_formats_index = attributes.getIndex(s_supported_formats);
+          Int supported_formats_index = attributes.index(s_supported_formats);
           if (supported_formats_index != -1)
           {
-            std::string val = sm_.convert(attributes.getValue(supported_formats_index));
+            std::string val = sm_.convert(attributes.valueByIndex(supported_formats_index));
             std::vector<std::string> parts;
 
             StringUtils::split(val, ',', parts);
@@ -242,20 +242,20 @@ namespace OpenMS::Internal
           list_.tags.emplace_back("required");
         }
         
-        list_.restrictions_index = attributes.getIndex(s_restrictions);
+        list_.restrictions_index = attributes.index(s_restrictions);
         if (list_.restrictions_index != -1)
         {
-          list_.restrictions = sm_.convert(attributes.getValue(list_.restrictions_index));
+          list_.restrictions = sm_.convert(attributes.valueByIndex(list_.restrictions_index));
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
         if ((ListUtils::contains(list_.tags, "input file") || ListUtils::contains(list_.tags, "output file")) && list_.type == "string")
         {
-          Int supported_formats_index = attributes.getIndex(s_supported_formats);
+          Int supported_formats_index = attributes.index(s_supported_formats);
           if (supported_formats_index != -1)
           {
             list_.restrictions_index = supported_formats_index;
-            list_.restrictions = sm_.convert(attributes.getValue(list_.restrictions_index));
+            list_.restrictions = sm_.convert(attributes.valueByIndex(list_.restrictions_index));
           }
         }
       }
@@ -296,7 +296,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void ParamXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void ParamXMLHandler::onEndElement(const char16_t* qname)
     {
       std::string element = sm_.convert(qname);
       if (element == "NODE")

@@ -31,7 +31,7 @@ namespace OpenMS::Internal
     // - check CV term values
     // - handle referenceableParamGroups
     // - check if binaryDataArray name and type match
-    void MzMLValidator::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void MzMLValidator::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       std::string tag = sm_.convert(qname);
       std::string parent_tag;

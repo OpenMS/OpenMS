@@ -238,7 +238,7 @@ namespace OpenMS::Internal
     options_ = options;
   }
 
-  void FeatureXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void FeatureXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
   {
     static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
     static const XMLCh* s_name = xercesc::XMLString::transcode("name");
@@ -599,7 +599,7 @@ namespace OpenMS::Internal
       pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
+      const char16_t* refs = attributes.value(sm_.convert("protein_refs").c_str());
       if (refs != nullptr)
       {
         std::string accession_string = sm_.convert(refs);
@@ -700,7 +700,7 @@ namespace OpenMS::Internal
     }
   }
 
-  void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void FeatureXMLHandler::onEndElement(const char16_t* qname)
   {
     std::string tag = sm_.convert(qname);
 
@@ -833,7 +833,7 @@ namespace OpenMS::Internal
     }
   }
 
-  void FeatureXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+  void FeatureXMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
   {
     // handle skipping of whole sections
     if (disable_parsing_)

@@ -422,7 +422,7 @@ namespace OpenMS
     proteinid_to_accession_.clear();
   }
 
-  void IdXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void IdXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string tag = sm_.convert(qname);
 
@@ -632,7 +632,7 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
+      const char16_t* refs = attributes.value(sm_.convert("protein_refs").c_str());
       if (refs != nullptr)
       {
         std::string accession_string = sm_.convert(refs);
@@ -814,7 +814,7 @@ namespace OpenMS
     }
   }
 
-  void IdXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void IdXMLFile::onEndElement(const char16_t* qname)
   {
     std::string tag = sm_.convert(qname);
 

@@ -82,7 +82,7 @@ namespace OpenMS::Internal
       StringUtils::split("CID;PSD;PD;SID", ';', cv_terms_[18]);
     }
 
-    void MzDataHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MzDataHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       // skip current spectrum
       if (skip_spectrum_)
@@ -180,7 +180,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzDataHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void MzDataHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       static const XMLCh * s_name = xercesc::XMLString::transcode("name");
       static const XMLCh * s_accession = xercesc::XMLString::transcode("accession");
@@ -240,9 +240,9 @@ namespace OpenMS::Internal
       else if (tag == "software")
       {
         data_processing_ = DataProcessingPtr(new DataProcessing);
-        if (attributes.getIndex(sm_.convert("completionTime").c_str()) != -1)
+        if (attributes.index(sm_.convert("completionTime").c_str()) != -1)
         {
-          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime").c_str())).c_str()));
+          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.value(sm_.convert("completionTime").c_str())).c_str()));
         }
       }
       else if (tag == "precursor")
@@ -430,7 +430,7 @@ namespace OpenMS::Internal
       //std::cout << "end startelement" << std::endl;
     }
 
-    void MzDataHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void MzDataHandler::onEndElement(const char16_t* qname)
     {
       static UInt scan_count = 0;
 

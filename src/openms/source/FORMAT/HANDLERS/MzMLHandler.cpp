@@ -690,7 +690,7 @@ namespace OpenMS::Internal
     }
 
 
-    void MzMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
+    void MzMLHandler::onCharacters(const char16_t* chars, Size length)
     {
       if (skip_spectrum_ || skip_chromatogram_)
       {
@@ -725,7 +725,7 @@ namespace OpenMS::Internal
     }
 
 
-    void MzMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    void MzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
       constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
@@ -1269,7 +1269,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void MzMLHandler::onEndElement(const char16_t* qname)
     {
       constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
       constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};

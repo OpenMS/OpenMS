@@ -83,7 +83,7 @@ namespace OpenMS
     mod_def_set = mod_def_set_;
   }
 
-  void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+  void XTandemXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     tag_ =std::string(sm_.convert(qname));
 
@@ -265,10 +265,10 @@ namespace OpenMS
       if (type == "model")
       {
         group_type_stack_.push(GroupType::MODEL);
-        Int index = attributes.getIndex(sm_.convert("z").c_str());
+        Int index = attributes.index(sm_.convert("z").c_str());
         if (index >= 0)
         {
-          current_charge_ = StringUtils::toInt32(std::string(sm_.convert(attributes.getValue(index))));
+          current_charge_ = StringUtils::toInt32(std::string(sm_.convert(attributes.valueByIndex(index))));
         }
         previous_seq_ = "";
       }
@@ -326,7 +326,7 @@ namespace OpenMS
 
   }
 
-  void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void XTandemXMLFile::onEndElement(const char16_t* qname)
   {
     tag_ =std::string(sm_.convert(qname));
     if (tag_ == "group")
@@ -335,7 +335,7 @@ namespace OpenMS
     }
   }
 
-  void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+  void XTandemXMLFile::onCharacters(const char16_t* chars, Size /*length*/)
   {
     if (tag_ == "note")
     {

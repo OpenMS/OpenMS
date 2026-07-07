@@ -20,10 +20,10 @@ namespace OpenMS::Internal
     std::string xmlchToString(const XMLCh* ch);
 
     /// Read a Xerces attribute by name (qname), return "" if absent.
-    std::string attrValue(const xercesc::Attributes& attrs, const char* name)
+    std::string attrValue(const XMLAttributes& attrs, const char* name)
     {
       XMLCh* qname = xercesc::XMLString::transcode(name);
-      const XMLCh* value = attrs.getValue(qname);
+      const char16_t* value = attrs.value(qname);
       xercesc::XMLString::release(&qname);
       if (value == nullptr) return std::string();
       return xmlchToString(value);
@@ -148,8 +148,7 @@ namespace OpenMS::Internal
     return static_cast<int>(value);
   }
 
-  void UniProtXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const local_name,
-                                       const XMLCh* const qname, const xercesc::Attributes& attrs)
+  void UniProtXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attrs)
   {
     ++depth_;
     // Prefer local_name when the parser populates it (namespace-aware mode); fall back to
@@ -157,7 +156,7 @@ namespace OpenMS::Internal
     // a future switch to namespace-aware Xerces would deliver qname as `uniprot:entry` and
     // local_name as `entry`; comparing against local_name keeps this handler working in both
     // configurations.
-    const std::string tag = xmlchToString(isEmpty(local_name) ? qname : local_name);
+    const std::string tag = xmlchToString(qname);
 
     // Inside the alternative-products comment? swallow the whole subtree.
     if (alt_products_depth_ != 0) return;
@@ -305,7 +304,7 @@ namespace OpenMS::Internal
     }
   }
 
-  void UniProtXMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
+  void UniProtXMLHandler::onCharacters(const char16_t* chars, Size length)
   {
     if (capture_ == CaptureTarget::None) return;
     // Use the length-aware UTF-16 → UTF-8 helper so we don't depend on a
@@ -313,10 +312,9 @@ namespace OpenMS::Internal
     appendXmlchUtf8(char_buf_, chars, length);
   }
 
-  void UniProtXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const local_name,
-                                     const XMLCh* const qname)
+  void UniProtXMLHandler::onEndElement(const char16_t* qname)
   {
-    const std::string tag = xmlchToString(isEmpty(local_name) ? qname : local_name);
+    const std::string tag = xmlchToString(qname);
 
     // Close the alt-products skip gate at its matching </comment>.
     if (alt_products_depth_ != 0)

@@ -156,7 +156,7 @@ namespace OpenMS::Internal
     // guaranteed char16_t-sized, so the reinterpret_cast is a well-defined view.
     void XMLHandler::characters(const XMLCh * const chars, const XMLSize_t length)
     {
-      onCharacters(std::u16string_view(reinterpret_cast<const char16_t*>(chars), length));
+      onCharacters(reinterpret_cast<const char16_t*>(chars), length);
     }
 
     void XMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const qname, const Attributes & attrs)
@@ -178,7 +178,7 @@ namespace OpenMS::Internal
     {
     }
 
-    void XMLHandler::onCharacters(std::u16string_view /*chars*/)
+    void XMLHandler::onCharacters(const char16_t * /*chars*/, Size /*length*/)
     {
     }
 

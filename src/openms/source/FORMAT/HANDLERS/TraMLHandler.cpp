@@ -41,7 +41,7 @@ namespace OpenMS::Internal
     TraMLHandler::~TraMLHandler()
     = default;
 
-    void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    void TraMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
@@ -272,7 +272,7 @@ namespace OpenMS::Internal
       return;
     }
 
-    void TraMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void TraMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       if (open_tags_.back() == "Sequence")
       {
@@ -282,7 +282,7 @@ namespace OpenMS::Internal
       return;
     }
 
-    void TraMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void TraMLHandler::onEndElement(const char16_t* qname)
     {
       tag_ = sm_.convert(qname);
 

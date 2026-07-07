@@ -109,7 +109,7 @@ namespace OpenMS::Internal
       return errors_.empty();
     }
 
-    void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+    void SemanticValidator::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       std::string tag = sm_.convert(qname);
       std::string path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
@@ -139,7 +139,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void SemanticValidator::onEndElement(const char16_t* qname)
     {
       std::string tag = sm_.convert(qname);
       std::string path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
@@ -223,7 +223,7 @@ namespace OpenMS::Internal
       open_tags_.pop_back();
     }
 
-    void SemanticValidator::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
+    void SemanticValidator::onCharacters(const char16_t* /*chars*/, Size /*length*/)
     {
       //nothing to do here
     }
@@ -236,7 +236,7 @@ namespace OpenMS::Internal
       return path;
     }
 
-    void SemanticValidator::getCVTerm_(const Attributes& attributes, CVTerm& parsed_term)
+    void SemanticValidator::getCVTerm_(const XMLAttributes& attributes, CVTerm& parsed_term)
     {
       parsed_term.accession = attributeAsString_(attributes, accession_att_.c_str());
       parsed_term.name = attributeAsString_(attributes, name_att_.c_str());
