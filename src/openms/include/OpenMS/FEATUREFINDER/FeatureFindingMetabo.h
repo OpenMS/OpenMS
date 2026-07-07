@@ -324,6 +324,7 @@ private:
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
+    double min_isotope_rt_overlap_;
     std::string isotope_filtering_model_;
     bool use_smoothed_intensities_;
     bool report_smoothed_intensities_;

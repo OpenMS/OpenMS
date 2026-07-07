@@ -120,6 +120,8 @@ namespace OpenMS
     defaults_.setValue("min_rt_overlap", 0.66, "Minimum overlap of the convex hull' RT intersection measured against the union from two features (if CHs are given)");
     defaults_.setMinFloat("min_rt_overlap", 0);
     defaults_.setMaxFloat("min_rt_overlap", 1);
+    defaults_.setValue("rt_overlap_reference", "union", "Reference used to compute the RT overlap fraction that is compared against 'min_rt_overlap': 'union' divides the RT intersection by the union of both features' RT ranges (default, historic behavior); 'shorter' divides it by the shorter of the two features' RT ranges, which still groups adducts with strongly differing intensities and elution widths (e.g. an intense [M+H]+ and a weak [M+Na]+), see issue #4483.", {"advanced"});
+    defaults_.setValidStrings("rt_overlap_reference", {"union", "shorter"});
 
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
     defaults_.setValidStrings("intensity_filter", {"true","false"});
@@ -378,6 +380,7 @@ namespace OpenMS
     double mz_diff_max = param_.getValue("mass_max_diff");
 
     double rt_min_overlap = param_.getValue("min_rt_overlap");
+    bool rt_overlap_use_shorter = (param_.getValue("rt_overlap_reference") == "shorter");
 
 
     // search for most & least probable adduct to fix p threshold
@@ -455,7 +458,20 @@ namespace OpenMS
           double union_length = f_end2 - f_start1;
           double intersect_length = std::max(0., f_end1 - f_start2);
 
-          if (intersect_length / union_length < rt_min_overlap)
+          // Reference length the RT overlap is measured against. By default this is
+          // the union of both RT ranges. Optionally the shorter feature's RT range is
+          // used, so that adducts with strongly differing intensities/elution widths
+          // still group (the union is then dominated by the longer, more intense
+          // feature and would reject the pair); see issue #4483.
+          double reference_length = union_length;
+          if (rt_overlap_use_shorter)
+          {
+            double f1_length = f1.getConvexHull().getBoundingBox().maxX() - f1.getConvexHull().getBoundingBox().minX();
+            double f2_length = f2.getConvexHull().getBoundingBox().maxX() - f2.getConvexHull().getBoundingBox().minX();
+            reference_length = std::min(f1_length, f2_length);
+          }
+
+          if (reference_length > 0.0 && intersect_length / reference_length < rt_min_overlap)
             continue;
         }
 

@@ -271,6 +271,10 @@ namespace OpenMS
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
     defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
+    defaults_.setValue("min_isotope_rt_overlap", 0.95, "Minimum fraction of the shorter co-eluting mass trace (in RT, within FWHM) that must overlap the longer trace to be grouped as isotopes. Low-intensity isotope traces are usually much shorter than the monoisotopic trace, so the overlap is measured against the shorter trace. Only used if 'enable_RT_filtering' is enabled.", {"advanced"});
+    defaults_.setMinFloat("min_isotope_rt_overlap", 0.0);
+    defaults_.setMaxFloat("min_isotope_rt_overlap", 1.0);
+
     defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
     defaults_.setValidStrings("isotope_filtering_model", {"metabolites (2% RMS)","metabolites (5% RMS)","peptides","none"});
 
@@ -317,6 +321,7 @@ namespace OpenMS
 
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
+    min_isotope_rt_overlap_ = (double)param_.getValue("min_isotope_rt_overlap");
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
@@ -616,7 +621,13 @@ namespace OpenMS
 
     double tr1_length(tr1.getFWHM());
     double tr2_length(tr2.getFWHM());
-    double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
+    double min_length = std::min(tr1_length, tr2_length);
+
+    // The longer mass trace is expected to be the more intense one (usually, but
+    // not necessarily, the monoisotopic trace); the shorter one is e.g. a low
+    // intensity isotope trace.
+    const MassTrace& longer_trace = (tr1_length >= tr2_length) ? tr1 : tr2;
+    const MassTrace& shorter_trace = (tr1_length >= tr2_length) ? tr2 : tr1;
 
     // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << '\n';
 
@@ -630,7 +641,7 @@ namespace OpenMS
       coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
     }
 
-    // Look at peaks at the same RT 
+    // Look at peaks at the same RT
     // TODO: this only works if both traces are sampled with equal rate at the same RT
     std::vector<double> x, y, overlap_rts;
     for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
@@ -643,17 +654,6 @@ namespace OpenMS
       }
     }
 
-    //    if (x.size() < std::floor(0.8*max_length))
-    //        {
-    //            return 0.0;
-    //        }
-    // double rt_range(0.0)
-    // if (coinciding_rts.size() > 0)
-    // {
-    //     rt_range = std::fabs(coinciding_rts.rbegin()->first - coinciding_rts.begin()->first);
-    // }
-
-
     double overlap(0.0);
     if (!overlap_rts.empty())
     {
@@ -661,11 +661,28 @@ namespace OpenMS
       overlap = std::fabs(end_rt - start_rt);
     }
 
-    double proportion(overlap / max_length);
-    if (proportion < 0.7)
+    // Require the shorter mass trace to lie almost entirely within the longer one.
+    // Measuring the overlap against the shorter trace (instead of the longer trace,
+    // as done previously) still groups low-intensity isotope traces that are much
+    // shorter than the monoisotopic trace (see issue #4483).
+    double proportion = (min_length > 0.0) ? (overlap / min_length) : 0.0;
+    if (proportion < min_isotope_rt_overlap_)
     {
       return 0.0;
     }
+
+    // Additionally require the apex (most intense peak) of the longer trace to fall
+    // within the RT range of the shorter trace. If the dominant peak is not present
+    // where the shorter trace elutes, the two traces most likely do not belong together.
+    std::pair<Size, Size> shorter_fwhm_idx(shorter_trace.getFWHMborders());
+    double shorter_start_rt(shorter_trace[shorter_fwhm_idx.first].getRT());
+    double shorter_end_rt(shorter_trace[shorter_fwhm_idx.second].getRT());
+    double longer_apex_rt(longer_trace[longer_trace.findMaxByIntPeak(use_smoothed_intensities_)].getRT());
+    if (longer_apex_rt < shorter_start_rt || longer_apex_rt > shorter_end_rt)
+    {
+      return 0.0;
+    }
+
     return computeCosineSim_(x, y);
   }
 
