@@ -34,7 +34,7 @@ namespace OpenMS
 public:
 
       /// struct to represent the parameters of a gumbel distribution
-      struct GumbelDistributionFitResult
+      struct OPENMS_DLLAPI GumbelDistributionFitResult
       {
         GumbelDistributionFitResult(double local_a, double local_b) :
           a(local_a),
@@ -83,4 +83,3 @@ private:
     };
   }
 }
-

@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS)
 set(sources_list
 ConsoleUtils.cpp
 INIUpdater.cpp
+MapAlignerBase.cpp
 ParameterInformation.cpp
 OpenSwathBase.cpp
 SearchEngineBase.cpp

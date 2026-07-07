@@ -107,6 +107,47 @@ public:
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
+    @brief Stream PSMs to a QPX Parquet file in row-batches to cap peak memory.
+
+    Builds and flushes the QPXPSMSchema table in batches through a persistent Parquet
+    writer instead of materializing the entire table in memory. Intended for very large
+    inputs (e.g. millions of PSMs), where the one-shot exportToParquet would spike memory
+    by holding all columns for all rows at once. Output is equivalent to exportToParquet
+    (same schema and QPX metadata), but written as multiple Parquet row groups.
+
+    @param[in] protein_identifications Protein identifications (for run-file-name lookup)
+    @param[in] peptide_identification_ptrs NON-OWNING pointers to the PSMs to export. The
+               caller guarantees they outlive the call and are non-null.
+    @param[in] filename Output file path
+    @param[in] export_all_psms If true, export all hits per spectrum (default: best hit only)
+    @param[in] batch_size Number of PeptideIdentifications materialized into one in-memory
+               Arrow table at a time. This is the peak-memory knob ONLY; it does not
+               determine row-group count (with @p export_all_psms a single
+               PeptideIdentification can emit several rows). 0 is treated as the default.
+    @param[in] config Parquet writing options. config.row_group_size is the maximum number
+               of rows per Parquet row group (the WriteTable chunk size).
+    @param[in] n_threads OpenMP threads used to build each batch's partitions in parallel.
+               1 = serial (default, preserves prior behaviour); 0 = auto (all available cores,
+               i.e. omp_get_max_threads(), which honours the OMP_NUM_THREADS environment variable);
+               N = fixed count. The per-row build dominates export cost, so parallelism here is
+               the main speedup. Output is identical in row content and order regardless of
+               @p n_threads (contiguous partitions are written in index order). The Parquet write
+               itself stays serial. Without OpenMP support the export always runs serially.
+               @note On hyper-threaded CPUs, using all logical cores (0) can be slower than the
+               physical-core count because the build is memory-bandwidth bound; set OMP_NUM_THREADS
+               (or pass N) to the physical-core count for best throughput on such machines.
+    @return true on success, false on error (errors are logged)
+  */
+  static bool exportToParquetStreaming(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::vector<const PeptideIdentification*>& peptide_identification_ptrs,
+    const std::string& filename,
+    bool export_all_psms = false,
+    size_t batch_size = 1000000,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    int n_threads = 1);
+
+  /**
     @brief Import PSMs from a PSMSchema Arrow table.
 
     Reads `PSMSchema`-conformant rows and appends `PeptideIdentification`s

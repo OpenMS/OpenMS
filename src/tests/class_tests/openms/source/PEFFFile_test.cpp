@@ -12,8 +12,10 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/PEFFFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <fstream>
@@ -1604,6 +1606,867 @@ START_SECTION(test_multi_database_store_roundtrip)
     }
   }
   TEST_EQUAL(peff_lines, 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of the UniPEFF TOPP tool)
+{
+  // PEFFFile_UniPEFF_test.peff is a verbatim copy of src/tests/topp/UniPEFF_1_output_A.peff
+  // (the byte-exact golden the UniPEFF TOPP tool is regression-tested against).
+  // This section guards against future drift in either the UniPEFF emitter or
+  // the PEFFFile parser: any change that breaks the round-trip will fail here.
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_UniPEFF_test.peff"), entries, headers);
+
+  // Two writable entries (sp:P12345 kitchen-sink + tr:Q67890 minimal) under two DB blocks.
+  TEST_EQUAL(entries.size(), 2)
+  TEST_EQUAL(headers.size(), 2)
+  TEST_EQUAL(headers[0].prefix, "sp")
+  TEST_EQUAL(headers[1].prefix, "tr")
+  TEST_EQUAL(headers[0].number_of_entries, 1)
+  TEST_EQUAL(headers[1].number_of_entries, 1)
+  TEST_FALSE(headers[0].has_annotation_identifiers)  // Option A golden
+
+  // Swiss-Prot kitchen-sink entry: P12345.
+  const PEFFEntry& e1 = entries[0];
+  TEST_EQUAL(e1.identifier, "sp:P12345")
+  TEST_EQUAL(e1.prefix, "sp")
+  TEST_EQUAL(e1.sequence_length, 100)
+  TEST_EQUAL(e1.sequence.size(), 100)
+  TEST_EQUAL(e1.ncbi_tax_id, 9606)
+  TEST_EQUAL(e1.taxonomy_name, "Homo sapiens")
+  TEST_EQUAL(e1.gene_name, "GENE1")
+  TEST_EQUAL(e1.entry_id, "KSINK_HUMAN")
+  TEST_EQUAL(e1.alt_accessions.size(), 1)
+  TEST_EQUAL(e1.alt_accessions[0], "P99999")
+  // Protein name must round-trip in full: the balanced "(test)" parenthetical is preserved
+  // (UniPEFF emits PName in list form, so a paren-list-aware reader returns the full name as
+  // a single element, not "test"), and the PEFF reserved-char escapes (\|, \\, \)) are reversed
+  // by peffUnescape() at the PName call site — parseParenList_ itself returns items raw so
+  // downstream tuple parsers (which run their own pipe-aware un-escape) don't double-decode.
+  TEST_EQUAL(e1.protein_names.size(), 1)
+  TEST_EQUAL(e1.protein_names[0], "Kitchen-sink protein (test) | alpha\\beta :-)")
+  // 18 modifications total = 9 \ModResPsi (incl. 5 half cystines + 2 unknown-position)
+  //                       + 1 \ModResUnimod + 8 \ModRes (interchain crosslinks, glycos, etc.)
+  TEST_EQUAL(e1.modifications.size(), 18)
+  // PSI-MOD half cystines (MOD:00798) must dominate the PSI bucket.
+  Size half_cystines = 0;
+  for (const auto& m : e1.modifications)
+  {
+    if (m.accession == "MOD:00798") ++half_cystines;
+  }
+  TEST_EQUAL(half_cystines, 5)  // 4 known-position + 1 unknown-position
+  TEST_EQUAL(e1.simple_variants.size(), 2)
+  TEST_EQUAL(e1.complex_variants.size(), 5)
+  TEST_EQUAL(e1.processed_regions.size(), 5)
+  // Option A emits no \DisulfideBond (Option C convention).
+  TEST_EQUAL(e1.disulfide_bonds.size(), 0)
+
+  // TrEMBL minimal entry: Q67890 — must be parsed under the second header block.
+  const PEFFEntry& e2 = entries[1];
+  TEST_EQUAL(e2.identifier, "tr:Q67890")
+  TEST_EQUAL(e2.prefix, "tr")
+  TEST_EQUAL(e2.sequence_length, 31)
+
+  // The mature-protein region (chain) is present and trims to the right length.
+  // Use AASequence to round-trip mass calculation.
+  AASequence raw = e1.getSequence();
+  TEST_EQUAL(raw.size(), 100)
+  // getProcessedSequence on the mature-protein PEFF CV slices to the chain region.
+  AASequence mature = e1.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature.size(), 60)  // chain is 41..100 = 60 residues
+}
+END_SECTION
+
+START_SECTION([EXTRA] escaped '\\|' inside a structured tuple must not be split as a field separator)
+{
+  // Regression test for an un-escape ordering bug: if parseParenList_ un-escapes its items
+  // BEFORE splitByPipeEscapeAware runs, then "A\|B" in a modification name becomes "A|B"
+  // and the pipe split would store the name as "A" and the optional tag as "B".
+  // Un-escape must happen AFTER pipe splitting, per-field.
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=(Test) \\Length=5 \\ModResPsi=(1|MOD:00046|name with \\| pipe)\n"
+    "INSUL\n";
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  TEST_EQUAL(entries[0].modifications[0].accession, "MOD:00046")
+  TEST_EQUAL(entries[0].modifications[0].name, "name with | pipe")
+  TEST_EQUAL(entries[0].modifications[0].optional_tag, "")  // no 4th field — pipe was inside the name
+}
+END_SECTION
+
+START_SECTION([EXTRA] literal backslash in a structured tuple text field must not double-decode)
+{
+  // Regression: an earlier patch added peffUnescape() per-field in the tuple parsers, but
+  // splitByPipeEscapeAware() already un-escapes \\, \|, \(, \). The double-decode would
+  // collapse a legitimate literal "\\" (on-wire "\\\\") down to a single "\".
+  // C++ literal: \\\\\\\\ = on-wire \\\\ = logical content "\\" (two literal backslashes).
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=(Test) \\Length=5 \\ModResPsi=(1|MOD:00046|name with \\\\\\\\ backslashes)\n"
+    "INSUL\n";
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  // On-wire "name with \\\\ backslashes" (four backslashes) → un-escaped once by
+  // splitByPipeEscapeAware to "name with \\ backslashes" (two literal backslashes).
+  // A second pass would (wrongly) collapse to "name with \ backslashes".
+  TEST_EQUAL(entries[0].modifications[0].name, "name with \\\\ backslashes")
+}
+END_SECTION
+
+START_SECTION([EXTRA] scalar \PName= with embedded balanced parens must round-trip in full)
+{
+  // Regression: an earlier reader truncated scalar PName values to their first
+  // parenthesized substring (so "Insulin (Fragment)" became "Fragment"). PEFF 1.0
+  // allows both scalar and list forms for single-value keys; balanced parens in a
+  // scalar value are legal (only UNPAIRED parens must be backslash-escaped).
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=Insulin (Fragment) \\GName=INS \\Length=5\n"
+    "INSUL\n";
+
+  // Write to a temp file and read it back through PEFFFile.
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].protein_names.size(), 1)
+  TEST_EQUAL(entries[0].protein_names[0], "Insulin (Fragment)")
+  TEST_EQUAL(entries[0].gene_name, "INS")
+}
+END_SECTION
+
+START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a top-down search engine sees)
+{
+  // A top-down search engine reading a PEFF database materializes the full-protein
+  // AASequence (sequence + all annotated PTMs) so it can compute the precursor mass
+  // and theoretical fragments. PEFFFile_UniPEFF_test.peff is the byte-exact golden
+  // emitted by the UniPEFF TOPP tool, so this guards the entire load -> materialize
+  // path against drift in either the UniPEFF writer, the PEFFFile reader, or the
+  // PEFFEntry::getModifiedSequence resolution against ModificationsDB.
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_UniPEFF_test.peff"), entries, headers);
+  TEST_EQUAL(entries.size(), 2)
+
+  // ---- Entry 0: kitchen-sink Swiss-Prot P12345 (100 residues, 18 ModRes lines) ----
+  const PEFFEntry& e1 = entries[0];
+
+  AASequence raw = e1.getSequence();
+  TEST_EQUAL(raw.size(), 100)
+  TEST_EQUAL(raw.toUnmodifiedString(), e1.sequence)
+  TEST_FALSE(raw.isModified())
+
+  // Modified sequence: same residue count, at least one PTM resolved against the
+  // global ModificationsDB. We do NOT pin a specific index here: which annotations
+  // resolve depends on UniMod specificity classifications (Anywhere / hidden /
+  // artefact / etc.) that may drift across data revisions. Instead we count
+  // resolved residues and assert the precursor mass uplift is large enough to
+  // account for at least one annotated PTM having been applied.
+  AASequence mod_seq = e1.getModifiedSequence();
+  TEST_EQUAL(mod_seq.size(), 100)
+  TEST_EQUAL(mod_seq.toUnmodifiedString(), e1.sequence)
+  TEST_TRUE(mod_seq.isModified())
+  Size resolved_mods = 0;
+  for (Size i = 0; i < mod_seq.size(); ++i) if (mod_seq[i].isModified()) ++resolved_mods;
+  TEST_TRUE(resolved_mods >= 1)
+  // Methyl (UNIMOD:34) is the lightest mod in the kitchen-sink. Pull the mono
+  // delta live from ModificationsDB so the assertion does not drift if UniMod
+  // updates the diff mass. Assert the lookup itself succeeds first -- without
+  // this the precursor-uplift check would silently degenerate to ">= 0.0" and
+  // pass for an unmodified sequence.
+  const ResidueModification* methyl_ref =
+      ModificationsDB::getInstance()->getModification("UNIMOD:34", "L", ResidueModification::ANYWHERE);
+  TEST_NOT_EQUAL(methyl_ref, nullptr)
+  const double min_uplift = methyl_ref->getDiffMonoMass();
+  TEST_TRUE(mod_seq.getMonoWeight() - raw.getMonoWeight() + 1e-6 >= min_uplift)
+
+  // PEFF "?" (unknown) positions land in PEFFModification::position == 0 and must be
+  // silently skipped by getModifiedSequence (top-down engines can't place them).
+  // The kitchen-sink emits 3 such entries: 2 ModResPsi + 1 ModRes.
+  Size unknown_pos_mods = 0;
+  for (const auto& m : e1.modifications) if (m.position == 0) ++unknown_pos_mods;
+  TEST_EQUAL(unknown_pos_mods, 3)
+
+  // Top-down engines often want the chain region (mature protein), not the precursor
+  // including signal/transit/propeptide. PEFF:0001020 = mature protein, 41..100.
+  AASequence mature = e1.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature.size(), 60)
+  TEST_EQUAL(mature.toUnmodifiedString(), StringUtils::substr(e1.sequence, 40))
+
+  // ---- Entry 1: minimal TrEMBL Q67890 (31 residues, no modifications) ----
+  const PEFFEntry& e2 = entries[1];
+  TEST_EQUAL(e2.modifications.size(), 0)
+  AASequence raw2 = e2.getSequence();
+  AASequence mod2 = e2.getModifiedSequence();
+  TEST_EQUAL(raw2.size(), 31)
+  TEST_EQUAL(mod2.size(), 31)
+  TEST_FALSE(mod2.isModified())
+  TEST_REAL_SIMILAR(raw2.getMonoWeight(), mod2.getMonoWeight())
+
+  // ---- Controlled regression: a programmatic entry whose modification position
+  //      matches the target residue exactly, so the PSI-MOD -> UniMod alias path is
+  //      exercised even if the kitchen-sink residues never line up with their mods. ----
+  PEFFEntry crafted;
+  crafted.sequence = "PEPTIDES";
+  // MOD:00046 (O-phospho-L-serine) on S at position 8 -> aliases UniMod:21 (Phospho on S).
+  crafted.modifications.push_back(PEFFModification(8, "MOD:00046", "O-phospho-L-serine"));
+  AASequence ref = crafted.getSequence();
+  AASequence with_phos = crafted.getModifiedSequence();
+  TEST_EQUAL(with_phos.size(), 8)
+  TEST_TRUE(with_phos[7].isModified())
+  // Pull the phospho mono delta from ModificationsDB so the assertion does not pin
+  // a constant that may drift if UniMod updates the Phospho diff mass.
+  const ResidueModification* phospho_on_s =
+      ModificationsDB::getInstance()->getModification("UNIMOD:21", "S", ResidueModification::ANYWHERE);
+  TEST_NOT_EQUAL(phospho_on_s, nullptr)
+  TEST_REAL_SIMILAR(with_phos.getMonoWeight() - ref.getMonoWeight(), phospho_on_s->getDiffMonoMass())
+}
+END_SECTION
+
+START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a realistic UniProt-style entry (50+ proteoforms))
+{
+  // ============================================================================
+  // Realistic UniProt-style PEFF entry covering everything UniPEFF emits:
+  //
+  //   Reference sequence (30 residues, designed so every PTM lands on a residue
+  //   the UniMod/PSI-MOD specificity actually targets):
+  //
+  //     Pos:  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+  //     AA:   M  K  L  S  L  G  L  L  P  K  A  R  G  S  P  K  E  R  L  A  P  T  D  V  M  G  N  E  C  S
+  //
+  //   Processed regions (\Processed): signal peptide 1..9, mature chain 10..30
+  //
+  //   Five PEFF modifications on their natural residues:
+  //     bit 0:  Phospho   on S14  (UNIMOD:21)
+  //     bit 1:  Acetyl    on K16  (UNIMOD:1)
+  //     bit 2:  Methyl    on R18  (UNIMOD:34)
+  //     bit 3:  Phospho   on T22  (UNIMOD:21)
+  //     bit 4:  Oxidation on M25  (UNIMOD:35)
+  //
+  //   Simple variants (\VariantSimple): K16R, S14A
+  //   Complex variant (\VariantComplex): 5..7 SLG -> AB  (length 30 -> 29)
+  //
+  // Each proteoform below pins the EXACT PEFFFile::toProForma string (true
+  // ProForma square-bracket notation) AND the EXACT AASequence::toString that
+  // PEFFEntry::getModifiedSequence materializes for a top-down search engine.
+  // Reviewers can scan each row by eye to verify both representations.
+  //
+  // ============================================================================
+  const std::string REF_SEQ = "MKLSLGLLPKARGSPKERLAPTDVMGNECS";
+  TEST_EQUAL(REF_SEQ.size(), 30)
+  TEST_EQUAL(REF_SEQ[13], 'S')   // S14
+  TEST_EQUAL(REF_SEQ[15], 'K')   // K16
+  TEST_EQUAL(REF_SEQ[17], 'R')   // R18
+  TEST_EQUAL(REF_SEQ[21], 'T')   // T22
+  TEST_EQUAL(REF_SEQ[24], 'M')   // M25
+
+  struct ModDef { Size pos; const char* accession; const char* name; };
+  const std::vector<ModDef> REF_MODS = {
+    {14, "UNIMOD:21", "Phospho"},
+    {16, "UNIMOD:1",  "Acetyl"},
+    {18, "UNIMOD:34", "Methyl"},
+    {22, "UNIMOD:21", "Phospho"},
+    {25, "UNIMOD:35", "Oxidation"},
+  };
+
+  auto build = [](const std::string& seq, const std::vector<ModDef>& defs, unsigned mask) -> PEFFEntry
+  {
+    PEFFEntry e;
+    e.identifier = "sp:Q9TEST1";
+    e.prefix = "sp";
+    e.sequence = seq;
+    e.sequence_length = seq.size();
+    for (size_t b = 0; b < defs.size(); ++b)
+    {
+      if (mask & (1u << b)) e.modifications.push_back(PEFFModification(defs[b].pos, defs[b].accession, defs[b].name));
+    }
+    return e;
+  };
+
+  struct Row { unsigned mask; const char* proforma; const char* aaseq; };
+
+  // ---- BLOCK A: 32 mod-combinations on the unmutated reference (5-bit mask) ----
+  const Row REF_TABLE[] = {
+    {0x00, "MKLSLGLLPKARGSPKERLAPTDVMGNECS",
+           "MKLSLGLLPKARGSPKERLAPTDVMGNECS"},
+    {0x01, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPTDVMGNECS"},
+    {0x02, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPTDVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPTDVMGNECS"},
+    {0x03, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPTDVMGNECS"},
+    {0x04, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPTDVMGNECS"},
+    {0x05, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPTDVMGNECS"},
+    {0x06, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPTDVMGNECS"},
+    {0x07, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPTDVMGNECS"},
+    {0x08, "MKLSLGLLPKARGSPKERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPKERLAPT(Phospho)DVMGNECS"},
+    {0x09, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPT(Phospho)DVMGNECS"},
+    {0x0A, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPT(Phospho)DVMGNECS"},
+    {0x0B, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPT(Phospho)DVMGNECS"},
+    {0x0C, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x0D, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x0E, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x0F, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x10, "MKLSLGLLPKARGSPKERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKERLAPTDVM(Oxidation)GNECS"},
+    {0x11, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPTDVM(Oxidation)GNECS"},
+    {0x12, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPTDVM(Oxidation)GNECS"},
+    {0x13, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPTDVM(Oxidation)GNECS"},
+    {0x14, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x15, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x16, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x17, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x18, "MKLSLGLLPKARGSPKERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x19, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1A, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1B, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1C, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1D, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1E, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1F, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+
+  for (const auto& row : REF_TABLE)
+  {
+    PEFFEntry e = build(REF_SEQ, REF_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.size(), 30)
+    TEST_EQUAL(aas.toUnmodifiedString(), REF_SEQ)
+  }
+
+  // ---- BLOCK B-pre: drive the PEFFEntry variant API end-to-end ---------------
+  // A real top-down search engine derives the variant backbones from
+  // PEFFEntry::getVariantSequences instead of hand-mutating strings. Build one
+  // entry that carries both simple variants AND one complex variant in the PEFF
+  // annotation fields, then check that the materialized variant sequences match
+  // the constants used by BLOCK B / C / D below. If this assertion ever drifts,
+  // every following table needs updating in lock-step.
+  PEFFEntry variants_only;
+  variants_only.identifier = "sp:Q9TEST1";
+  variants_only.prefix = "sp";
+  variants_only.sequence = REF_SEQ;
+  variants_only.sequence_length = REF_SEQ.size();
+  variants_only.simple_variants = {
+    PEFFVariantSimple(16, 'R', "dbSNP:rs_test_K16R"),
+    PEFFVariantSimple(14, 'A', "dbSNP:rs_test_S14A"),
+  };
+  variants_only.complex_variants = {
+    PEFFVariantComplex(5, 7, "AB", "ClinVar:test_SLG_AB"),
+  };
+
+  std::vector<std::string> var_descs;
+  std::vector<AASequence> var_seqs;
+
+  // (1) Simple variants only. Pin BOTH the substitution shorthand AND the optional-tag
+  // contents as substrings, deliberately NOT the exact rendering between them: the
+  // parenthesised-tag layout is an OpenMS rendering choice with no PEFF-spec mandate
+  // and may evolve (e.g. drop the space, switch to square brackets). The two-substring
+  // pair catches a real shorthand-or-tag regression without freezing cosmetics.
+  variants_only.getVariantSequences(var_descs, var_seqs, /*include_complex=*/false);
+  TEST_EQUAL(var_seqs.size(), 2)
+  TEST_EQUAL(var_seqs[0].toUnmodifiedString(), "MKLSLGLLPKARGSPRERLAPTDVMGNECS")  // K16R
+  TEST_EQUAL(var_seqs[1].toUnmodifiedString(), "MKLSLGLLPKARGAPKERLAPTDVMGNECS")  // S14A
+  TEST_TRUE(StringUtils::hasSubstring(var_descs[0], "K16R"))
+  TEST_TRUE(StringUtils::hasSubstring(var_descs[0], "dbSNP:rs_test_K16R"))
+  TEST_TRUE(StringUtils::hasSubstring(var_descs[1], "S14A"))
+  TEST_TRUE(StringUtils::hasSubstring(var_descs[1], "dbSNP:rs_test_S14A"))
+
+  // (2) Simple + complex variants. Same shorthand+tag substring discipline.
+  variants_only.getVariantSequences(var_descs, var_seqs, /*include_complex=*/true);
+  TEST_EQUAL(var_seqs.size(), 3)
+  TEST_EQUAL(var_seqs[2].toUnmodifiedString(), "MKLSABLPKARGSPKERLAPTDVMGNECS")  // 5..7 SLG -> AB
+  TEST_TRUE(StringUtils::hasSubstring(var_descs[2], "5-7>AB"))
+  TEST_TRUE(StringUtils::hasSubstring(var_descs[2], "ClinVar:test_SLG_AB"))
+
+  // ---- BLOCK B: K16R variant. Re-anchor the 4 mods whose target residue survives.
+  // The Acetyl-K16 mod becomes biologically meaningless when K is mutated to R, so
+  // we drop it from the enumeration (a top-down engine running on this proteoform
+  // would do the same; it would only score the remaining 4 PEFF mods). ----
+  // Use the variant sequence produced by getVariantSequences above so any future
+  // change in the variant API (or in PEFFVariantSimple's position semantics) breaks
+  // this block instead of silently passing on a hand-typed string.
+  const std::string K16R_SEQ = var_seqs[0].toUnmodifiedString();
+  TEST_EQUAL(K16R_SEQ.size(), 30)
+  TEST_EQUAL(REF_SEQ[15], 'K')                       // delta: K at position 16 in reference
+  TEST_EQUAL(K16R_SEQ[15], 'R')                      //        -> R in variant
+  TEST_EQUAL(K16R_SEQ.substr(0, 15), REF_SEQ.substr(0, 15))
+  TEST_EQUAL(K16R_SEQ.substr(16), REF_SEQ.substr(16))
+  const std::vector<ModDef> K16R_MODS = {
+    {14, "UNIMOD:21", "Phospho"},     // S14
+    {18, "UNIMOD:34", "Methyl"},      // R18
+    {22, "UNIMOD:21", "Phospho"},     // T22
+    {25, "UNIMOD:35", "Oxidation"},   // M25
+  };
+  const Row K16R_TABLE[] = {
+    {0x0, "MKLSLGLLPKARGSPRERLAPTDVMGNECS",
+          "MKLSLGLLPKARGSPRERLAPTDVMGNECS"},
+    {0x1, "MKLSLGLLPKARGS[UNIMOD:21]PRERLAPTDVMGNECS",
+          "MKLSLGLLPKARGS(Phospho)PRERLAPTDVMGNECS"},
+    {0x2, "MKLSLGLLPKARGSPRER[UNIMOD:34]LAPTDVMGNECS",
+          "MKLSLGLLPKARGSPRER(Methyl)LAPTDVMGNECS"},
+    {0x4, "MKLSLGLLPKARGSPRERLAPT[UNIMOD:21]DVMGNECS",
+          "MKLSLGLLPKARGSPRERLAPT(Phospho)DVMGNECS"},
+    {0x8, "MKLSLGLLPKARGSPRERLAPTDVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGSPRERLAPTDVM(Oxidation)GNECS"},
+    {0x5, "MKLSLGLLPKARGS[UNIMOD:21]PRERLAPT[UNIMOD:21]DVMGNECS",
+          "MKLSLGLLPKARGS(Phospho)PRERLAPT(Phospho)DVMGNECS"},
+    {0xA, "MKLSLGLLPKARGSPRER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGSPRER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0xF, "MKLSLGLLPKARGS[UNIMOD:21]PRER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGS(Phospho)PRER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+  for (const auto& row : K16R_TABLE)
+  {
+    PEFFEntry e = build(K16R_SEQ, K16R_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.toUnmodifiedString(), K16R_SEQ)
+  }
+
+  // ---- BLOCK C: S14A variant. Phospho-S14 is invalidated; enumerate the 4 surviving mods. ----
+  // S14A is the 2nd variant we registered, so var_seqs[1] holds the mutated backbone.
+  const std::string S14A_SEQ = var_seqs[1].toUnmodifiedString();
+  TEST_EQUAL(S14A_SEQ.size(), 30)
+  TEST_EQUAL(REF_SEQ[13], 'S')                       // delta: S at position 14 in reference
+  TEST_EQUAL(S14A_SEQ[13], 'A')                      //        -> A in variant
+  TEST_EQUAL(S14A_SEQ.substr(0, 13), REF_SEQ.substr(0, 13))
+  TEST_EQUAL(S14A_SEQ.substr(14), REF_SEQ.substr(14))
+  const std::vector<ModDef> S14A_MODS = {
+    {16, "UNIMOD:1",  "Acetyl"},      // K16
+    {18, "UNIMOD:34", "Methyl"},      // R18
+    {22, "UNIMOD:21", "Phospho"},     // T22
+    {25, "UNIMOD:35", "Oxidation"},   // M25
+  };
+  const Row S14A_TABLE[] = {
+    {0x0, "MKLSLGLLPKARGAPKERLAPTDVMGNECS",
+          "MKLSLGLLPKARGAPKERLAPTDVMGNECS"},
+    {0x1, "MKLSLGLLPKARGAPK[UNIMOD:1]ERLAPTDVMGNECS",
+          "MKLSLGLLPKARGAPK(Acetyl)ERLAPTDVMGNECS"},
+    {0x2, "MKLSLGLLPKARGAPKER[UNIMOD:34]LAPTDVMGNECS",
+          "MKLSLGLLPKARGAPKER(Methyl)LAPTDVMGNECS"},
+    {0x4, "MKLSLGLLPKARGAPKERLAPT[UNIMOD:21]DVMGNECS",
+          "MKLSLGLLPKARGAPKERLAPT(Phospho)DVMGNECS"},
+    {0x8, "MKLSLGLLPKARGAPKERLAPTDVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGAPKERLAPTDVM(Oxidation)GNECS"},
+    {0x3, "MKLSLGLLPKARGAPK[UNIMOD:1]ER[UNIMOD:34]LAPTDVMGNECS",
+          "MKLSLGLLPKARGAPK(Acetyl)ER(Methyl)LAPTDVMGNECS"},
+    {0xC, "MKLSLGLLPKARGAPKERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGAPKERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0xF, "MKLSLGLLPKARGAPK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGAPK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+  for (const auto& row : S14A_TABLE)
+  {
+    PEFFEntry e = build(S14A_SEQ, S14A_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.toUnmodifiedString(), S14A_SEQ)
+  }
+
+  // ---- BLOCK D: complex variant 5..7 SLG -> AB (length 30 -> 29).
+  // Re-anchor every PEFF mod -1 on the shrunk backbone (same residue, new index). ----
+  // The complex variant is var_seqs[2] (registered third, exposed when
+  // include_complex=true). Sanity-check the shrink length and the substitution.
+  const std::string CV_SEQ = var_seqs[2].toUnmodifiedString();
+  TEST_EQUAL(CV_SEQ, "MKLSABLPKARGSPKERLAPTDVMGNECS")
+  TEST_EQUAL(CV_SEQ.size(), 29)
+  TEST_EQUAL(REF_SEQ.substr(4, 3), "LGL")            // delta: positions 5..7 in reference
+  TEST_EQUAL(CV_SEQ.substr(4, 2), "AB")              //        -> "AB" in variant (length -1)
+  TEST_EQUAL(CV_SEQ.substr(0, 4), REF_SEQ.substr(0, 4))
+  TEST_EQUAL(CV_SEQ.substr(6), REF_SEQ.substr(7))
+  const std::vector<ModDef> CV_MODS = {
+    {13, "UNIMOD:21", "Phospho"},     // S (was 14)
+    {15, "UNIMOD:1",  "Acetyl"},      // K (was 16)
+    {17, "UNIMOD:34", "Methyl"},      // R (was 18)
+    {21, "UNIMOD:21", "Phospho"},     // T (was 22)
+    {24, "UNIMOD:35", "Oxidation"},   // M (was 25)
+  };
+  const Row CV_TABLE[] = {
+    {0x00, "MKLSABLPKARGSPKERLAPTDVMGNECS",
+           "MKLSABLPKARGSPKERLAPTDVMGNECS"},
+    {0x01, "MKLSABLPKARGS[UNIMOD:21]PKERLAPTDVMGNECS",
+           "MKLSABLPKARGS(Phospho)PKERLAPTDVMGNECS"},
+    {0x10, "MKLSABLPKARGSPKERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSABLPKARGSPKERLAPTDVM(Oxidation)GNECS"},
+    {0x1F, "MKLSABLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSABLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+  for (const auto& row : CV_TABLE)
+  {
+    PEFFEntry e = build(CV_SEQ, CV_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.toUnmodifiedString(), CV_SEQ)
+  }
+
+  // ---- BLOCK E: processed-region extraction, mixed PSI-MOD + UniMod accessions ----
+  // Exercises the PSI-MOD -> UniMod alias path for one mod (MOD:00046 -> UniMod:21
+  // Phospho on S) while a second mod uses the direct UniMod accession (UNIMOD:35,
+  // Oxidation on M). The materializer resolves both into the same internal mod
+  // table, so toString shows the canonical UniMod title in either case. ----
+  PEFFEntry full;
+  full.identifier = "sp:Q9TEST1";
+  full.prefix = "sp";
+  full.sequence = REF_SEQ;
+  full.sequence_length = REF_SEQ.size();
+  full.modifications = {
+    PEFFModification(14, "MOD:00046", "O-phospho-L-serine"),
+    PEFFModification(25, "UNIMOD:35", "Oxidation"),
+  };
+  full.processed_regions = {
+    PEFFProcessedRegion(1, 1,   "PEFF:0001035", "initiator methionine"),
+    PEFFProcessedRegion(1, 9,   "PEFF:0001021", "signal peptide"),
+    PEFFProcessedRegion(10, 30, "PEFF:0001020", "mature protein"),
+    // Transit peptide and propeptide overlap the mature chain in this synthetic
+    // fixture (only the accession matters for region-type lookup; positions need
+    // not be disjoint). UniPEFF emits all five region types and this pins the
+    // generic fallback branch of getProcessedSequence on the remaining three.
+    PEFFProcessedRegion(11, 15, "PEFF:0001022", "transit peptide"),
+    PEFFProcessedRegion(21, 25, "PEFF:0001034", "propeptide"),
+  };
+
+  // E.1 Full precursor materialized via the PSI-MOD + UniMod mix:
+  AASequence full_aa = full.getModifiedSequence();
+  TEST_EQUAL(full_aa.toString(), "MKLSLGLLPKARGS(Phospho)PKERLAPTDVM(Oxidation)GNECS")
+  TEST_EQUAL(full_aa.toUnmodifiedString(), REF_SEQ)
+  // PEFFFile::toProForma preserves the original accession strings textually
+  // (no aliasing applied during ProForma serialization).
+  TEST_EQUAL(PEFFFile::toProForma(full),
+             "MKLSLGLLPKARGS[MOD:00046]PKERLAPTDVM[UNIMOD:35]GNECS")
+
+  // E.2 Mature chain (10..30, 21 residues) -- top-down search after signal-peptide cleavage.
+  // Contract: getProcessedSequence returns the residue slice for the requested
+  // region but does NOT apply any modifications from entry.modifications, even
+  // when those modifications fall inside the region. Callers that need a
+  // modified chain must re-anchor (translate parent positions to chain positions)
+  // and re-apply the mods themselves. The next two assertions pin the current
+  // behavior on Phospho-S14, which falls at chain position 5 of the mature chain.
+  AASequence mature_chain = full.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature_chain.size(), 21)
+  TEST_EQUAL(mature_chain.toString(), "KARGSPKERLAPTDVMGNECS")
+  TEST_FALSE(mature_chain.isModified())
+  // The Phospho-S would have been at chain index 4 (protein position 14 - chain
+  // start 10 = 4); we explicitly assert it is NOT carried over.
+  TEST_EQUAL(mature_chain[4].getOneLetterCode(), "S")
+  TEST_FALSE(mature_chain[4].isModified())
+
+  // E.3 Generic-fallback region types: initiator methionine, transit peptide,
+  // propeptide. These hit getProcessedSequence's non-signal-peptide branch
+  // (return the region itself, start..end inclusive) rather than the signal-
+  // peptide special case (return everything AFTER end). UniPEFF emits all five
+  // region types and BLOCKS E.1/E.2 only cover signal peptide + mature chain;
+  // these three close the coverage gap on the same `full` entry.
+  AASequence init_met = full.getProcessedSequence("PEFF:0001035");  // initiator Met, 1..1
+  TEST_EQUAL(init_met.toString(), "M")
+  AASequence transit = full.getProcessedSequence("PEFF:0001022");   // transit peptide, 11..15
+  TEST_EQUAL(transit.toString(), "ARGSP")
+  AASequence propep  = full.getProcessedSequence("PEFF:0001034");   // propeptide, 21..25
+  TEST_EQUAL(propep.toString(), "PTDVM")
+
+  // ---- BLOCK F: unlocalised-only ProForma path + DisulfideBond carry-through ----
+  // (1) UniPEFF writes PEFF "?" positions as PEFFModification.position == 0; in
+  // ProForma these surface as the unlocalised "<?[mod]>SEQUENCE" prefix.
+  // PEFFFile::toProForma has a dedicated branch for this case that BLOCKS A-E
+  // never exercise (REF_MODS is all-localised). Pin both the prefix format and
+  // the getModifiedSequence silent-skip behavior on the same entry.
+  PEFFEntry unloc_only;
+  unloc_only.identifier = "sp:Q9TEST1-UNLOC";
+  unloc_only.prefix = "sp";
+  unloc_only.sequence = "PEPTIDES";
+  unloc_only.sequence_length = 8;
+  unloc_only.modifications = {
+    PEFFModification(0, "UNIMOD:21", "Phospho"),
+    PEFFModification(0, "UNIMOD:35", "Oxidation"),
+  };
+  TEST_EQUAL(PEFFFile::toProForma(unloc_only), "<?[UNIMOD:21][UNIMOD:35]>PEPTIDES")
+  AASequence unloc_aa = unloc_only.getModifiedSequence();
+  TEST_EQUAL(unloc_aa.toString(), "PEPTIDES")        // position-0 mods silently skipped
+  TEST_FALSE(unloc_aa.isModified())
+
+  // (2) UniPEFF also writes \ModRes... lines that can mix localised AND unlocalised
+  // mods on the same entry. ProForma must emit BOTH the unlocalised prefix and the
+  // inline brackets; getModifiedSequence applies only the localised ones.
+  PEFFEntry mixed;
+  mixed.identifier = "sp:Q9TEST1-MIXED";
+  mixed.prefix = "sp";
+  mixed.sequence = "PEPTIDES";
+  mixed.sequence_length = 8;
+  mixed.modifications = {
+    PEFFModification(0, "UNIMOD:35", "Oxidation"),   // unknown-position
+    PEFFModification(8, "UNIMOD:21", "Phospho"),     // S at position 8
+  };
+  TEST_EQUAL(PEFFFile::toProForma(mixed), "<?[UNIMOD:35]>PEPTIDES[UNIMOD:21]")
+  AASequence mixed_aa = mixed.getModifiedSequence();
+  TEST_EQUAL(mixed_aa.toString(), "PEPTIDES(Phospho)")
+
+  // (3) DisulfideBond contract: bonds are PEFF metadata that must round-trip
+  // through store()/load() but must NOT influence the materialized AASequence
+  // (PEFFFile does not render inter-residue bonds in toString output, and
+  // toProForma emits no bracket for them).
+  //
+  // Build an entry with two distinct bonds (different optional_tags + one with
+  // a position pair using a CV-prefixed id, matching what UniPEFF emits for
+  // bonds whose endpoint is annotated as unknown), serialize to disk, reload,
+  // and verify every field survived. Without the store/load cycle the bond
+  // assertions would only test the PEFFDisulfideBond constructor, which is
+  // already covered elsewhere in this file.
+  PEFFEntry with_bonds;
+  with_bonds.identifier = "sp:Q9TEST1-DSB";
+  with_bonds.prefix = "sp";
+  with_bonds.sequence = "PEPCIDESCPEP";  // two Cys residues at positions 4 and 9
+  with_bonds.sequence_length = 12;
+  with_bonds.disulfide_bonds = {
+    PEFFDisulfideBond("4", "9", "intra"),
+    PEFFDisulfideBond("?", "9", "endpoint-unknown"),
+  };
+
+  // (3a) Materialization is bond-agnostic on the in-memory entry.
+  TEST_EQUAL(PEFFFile::toProForma(with_bonds), "PEPCIDESCPEP")
+  AASequence dsb_aa = with_bonds.getModifiedSequence();
+  TEST_EQUAL(dsb_aa.toString(), "PEPCIDESCPEP")
+  TEST_FALSE(dsb_aa.isModified())
+
+  // (3b) Real store -> load cycle through PEFFFile. The bond block must survive
+  // the on-wire format unchanged.
+  PEFFDatabaseMetadata dsb_header;
+  dsb_header.db_name = "DSBondMaterializeTest";
+  dsb_header.prefix = "sp";
+  dsb_header.db_version = "1.0";
+  dsb_header.db_sources.push_back("test");
+  dsb_header.number_of_entries = 1;
+
+  std::string tmp_dsb;
+  NEW_TMP_FILE(tmp_dsb);
+  PEFFFile dsb_io;
+  std::vector<PEFFEntry> dsb_in = {with_bonds};
+  dsb_io.store(tmp_dsb, dsb_in, dsb_header);
+
+  std::vector<PEFFEntry> dsb_out;
+  std::vector<PEFFDatabaseMetadata> dsb_headers_out;
+  dsb_io.load(tmp_dsb, dsb_out, dsb_headers_out);
+
+  TEST_EQUAL(dsb_out.size(), 1)
+  TEST_EQUAL(dsb_headers_out.size(), 1)
+  TEST_EQUAL(dsb_out[0].disulfide_bonds.size(), 2)
+  // PEFFDisulfideBond::operator== compares id1, id2, optional_tag, AND annotation_id.
+  // Comparing the whole vector locks all four fields in one go and would also catch
+  // a writer/reader regression where the (default-max()) annotation_id silently drifts
+  // -- a hole that a piecewise id1/id2/optional_tag check would miss because both
+  // sides would consistently round-trip max() -> max().
+  TEST_TRUE(dsb_out[0].disulfide_bonds == with_bonds.disulfide_bonds)
+
+  // (3c) After the round-trip, materializing the loaded entry must STILL show
+  // no bond influence on the AASequence -- the bond is metadata only.
+  TEST_EQUAL(PEFFFile::toProForma(dsb_out[0]), "PEPCIDESCPEP")
+  AASequence dsb_aa_after = dsb_out[0].getModifiedSequence();
+  TEST_EQUAL(dsb_aa_after.toString(), "PEPCIDESCPEP")
+  TEST_FALSE(dsb_aa_after.isModified())
+
+  // ---- Total proteoforms verified by this section ----
+  //   BLOCK A (REF_TABLE)  : 32  (every 5-bit mod combination)
+  //   BLOCK B (K16R_TABLE) :  8  (4 single-mod + 3 multi-mod + reference)
+  //   BLOCK C (S14A_TABLE) :  8
+  //   BLOCK D (CV_TABLE)   :  4  (complex variant, length 30 -> 29)
+  //   BLOCK E (processed)  :  2
+  //   BLOCK F (unloc/DSB)  :  3  (unlocalised-only + mixed + disulfide-bond carry)
+  //                          --
+  //                          57 distinct proteoforms, each with an exact ProForma
+  //                          and an exact AASequence::toString assertion. Variant
+  //                          enumeration (BLOCK B-pre) additionally drives the
+  //                          PEFFEntry::getVariantSequences API end-to-end.
+}
+END_SECTION
+
+START_SECTION([EXTRA] proteoform enumeration -- per-proteoform PTM cap (generatePeptides max_peff_mods_per_proteoform))
+{
+  // ============================================================================
+  // Combinatorial PTM enumeration with a per-proteoform cardinality cap, the
+  // canonical beta-casein (UniProt P02662) phospho-Serine use case: an entry
+  // with 9 phospho-Ser sites, enumerated whole-protein (no cleavage), choosing
+  // up to K simultaneous PTMs per proteoform.
+  //
+  // With n = 9 annotated mod sites and cap K, the number of generated
+  // proteoforms is sum_{j=0..K} C(9, j):
+  //
+  //     K = 1 :  C(9,0)+C(9,1)                          = 1 + 9            = 10
+  //     K = 2 :  + C(9,2)                               = 10 + 36          = 46
+  //     K = 3 :  + C(9,3)                               = 46 + 84          = 130
+  //     K = 0 :  unlimited -> 2^9                                          = 512
+  //
+  // The unmodified proteoform (empty PTM selection) is always retained, so the
+  // counts include it exactly once. include_reference = true keeps the combo == 0
+  // (unmodified) form; with PEFF variants disabled no separate reference peptide
+  // is added, so it appears exactly once. (With include_reference = false the
+  // unmodified form is deliberately erased, which would drop each count by one.)
+  // ============================================================================
+
+  // Synthetic 9-phospho-Ser backbone (P02662-style without a REST dependency):
+  // one Ser per phospho site, each carrying UNIMOD:21.
+  const std::string SEQ = "ASASASASASASASASAS"; // 18 residues, S at even 1-based positions
+  TEST_EQUAL(SEQ.size(), 18)
+
+  PEFFEntry e;
+  e.identifier = "sp:P02662_TEST";
+  e.prefix = "sp";
+  e.sequence = SEQ;
+  e.sequence_length = SEQ.size();
+  const Size phospho_positions[] = {2, 4, 6, 8, 10, 12, 14, 16, 18}; // 9 Ser sites, 1-based
+  for (Size pos : phospho_positions)
+  {
+    TEST_EQUAL(SEQ[pos - 1], 'S')
+    e.modifications.push_back(PEFFModification(pos, "UNIMOD:21", "Phospho"));
+  }
+  TEST_EQUAL(e.modifications.size(), 9)
+
+  // Whole-protein enumeration: "no cleavage" keeps the entire sequence as one
+  // peptide so generatePeptides enumerates entry-level proteoforms.
+  ProteaseDigestion no_cleave;
+  no_cleave.setEnzyme("no cleavage");
+
+  const std::vector<std::string> no_fixed;
+  const std::vector<std::string> no_var;
+
+  auto count_for_cap = [&](Size cap) -> Size
+  {
+    std::vector<std::string> descs;
+    std::vector<AASequence> seqs;
+    e.generatePeptides(no_cleave, descs, seqs,
+                       no_fixed, no_var,
+                       /*max_variable_mods_per_peptide=*/0,
+                       /*min_length=*/1, /*max_length=*/0,
+                       /*include_reference=*/true,
+                       /*include_peff_variants=*/false,
+                       /*include_peff_modifications=*/true,
+                       /*max_peff_mods_per_proteoform=*/cap);
+    TEST_EQUAL(descs.size(), seqs.size())
+    // No generated proteoform may carry more phosphos than the cap.
+    if (cap > 0)
+    {
+      for (const auto& s : seqs)
+      {
+        TEST_EQUAL(s.toUnmodifiedString(), SEQ)
+        Size nmods = 0;
+        for (Size i = 0; i < s.size(); ++i) if (s[i].isModified()) ++nmods;
+        TEST_EQUAL(nmods <= cap, true)
+      }
+    }
+    return seqs.size();
+  };
+
+  // sum_{j=0..K} C(9, j)
+  TEST_EQUAL(count_for_cap(1), 10)
+  TEST_EQUAL(count_for_cap(2), 46)
+  TEST_EQUAL(count_for_cap(3), 130)  // the canonical P02662 number
+  TEST_EQUAL(count_for_cap(0), 512)  // 0 = unlimited -> 2^9
+
+  // Pin representative proteoforms at cap = 3: the unmodified form is present and
+  // every triply-phosphorylated subset is fully phosphorylated at exactly 3 sites.
+  {
+    std::vector<std::string> descs;
+    std::vector<AASequence> seqs;
+    e.generatePeptides(no_cleave, descs, seqs, no_fixed, no_var, 0, 1, 0,
+                       /*include_reference=*/true, false, true,
+                       /*max_peff_mods_per_proteoform=*/3);
+    TEST_EQUAL(seqs.size(), 130)
+
+    bool saw_unmodified = false;
+    bool saw_first_three = false; // phospho on sites 1,2,3 (positions 2,4,6)
+    const std::string TRIPLE = "AS(Phospho)AS(Phospho)AS(Phospho)ASASASASASAS";
+    for (const auto& s : seqs)
+    {
+      if (!s.isModified() && s.toString() == SEQ) saw_unmodified = true;
+      if (s.toString() == TRIPLE) saw_first_three = true;
+    }
+    TEST_EQUAL(saw_unmodified, true)
+    TEST_EQUAL(saw_first_three, true)
+  }
 }
 END_SECTION
 

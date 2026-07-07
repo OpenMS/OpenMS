@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

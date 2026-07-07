@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 

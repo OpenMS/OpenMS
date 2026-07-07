@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
@@ -50,6 +51,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
@@ -57,6 +59,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
@@ -805,6 +809,22 @@ FeatureGroupingAlgorithm
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
+        ;
+
+    // -----------------------------------------------------------------------
+    // PipEchoAlgorithm
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PipEchoAlgorithm, OpenMS::FeatureGroupingAlgorithm>(m, "PipEchoAlgorithm",
+        R"doc(
+Match-between-runs feature grouping via the PIP-ECHO algorithm.
+
+Groups features representing the same identified peptide across multiple
+retention-time-aligned LC-MS runs of one fraction and transfers identifications
+between runs, controlling the transfer false-discovery rate.
+)doc")
+        .def(nb::init<>())
+        .def("group", [](OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
+        .def("transferSubelements", [](const OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
 
     // -----------------------------------------------------------------------
@@ -2318,6 +2338,75 @@ ProgressLogger
             while (nb::len(extraction_coordinates_py) > 0) { extraction_coordinates_py.attr("pop")(); }
             for (auto& c : extraction_coordinates) { extraction_coordinates_py.append(nb::cast(c)); }
         }, "output_chromatograms"_a, "extraction_coordinates"_a, "targeted"_a, "rt_extraction_window"_a, "ms1"_a = false, "ms1_isotopes"_a = 0, "Prepare extraction coordinates from targeted experiment")
+        ;
+
+    // -----------------------------------------------------------------------
+    // PeakMapExtractor_ExtractedPeakMap
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PeakMapExtractor::ExtractedPeakMap>(m, "ExtractedPeakMap",
+        R"doc(
+One extracted targeted peak map.
+
+Each object stores the extraction target metadata together with parallel
+arrays of mz, rt, ion_mobility, and intensity values for every matching
+raw point.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::PeakMapExtractor::ExtractedPeakMap&>())
+        .def("__copy__", [](const OpenMS::PeakMapExtractor::ExtractedPeakMap& self) { return OpenMS::PeakMapExtractor::ExtractedPeakMap(self); })
+        .def("__deepcopy__", [](const OpenMS::PeakMapExtractor::ExtractedPeakMap& self, nb::dict) { return OpenMS::PeakMapExtractor::ExtractedPeakMap(self); }, "memo"_a)
+        .def_rw("native_id", &OpenMS::PeakMapExtractor::ExtractedPeakMap::native_id)
+        .def_rw("target_mz", &OpenMS::PeakMapExtractor::ExtractedPeakMap::target_mz)
+        .def_rw("target_rt", &OpenMS::PeakMapExtractor::ExtractedPeakMap::target_rt)
+        .def_rw("target_ion_mobility", &OpenMS::PeakMapExtractor::ExtractedPeakMap::target_ion_mobility)
+        .def_rw("rt_start", &OpenMS::PeakMapExtractor::ExtractedPeakMap::rt_start)
+        .def_rw("rt_end", &OpenMS::PeakMapExtractor::ExtractedPeakMap::rt_end)
+        .def_rw("mz", &OpenMS::PeakMapExtractor::ExtractedPeakMap::mz)
+        .def_rw("rt", &OpenMS::PeakMapExtractor::ExtractedPeakMap::rt)
+        .def_rw("ion_mobility", &OpenMS::PeakMapExtractor::ExtractedPeakMap::ion_mobility)
+        .def_rw("intensity", &OpenMS::PeakMapExtractor::ExtractedPeakMap::intensity)
+        ;
+
+    // -----------------------------------------------------------------------
+    // PeakMapExtractor
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PeakMapExtractor, OpenMS::ProgressLogger>(m, "PeakMapExtractor",
+        R"doc(
+Extract raw mz/RT/IM peak clouds for targeted OpenSWATH coordinates.
+
+Use this together with SpectrumAccessOpenMS and a list of
+ExtractionCoordinates. If you start from a TargetedExperiment, you can reuse
+ChromatogramExtractor.prepare_coordinates(...) to generate the coordinates
+before calling extractPeakMaps(...).
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::PeakMapExtractor&>())
+        .def("__copy__", [](const OpenMS::PeakMapExtractor& self) { return OpenMS::PeakMapExtractor(self); })
+        .def("__deepcopy__", [](const OpenMS::PeakMapExtractor& self, nb::dict) { return OpenMS::PeakMapExtractor(self); }, "memo"_a)
+        .def("extractPeakMaps", [](OpenMS::PeakMapExtractor& self,
+                std::shared_ptr<OpenMS::SpectrumAccessOpenMS> input,
+                const std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates>& extraction_coordinates,
+                double mz_extraction_window,
+                bool ppm,
+                double im_extraction_window,
+                const std::string& filter) {
+            std::vector<OpenMS::PeakMapExtractor::ExtractedPeakMap> output;
+            self.extractPeakMaps(input, output, extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
+            return output;
+        }, "input"_a, "extraction_coordinates"_a, "mz_extraction_window"_a, "ppm"_a, "im_extraction_window"_a, "filter"_a = "tophat",
+        "Extract targeted raw peak maps from an OpenMS-backed spectrum access object.")
+        .def("extractPeakMaps", [](OpenMS::PeakMapExtractor& self,
+                std::shared_ptr<OpenMS::SpectrumAccessOpenMSInMemory> input,
+                const std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates>& extraction_coordinates,
+                double mz_extraction_window,
+                bool ppm,
+                double im_extraction_window,
+                const std::string& filter) {
+            std::vector<OpenMS::PeakMapExtractor::ExtractedPeakMap> output;
+            self.extractPeakMaps(input, output, extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
+            return output;
+        }, "input"_a, "extraction_coordinates"_a, "mz_extraction_window"_a, "ppm"_a, "im_extraction_window"_a, "filter"_a = "tophat",
+        "Extract targeted raw peak maps from an in-memory spectrum access object.")
         ;
 
     // -----------------------------------------------------------------------
@@ -3874,6 +3963,99 @@ correct all maps according to the m/z shift found in those fixed
 points. *
 )doc")
         .def(nb::init<>())
+        ;
+
+    // -----------------------------------------------------------------------
+    // TransitionListEvidenceFilter::PrecursorEvidence
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransitionListEvidenceFilter::PrecursorEvidence>(
+        m, "TransitionListEvidenceFilter_PrecursorEvidence",
+        "Compact raw-data evidence summary for one target precursor candidate")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter::PrecursorEvidence(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter::PrecursorEvidence& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter::PrecursorEvidence(self);
+        }, "memo"_a)
+        .def_rw("compound_id", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::compound_id)
+        .def_rw("sequence", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::sequence)
+        .def_rw("precursor_mz", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::precursor_mz)
+        .def_rw("precursor_im", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::precursor_im)
+        .def_rw("supported_ms1", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::supported_ms1)
+        .def_rw("supported_ms2", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::supported_ms2)
+        .def_rw("ms1_hit_count", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_hit_count)
+        .def_rw("ms1_max_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_max_intensity)
+        .def_rw("ms1_sum_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_sum_intensity)
+        .def_rw("ms1_best_rt", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms1_best_rt)
+        .def_rw("ms2_hit_count", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_hit_count)
+        .def_rw("ms2_best_fragment_hits", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_best_fragment_hits)
+        .def_rw("ms2_max_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_max_intensity)
+        .def_rw("ms2_sum_intensity", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_sum_intensity)
+        .def_rw("ms2_best_rt", &OpenMS::TransitionListEvidenceFilter::PrecursorEvidence::ms2_best_rt)
+        ;
+
+    // -----------------------------------------------------------------------
+    // TransitionListEvidenceFilter::Result
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransitionListEvidenceFilter::Result>(m, "TransitionListEvidenceFilter_Result",
+        "Filtered target experiment and compact raw-data evidence summaries")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter::Result&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter::Result& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter::Result(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter::Result& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter::Result(self);
+        }, "memo"_a)
+        .def_rw("filtered_targets", &OpenMS::TransitionListEvidenceFilter::Result::filtered_targets)
+        .def_rw("evidence", &OpenMS::TransitionListEvidenceFilter::Result::evidence)
+        .def_rw("total_target_precursors", &OpenMS::TransitionListEvidenceFilter::Result::total_target_precursors)
+        .def_rw("supported_precursors", &OpenMS::TransitionListEvidenceFilter::Result::supported_precursors)
+        .def_rw("ms1_supported", &OpenMS::TransitionListEvidenceFilter::Result::ms1_supported)
+        .def_rw("ms2_supported", &OpenMS::TransitionListEvidenceFilter::Result::ms2_supported)
+        .def_rw("hybrid_supported", &OpenMS::TransitionListEvidenceFilter::Result::hybrid_supported)
+        .def_rw("summary", &OpenMS::TransitionListEvidenceFilter::Result::summary)
+        .def_rw("precursor_im_scale", &OpenMS::TransitionListEvidenceFilter::Result::precursor_im_scale)
+        .def_rw("precursor_im_scaled_by_charge", &OpenMS::TransitionListEvidenceFilter::Result::precursor_im_scaled_by_charge)
+        ;
+
+    // -----------------------------------------------------------------------
+    // TransitionListEvidenceFilter
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransitionListEvidenceFilter, OpenMS::DefaultParamHandler>(
+        m, "TransitionListEvidenceFilter",
+        "Prefilter transition-library precursors by quick raw-data evidence")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::TransitionListEvidenceFilter&>())
+        .def("__copy__", [](const OpenMS::TransitionListEvidenceFilter& self)
+        {
+          return OpenMS::TransitionListEvidenceFilter(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::TransitionListEvidenceFilter& self, nb::dict)
+        {
+          return OpenMS::TransitionListEvidenceFilter(self);
+        }, "memo"_a)
+        .def("filter",
+             [](const OpenMS::TransitionListEvidenceFilter& self,
+                const std::vector<OpenSwath::SwathMap>& swath_maps,
+                const OpenSwath::LightTargetedExperiment& transition_exp,
+                const OpenMS::ChromExtractParams& ms1_params,
+                const OpenMS::ChromExtractParams& ms2_params,
+                bool pasef,
+                int threads)
+             {
+               nb::gil_scoped_release release;
+               return self.filter(swath_maps, transition_exp, ms1_params, ms2_params, pasef, threads);
+             },
+             "swath_maps"_a, "transition_exp"_a, "ms1_params"_a, "ms2_params"_a,
+             "pasef"_a, "threads"_a = 1,
+             "Filter target precursors by MS1/MS2 evidence observed in the current run")
         ;
 
     // -----------------------------------------------------------------------

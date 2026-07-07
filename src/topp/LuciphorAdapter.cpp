@@ -23,6 +23,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <cstddef>
 #include <fstream>
