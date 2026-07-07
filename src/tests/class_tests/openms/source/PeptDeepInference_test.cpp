@@ -2,9 +2,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
 #include <OpenMS/ML/PeptDeepUtils.h>
+
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -14,6 +20,7 @@ START_TEST(PeptDeepInference, "$Id$")
 // Note: These paths will be resolved by the OpenMS CMake testing environment
 const string rt_model = "data/peptdeep_rt_dynamic.onnx";
 const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
+const string rt_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_retention_time_predicted.csv");
 
 START_SECTION(AminoAcidVocabulary and Utilities)
     STATUS("Testing vocabulary tokenization for 'AGHCEWQMKYR'...");
@@ -46,6 +53,71 @@ START_SECTION(PeptDeepRTInference)
     // Check against expected AlphaPeptDeep Python Output
     // Reference: https://github.com/MannLabs/alphapeptdeep/blob/main/nbs_tests/pretrained_models.ipynb
     TEST_REAL_SIMILAR(rt_preds[0], -0.035467f);
+END_SECTION
+
+START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predictions)
+    STATUS("Verifying RT predictions against saved AlphaPeptDeep Python rt_pred values...");
+
+    auto split_csv_line = [](const string& line)
+    {
+        vector<string> fields;
+        string field;
+        stringstream stream(line);
+        while (getline(stream, field, ','))
+        {
+            fields.push_back(field);
+        }
+        return fields;
+    };
+
+    ifstream input(rt_reference_data);
+    if (!input.good())
+    {
+        TEST_EQUAL(input.good(), true);
+    }
+    else
+    {
+        string header;
+        getline(input, header);
+
+        vector<string> peptides;
+        vector<float> expected_rt_preds;
+
+        string line;
+        while (getline(input, line))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+
+            vector<string> fields = split_csv_line(line);
+            TEST_EQUAL(fields.size() >= 7, true);
+            if (fields.size() < 7)
+            {
+                continue;
+            }
+
+            peptides.push_back(fields[1]);
+            expected_rt_preds.push_back(static_cast<float>(stod(fields[6])));
+        }
+
+        TEST_EQUAL(peptides.empty(), false);
+
+        PeptDeepRTInference rt_engine(rt_model);
+        vector<float> actual_rt_preds = rt_engine.predictRT(peptides);
+
+        TEST_EQUAL(actual_rt_preds.size(), expected_rt_preds.size());
+
+        float max_abs_error = 0.0f;
+        for (size_t i = 0; i < actual_rt_preds.size(); ++i)
+        {
+            max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual_rt_preds[i] - expected_rt_preds[i])));
+        }
+
+        STATUS("Maximum absolute RT prediction error: " << max_abs_error);
+        TEST_EQUAL(max_abs_error < 1e-4f, true);
+    }
 END_SECTION
 
 START_SECTION(PeptDeepMS2Inference)
