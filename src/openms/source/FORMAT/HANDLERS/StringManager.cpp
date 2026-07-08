@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/StringManager.h>
 
+#include <cmath> // MSVC: SIMDe's simde-math.h needs std::isnormal/isnan/... in scope
 #include <OpenMS/SYSTEM/SIMDe.h>
 
 #include <xercesc/util/XMLString.hpp>

@@ -39,7 +39,7 @@ namespace OpenMS::Internal
 
       Takes an opaque handle so this header need not name any Xerces type. The
       only caller is the internal SAX2HandlerAdapter, which passes the address of
-      the live @c xercesc::Attributes (recovered internally in @ref XMLAttributes.cpp).
+      the live @c xercesc::Attributes (recovered internally in @c XMLAttributes.cpp).
     */
     explicit XMLAttributes(const void* attributes) noexcept :
       attributes_(attributes)
