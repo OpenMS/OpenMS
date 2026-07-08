@@ -303,14 +303,13 @@ START_SECTION(void compute(PeptideIdentificationList& pep_ids, const ProteinIden
   TEST_REAL_SIMILAR(result[0].variance_ppm, 0.0) // offset is constant, i.e. no variance
 
   //--------------------------------------------------------------------
-  // regression for issue #9488, QC-3: the PeptideIdentificationList and FeatureMap
-  // overloads must compute the average/variance identically. The constant-offset data
-  // above always yields variance 0, which cannot distinguish the (old, buggy)
-  // moving-average accumulation from the correct two-pass computation. Here we feed
-  // NON-constant per-spectrum errors (+2 ppm for HIMALAYA, +8 ppm for ALABAMA) through
+  // The PeptideIdentificationList and FeatureMap overloads must compute the average/variance
+  // identically. The constant-offset data above always yields variance 0, which cannot
+  // distinguish a moving-average accumulation from the correct two-pass computation. Here we
+  // feed NON-constant per-spectrum errors (+2 ppm for HIMALAYA, +8 ppm for ALABAMA) through
   // BOTH overloads using the exact same spectra/peptides and assert that the resulting
-  // average_ppm and variance_ppm match. With the buggy list overload the variance was
-  // accumulated against a moving/partial average and differed from the FeatureMap result.
+  // average_ppm and variance_ppm match. A moving/partial average in the list overload would
+  // accumulate variance against a shifting mean and differ from the FeatureMap result.
   {
     // build MSExperiment whose peaks carry two different ppm offsets
     PeakSpectrum himalaya_var = createMSSpectrum(2, 3.7, "XTandem::1");
@@ -355,7 +354,7 @@ START_SECTION(void compute(PeptideIdentificationList& pep_ids, const ProteinIden
     const FragmentMassError::Statistics fmap_result = frag_ma_err_fmap_var.getResults()[0];
 
     // non-constant errors => non-zero variance (guards against the data being degenerate)
-    TEST_EQUAL(list_result.variance_ppm > 0.0, true)
+    TEST_TRUE(list_result.variance_ppm > 0.0)
     // the two overloads must agree on both average and variance
     TEST_REAL_SIMILAR(list_result.average_ppm, fmap_result.average_ppm)
     TEST_REAL_SIMILAR(list_result.variance_ppm, fmap_result.variance_ppm)
