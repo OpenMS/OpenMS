@@ -73,6 +73,7 @@ set(datastructures_executables_list
   Matrix_test
   MatrixEigen_test
   OPXLDataStructs_test
+  OSWData_test
   Param_test
   ParamValue_test
   QTCluster_test
