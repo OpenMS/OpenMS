@@ -657,7 +657,7 @@ class TestPEFFFile:
 
 class TestMSSpectrumGetPeaks:
     """get_peaks() must RETURN the (mz, intensity) arrays the C++ fills by
-    reference, not drop them (issue #9460 §2, L94)."""
+    reference, not drop them."""
 
     def test_get_peaks_returns_tuple(self):
         np = pytest.importorskip("numpy")
@@ -699,7 +699,7 @@ class TestMSSpectrumGetPeaks:
 class TestMSExperimentGet2DPeakData:
     """get2DPeakData / get2DPeakDataLong / get2DPeakDataIM must RETURN the
     (rt, mz, intensity[, ion_mobility]) arrays the C++ fills by reference
-    (issue #9460 §2, L94)."""
+    without dropping values."""
 
     @staticmethod
     def _make_exp():
