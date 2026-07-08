@@ -1723,6 +1723,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
         .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
         .value("BJELLQVIST", OpenMS::ProteomicsPkaScale::BJELLQVIST)
+        .value("SIZE_OF_PROTEOMICS_PKA_SCALES", OpenMS::ProteomicsPkaScale::SIZE_OF_PROTEOMICS_PKA_SCALES)
         .export_values();
 
     // IsoelectricPoint
@@ -2072,8 +2073,16 @@ the fixed and variable modifications given to the constructor
         .value("YIon", OpenMS::NASequence::NASFragmentType::YIon)
         .value("ZIon", OpenMS::NASequence::NASFragmentType::ZIon)
         .value("Precursor", OpenMS::NASequence::NASFragmentType::Precursor)
+        .value("BIonMinusH20", OpenMS::NASequence::NASFragmentType::BIonMinusH20)
+        .value("YIonMinusH20", OpenMS::NASequence::NASFragmentType::YIonMinusH20)
+        .value("BIonMinusNH3", OpenMS::NASequence::NASFragmentType::BIonMinusNH3)
+        .value("YIonMinusNH3", OpenMS::NASequence::NASFragmentType::YIonMinusNH3)
+        .value("NonIdentified", OpenMS::NASequence::NASFragmentType::NonIdentified)
+        .value("Unannotated", OpenMS::NASequence::NASFragmentType::Unannotated)
         .value("WIon", OpenMS::NASequence::NASFragmentType::WIon)
+        .value("AminusB", OpenMS::NASequence::NASFragmentType::AminusB)
         .value("DIon", OpenMS::NASequence::NASFragmentType::DIon)
+        .value("SizeOfNASFragmentType", OpenMS::NASequence::NASFragmentType::SizeOfNASFragmentType)
         ;
 
     // -----------------------------------------------------------------------

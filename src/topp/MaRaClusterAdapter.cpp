@@ -6,7 +6,8 @@
 // $Authors: Mathew The, Leon Bichmann $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
+#include <fstream>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -89,11 +90,11 @@ Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome
 
 
 class MaRaClusterAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   MaRaClusterAdapter() :
-    TOPPBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true,
+    TOPPExternalToolBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true,
                 { // citation(s), specific for this tool
                  { "The M and Käll L", "MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics", "J Proteome Res 2016; 15: 3", "10.1021/acs.jproteome.5b00749"}
                 }

@@ -459,6 +459,7 @@ set(chemistry_executables_list
   DecoyGenerator_test
   DigestionEnzyme_test
   DigestionEnzymeProtein_test
+  DigestionEnzymeRNA_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
@@ -480,6 +481,7 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
+  MonosaccharideDB_test
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
@@ -487,6 +489,7 @@ set(chemistry_executables_list
   ProFormaParser_test
   ProteaseDB_test
   ProteaseDigestion_test
+  RNaseDB_test
   RNaseDigestion_test
   RealMassDecomposer_test
   ResidueDB_test
@@ -649,6 +652,7 @@ set(applications_executables_list
   #MapAlignerBase_test
   SearchEngineBase_test
   TOPPBase_test
+  TOPPExternalToolBase_test
   ToolHandler_test
   ParameterInformation_test
   ConsoleUtils_test
