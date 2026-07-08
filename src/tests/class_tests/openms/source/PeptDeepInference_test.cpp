@@ -12,22 +12,13 @@
 #include <cmath>
 #include <fstream>
 #include <map>
+#include <stdexcept>
 #include <sstream>
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(PeptDeepInference, "$Id$")
-
-// Note: These paths will be resolved by the OpenMS CMake testing environment
-const string rt_model = "data/peptdeep_rt_dynamic.onnx";
-const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
-const string irt_reference_data = OPENMS_GET_TEST_DATA_PATH("peptdeep_irt_peptides_predicted.csv");
-const string rt_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_retention_time_predicted.csv");
-const string ms2_spectra_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_spectra.csv");
-const string ms2_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_predicted_intensities.csv");
-
-vector<string> splitCSVLine(const string& line)
+static vector<string> splitCSVLine(const string& line)
 {
     vector<string> fields;
     string field;
@@ -39,7 +30,7 @@ vector<string> splitCSVLine(const string& line)
     return fields;
 }
 
-map<string, size_t> csvHeaderIndex(const string& header)
+static map<string, size_t> csvHeaderIndex(const string& header)
 {
     vector<string> fields = splitCSVLine(header);
     map<string, size_t> index;
@@ -50,22 +41,29 @@ map<string, size_t> csvHeaderIndex(const string& header)
     return index;
 }
 
-const string& csvField(const vector<string>& fields, const map<string, size_t>& index, const string& name)
+static const string& csvField(const vector<string>& fields, const map<string, size_t>& index, const string& name)
 {
-    static const string empty;
     auto it = index.find(name);
-    TEST_EQUAL(it != index.end(), true);
     if (it == index.end())
     {
-        return empty;
+        throw runtime_error("Missing CSV column: " + name);
     }
-    TEST_EQUAL(it->second < fields.size(), true);
     if (it->second >= fields.size())
     {
-        return empty;
+        throw runtime_error("CSV row has too few fields for column: " + name);
     }
     return fields[it->second];
 }
+
+START_TEST(PeptDeepInference, "$Id$")
+
+// Note: These paths will be resolved by the OpenMS CMake testing environment
+const string rt_model = "data/peptdeep_rt_dynamic.onnx";
+const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
+const string irt_reference_data = OPENMS_GET_TEST_DATA_PATH("peptdeep_irt_peptides_predicted.csv");
+const string rt_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_retention_time_predicted.csv");
+const string ms2_spectra_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_spectra.csv");
+const string ms2_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_predicted_intensities.csv");
 
 START_SECTION(AminoAcidVocabulary and Utilities)
     STATUS("Testing vocabulary tokenization for 'AGHCEWQMKYR'...");
