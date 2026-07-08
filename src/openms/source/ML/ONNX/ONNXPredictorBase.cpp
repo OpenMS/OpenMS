@@ -6,8 +6,8 @@
 // $Authors: Satyam Yadav $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/ONNXPredictorBase.h>
-#include <OpenMS/ML/ONNXEnvironment.h>
+#include <OpenMS/ML/ONNX/ONNXPredictorBase.h>
+#include "ONNXEnvironment.h"
 #include <OpenMS/CONCEPT/Exception.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>

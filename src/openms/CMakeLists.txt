@@ -277,14 +277,14 @@ file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINAR
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 
-# Add the new ONNX source files conditionally
+# Add the ONNX source files conditionally
 if(WITH_ONNX)
   target_sources(OpenMS PRIVATE
-    source/ML/ONNXEnvironment.cpp
-    source/ML/ONNXPredictorBase.cpp
-    source/ML/PeptDeepCCSInference.cpp
-    source/ML/PeptDeepInput.cpp
-    source/ML/PeptDeepRTInference.cpp
-    source/ML/PeptDeepMS2Inference.cpp
+    source/ML/ONNX/ONNXEnvironment.cpp
+    source/ML/ONNX/ONNXPredictorBase.cpp
+    source/ML/PEPTDEEP/PeptDeepCCSInference.cpp
+    source/ML/PEPTDEEP/PeptDeepInput.cpp
+    source/ML/PEPTDEEP/PeptDeepRTInference.cpp
+    source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
   )
 endif()

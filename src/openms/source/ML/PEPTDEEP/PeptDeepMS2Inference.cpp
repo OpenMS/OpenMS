@@ -6,10 +6,10 @@
 // $Authors: Satyam Yadav $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/PeptDeepMS2Inference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/ML/PeptDeepInput.h>
-#include <OpenMS/ML/PeptDeepUtils.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 #include <algorithm>

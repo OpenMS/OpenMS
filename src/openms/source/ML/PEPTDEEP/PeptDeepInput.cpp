@@ -6,8 +6,8 @@
 // $Authors: Satyam Yadav, Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/PeptDeepInput.h>
-#include <OpenMS/ML/PeptDeepUtils.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm>

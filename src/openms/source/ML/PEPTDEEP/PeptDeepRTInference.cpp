@@ -6,9 +6,9 @@
 // $Authors: Satyam Yadav $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/PeptDeepRTInference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepRTInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/ML/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <onnxruntime_cxx_api.h>
 #include <map>
 #include <stdexcept>

@@ -6,10 +6,10 @@
 // $Authors: Satyam Yadav, Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/PeptDeepCCSInference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepCCSInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/ML/PeptDeepInput.h>
-#include <OpenMS/ML/PeptDeepUtils.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 
 #include <onnxruntime_cxx_api.h>
 

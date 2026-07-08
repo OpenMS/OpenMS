@@ -12,7 +12,7 @@
 #include <vector>
 #include <cstdint>
 #include <OpenMS/config.h>
-#include <OpenMS/ML/ONNXPredictorBase.h>
+#include <OpenMS/ML/ONNX/ONNXPredictorBase.h>
 
 namespace OpenMS {
 

@@ -7,10 +7,12 @@ set(sources_list_h
 
 if (WITH_ONNX)
     list(APPEND sources_list_h
-        PeptDeepCCSInference.h
-        PeptDeepInput.h
-        PeptDeepMS2Inference.h
-        PeptDeepRTInference.h
+        ONNX/ONNXPredictorBase.h
+        PEPTDEEP/PeptDeepCCSInference.h
+        PEPTDEEP/PeptDeepInput.h
+        PEPTDEEP/PeptDeepMS2Inference.h
+        PEPTDEEP/PeptDeepRTInference.h
+        PEPTDEEP/PeptDeepUtils.h
     )
 endif()
 

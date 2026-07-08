@@ -3,11 +3,11 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/ML/PeptDeepCCSInference.h>
-#include <OpenMS/ML/PeptDeepRTInference.h>
-#include <OpenMS/ML/PeptDeepMS2Inference.h>
-#include <OpenMS/ML/PeptDeepInput.h>
-#include <OpenMS/ML/PeptDeepUtils.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepCCSInference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepRTInference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 
 #include <algorithm>
 #include <cmath>

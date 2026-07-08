@@ -6,7 +6,7 @@
 // $Authors: Satyam Yadav $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/ONNXEnvironment.h>
+#include "ONNXEnvironment.h"
 
 namespace OpenMS
 {

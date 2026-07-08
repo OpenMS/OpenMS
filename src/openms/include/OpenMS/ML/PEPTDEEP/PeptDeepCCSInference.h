@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/ML/ONNXPredictorBase.h>
+#include <OpenMS/ML/ONNX/ONNXPredictorBase.h>
 
 #include <string>
 #include <vector>
