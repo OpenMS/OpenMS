@@ -67,7 +67,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
@@ -768,7 +767,7 @@ A node of the kD-tree with pointer to corresponding data and index
         .def("__copy__", [](const OpenMS::KDTreeFeatureNode& self) { return OpenMS::KDTreeFeatureNode(self); })
         .def("__deepcopy__", [](const OpenMS::KDTreeFeatureNode& self, nb::dict) { return OpenMS::KDTreeFeatureNode(self); }, "memo"_a)
         .def("__getitem__", [](OpenMS::KDTreeFeatureNode& self, size_t i) { return self[i]; })
-        .def("getIndex", [](const OpenMS::KDTreeFeatureNode& self) { return self.getIndex(); }, "Returns index of corresponding feature in data_")
+        .def("getIndex", [](const OpenMS::KDTreeFeatureNode& self) { return self.getIndex(); }, "Returns index of corresponding feature in ``data_``")
         ;
 
     // -----------------------------------------------------------------------
@@ -1213,8 +1212,8 @@ private
         .def(nb::init<size_t, OpenMS::Param>())
         .def("__copy__", [](const OpenMS::MapAlignmentAlgorithmKD& self) { return OpenMS::MapAlignmentAlgorithmKD(self); })
         .def("__deepcopy__", [](const OpenMS::MapAlignmentAlgorithmKD& self, nb::dict) { return OpenMS::MapAlignmentAlgorithmKD(self); }, "memo"_a)
-        .def("addRTFitData", [](OpenMS::MapAlignmentAlgorithmKD& self, const OpenMS::KDTreeFeatureMaps& kd_data) { return self.addRTFitData(kd_data); }, "kd_data"_a, "Compute data points needed for RT transformation in the current `kd_data`, add to `fit_data_`")
-        .def("fitLOWESS", [](OpenMS::MapAlignmentAlgorithmKD& self) { return self.fitLOWESS(); }, "Fit LOWESS to fit_data_, store final models in `transformations_`")
+        .def("addRTFitData", [](OpenMS::MapAlignmentAlgorithmKD& self, const OpenMS::KDTreeFeatureMaps& kd_data) { return self.addRTFitData(kd_data); }, "kd_data"_a, "Compute data points needed for RT transformation in the current ``kd_data``, add to ``fit_data_``")
+        .def("fitLOWESS", [](OpenMS::MapAlignmentAlgorithmKD& self) { return self.fitLOWESS(); }, "Fit LOWESS to ``fit_data_``, store final models in ``transformations_``")
         .def("transform", [](const OpenMS::MapAlignmentAlgorithmKD& self, OpenMS::KDTreeFeatureMaps& kd_data) { return self.transform(kd_data); }, "kd_data"_a, "Transform RTs for `kd_data`")
         ;
 
@@ -2459,23 +2458,6 @@ These metrics are combined over the previous and the next MS1 spectrum
         .def_rw("seq_2", &OpenMS::ProbablePhosphoSites::seq_2)
         .def_rw("peak_depth", &OpenMS::ProbablePhosphoSites::peak_depth)
         .def_rw("AScore", &OpenMS::ProbablePhosphoSites::AScore)
-        ;
-
-    // -----------------------------------------------------------------------
-    // ProteinInference
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ProteinInference>(m, "ProteinInference", 
-        R"doc(
-[experimental class] given a peptide quantitation, infer corresponding protein quantities
-Infers protein ratios from peptide ratios (currently using unique peptides only).
-Use the IDMapper class to add protein and peptide information to a
-quantitative ConsensusMap prior to this step
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ProteinInference &>())
-        .def("__copy__", [](const OpenMS::ProteinInference& self) { return OpenMS::ProteinInference(self); })
-        .def("__deepcopy__", [](const OpenMS::ProteinInference& self, nb::dict) { return OpenMS::ProteinInference(self); }, "memo"_a)
-        .def("infer", [](OpenMS::ProteinInference& self, OpenMS::ConsensusMap& consensus_map, unsigned int reference_map) { return self.infer(consensus_map, reference_map); }, "consensus_map"_a, "reference_map"_a)
         ;
 
     // -----------------------------------------------------------------------

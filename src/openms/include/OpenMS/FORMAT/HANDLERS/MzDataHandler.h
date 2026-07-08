@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -55,13 +54,13 @@ public:
 
 
       // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t length) override;
+      void onCharacters(const char16_t* chars, Size length) override;
 
       /// Writes the contents to a stream
       void writeTo(std::ostream & os) override;

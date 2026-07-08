@@ -6,7 +6,7 @@
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -23,6 +23,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <cstddef>
 #include <fstream>
@@ -69,11 +70,11 @@ using namespace OpenMS;
 using namespace std;
 
 class LuciphorAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   LuciphorAdapter() :
-    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
+    TOPPExternalToolBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<std::string>("CID,HCD")),
     fragment_error_units_(ListUtils::create<std::string>("Da,ppm")),

@@ -36,11 +36,14 @@ set(sources_list_h
   OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathOSWParquetReader.h
+  OpenSwathPercolatorScoring.h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathResultsExporter.h
+  TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
   OpenSwathWorkflowScheduler.h
+  PeakMapExtractor.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h

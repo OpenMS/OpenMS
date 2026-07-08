@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
+#include <unordered_set>
+
 namespace OpenMS
 {
   DeconvolvedSpectrum::DeconvolvedSpectrum(const int scan_number) : scan_number_(scan_number)
@@ -33,6 +35,13 @@ namespace OpenMS
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
+
+    // An empty (e.g. default-constructed) DeconvolvedSpectrum has no peak groups; return a header-only
+    // spectrum instead of dereferencing peak_groups_[0] below (out-of-bounds access).
+    if (peak_groups_.empty())
+    {
+      return out_spec;
+    }
 
     double charge_mass_offset = (double)abs(to_charge) * FLASHHelperClasses::getChargeMass(to_charge >= 0);
     std::unordered_set<double> deconvolved_mzs;

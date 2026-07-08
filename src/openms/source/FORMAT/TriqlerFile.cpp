@@ -10,6 +10,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <tuple>
 

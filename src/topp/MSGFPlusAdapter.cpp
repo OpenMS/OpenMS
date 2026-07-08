@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -733,7 +734,9 @@ protected:
           int scan_number = 0;
           if ((elements[2].empty()) || (elements[2] == "-1"))
           {
-            scan_number = StringUtils::toInt32(elements[1]);
+            // SpecID may be "controllerType=0 controllerNumber=1 scan=17"; take the value after the last '='
+            // (suffix() now returns the whole string when '=' is absent, matching develop's previous ternary)
+            scan_number = StringUtils::toInt32(StringUtils::suffix(elements[1], '='));
           }
           else
           {

@@ -20,10 +20,8 @@ AbsoluteQuantitationMethodFile.h
 AbsoluteQuantitationStandardsFile.h
 Base64.h
 Bzip2Ifstream.h
-Bzip2InputStream.h
 CachedMzML.h
 ChromeleonFile.h
-CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
 ControlledVocabulary.h
@@ -35,17 +33,17 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FileInfo.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
 GNPSMetaValueFile.h
 GNPSMGFFile.h
 GNPSQuantificationFile.h
 GzipIfstream.h
-GzipInputStream.h
 ZipIfstream.h
-ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
+ImzMLFile.h
 IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
@@ -104,6 +102,7 @@ ToolDescriptionFile.h
 TransformationXMLFile.h
 TriqlerFile.h
 UnimodXMLFile.h
+UniProtXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
@@ -124,10 +123,13 @@ endif()
 list(APPEND sources_list_h ZipArchiveFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
+list(APPEND sources_list_h ArrowSchemaRegistry.h)
+list(APPEND sources_list_h ArrowIOHelpers.h)
 list(APPEND sources_list_h ParquetFile.h)
 list(APPEND sources_list_h ParquetFilter.h)
 list(APPEND sources_list_h XICParquetFile.h)
 list(APPEND sources_list_h XIMParquetFile.h)
+list(APPEND sources_list_h XIPMParquetFile.h)
 list(APPEND sources_list_h QPXFile.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
@@ -154,3 +156,19 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+
+### Private (non-installed) headers: the Xerces InputSource / BinInputStream
+### adapters are internal plumbing used only by XMLFile.cpp / CompressedInputSource.cpp.
+### Keeping them off OpenMS_sources_h is what lets Xerces be a PRIVATE link dependency.
+set(private_headers_list_h
+Bzip2InputStream.h
+CompressedInputSource.h
+GzipInputStream.h
+ZipInputStream.h
+)
+set(private_sources_h)
+foreach(i ${private_headers_list_h})
+	list(APPEND private_sources_h ${directory}/${i})
+endforeach(i)
+source_group("Header Files\\OpenMS\\FORMAT" FILES ${private_sources_h})
+set(OpenMS_private_headers ${OpenMS_private_headers} ${private_sources_h})

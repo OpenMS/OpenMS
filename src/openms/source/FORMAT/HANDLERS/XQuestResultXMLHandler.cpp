@@ -14,12 +14,12 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 #include <cassert>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
@@ -115,7 +115,7 @@ namespace OpenMS::Internal
     }
 
     // Extracts the position of the Cross-Link for intralinks and crosslinks
-    void XQuestResultXMLHandler::getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair)
+    void XQuestResultXMLHandler::getLinkPosition_(const XMLAttributes & attributes, std::pair<SignedSize, SignedSize> & pair)
     {
       std::string xlink_position = this->attributeAsString_(attributes, "xlinkposition");
       StringList xlink_position_split;
@@ -186,7 +186,7 @@ namespace OpenMS::Internal
       return this->n_hits_;
     }
 
-    void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void XQuestResultXMLHandler::onEndElement(const char16_t* qname)
     {
       std::string tag = StringManager::convert(qname);
       if (tag == "xquest_results")
@@ -206,7 +206,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
+    void XQuestResultXMLHandler::onStartElement(const char16_t * const qname, const XMLAttributes &attributes)
     {
       std::string tag = StringManager::convert(qname);
       // Extract meta information from the xquest_results tag

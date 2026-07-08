@@ -33,6 +33,9 @@
 #include <OpenMS/KERNEL/MobilityPeak1D.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
@@ -1851,6 +1854,50 @@ This is an alias for getChromatogramByNativeId().
         ;
 
     // -----------------------------------------------------------------------
+    // OnDiscImzMLExperiment
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment",
+        "Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.")
+        .def(nb::init<>())
+        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path) {
+            self.open(imzml_path, ibd_path);
+        }, "imzml_path"_a, "ibd_path"_a = "", "Open imzML index and companion .ibd file")
+        .def("close", [](OpenMS::OnDiscImzMLExperiment& self) { self.close(); },
+            "Close the companion .ibd file and release on-disc resources")
+        .def("isOpen", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.isOpen(); })
+        .def("getNrSpectra", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.getNrSpectra(); })
+        .def("size", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.size(); })
+        .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, size_t i) {
+            return self.getSpectrum(i);
+        }, "i"_a)
+        .def("getSpectrumAtCoord", [](OpenMS::OnDiscImzMLExperiment& self, uint32_t x, uint32_t y, uint32_t z) {
+            return self.getSpectrumAtCoord(x, y, z);
+        }, "x"_a, "y"_a, "z"_a = 1)
+        .def("getIndex", [](const OpenMS::OnDiscImzMLExperiment& self, size_t i) {
+            return self.getIndex(i);
+        }, "i"_a, "Return ImzMLSpectrumIndex entry without reading .ibd peak data")
+        .def("getImzMLMeta", [](const OpenMS::OnDiscImzMLExperiment& self) {
+            return self.getImzMLMeta();
+        }, "Return dataset-level ImzMLMeta parsed during open()")
+        .def("getGeometry",
+            [](const OpenMS::OnDiscImzMLExperiment& self) -> const OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+            nb::rv_policy::reference_internal,
+            "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
+        .def("extractIonImage",
+            [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm) {
+                return self.extractIonImage(mz, tolerance_ppm);
+            }, "mz"_a, "tolerance_ppm"_a,
+            "Extract a single-mass ion image over the whole dataset by summing intensities in [mz - dm, mz + dm] (dm = mz * tolerance_ppm * 1e-6), decoding each pixel from the .ibd on demand")
+        .def("extractIonImage",
+            [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm, OpenMS::Size region_id) {
+                return self.extractIonImage(mz, tolerance_ppm, region_id);
+            }, "mz"_a, "tolerance_ppm"_a, "region_id"_a,
+            "Extract a single-mass ion image restricted to one region, decoding each pixel from the .ibd on demand")
+        .def("gridWidth", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridWidth(); })
+        .def("gridHeight", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridHeight(); })
+        ;
+
+    // -----------------------------------------------------------------------
     // Peak1D
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Peak1D>(m, "Peak1D", 
@@ -2254,12 +2301,6 @@ Returns the identifier linking to the parent ProteinIdentification
 :return: Unique identifier string
 Use this to find the corresponding ProteinIdentification with search parameters
 )doc")
-        .def("getBaseName", [](const OpenMS::PeptideIdentification& self) { return self.getBaseName(); }, 
-            R"doc(
-Sets the retention time of the precursor
-:param rt: Retention time in seconds
-)doc")
-        .def("setBaseName", [](OpenMS::PeptideIdentification& self, const std::string& base_name) { return self.setBaseName(base_name); }, "base_name"_a)
         .def("getExperimentLabel", [](const OpenMS::PeptideIdentification& self) { return self.getExperimentLabel(); })
         .def("setExperimentLabel", [](OpenMS::PeptideIdentification& self, const std::string& type) { return self.setExperimentLabel(type); }, "type"_a)
         .def("getSpectrumReference", [](const OpenMS::PeptideIdentification& self) { return self.getSpectrumReference(); }, 

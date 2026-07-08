@@ -33,6 +33,7 @@
 
 #include <array>
 #include <chrono>
+#include <thread>
 #include <utility>
 
 #ifndef _WIN32

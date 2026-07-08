@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
@@ -18,6 +18,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -95,11 +96,11 @@ Percolator is written by Lukas KÃ¤ll (http://per-colator.com/ Copyright Lukas KÃ
 
 
 class PercolatorAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   PercolatorAdapter() :
-    TOPPBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", true)
+    TOPPExternalToolBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", true)
   {
   }
 

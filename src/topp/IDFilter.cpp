@@ -19,6 +19,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>

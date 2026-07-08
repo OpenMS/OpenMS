@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <cerrno>
 #include <limits>
+#include <xercesc/util/XMLString.hpp>
 
 using namespace std;
 using namespace xercesc;

@@ -9,6 +9,24 @@
 
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
 
+# The vcpkg toolchain must be selected before project() initializes compilers.
+# Existing system/contrib dependency discovery remains the default.
+option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management." OFF)
+
+if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
+  set(_openms_submodule_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
+  if(EXISTS "${_openms_submodule_vcpkg_toolchain}")
+    set(CMAKE_TOOLCHAIN_FILE "${_openms_submodule_vcpkg_toolchain}" CACHE FILEPATH "CMake toolchain file")
+  else()
+    message(FATAL_ERROR
+      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found. Initialize the "
+      "vcpkg submodule or set CMAKE_TOOLCHAIN_FILE.")
+  endif()
+
+  unset(_openms_submodule_vcpkg_toolchain)
+endif()
+
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
@@ -235,6 +253,11 @@ endif()
 #------------------------------------------------------------------------------
 # Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
 #------------------------------------------------------------------------------
+if(OPENMS_USE_VCPKG)
+  message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
+else()
+  message(STATUS "Dependency provider: system/contrib")
+endif()
 include(cmake/setup_lib_find_paths.cmake)
 
 #------------------------------------------------------------------------------

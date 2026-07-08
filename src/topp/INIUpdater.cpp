@@ -7,8 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/INIUpdater.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>

@@ -41,7 +41,6 @@ namespace OpenMS
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
            && getExperimentLabel() == rhs.getExperimentLabel()
-           && getBaseName() == rhs.getBaseName()
            && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
   }
@@ -162,7 +161,10 @@ namespace OpenMS
 
   std::string PeptideIdentification::getSpectrumReference() const
   {
-    return getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+    // spectrum_reference may be stored as a non-string DataValue (e.g. an integer scan
+    // index when loaded from idparquet/mzIdentML), so stringify leniently instead of
+    // relying on the strict DataValue::operator std::string() (which throws on Int/etc.).
+    return StringUtils::toStr(getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, ""));
   }
 
   void PeptideIdentification::setSpectrumReference(const std::string& id)
@@ -170,29 +172,12 @@ namespace OpenMS
     setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
   }
 
-  std::string PeptideIdentification::getBaseName() const
-  {
-    return getMetaValue(Constants::UserParam::BASE_NAME, "");
-  }
-
-  void PeptideIdentification::setBaseName(const std::string& base_name)
-  {
-    // do not store empty base_name (default value)
-    if (!base_name.empty())
-    {
-      setMetaValue(Constants::UserParam::BASE_NAME, base_name);
-    }
-    else
-    {
-      removeMetaValue(Constants::UserParam::BASE_NAME);
-    }
-  }
-
   const std::string PeptideIdentification::getExperimentLabel() const
   {
     // implement as meta value in order to reduce bloat of PeptideIdentification object
     //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
-    return this->getMetaValue("experiment_label", "");
+    // lenient stringification (see getSpectrumReference) to tolerate non-string DataValues
+    return StringUtils::toStr(this->getMetaValue("experiment_label", ""));
   }
 
   void PeptideIdentification::setExperimentLabel(const std::string& label)
@@ -228,8 +213,7 @@ namespace OpenMS
            && hits_.empty()
            && getSignificanceThreshold() == 0.0
            && score_type_.empty()
-           && higher_score_better_ == true
-           && getBaseName().empty();
+           && higher_score_better_ == true;
   }
 
   std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<std::string>& accession)

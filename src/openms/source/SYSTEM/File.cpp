@@ -14,6 +14,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -496,8 +497,13 @@ namespace OpenMS
       }
     }
 
-    //if the file was not found, throw an exception
-    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    //if the file was not found, throw an exception that also points at the resolved data path
+    //(this is the usual culprit for missing standard share/OpenMS files, e.g. a stale OPENMS_DATA_PATH)
+    const std::string hint = "OpenMS searched its shared-data directory '" + getOpenMSDataPath()
+      + "' (resolved from " + getOpenMSDataPathSource_() + "). "
+      + "If this is a wrong or outdated OpenMS installation, set the OPENMS_DATA_PATH environment variable "
+      + "to the matching '.../share/OpenMS' directory, or unset it if it points to a stale location";
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, hint);
   }
 
   bool File::fileList(const std::string& dir, const std::string& file_pattern, StringList& output, bool full_path)
@@ -580,10 +586,10 @@ namespace OpenMS
     return d + "_" + t + "_" + hostname_str + pid + "_" + (++number);
   }
 
-  std::string File::getOpenMSDataPath()
+  const File::OpenMSDataPath_& File::resolveOpenMSDataPath_()
   {
-    // Use immediately evaluated lambda to protect static variable from concurrent access.
-    static const std::string path = [&]() -> std::string {
+    // Use immediately evaluated lambda to protect the static from concurrent access (thread-safe static init).
+    static const OpenMSDataPath_ info = []() -> OpenMSDataPath_ {
       std::string path;
       bool path_checked = false;
 
@@ -596,7 +602,7 @@ namespace OpenMS
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "OPENMS_DATA_PATH (environment)";
+          found_path_from = "the OPENMS_DATA_PATH environment variable";
         }
       }
 
@@ -607,7 +613,7 @@ namespace OpenMS
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
+          found_path_from = "the compiled-in installation path (OPENMS_INSTALL_DATA_PATH)";
         }
       }
 
@@ -616,7 +622,7 @@ namespace OpenMS
       {
         path = OPENMS_DATA_PATH;
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
+        if (path_checked) found_path_from = "the compiled-in build path (OPENMS_DATA_PATH)";
       }
 
   #if defined(__APPLE__)
@@ -625,7 +631,7 @@ namespace OpenMS
       {
         path = getExecutablePath() + "../../../share/OpenMS";
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "bundle path (run time)";
+        if (path_checked) found_path_from = "the application bundle (relative to the executable)";
       }
   #endif
 
@@ -636,7 +642,7 @@ namespace OpenMS
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "tool path (run time)";
+          found_path_from = "the executable location (../share/OpenMS)";
         }
       }
 
@@ -660,10 +666,20 @@ namespace OpenMS
         std::cerr << "Exiting now.\n";
         exit(1);
       }
-      return path;
+      return OpenMSDataPath_{path, found_path_from};
     }();
 
-    return path;
+    return info;
+  }
+
+  std::string File::getOpenMSDataPath()
+  {
+    return resolveOpenMSDataPath_().path;
+  }
+
+  const std::string& File::getOpenMSDataPathSource_()
+  {
+    return resolveOpenMSDataPath_().source;
   }
 
   bool File::isOpenMSDataPath_(const std::string& path)
@@ -762,23 +778,24 @@ namespace OpenMS
     return home_path;
   }
 
-  Param File::getSystemParameters()
+  std::string File::getOpenMSConfigDir()
   {
-    std::string home_path = File::getOpenMSHomePath();
-    std::string filename;
-    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems.
+    // This is the single source of truth for the per-user config dir (OpenMS.ini, update-check .ver files, ...).
     #ifdef __unix__
       if (getenv("XDG_CONFIG_HOME"))
       {
-        filename =std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+        return std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
       }
-      else
-      {
-        filename = File::getOpenMSHomePath() + "/.config/OpenMS/OpenMS.ini";
-      }
+      return File::getOpenMSHomePath() + "/.config/OpenMS";
     #else
-      filename = home_path + "/.OpenMS/OpenMS.ini";
+      return File::getOpenMSHomePath() + "/.OpenMS";
     #endif
+  }
+
+  Param File::getSystemParameters()
+  {
+    std::string filename = File::getOpenMSConfigDir() + "/OpenMS.ini";
 
     Param p;
     if (!File::readable(filename)) // no file, lets keep it that way
@@ -828,6 +845,12 @@ namespace OpenMS
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
+  StringList File::executableExtensions_()
+  {
+    const char* pathext = std::getenv("PATHEXT");
+    return executableExtensions_(pathext == nullptr ? "" : std::string(pathext));
+  }
+
   StringList File::executableExtensions_(const std::string& ext)
   {
     // check if content of env-var %PATHEXT% makes sense
@@ -839,6 +862,12 @@ namespace OpenMS
     else return {".exe", ".bat" };
   }
 #endif
+
+  StringList File::getPathLocations()
+  {
+    const char* env_path = std::getenv("PATH");
+    return getPathLocations(env_path == nullptr ? "" : std::string(env_path));
+  }
 
   StringList File::getPathLocations(const std::string& path)
   {

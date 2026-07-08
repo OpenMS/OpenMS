@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
@@ -775,7 +776,7 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void QcMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void QcMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     tag_ = sm_.convert(qname);
     std::string parent_tag;
@@ -868,7 +869,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+  void QcMLFile::onCharacters(const char16_t* chars, Size /*length*/)
   {
     if (tag_ == "tableRowValues")
     {
@@ -895,7 +896,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void QcMLFile::onEndElement(const char16_t* qname)
   {
     static set<std::string> to_ignore;
     if (to_ignore.empty())

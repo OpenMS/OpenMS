@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 ///////////////////////////
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;

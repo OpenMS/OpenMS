@@ -10,14 +10,12 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
 #include <string>
-#include <xercesc/dom/DOMNode.hpp>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -71,10 +69,12 @@ namespace OpenMS
       a binaryDataArray tag and store the result as a BinaryData object. The
       result will be appended to the data vector.
 
-      @param[in] indexListNode DOMNode of type binaryDataArray
+      @param[in] indexListNode Opaque pointer to a Xerces @c DOMNode of type
+                 binaryDataArray (typed as @c void* so this public header stays
+                 Xerces-free; recovered internally in the .cpp).
       @param[in] data Binary data extracted from the string
     */
-    void handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data);
+    void handleBinaryDataArray_(void* indexListNode, std::vector<BinaryData>& data);
 
     /**
       @brief Extract data from a string containing multiple \<binaryDataArray\> tags.

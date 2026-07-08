@@ -44,13 +44,16 @@ jobs:
       matrix:
         include:
           - os: windows-2025
+            # windows-2025 ships Windows Server 2025 + Visual Studio 2026 (v145) since June 2026.
+            # The contrib build now uses the "Visual Studio 18 2026" generator (see the
+            # dependencies action); its generator guard accepts VS {14..18}.
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
-            # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
-            # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
-            compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
+            # VS 2026: 14.50-14.5x (corresponds to MSVC v145)
+            # VS 2022: 14.30-14.4x (corresponds to MSVC v143)
+            compiler_ver: 14.51   # Toolset version for VS 2026; on Windows this only feeds the ccache key / build name (the actual compiler is cl.exe from the VS shell)
 
           - os: macos-15
             # Since the appleclang version is dependent on the XCode versions that are installed
@@ -867,7 +870,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+          rsync --progress -avz --mkpath -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
 
       - name: Make KNIME installer latest
         if: inputs.mark_as_latest

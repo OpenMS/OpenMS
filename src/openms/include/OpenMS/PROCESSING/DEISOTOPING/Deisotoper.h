@@ -183,6 +183,20 @@ class OPENMS_DLLAPI Deisotoper
                                          unsigned int start_intensity_check = 2,
                                          bool add_up_intensity = false,
                                          bool annotate_features = false);
+
+    /**
+      @brief Whether deisotopeAndSingleCharge() supports this fragment tolerance.
+
+      deisotopeAndSingleCharge() throws Exception::IllegalArgument for a fragment
+      tolerance greater than 100 ppm or 0.1 Da (isotope spacing cannot be resolved
+      at lower resolution). This non-throwing predicate exposes that same limit so
+      callers can choose to skip deisotoping (e.g. for low-resolution ion-trap CID
+      data) instead of triggering the throw -- important when the call sits inside
+      an OpenMP region, where an escaping exception calls std::terminate() (OpenMS#9619).
+
+      @return true iff (fragment_unit_ppm ? fragment_tolerance <= 100 : fragment_tolerance <= 0.1)
+    */
+    static bool isToleranceSupported(double fragment_tolerance, bool fragment_unit_ppm);
 };
 
 }

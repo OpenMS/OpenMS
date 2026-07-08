@@ -24,6 +24,8 @@
 
 #include <arrow/api.h>
 #include <arrow/type.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/reader.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -188,7 +190,7 @@ START_SECTION(exportToArrow - empty consensus map)
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
   // Schema should still be present
-  TEST_EQUAL(table->num_columns() > 0, true)
+  TEST_TRUE(table->num_columns() > 0)
 }
 END_SECTION
 
@@ -203,13 +205,13 @@ START_SECTION(exportToArrow - basic export)
 
   // Check schema has expected columns
   auto schema = table->schema();
-  TEST_EQUAL(schema->GetFieldIndex("sequence") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("peptidoform") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("observed_mz") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("rt") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("charge") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("intensities") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("pg_accessions") >= 0, true)
+  TEST_TRUE(schema->GetFieldIndex("sequence") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("peptidoform") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("observed_mz") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("rt") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("charge") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("intensities") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("pg_accessions") >= 0)
 }
 END_SECTION
 
@@ -288,11 +290,11 @@ START_SECTION(exportToParquet - basic export)
   filename += ".parquet";
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
   // Verify file was created
-  TEST_EQUAL(File::exists(filename), true)
-  TEST_EQUAL(File::empty(filename), false)
+  TEST_TRUE(File::exists(filename))
+  TEST_FALSE(File::empty(filename))
 }
 END_SECTION
 
@@ -305,10 +307,10 @@ START_SECTION(exportToParquet - empty consensus map)
   filename += ".parquet";
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
   // Verify file was created (even for empty data)
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -325,10 +327,10 @@ START_SECTION(exportToParquet - with compression options)
   pq_config.compression = ParquetWriteConfig::Compression::SNAPPY;
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
   // Verify file was created
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -345,9 +347,9 @@ START_SECTION(exportToParquet - ZSTD compression)
   pq_config.compression_level = 9;
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -363,9 +365,269 @@ START_SECTION(exportToParquet - no compression)
   pq_config.compression = ParquetWriteConfig::Compression::NONE;
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
+}
+END_SECTION
+
+START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, const std::string& filename, size_t batch_size, const ParquetWriteConfig& config)))
+{
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+
+  // Read a parquet file into a single-chunk (combined) Arrow table. Streaming writes
+  // one row group per batch, so columns come back multi-chunk; combine before row indexing.
+  auto read_combined = [pool](const std::string& path) -> std::shared_ptr<arrow::Table>
+  {
+    auto open_res = arrow::io::ReadableFile::Open(path.c_str());
+    if (!open_res.ok()) { return nullptr; }
+    auto reader_res = parquet::arrow::OpenFile(open_res.ValueOrDie(), pool);
+    if (!reader_res.ok()) { return nullptr; }
+    auto reader = std::move(reader_res).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!reader->ReadTable(&t).ok()) { return nullptr; }
+    auto comb = t->CombineChunks(pool);
+    if (!comb.ok()) { return nullptr; }
+    return comb.ValueOrDie();
+  };
+
+  // Build a ConsensusMap with many features and a UNIQUE rt per feature so the rt
+  // check below is order-sensitive (catches any batch-boundary reordering). Mixes
+  // identified/unidentified, modified/unmodified, target/decoy.
+  ConsensusMap cmap;
+  ConsensusMap::ColumnHeaders headers;
+  ConsensusMap::ColumnHeader ch0; ch0.filename = "sample1.mzML"; headers[0] = ch0;
+  cmap.setColumnHeaders(headers);
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("PI_0");
+  ProteinHit ph; ph.setAccession("PROT_A"); ph.setScore(0.99);
+  prot_id.setHits({ph});
+  ProteinIdentification::ProteinGroup pg; pg.probability = 0.01; pg.accessions = {"PROT_A"};
+  prot_id.insertProteinGroup(pg);
+  cmap.setProteinIdentifications({prot_id});
+
+  const size_t N = 2500;
+  for (size_t i = 0; i < N; ++i)
+  {
+    ConsensusFeature cf;
+    cf.setMZ(400.0 + (i % 500));
+    cf.setRT(100.0 + i);          // unique per row -> order-sensitive
+    cf.setCharge(2 + (i % 3));
+    BaseFeature bf; bf.setIntensity(1000.0f + i); bf.setMZ(cf.getMZ()); bf.setRT(cf.getRT());
+    cf.insert(0, bf);
+    if (i % 4 != 0) // most identified, every 4th left unidentified
+    {
+      PeptideIdentification pid;
+      pid.setRT(cf.getRT()); pid.setMZ(cf.getMZ());
+      pid.setScoreType("Posterior Error Probability"); pid.setHigherScoreBetter(false);
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString((i % 3 == 0) ? "PEM(Oxidation)TIDER" : "PEPTIDEK"));
+      hit.setCharge(cf.getCharge());
+      hit.setScore(0.01 + (i % 100) * 0.001);
+      hit.setMetaValue("target_decoy", (i % 2 == 0) ? "target" : "decoy");
+      PeptideEvidence ev; ev.setProteinAccession("PROT_A");
+      hit.setPeptideEvidences({ev});
+      pid.setHits({hit});
+      cf.setPeptideIdentifications({pid});
+    }
+    cmap.push_back(cf);
+  }
+
+  // --- One-shot reference ---
+  std::string ref_file; NEW_TMP_FILE(ref_file)
+  TEST_TRUE(ConsensusMapArrowExport::exportToParquet(cmap, ref_file))
+  auto ref_table = read_combined(ref_file);
+  TEST_NOT_EQUAL(ref_table, nullptr)
+  TEST_EQUAL(ref_table->num_rows(), (int64_t)N)
+
+  // --- Streaming must equal the one-shot output for ANY thread count (deterministic build).
+  //     Small batch (1000) forces multiple row groups; n_threads exercises serial (1), fixed
+  //     parallel (2, 8), and the production auto path (0 = omp_get_max_threads, used by IsobaricWorkflow). ---
+  for (int nt : {0, 1, 2, 8})
+  {
+    std::string stream_file; NEW_TMP_FILE(stream_file)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_file, 1000, ParquetWriteConfig{}, nt))
+    auto st_table = read_combined(stream_file);
+    TEST_NOT_EQUAL(st_table, nullptr)
+    TEST_EQUAL(st_table->num_rows(), (int64_t)N)
+    TEST_EQUAL(st_table->num_columns(), ref_table->num_columns())
+
+    // Order-sensitive scalar check (unique rt) — catches any partition reordering under threads.
+    auto seq_s = std::static_pointer_cast<arrow::StringArray>(st_table->GetColumnByName("sequence")->chunk(0));
+    auto seq_r = std::static_pointer_cast<arrow::StringArray>(ref_table->GetColumnByName("sequence")->chunk(0));
+    auto rt_s  = std::static_pointer_cast<arrow::FloatArray>(st_table->GetColumnByName("rt")->chunk(0));
+    auto rt_r  = std::static_pointer_cast<arrow::FloatArray>(ref_table->GetColumnByName("rt")->chunk(0));
+    auto dec_s = std::static_pointer_cast<arrow::BooleanArray>(st_table->GetColumnByName("is_decoy")->chunk(0));
+    auto dec_r = std::static_pointer_cast<arrow::BooleanArray>(ref_table->GetColumnByName("is_decoy")->chunk(0));
+    bool all_eq = true;
+    for (int64_t r = 0; r < st_table->num_rows(); ++r)
+    {
+      if (seq_s->GetString(r) != seq_r->GetString(r)) { all_eq = false; break; }
+      if (rt_s->Value(r)      != rt_r->Value(r))      { all_eq = false; break; } // order-sensitive
+      if (dec_s->Value(r)     != dec_r->Value(r))     { all_eq = false; break; }
+    }
+    TEST_TRUE(all_eq)
+
+    // Full logical equivalence: also covers nested/list columns (modifications, intensities,
+    // pg_accessions, gg_*) and lookup-derived columns (pg_global_qvalue). Both tables were
+    // CombineChunks()ed and round-tripped through parquet the same way, so schema (incl. nested
+    // types) and values must match; ignore schema metadata.
+    TEST_TRUE(st_table->Equals(*ref_table))
+  }
+
+  // --- batch_size >= N: single batch built across all threads, still correct ---
+  {
+    std::string one_batch; NEW_TMP_FILE(one_batch)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, one_batch, N + 1000, ParquetWriteConfig{}, 8))
+    auto t = read_combined(one_batch);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), (int64_t)N)
+    TEST_TRUE(t->Equals(*ref_table))
+  }
+
+  // --- batch_size == 0 guard: treated as default, valid file ---
+  {
+    std::string zero_batch; NEW_TMP_FILE(zero_batch)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, zero_batch, 0))
+    auto t = read_combined(zero_batch);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), (int64_t)N)
+  }
+
+  // --- Edge case: empty map -> valid 0-row file with full schema ---
+  {
+    ConsensusMap empty;
+    std::string empty_file; NEW_TMP_FILE(empty_file)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(empty, empty_file, 1000))
+    TEST_TRUE(File::exists(empty_file))
+    auto t = read_combined(empty_file);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), 0)
+    TEST_TRUE(t->num_columns() > 0)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to correct values)
+{
+  // Guards the index-based (lock-free) metavalue reads in buildFeatureTableRange: one identified
+  // feature with every dedicated metavalue set to a known value; assert each exported column. The
+  // streaming<->one-shot equivalence test cannot catch an index-name typo here, since both paths
+  // now share buildFeatureTableRange.
+  ConsensusMap cmap;
+  ConsensusMap::ColumnHeaders headers;
+  ConsensusMap::ColumnHeader ch0; ch0.filename = "run.mzML"; headers[0] = ch0;
+  cmap.setColumnHeaders(headers);
+
+  ProteinIdentification prot_id; prot_id.setIdentifier("PI_0");
+  ProteinHit ph; ph.setAccession("PROT_A"); ph.setScore(0.9);
+  prot_id.setHits({ph});
+  ProteinIdentification::ProteinGroup pgrp; pgrp.probability = 0.02; pgrp.accessions = {"PROT_A"};
+  prot_id.insertProteinGroup(pgrp);
+  cmap.setProteinIdentifications({prot_id});
+
+  ConsensusFeature cf;
+  cf.setMZ(555.5); cf.setRT(321.0); cf.setCharge(2);
+  cf.setMetaValue("start_ion_mobility", 0.80);
+  cf.setMetaValue("stop_ion_mobility", 0.90);
+  cf.setMetaValue("rt_start", 300.0);
+  cf.setMetaValue("rt_stop", 340.0);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(555.5); bf.setRT(321.0);
+  cf.insert(0, bf);
+
+  PeptideIdentification pid;
+  pid.setScoreType("Posterior Error Probability"); pid.setHigherScoreBetter(false);
+  pid.setMetaValue("ion_mobility", 0.85);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  hit.setScore(0.02);                       // main score -> posterior_error_probability
+  hit.setMetaValue("target_decoy", "decoy");
+  hit.setMetaValue("predicted_RT", 319.0);
+  hit.setMetaValue("missed_cleavages", 1);
+  hit.setMetaValue("q-value", 0.05);        // known score (QVAL, lower-better) -> additional_scores
+  hit.setMetaValue("zzz_custom_flag", 7);   // int, but NOT a known score -> filtered out
+  hit.setMetaValue("zzz_custom_note", "x"); // string -> filtered out (not INT/DOUBLE)
+  PeptideEvidence ev; ev.setProteinAccession("PROT_A");
+  hit.setPeptideEvidences({ev});
+  pid.setHits({hit});
+  cf.setPeptideIdentifications({pid});
+  cmap.push_back(cf);
+
+  // Second feature exercises the FALLBACK precedence branches: predicted_rt (lowercase, only reached
+  // when predicted_RT is absent) and IM (only reached when ion_mobility is absent). A predicted_RT<->
+  // predicted_rt or ion_mobility<->IM index-name swap would still pass row 0 but fails here.
+  ConsensusFeature cf2;
+  cf2.setMZ(600.0); cf2.setRT(400.0); cf2.setCharge(2);
+  BaseFeature bf2; bf2.setIntensity(5.0f); bf2.setMZ(600.0); bf2.setRT(400.0);
+  cf2.insert(0, bf2);
+  PeptideIdentification pid2;
+  pid2.setScoreType("Posterior Error Probability"); pid2.setHigherScoreBetter(false);
+  pid2.setMetaValue("IM", 1.10);            // fallback path (no "ion_mobility")
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit2.setCharge(2); hit2.setScore(0.03);
+  hit2.setMetaValue("predicted_rt", 405.0); // fallback path (lowercase, no "predicted_RT")
+  PeptideEvidence ev2; ev2.setProteinAccession("PROT_A");
+  hit2.setPeptideEvidences({ev2});
+  pid2.setHits({hit2});
+  cf2.setPeptideIdentifications({pid2});
+  cmap.push_back(cf2);
+
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  auto f32 = [&](const char* n){ return std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName(n)->chunk(0)); };
+  auto is_decoy = std::static_pointer_cast<arrow::BooleanArray>(table->GetColumnByName("is_decoy")->chunk(0));
+  auto pep      = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("posterior_error_probability")->chunk(0));
+  auto mc       = std::static_pointer_cast<arrow::Int16Array>(table->GetColumnByName("missed_cleavages")->chunk(0));
+  auto pgq      = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("pg_global_qvalue")->chunk(0));
+  auto as_col   = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("additional_scores")->chunk(0));
+
+  TEST_TRUE(is_decoy->Value(0))
+  TEST_FALSE(pep->IsNull(0))
+  TEST_REAL_SIMILAR(pep->Value(0), 0.02)
+  TEST_FALSE(mc->IsNull(0))
+  TEST_EQUAL(mc->Value(0), 1)
+  TEST_FALSE(pgq->IsNull(0))
+  TEST_REAL_SIMILAR(pgq->Value(0), 0.02)
+
+  TEST_FALSE(f32("predicted_rt")->IsNull(0))
+  TEST_REAL_SIMILAR(f32("predicted_rt")->Value(0), 319.0)
+  TEST_FALSE(f32("ion_mobility")->IsNull(0))
+  TEST_REAL_SIMILAR(f32("ion_mobility")->Value(0), 0.85)
+  TEST_FALSE(f32("ion_mobility_start")->IsNull(0))
+  TEST_REAL_SIMILAR(f32("ion_mobility_start")->Value(0), 0.80)
+  TEST_FALSE(f32("ion_mobility_stop")->IsNull(0))
+  TEST_REAL_SIMILAR(f32("ion_mobility_stop")->Value(0), 0.90)
+  TEST_FALSE(f32("rt_start")->IsNull(0))
+  TEST_REAL_SIMILAR(f32("rt_start")->Value(0), 300.0)
+  TEST_FALSE(f32("rt_stop")->IsNull(0))
+  TEST_REAL_SIMILAR(f32("rt_stop")->Value(0), 340.0)
+
+  // Row 1: fallback precedence (predicted_rt lowercase, IM) must resolve to the right column/value.
+  TEST_FALSE(f32("predicted_rt")->IsNull(1))
+  TEST_REAL_SIMILAR(f32("predicted_rt")->Value(1), 405.0)
+  TEST_FALSE(f32("ion_mobility")->IsNull(1))
+  TEST_REAL_SIMILAR(f32("ion_mobility")->Value(1), 1.10)
+
+  // additional_scores: only the known "q-value" is emitted via the index-based metaBegin pass; the
+  // non-score int and the string metavalue are filtered out. Pin the exact struct fields (name, value,
+  // and higher_better = false for a q-value, which the score-type switcher maps to QVAL).
+  TEST_EQUAL(as_col->value_length(0), 1)
+  {
+    auto structs = std::static_pointer_cast<arrow::StructArray>(as_col->values());
+    auto sname = std::static_pointer_cast<arrow::StringArray>(structs->GetFieldByName("score_name"));
+    auto sval  = std::static_pointer_cast<arrow::DoubleArray>(structs->GetFieldByName("score_value"));
+    auto shb   = std::static_pointer_cast<arrow::BooleanArray>(structs->GetFieldByName("higher_better"));
+    const int64_t off = as_col->value_offset(0);
+    TEST_EQUAL(sname->GetString(off), "q-value")
+    TEST_REAL_SIMILAR(sval->Value(off), 0.05)
+    TEST_FALSE(shb->IsNull(off))
+    TEST_FALSE(shb->Value(off))
+  }
 }
 END_SECTION
 

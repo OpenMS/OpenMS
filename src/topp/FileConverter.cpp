@@ -6,7 +6,7 @@
 // $Authors: Marc Sturm, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -22,6 +22,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -137,11 +138,11 @@ std::string extractCachedMetaFilename(const std::string& in)
 /// @cond TOPPCLASSES
 
 class TOPPFileConverter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   TOPPFileConverter() :
-    TOPPBase("FileConverter", "Converts between different MS file formats.")
+    TOPPExternalToolBase("FileConverter", "Converts between different MS file formats.")
   {
   }
 

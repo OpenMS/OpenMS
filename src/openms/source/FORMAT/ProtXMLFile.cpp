@@ -57,7 +57,7 @@ namespace OpenMS
     protein_group_ = ProteinGroup();
   }
 
-  void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void ProtXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string tag = sm_.convert(qname);
 
@@ -218,7 +218,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void ProtXMLFile::onEndElement(const char16_t* qname)
   {
     std::string tag = sm_.convert(qname);
 

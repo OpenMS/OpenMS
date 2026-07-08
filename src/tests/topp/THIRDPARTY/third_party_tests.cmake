@@ -112,7 +112,10 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   ## smoke test for the new -allow_dense_centroided_peaks flag: same input/output as test 1, only the flag differs.
   ## The flag does not change the search result for these (non-dense) spectra, so the output equals MSGFPlusAdapter_1_out
   ## except for the recorded parameter value (allow_dense_centroided_peaks=true instead of false), which is whitelisted.
+  ## Must run after test 1: both share the same proteins.fasta and spectra.mzML; MSGF+ creates temp/cache files
+  ## alongside those inputs, causing file-access conflicts on Windows when the two tests run in parallel.
   add_test("TOPP_MSGFPlusAdapter_2" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_2_out1.tmp.idXML -mzid_out MSGFPlusAdapter_2_out2.tmp.mzid -executable "${MSGFPLUS_BINARY}" -allow_dense_centroided_peaks)
+  set_tests_properties("TOPP_MSGFPlusAdapter_2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
   add_test("TOPP_MSGFPlusAdapter_2_out1" ${DIFF} -in1 MSGFPlusAdapter_2_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=" "MSGFPlusAdapter:1:out\"" "MSGFPlusAdapter:1:mzid_out\"" "MSGFPlusAdapter:1:allow_dense_centroided_peaks")
   set_tests_properties("TOPP_MSGFPlusAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_2")
   add_test("TOPP_MSGFPlusAdapter_2_out2" ${DIFF} -in1 MSGFPlusAdapter_2_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")

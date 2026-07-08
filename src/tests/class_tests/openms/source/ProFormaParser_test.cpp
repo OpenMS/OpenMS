@@ -1543,6 +1543,51 @@ START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)
 }
 END_SECTION
 
+START_SECTION([EXTRA] toAASequence - mass-delta mods without CV accession - lossy contract)
+{
+  // A mass-delta modification (e.g. M[+15.9949]) carries no UNIMOD/PSI-MOD
+  // accession. toAASequence resolves it by mass to the matching named
+  // modification when one exists (lossless), and otherwise drops it under
+  // BEST_EFFORT (lossy) or throws under FAIL_ON_LOSS. This pins that contract.
+
+  // (1) matchable side-chain mass delta -> resolved to Oxidation
+  {
+    Peptidoform pf = ProForma::parse("EM[+15.9949]K");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toUnmodifiedString(), "EMK")
+    TEST_EQUAL(seq.toString(), "EM(Oxidation)K")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("EM(Oxidation)K").getMonoWeight())
+  }
+
+  // (2) matchable mass delta on S -> Phospho
+  {
+    Peptidoform pf = ProForma::parse("PES[+79.96633]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PES(Phospho)TIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PES(Phospho)TIDE").getMonoWeight())
+  }
+
+  // (3) matchable N-terminal mass delta -> Acetyl
+  {
+    Peptidoform pf = ProForma::parse("[+42.0106]-PEPTIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), ".(Acetyl)PEPTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("(Acetyl)PEPTIDE").getMonoWeight())
+  }
+
+  // (4) unmatchable mass delta: BEST_EFFORT drops it (lossy); FAIL_ON_LOSS throws
+  {
+    Peptidoform pf = ProForma::parse("PEM[+0.12345]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PEMTIDE")            // mass delta dropped
+    TEST_EQUAL(seq.toUnmodifiedString(), "PEMTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEMTIDE").getMonoWeight())
+    TEST_EXCEPTION(Exception::ConversionError,
+                   ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
+  }
+}
+END_SECTION
+
 START_SECTION(fromAASequence - simple sequence)
 {
   // Create AASequence and convert to Peptidoform
@@ -1615,6 +1660,50 @@ START_SECTION(ProForma to AASequence roundtrip)
 
   // The result should be similar (may use different notation for the same mod)
   TEST_EQUAL(pf2.sequence.size(), pf.sequence.size())
+}
+END_SECTION
+
+START_SECTION([EXTRA] QPX/Parquet lane peptidoform round-trip preserves modifications)
+{
+  // QPXFile and FeatureMapArrowIO serialize each PSM peptidoform as a canonical ProForma
+  // string and reconstruct the AASequence on read, using exactly this chain:
+  //   write: ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL)
+  //   read:  ProForma::toAASequence(ProForma::parse(str), ConversionPolicy::BEST_EFFORT)
+  // Pin that chain here so a silent modification drop/mangle in the Parquet/QPX lane (which
+  // feeds the new quant outputs) is caught at the unit level, not only in end-to-end data.
+  // Asserting positions-modified (rather than exact toString) mirrors the other round-trip
+  // sections above: notation may normalize, but a dropped modification must fail the test.
+  std::vector<std::string> seqs;
+  seqs.push_back("PEPTIDER");                  // unmodified backbone
+  seqs.push_back("PEPM(Oxidation)TIDEK");      // variable mod (UNIMOD:35)
+  seqs.push_back("PEPT(Phospho)IDESK");        // phospho (UNIMOD:21)
+  seqs.push_back("PEPC(Carbamidomethyl)IDEK"); // fixed mod (UNIMOD:4)
+
+  for (const std::string& s : seqs)
+  {
+    AASequence orig = AASequence::fromString(s);
+
+    // write side (CANONICAL) then read side (BEST_EFFORT) -- exactly as QPXFile does
+    std::string canonical = ProForma::toString(ProForma::fromAASequence(orig), WriteMode::CANONICAL);
+    AASequence result = ProForma::toAASequence(ProForma::parse(canonical), ConversionPolicy::BEST_EFFORT);
+
+    // backbone and length must survive unchanged
+    TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
+    TEST_EQUAL(result.size(), orig.size())
+
+    // monoisotopic mass must match -- catches a modification being dropped or changed
+    // to a different mass, which the per-position isModified() check below would miss
+    TEST_REAL_SIMILAR(result.getMonoWeight(), orig.getMonoWeight())
+
+    // every residue that was modified must remain modified at the same position
+    if (result.size() == orig.size())
+    {
+      for (Size i = 0; i < orig.size(); ++i)
+      {
+        TEST_EQUAL(result[i].isModified(), orig[i].isModified())
+      }
+    }
+  }
 }
 END_SECTION
 

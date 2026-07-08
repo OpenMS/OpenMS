@@ -9,11 +9,12 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_int.hpp>
+
+#include <string>
 
 
 namespace OpenMS
@@ -37,6 +38,14 @@ public:
 
     /// Returns a new unique id
     static UInt64 getUniqueId();
+
+    /**
+      @brief Returns a new random UUID (version 4)
+
+      Formatted as the standard 36-character string
+      "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".
+    */
+    static std::string getUUID();
 
     /// Initializes random generator using the given value.
     static void setSeed(const UInt64);

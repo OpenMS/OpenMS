@@ -94,8 +94,13 @@ public:
 public slots:
     // Docu in base class
     void recalculateAxes_() override;
-    /// Shows/hides the projections
+    /// Toggles the visibility of the projections (convenience wrapper around setProjectionsVisible())
     void toggleProjections();
+    /// Single entry point to show (@p visible == true) or hide the projections.
+    /// This is the only place that changes projection visibility, ensuring the
+    /// projectionsVisibilityChanged() signal always reflects the actual state
+    /// (e.g. a requested 'show' is reverted to 'hidden' if no peak layer is available).
+    void setProjectionsVisible(bool visible);
     // Docu in base class
     void showGoToDialog() override;
 
@@ -113,6 +118,9 @@ signals:
     void showCurrentPeaksAs3D();
     /// Requests to display this spectrum (=frame) in ion mobility plot
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
+    /// Emitted whenever the projections are shown or hidden; carries the actual (resulting) visibility.
+    /// Used to keep the toolbar toggle button in sync with the real state.
+    void projectionsVisibilityChanged(bool visible);
 
 
 protected:
@@ -139,6 +147,8 @@ protected:
 private slots:
     /// extracts the projections from the @p source_layer and displays them
     void showProjections_(const LayerDataBase* source_layer);
+    /// re-extracts the projections for the now-current layer, but only if projections are currently shown
+    void refreshProjections_();
     /// slot that monitors the visible area changes and triggers the update of projections
     void autoUpdateProjections_();
   };

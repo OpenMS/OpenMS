@@ -19,8 +19,11 @@
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -35,7 +38,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
@@ -43,8 +45,16 @@
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <cctype>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <limits>
+#include <list>
+#include <memory>
+#include <optional>
+#include <sstream>
+#include <unordered_set>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -103,6 +113,9 @@ namespace OpenMS
     test_mode_(false),
     debug_level_(-1)
   {
+    // always allocate the log stream (unopened); writing to it before '-log' opens it is a no-op
+    log_ = std::make_unique<std::ofstream>();
+
     version_ = VersionInfo::getVersion();
     verboseVersion_ = version_ + " " + VersionInfo::getTime();
 
@@ -251,84 +264,10 @@ namespace OpenMS
       // store configuration or tool description files
       //-------------------------------------------------------------
 
-      // '-write_ini' given
-      if (param_cmdline_.exists("write_ini"))
+      // handle '-write_*' commands (writes INI/CTD/CWL/JSON tool descriptions and exits)
+      if (auto rc = handleWriteCommands_())
       {
-        std::string write_ini_file = param_cmdline_.getValue("write_ini").toString();
-        outputFileWritable_(write_ini_file, "write_ini");
-        Param default_params = getDefaultParameters_();
-
-        // check if augmentation with -ini param is needed
-        ParamValue in_ini;
-        if (param_cmdline_.exists("ini"))
-        {
-          in_ini = param_cmdline_.getValue("ini");
-          Param ini_params;
-          const std::string in_ini_path = in_ini.toString();
-          if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
-          {
-            // The JSON file doesn't carry any information about the parameter tree structure.
-            // We hand an additional parameter object with the default values, so we have information
-            // about the tree when parsing the JSON file.
-            ini_params = getDefaultParameters_();
-            if (!ParamJSONFile::load(in_ini_path, ini_params))
-            {
-              return ILLEGAL_PARAMETERS;
-            }
-          } else {
-            ParamXMLFile().load(in_ini_path, ini_params);
-          }
-
-          // check if ini parameters are applicable to this tool
-          checkIfIniParametersAreApplicable_(ini_params);
-          // update default params with outdated params given in -ini and be verbose
-          default_params.update(ini_params, false);
-        }
-        ParamXMLFile paramFile{};
-        paramFile.store(write_ini_file, default_params);
-        return EXECUTION_OK;
-      }
-
-      // '-write_ctd' given
-      if (param_cmdline_.exists("write_ctd"))
-      {
-        ParamCTDFile paramFile{};
-        writeToolDescription_(paramFile, "write_ctd", ".ctd");
-        return EXECUTION_OK;
-      }
-
-      // '-write_cwl' given
-      if (param_cmdline_.exists("write_nested_cwl"))
-      {
-        ParamCWLFile paramFile{};
-        writeToolDescription_(paramFile, "write_nested_cwl", ".cwl");
-        return EXECUTION_OK;
-      }
-
-      // '-write_flat_cwl' given
-      if (param_cmdline_.exists("write_cwl"))
-      {
-        ParamCWLFile paramFile{};
-        paramFile.flatHierarchy = true;
-        writeToolDescription_(paramFile, "write_cwl", ".cwl");
-        return EXECUTION_OK;
-      }
-
-      // '-write_json' given
-      if (param_cmdline_.exists("write_nested_json"))
-      {
-        ParamJSONFile paramFile{};
-        writeToolDescription_(paramFile, "write_nested_json", ".json");
-        return EXECUTION_OK;
-      }
-
-      // '-write_flat_json' given
-      if (param_cmdline_.exists("write_json"))
-      {
-        ParamJSONFile paramFile{};
-        paramFile.flatHierarchy = true;
-        writeToolDescription_(paramFile, "write_json", ".json");
-        return EXECUTION_OK;
+        return *rc;
       }
 
 
@@ -562,10 +501,125 @@ namespace OpenMS
       writeDebug_(std::string("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
       return UNKNOWN_ERROR;
     }
-    log_.close();
+    log_->close();
 
     return result;
   }
+
+
+  // NOTE: runExternalProcess_() lives in TOPPExternalToolBase (split out so the
+  // external-process adapter + its ExternalProcess include leave the TOPPBase core).
+
+
+
+  const std::string& TOPPBase::toolName_() const
+  {
+    return tool_name_;
+  }
+
+  DataProcessing TOPPBase::getProcessingInfo_(DataProcessing::ProcessingAction action) const
+  {
+    std::set<DataProcessing::ProcessingAction> actions;
+    actions.insert(action);
+
+    return getProcessingInfo_(actions);
+  }
+
+  DataProcessing TOPPBase::getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const
+  {
+    DataProcessing p;
+    //actions
+    p.setProcessingActions(actions);
+    //software
+    p.getSoftware().setName(tool_name_);
+
+    if (test_mode_)
+    {
+      //version
+      p.getSoftware().setVersion("version_string");
+
+      //time
+      DateTime date_time;
+      date_time.set("1999-12-31 23:59:59");
+      p.setCompletionTime(date_time);
+
+      //parameters
+      p.setMetaValue("parameter: mode", "test_mode");
+    }
+    else
+    {
+      //version
+      p.getSoftware().setVersion(version_);
+      //time
+      p.setCompletionTime(DateTime::now());
+      //parameters
+      const Param& param = getParam_();
+      for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
+      {
+        p.setMetaValue(std::string("parameter: " + it.getName()), it->value);
+      }
+    }
+
+    return p;
+  }
+
+  void TOPPBase::addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const
+  {
+    map.getDataProcessing().push_back(dp);
+
+    //remove absolute map paths
+    if (test_mode_)
+    {
+      for (Size d = 0; d < map.getColumnHeaders().size(); ++d)
+      {
+        map.getColumnHeaders()[d].filename = File::basename(map.getColumnHeaders()[d].filename);
+      }
+    }
+  }
+
+  void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
+  {
+    map.getDataProcessing().push_back(dp);
+  }
+
+  ///Data processing setter for peak maps
+
+  void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
+  {
+    std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    for (Size i = 0; i < map.size(); ++i)
+    {
+      map[i].getDataProcessing().push_back(dp_);
+    }
+    for (Size i = 0; i < map.getNrChromatograms(); ++i)
+    {
+      map.getChromatogram(i).getDataProcessing().push_back(dp_);
+    }
+  }
+
+  std::string TOPPBase::getDocumentationURL() const
+  {
+    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
+    std::string tool_prefix = "TOPP_";
+    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
+    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
+    if (ver.pre_release_identifier.empty())
+    {
+      std::string release_version =StringUtils::toStr(ver.version_major) + "." + StringUtils::toStr(ver.version_minor) + "." + StringUtils::toStr(ver.version_patch);
+      return std::string("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
+    }
+    else
+    {
+      return std::string("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
+    }
+  }
+
+
+
+  //---------------------------------------------------------------------------
+  // (merged back from former TOPPBaseUsage translation unit)
+  //---------------------------------------------------------------------------
+
 
   void TOPPBase::printUsage_()
   {
@@ -580,7 +634,7 @@ namespace OpenMS
        << bright("Full documentation: ") << underline(docurl)  // the space is needed, otherwise the remaining line will be underlined on Windows..
        << "\n"
        << bright("Version: ") << verboseVersion_ << "\n"
-       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms.toString() 
+       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms.toString()
        << is.indent(0) << "\n";
     if (!citations_.empty())
     {
@@ -598,7 +652,7 @@ namespace OpenMS
     {
       is << "This tool has algorithm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option\n\n";
     }
-    
+
 
     if (verbose)
     {
@@ -791,7 +845,7 @@ namespace OpenMS
         is << desc_tmp << cyan(addon_concat) << magenta(restrict_concat);
         is << is.indent(0);
       }
-      
+
       is << "\n";
     }
 
@@ -825,6 +879,12 @@ namespace OpenMS
     }
     is << endl;
   }
+
+
+  //---------------------------------------------------------------------------
+  // (merged back from former TOPPBaseRegistration translation unit)
+  //---------------------------------------------------------------------------
+
 
   ParameterInformation TOPPBase::paramEntryToParameterInformation_(const Param::ParamEntry& entry, const std::string& argument, const std::string& full_name) const
   {
@@ -1302,6 +1362,22 @@ namespace OpenMS
     return *it;
   }
 
+  void TOPPBase::registerSubsection_(const std::string& name, const std::string& description)
+  {
+    subsections_[name] = description;
+  }
+
+  void TOPPBase::registerTOPPSubsection_(const std::string& name, const std::string& description)
+  {
+    subsections_TOPP_[name] = description;
+  }
+
+
+  //---------------------------------------------------------------------------
+  // (merged back from former TOPPBaseParams translation unit)
+  //---------------------------------------------------------------------------
+
+
   std::string TOPPBase::getStringOption_(const std::string& name) const
   {
     const ParameterInformation& p = findEntry_(name);
@@ -1642,89 +1718,6 @@ namespace OpenMS
     return tmp;
   }
 
-  void TOPPBase::writeLogInfo_(const std::string& text) const
-  {
-    OPENMS_LOG_INFO << text << endl;
-    enableLogging_();
-    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
-  }
-
-  void TOPPBase::writeLogWarn_(const std::string& text) const
-  {
-    OPENMS_LOG_WARN << text << endl;
-    enableLogging_();
-    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
-  }
-
-  void TOPPBase::writeLogError_(const std::string& text) const
-  {
-    OPENMS_LOG_ERROR << text << endl;
-    enableLogging_();
-    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
-  }
-
-  void TOPPBase::writeDebug_(const std::string& text, UInt min_level) const
-  {
-    if (debug_level_ >= (Int)min_level)
-    {
-      OPENMS_LOG_DEBUG << text << endl;
-      enableLogging_();
-      log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
-    }
-  }
-
-  void TOPPBase::writeDebug_(const std::string& text, const Param& param, UInt min_level) const
-  {
-    if (debug_level_ >= (Int)min_level)
-    {
-      OPENMS_LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-                << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << endl
-                << param
-                << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
-      enableLogging_();
-      log_ << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-           << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << endl
-           << param
-           << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
-    }
-  }
-
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir, const std::map<std::string, std::string>& env) const
-  {
-    std::string proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
-    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
-  }
-
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, std::string& proc_stdout, std::string& proc_stderr, const std::string& workdir, const std::map<std::string, std::string>& env) const
-  {
-    proc_stdout.clear();
-    proc_stderr.clear();
-
-    // callbacks: invoked whenever output is available.
-    auto lam_out = [&](const std::string& out) { proc_stdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
-    auto lam_err = [&](const std::string& out) { proc_stderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
-    ExternalProcess ep(lam_out, lam_err);
-
-    const auto& rt = ep.run(executable, arguments, workdir, true, ExternalProcess::IO_MODE::READ_WRITE, env); // does automatic escaping etc... start
-    if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
-    { // error occurred: if not written already in callback, do it now
-      writeLogError_("Standard output: " + proc_stdout);
-      writeLogError_("Standard error: " + proc_stderr);
-    }
-    switch (rt)
-    {
-      case ExternalProcess::RETURNSTATE::SUCCESS:
-        return EXECUTION_OK;
-      case ExternalProcess::RETURNSTATE::NONZERO_EXIT:
-      case ExternalProcess::RETURNSTATE::CRASH:
-        return EXTERNAL_PROGRAM_ERROR;
-      case ExternalProcess::RETURNSTATE::FAILED_TO_START:
-        return EXTERNAL_PROGRAM_NOTFOUND;
-      default:
-        throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown return state of external process.");
-    }
-  }
-
   std::string TOPPBase::getParamAsString_(const std::string& key, const std::string& default_value) const
   {
     const ParamValue& tmp = getParam_(key);
@@ -1868,19 +1861,6 @@ namespace OpenMS
     return StringUtils::substr(name, 0, pos);
   }
 
-  void TOPPBase::enableLogging_() const
-  {
-    if (log_.is_open() || !param_.exists("log")) return;
-
-    std::string log_destination = param_.getValue("log");
-    if (log_destination.empty()) return;
-    log_.open(log_destination, ofstream::out | ofstream::app);
-    if (debug_level_ >= 1)
-    {
-      cout << "Writing to '" << log_destination << '\'' << "\n";
-      log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
-    }
-  }
 
   void TOPPBase::checkParam_(const Param& param, const std::string& filename, const std::string& location) const
   {
@@ -2025,18 +2005,19 @@ namespace OpenMS
     }
   }
 
-  void TOPPBase::registerSubsection_(const std::string& name, const std::string& description)
-  {
-    subsections_[name] = description;
-  }
-
-  void TOPPBase::registerTOPPSubsection_(const std::string& name, const std::string& description)
-  {
-    subsections_TOPP_[name] = description;
-  }
 
   bool TOPPBase::parseRange_(const std::string& text, double& low, double& high) const
   {
+    // The documented range syntax is "[min]:[max]"; the ':' separator is mandatory.
+    // Without it the input is malformed: since StringUtils::prefix/suffix(.,':') now
+    // return the whole string when the delimiter is absent, a colon-less "400" would
+    // otherwise be silently misread as the degenerate range 400:400. Fail loudly instead.
+    if (text.find(':') == std::string::npos)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Invalid range '" + text + "': expected format '[min]:[max]' (the ':' separator is missing)");
+    }
+
     bool any_set = false;
     try
     {
@@ -2065,6 +2046,16 @@ namespace OpenMS
 
   bool TOPPBase::parseRange_(const std::string& text, Int& low, Int& high) const
   {
+    // The documented range syntax is "[min]:[max]"; the ':' separator is mandatory.
+    // Without it the input is malformed: since StringUtils::prefix/suffix(.,':') now
+    // return the whole string when the delimiter is absent, a colon-less "400" would
+    // otherwise be silently misread as the degenerate range 400:400. Fail loudly instead.
+    if (text.find(':') == std::string::npos)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Invalid range '" + text + "': expected format '[min]:[max]' (the ':' separator is missing)");
+    }
+
     bool any_set = false;
     try
     {
@@ -2287,200 +2278,33 @@ namespace OpenMS
     return p;
   }
 
-  const std::string& TOPPBase::toolName_() const
-  {
-    return tool_name_;
-  }
-
-  DataProcessing TOPPBase::getProcessingInfo_(DataProcessing::ProcessingAction action) const
-  {
-    std::set<DataProcessing::ProcessingAction> actions;
-    actions.insert(action);
-
-    return getProcessingInfo_(actions);
-  }
-
-  DataProcessing TOPPBase::getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const
-  {
-    DataProcessing p;
-    //actions
-    p.setProcessingActions(actions);
-    //software
-    p.getSoftware().setName(tool_name_);
-
-    if (test_mode_)
-    {
-      //version
-      p.getSoftware().setVersion("version_string");
-
-      //time
-      DateTime date_time;
-      date_time.set("1999-12-31 23:59:59");
-      p.setCompletionTime(date_time);
-
-      //parameters
-      p.setMetaValue("parameter: mode", "test_mode");
-    }
-    else
-    {
-      //version
-      p.getSoftware().setVersion(version_);
-      //time
-      p.setCompletionTime(DateTime::now());
-      //parameters
-      const Param& param = getParam_();
-      for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
-      {
-        p.setMetaValue(std::string("parameter: " + it.getName()), it->value);
-      }
-    }
-
-    return p;
-  }
-
-  void TOPPBase::addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const
-  {
-    map.getDataProcessing().push_back(dp);
-
-    //remove absolute map paths
-    if (test_mode_)
-    {
-      for (Size d = 0; d < map.getColumnHeaders().size(); ++d)
-      {
-        map.getColumnHeaders()[d].filename = File::basename(map.getColumnHeaders()[d].filename);
-      }
-    }
-  }
-
-  void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
-  {
-    map.getDataProcessing().push_back(dp);
-  }
-
-  ///Data processing setter for peak maps
-
-  void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
-  {
-    std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
-    for (Size i = 0; i < map.size(); ++i)
-    {
-      map[i].getDataProcessing().push_back(dp_);
-    }
-    for (Size i = 0; i < map.getNrChromatograms(); ++i)
-    {
-      map.getChromatogram(i).getDataProcessing().push_back(dp_);
-    }
-  }
-
-  std::string TOPPBase::getDocumentationURL() const
-  {
-    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
-    std::string tool_prefix = "TOPP_";
-    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
-    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
-    if (ver.pre_release_identifier.empty())
-    {
-      std::string release_version =StringUtils::toStr(ver.version_major) + "." + StringUtils::toStr(ver.version_minor) + "." + StringUtils::toStr(ver.version_patch);
-      return std::string("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
-    }
-    else
-    {
-      return std::string("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
-    }
-  }
-
-  template <typename Writer>
-  void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
-  {
-    //store ini-file content in ini_file_str
-    std::string out_dir_str =std::string(param_cmdline_.getValue(write_type).toString());
-    if (out_dir_str.empty())
-    {
-      out_dir_str = std::filesystem::current_path().generic_string();
-    }
-    StringList type_list = ToolHandler::getTypes(tool_name_);
-    if (type_list.empty())
-      type_list.push_back(""); // no type for most tools
-
-    for (Size i = 0; i < type_list.size(); ++i)
-    {
-      // check file is writable
-      std::string write_file = out_dir_str + "/" + tool_name_ + type_list[i] + fileExtension.c_str();
-      outputFileWritable_(write_file, write_type);
-
-      // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
-      if (!type_list[i].empty())
-        param_cmdline_.setValue("type", type_list[i]);
-      Param default_params = getDefaultParameters_();
-
-      // add type to ini file
-      if (!type_list[i].empty())
-        default_params.setValue(this->ini_location_ + "type", type_list[i]);
-
-      std::stringstream ss;
-
-      // fill program category and docurl
-      std::string docurl = getDocumentationURL();
-      std::string category;
-      if (official_)
-      { // we can only get the docurl/category from registered/official tools
-        category = ToolHandler::getCategory(tool_name_);
-      }
-
-      // collect citation information
-      std::vector<std::string> citation_dois;
-      citation_dois.reserve(citations_.size() + 1);
-      citation_dois.push_back(cite_openms.doi);
-      for (auto& citation : citations_)
-      {
-        citation_dois.push_back(citation.doi);
-      }
-
-      // fill tool information
-      ToolInfo toolInfo{};
-      toolInfo.version_     = version_;
-      toolInfo.name_        = tool_name_;
-      toolInfo.docurl_      = docurl;
-      toolInfo.category_    = category;
-      toolInfo.description_ = tool_description_;
-      toolInfo.citations_   = citation_dois;
-
-      // this will write the actual data to disk
-      writer.store(write_file, default_params, toolInfo);
-    }
-  }
-
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const std::string& misc, const std::string& unknown)
   {
-    Param cmd_params;
-
     // current state:
     // 'parameters_' contains all commandline params which were registered using 'registerOptionsAndFlags_()' + the common ones (-write_ini etc)
     // .. they are empty/default at this point
     // We now fetch the (so-far unknown) subsection parameters (since they can be addressed on command line as well)
-
-    // prepare map of parameters:
-    typedef map<std::string, vector<ParameterInformation>::const_iterator> ParamMap;
-    ParamMap param_map;
-    for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
-    {
-      param_map["-" + it->name] = it;
-    }
-
-    vector<ParameterInformation> subsection_param;
+    std::vector<ParameterInformation> param_defs = parameters_;
     try
     {
-      // the parameters from the subsections
-      subsection_param = paramToParameterInformation_(getSubsectionDefaults_());
-      for (vector<ParameterInformation>::const_iterator it = subsection_param.begin(); it != subsection_param.end(); ++it)
-      {
-        param_map["-" + it->name] = it;
-      }
+      // the parameters from the subsections (appended; on name collision they override, matching the previous map-build order)
+      std::vector<ParameterInformation> subsection_param = paramToParameterInformation_(getSubsectionDefaults_());
+      param_defs.insert(param_defs.end(), subsection_param.begin(), subsection_param.end());
     }
     catch (BaseException& e)
     { // this only happens if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
       writeLogWarn_(std::string("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool (did you forget to specify '-type'?)."));
       writeDebug_(std::string("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
+    }
+
+    Param cmd_params;
+
+    // prepare map of parameters (addressable as "-name" on the command line):
+    typedef map<std::string, vector<ParameterInformation>::const_iterator> ParamMap;
+    ParamMap param_map;
+    for (vector<ParameterInformation>::const_iterator it = param_defs.begin(); it != param_defs.end(); ++it)
+    {
+      param_map["-" + it->name] = it;
     }
 
     // list to store "misc"/"unknown" items:
@@ -2582,9 +2406,9 @@ namespace OpenMS
               queue.pop_front(); // argument was already used
           }
           OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
-          
+
           // Check for duplicate parameters
-          // Note: This is intentionally allowed to support nextflow workflows where ${ext.args} 
+          // Note: This is intentionally allowed to support nextflow workflows where ${ext.args}
           // can be appended to command lines to allow users to override default arguments.
           // Since we parse in reverse order, we only keep the first occurrence we encounter,
           // which is the LAST occurrence on the command line.
@@ -2637,5 +2461,226 @@ namespace OpenMS
 
     return cmd_params;
   }
+
+
+  //---------------------------------------------------------------------------
+  // (merged back from former TOPPBaseLogging translation unit)
+  //---------------------------------------------------------------------------
+  // separator line for a debug Param block (used by both the console and the log file)
+  static const char* LOG_SEPARATOR = " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ";
+
+  void TOPPBase::enableLogging_() const
+  {
+    if (log_->is_open() || !param_.exists("log")) return;
+
+    std::string log_destination = param_.getValue("log").toString();
+    if (log_destination.empty()) return;
+    log_->open(log_destination, std::ofstream::out | std::ofstream::app);
+    if (debug_level_ >= 1)
+    {
+      cout << "Writing to '" << log_destination << '\'' << "\n";
+      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' << "\n";
+    }
+  }
+
+  void TOPPBase::writeLogInfo_(const std::string& text) const
+  {
+    OPENMS_LOG_INFO << text << endl;
+    enableLogging_();
+    *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+  }
+
+  void TOPPBase::writeLogWarn_(const std::string& text) const
+  {
+    OPENMS_LOG_WARN << text << endl;
+    enableLogging_();
+    *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+  }
+
+  void TOPPBase::writeLogError_(const std::string& text) const
+  {
+    OPENMS_LOG_ERROR << text << endl;
+    enableLogging_();
+    *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+  }
+
+  void TOPPBase::writeDebug_(const std::string& text, UInt min_level) const
+  {
+    if (debug_level_ >= (Int)min_level)
+    {
+      OPENMS_LOG_DEBUG << text << endl;
+      enableLogging_();
+      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+    }
+  }
+
+  void TOPPBase::writeDebug_(const std::string& text, const Param& param, UInt min_level) const
+  {
+    if (debug_level_ >= (Int)min_level)
+    {
+      OPENMS_LOG_DEBUG << LOG_SEPARATOR << '\n'
+                << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
+                << param
+                << LOG_SEPARATOR << endl;
+      enableLogging_();
+      *log_ << LOG_SEPARATOR << '\n'
+            << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
+            << param
+            << LOG_SEPARATOR << endl;
+    }
+  }
+
+
+  //---------------------------------------------------------------------------
+  // (merged back from former TOPPBaseWriters translation unit)
+  //---------------------------------------------------------------------------
+
+
+  std::optional<TOPPBase::ExitCodes> TOPPBase::handleWriteCommands_()
+  {
+      // Local helper: write a tool-description file (CTD/CWL/JSON) - one per registered tool type.
+      // Kept local (not a TOPPBase member) since it is only ever used here. The generic lambda is
+      // instantiated for each Param*File writer passed below.
+      auto writeToolDescription = [this](auto& writer, const std::string& write_type, const std::string& fileExtension)
+      {
+        std::string out_dir_str = std::string(param_cmdline_.getValue(write_type).toString());
+        if (out_dir_str.empty())
+        {
+          out_dir_str = std::filesystem::current_path().generic_string();
+        }
+        StringList type_list = ToolHandler::getTypes(tool_name_);
+        if (type_list.empty())
+          type_list.push_back(""); // no type for most tools
+
+        for (Size i = 0; i < type_list.size(); ++i)
+        {
+          // check file is writable
+          std::string write_file = out_dir_str + "/" + tool_name_ + type_list[i] + fileExtension.c_str();
+          outputFileWritable_(write_file, write_type);
+
+          // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
+          if (!type_list[i].empty())
+            param_cmdline_.setValue("type", type_list[i]);
+          Param default_params = getDefaultParameters_();
+
+          // add type to ini file
+          if (!type_list[i].empty())
+            default_params.setValue(this->ini_location_ + "type", type_list[i]);
+
+          // fill program category and docurl
+          std::string docurl = getDocumentationURL();
+          std::string category;
+          if (official_)
+          { // we can only get the docurl/category from registered/official tools
+            category = ToolHandler::getCategory(tool_name_);
+          }
+
+          // collect citation information
+          std::vector<std::string> citation_dois;
+          citation_dois.reserve(citations_.size() + 1);
+          citation_dois.push_back(cite_openms.doi);
+          for (auto& citation : citations_)
+          {
+            citation_dois.push_back(citation.doi);
+          }
+
+          // fill tool information
+          ToolInfo toolInfo{};
+          toolInfo.version_     = version_;
+          toolInfo.name_        = tool_name_;
+          toolInfo.docurl_      = docurl;
+          toolInfo.category_    = category;
+          toolInfo.description_ = tool_description_;
+          toolInfo.citations_   = citation_dois;
+
+          // this will write the actual data to disk
+          writer.store(write_file, default_params, toolInfo);
+        }
+      };
+
+      // '-write_ini' given
+      if (param_cmdline_.exists("write_ini"))
+      {
+        std::string write_ini_file = param_cmdline_.getValue("write_ini").toString();
+        outputFileWritable_(write_ini_file, "write_ini");
+        Param default_params = getDefaultParameters_();
+
+        // check if augmentation with -ini param is needed
+        ParamValue in_ini;
+        if (param_cmdline_.exists("ini"))
+        {
+          in_ini = param_cmdline_.getValue("ini");
+          Param ini_params;
+          const std::string in_ini_path = in_ini.toString();
+          if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
+          {
+            // The JSON file doesn't carry any information about the parameter tree structure.
+            // We hand an additional parameter object with the default values, so we have information
+            // about the tree when parsing the JSON file.
+            ini_params = getDefaultParameters_();
+            if (!ParamJSONFile::load(in_ini_path, ini_params))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
+          } else {
+            ParamXMLFile().load(in_ini_path, ini_params);
+          }
+
+          // check if ini parameters are applicable to this tool
+          checkIfIniParametersAreApplicable_(ini_params);
+          // update default params with outdated params given in -ini and be verbose
+          default_params.update(ini_params, false);
+        }
+        ParamXMLFile paramFile{};
+        paramFile.store(write_ini_file, default_params);
+        return EXECUTION_OK;
+      }
+
+      // '-write_ctd' given
+      if (param_cmdline_.exists("write_ctd"))
+      {
+        ParamCTDFile paramFile{};
+        writeToolDescription(paramFile, "write_ctd", ".ctd");
+        return EXECUTION_OK;
+      }
+
+      // '-write_cwl' given
+      if (param_cmdline_.exists("write_nested_cwl"))
+      {
+        ParamCWLFile paramFile{};
+        writeToolDescription(paramFile, "write_nested_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
+      // '-write_flat_cwl' given
+      if (param_cmdline_.exists("write_cwl"))
+      {
+        ParamCWLFile paramFile{};
+        paramFile.flatHierarchy = true;
+        writeToolDescription(paramFile, "write_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
+      // '-write_json' given
+      if (param_cmdline_.exists("write_nested_json"))
+      {
+        ParamJSONFile paramFile{};
+        writeToolDescription(paramFile, "write_nested_json", ".json");
+        return EXECUTION_OK;
+      }
+
+      // '-write_flat_json' given
+      if (param_cmdline_.exists("write_json"))
+      {
+        ParamJSONFile paramFile{};
+        paramFile.flatHierarchy = true;
+        writeToolDescription(paramFile, "write_json", ".json");
+        return EXECUTION_OK;
+      }
+
+    return std::nullopt;
+  }
+
+
 
 } // namespace OpenMS

@@ -70,6 +70,7 @@ namespace OpenMS
     const std::regex ws_rex(R"(\s{2,}|\t|\r)");
 
     exp.reset();
+    ids.clear(); // replace (not accumulate): mirror exp.reset() so a reused 'ids' vector does not silently grow across calls
 
     //set DocumentIdentifier
     exp.setLoadedFileType(filename);
