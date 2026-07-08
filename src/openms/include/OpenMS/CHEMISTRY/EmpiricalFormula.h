@@ -232,9 +232,18 @@ public:
       @note Whole hydrogen @b atoms (proton + electron) are added. For a physically exact protonated
             @e m/z you additionally have to divide by the charge and account for the electron mass yourself.
 
+      @warning The charge is always reset to zero, regardless of @p count. When migrating a formula that
+               already carries a non-zero charge, pass that charge explicitly (e.g.
+               @c ef.addChargeAdduct(ef.getCharge()) ); passing a @p count that does not match the
+               existing charge yields a composition inconsistent with the original ion.
+      @note A negative @p count subtracts adduct atoms and may drive an element's count below zero
+            (e.g. removing an adduct the formula does not contain), mirroring EmpiricalFormula's general
+            support for negative element counts.
+
       @param count Number of adducts to add (typically the intended charge); negative values remove adducts.
       @param adduct The adduct added per charge, as an OpenMS formula string (default: "H").
       @return reference to *this (for chaining)
+      @throw Exception::ParseError if @p adduct cannot be parsed as a valid formula string
     */
     EmpiricalFormula& addChargeAdduct(Int count = 1, const std::string& adduct = "H");
 

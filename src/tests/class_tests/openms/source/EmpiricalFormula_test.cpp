@@ -271,6 +271,14 @@ START_SECTION(EmpiricalFormula& addChargeAdduct(Int count, const std::string& ad
   EmpiricalFormula deprot("C6H12O6");
   deprot.addChargeAdduct(-1); // remove one H (e.g. modeling a [M-H] type composition)
   TEST_EQUAL(deprot.getNumberOf(db->getElement("H")), 11)
+
+  // migrating an already-charged formula: the charge is unconditionally reset to 0, so 'count'
+  // must be passed explicitly (typically getCharge()) to obtain a consistent neutral composition
+  EmpiricalFormula charged("C6H12O6");
+  charged.setCharge(2);
+  charged.addChargeAdduct(charged.getCharge()); // pass the existing charge explicitly
+  TEST_EQUAL(charged.getCharge(), 0)
+  TEST_EQUAL(charged.getNumberOf(db->getElement("H")), 14)
 END_SECTION
 
 START_SECTION(double getAverageWeight() const)

@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <include/OpenMS/CONCEPT/Constants.h>
 
+#include <atomic>
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
@@ -84,10 +85,10 @@ namespace OpenMS
     {
       // DEPRECATED (OpenMS 3.x): a non-zero charge implicitly adds 'charge'-many H atoms to shift the pattern.
       // This will change in OpenMS 4.0, where the charge is ignored and the neutral pattern is returned.
-      static bool warned_once = false;
-      if (!warned_once)
+      // run() is const and may be called from parallel regions, so the warn-once flag must be atomic.
+      static std::atomic<bool> warned_once{false};
+      if (!warned_once.exchange(true))
       {
-        warned_once = true;
         OPENMS_LOG_WARN << "Warning: CoarseIsotopePatternGenerator::run() was called with a non-zero charge ("
                         << formula.getCharge() << "). The generator currently adds 'charge'-many hydrogen atoms to "
                         << "shift the isotope pattern. This is deprecated and will change in OpenMS 4.0, where the "
