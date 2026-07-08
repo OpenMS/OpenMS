@@ -3,6 +3,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/ML/PeptDeepCCSInference.h>
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
 #include <OpenMS/ML/PeptDeepInput.h>
@@ -59,9 +60,11 @@ START_TEST(PeptDeepInference, "$Id$")
 
 // Note: These paths will be resolved by the OpenMS CMake testing environment
 const string rt_model = "data/peptdeep_rt_dynamic.onnx";
+const string ccs_model = "data/peptdeep_ccs_dynamic.onnx";
 const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
 const string irt_reference_data = OPENMS_GET_TEST_DATA_PATH("peptdeep_irt_peptides_predicted.csv");
 const string rt_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_retention_time_predicted.csv");
+const string ccs_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ccs_predicted.csv");
 const string ms2_spectra_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_spectra.csv");
 const string ms2_reference_data = OPENMS_GET_TEST_DATA_PATH("proteomicsml_test_data_ms2_predicted_intensities.csv");
 
@@ -212,6 +215,56 @@ START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predicti
 
         STATUS("Maximum absolute RT prediction error: " << max_abs_error);
         TEST_EQUAL(max_abs_error < 1e-4f, true);
+    }
+END_SECTION
+
+START_SECTION(PeptDeepCCSInference ONNX parity with AlphaPeptDeep Python predictions)
+    STATUS("Verifying CCS predictions against saved Python ONNX Runtime ccs_pred_onnx values...");
+
+    ifstream input(ccs_reference_data);
+    if (!input.good())
+    {
+        TEST_EQUAL(input.good(), true);
+    }
+    else
+    {
+        string header;
+        getline(input, header);
+        map<string, size_t> index = csvHeaderIndex(header);
+
+        vector<string> peptides;
+        vector<float> charges;
+        vector<float> expected_ccs_preds;
+
+        string line;
+        while (getline(input, line))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+
+            vector<string> fields = splitCSVLine(line);
+            peptides.push_back(csvField(fields, index, "sequence"));
+            charges.push_back(static_cast<float>(stod(csvField(fields, index, "charge"))));
+            expected_ccs_preds.push_back(static_cast<float>(stod(csvField(fields, index, "ccs_pred_onnx"))));
+        }
+
+        TEST_EQUAL(peptides.empty(), false);
+
+        PeptDeepCCSInference ccs_engine(ccs_model);
+        vector<float> actual_ccs_preds = ccs_engine.predictCCS(peptides, charges);
+
+        TEST_EQUAL(actual_ccs_preds.size(), expected_ccs_preds.size());
+
+        float max_abs_error = 0.0f;
+        for (size_t i = 0; i < actual_ccs_preds.size(); ++i)
+        {
+            max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual_ccs_preds[i] - expected_ccs_preds[i])));
+        }
+
+        STATUS("Maximum absolute CCS prediction error: " << max_abs_error);
+        TEST_EQUAL(max_abs_error < 1e-3f, true);
     }
 END_SECTION
 
