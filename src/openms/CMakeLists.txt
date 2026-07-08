@@ -120,6 +120,7 @@ if(WITH_ONNX)
   file(MAKE_DIRECTORY "${MODEL_DIR}")
 
   set(PEPTDEEP_MODELS
+      "peptdeep_ccs_dynamic.onnx"
       "peptdeep_ms2_dynamic.onnx"
       "peptdeep_rt_dynamic.onnx"
   )
@@ -132,7 +133,7 @@ if(WITH_ONNX)
   endforeach()
 
   # Ensure models are packaged during 'make install'
-  install(FILES "${MODEL_DIR}/peptdeep_ms2_dynamic.onnx" "${MODEL_DIR}/peptdeep_rt_dynamic.onnx"
+  install(FILES "${MODEL_DIR}/peptdeep_ccs_dynamic.onnx" "${MODEL_DIR}/peptdeep_ms2_dynamic.onnx" "${MODEL_DIR}/peptdeep_rt_dynamic.onnx"
           DESTINATION "share/OpenMS/models")
 endif()
 
@@ -281,6 +282,7 @@ if(WITH_ONNX)
   target_sources(OpenMS PRIVATE
     source/ML/ONNXEnvironment.cpp
     source/ML/ONNXPredictorBase.cpp
+    source/ML/PeptDeepCCSInference.cpp
     source/ML/PeptDeepInput.cpp
     source/ML/PeptDeepRTInference.cpp
     source/ML/PeptDeepMS2Inference.cpp
