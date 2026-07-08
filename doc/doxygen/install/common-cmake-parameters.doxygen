@@ -162,6 +162,22 @@ The most important CMake variables are:
     <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
   </tr>
   <tr>
+    <th valign="top">WITH_ONNX=On/Off</td>
+    <td>Enables ONNX Runtime support for machine-learning based inference modules,
+    currently used by the PeptDeep predictors. This option requires an external
+    ONNX Runtime C/C++ installation that can be found by CMake. Usually this can
+    be done by adding the root directory of an ONNX Runtime release package to
+    <code>CMAKE_PREFIX_PATH</code>, for example:
+
+    <code>-DWITH_ONNX=ON -DCMAKE_PREFIX_PATH=/path/to/onnxruntime</code>
+
+    Alternatively, set <code>ONNXRuntime_INCLUDE_DIR</code> and
+    <code>ONNXRuntime_LIBRARY</code> explicitly. When enabled, the PeptDeep ONNX
+    model files are downloaded during configuration and installed under
+    <code>share/OpenMS/models</code>.
+    (Default: Off)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
