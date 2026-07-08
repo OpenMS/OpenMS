@@ -102,6 +102,32 @@ namespace OpenMS
       return batch;
     }
 
+    PeptDeepInputBatch PeptDeepInputBuilder::buildUnmodifiedChargedBatch(
+      const std::vector<std::string>& peptides,
+      const std::vector<float>& charges,
+      const PeptDeepInputConfig& config)
+    {
+      const size_t batch_size = peptides.size();
+      if (charges.size() != batch_size)
+      {
+        throw Exception::IllegalArgument(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Peptide and charge input vectors must have the same size.");
+      }
+
+      PeptDeepInputBatch batch = buildUnmodifiedPeptideBatch(peptides, config);
+      batch.charges.reserve(batch_size);
+
+      for (size_t i = 0; i < batch_size; ++i)
+      {
+        batch.charges.push_back(charges[i] * CHARGE_SCALE);
+      }
+
+      return batch;
+    }
+
     PeptDeepInputBatch PeptDeepInputBuilder::buildUnmodifiedInstrumentBatch(
       const std::vector<std::string>& peptides,
       const std::vector<float>& charges,
@@ -119,14 +145,12 @@ namespace OpenMS
           "Peptide, charge, NCE, and instrument input vectors must have the same size.");
       }
 
-      PeptDeepInputBatch batch = buildUnmodifiedPeptideBatch(peptides, config);
-      batch.charges.reserve(batch_size);
+      PeptDeepInputBatch batch = buildUnmodifiedChargedBatch(peptides, charges, config);
       batch.nces.reserve(batch_size);
       batch.instrument_indices.reserve(batch_size);
 
       for (size_t i = 0; i < batch_size; ++i)
       {
-        batch.charges.push_back(charges[i] * CHARGE_SCALE);
         batch.nces.push_back(nces[i] * NCE_SCALE);
         batch.instrument_indices.push_back(instrument_indices[i]);
       }

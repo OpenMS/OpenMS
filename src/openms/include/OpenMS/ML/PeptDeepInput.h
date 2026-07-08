@@ -54,6 +54,11 @@ namespace OpenMS
         const std::vector<std::string>& peptides,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
+      static PeptDeepInputBatch buildUnmodifiedChargedBatch(
+        const std::vector<std::string>& peptides,
+        const std::vector<float>& charges,
+        const PeptDeepInputConfig& config = PeptDeepInputConfig());
+
       static PeptDeepInputBatch buildUnmodifiedInstrumentBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,
