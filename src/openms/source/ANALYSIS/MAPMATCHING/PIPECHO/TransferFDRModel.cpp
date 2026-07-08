@@ -60,7 +60,8 @@ public:
   predictors_t(double cutoff,
                std::function<double(const TransferFDRModel::acceptor_t&)> get,
                std::function<bool(double, double)> cmp,
-               bool use_im);
+               bool use_im,
+               bool use_rt_score);
 
   /**
    * Train the model with the given data.
@@ -93,6 +94,7 @@ private:
   std::function<double(const TransferFDRModel::acceptor_t&)> getter;
   std::function<bool(double, double)> cmp;
   bool use_im;
+  bool use_rt_score;
   std::size_t index = 0;
 
   SimpleSVM svm;
@@ -132,6 +134,16 @@ TransferFDRModel::TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>&
             && std::ranges::all_of(acceptors_, [](const acceptor_ptr_t& a) {
                  return a->score.im_diff_score >= 0.0;
                });
+
+  // The calibrated RT-agreement score replaces the raw rt_diff_error predictor
+  // only when EVERY acceptor carries one (>= 0); otherwise the column would mix
+  // calibrated [0,1] scores with raw seconds. This is true exactly on the local
+  // adaptive RT path with a calibrated RtScoreMode; the baseline leaves the -1
+  // sentinel, so the raw rt_diff_error is used and the output stays unchanged.
+  use_rt_score_ = ! acceptors_.empty()
+                  && std::ranges::all_of(acceptors_, [](const acceptor_ptr_t& a) {
+                       return a->score.rt_score >= 0.0;
+                     });
 }
 
 /******************************************************************************/
@@ -479,7 +491,7 @@ bool TransferFDRModel::train_predict(const group_t& training,
                         std::function<double(const acceptor_t&)> get,
                         std::function<bool(double, double)> cmp)
 {
-  predictors_t predictors(cutoff, get, cmp, use_im_);
+  predictors_t predictors(cutoff, get, cmp, use_im_, use_rt_score_);
   if (! predictors.train(training)) return false;
   return predictors.predict(predict);
 }
@@ -551,11 +563,13 @@ namespace
 predictors_t::predictors_t(double cutoff,
                            std::function<double(const TransferFDRModel::acceptor_t&)> get,
                            std::function<bool(double, double)> cmp,
-                           bool use_im):
+                           bool use_im,
+                           bool use_rt_score):
     cutoff(cutoff),
     getter(get),
     cmp(cmp),
-    use_im(use_im)
+    use_im(use_im),
+    use_rt_score(use_rt_score)
 {
   Param svm_param = svm.getParameters();
 
@@ -633,7 +647,11 @@ void predictors_t::encode(const TransferFDRModel::acceptor_t& acceptor,
                           bool create_labels)
 {
   predictors["intensity"].push_back(acceptor.score.intensity);
-  predictors["rt_diff_error"].push_back(acceptor.score.rt_diff_error);
+  // RT predictor: the calibrated [0,1] agreement score on the local path (when
+  // every acceptor has one), else the raw |Δrt| (baseline, byte-identical). The
+  // column key is kept stable; only the value's meaning/scale changes with mode.
+  predictors["rt_diff_error"].push_back(
+    use_rt_score ? acceptor.score.rt_score : acceptor.score.rt_diff_error);
   predictors["mass_error"].push_back(acceptor.score.mass_error);
   // Isotope-distribution agreement is always [0, 1] (0.5 sentinel when absent),
   // so the column is rectangular and can be pushed unconditionally.

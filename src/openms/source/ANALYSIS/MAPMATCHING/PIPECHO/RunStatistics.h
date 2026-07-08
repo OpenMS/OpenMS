@@ -36,8 +36,19 @@ public:
   /// rather than the donor's true RT (PIP-ECHO: the RT feature is the deviation
   /// from the predicted/randomised RT). Only the RT feature is affected; mass
   /// error and intensity remain properties of the donor identity / acceptor.
+  ///
+  /// @param rt_mode How the retention-time feature is scored (see RtScoreMode).
+  /// On the default Raw mode the score is byte-identical to before: rt_diff_error
+  /// is the raw |Δrt| and RT is excluded from the geometric mean. On Svm/SvmAndMbr
+  /// the SIGNED RT residual is calibrated against @p rt_dist into a [0,1] agreement
+  /// score (rt_score); SvmAndMbr additionally folds it into the geometric mean.
+  /// @param rt_dist Data-driven RT prediction-error distribution for the current
+  /// run pair (FlashLFQ-style). When null but a calibrated mode is requested, a
+  /// neutral agreement score is used (no hard penalty for an unestimable pair).
   Score score(const Feature&, const Feature&,
-              std::optional<double> donor_rt_override = std::nullopt) const;
+              std::optional<double> donor_rt_override = std::nullopt,
+              RtScoreMode rt_mode = RtScoreMode::Raw,
+              const boost::math::normal* rt_dist = nullptr) const;
 
 private:
   // Normal distribution: <mean, stddev>.
@@ -50,6 +61,7 @@ private:
   normal_t init_mass_error(const Run&) const;
   normal_t init_im_tolerance(const Run&, bool enable_im) const;
   double calc_score_using(const normal_t&, double) const;
+  double calc_score_using(const boost::math::normal&, double) const;
   double calc_intensity_score(const Feature&) const;
   double calc_mass_error_score(const Feature& donor, const Feature& acceptor) const;
 
