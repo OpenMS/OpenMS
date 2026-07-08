@@ -237,20 +237,24 @@ foreach(i ${TEST_executables})
 endforeach(i)
 source_group("" FILES ${sources_VS})
 
-set(PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models")
-set(TEST_DATA_DIR "${CMAKE_BINARY_DIR}/src/tests/class_tests/openms/data")
-file(MAKE_DIRECTORY ${TEST_DATA_DIR})
+if(WITH_ONNX)
+  # Class tests run from the build-tree test directory and expect models below data/.
+  # Reuse the models downloaded by src/openms/CMakeLists.txt instead of downloading
+  # them again. No .onnx.data sidecars are needed because the exported models are
+  # embedded-weight ONNX files.
+  set(TEST_DATA_DIR "${CMAKE_BINARY_DIR}/src/tests/class_tests/openms/data")
+  file(MAKE_DIRECTORY "${TEST_DATA_DIR}")
 
-set(PEPTDEEP_MODELS
-    "peptdeep_ms2_dynamic.onnx"
-    "peptdeep_ms2_dynamic.onnx.data"
-    "peptdeep_rt_dynamic.onnx"
-    "peptdeep_rt_dynamic.onnx.data"
-)
+  foreach(MODEL IN LISTS OPENMS_PEPTDEEP_MODELS)
+    set(SOURCE_MODEL "${OPENMS_PEPTDEEP_MODEL_DIR}/${MODEL}")
+    set(TEST_MODEL "${TEST_DATA_DIR}/${MODEL}")
 
-foreach(MODEL ${PEPTDEEP_MODELS})
-    if(NOT EXISTS "${TEST_DATA_DIR}/${MODEL}")
-        message(STATUS "Fetching PeptDeep model: ${MODEL} from archive...")
-        file(DOWNLOAD "${PEPTDEEP_MODEL_URL}/${MODEL}" "${TEST_DATA_DIR}/${MODEL}" SHOW_PROGRESS)
+    if(NOT EXISTS "${SOURCE_MODEL}")
+      message(FATAL_ERROR
+        "Expected PeptDeep model was not found: ${SOURCE_MODEL}. "
+        "The OpenMS ONNX model download step should have created this file.")
     endif()
-endforeach()
+
+    configure_file("${SOURCE_MODEL}" "${TEST_MODEL}" COPYONLY)
+  endforeach()
+endif()
