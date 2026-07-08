@@ -230,6 +230,10 @@ protected:
       /// Returns if two Xerces strings are equal
       inline bool equal_(const char16_t * a, const char16_t * b) const
       {
+        // Guard null pointers before constructing views: u16string_view(nullptr)
+        // is UB, whereas the previous XMLString::compareString tolerated nulls
+        // (both null => equal, one null => unequal), which this reproduces.
+        if (a == nullptr || b == nullptr) return a == b;
         return std::u16string_view(a) == std::u16string_view(b);
       }
 

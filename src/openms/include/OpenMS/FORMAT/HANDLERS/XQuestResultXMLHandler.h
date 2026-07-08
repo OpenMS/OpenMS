@@ -171,7 +171,7 @@ namespace OpenMS
 
       /**
        * @brief Gets the link location of a xQuest xlinkPositionString.
-       * @param[in] attributes XML attributes of Xerces.
+       * @param[in] attributes XML attributes of the current element.
        * @param[out] pair Pair to be populated with the xlinkposition in xQuest.
        */
       void getLinkPosition_(const XMLAttributes & attributes, std::pair<SignedSize, SignedSize> & pair);

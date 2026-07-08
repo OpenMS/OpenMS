@@ -599,10 +599,9 @@ namespace OpenMS::Internal
       pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const char16_t* refs = attributes.value(sm_.convert("protein_refs").c_str());
-      if (refs != nullptr)
+      std::string accession_string;
+      if (optionalAttributeAsString_(accession_string, attributes, "protein_refs"))
       {
-        std::string accession_string = sm_.convert(refs);
         StringUtils::trim(accession_string);
         vector<std::string> accessions;
         StringUtils::split(accession_string, ' ', accessions);

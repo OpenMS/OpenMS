@@ -117,8 +117,9 @@ namespace OpenMS::Internal
   #endif
   Size StringManager::strLength(const char16_t* input_ptr)
   {
-    if (input_ptr == nullptr) {
-        return 0;
+    if (input_ptr == nullptr)
+    {
+      return 0;
     }
 
     Size processed_chars = 0;
@@ -132,10 +133,11 @@ namespace OpenMS::Internal
     // process one by one until we reach a 16-byte aligned address (where a SIMD load can be used)
     for (int i = 0; i < chars_to_align; ++i)
     {
-        if (*pos_ptr == 0) {
-            return i;
-        }
-        ++pos_ptr;
+      if (*pos_ptr == 0)
+      {
+        return i;
+      }
+      ++pos_ptr;
     }
     processed_chars = chars_to_align;
 
@@ -143,20 +145,20 @@ namespace OpenMS::Internal
     const simde__m128i zero = simde_mm_setzero_si128();
     while (true)
     {
-        simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
-        simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
-        uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte
+      simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+      simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
+      uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte
 
-        if (zero_mask != 0)
-        { // Found a zero character
-            auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
-            auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
-            return processed_chars + char_pos_zero;
-        }
+      if (zero_mask != 0)
+      { // Found a zero character
+        auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
+        auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
+        return processed_chars + char_pos_zero;
+      }
 
-        // 8 chars (each 2 bytes) had no zero
-        pos_ptr += 8;
-        processed_chars += 8;
+      // 8 chars (each 2 bytes) had no zero
+      pos_ptr += 8;
+      processed_chars += 8;
     }
 
     // never reached

@@ -240,9 +240,10 @@ namespace OpenMS::Internal
       else if (tag == "software")
       {
         data_processing_ = DataProcessingPtr(new DataProcessing);
-        if (attributes.index(sm_.convert("completionTime").c_str()) != -1)
+        std::string completion_time;
+        if (optionalAttributeAsString_(completion_time, attributes, "completionTime"))
         {
-          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.value(sm_.convert("completionTime").c_str())).c_str()));
+          data_processing_->setCompletionTime(asDateTime_(completion_time));
         }
       }
       else if (tag == "precursor")
