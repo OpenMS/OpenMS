@@ -341,7 +341,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
                   << ", " << rt_sec_max_window << ", " << mbr_fdr << ")"
                   << '\n';
 
-  // Local adaptive RT window (experimental; default off -> the global window).
+  // Local adaptive RT window (default on; set 'local_rt:enabled' false for the legacy global window).
   use_local_rt_ = params.getValue("local_rt:enabled").toString() == "true";
   if (use_local_rt_)
   {
