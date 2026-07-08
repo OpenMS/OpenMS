@@ -58,11 +58,9 @@ namespace OpenMS::Internal
     /// Destructor.
     ~UniProtXMLHandler() override;
 
-    void startElement(const XMLCh* const uri, const XMLCh* const local_name,
-                      const XMLCh* const qname, const xercesc::Attributes& attrs) override;
-    void endElement(const XMLCh* const uri, const XMLCh* const local_name,
-                    const XMLCh* const qname) override;
-    void characters(const XMLCh* const chars, const XMLSize_t length) override;
+    void onStartElement(const char16_t* qname, const XMLAttributes& attrs) override;
+    void onEndElement(const char16_t* qname) override;
+    void onCharacters(const char16_t* chars, Size length) override;
 
   private:
     EntryCallback callback_;

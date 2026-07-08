@@ -5097,8 +5097,6 @@ This Class is supposed to internally collect the data for the qcML File
         .def("store", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, "Store the qcML file")
         .def("load", [](OpenMS::QcMLFile& self, const std::string& filename) { return self.load(filename); }, "filename"_a, "Load a QCFile")
         .def("reset", [](OpenMS::QcMLFile& self) { return self.reset(); })
-        .def("error", [](OpenMS::QcMLFile& self, const xercesc::SAXParseException& exception) { return self.error(exception); }, "exception"_a)
-        .def("warning", [](OpenMS::QcMLFile& self, const xercesc::SAXParseException& exception) { return self.warning(exception); }, "exception"_a)
         ;
     def_ProgressLogger<OpenMS::QcMLFile>(qcmlfile_class);
 

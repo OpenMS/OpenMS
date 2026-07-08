@@ -10,7 +10,6 @@
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
@@ -28,7 +27,7 @@ namespace OpenMS::Internal
     UnimodXMLHandler::~UnimodXMLHandler()
     = default;
 
-    void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+    void UnimodXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
 
       tag_ =std::string(sm_.convert(qname));
@@ -116,16 +115,16 @@ namespace OpenMS::Internal
       if (tag_ == "umod:delta" || tag_ == "delta")
       {
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
-        avge_mass_ = StringUtils::toDouble(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass").c_str()))));
-        mono_mass_ = StringUtils::toDouble(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass").c_str()))));
+        avge_mass_ = StringUtils::toDouble(sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("avge_mass").c_str()))));
+        mono_mass_ = StringUtils::toDouble(sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("mono_mass").c_str()))));
         return;
       }
 
       // <umod:element symbol="H" number="1"/>
       if (tag_ == "umod:element")
       {
-        std::string symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol").c_str())));
-        std::string num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number").c_str())));
+        std::string symbol = sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("symbol").c_str())));
+        std::string num = sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("number").c_str())));
         std::string isotope, tmp_symbol;
         for (Size i = 0; i != symbol.size(); ++i)
         {
@@ -152,7 +151,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void UnimodXMLHandler::onEndElement(const char16_t* qname)
     {
       tag_ =std::string(sm_.convert(qname));
 
@@ -207,7 +206,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void UnimodXMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
+    void UnimodXMLHandler::onCharacters(const char16_t* /*chars*/, Size /*length*/)
     {
       // nothing to do here
     }

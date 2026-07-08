@@ -27,11 +27,11 @@ namespace OpenMS::Internal
     ToolDescriptionHandler::~ToolDescriptionHandler()
     = default;
 
-    void ToolDescriptionHandler::startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void ToolDescriptionHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       if (in_ini_section_)
       {
-        ParamXMLHandler::startElement(uri, local_name, qname, attributes);
+        ParamXMLHandler::onStartElement(qname, attributes);
         return;
       }
 
@@ -111,11 +111,11 @@ namespace OpenMS::Internal
       error(LOAD, "ToolDescriptionHandler::startElement(): Unknown element found: '" + tag_ + "', ignoring.");
     }
 
-    void ToolDescriptionHandler::characters(const XMLCh * const chars, const XMLSize_t length)
+    void ToolDescriptionHandler::onCharacters(const char16_t* chars, Size length)
     {
       if (in_ini_section_)
       {
-        ParamXMLHandler::characters(chars, length);
+        ParamXMLHandler::onCharacters(chars, length);
         return;
       }
 
@@ -171,12 +171,12 @@ namespace OpenMS::Internal
       }
     }
 
-    void ToolDescriptionHandler::endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname)
+    void ToolDescriptionHandler::onEndElement(const char16_t* qname)
     {
       std::string endtag_ = sm_.convert(qname);
       if (in_ini_section_ && endtag_ != "ini_param")
       {
-        ParamXMLHandler::endElement(uri, local_name, qname);
+        ParamXMLHandler::onEndElement(qname);
         return;
       }
 

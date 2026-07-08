@@ -65,12 +65,18 @@ add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-## Note: XercesC::XercesC is PUBLIC because Xerces types are part of the public API
-## (e.g. Internal::XMLHandler derives from xercesc::DefaultHandler and takes
-## xercesc::Attributes in method signatures), so downstream consumers need it (see #8547).
+## Note: XercesC::XercesC is PRIVATE — Xerces is fully encapsulated behind the
+## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
+## internal SAX2HandlerAdapter, so it no longer appears in any installed header
+## and downstream consumers neither include nor link it (see #8547).
+## Note: Boost::boost (header-only) is PUBLIC because the installed public header
+## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
+## (e.g. pyOpenMS) need Boost's include dir. Only the header-only target is
+## public — it propagates include dirs but no link libraries; the compiled Boost
+## components (date_time/iostreams/regex) stay PRIVATE below.
 set(OPENMS_DEP_LIBRARIES
-  XercesC::XercesC
   CURL::libcurl
+  Boost::boost
 )
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
@@ -79,10 +85,10 @@ set(OPENMS_DEP_LIBRARIES
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
-  Boost::boost
   Boost::date_time
   Boost::iostreams
   Boost::regex
@@ -127,12 +133,13 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
     )
 endif()
 
-# Xerces requires linking against CoreFoundation&CoreServices on macOS
+# Xerces requires linking against CoreFoundation&CoreServices on macOS.
+# Xerces is now a PRIVATE dependency, so these frameworks are private too.
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
   find_library(CoreServices_LIBRARY CoreServices )
-  set(OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES}
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
                            ${CoreFoundation_LIBRARY}
                            ${CoreServices_LIBRARY})
 endif()

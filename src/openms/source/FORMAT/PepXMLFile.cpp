@@ -921,7 +921,7 @@ namespace OpenMS
     f.close();
   }
 
-  void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
+  void PepXMLFile::readRTMZCharge_(const Internal::XMLAttributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
     charge_ = attributeAsInt_(attributes, "assumed_charge");
@@ -1082,10 +1082,7 @@ namespace OpenMS
     know that the last - and only - element should be the correct one.
   */
 
-  void PepXMLFile::startElement(const XMLCh* const /*uri*/,
-                                const XMLCh* const /*local_name*/,
-                                const XMLCh* const qname,
-                                const xercesc::Attributes& attributes)
+  void PepXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string element = sm_.convert(qname);
 
@@ -2041,9 +2038,7 @@ namespace OpenMS
     return found;
   }
 
-  void PepXMLFile::endElement(const XMLCh* const /*uri*/,
-                              const XMLCh* const /*local_name*/,
-                              const XMLCh* const qname)
+  void PepXMLFile::onEndElement(const char16_t* qname)
   {
     std::string element = sm_.convert(qname);
 
