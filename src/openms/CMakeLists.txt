@@ -69,8 +69,14 @@ add_subdirectory(thirdparty/percolator)
 ## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
 ## internal SAX2HandlerAdapter, so it no longer appears in any installed header
 ## and downstream consumers neither include nor link it (see #8547).
+## Note: Boost::boost (header-only) is PUBLIC because the installed public header
+## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
+## (e.g. pyOpenMS) need Boost's include dir. Only the header-only target is
+## public — it propagates include dirs but no link libraries; the compiled Boost
+## components (date_time/iostreams/regex) stay PRIVATE below.
 set(OPENMS_DEP_LIBRARIES
   CURL::libcurl
+  Boost::boost
 )
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
@@ -83,7 +89,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
-  Boost::boost
   Boost::date_time
   Boost::iostreams
   Boost::regex
