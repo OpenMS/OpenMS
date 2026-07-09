@@ -44,7 +44,7 @@ if (OpenMS_FOUND)
     target_link_libraries(${i} OpenMS my_custom_lib)
   endforeach(i)
 
-  ## Downstream link contract (issue #9460, §1): since the Qt removal, OpenMSConfig.cmake no longer
+  ## Downstream link contract: since the Qt removal, OpenMSConfig.cmake no longer
   ## declares Qt6 as a (transitive) dependency. An external consumer that wants Qt must find and link
   ## it itself. This target uses a Qt type and links Qt6::Core *explicitly* after finding Qt6 here --
   ## it builds only because this project supplies Qt, not because OpenMS leaks it transitively. Guarded

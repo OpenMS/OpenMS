@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// Downstream link-contract check for issue #9460 (§1): an external consumer that links OpenMS *and*
+// Downstream link-contract check: an external consumer that links OpenMS *and*
 // wants Qt must find/link Qt itself -- OpenMS no longer re-exports Qt6 as a transitive dependency.
 // This translation unit deliberately mixes an OpenMS type with a Qt type; it only builds because the
 // accompanying CMakeLists.txt does its own find_package(Qt6) + links Qt6::Core. If OpenMS still leaked

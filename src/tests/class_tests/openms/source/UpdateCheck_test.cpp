@@ -32,9 +32,8 @@ START_TEST(UpdateCheck, "$Id$")
 START_SECTION((static void run(const std::string& tool_name, const std::string& version, int debug_level)))
 {
   // UpdateCheck stamps a per-tool ".ver" file into File::getOpenMSConfigDir(). When that directory
-  // cannot be created (a read-only / unwritable config location -- the $HOME-not-writable case fixed
-  // in #9075), run() must log a warning and return *before* issuing any network request: it must not
-  // throw or crash, and the tool must continue.
+  // cannot be created (a read-only / unwritable config location), run() must log a warning and return
+  // *before* issuing any network request: it must not throw or crash, and the tool must continue.
   //
   // On unix we force an uncreatable config dir by pointing XDG_CONFIG_HOME at a path whose parent is a
   // regular file. getOpenMSConfigDir() then returns "<file>/OpenMS", and create_directories() fails with

@@ -417,10 +417,9 @@ START_SECTION(static std::string findSiblingTOPPExecutable(const std::string& to
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
 
-  // Sibling resolution looks next to the running executable only; it does NOT (yet) fall back to a
-  // PATH lookup (see the "TODO: probe in PATH" in File::findSiblingTOPPExecutable, cf. #9204). A binary
-  // that exists only on PATH (e.g. the "echo"/"cmd" resolved by findExecutable above) is therefore
-  // reported as not found here. This pins the current "siblings only" contract.
+  // Sibling resolution looks next to the running executable only; it does NOT fall back to a
+  // PATH lookup. A binary that exists only on PATH (e.g. the "echo"/"cmd" resolved by findExecutable
+  // above) is therefore reported as not found here. This pins the current "siblings only" contract.
 #ifdef OPENMS_WINDOWSPLATFORM
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("cmd"))
 #else

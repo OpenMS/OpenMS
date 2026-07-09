@@ -202,7 +202,7 @@ add_test("TOPP_CometAdapter_missing" ${TOPP_BIN_PATH}/CometAdapter -test -databa
 set_tests_properties("TOPP_CometAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
 
 ## test returncode when the external program is present but FAILS to run: must be EXTERNAL_PROGRAM_ERROR (9),
-## distinct from EXTERNAL_PROGRAM_NOTFOUND (14) above (issue #9460 §1, L41). The false executable exits 1,
+## distinct from EXTERNAL_PROGRAM_NOTFOUND (14) above. The false executable exits 1,
 ## so the adapter runs it and maps the non-zero exit to code 9. Unix-only (no portable always-failing exe on Windows).
 if (NOT WIN32)
   find_program(FALSE_EXECUTABLE false)
