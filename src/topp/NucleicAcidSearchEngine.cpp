@@ -353,7 +353,25 @@ protected:
     const PrecursorInfo* precursor_ref; // precursor information
   };
 
-  typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
+  // Comparator for deterministic hit ordering: score (descending), then sequence (ascending)
+  // This ensures reproducible results even when multiple hits have identical scores.
+  // Using map instead of multimap prevents non-deterministic ordering of tied scores.
+  struct HitKeyComparator
+  {
+    bool operator()(const pair<double, String>& a,
+                    const pair<double, String>& b) const
+    {
+      if (a.first != b.first)
+      {
+        return a.first > b.first; // Higher score is better
+      }
+      return a.second < b.second; // Alphabetical tie-breaker for determinism
+    }
+  };
+
+  // Map key: (score, sequence_string), Value: AnnotatedHit
+  // Guarantees deterministic ordering even with OpenMP parallelization
+  typedef map<pair<double, String>, AnnotatedHit, HitKeyComparator> HitsByScore;
 
   // query modified residues from database
   set<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
@@ -991,10 +1009,10 @@ protected:
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
     for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
     {
-      double previous_score = previous_it->first;
+      double previous_score = previous_it->first.first;
       NASequence& previous_seq = previous_it->second.sequence;
       const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first != previous_score) ||
+      if ((hit_it->first.first != previous_score) ||
           (current_seq.size() != previous_seq.size())) // different hits
       {
         previous_it = hit_it;
@@ -1032,7 +1050,17 @@ protected:
       }
       if (remove_current) // current hit is redundant -> remove it
       {
-        if (!replacement.empty()) previous_seq = replacement;
+        if (!replacement.empty())
+        {
+          // Need to update the key since sequence changed
+          // Extract the old entry, modify it, and reinsert with new key
+          auto prev_score = previous_it->first.first;
+          AnnotatedHit updated_hit = previous_it->second;
+          updated_hit.sequence = replacement;
+          hits.erase(previous_it);
+          auto new_key = make_pair(prev_score, updated_hit.sequence.toString());
+          previous_it = hits.insert(make_pair(new_key, updated_hit)).first;
+        }
         hit_it = hits.erase(hit_it);
       }
       else
@@ -1079,7 +1107,7 @@ protected:
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
       {
-        double score = pair.first;
+        double score = pair.first.first; // key is (score, sequence_string)
         const AnnotatedHit& hit = pair.second;
         OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
@@ -1970,37 +1998,58 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              HitsByScore::iterator pos = scan_hits.end();
-              if ((report_top_hits == 0) ||
-                  (scan_hits.size() < report_top_hits))
+              
+              // Build the AnnotatedHit upfront
+              AnnotatedHit new_hit;
+              new_hit.oligo_ref = oligo_ref;
+              new_hit.sequence = candidate;
+              new_hit.precursor_error_ppm =
+                (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
+              new_hit.annotations = annotations;
+              new_hit.precursor_ref = &(prec_it->second);
+              
+              // Key for deterministic ordering: (score, sequence_string)
+              auto key = make_pair(score, candidate.toString());
+              
+              bool should_insert = false;
+              if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
               {
-                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
+                should_insert = true;
               }
               else // already have enough hits for this spectrum - replace one?
               {
-                double worst_score = (--scan_hits.end())->first;
-                if (score >= worst_score)
+                double worst_score = (--scan_hits.end())->first.first;
+                if (score > worst_score)
                 {
-                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-                  // prune list of hits if possible (careful about tied scores):
-                  Size n_worst = scan_hits.count(worst_score);
+                  should_insert = true;
+                  // Remove the worst hit to make room
+                  auto worst_it = --scan_hits.end();
+                  scan_hits.erase(worst_it);
+                }
+                else if (score == worst_score)
+                {
+                  // For tied scores, count how many have this score
+                  Size n_worst = 0;
+                  for (const auto& hit : scan_hits)
+                  {
+                    if (hit.first.first == worst_score) ++n_worst;
+                  }
+                  
+                  // Only insert if we can remove a hit with the worst score
+                  // without going below report_top_hits non-worst hits
                   if (scan_hits.size() - n_worst >= report_top_hits)
                   {
-                    scan_hits.erase(worst_score);
+                    should_insert = true;
+                    // Remove one hit with worst score (deterministically the last one in sort order)
+                    auto worst_it = --scan_hits.end();
+                    scan_hits.erase(worst_it);
                   }
                 }
               }
-              // add oligo hit data only if necessary (good enough score):
-              if (pos != scan_hits.end())
+              
+              if (should_insert)
               {
-                AnnotatedHit& ah = pos->second;
-                ah.oligo_ref = oligo_ref;
-                ah.sequence = candidate;
-                // @TODO: is "observed - calculated" the right way around?
-                ah.precursor_error_ppm =
-                  (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
-                ah.annotations = annotations;
-                ah.precursor_ref = &(prec_it->second);
+                scan_hits[key] = new_hit;
               }
             }
           }

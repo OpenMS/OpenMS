@@ -36,7 +36,7 @@ namespace OpenMS
       Int chebi_id{0};
       double score{0.0};
       Int coverage{1};
-      String unique_mapping{"0"};
+      Int target_mapping_count{0};
       String frag_start;
       String frag_end;
 
@@ -46,9 +46,9 @@ namespace OpenMS
         String mod_code = ribonucleotide ? ribonucleotide->getCode() : String("");
         String rhs_mod_code = rhs.ribonucleotide ? rhs.ribonucleotide->getCode() : String("");
         return std::tie(chrom, chrom_start, chrom_end, mod_code, score, coverage,
-                        unique_mapping, frag_start, frag_end) <
+                        target_mapping_count, frag_start, frag_end) <
                std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs_mod_code,
-                        rhs.score, rhs.coverage, rhs.unique_mapping,
+                        rhs.score, rhs.coverage, rhs.target_mapping_count,
                         rhs.frag_start, rhs.frag_end);
       }
     };
@@ -207,6 +207,21 @@ namespace OpenMS
       return total;
     }
 
+    template <typename ParentMatches>
+    Size countTargetParentMatches_(const ParentMatches& parent_matches)
+    {
+      Size total = 0;
+      for (const auto& match_pair : parent_matches)
+      {
+        // Only count matches to target (non-decoy) parents
+        if (!match_pair.first->is_decoy)
+        {
+          total += match_pair.second.size();
+        }
+      }
+      return total;
+    }
+
     template <typename ParentMatchRange>
     String joinFragmentPositions_(const ParentMatchRange& matches,
                                   const bool use_start)
@@ -279,7 +294,8 @@ namespace OpenMS
         continue; // no valid q-value — skip this match
       }
       const Int coverage = getCoverage_(match.observation_ref);
-      const bool unique_mapping = (countParentMatches_(oligo.parent_matches) == 1);
+      const Int target_mapping_count = static_cast<Int>(countTargetParentMatches_(oligo.parent_matches));
+      const bool unique_mapping = (target_mapping_count == 1);
 
       for (const auto& parent_pair : oligo.parent_matches)
       {
@@ -321,7 +337,7 @@ namespace OpenMS
             row.ribonucleotide = ribo;
             row.score = score;
             row.coverage = coverage;
-            row.unique_mapping = unique_mapping ? "1" : "0";
+            row.target_mapping_count = target_mapping_count;
             row.frag_start = unique_mapping ? all_frag_starts : String(parent_match.start_pos + 1);
             row.frag_end = unique_mapping ? all_frag_ends : String(parent_match.end_pos + 1);
 
@@ -443,7 +459,7 @@ namespace OpenMS
           << "0,0,0" << '\t'
           << row.coverage << '\t'
           << frequency << '\t'
-          << row.unique_mapping << '\t'
+          << row.target_mapping_count << '\t'
           << row.frag_start << '\t'
           << row.frag_end << '\n';
     }
