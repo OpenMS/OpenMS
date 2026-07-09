@@ -262,14 +262,14 @@ namespace OpenMS
       }
 
       // Only output matches for which a q-value has been determined (i.e. FDR
-      // was run). The sentinel value -1 means "FDR not yet calculated"; skip
-      // those matches entirely rather than falling back to the raw hyperscore,
-      // which would mix apples and oranges in the score column.
+      // was run). If FDR was not run, the q-value score won't be present and
+      // we skip those matches entirely rather than falling back to the raw
+      // hyperscore, which would mix apples and oranges in the score column.
       double score = std::numeric_limits<double>::quiet_NaN();
       if (qvalue_ref != score_types.end())
       {
         auto [qval, found] = match.getScore(qvalue_ref);
-        if (found && std::isfinite(qval) && qval >= 0.0)
+        if (found && std::isfinite(qval))
         {
           score = qval;
         }

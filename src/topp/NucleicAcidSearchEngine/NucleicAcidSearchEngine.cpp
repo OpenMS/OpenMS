@@ -220,6 +220,13 @@ protected:
     registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
     registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
     setMinInt_("preprocessing:nlargest:n", 1);
+    registerFlag_("preprocessing:remove_precursor_peak", "Remove the precursor peak (and isotopic peaks) from the MS2 spectrum", false);
+    registerDoubleOption_("preprocessing:precursor_mass_tolerance", "<tolerance>", 1.5, "Tolerance for precursor peak removal (applied to both sides of the peak)", false, true);
+    setMinFloat_("preprocessing:precursor_mass_tolerance", 0.0);
+    registerStringOption_("preprocessing:precursor_mass_tolerance_unit", "<unit>", "Da", "Unit for precursor peak removal tolerance", false, true);
+    setValidStrings_("preprocessing:precursor_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    registerIntOption_("preprocessing:precursor_peak_isotopes", "<num>", 2, "Number of isotopic peaks to remove around the precursor (0 = monoisotopic only)", false, true);
+    setMinInt_("preprocessing:precursor_peak_isotopes", 0);
 
     registerTOPPSubsection_("scoring", "Scoring Options");
     registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
@@ -790,7 +797,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, bool use_nlargest, int nlargest_n)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -810,7 +817,7 @@ protected:
       Param filter_param = window_mower_filter.getParameters();
       filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
       filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
-      filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      filter_param.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
       window_mower_filter.setParameters(filter_param);
     }
 
@@ -895,6 +902,43 @@ protected:
       if (use_nlargest)
       {
         nlargest_filter.filterPeakSpectrum(spec);
+      }
+
+      // remove precursor peak if requested
+      if (remove_precursor && !spec.getPrecursors().empty())
+      {
+        double precursor_mz = spec.getPrecursors()[0].getMZ();
+        Int charge = spec.getPrecursors()[0].getCharge();
+        if (charge == 0) charge = -1;  // assume -1 if unknown
+        
+        double tolerance = precursor_mass_tolerance;
+        if (precursor_tolerance_ppm)
+        {
+          tolerance = precursor_mz * precursor_mass_tolerance * 1e-6;
+        }
+        
+        vector<Size> indices_to_remove;
+        for (Size i = 0; i < spec.size(); ++i)
+        {
+          double peak_mz = spec[i].getMZ();
+          // Check precursor and its isotopes
+          for (int iso = 0; iso <= precursor_peak_isotopes; ++iso)
+          {
+            // Isotope spacing is ~1 Da divided by absolute charge
+            double iso_mz = precursor_mz + (iso * 1.0 / abs(charge));
+            if (abs(peak_mz - iso_mz) <= tolerance)
+            {
+              indices_to_remove.push_back(i);
+              break;
+            }
+          }
+        }
+        
+        // Remove peaks in reverse order
+        for (auto it = indices_to_remove.rbegin(); it != indices_to_remove.rend(); ++it)
+        {
+          spec.erase(spec.begin() + *it);
+        }
       }
 
       // sort (nlargest changes order)
@@ -1014,10 +1058,6 @@ protected:
     IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
     IdentificationData::ScoreTypeRef score_ref =
       id_data.getScoreTypes().begin();
-    // Get q-value ref so we can initialise it to -1 per match (sentinel for
-    // "FDR not yet calculated"). BedRModFile uses >= 0 to detect real q-values.
-    IdentificationData::ScoreTypeRef qvalue_ref =
-      id_data.findScoreType("PSM-level q-value");
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1060,11 +1100,6 @@ protected:
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
-        // Initialise q-value to -1 so BedRModFile can detect "FDR not run"
-        if (qvalue_ref != id_data.getScoreTypes().end())
-        {
-          match.addScore(qvalue_ref, -1.0, id_data.getCurrentProcessingStep());
-        }
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::ObservationMatch"?
@@ -1653,12 +1688,19 @@ protected:
     int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
     bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
     int nlargest_n = getIntOption_("preprocessing:nlargest:n");
+    bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
+    double precursor_mass_tolerance = getDoubleOption_("preprocessing:precursor_mass_tolerance");
+    String precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
+    bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
+    int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
                        max_charge, include_unknown_charge,
                        use_window_mower, window_size, window_peakcount,
-                       use_nlargest, nlargest_n);
+                       use_nlargest, nlargest_n,
+                       remove_precursor, precursor_mass_tolerance,
+                       precursor_tolerance_ppm, precursor_peak_isotopes);
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
