@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
@@ -353,7 +353,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Enable AddressSanitizer
-#------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
@@ -482,10 +482,10 @@ if(UNIX)
 			# Since we rely on copying instead of "installing" for KNIME packaging
 			# we need to do it during building already.
 			# In this case, make sure that e.g. Qt is in a system path if you want to test it locally.
-			
+
 			# bakes in "@executable_path/../lib" for all targets
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-			
+
 			# makes sure that our libs are built in a way that their install names are:
 			# @rpath/libOpenMS.dylib
 			# such that when executables link to it, they can look it up via rpath above
@@ -495,18 +495,18 @@ if(UNIX)
 			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
 		endif()
   endif()
-  
+
   # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
   # We need to include all link directories that should be specified by the
   # dependency target to our RPATH as well.
   if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
-  
+
   #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
   #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
   #endif()
-  
+
   # our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
   if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
@@ -551,6 +551,11 @@ include(cmake/cmake_findExternalLibs.cmake)
 ## build all non-dot documentation targets. Provides the Doxygen::doxygen / Doxygen::dot imported
 ## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
+
+if(WITH_ONNX)
+  # 1. Tell CMake to look for the package ONLY if the switch is ON
+  find_package(ONNXRuntime REQUIRED)
+endif()
 
 
 #------------------------------------------------------------------------------
@@ -621,7 +626,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     endif()
     set(CPACK_GENERATOR "ZIP")
     # For now we use the package nsis script to ensure all dependencies
-    # are met for the portable version. 
+    # are met for the portable version.
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()

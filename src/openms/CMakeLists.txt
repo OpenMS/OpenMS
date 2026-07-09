@@ -107,6 +107,106 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   OpenMS_Percolator
   )
 
+option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
+
+if(WITH_ONNX)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+
+  # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
+  # This avoids the read-only TYPE property error completely.
+  get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+
+  if(ORT_LIB_PATH)
+      # Safely install ONNX shared libraries based on the operating system
+      if(WIN32)
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}")
+      else()
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}")
+      endif()
+  endif()
+
+  # Download PeptDeep models once to the OpenMS model directory.
+  # These ONNX files are embedded-weight models and do not require .onnx.data sidecars.
+  set(OPENMS_PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models" CACHE STRING
+      "Base URL for PeptDeep ONNX model downloads")
+  set(OPENMS_PEPTDEEP_MODEL_DIR "${PROJECT_BINARY_DIR}/share/OpenMS/models" CACHE INTERNAL
+      "Build-tree directory containing downloaded PeptDeep ONNX models")
+
+  set(OPENMS_PEPTDEEP_MODELS
+      peptdeep_ccs_dynamic.onnx
+      peptdeep_ms2_dynamic.onnx
+      peptdeep_rt_dynamic.onnx
+      CACHE INTERNAL "PeptDeep ONNX models required by OpenMS"
+  )
+
+  set(OPENMS_PEPTDEEP_MODEL_SHA256S
+      41816f325cdd838897b7e7dcaf291da5d4d3903a1532fc5dc9db7e0725015801
+      4141ea233d663b6f5b98ad80b8923ee685dae5cfdbe12243e2e30cd9c44ecf00
+      3f3b847ea37a9333ac163409f3d4b343d021471548091c61aed6cfa398ce62fd
+      CACHE INTERNAL "SHA256 checksums for PeptDeep ONNX models"
+  )
+
+  file(MAKE_DIRECTORY "${OPENMS_PEPTDEEP_MODEL_DIR}")
+
+  list(LENGTH OPENMS_PEPTDEEP_MODELS OPENMS_PEPTDEEP_MODEL_COUNT)
+  list(LENGTH OPENMS_PEPTDEEP_MODEL_SHA256S OPENMS_PEPTDEEP_HASH_COUNT)
+
+  if(NOT OPENMS_PEPTDEEP_MODEL_COUNT EQUAL OPENMS_PEPTDEEP_HASH_COUNT)
+    message(FATAL_ERROR
+      "OPENMS_PEPTDEEP_MODELS and OPENMS_PEPTDEEP_MODEL_SHA256S must have the same length")
+  endif()
+
+  math(EXPR OPENMS_PEPTDEEP_LAST_MODEL_INDEX "${OPENMS_PEPTDEEP_MODEL_COUNT} - 1")
+
+  set(OPENMS_PEPTDEEP_MODEL_FILES)
+  foreach(MODEL_INDEX RANGE 0 ${OPENMS_PEPTDEEP_LAST_MODEL_INDEX})
+    list(GET OPENMS_PEPTDEEP_MODELS ${MODEL_INDEX} MODEL)
+    list(GET OPENMS_PEPTDEEP_MODEL_SHA256S ${MODEL_INDEX} EXPECTED_SHA256)
+
+    set(MODEL_PATH "${OPENMS_PEPTDEEP_MODEL_DIR}/${MODEL}")
+    list(APPEND OPENMS_PEPTDEEP_MODEL_FILES "${MODEL_PATH}")
+
+    set(MODEL_IS_VALID FALSE)
+
+    if(EXISTS "${MODEL_PATH}")
+      file(SHA256 "${MODEL_PATH}" ACTUAL_SHA256)
+
+      if(ACTUAL_SHA256 STREQUAL EXPECTED_SHA256)
+        set(MODEL_IS_VALID TRUE)
+      else()
+        message(WARNING
+          "Existing PeptDeep model ${MODEL} has SHA256 checksum ${ACTUAL_SHA256}, "
+          "expected ${EXPECTED_SHA256}; re-downloading.")
+        file(REMOVE "${MODEL_PATH}")
+      endif()
+    endif()
+
+    if(NOT MODEL_IS_VALID)
+      message(STATUS "Fetching PeptDeep model: ${MODEL} from archive...")
+      file(
+        DOWNLOAD "${OPENMS_PEPTDEEP_MODEL_URL}/${MODEL}" "${MODEL_PATH}"
+        STATUS DOWNLOAD_STATUS
+        SHOW_PROGRESS
+        EXPECTED_HASH "SHA256=${EXPECTED_SHA256}"
+      )
+
+      list(GET DOWNLOAD_STATUS 0 DOWNLOAD_CODE)
+      list(GET DOWNLOAD_STATUS 1 DOWNLOAD_MESSAGE)
+
+      if(NOT DOWNLOAD_CODE EQUAL 0)
+        file(REMOVE "${MODEL_PATH}")
+        message(FATAL_ERROR
+          "Failed to download PeptDeep model ${MODEL}: ${DOWNLOAD_MESSAGE}")
+      endif()
+    endif()
+  endforeach()
+
+  # Ensure models are packaged during 'make install'.
+  install(FILES ${OPENMS_PEPTDEEP_MODEL_FILES}
+          DESTINATION "share/OpenMS/models")
+
+endif()
+
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
 list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_ARROW_TARGET}
@@ -246,6 +346,16 @@ install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
-#------------------------------------------------------------------------------
-# register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
+# Add the ONNX source files conditionally
+if(WITH_ONNX)
+  target_sources(OpenMS PRIVATE
+    source/ML/ONNX/ONNXEnvironment.cpp
+    source/ML/ONNX/ONNXPredictorBase.cpp
+    source/ML/PEPTDEEP/PeptDeepCCSInference.cpp
+    source/ML/PEPTDEEP/PeptDeepInput.cpp
+    source/ML/PEPTDEEP/PeptDeepRTInference.cpp
+    source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
+  )
+endif()

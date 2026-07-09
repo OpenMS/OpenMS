@@ -84,6 +84,10 @@ set(datastructures_executables_list
   #ToolDescription_test
 )
 
+if(WITH_ONNX)
+  list(APPEND datastructures_executables_list PeptDeepInference_test)
+endif()
+
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
@@ -668,7 +672,7 @@ set(transformations_executables_list
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
-  ExtendedIsotopeModel_test  
+  ExtendedIsotopeModel_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderIdentificationAlgorithm_test

@@ -463,6 +463,7 @@ OpenMS Library:
     - IMPeakType enum (IM_PROFILE, IM_CENTROIDED, UNKNOWN) added to SpectrumSettings to track per-peak ion mobility processing state independently of data layout (IMFormat); IMFormat::CENTROIDED deprecated (#9007)
     - IsoelectricPoint: new CHEMISTRY class for computing the isoelectric point (pI) and net charge of peptides via the Henderson-Hasselbalch equation; supports four pKa scales (ProteomicsPkaScale enum: LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); pI found by bisection in pH range [0, 14]; pyOpenMS bindings included (#9419)
     - FileInfo: new FORMAT/ class providing programmatic file inspection equivalent to the FileInfo TOPP tool but callable from C++ library code and pyOpenMS; FileInfo().runAll(filename) returns a structured result with file type, feature/spectrum counts, m/z ranges, and other metadata; FileInfo::toText(result) reproduces the CLI text output; pyOpenMS bindings included (#9602)
+    - ONNXRuntime and PeptDeep integration: new ONNXRuntime class for loading and running ONNX models; new PeptDeep class for peptide property prediction using pre-trained ONNX models (retention time, collisional cross section, MS2 spectra); includes a vendored copy of the ONNXRuntime C++ API and a pre-trained PeptDeep model bundle (#9453)
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
