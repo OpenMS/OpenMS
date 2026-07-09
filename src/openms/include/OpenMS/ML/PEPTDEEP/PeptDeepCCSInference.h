@@ -22,7 +22,9 @@ namespace OpenMS
   public:
     /// @brief Constructor initializes the ONNX session with the specified model graph.
     /// @param model_path Absolute or relative path to the PeptDeep CCS ONNX model file.
-    explicit PeptDeepCCSInference(const std::string& model_path);
+    /// @param intra_op_threads Number of ONNX execution threads (default 4).
+    /// @param batch_size Maximum number of peptides to process in a single ONNX run (default 500).
+    explicit PeptDeepCCSInference(const std::string& model_path, int intra_op_threads = 4, size_t batch_size = 500);
 
     /// @brief Destructor
     ~PeptDeepCCSInference();
@@ -37,5 +39,6 @@ namespace OpenMS
 
   private:
     ONNXPredictorBase model_;
+    size_t batch_size_;
   };
 } // namespace OpenMS

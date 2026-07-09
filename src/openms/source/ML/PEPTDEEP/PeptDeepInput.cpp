@@ -45,15 +45,7 @@ namespace OpenMS
       }
 
       const size_t sequence_length = config.fixed_sequence_length == 0 ? longest_encoded : config.fixed_sequence_length;
-      if (sequence_length > PEPTDEEP_MAX_SEQUENCE_LENGTH)
-      {
-        throw Exception::InvalidValue(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Encoded peptide sequence exceeds the maximum allowed PeptDeep input length.",
-          std::to_string(sequence_length));
-      }
+
       if (longest_encoded > sequence_length)
       {
         throw Exception::InvalidValue(

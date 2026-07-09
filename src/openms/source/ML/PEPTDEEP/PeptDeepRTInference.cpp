@@ -9,15 +9,17 @@
 #include <OpenMS/ML/PEPTDEEP/PeptDeepRTInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <onnxruntime_cxx_api.h>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <algorithm>
 
 namespace OpenMS
 {
-    PeptDeepRTInference::PeptDeepRTInference(const std::string& model_path)
-        : model_(model_path)
+    PeptDeepRTInference::PeptDeepRTInference(const std::string& model_path, int intra_op_threads, size_t batch_size)
+        : model_(model_path, intra_op_threads), batch_size_(batch_size)
     {}
 
     PeptDeepRTInference::~PeptDeepRTInference() = default;
@@ -29,12 +31,15 @@ namespace OpenMS
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide batch cannot be empty.");
         }
 
+        // 1. Grouping by Sequence Length
         ML::PeptDeepInputConfig input_config;
         const std::vector<int64_t> input_shape = model_.getInputShape(0);
+
         if (input_shape.size() >= 2 && input_shape[1] > 0)
         {
             input_config.fixed_sequence_length = static_cast<size_t>(input_shape[1]);
         }
+        // Fully unconstrained dynamic length mode optimized for updated ONNX models.
 
         std::vector<std::vector<size_t>> groups;
         if (input_config.fixed_sequence_length > 0)
@@ -61,67 +66,77 @@ namespace OpenMS
 
         std::vector<float> predictions(peptides.size(), 0.0f);
 
+        std::vector<std::string> input_names = model_.getInputNames();
+        std::vector<const char*> input_names_chars;
+        input_names_chars.reserve(input_names.size());
+        for (const std::string& name : input_names)
+        {
+            input_names_chars.push_back(name.c_str());
+        }
+
+        Ort::AllocatorWithDefaultOptions ort_alloc;
+        Ort::AllocatedStringPtr out_name = model_.session().GetOutputNameAllocated(0, ort_alloc);
+        const char* output_names[] = { out_name.get() };
+
         for (const std::vector<size_t>& group_indices : groups)
         {
-            std::vector<std::string> group_peptides;
-            group_peptides.reserve(group_indices.size());
-            for (size_t idx : group_indices)
+            for (size_t chunk_start = 0; chunk_start < group_indices.size(); chunk_start += batch_size_)
             {
-                group_peptides.push_back(peptides[idx]);
-            }
+                size_t current_chunk_size = std::min(batch_size_, group_indices.size() - chunk_start);
 
-            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch(group_peptides, input_config);
-            std::vector<int64_t> seq_shape = {
-                static_cast<int64_t>(batch.batch_size),
-                static_cast<int64_t>(batch.sequence_length)
-            };
+                std::vector<std::string> chunk_peptides;
+                chunk_peptides.reserve(current_chunk_size);
+                for (size_t j = 0; j < current_chunk_size; ++j)
+                {
+                    chunk_peptides.push_back(peptides[group_indices[chunk_start + j]]);
+                }
 
-            Ort::TypeInfo mod_type_info = model_.session().GetInputTypeInfo(1);
-            auto mod_tensor_info = mod_type_info.GetTensorTypeAndShapeInfo();
-            std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
+                ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch(chunk_peptides, input_config);
+                const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
+                const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
 
-            if (mod_shape.size() < 2) {
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "PeptDeep RT model input 'mod_x' must have at least 2 dimensions.",
-                    std::to_string(mod_shape.size()));
-            }
+                std::vector<Ort::Value> input_tensors;
+                input_tensors.reserve(input_names.size());
 
-            mod_shape[0] = static_cast<int64_t>(batch.batch_size);
-            mod_shape[1] = static_cast<int64_t>(batch.sequence_length);
+                for (size_t i = 0; i < input_names.size(); ++i)
+                {
+                    const std::string& name = input_names[i];
+                    Ort::TypeInfo type_info = model_.session().GetInputTypeInfo(i);
+                    auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+                    std::vector<int64_t> expected_shape = tensor_info.GetShape();
+                    if (!expected_shape.empty())
+                    {
+                        expected_shape[0] = batch_size_cast;
+                    }
 
-            std::vector<Ort::Value> input_tensors;
+                    if (name == "aa_indices" || name == "input_sequences")
+                    {
+                        expected_shape = {batch_size_cast, sequence_length};
+                        input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
+                            model_.memoryInfo(), batch.aa_indices.data(), batch.aa_indices.size(), expected_shape.data(), expected_shape.size()));
+                    }
+                    else if (name == "mod_x")
+                    {
+                        expected_shape = {batch_size_cast, sequence_length, ML::PEPTDEEP_MOD_ELEMENTS};
+                        input_tensors.push_back(Ort::Value::CreateTensor<float>(
+                            model_.memoryInfo(), batch.mod_x.data(), batch.mod_x.size(), expected_shape.data(), expected_shape.size()));
+                    }
+                    else
+                    {
+                        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ONNX input: " + name);
+                    }
+                }
 
-            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
-                model_.memoryInfo(), batch.aa_indices.data(), batch.aa_indices.size(), seq_shape.data(), seq_shape.size()
-            ));
+                auto output_tensors = model_.session().Run(
+                    Ort::RunOptions{nullptr}, input_names_chars.data(), input_tensors.data(), input_tensors.size(), output_names, 1
+                );
 
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(
-                model_.memoryInfo(), batch.mod_x.data(), batch.mod_x.size(), mod_shape.data(), mod_shape.size()
-            ));
+                float* floatarr = output_tensors.front().GetTensorMutableData<float>();
 
-            Ort::AllocatorWithDefaultOptions ort_alloc;
-            Ort::AllocatedStringPtr seq_name_ptr = model_.session().GetInputNameAllocated(0, ort_alloc);
-            Ort::AllocatedStringPtr mod_name_ptr = model_.session().GetInputNameAllocated(1, ort_alloc);
-            Ort::AllocatedStringPtr output_name_ptr = model_.session().GetOutputNameAllocated(0, ort_alloc);
-
-            const char* input_names[] = { seq_name_ptr.get(), mod_name_ptr.get() };
-            const char* output_names[] = { output_name_ptr.get() };
-
-            auto output_tensors = model_.session().Run(
-                Ort::RunOptions{nullptr}, input_names, input_tensors.data(), 2, output_names, 1
-            );
-
-            size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
-            if (output_count < batch.batch_size) {
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "ONNX model output shape mismatch.",
-                    std::to_string(output_count));
-            }
-
-            float* floatarr = output_tensors.front().GetTensorMutableData<float>();
-            for (size_t i = 0; i < group_indices.size(); ++i)
-            {
-                predictions[group_indices[i]] = floatarr[i];
+                for (size_t j = 0; j < current_chunk_size; ++j)
+                {
+                    predictions[group_indices[chunk_start + j]] = floatarr[j];
+                }
             }
         }
 

@@ -29,7 +29,8 @@ namespace OpenMS
     public:
         /// @brief Constructor initializes the generic ONNX session safely across platforms.
         /// @param model_path Path to the ONNX model file.
-        ONNXPredictorBase(const std::string& model_path);
+        /// @param intra_op_threads Number of ONNX execution threads (default 4 based on profiling).
+        explicit ONNXPredictorBase(const std::string& model_path, int intra_op_threads = 4);
 
         virtual ~ONNXPredictorBase();
 

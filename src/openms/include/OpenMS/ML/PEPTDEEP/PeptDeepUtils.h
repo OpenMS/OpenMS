@@ -16,7 +16,6 @@ namespace OpenMS {
   namespace ML {
 
     // --- Shared PeptDeep Architecture Constants ---
-    constexpr size_t PEPTDEEP_MAX_SEQUENCE_LENGTH = 132;
     constexpr int64_t PEPTDEEP_MOD_ELEMENTS = 109;
     const std::string PEPTDEEP_VALID_AAS = "ACDEFGHIKLMNPQRSTVWY";
 
@@ -44,9 +43,6 @@ namespace OpenMS {
     inline void validatePeptide(const std::string& peptide) {
         if (peptide.empty()) {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence cannot be empty.");
-        }
-        if (peptide.length() > PEPTDEEP_MAX_SEQUENCE_LENGTH) {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence exceeds the maximum allowed length.", std::to_string(peptide.length()));
         }
         if (peptide.find_first_of("[]()") != std::string::npos) {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modified peptides are not currently supported in this engine.");

@@ -18,12 +18,13 @@
 
 namespace OpenMS
 {
-    ONNXPredictorBase::ONNXPredictorBase(const std::string& model_path)
+    ONNXPredictorBase::ONNXPredictorBase(const std::string& model_path, int intra_op_threads)
     {
         try {
             session_options_ = std::make_unique<Ort::SessionOptions>();
 
-            // Removed thread limit (per PR review) to allow ONNX default parallelization
+            // Apply optimized thread count parameter
+            session_options_->SetIntraOpNumThreads(intra_op_threads);
             session_options_->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
             memory_info_ = std::make_unique<Ort::MemoryInfo>(
