@@ -495,6 +495,7 @@ The elements are initialized with data from IUPAC tables.
         .def("getNumberOfAtoms", [](const OpenMS::EmpiricalFormula& self) { return self.getNumberOfAtoms(); }, "Returns the total number of atoms")
         .def("getCharge", [](const OpenMS::EmpiricalFormula& self) { return self.getCharge(); }, "Returns the total charge")
         .def("setCharge", [](OpenMS::EmpiricalFormula& self, int charge) { return self.setCharge(charge); }, "charge"_a, "Sets the charge")
+        .def("addChargeAdduct", [](OpenMS::EmpiricalFormula& self, int count, const std::string& adduct) -> OpenMS::EmpiricalFormula& { return self.addChargeAdduct(count, adduct); }, "count"_a = 1, "adduct"_a = "H", nb::rv_policy::reference_internal, "Makes ionization explicit: adds 'count' copies of 'adduct' (default: a hydrogen atom) to the formula and resets the charge to zero. Recommended, explicit replacement for the deprecated implicit charge handling of the isotope pattern generators")
         .def("toString", [](const OpenMS::EmpiricalFormula& self) { return self.toString(); }, "Returns the formula as a string (charges are not included)")
         .def("getElementalComposition", [](const OpenMS::EmpiricalFormula& self) { return self.toMap(); }, "Get elemental composition as a hash {'Symbol' -> NrAtoms}")
         .def(nb::self + nb::self)

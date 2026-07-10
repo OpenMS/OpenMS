@@ -15,6 +15,7 @@
 
 namespace OpenMS
 {
+    /// @brief Inference engine for PeptDeep retention time prediction.
     class OPENMS_DLLAPI PeptDeepRTInference
     {
     public:
