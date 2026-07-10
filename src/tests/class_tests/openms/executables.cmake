@@ -151,6 +151,7 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  UpdateCheck_test
 )
 
 set(kernel_executables_list
