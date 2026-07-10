@@ -868,7 +868,7 @@ namespace OpenMS
             }
             else
             {
-              status += (std::string)dv;
+              status += dv.toString();
             }
           }
         }
