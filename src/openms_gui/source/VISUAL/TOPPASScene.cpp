@@ -82,6 +82,10 @@ namespace OpenMS
 
   TOPPASScene::~TOPPASScene()
   {
+    // Do not propagate scene changes while tearing down: setChanged() below would emit
+    // mainWindowNeedsUpdate(), whose receiver (the main window) may already be partially
+    // destroyed during application shutdown. This mirrors the per-item blockSignals() below.
+    blockSignals(true);
     // Delete all items in a controlled way:
     for (TOPPASVertex* vertex : vertices_)
     {
