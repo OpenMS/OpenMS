@@ -78,7 +78,7 @@ namespace OpenMS
     m_file->addAction(pref);
     connect(pref, &QAction::triggered, parent, &TOPPViewBase::preferencesDialog);
       
-    m_file->addAction("&Quit", qApp, SLOT(quit()));
+    m_file->addAction("&Quit", qApp, &QApplication::quit);
 
     // Tools menu
     QMenu* m_tools = new QMenu("&Tools", parent);

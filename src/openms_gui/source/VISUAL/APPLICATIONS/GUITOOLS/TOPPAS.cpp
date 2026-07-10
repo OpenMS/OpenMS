@@ -119,7 +119,7 @@ int main(int argc, const char** argv)
   {
 
     QApplicationTOPP a(argc, const_cast<char**>(argv));
-    a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
+    a.connect(&a, &QApplication::lastWindowClosed, &a, &QApplication::quit);
 
     // Qt has now consumed (and removed from argc/argv) the command line arguments it recognizes,
     // e.g. '-style', '-stylesheet', '-platform', ... (see https://doc.qt.io/qt-5/qapplication.html#QApplication).
