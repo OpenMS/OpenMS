@@ -120,8 +120,8 @@ START_SECTION((bool isCompatible(const EmpiricalFormula& db_entry) const))
   // n-mer: the adduct removes atoms from the whole cluster, not a single monomer.
   // [2M-2H] needs 2 H total, which a molecule with a single H provides as a dimer.
   AdductInfo dimer_2h = AdductInfo::parseAdductString("2M-2H;1-");
-  TEST_EQUAL(dimer_2h.isCompatible(EmpiricalFormula("CH")), true)  // 2*1 H = 2 available
-  TEST_EQUAL(dimer_2h.isCompatible(EmpiricalFormula("C")), false)  // no H at all
+  TEST_TRUE(dimer_2h.isCompatible(EmpiricalFormula("CH")))  // 2*1 H = 2 available
+  TEST_FALSE(dimer_2h.isCompatible(EmpiricalFormula("C")))  // no H at all
 }
 END_SECTION
 

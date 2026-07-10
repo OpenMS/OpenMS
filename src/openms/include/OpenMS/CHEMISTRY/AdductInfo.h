@@ -170,6 +170,11 @@ namespace OpenMS
       those atoms. This method returns true when every element subtracted
       by the adduct is present in sufficient quantity in @p db_entry.
 
+      For n-mer adducts (@c mol_multiplier > 1) the removal is checked
+      against the whole cluster, i.e. @c mol_multiplier * db_entry, since
+      the atoms are drawn from all clustered copies (e.g. [2M-2H]- only
+      needs one hydrogen per monomer).
+
       Plus-only adducts (no atoms subtracted) are trivially compatible
       with any compound and always return true.
 
