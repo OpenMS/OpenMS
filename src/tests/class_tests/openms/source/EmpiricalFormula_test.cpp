@@ -246,41 +246,6 @@ START_SECTION(bool isCharged() const)
   TEST_EQUAL(e_ptr->isCharged(), false)
 END_SECTION
 
-START_SECTION(EmpiricalFormula& addChargeAdduct(Int count, const std::string& adduct))
-  // adds 'count' adduct atoms and resets the charge to 0
-  EmpiricalFormula ef("C6H12O6");
-  EmpiricalFormula& ret = ef.addChargeAdduct(2);
-  TEST_EQUAL(&ret, &ef) // returns *this for chaining
-  TEST_EQUAL(ef.getCharge(), 0)
-  TEST_EQUAL(ef.getNumberOf(db->getElement("H")), 14) // 12 + 2 H added
-  TEST_EQUAL(ef, EmpiricalFormula("C6H14O6"))
-
-  // the mono weight after addChargeAdduct(q) matches a neutral formula with q extra H atoms,
-  // i.e. the composition the isotope generators used to build implicitly for a charge of q
-  EmpiricalFormula neutral("C6H12O6");
-  EmpiricalFormula explicitly_charged = neutral;
-  explicitly_charged.addChargeAdduct(2);
-  TEST_REAL_SIMILAR(explicitly_charged.getMonoWeight(), EmpiricalFormula("C6H14O6").getMonoWeight())
-
-  // non-default adduct and negative count (removing adducts)
-  EmpiricalFormula na("C6H12O6");
-  na.addChargeAdduct(1, "Na");
-  TEST_EQUAL(na.getNumberOf(db->getElement("Na")), 1)
-  TEST_EQUAL(na.getCharge(), 0)
-
-  EmpiricalFormula deprot("C6H12O6");
-  deprot.addChargeAdduct(-1); // remove one H (e.g. modeling a [M-H] type composition)
-  TEST_EQUAL(deprot.getNumberOf(db->getElement("H")), 11)
-
-  // migrating an already-charged formula: the charge is unconditionally reset to 0, so 'count'
-  // must be passed explicitly (typically getCharge()) to obtain a consistent neutral composition
-  EmpiricalFormula charged("C6H12O6");
-  charged.setCharge(2);
-  charged.addChargeAdduct(charged.getCharge()); // pass the existing charge explicitly
-  TEST_EQUAL(charged.getCharge(), 0)
-  TEST_EQUAL(charged.getNumberOf(db->getElement("H")), 14)
-END_SECTION
-
 START_SECTION(double getAverageWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");

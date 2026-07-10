@@ -133,10 +133,10 @@ namespace OpenMS
      *
      * @deprecated Implicit charge handling: if the EmpiricalFormula has a charge 'q' != 0, then 'q'
      * hydrogen atoms are currently added to the formula to match the result of
-     * EmpiricalFormula::getMonoWeight(). This is deprecated and will change in OpenMS 4.0, where the
-     * charge will be ignored and the neutral pattern returned (a one-time warning is logged when a
-     * non-zero charge is passed). Set `ef.charge = 0` to get the neutral pattern, or make the adduct
-     * explicit via EmpiricalFormula::addChargeAdduct(q) to keep the shifted pattern across the change.
+     * EmpiricalFormula::getMonoWeight(), yielding a shifted mass pattern (not m/z). This is deprecated
+     * and will change in OpenMS 4.0, where run() will reject charged formulas (a one-time warning is
+     * logged meanwhile). Use runNeutral(ef) for a neutral-mass pattern, or runIon(ef, adduct) for an
+     * m/z pattern with explicit ionization.
      *  
      * @note The constructed isotope distribution is sorted by m/z which slows
      * down processing, consider using IsoSpec (IsoSpecWrapper /

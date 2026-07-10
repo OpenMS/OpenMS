@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AdductInfo.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -78,7 +79,41 @@ namespace OpenMS
 
   bool AdductInfo::isCompatible(const EmpiricalFormula& db_entry) const
   {
-    return db_entry.contains(ef_ * -1);
+    // the ion is formed from mol_multiplier copies of the molecule, so any atoms
+    // the adduct removes must be present in that n-mer (not just a single monomer)
+    return (db_entry * (SignedSize)mol_multiplier_).contains(ef_ * -1);
+  }
+
+  EmpiricalFormula AdductInfo::getIonComposition(const EmpiricalFormula& neutral_formula) const
+  {
+    if (neutral_formula.getCharge() != 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The molecular formula must be neutral (getCharge() == 0); the ion charge is tracked by the adduct. Offending formula: '" + neutral_formula.toString() + "'.");
+    }
+    for (const auto& element_count : neutral_formula)
+    {
+      if (element_count.second < 0)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The molecular formula must not contain negative element counts. Offending formula: '" + neutral_formula.toString() + "'.");
+      }
+    }
+
+    // nM + adduct delta (ef_ may contain negative counts, e.g. -H for [M-H]-)
+    EmpiricalFormula ion = neutral_formula * (SignedSize)mol_multiplier_ + ef_;
+
+    // reject compositions where the adduct removes more atoms than are present
+    for (const auto& element_count : ion)
+    {
+      if (element_count.second < 0)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Adduct '" + name_ + "' removes atoms not present in molecule '" + neutral_formula.toString() +
+          "' (resolved ion has a negative count for element '" + element_count.first->getSymbol() + "').");
+      }
+    }
+    return ion;
   }
 
   int AdductInfo::getCharge() const
