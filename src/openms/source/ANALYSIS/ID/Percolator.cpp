@@ -1010,9 +1010,9 @@ void Percolator::fillPINCompatibleFields(
         scan_identifier, scan_regex, /*no_error=*/true);
 
     const std::string file_key =
-      static_cast<std::string>(pid.getMetaValue("file_origin", std::string())) +
+      pid.getMetaValue("file_origin", std::string()).toString() +
       "|" +
-      static_cast<std::string>(pid.getMetaValue("id_merge_index", std::string()));
+      pid.getMetaValue("id_merge_index", std::string()).toString();
 
     int spec_file = 0;
     auto it = spec_file_to_idx.find(file_key);
