@@ -90,6 +90,40 @@ START_SECTION(std::filesystem::path to_path(const std::string& s))
   TEST_FALSE(p_ansi.empty())
   // Verify the wide representation contains 'ä' (U+00E4)
   TEST_TRUE(p_ansi.wstring().find(L'\xE4') != std::wstring::npos)
+
+  // UNC network-share path (\\server\share\file.mzML): pure-ASCII, valid UTF-8, must construct without
+  // throwing; the server/share components and backslash separators survive into the wide representation.
+  bool unc_threw = false;
+  std::filesystem::path p_unc;
+  try
+  {
+    p_unc = to_path("\\\\server\\share\\data.mzML");
+  }
+  catch (...)
+  {
+    unc_threw = true;
+  }
+  TEST_FALSE(unc_threw)
+  TEST_FALSE(p_unc.empty())
+  TEST_TRUE(p_unc.wstring().find(L"server") != std::wstring::npos)
+  TEST_TRUE(p_unc.wstring().find(L"share") != std::wstring::npos)
+
+  // UNC path carrying an ANSI-code-page (Windows-1252) filename byte 0xE4: the lone 0xE4 is not valid
+  // UTF-8, so to_path() must take the ANSI fallback (no throw) and still decode 'ä' (U+00E4).
+  bool unc_ansi_threw = false;
+  std::filesystem::path p_unc_ansi;
+  const std::string unc_ansi = std::string("\\\\server\\share\\") + '\xE4' + ".mzML";
+  try
+  {
+    p_unc_ansi = to_path(unc_ansi);
+  }
+  catch (...)
+  {
+    unc_ansi_threw = true;
+  }
+  TEST_FALSE(unc_ansi_threw)
+  TEST_FALSE(p_unc_ansi.empty())
+  TEST_TRUE(p_unc_ansi.wstring().find(L'\xE4') != std::wstring::npos)
 #endif
 }
 END_SECTION
