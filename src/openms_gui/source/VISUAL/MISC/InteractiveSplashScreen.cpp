@@ -62,6 +62,7 @@ namespace OpenMS
       QTimer::singleShot(remaining_ms, [&]() { impl_->dismiss(); });
       // ... or earlier, when the user dismisses the splash (see Impl::dismiss()).
       loop.exec();
+      impl_->loop = nullptr; // 'loop' is about to be destroyed; clear the pointer so a late dismiss() never dereferences it
     }
     close();
   }
