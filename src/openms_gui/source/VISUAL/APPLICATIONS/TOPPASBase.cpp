@@ -449,18 +449,15 @@ namespace OpenMS
         connect(tv, &TOPPASToolVertex::toolFinished, this, &TOPPASBase::toolFinished);
         connect(tv, &TOPPASToolVertex::toolCrashed, this, &TOPPASBase::toolCrashed);
         connect(tv, &TOPPASToolVertex::toolFailed, this, &TOPPASBase::toolFailed);
-        connect(tv, &TOPPASToolVertex::toolFailed, this, [this](int /*return_code*/, const QString& message) { updateTOPPOutputLog(message); });
-        // already done in ToppasScene:
+        // Note: failure logging is already routed by the scene (load()/include() call
+        // connectToolVertexSignals): toolFailed -> pipelineErrorSlot -> messageReady -> updateTOPPOutputLog.
         //connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
         continue;
       }
 
-      TOPPASMergerVertex* tmv = dynamic_cast<TOPPASMergerVertex*>(*it);
-      if (tmv)
-      {
-        connect(tmv, &TOPPASMergerVertex::mergeFailed, this, &TOPPASBase::updateTOPPOutputLog);
-        continue;
-      }
+      // Mergers/collectors are wired by the scene (connectMergerVertexSignals) during load()/include();
+      // their mergeFailed is forwarded to pipelineErrorSlot -> messageReady -> updateTOPPOutputLog. No direct
+      // connection here, which would duplicate the log message.
 
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(*it);
       if (oflv)
@@ -1087,12 +1084,14 @@ namespace OpenMS
     else if (tool_name == "<Merger>")
     {
       tv = new TOPPASMergerVertex(true);
-      connect(static_cast<TOPPASMergerVertex*>(tv), &TOPPASMergerVertex::mergeFailed, this, &TOPPASBase::updateTOPPOutputLog);
+      // route mergeFailed through the scene (-> pipelineErrorSlot: aborts the pipeline and logs),
+      // consistent with tool/output vertices; a direct log-only connection would not abort the run
+      scene->connectMergerVertexSignals(static_cast<TOPPASMergerVertex*>(tv));
     }
     else if (tool_name == "<Collector>")
     {
       tv = new TOPPASMergerVertex(false);
-      connect(static_cast<TOPPASMergerVertex*>(tv), &TOPPASMergerVertex::mergeFailed, this, &TOPPASBase::updateTOPPOutputLog);
+      scene->connectMergerVertexSignals(static_cast<TOPPASMergerVertex*>(tv));
     }
     else if (tool_name == "<Splitter>")
     {
