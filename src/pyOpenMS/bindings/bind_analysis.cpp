@@ -2423,8 +2423,24 @@ These metrics are combined over the previous and the next MS1 spectrum
         .def(nb::init<const OpenMS::PrecursorPurity &>())
         .def("__copy__", [](const OpenMS::PrecursorPurity& self) { return OpenMS::PrecursorPurity(self); })
         .def("__deepcopy__", [](const OpenMS::PrecursorPurity& self, nb::dict) { return OpenMS::PrecursorPurity(self); }, "memo"_a)
-        .def_static("computePrecursorPurity", [](const OpenMS::MSSpectrum& ms1, const OpenMS::Precursor& pre, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) { return OpenMS::PrecursorPurity::computePrecursorPurity(ms1, pre, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm); }, "ms1"_a, "pre"_a, "precursor_mass_tolerance"_a, "precursor_mass_tolerance_unit_ppm"_a, 
+        .def_static("computePrecursorPurity", [](const OpenMS::MSSpectrum& ms1, const OpenMS::Precursor& pre, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) { return OpenMS::PrecursorPurity::computePrecursorPurity(ms1, pre, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm); }, "ms1"_a, "pre"_a, "precursor_mass_tolerance"_a, "precursor_mass_tolerance_unit_ppm"_a,
             R"doc(
+)doc")
+        .def_static("countSPSPrecursorsMatchingPeptideFragments", [](const std::vector<OpenMS::Precursor>& sps_precursors, const OpenMS::AASequence& peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, int max_fragment_charge) { return OpenMS::PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(sps_precursors, peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, max_fragment_charge); }, "sps_precursors"_a, "peptide"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "max_fragment_charge"_a = 1,
+            R"doc(
+Counts how many SPS precursor windows of an MS3 spectrum contain a fragment ion of the identified peptide
+
+In an SPS-MS3 (Synchronous Precursor Selection) experiment, several fragment ions of the MS2 spectrum are
+co-isolated and fragmented together to produce the MS3 (reporter) scan. This function counts how many of these
+selected precursor windows (the Precursor objects of the MS3 spectrum) correspond to a theoretical b- or y-ion
+of the identified peptide, i.e. how many of the SPS ions originate from true fragments of the peptide
+
+:param sps_precursors: The list of Precursor objects (SPS windows) of the MS3 spectrum
+:param peptide: The identified peptide sequence used to generate theoretical b/y fragment ions
+:param fragment_mass_tolerance: The tolerance for matching a precursor m/z to a theoretical fragment m/z
+:param fragment_mass_tolerance_unit_ppm: The unit of the fragment mass tolerance (true = ppm, false = Da)
+:param max_fragment_charge: The maximum fragment ion charge state to consider (values < 1 are treated as 1)
+:returns: the number of SPS precursor windows matching a theoretical b/y fragment ion of the peptide
 )doc")
         ;
 
