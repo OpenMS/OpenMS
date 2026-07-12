@@ -58,6 +58,11 @@ public slots:
     ///Saves the changes made in the GUI to the object.
     virtual void store() = 0;
 
+protected slots:
+
+    /// Reverts the changes made in the GUI back to the object's data (implemented by each visualizer).
+    virtual void undo_() = 0;
+
 protected:
 
     /// Adds a label to the grid layout.
