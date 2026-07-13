@@ -883,13 +883,16 @@ namespace OpenMS::Internal
     {
       SqliteConnector conn(filename_);
 
-      // prepare streams and set required precision (default is 6 digits)
+      // Build a parameterized INSERT so the loaded file path cannot break or
+      // inject SQL. run_id_ is a trusted UInt64 we generate ourselves and stays
+      // inline; the (potentially attacker-influenceable) file path is bound via
+      // a placeholder instead of being concatenated into the statement.
       std::stringstream insert_run_sql;
-      const std::string& native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
-      insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
-            run_id_ << ",'" << native_id << "','" << native_id << "'); ";
+      const std::string& native_id = exp.getLoadedFilePath();
+      insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" << run_id_ << ", ?, ?); ";
+      std::vector<std::string> data {native_id, native_id};
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_run_sql.str());
+      conn.executeBindStatement(insert_run_sql.str(), data);
       conn.executeStatement("END TRANSACTION");
 
       if (write_full_meta)
