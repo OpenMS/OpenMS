@@ -16,6 +16,13 @@
 
 namespace OpenMS
 {
+  namespace Internal
+  {
+    /// Grants the non-installed SqliteConnector_impl.h access to the native handle
+    /// without exposing any SQLite type in this installed header (see below).
+    struct SqliteConnectorFriend;
+  }
+
   /**
     @brief File adapter for Sqlite files
 
@@ -54,25 +61,6 @@ namespace OpenMS
 
     /// Destructor
     ~SqliteConnector();
-
-    /// @cond INTERNAL
-    /**
-      @brief Returns the raw native SQLite handle as an opaque pointer.
-
-      The returned pointer is really an @c sqlite3*; it is exposed here as a
-      @c void* so that this installed header stays free of any SQLite type.
-      To obtain the typed handle, include the non-installed
-      <OpenMS/FORMAT/SqliteConnector_impl.h> and call
-      @c Internal::SqliteHelper::getNativeHandle(*this).
-
-      @note The handle is tied to the lifetime of the SqliteConnector object;
-      do not use it after the object has gone out of scope!
-    */
-    void* nativeHandle() const
-    {
-      return db_;
-    }
-    /// @endcond
 
     /**
       @brief Checks whether the given table exists
@@ -138,8 +126,12 @@ namespace OpenMS
     */
     void openDatabase_(const std::string& filename, const SqlOpenMode mode);
 
-    void* db_ = nullptr; ///< opaque native SQLite handle (really an sqlite3*); see nativeHandle()
+    /// Opaque native SQLite handle (really an sqlite3*), stored as void* so that this
+    /// installed header names no SQLite type. The raw handle is only reachable from the
+    /// non-installed SqliteConnector_impl.h via Internal::SqliteConnectorFriend.
+    void* db_ = nullptr;
 
+    friend struct Internal::SqliteConnectorFriend;
   };
 
 } // namespace OpenMS

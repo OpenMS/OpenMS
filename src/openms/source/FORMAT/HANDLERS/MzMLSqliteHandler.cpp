@@ -280,7 +280,6 @@ namespace OpenMS::Internal
     void MzMLSqliteHandler::readExperiment(MSExperiment& exp, bool meta_only) const
     {
       SqliteConnector conn(filename_);
-      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
 
       Size nr_results = 0;
       if (write_full_meta_)
@@ -345,8 +344,8 @@ namespace OpenMS::Internal
         // data (provides option to return meta-data only)
         std::vector<MSChromatogram> chromatograms;
         std::vector<MSSpectrum> spectra;
-        prepareChroms_(db, chromatograms);
-        prepareSpectra_(db, spectra);
+        prepareChroms_(conn, chromatograms);
+        prepareSpectra_(conn, spectra);
         exp.setChromatograms(chromatograms);
         exp.setSpectra(spectra);
       }
@@ -358,8 +357,8 @@ namespace OpenMS::Internal
         return;
       }
 
-      populateChromatogramsWithData_(db, exp.getChromatograms());
-      populateSpectraWithData_(db, exp.getSpectra());
+      populateChromatogramsWithData_(conn, exp.getChromatograms());
+      populateSpectraWithData_(conn, exp.getSpectra());
     }
 
     UInt64 MzMLSqliteHandler::getRunID() const
@@ -395,7 +394,7 @@ namespace OpenMS::Internal
       // creates the spectra but does not fill them with data (provides option
       // to return meta-data only)
       SqliteConnector conn(filename_);
-      prepareSpectra_(Internal::SqliteHelper::getNativeHandle(conn), exp, indices);
+      prepareSpectra_(conn, exp, indices);
       if (indices.size() != exp.size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
@@ -408,7 +407,7 @@ namespace OpenMS::Internal
         return;
       }
 
-      populateSpectraWithData_(Internal::SqliteHelper::getNativeHandle(conn), exp, indices);
+      populateSpectraWithData_(conn, exp, indices);
     }
 
     void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram> & exp,
@@ -420,7 +419,7 @@ namespace OpenMS::Internal
       // creates the chromatograms but does not fill them with data (provides
       // option to return meta-data only)
       SqliteConnector conn(filename_);
-      prepareChroms_(Internal::SqliteHelper::getNativeHandle(conn), exp, indices);
+      prepareChroms_(conn, exp, indices);
       if (indices.size() != exp.size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
@@ -433,7 +432,7 @@ namespace OpenMS::Internal
         return;
       }
 
-      populateChromatogramsWithData_(Internal::SqliteHelper::getNativeHandle(conn), exp, indices);
+      populateChromatogramsWithData_(conn, exp, indices);
     }
 
     Size MzMLSqliteHandler::getNrSpectra() const
@@ -509,9 +508,9 @@ namespace OpenMS::Internal
       return (Size)ret;
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(void* db_native, std::vector<MSChromatogram>& chromatograms) const
+    void MzMLSqliteHandler::populateChromatogramsWithData_(SqliteConnector& conn, std::vector<MSChromatogram>& chromatograms) const
     {
-      sqlite3* db = static_cast<sqlite3*>(db_native);
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       std::string select_sql;
       select_sql = "SELECT " \
                     "CHROMATOGRAM.ID as chrom_id," \
@@ -531,11 +530,11 @@ namespace OpenMS::Internal
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(void* db_native,
+    void MzMLSqliteHandler::populateChromatogramsWithData_(SqliteConnector& conn,
                                                            std::vector<MSChromatogram>& chromatograms,
                                                            const std::vector<int>& indices) const
     {
-      sqlite3* db = static_cast<sqlite3*>(db_native);
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == chromatograms.size(), "Chromatograms and indices need to have the same length.")
 
@@ -557,9 +556,9 @@ namespace OpenMS::Internal
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(void* db_native, std::vector<MSSpectrum>& spectra) const
+    void MzMLSqliteHandler::populateSpectraWithData_(SqliteConnector& conn, std::vector<MSSpectrum>& spectra) const
     {
-      sqlite3* db = static_cast<sqlite3*>(db_native);
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       std::string select_sql;
       select_sql = "SELECT " \
                     "SPECTRUM.ID as spec_id," \
@@ -578,11 +577,11 @@ namespace OpenMS::Internal
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(void* db_native,
+    void MzMLSqliteHandler::populateSpectraWithData_(SqliteConnector& conn,
                                                      std::vector<MSSpectrum>& spectra,
                                                      const std::vector<int>& indices) const
     {
-      sqlite3* db = static_cast<sqlite3*>(db_native);
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
 
@@ -604,11 +603,11 @@ namespace OpenMS::Internal
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(void* db_native,
+    void MzMLSqliteHandler::prepareChroms_(SqliteConnector& conn,
                                            std::vector<MSChromatogram>& chromatograms,
                                            const std::vector<int>& indices) const
     {
-      sqlite3* db = static_cast<sqlite3*>(db_native);
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       sqlite3_stmt* stmt;
       std::string select_sql = "SELECT " \
                     "CHROMATOGRAM.ID as chrom_id," \
@@ -723,11 +722,11 @@ namespace OpenMS::Internal
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareSpectra_(void* db_native,
+    void MzMLSqliteHandler::prepareSpectra_(SqliteConnector& conn,
                                             std::vector<MSSpectrum>& spectra,
                                             const std::vector<int> & indices) const
     {
-      sqlite3* db = static_cast<sqlite3*>(db_native);
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       sqlite3_stmt * stmt;
       std::string select_sql = "SELECT " \
                     "SPECTRUM.ID as spec_id," \

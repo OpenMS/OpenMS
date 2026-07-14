@@ -46,22 +46,15 @@ START_SECTION((SqliteConnector(const std::string& filename, const SqlOpenMode mo
   // READWRITE_OR_CREATE creates the database if it does not exist
   ptr = new SqliteConnector(tmp_db, Mode::READWRITE_OR_CREATE);
   TEST_NOT_EQUAL(ptr, null_ptr)
-  TEST_NOT_EQUAL(ptr->nativeHandle(), nullptr)
+  // a successfully opened connection is usable (the native handle is fully private)
+  ptr->executeStatement("CREATE TABLE IF NOT EXISTS liveness_check (ID INT)");
+  TEST_EQUAL(ptr->tableExists("liveness_check"), true)
 }
 END_SECTION
 
 START_SECTION((~SqliteConnector()))
 {
   delete ptr;
-}
-END_SECTION
-
-START_SECTION((void* nativeHandle() const))
-{
-  // The public accessor returns an opaque (void*) native handle without exposing
-  // any SQLite type; it must be non-null for an opened connection.
-  SqliteConnector conn(tmp_db, Mode::READWRITE_OR_CREATE);
-  TEST_NOT_EQUAL(conn.nativeHandle(), nullptr)
 }
 END_SECTION
 

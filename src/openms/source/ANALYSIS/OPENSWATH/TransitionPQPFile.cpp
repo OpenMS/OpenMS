@@ -76,9 +76,9 @@ namespace OpenMS
 
   TransitionPQPFile::~TransitionPQPFile() = default;
 
-  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(void* db_native, bool legacy_traml_id, bool stable_order) const
+  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(SqliteConnector& conn, bool legacy_traml_id, bool stable_order) const
   {
-    sqlite3* db = static_cast<sqlite3*>(db_native);
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
     PQPSqlQueryInfo info;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
@@ -268,7 +268,7 @@ namespace OpenMS
     transition_list.reserve(num_transitions);
 
     // Build SQL query using shared helper
-    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id, true);
+    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(conn, legacy_traml_id, true);
 
     // Execute SQL select statement
     Internal::SqliteHelper::prepareStatement(db, &stmt, query_info.select_sql);
@@ -376,7 +376,7 @@ namespace OpenMS
 
     // Build SQL query using shared helper
     const bool stable_order = num_transitions <= stable_stream_order_transition_limit;
-    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id, stable_order);
+    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(conn, legacy_traml_id, stable_order);
 
     // Execute SQL select statement
     Internal::SqliteHelper::prepareStatement(db, &stmt, query_info.select_sql);

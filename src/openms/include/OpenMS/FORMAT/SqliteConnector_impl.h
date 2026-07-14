@@ -35,12 +35,23 @@ namespace OpenMS
 {
   namespace Internal
   {
+    /// Friend of SqliteConnector: the single place allowed to turn the connector's
+    /// opaque void* handle back into a typed sqlite3*. Keeps SqliteConnector.h free
+    /// of any SQLite type while still giving the internal helpers native access.
+    struct SqliteConnectorFriend
+    {
+      static sqlite3* handle(SqliteConnector& conn)
+      {
+        return static_cast<sqlite3*>(conn.db_);
+      }
+    };
+
     namespace SqliteHelper
     {
       /// Retrieve the typed native SQLite handle behind a SqliteConnector.
       inline sqlite3* getNativeHandle(SqliteConnector& conn)
       {
-        return static_cast<sqlite3*>(conn.nativeHandle());
+        return SqliteConnectorFriend::handle(conn);
       }
 
       /**

@@ -12,9 +12,10 @@
 
 namespace OpenMS
 {
+  class SqliteConnector;
 
   /**
-      @brief This class supports reading and writing of PQP files. 
+      @brief This class supports reading and writing of PQP files.
 
       The PQP files are SQLite databases consisting of several tables
       representing the data contained in TraML files. For another file format that stores transitions, see also
@@ -207,13 +208,13 @@ private:
      * This helper builds the SQL query used by both readPQPInput_ and
      * streamPQPToLightTargetedExperiment_ to avoid code duplication.
      *
-     * @param[in] db Opaque native SQLite handle (sqlite3*), passed as void* so this
-     *               installed header stays free of any SQLite type (see SqliteConnector_impl.h)
+     * @param[in] conn Open SQLite connection (SQLite-type-free; the native handle is
+     *                 resolved in the .cpp via SqliteConnector_impl.h)
      * @param[in] legacy_traml_id Whether to use legacy TraML IDs
      * @param[in] stable_order Whether to apply the legacy deterministic row order
      * @return PQPSqlQueryInfo containing the query and column availability flags
      */
-    PQPSqlQueryInfo buildPQPSelectQuery_(void* db, bool legacy_traml_id, bool stable_order) const;
+    PQPSqlQueryInfo buildPQPSelectQuery_(SqliteConnector& conn, bool legacy_traml_id, bool stable_order) const;
 
     /** @brief Read PQP SQLite file
      *

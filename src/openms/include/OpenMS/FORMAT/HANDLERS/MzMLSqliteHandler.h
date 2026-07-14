@@ -16,6 +16,7 @@
 namespace OpenMS
 {
   class ProgressLogger;
+  class SqliteConnector;
 
   namespace Internal
   {
@@ -144,19 +145,20 @@ public:
 
 protected:
 
-      // @p db is an opaque native SQLite handle (sqlite3*), passed as void* so that
-      // this installed header stays free of any SQLite type. See SqliteConnector_impl.h.
-      void populateChromatogramsWithData_(void* db, std::vector<MSChromatogram>& chromatograms) const;
+      // These helpers operate on an open SQLite connection. They take the SqliteConnector
+      // (a SQLite-type-free type) rather than a raw sqlite3*, so this installed header names
+      // no SQLite type; the native handle is resolved in the .cpp via SqliteConnector_impl.h.
+      void populateChromatogramsWithData_(SqliteConnector& conn, std::vector<MSChromatogram>& chromatograms) const;
 
-      void populateChromatogramsWithData_(void* db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const;
+      void populateChromatogramsWithData_(SqliteConnector& conn, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const;
 
-      void populateSpectraWithData_(void* db, std::vector<MSSpectrum>& spectra) const;
+      void populateSpectraWithData_(SqliteConnector& conn, std::vector<MSSpectrum>& spectra) const;
 
-      void populateSpectraWithData_(void* db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const;
+      void populateSpectraWithData_(SqliteConnector& conn, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const;
 
-      void prepareChroms_(void* db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices = {}) const;
+      void prepareChroms_(SqliteConnector& conn, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices = {}) const;
 
-      void prepareSpectra_(void* db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices = {}) const;
+      void prepareSpectra_(SqliteConnector& conn, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices = {}) const;
       //@}
 
 public:
