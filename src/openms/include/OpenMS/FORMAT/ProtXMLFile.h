@@ -29,9 +29,11 @@ namespace OpenMS
     OpenMS can only read parts of the protein_summary subtree to extract
     protein-peptide associations. All other parts are silently ignored.
 
-    For protein groups, only the "group leader" (which is annotated with a
-    probability and coverage) receives these attributes. All indistinguishable
-    proteins of the same group only have an accession and score of -1.
+    For protein groups, only the "group leader" carries its own probability and
+    coverage in the protXML. Indistinguishable siblings (\<indistinguishable_protein\>)
+    have no attributes of their own in the file; on read they inherit the group
+    leader's score (so that score-based filtering does not tear groups apart) and
+    are left without a coverage value.
 
     @note ProteinProphet assigns probability=0 to "unneeded" (subsumable) proteins
     whose peptides are fully explained by higher-probability proteins in the same
@@ -43,7 +45,19 @@ namespace OpenMS
     subsumable proteins as separate indistinguishable groups, which would incorrectly
     cause shared peptides to be discarded during quantification.
 
-    @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
+    Data filled when reading a protXML:
+    - ProteinHit: accession (from @p protein_name), score (ProteinProphet
+      probability; indistinguishable siblings inherit the group leader's score),
+      and coverage (from @p percent_coverage, group leader only). No meta values
+      are set on ProteinHit.
+    - PeptideHit: sequence (from @p peptide_sequence, including any modifications
+      derived from \<mod_aminoacid_mass\>), score (from @p nsp_adjusted_probability),
+      charge, and one PeptideEvidence per protein of the enclosing indistinguishable
+      group. Meta values: @p is_unique (1/0 from @p is_nondegenerate_evidence) and
+      @p is_contributing (1/0 from @p is_contributing_evidence).
+    - The score type of both the ProteinIdentification and PeptideIdentification is
+      set to "ProteinProphet probability" (higher is better).
+
     @todo Writing of protXML is currently not supported
 
     @ingroup FileIO
