@@ -41,7 +41,7 @@ namespace OpenMS
     filtered out entirely: no ProteinHit, group entry, or peptide evidence is created
     for them. This prevents downstream tools like ProteinQuantifier from treating
     subsumable proteins as separate indistinguishable groups, which would incorrectly
-    cause shared peptides to be discarded during quantification (see GitHub #6038).
+    cause shared peptides to be discarded during quantification.
 
     @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
     @todo Writing of protXML is currently not supported

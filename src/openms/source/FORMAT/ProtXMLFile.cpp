@@ -121,7 +121,7 @@ namespace OpenMS
       // These are NOT truly indistinguishable (they don't share 100% of their
       // peptides with a leader). We filter them out to prevent ProteinQuantifier
       // from creating spurious indistinguishable groups that would cause shared
-      // peptides to be discarded. See GitHub issue #6038.
+      // peptides to be discarded during quantification.
       //
       // We key on probability==0 rather than the 'subsuming_protein_entry' attribute
       // on purpose: that attribute is optional and is written ONLY for the subsumable

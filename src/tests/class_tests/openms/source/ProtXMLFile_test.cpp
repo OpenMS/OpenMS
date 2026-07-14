@@ -115,7 +115,6 @@ END_SECTION
 
 // Test that probability=0 (subsumable) proteins are filtered out during parsing
 // while preserving normal protein groups and indistinguishable proteins.
-// Regression test for GitHub issue #6038.
 START_SECTION([EXTRA] probability zero protein filtering)
 {
   ProtXMLFile f;
