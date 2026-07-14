@@ -146,6 +146,12 @@ The most important CMake variables are:
     On Windows and macOS the required <code>nethost</code> library is bundled with the .NET SDK/runtime installer.
     On Linux you may need to install the additional <code>libnethost-dev</code> (Debian/Ubuntu) or
     <code>dotnet-runtime-8.0</code> package explicitly.
+    At run time the bridge's <code>nethost</code>/<code>hostfxr</code> locates the installed runtime
+    automatically when .NET sits in a standard location. If you installed .NET to a non-default
+    directory (for example via the <code>dotnet-install.sh</code> script or a self-contained/xcopy
+    install), set the <code>DOTNET_ROOT</code> environment variable to that directory &mdash; the folder
+    that contains the <code>dotnet</code> host and the <code>shared/</code> sub-directory
+    (e.g. <code>export DOTNET_ROOT=/usr/share/dotnet</code>) &mdash; so the runtime can be found.
     Disabled automatically on Linux/aarch64 targets.
     (Default: On on supported platforms)</td>
   </tr>
