@@ -79,7 +79,7 @@ namespace OpenMS
       PreparedInsert(sqlite3* db, const std::string& sql) :
         db_(db)
       {
-        SqliteConnector::prepareStatement(db_, &stmt_, sql);
+        Internal::SqliteHelper::prepareStatement(db_, &stmt_, sql);
       }
 
       ~PreparedInsert()
@@ -139,7 +139,7 @@ namespace OpenMS
 
       [[noreturn]] void fail_(const char* op)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           std::string(op) + " failed: " + sqlite3_errmsg(db_));
       }
 
@@ -816,7 +816,7 @@ namespace OpenMS
       // numeric-only, so they stay as accumulated statements flushed in 50k batches.
       std::stringstream insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
       conn.executeStatement("BEGIN TRANSACTION");
-      PreparedInsert insert_transition(conn.getDB(),
+      PreparedInsert insert_transition(Internal::SqliteHelper::getNativeHandle(conn),
         "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, "
         "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
       for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
@@ -981,7 +981,7 @@ namespace OpenMS
 
     // PROTEIN: PROTEIN_ACCESSION is untrusted -> bound as a parameter
     {
-      PreparedInsert insert_protein(conn.getDB(), "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (?,?,?);");
+      PreparedInsert insert_protein(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (?,?,?);");
       for (const auto& protein_id : protein_vec)
       {
         insert_protein.bindInt(1, protein_map[protein_id]);
@@ -994,7 +994,7 @@ namespace OpenMS
 
     // GENE: GENE_NAME is untrusted -> bound as a parameter
     {
-      PreparedInsert insert_gene(conn.getDB(), "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (?,?,?);");
+      PreparedInsert insert_gene(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (?,?,?);");
       for (const auto& gene_name : gene_vec)
       {
         insert_gene.bindInt(1, gene_map[gene_name]);
@@ -1007,7 +1007,7 @@ namespace OpenMS
 
     // PEPTIDE: sequences are untrusted -> bound as parameters
     {
-      PreparedInsert insert_peptide(conn.getDB(), "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (?,?,?,?);");
+      PreparedInsert insert_peptide(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (?,?,?,?);");
       for (const auto& peptide_sequence : peptide_vec)
       {
         insert_peptide.bindInt(1, peptide_map[peptide_sequence]);
@@ -1020,7 +1020,7 @@ namespace OpenMS
 
     // COMPOUND: name/formula/SMILES/adducts are untrusted -> bound as parameters
     {
-      PreparedInsert insert_compound(conn.getDB(), "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (?,?,?,?,?,?);");
+      PreparedInsert insert_compound(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (?,?,?,?,?,?);");
       for (const auto& compound_id : compound_vec)
       {
         std::string adducts;
@@ -1055,7 +1055,7 @@ namespace OpenMS
     // LIBRARY_INTENSITY is always NULL, so it stays inline. Peptides then compounds,
     // matching the original insert order.
     {
-      PreparedInsert insert_precursor(conn.getDB(),
+      PreparedInsert insert_precursor(Internal::SqliteHelper::getNativeHandle(conn),
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, "
         "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (?,?,?,?,?,NULL,?,?,?);");
       for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
@@ -1323,7 +1323,7 @@ namespace OpenMS
     {
       std::stringstream insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
       conn.executeStatement("BEGIN TRANSACTION");
-      PreparedInsert insert_transition(conn.getDB(),
+      PreparedInsert insert_transition(Internal::SqliteHelper::getNativeHandle(conn),
         "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, "
         "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
 
@@ -1480,7 +1480,7 @@ namespace OpenMS
 
     // PROTEIN: PROTEIN_ACCESSION is untrusted -> bound as a parameter
     {
-      PreparedInsert insert_protein(conn.getDB(), "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (?,?,?);");
+      PreparedInsert insert_protein(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (?,?,?);");
       for (const auto& protein_id : protein_vec)
       {
         insert_protein.bindInt(1, protein_map[protein_id]);
@@ -1493,7 +1493,7 @@ namespace OpenMS
 
     // GENE: GENE_NAME is untrusted -> bound as a parameter
     {
-      PreparedInsert insert_gene(conn.getDB(), "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (?,?,?);");
+      PreparedInsert insert_gene(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (?,?,?);");
       for (const auto& gene_name : gene_vec)
       {
         insert_gene.bindInt(1, gene_map[gene_name]);
@@ -1506,7 +1506,7 @@ namespace OpenMS
 
     // PEPTIDE: sequences are untrusted -> bound as parameters
     {
-      PreparedInsert insert_peptide(conn.getDB(), "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (?,?,?,?);");
+      PreparedInsert insert_peptide(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (?,?,?,?);");
       for (const auto& peptide_sequence : peptide_vec)
       {
         std::string unmodified_seq;
@@ -1528,7 +1528,7 @@ namespace OpenMS
 
     // COMPOUND: name/formula/SMILES/adducts are untrusted -> bound as parameters
     {
-      PreparedInsert insert_compound(conn.getDB(), "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (?,?,?,?,?,?);");
+      PreparedInsert insert_compound(Internal::SqliteHelper::getNativeHandle(conn), "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (?,?,?,?,?,?);");
       for (const auto& compound_id : compound_vec)
       {
         auto comp_it = compound_lookup.find(compound_id);
@@ -1560,7 +1560,7 @@ namespace OpenMS
     // LIBRARY_INTENSITY is always NULL, so it stays inline. Iterated in the original
     // compound-vector order (peptides and compounds interleaved).
     {
-      PreparedInsert insert_precursor(conn.getDB(),
+      PreparedInsert insert_precursor(Internal::SqliteHelper::getNativeHandle(conn),
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, "
         "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (?,?,?,?,?,NULL,?,?,?);");
       for (const auto& compound : targeted_exp.compounds)

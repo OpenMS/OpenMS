@@ -221,7 +221,7 @@ START_SECTION([EXTRA] writePQPOutput_ is safe against SQL injection in library s
   // Inject the evil string into a free-text (non-reference) compound field so that
   // all internal references stay valid and only the SQL write path is exercised.
   auto compounds = targeted_exp.getCompounds();
-  TEST_EQUAL(compounds.empty(), false)
+  TEST_FALSE(compounds.empty())
   const Size n_compounds = compounds.size();
   compounds[0].smiles_string = evil;
   targeted_exp.setCompounds(compounds);
@@ -249,7 +249,7 @@ START_SECTION([EXTRA] writePQPOutput_ is safe against SQL injection in library s
   {
     if (c.smiles == evil) { value_survived = true; break; }
   }
-  TEST_EQUAL(value_survived, true)
+  TEST_TRUE(value_survived)
 }
 END_SECTION
 
