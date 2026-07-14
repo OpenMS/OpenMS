@@ -9,7 +9,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <string_view>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
@@ -785,14 +785,14 @@ struct ImmoniumIonsInPeptide
 /// @cond TOPPCLASSES
 
 class OpenNuXL :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
   bool fast_scoring_ = true; // fast or all fragment adduct scoring mode
   set<char> can_xl_; ///< nucleotides that can form cross-links
 
 public:
   OpenNuXL() :
-    TOPPBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
+    TOPPExternalToolBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
   {
   }
 
@@ -3835,7 +3835,7 @@ static void scoreXLIons_(
     {
       for (auto & ph : pid.getHits())
       {
-        identified_adducts.insert(ph.getMetaValue("NuXL:NA"));
+        identified_adducts.insert(ph.getMetaValue("NuXL:NA").toString());
       }
     } 
 

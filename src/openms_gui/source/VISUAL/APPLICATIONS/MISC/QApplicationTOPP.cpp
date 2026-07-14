@@ -150,7 +150,7 @@ namespace OpenMS
     // close button
     QPushButton* button = new QPushButton("Close", dlg);
     grid->addWidget(button, 1, 1, Qt::AlignBottom | Qt::AlignRight);
-    connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
+    connect(button, &QPushButton::clicked, dlg, &QWidget::close);
 
     // execute
     dlg->exec();

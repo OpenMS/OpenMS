@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathGeneInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>

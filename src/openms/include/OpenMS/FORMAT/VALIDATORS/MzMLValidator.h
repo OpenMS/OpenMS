@@ -54,7 +54,7 @@ public:
 protected:
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       // Docu in base class
       std::string getPath_(UInt remove_from_end = 0) const override;

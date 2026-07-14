@@ -494,7 +494,7 @@ namespace OpenMS
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP).toString());
       }
     }
     if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))

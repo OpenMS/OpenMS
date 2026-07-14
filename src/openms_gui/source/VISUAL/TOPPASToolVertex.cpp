@@ -62,10 +62,10 @@ namespace OpenMS
   {
     brush_color_ = brush_color_.lighter(130); // make TOPP tools more white compared to all other nodes
     initParam_();
-    connect(this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
-    connect(this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
-    connect(this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
-    connect(this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
+    connect(this, &TOPPASToolVertex::toolStarted, this, &TOPPASToolVertex::toolStartedSlot);
+    connect(this, &TOPPASToolVertex::toolFinished, this, &TOPPASToolVertex::toolFinishedSlot);
+    connect(this, &TOPPASToolVertex::toolFailed, this, &TOPPASToolVertex::toolFailedSlot);
+    connect(this, &TOPPASToolVertex::toolCrashed, this, &TOPPASToolVertex::toolCrashedSlot);
   }
 
   TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs) :
@@ -641,10 +641,10 @@ namespace OpenMS
       }
 
       p->setProcessChannelMode(QProcess::MergedChannels);
-      connect(p, SIGNAL(readyReadStandardOutput()), this, SLOT(forwardTOPPOutput()));
-      connect(ts, SIGNAL(terminateCurrentPipeline()), p, SLOT(kill()));
+      connect(p, &QProcess::readyReadStandardOutput, this, &TOPPASToolVertex::forwardTOPPOutput);
+      connect(ts, &TOPPASScene::terminateCurrentPipeline, p, &QProcess::kill);
       // let this node know that round is done
-      connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
+      connect(p, &QProcess::finished, this, &TOPPASToolVertex::executionFinished);
 
       // enqueue process
       std::string msg_enqueue =std::string("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";

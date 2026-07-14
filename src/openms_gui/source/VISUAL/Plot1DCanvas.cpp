@@ -114,7 +114,7 @@ namespace OpenMS
     setParameters(preferences);
 
     // connect preferences change to the right slot
-    connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
+    connect(this, &PlotCanvas::preferencesChange, this, &Plot1DCanvas::currentLayerParamtersChanged_);
   }
 
   Plot1DCanvas::~Plot1DCanvas() = default;

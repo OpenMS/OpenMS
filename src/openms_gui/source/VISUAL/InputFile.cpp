@@ -31,7 +31,7 @@ namespace OpenMS
     QCompleter* completer = new QCompleter(this);
     completer->setModel(new QFileSystemModel(completer));
     ui_->line_edit->setCompleter(completer);
-    connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
+    connect(ui_->browse_button, &QPushButton::clicked, this, &InputFile::showFileDialog);
   }
 
   InputFile::~InputFile()

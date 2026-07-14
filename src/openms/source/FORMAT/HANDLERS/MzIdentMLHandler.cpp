@@ -240,7 +240,7 @@ namespace OpenMS::Internal
     MzIdentMLHandler::~MzIdentMLHandler()
     = default;
 
-    void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    void MzIdentMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -270,11 +270,11 @@ namespace OpenMS::Internal
 
       if (tag_ == "cvParam")
       {
-        static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-        static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-        //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+        static const char16_t* s_value = u"value";
+        static const char16_t* s_unit_accession = u"unitAccession";
+        static const char16_t* s_cv_ref = u"cvRef";
+        //~ static const char16_t* s_name = u"name";
+        static const char16_t* s_accession = u"accession";
 
         std::string value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
@@ -386,7 +386,7 @@ namespace OpenMS::Internal
       error(LOAD, "MzIdentMLHandler::startElement: Unknown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
-    void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void MzIdentMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       if (tag_ == "Customizations")
       {
@@ -412,7 +412,7 @@ namespace OpenMS::Internal
       //error(LOAD, "MzIdentMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
     }
 
-    void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void MzIdentMLHandler::onEndElement(const char16_t* qname)
     {
       static set<std::string> to_ignore;
       if (to_ignore.empty())
@@ -463,7 +463,7 @@ namespace OpenMS::Internal
       error(LOAD, "MzIdentMLHandler::endElement: Unknown element found: '" + tag_ + "', ignoring.");
     }
 
-    void MzIdentMLHandler::handleCVParam_(const std::string& /* parent_parent_tag*/, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const xercesc::Attributes& attributes, const std::string& cv_ref /* , const std::string& unit_accession */)
+    void MzIdentMLHandler::handleCVParam_(const std::string& /* parent_parent_tag*/, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const XMLAttributes& attributes, const std::string& cv_ref /* , const std::string& unit_accession */)
     {
       if (parent_tag == "Modification")
       {

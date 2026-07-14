@@ -11,10 +11,8 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 ///////////////////////////
 
-#include <filesystem>
 #include <vector>
 #include <string>
 
@@ -45,22 +43,15 @@ START_SECTION((void load(const std::string &filename, std::vector< Internal::Too
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
-  std::filesystem::path dir_path{std::string(ToolHandler::getExternalToolsPath())};
-  std::vector<std::string> files;
-  for (const auto& entry : std::filesystem::directory_iterator(dir_path))
-  {
-    if (entry.path().extension() == ".ttd")
-    {
-      files.push_back(entry.path().string());
-    }
-  }
+  const std::vector<std::string> files = {
+    OPENMS_GET_TEST_DATA_PATH("ToolDescriptionFile_test_1.ttd"),
+    OPENMS_GET_TEST_DATA_PATH("ToolDescriptionFile_test_2.ttd")
+  };
   for (const auto& file : files)
   {
     f.load(file, tds);
-    //std::cerr << "load: " << file << "\n";
     TEST_EQUAL(!tds.empty(), true)
   }
-  
 }
 END_SECTION
 

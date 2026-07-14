@@ -309,10 +309,7 @@ void ImzMLHandler::openIBD(const std::string& ibd_path)
 // SAX2 overrides
 // ===========================================================================
 
-void ImzMLHandler::startElement(const XMLCh*               uri,
-                                 const XMLCh*               localname,
-                                 const XMLCh*               qname,
-                                 const xercesc::Attributes& attrs)
+void ImzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attrs)
 {
   const std::string tag = sm_.convert(qname);
 
@@ -364,12 +361,10 @@ void ImzMLHandler::startElement(const XMLCh*               uri,
     // Fall through: MzMLHandler still processes MS:* terms below
   }
 
-  MzMLHandler::startElement(uri, localname, qname, attrs);
+  MzMLHandler::onStartElement(qname, attrs);
 }
 
-void ImzMLHandler::endElement(const XMLCh* uri,
-                               const XMLCh* localname,
-                               const XMLCh* qname)
+void ImzMLHandler::onEndElement(const char16_t* qname)
 {
   const std::string tag = sm_.convert(qname);
 
@@ -451,7 +446,7 @@ void ImzMLHandler::endElement(const XMLCh* uri,
     cur_ref_id_.clear();
   }
 
-  MzMLHandler::endElement(uri, localname, qname);
+  MzMLHandler::onEndElement(qname);
 
   if (tag == "spectrum")
   {
