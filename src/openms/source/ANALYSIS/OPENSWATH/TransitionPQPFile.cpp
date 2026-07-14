@@ -67,6 +67,85 @@ namespace OpenMS
       Internal::SqliteHelper::executeStatement(db, "PRAGMA threads = " + StringUtils::toStr(sqlite_threads) + ";");
 #endif
     }
+
+    // Prepare an INSERT once and bind/step/reset per row. Untrusted string fields
+    // (compound/peptide/protein/gene names, SMILES, adducts, group labels, ...) come
+    // from externally supplied transition libraries, so they must be passed as bound
+    // parameters instead of being concatenated into the SQL text (GH #9730 / #9734).
+    // Numeric columns are bound by value; nullable columns can be bound as NULL.
+    class PreparedInsert
+    {
+    public:
+      PreparedInsert(sqlite3* db, const std::string& sql) :
+        db_(db)
+      {
+        SqliteConnector::prepareStatement(db_, &stmt_, sql);
+      }
+
+      ~PreparedInsert()
+      {
+        if (stmt_ != nullptr) { sqlite3_finalize(stmt_); }
+      }
+
+      PreparedInsert(const PreparedInsert&) = delete;
+      PreparedInsert& operator=(const PreparedInsert&) = delete;
+
+      void bindText(int idx, const std::string& value)
+      {
+        check_(sqlite3_bind_text(stmt_, idx, value.c_str(), (int)value.size(), SQLITE_TRANSIENT), "sqlite3_bind_text");
+      }
+
+      void bindInt(int idx, sqlite3_int64 value)
+      {
+        check_(sqlite3_bind_int64(stmt_, idx, value), "sqlite3_bind_int64");
+      }
+
+      void bindDouble(int idx, double value)
+      {
+        check_(sqlite3_bind_double(stmt_, idx, value), "sqlite3_bind_double");
+      }
+
+      void bindNull(int idx)
+      {
+        check_(sqlite3_bind_null(stmt_, idx), "sqlite3_bind_null");
+      }
+
+      // Bind a value into an INT column that may be absent. The library-supplied
+      // charge is a numeric string ("NA" when missing); SQLite's INTEGER affinity
+      // converts a bound text digit-string to an integer, matching the previous
+      // inline behavior while keeping the value strictly as data.
+      void bindIntStringOrNull(int idx, const std::string& value, const std::string& null_token)
+      {
+        if (value == null_token) { bindNull(idx); }
+        else { bindText(idx, value); }
+      }
+
+      void step()
+      {
+        int rc = sqlite3_step(stmt_);
+        if (rc != SQLITE_DONE)
+        {
+          fail_("sqlite3_step");
+        }
+        sqlite3_reset(stmt_);
+        sqlite3_clear_bindings(stmt_);
+      }
+
+    private:
+      void check_(int rc, const char* op)
+      {
+        if (rc != SQLITE_OK) { fail_(op); }
+      }
+
+      [[noreturn]] void fail_(const char* op)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          std::string(op) + " failed: " + sqlite3_errmsg(db_));
+      }
+
+      sqlite3* db_;
+      sqlite3_stmt* stmt_ = nullptr;
+    };
   }
 
   TransitionPQPFile::TransitionPQPFile() :
@@ -732,8 +811,14 @@ namespace OpenMS
     for (auto const & x : peptide_vec) { peptide_map[x] = peptide_map_idx; peptide_map_idx++; }
 
     {
-      std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
-      insert_transition_sql.precision(11);
+      // TRANSITION carries untrusted string columns (TRAML_ID/TYPE/ANNOTATION); it is
+      // written through a prepared statement bound per row. The mapping tables are
+      // numeric-only, so they stay as accumulated statements flushed in 50k batches.
+      std::stringstream insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
+      conn.executeStatement("BEGIN TRANSACTION");
+      PreparedInsert insert_transition(conn.getDB(),
+        "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, "
+        "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
       for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
       {
         TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
@@ -763,51 +848,41 @@ namespace OpenMS
         insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
           i << "," << group_map[transition.group_id] << "); ";
 
-        std::string transition_charge = "NULL"; // workaround for compounds with missing charge
-        if (transition.fragment_charge != "NA")
-        {
-          transition_charge = transition.fragment_charge;
-        }
-
-        // OpenSWATH: Insert transition data
-        insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
-          "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
-          transition.transition_name << "'," <<
-          transition.product << "," <<
-          transition_charge << ",'" <<
-          transition.fragment_type << "','" <<
-          transition.Annotation <<"'," <<
-          transition.fragment_nr << "," <<
-          transition.detecting_transition << "," <<
-          transition.identifying_transition << "," <<
-          transition.quantifying_transition << "," <<
-          transition.library_intensity << "," << transition.decoy << "); ";
+        // OpenSWATH: Insert transition data (string columns bound as parameters)
+        insert_transition.bindInt(1, (sqlite3_int64)i);
+        insert_transition.bindText(2, transition.transition_name);
+        insert_transition.bindDouble(3, transition.product);
+        insert_transition.bindIntStringOrNull(4, transition.fragment_charge, "NA"); // missing charge -> NULL
+        insert_transition.bindText(5, transition.fragment_type);
+        insert_transition.bindText(6, transition.Annotation);
+        insert_transition.bindInt(7, transition.fragment_nr);
+        insert_transition.bindInt(8, transition.detecting_transition);
+        insert_transition.bindInt(9, transition.identifying_transition);
+        insert_transition.bindInt(10, transition.quantifying_transition);
+        insert_transition.bindDouble(11, transition.library_intensity);
+        insert_transition.bindInt(12, transition.decoy);
+        insert_transition.step();
 
         if (i % 50000 == 0)
         // if (i % 2 == 0) // for testing
         {
-          conn.executeStatement("BEGIN TRANSACTION");
-          conn.executeStatement(insert_transition_sql.str());
           conn.executeStatement(insert_transition_peptide_mapping_sql.str());
           conn.executeStatement(insert_transition_precursor_mapping_sql.str());
-          conn.executeStatement("END TRANSACTION");
-          insert_transition_sql.str("");
-          insert_transition_sql.clear();
           insert_transition_peptide_mapping_sql.str("");
           insert_transition_peptide_mapping_sql.clear();
           insert_transition_precursor_mapping_sql.str("");
           insert_transition_precursor_mapping_sql.clear();
         }
       }
-      conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_transition_sql.str());
       conn.executeStatement(insert_transition_peptide_mapping_sql.str());
       conn.executeStatement(insert_transition_precursor_mapping_sql.str());
       conn.executeStatement("END TRANSACTION");
     }
 
-    std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
-    insert_precursor_sql.precision(11);
+    // PRECURSOR carries untrusted string columns (TRAML_ID/GROUP_LABEL) and is written
+    // via a prepared statement in the final transaction below; only the numeric mapping
+    // tables are accumulated as text here.
+    std::stringstream insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     std::vector<std::pair<int, int> > peptide_protein_map;
     std::vector<std::pair<int, int> > peptide_gene_map;
 
@@ -833,18 +908,6 @@ namespace OpenMS
       if (!gene_map.contains(gene_name)) gene_map[gene_name] = (int)gene_map.size();
       peptide_gene_map.emplace_back(peptide_set_index, gene_map[gene_name]);
 
-      insert_precursor_sql <<
-        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
-        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
-        group_set_index << ",'" << peptide.id << "','" <<
-        peptide.getPeptideGroupLabel() << "'," <<
-        precursor_mz_map[group_set_index] << "," <<
-        peptide.getChargeState() <<
-        ",NULL," <<
-        peptide.getDriftTime() << "," <<
-        peptide.getRetentionTime() << "," <<
-        precursor_decoy_map[group_set_index] << "); ";
-
       insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" <<
         group_set_index << "," << peptide_set_index << "); ";
 
@@ -856,22 +919,6 @@ namespace OpenMS
       OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompounds()[i];
       int group_set_index = group_map[compound.id];
       int compound_set_index = compound_map[compound.id];
-
-      std::string compound_charge = "NULL"; // workaround for compounds with missing charge
-      if (compound.hasCharge())
-      {
-        compound_charge =StringUtils::toStr(compound.getChargeState());
-      }
-
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
-        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
-        << ",'" << compound.id << "',NULL," <<
-        precursor_mz_map[group_set_index] << "," <<
-        compound_charge <<
-        ",NULL," <<
-        compound.getDriftTime() << "," <<
-        compound.getRetentionTime() << "," <<
-        precursor_decoy_map[group_set_index] << "); ";
 
       insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" <<
         group_set_index << "," << compound_set_index << "); ";
@@ -887,8 +934,7 @@ namespace OpenMS
       insert_peptide_gene_mapping << "INSERT INTO PEPTIDE_GENE_MAPPING (PEPTIDE_ID, GENE_ID) VALUES (" <<
         it.first << "," << it.second << "); ";
     }
-    // OpenSWATH: Prepare gene inserts
-    std::stringstream insert_gene_sql;
+    // OpenSWATH: Collect the unique, sorted gene names (bound into GENE inserts below)
     std::vector<std::string> gene_vec;
     gene_vec.reserve(gene_map.size());
     for (const auto& it : gene_map)
@@ -896,11 +942,6 @@ namespace OpenMS
       gene_vec.push_back(it.first);
     }
     boost::sort(gene_vec);
-    for (const auto& gene_name : gene_vec)
-    {
-      insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
-        gene_map[gene_name] << ",'" << gene_name << "'," << 0 << "); ";
-    }
 
     // OpenSWATH: Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
@@ -908,52 +949,6 @@ namespace OpenMS
     {
       insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" <<
         it.first << "," << it.second << "); ";
-    }
-
-    // OpenSWATH: Prepare protein inserts
-    std::stringstream insert_protein_sql;
-    for (const auto& protein_id : protein_vec)
-    {
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
-        protein_map[protein_id] << ",'" << protein_id << "'," << 0 << "); ";
-    }
-
-    // OpenSWATH: Prepare peptide inserts
-    std::stringstream insert_peptide_sql;
-    for (const auto& peptide_sequence : peptide_vec)
-    {
-      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
-        peptide_map[peptide_sequence] << ",'" <<
-        AASequence::fromString(peptide_sequence).toUnmodifiedString() << "','" <<
-        peptide_sequence << "'," << 0 << "); ";
-    }
-
-    // OpenSWATH: Prepare compound inserts
-    std::stringstream insert_compound_sql;
-    for (const auto& compound_id : compound_vec)
-    {
-      std::string adducts;
-      std::string compound_name;
-      const auto& compound = targeted_exp.getCompoundByRef(compound_id);
-      if (compound.metaValueExists("Adducts"))
-      {
-        adducts = StringUtils::toStr(compound.getMetaValue("Adducts"));
-      }
-      if (compound.metaValueExists("CompoundName"))
-      {
-        compound_name = StringUtils::toStr(compound.getMetaValue("CompoundName"));
-      }
-      else
-      {
-        compound_name = compound.id;
-      }
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
-        compound_map[compound_id] << ",'" <<
-        compound_name << "','" <<
-        compound.molecular_formula << "','" <<
-        compound.smiles_string << "','" <<
-        adducts << "'," <<
-        0 << "); ";
     }
 
     // OpenSWATH: Prepare decoy updates
@@ -982,17 +977,118 @@ namespace OpenMS
     conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    std::string insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
-    conn.executeStatement(insert_version);
-    conn.executeStatement(insert_protein_sql.str());
+    conn.executeStatement("INSERT INTO VERSION (ID) VALUES (3);");
+
+    // PROTEIN: PROTEIN_ACCESSION is untrusted -> bound as a parameter
+    {
+      PreparedInsert insert_protein(conn.getDB(), "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (?,?,?);");
+      for (const auto& protein_id : protein_vec)
+      {
+        insert_protein.bindInt(1, protein_map[protein_id]);
+        insert_protein.bindText(2, protein_id);
+        insert_protein.bindInt(3, 0);
+        insert_protein.step();
+      }
+    }
     conn.executeStatement(insert_peptide_protein_mapping.str());
-    conn.executeStatement(insert_gene_sql.str());
+
+    // GENE: GENE_NAME is untrusted -> bound as a parameter
+    {
+      PreparedInsert insert_gene(conn.getDB(), "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (?,?,?);");
+      for (const auto& gene_name : gene_vec)
+      {
+        insert_gene.bindInt(1, gene_map[gene_name]);
+        insert_gene.bindText(2, gene_name);
+        insert_gene.bindInt(3, 0);
+        insert_gene.step();
+      }
+    }
     conn.executeStatement(insert_peptide_gene_mapping.str());
-    conn.executeStatement(insert_peptide_sql.str());
-    conn.executeStatement(insert_compound_sql.str());
+
+    // PEPTIDE: sequences are untrusted -> bound as parameters
+    {
+      PreparedInsert insert_peptide(conn.getDB(), "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (?,?,?,?);");
+      for (const auto& peptide_sequence : peptide_vec)
+      {
+        insert_peptide.bindInt(1, peptide_map[peptide_sequence]);
+        insert_peptide.bindText(2, AASequence::fromString(peptide_sequence).toUnmodifiedString());
+        insert_peptide.bindText(3, peptide_sequence);
+        insert_peptide.bindInt(4, 0);
+        insert_peptide.step();
+      }
+    }
+
+    // COMPOUND: name/formula/SMILES/adducts are untrusted -> bound as parameters
+    {
+      PreparedInsert insert_compound(conn.getDB(), "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (?,?,?,?,?,?);");
+      for (const auto& compound_id : compound_vec)
+      {
+        std::string adducts;
+        std::string compound_name;
+        const auto& compound = targeted_exp.getCompoundByRef(compound_id);
+        if (compound.metaValueExists("Adducts"))
+        {
+          adducts = StringUtils::toStr(compound.getMetaValue("Adducts"));
+        }
+        if (compound.metaValueExists("CompoundName"))
+        {
+          compound_name = StringUtils::toStr(compound.getMetaValue("CompoundName"));
+        }
+        else
+        {
+          compound_name = compound.id;
+        }
+        insert_compound.bindInt(1, compound_map[compound_id]);
+        insert_compound.bindText(2, compound_name);
+        insert_compound.bindText(3, compound.molecular_formula);
+        insert_compound.bindText(4, compound.smiles_string);
+        insert_compound.bindText(5, adducts);
+        insert_compound.bindInt(6, 0);
+        insert_compound.step();
+      }
+    }
+
     conn.executeStatement(insert_precursor_peptide_mapping.str());
     conn.executeStatement(insert_precursor_compound_mapping.str());
-    conn.executeStatement(insert_precursor_sql.str());
+
+    // PRECURSOR: TRAML_ID/GROUP_LABEL are untrusted -> bound as parameters.
+    // LIBRARY_INTENSITY is always NULL, so it stays inline. Peptides then compounds,
+    // matching the original insert order.
+    {
+      PreparedInsert insert_precursor(conn.getDB(),
+        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, "
+        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (?,?,?,?,?,NULL,?,?,?);");
+      for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
+      {
+        const OpenMS::TargetedExperiment::Peptide& peptide = targeted_exp.getPeptides()[i];
+        int group_set_index = group_map[peptide.id];
+        insert_precursor.bindInt(1, group_set_index);
+        insert_precursor.bindText(2, peptide.id);
+        insert_precursor.bindText(3, peptide.getPeptideGroupLabel());
+        insert_precursor.bindDouble(4, precursor_mz_map[group_set_index]);
+        insert_precursor.bindInt(5, peptide.getChargeState());
+        insert_precursor.bindDouble(6, peptide.getDriftTime());
+        insert_precursor.bindDouble(7, peptide.getRetentionTime());
+        insert_precursor.bindInt(8, precursor_decoy_map[group_set_index]);
+        insert_precursor.step();
+      }
+      for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
+      {
+        const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompounds()[i];
+        int group_set_index = group_map[compound.id];
+        insert_precursor.bindInt(1, group_set_index);
+        insert_precursor.bindText(2, compound.id);
+        insert_precursor.bindNull(3); // compounds carry no GROUP_LABEL
+        insert_precursor.bindDouble(4, precursor_mz_map[group_set_index]);
+        if (compound.hasCharge()) { insert_precursor.bindInt(5, compound.getChargeState()); }
+        else { insert_precursor.bindNull(5); } // workaround for compounds with missing charge
+        insert_precursor.bindDouble(6, compound.getDriftTime());
+        insert_precursor.bindDouble(7, compound.getRetentionTime());
+        insert_precursor.bindInt(8, precursor_decoy_map[group_set_index]);
+        insert_precursor.step();
+      }
+    }
+
     conn.executeStatement(update_decoys_sql.str());
     conn.executeStatement("END TRANSACTION");
   }
@@ -1221,10 +1317,15 @@ namespace OpenMS
       compound_lookup[compound.id] = &compound;
     }
 
-    // Insert transitions
+    // Insert transitions. TRANSITION carries untrusted string columns
+    // (TRAML_ID/TYPE/ANNOTATION), written via a prepared statement bound per row; the
+    // numeric mapping tables stay as accumulated statements flushed in 50k batches.
     {
-      std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
-      insert_transition_sql.precision(11);
+      std::stringstream insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
+      conn.executeStatement("BEGIN TRANSACTION");
+      PreparedInsert insert_transition(conn.getDB(),
+        "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, "
+        "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
 
       for (Size i = 0; i < targeted_exp.transitions.size(); i++)
       {
@@ -1254,53 +1355,41 @@ namespace OpenMS
         insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
           i << "," << group_set_index << "); ";
 
-        std::string transition_charge = "NULL";
-        if (tr.fragment_charge != 0)
-        {
-          transition_charge =StringUtils::toStr(static_cast<int>(tr.fragment_charge));
-        }
-
         std::string fragment_type_str = tr.getFragmentType();
         std::string fragment_type_char = fragment_type_str.empty() ? "" : StringUtils::substr(fragment_type_str, 0, 1);
 
-        // Insert transition data
-        insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
-          "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
-          tr.transition_name << "'," <<
-          tr.product_mz << "," <<
-          transition_charge << ",'" <<
-          fragment_type_char << "','" <<
-          tr.getAnnotation() << "'," <<
-          tr.fragment_nr << "," <<
-          tr.isDetectingTransition() << "," <<
-          tr.isIdentifyingTransition() << "," <<
-          tr.isQuantifyingTransition() << "," <<
-          tr.library_intensity << "," << tr.getDecoy() << "); ";
+        // Insert transition data (string columns bound as parameters)
+        insert_transition.bindInt(1, (sqlite3_int64)i);
+        insert_transition.bindText(2, tr.transition_name);
+        insert_transition.bindDouble(3, tr.product_mz);
+        if (tr.fragment_charge != 0) { insert_transition.bindInt(4, static_cast<int>(tr.fragment_charge)); }
+        else { insert_transition.bindNull(4); }
+        insert_transition.bindText(5, fragment_type_char);
+        insert_transition.bindText(6, tr.getAnnotation());
+        insert_transition.bindInt(7, tr.fragment_nr);
+        insert_transition.bindInt(8, tr.isDetectingTransition());
+        insert_transition.bindInt(9, tr.isIdentifyingTransition());
+        insert_transition.bindInt(10, tr.isQuantifyingTransition());
+        insert_transition.bindDouble(11, tr.library_intensity);
+        insert_transition.bindInt(12, tr.getDecoy());
+        insert_transition.step();
 
         if (i % 50000 == 0 && i > 0)
         {
-          conn.executeStatement("BEGIN TRANSACTION");
-          conn.executeStatement(insert_transition_sql.str());
           conn.executeStatement(insert_transition_peptide_mapping_sql.str());
           conn.executeStatement(insert_transition_precursor_mapping_sql.str());
-          conn.executeStatement("END TRANSACTION");
-          insert_transition_sql.str("");
-          insert_transition_sql.clear();
           insert_transition_peptide_mapping_sql.str("");
           insert_transition_peptide_mapping_sql.clear();
           insert_transition_precursor_mapping_sql.str("");
           insert_transition_precursor_mapping_sql.clear();
         }
       }
-      conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_transition_sql.str());
       conn.executeStatement(insert_transition_peptide_mapping_sql.str());
       conn.executeStatement(insert_transition_precursor_mapping_sql.str());
       conn.executeStatement("END TRANSACTION");
     }
 
-    std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
-    insert_precursor_sql.precision(11);
+    std::stringstream insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     std::vector<std::pair<int, int>> peptide_protein_map_vec;
     std::vector<std::pair<int, int>> peptide_gene_map_vec;
 
@@ -1325,40 +1414,12 @@ namespace OpenMS
         if (!gene_map.contains(gene_name)) gene_map[gene_name] = (int)gene_map.size();
         peptide_gene_map_vec.emplace_back(peptide_set_index, gene_map[gene_name]);
 
-        insert_precursor_sql <<
-          "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
-          "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
-          group_set_index << ",'" << compound.id << "','" <<
-          compound.peptide_group_label << "'," <<
-          precursor_mz_map[group_set_index] << "," <<
-          compound.charge <<
-          ",NULL," <<
-          compound.drift_time << "," <<
-          compound.rt << "," <<
-          precursor_decoy_map[group_set_index] << "); ";
-
         insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" <<
           group_set_index << "," << peptide_set_index << "); ";
       }
       else
       {
         int compound_set_index = compound_map[compound.id];
-
-        std::string compound_charge = "NULL";
-        if (compound.charge != 0)
-        {
-          compound_charge =StringUtils::toStr(compound.charge);
-        }
-
-        insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
-          "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
-          << ",'" << compound.id << "',NULL," <<
-          precursor_mz_map[group_set_index] << "," <<
-          compound_charge <<
-          ",NULL," <<
-          compound.drift_time << "," <<
-          compound.rt << "," <<
-          precursor_decoy_map[group_set_index] << "); ";
 
         insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" <<
           group_set_index << "," << compound_set_index << "); ";
@@ -1376,8 +1437,7 @@ namespace OpenMS
         it.first << "," << it.second << "); ";
     }
 
-    // Prepare gene inserts
-    std::stringstream insert_gene_sql;
+    // Collect the unique, sorted gene names (bound into GENE inserts below)
     std::vector<std::string> gene_vec;
     gene_vec.reserve(gene_map.size());
     for (const auto& it : gene_map)
@@ -1385,11 +1445,6 @@ namespace OpenMS
       gene_vec.push_back(it.first);
     }
     boost::sort(gene_vec);
-    for (const auto& gene_name : gene_vec)
-    {
-      insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
-        gene_map[gene_name] << ",'" << gene_name << "'," << 0 << "); ";
-    }
 
     // Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
@@ -1397,58 +1452,6 @@ namespace OpenMS
     {
       insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" <<
         it.first << "," << it.second << "); ";
-    }
-
-    // Prepare protein inserts
-    std::stringstream insert_protein_sql;
-    for (const auto& protein_id : protein_vec)
-    {
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
-        protein_map[protein_id] << ",'" << protein_id << "'," << 0 << "); ";
-    }
-
-    // Prepare peptide inserts
-    std::stringstream insert_peptide_sql;
-    for (const auto& peptide_sequence : peptide_vec)
-    {
-      std::string unmodified_seq;
-      try
-      {
-        unmodified_seq = AASequence::fromString(peptide_sequence).toUnmodifiedString();
-      }
-      catch (Exception::InvalidValue&)
-      {
-        unmodified_seq = peptide_sequence;
-      }
-      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
-        peptide_map[peptide_sequence] << ",'" <<
-        unmodified_seq << "','" <<
-        peptide_sequence << "'," << 0 << "); ";
-    }
-
-    // Prepare compound inserts
-    std::stringstream insert_compound_sql;
-    for (const auto& compound_id : compound_vec)
-    {
-      auto comp_it = compound_lookup.find(compound_id);
-      std::string compound_name = compound_id;
-      std::string sum_formula;
-      std::string smiles;
-      std::string adducts;
-      if (comp_it != compound_lookup.end())
-      {
-        compound_name = comp_it->second->compound_name.empty() ? compound_id : comp_it->second->compound_name;
-        sum_formula = comp_it->second->sum_formula;
-        smiles = comp_it->second->smiles;
-        adducts = comp_it->second->adducts;
-      }
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
-        compound_map[compound_id] << ",'" <<
-        compound_name << "','" <<
-        sum_formula << "','" <<
-        smiles << "','" <<
-        adducts << "'," <<
-        0 << "); ";
     }
 
     // Prepare decoy updates
@@ -1473,17 +1476,118 @@ namespace OpenMS
     conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    std::string insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
-    conn.executeStatement(insert_version);
-    conn.executeStatement(insert_protein_sql.str());
+    conn.executeStatement("INSERT INTO VERSION (ID) VALUES (3);");
+
+    // PROTEIN: PROTEIN_ACCESSION is untrusted -> bound as a parameter
+    {
+      PreparedInsert insert_protein(conn.getDB(), "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (?,?,?);");
+      for (const auto& protein_id : protein_vec)
+      {
+        insert_protein.bindInt(1, protein_map[protein_id]);
+        insert_protein.bindText(2, protein_id);
+        insert_protein.bindInt(3, 0);
+        insert_protein.step();
+      }
+    }
     conn.executeStatement(insert_peptide_protein_mapping.str());
-    conn.executeStatement(insert_gene_sql.str());
+
+    // GENE: GENE_NAME is untrusted -> bound as a parameter
+    {
+      PreparedInsert insert_gene(conn.getDB(), "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (?,?,?);");
+      for (const auto& gene_name : gene_vec)
+      {
+        insert_gene.bindInt(1, gene_map[gene_name]);
+        insert_gene.bindText(2, gene_name);
+        insert_gene.bindInt(3, 0);
+        insert_gene.step();
+      }
+    }
     conn.executeStatement(insert_peptide_gene_mapping.str());
-    conn.executeStatement(insert_peptide_sql.str());
-    conn.executeStatement(insert_compound_sql.str());
+
+    // PEPTIDE: sequences are untrusted -> bound as parameters
+    {
+      PreparedInsert insert_peptide(conn.getDB(), "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (?,?,?,?);");
+      for (const auto& peptide_sequence : peptide_vec)
+      {
+        std::string unmodified_seq;
+        try
+        {
+          unmodified_seq = AASequence::fromString(peptide_sequence).toUnmodifiedString();
+        }
+        catch (Exception::InvalidValue&)
+        {
+          unmodified_seq = peptide_sequence;
+        }
+        insert_peptide.bindInt(1, peptide_map[peptide_sequence]);
+        insert_peptide.bindText(2, unmodified_seq);
+        insert_peptide.bindText(3, peptide_sequence);
+        insert_peptide.bindInt(4, 0);
+        insert_peptide.step();
+      }
+    }
+
+    // COMPOUND: name/formula/SMILES/adducts are untrusted -> bound as parameters
+    {
+      PreparedInsert insert_compound(conn.getDB(), "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (?,?,?,?,?,?);");
+      for (const auto& compound_id : compound_vec)
+      {
+        auto comp_it = compound_lookup.find(compound_id);
+        std::string compound_name = compound_id;
+        std::string sum_formula;
+        std::string smiles;
+        std::string adducts;
+        if (comp_it != compound_lookup.end())
+        {
+          compound_name = comp_it->second->compound_name.empty() ? compound_id : comp_it->second->compound_name;
+          sum_formula = comp_it->second->sum_formula;
+          smiles = comp_it->second->smiles;
+          adducts = comp_it->second->adducts;
+        }
+        insert_compound.bindInt(1, compound_map[compound_id]);
+        insert_compound.bindText(2, compound_name);
+        insert_compound.bindText(3, sum_formula);
+        insert_compound.bindText(4, smiles);
+        insert_compound.bindText(5, adducts);
+        insert_compound.bindInt(6, 0);
+        insert_compound.step();
+      }
+    }
+
     conn.executeStatement(insert_precursor_peptide_mapping.str());
     conn.executeStatement(insert_precursor_compound_mapping.str());
-    conn.executeStatement(insert_precursor_sql.str());
+
+    // PRECURSOR: TRAML_ID/GROUP_LABEL are untrusted -> bound as parameters.
+    // LIBRARY_INTENSITY is always NULL, so it stays inline. Iterated in the original
+    // compound-vector order (peptides and compounds interleaved).
+    {
+      PreparedInsert insert_precursor(conn.getDB(),
+        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, "
+        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (?,?,?,?,?,NULL,?,?,?);");
+      for (const auto& compound : targeted_exp.compounds)
+      {
+        int group_set_index = group_map[compound.id];
+        insert_precursor.bindInt(1, group_set_index);
+        insert_precursor.bindText(2, compound.id);
+        if (compound.isPeptide())
+        {
+          insert_precursor.bindText(3, compound.peptide_group_label);
+          insert_precursor.bindDouble(4, precursor_mz_map[group_set_index]);
+          insert_precursor.bindInt(5, compound.charge); // peptides keep the charge verbatim (may be 0)
+        }
+        else
+        {
+          insert_precursor.bindNull(3); // compounds carry no GROUP_LABEL
+          insert_precursor.bindDouble(4, precursor_mz_map[group_set_index]);
+          if (compound.charge != 0) { insert_precursor.bindInt(5, compound.charge); }
+          else { insert_precursor.bindNull(5); } // workaround for compounds with missing charge
+        }
+        insert_precursor.bindDouble(6, compound.drift_time);
+        insert_precursor.bindDouble(7, compound.rt);
+        insert_precursor.bindInt(8, precursor_decoy_map[group_set_index]);
+        insert_precursor.step();
+      }
+    }
+
     conn.executeStatement(update_decoys_sql.str());
     conn.executeStatement("END TRANSACTION");
   }
