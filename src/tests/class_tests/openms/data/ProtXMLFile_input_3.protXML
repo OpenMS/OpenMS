@@ -28,8 +28,10 @@
       <protein protein_name="SUBSUMABLE_PROT" n_indistinguishable_proteins="1" probability="0.0000" percent_coverage="10.0" unique_stripped_peptides="AAAPEPTIDE" group_sibling_id="b" total_number_peptides="1" subsuming_protein_entry="LEADER_PROT" pct_spectrum_ids="5.0">
          <annotation protein_description="Unneeded subsumable protein"/>
          <peptide peptide_sequence="AAAPEPTIDE" charge="2" initial_probability="0.9990" nsp_adjusted_probability="0.9997" weight="0.00" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="2.00" is_contributing_evidence="N" calc_neutral_pep_mass="1000.0000">
-            <!-- mod_aminoacid_mass under filtered protein exercises the skip guard -->
-            <mod_aminoacid_mass position="1" mass="147.035"/>
+            <!-- mod_aminoacid_mass under filtered protein exercises the skip guard (schema-valid modification_info wrapper) -->
+            <modification_info modified_peptide="AAAPEPTIDE">
+               <mod_aminoacid_mass position="1" mass="147.035"/>
+            </modification_info>
          </peptide>
       </protein>
 </protein_group>
@@ -49,6 +51,38 @@
       <protein protein_name="SINGLE_PROT" n_indistinguishable_proteins="1" probability="0.8000" percent_coverage="20.0" unique_stripped_peptides="UNIQUEPEPTIDE" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="3.0">
          <annotation protein_description="Single protein group"/>
          <peptide peptide_sequence="UNIQUEPEPTIDE" charge="2" initial_probability="0.8000" nsp_adjusted_probability="0.8000" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="Y" calc_neutral_pep_mass="1100.0000">
+         </peptide>
+      </protein>
+</protein_group>
+<!-- Test: subsumable protein FIRST (prob=0, with its own indistinguishable_protein and
+     peptide children, all skipped), followed by a valid protein in the SAME group.
+     Exercises the mid-group skip_protein_ reset and the indistinguishable_protein guard. -->
+<protein_group group_number="4" probability="0.9500">
+      <protein protein_name="SUB_FIRST" n_indistinguishable_proteins="2" probability="0.0000" percent_coverage="8.0" unique_stripped_peptides="SHAREDPEPTIDE" group_sibling_id="a" total_number_peptides="1" subsuming_protein_entry="VALID_AFTER" pct_spectrum_ids="4.0">
+         <annotation protein_description="Subsumable protein appearing before the leader"/>
+         <indistinguishable_protein protein_name="SUB_FIRST_SIB">
+            <annotation protein_description="Sibling under a skipped protein -- must not be registered"/>
+         </indistinguishable_protein>
+         <peptide peptide_sequence="SHAREDPEPTIDE" charge="2" initial_probability="0.9000" nsp_adjusted_probability="0.9000" weight="0.00" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="N" calc_neutral_pep_mass="1200.0000">
+         </peptide>
+      </protein>
+      <protein protein_name="VALID_AFTER" n_indistinguishable_proteins="1" probability="0.9500" percent_coverage="12.0" unique_stripped_peptides="VALIDPEP" group_sibling_id="b" total_number_peptides="1" pct_spectrum_ids="6.0">
+         <annotation protein_description="Valid protein following a skipped one"/>
+         <peptide peptide_sequence="VALIDPEP" charge="2" initial_probability="0.9500" nsp_adjusted_probability="0.9500" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="Y" calc_neutral_pep_mass="1300.0000">
+         </peptide>
+      </protein>
+</protein_group>
+<!-- Test: protein_group where ALL proteins are subsumable (prob=0). The group must NOT
+     be inserted at all (no empty ProteinGroup, no hits, no peptides). -->
+<protein_group group_number="5" probability="0.0000">
+      <protein protein_name="ALLZERO_A" n_indistinguishable_proteins="1" probability="0.0000" percent_coverage="3.0" unique_stripped_peptides="ZEROPEPA" group_sibling_id="a" total_number_peptides="1" subsuming_protein_entry="LEADER_PROT" pct_spectrum_ids="1.0">
+         <annotation protein_description="All-zero group member A"/>
+         <peptide peptide_sequence="ZEROPEPA" charge="2" initial_probability="0.1000" nsp_adjusted_probability="0.1000" weight="0.00" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="N" calc_neutral_pep_mass="1400.0000">
+         </peptide>
+      </protein>
+      <protein protein_name="ALLZERO_B" n_indistinguishable_proteins="1" probability="0.0000" percent_coverage="2.0" unique_stripped_peptides="ZEROPEPB" group_sibling_id="b" total_number_peptides="1" subsuming_protein_entry="LEADER_PROT" pct_spectrum_ids="1.0">
+         <annotation protein_description="All-zero group member B"/>
+         <peptide peptide_sequence="ZEROPEPB" charge="2" initial_probability="0.1000" nsp_adjusted_probability="0.1000" weight="0.00" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="N" calc_neutral_pep_mass="1500.0000">
          </peptide>
       </protein>
 </protein_group>

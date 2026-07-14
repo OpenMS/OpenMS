@@ -124,8 +124,9 @@ START_SECTION([EXTRA] probability zero protein filtering)
   std::string prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_3.protXML");
   f.load(prot_file, proteins, peptides);
 
-  // 3 protein_groups in input, all should still exist
-  TEST_EQUAL(proteins.getProteinGroups().size(), 3);
+  // 5 protein_groups in input, but group 5 is all-subsumable (prob=0) and must NOT
+  // be inserted as an empty group -> 4 groups survive
+  TEST_EQUAL(proteins.getProteinGroups().size(), 4);
 
   // Group 1: leader only (subsumable protein was filtered)
   TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 1);
@@ -141,8 +142,15 @@ START_SECTION([EXTRA] probability zero protein filtering)
   TEST_EQUAL(proteins.getProteinGroups()[2].accessions.size(), 1);
   TEST_EQUAL(proteins.getProteinGroups()[2].accessions[0], "SINGLE_PROT");
 
-  // 3 indistinguishable groups (NOT 4 -- the subsumable protein should not create one)
-  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 3);
+  // Group 4: subsumable protein appeared FIRST and was skipped; only the valid
+  // protein that followed it in the same group survives
+  TEST_EQUAL(proteins.getProteinGroups()[3].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[3].accessions[0], "VALID_AFTER");
+  TEST_REAL_SIMILAR(proteins.getProteinGroups()[3].probability, 0.9500);
+
+  // 4 indistinguishable groups (NOT 6 -- the two subsumable proteins create none,
+  // and the sibling under a skipped protein is not registered)
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 4);
 
   // Indist group 1: leader only
   TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 1);
@@ -157,8 +165,13 @@ START_SECTION([EXTRA] probability zero protein filtering)
   TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions.size(), 1);
   TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions[0], "SINGLE_PROT");
 
-  // 4 protein hits (LEADER_PROT, PROT_A, PROT_B, SINGLE_PROT -- no SUBSUMABLE_PROT)
-  TEST_EQUAL(proteins.getHits().size(), 4);
+  // Indist group 4: VALID_AFTER only (SUB_FIRST + SUB_FIRST_SIB skipped)
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions[0], "VALID_AFTER");
+
+  // 5 protein hits (LEADER_PROT, PROT_A, PROT_B, SINGLE_PROT, VALID_AFTER -- no
+  // SUBSUMABLE_PROT, SUB_FIRST, SUB_FIRST_SIB, ALLZERO_A, ALLZERO_B)
+  TEST_EQUAL(proteins.getHits().size(), 5);
   TEST_EQUAL(proteins.getHits()[0].getAccession(), "LEADER_PROT");
   TEST_REAL_SIMILAR(proteins.getHits()[0].getScore(), 0.9998);
   TEST_EQUAL(proteins.getHits()[1].getAccession(), "PROT_A");
@@ -167,9 +180,12 @@ START_SECTION([EXTRA] probability zero protein filtering)
   TEST_REAL_SIMILAR(proteins.getHits()[2].getScore(), 0.9000); // inherited from leader
   TEST_EQUAL(proteins.getHits()[3].getAccession(), "SINGLE_PROT");
   TEST_REAL_SIMILAR(proteins.getHits()[3].getScore(), 0.8000);
+  TEST_EQUAL(proteins.getHits()[4].getAccession(), "VALID_AFTER");
+  TEST_REAL_SIMILAR(proteins.getHits()[4].getScore(), 0.9500);
 
-  // 4 peptide hits (2 from leader, 1 from group 2, 1 from group 3 -- NOT the subsumable's peptide)
-  TEST_EQUAL(peptides.getHits().size(), 4);
+  // 5 peptide hits (2 from leader, 1 from group 2, 1 from group 3, 1 from VALID_AFTER
+  // -- NOT any subsumable protein's peptide)
+  TEST_EQUAL(peptides.getHits().size(), 5);
 }
 END_SECTION
 

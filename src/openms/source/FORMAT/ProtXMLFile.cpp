@@ -114,20 +114,28 @@ namespace OpenMS
       // are possible; each <protein> is distinguishable from the other, we
       // nevertheless group them.
       //
-      // ProteinProphet assigns probability=0 to "unneeded" (subsumable) proteins
-      // whose peptides are a subset of a higher-probability protein in the same
-      // group. These are NOT truly indistinguishable (they don't share 100% of
-      // their peptides). We filter them out to prevent ProteinQuantifier from
-      // creating spurious indistinguishable groups that would cause shared
+      // ProteinProphet assigns probability=0 to "unneeded" proteins that are not
+      // part of its minimal (parsimonious) protein list. This covers BOTH
+      //   - subset proteins    (peptides are a strict subset of another protein's), and
+      //   - subsumable proteins (peptides jointly explained by a combination of others).
+      // These are NOT truly indistinguishable (they don't share 100% of their
+      // peptides with a leader). We filter them out to prevent ProteinQuantifier
+      // from creating spurious indistinguishable groups that would cause shared
       // peptides to be discarded. See GitHub issue #6038.
+      //
+      // We key on probability==0 rather than the 'subsuming_protein_entry' attribute
+      // on purpose: that attribute is optional and is written ONLY for the subsumable
+      // subclass, so it would miss subset proteins. Every protein ProteinProphet
+      // actually needs carries a non-zero probability, so probability==0 is the
+      // reliable, complete predicate for "unneeded".
 
       double probability = attributeAsDouble_(attributes, "probability");
-      // ProteinProphet writes exactly "0.0000" for subsumable proteins.
+      // ProteinProphet writes exactly "0.0000" for these proteins.
       // IEEE 754 parsing of this string yields exactly 0.0, so exact comparison is safe.
       if (probability == 0.0)
       {
         skip_protein_ = true;
-        OPENMS_LOG_INFO << "Skipping subsumable protein '"
+        OPENMS_LOG_DEBUG << "Skipping unneeded (subset/subsumable) protein '"
                         << attributeAsString_(attributes, "protein_name")
                         << "' (probability=0) in protein_group "
                         << protein_group_.probability << "\n";
@@ -255,7 +263,14 @@ namespace OpenMS
 
     if (tag == "protein_group")
     {
-      prot_id_->insertProteinGroup(protein_group_);
+      // Only insert non-empty groups. A group can become empty if all of its
+      // <protein> elements were subsumable (probability=0) and thus skipped.
+      // Inserting an accession-less group would break downstream consumers that
+      // assume group.accessions[0] exists (e.g. TextExporter).
+      if (!protein_group_.accessions.empty())
+      {
+        prot_id_->insertProteinGroup(protein_group_);
+      }
     }
     else if (tag == "protein")
     {
