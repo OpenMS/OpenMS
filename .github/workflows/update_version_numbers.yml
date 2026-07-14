@@ -83,7 +83,7 @@ jobs:
           git push origin "$BRANCH_NAME" --force
 
           # 5. Check if an active PR already exists for this branch targeting develop
-          PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --base develop --state open --json number --jq '.[0].number')
+          PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --base develop --state open --json number --jq '.[].number')
 
           # 6. Create the PR if it doesn't exist targeting develop; otherwise let the force-push update it
           if [ -z "$PR_EXISTS" ]; then
