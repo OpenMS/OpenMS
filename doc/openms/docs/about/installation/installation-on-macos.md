@@ -115,7 +115,7 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 ## Reading Thermo Fisher RAW files
 
 OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
-enabled by default in the release binaries. This requires a **.NET 8 (or newer) runtime** to be
+enabled by default in the release binaries. This requires a **.NET 8 runtime** to be
 present at run time so that the managed bridge libraries can be loaded.
 
 Install it from the [.NET download page](https://dotnet.microsoft.com/download), or with
@@ -125,13 +125,16 @@ Homebrew:
 brew install dotnet
 ```
 
-If .NET is installed to a non-standard location (the official installer uses
-`/usr/local/share/dotnet`; Homebrew on Apple Silicon installs under `/opt/homebrew`), point the
-`DOTNET_ROOT` environment variable at the install directory — the folder that contains the
-`dotnet` host and the `shared/` sub-directory — so the bridge can locate the runtime:
+If .NET is installed to a non-standard location, point the `DOTNET_ROOT` environment variable
+at the install directory — the folder that contains the `dotnet` host and the `shared/`
+sub-directory — so the bridge can locate the runtime. Homebrew keeps the runtime under its
+`libexec` directory, while the official installer uses `/usr/local/share/dotnet`:
 
 ```bash
-export DOTNET_ROOT=/usr/local/share/dotnet
+# Homebrew (the path reported by `brew info dotnet`)
+export DOTNET_ROOT="$(brew --prefix)/opt/dotnet/libexec"
+# or, for the official .NET installer:
+# export DOTNET_ROOT=/usr/local/share/dotnet
 ```
 
 ## Build OpenMS from source

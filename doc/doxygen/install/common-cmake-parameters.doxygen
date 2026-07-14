@@ -141,15 +141,15 @@ The most important CMake variables are:
     <td>Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library
     (fetched automatically via CMake FetchContent from GitHub).
     Requires a .NET runtime to be present at run time so that the managed bridge DLLs can be loaded.
-    Install .NET 8 (or later) from <a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a>,
-    or install the <code>dotnet-runtime-8.0</code> (or newer) package from your distribution's package manager.
+    Install the .NET 8 runtime from <a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a>,
+    or install the <code>dotnet-runtime-8.0</code> package from your distribution's package manager.
     On Windows and macOS the required <code>nethost</code> library is bundled with the .NET SDK/runtime installer.
     On Linux you may need to install the additional <code>libnethost-dev</code> (Debian/Ubuntu) or
     <code>dotnet-runtime-8.0</code> package explicitly.
     At run time the bridge's <code>nethost</code>/<code>hostfxr</code> locates the installed runtime
     automatically when .NET sits in a standard location. If you installed .NET to a non-default
-    directory (for example via the <code>dotnet-install.sh</code> script or a self-contained/xcopy
-    install), set the <code>DOTNET_ROOT</code> environment variable to that directory &mdash; the folder
+    directory (for example via the <code>dotnet-install.sh</code> script or an xcopy install of the
+    runtime), set the <code>DOTNET_ROOT</code> environment variable to that directory &mdash; the folder
     that contains the <code>dotnet</code> host and the <code>shared/</code> sub-directory
     (e.g. <code>export DOTNET_ROOT=/usr/share/dotnet</code>) &mdash; so the runtime can be found.
     Disabled automatically on Linux/aarch64 targets.

@@ -52,7 +52,7 @@ The windows installer works with Windows 10 and 11 (older versions might still w
 ## Reading Thermo Fisher RAW files
 
 OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
-enabled by default in the release binaries. This requires a **.NET 8 (or newer) runtime** to be
+enabled by default in the release binaries. This requires a **.NET 8 runtime** to be
 present at run time so that the managed bridge libraries can be loaded. This is the modern,
 cross-platform .NET runtime and is **not** the same as the .NET Framework 3.5 required by
 ProteoWizard (see the known issues above).
@@ -61,7 +61,7 @@ Download and install it from the [.NET download page](https://dotnet.microsoft.c
 The official installer registers the runtime globally, so no further configuration is normally
 needed.
 
-If you use a non-standard deployment (for example an xcopy/self-contained install), set the
-`DOTNET_ROOT` environment variable to the install directory — the folder that contains
-`dotnet.exe` and the `shared\` sub-directory — so the bridge can locate the runtime, e.g.
-`DOTNET_ROOT=C:\Program Files\dotnet`.
+If you installed the runtime to a non-standard location (for example an xcopy install of the
+.NET runtime), set the `DOTNET_ROOT` environment variable to the install directory — the folder
+that contains `dotnet.exe` and the `shared\` sub-directory — so the bridge can locate the
+runtime, e.g. `DOTNET_ROOT=C:\Program Files\dotnet`.
