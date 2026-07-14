@@ -31,9 +31,9 @@ namespace OpenMS
 
     For protein groups, only the "group leader" carries its own probability and
     coverage in the protXML. Indistinguishable siblings (\<indistinguishable_protein\>)
-    have no attributes of their own in the file; on read they inherit the group
-    leader's score (so that score-based filtering does not tear groups apart) and
-    are left without a coverage value.
+    carry only a protein_name in the file (no probability or coverage of their own);
+    on read they inherit the group leader's score (so that score-based filtering does
+    not tear groups apart) and are left without a coverage value.
 
     @note ProteinProphet assigns probability=0 to "unneeded" (subsumable) proteins
     whose peptides are fully explained by higher-probability proteins in the same

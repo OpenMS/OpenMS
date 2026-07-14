@@ -147,8 +147,10 @@ START_SECTION([EXTRA] probability zero protein filtering)
   TEST_EQUAL(proteins.getProteinGroups()[3].accessions[0], "VALID_AFTER");
   TEST_REAL_SIMILAR(proteins.getProteinGroups()[3].probability, 0.9500);
 
-  // 4 indistinguishable groups (NOT 6 -- the two subsumable proteins create none,
-  // and the sibling under a skipped protein is not registered)
+  // 4 indistinguishable groups. The fixture has 8 <protein> elements (one indist
+  // group each without filtering); the 4 probability=0 proteins (SUBSUMABLE_PROT,
+  // SUB_FIRST, ALLZERO_A, ALLZERO_B) create none, and the <indistinguishable_protein>
+  // sibling under the skipped SUB_FIRST is not registered either -> 4 survive.
   TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 4);
 
   // Indist group 1: leader only
@@ -185,6 +187,30 @@ START_SECTION([EXTRA] probability zero protein filtering)
   // 5 peptide hits (2 from leader, 1 from group 2, 1 from group 3, 1 from VALID_AFTER
   // -- NOT any subsumable protein's peptide)
   TEST_EQUAL(peptides.getHits().size(), 5);
+
+  // Verify the surviving peptides are exactly the expected ones (in document order)
+  // and carry evidence only for surviving proteins -- guards against a regression
+  // that keeps the count at 5 but substitutes a skipped peptide or attaches stale
+  // evidence from a filtered protein.
+  TEST_EQUAL(peptides.getHits()[0].getSequence().toString(), "AAAPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[1].getSequence().toString(), "BBPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[2].getSequence().toString(), "SHAREDPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[3].getSequence().toString(), "UNIQUEPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[4].getSequence().toString(), "VALIDPEP");
+
+  // The two leader peptides reference only LEADER_PROT (the subsumable sibling that
+  // also listed AAAPEPTIDE was filtered, so no stale evidence remains).
+  TEST_EQUAL(peptides.getHits()[0].getPeptideEvidences().size(), 1);
+  TEST_EQUAL(peptides.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "LEADER_PROT");
+
+  // SHAREDPEPTIDE belongs to the PROT_A/PROT_B indistinguishable group -> two evidences.
+  TEST_EQUAL(peptides.getHits()[2].getPeptideEvidences().size(), 2);
+  TEST_EQUAL(peptides.getHits()[2].getPeptideEvidences()[0].getProteinAccession(), "PROT_A");
+  TEST_EQUAL(peptides.getHits()[2].getPeptideEvidences()[1].getProteinAccession(), "PROT_B");
+
+  // VALIDPEP references only VALID_AFTER (SUB_FIRST + SUB_FIRST_SIB were skipped).
+  TEST_EQUAL(peptides.getHits()[4].getPeptideEvidences().size(), 1);
+  TEST_EQUAL(peptides.getHits()[4].getPeptideEvidences()[0].getProteinAccession(), "VALID_AFTER");
 }
 END_SECTION
 
