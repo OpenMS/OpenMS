@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
 #include <sqlite3.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/range/algorithm.hpp>
@@ -44,7 +44,7 @@ namespace OpenMS
     bool tableHasRows_(sqlite3* db, const std::string& table_name)
     {
       sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt, "SELECT 1 FROM " + table_name + " LIMIT 1;");
+      Internal::SqliteHelper::prepareStatement(db, &stmt, "SELECT 1 FROM " + table_name + " LIMIT 1;");
       const bool has_rows = sqlite3_step(stmt) == SQLITE_ROW;
       sqlite3_finalize(stmt);
       return has_rows;
@@ -55,16 +55,16 @@ namespace OpenMS
       // Large PQP libraries are streamed once from a read-only connection. A bounded
       // SQLite page cache and mmap window reduce cold-cache wall time without
       // materializing the database or changing file contents.
-      SqliteConnector::executeStatement(db, "PRAGMA cache_size = -524288;");
-      SqliteConnector::executeStatement(db, "PRAGMA mmap_size = 8589934592;");
-      SqliteConnector::executeStatement(db, "PRAGMA query_only = ON;");
+      Internal::SqliteHelper::executeStatement(db, "PRAGMA cache_size = -524288;");
+      Internal::SqliteHelper::executeStatement(db, "PRAGMA mmap_size = 8589934592;");
+      Internal::SqliteHelper::executeStatement(db, "PRAGMA query_only = ON;");
 #ifdef _OPENMP
       int sqlite_threads = omp_get_max_threads();
       if (sqlite_threads < 1)
       {
         sqlite_threads = 1;
       }
-      SqliteConnector::executeStatement(db, "PRAGMA threads = " + StringUtils::toStr(sqlite_threads) + ";");
+      Internal::SqliteHelper::executeStatement(db, "PRAGMA threads = " + StringUtils::toStr(sqlite_threads) + ";");
 #endif
     }
   }
@@ -76,8 +76,9 @@ namespace OpenMS
 
   TransitionPQPFile::~TransitionPQPFile() = default;
 
-  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id, bool stable_order) const
+  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(void* db_native, bool legacy_traml_id, bool stable_order) const
   {
+    sqlite3* db = static_cast<sqlite3*>(db_native);
     PQPSqlQueryInfo info;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
@@ -87,7 +88,7 @@ namespace OpenMS
 
     // Check for optional columns/tables
     std::string select_drift_time;
-    info.drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
+    info.drift_time_exists = Internal::SqliteHelper::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
     if (info.drift_time_exists)
     {
       select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
@@ -96,7 +97,7 @@ namespace OpenMS
     std::string select_gene;
     std::string select_gene_null;
     std::string join_gene;
-    info.gene_exists = SqliteConnector::tableExists(db, "GENE");
+    info.gene_exists = Internal::SqliteHelper::tableExists(db, "GENE");
     if (info.gene_exists)
     {
       // Check if the GENE table actually has any data (issue #8687).
@@ -119,17 +120,17 @@ namespace OpenMS
     }
 
     std::string select_annotation = "'' AS Annotation, ";
-    bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
+    bool annotation_exists = Internal::SqliteHelper::columnExists(db, "TRANSITION", "ANNOTATION");
     if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
 
     std::string select_adducts = "'' AS Adducts, ";
-    bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
+    bool adducts_exists = Internal::SqliteHelper::columnExists(db, "COMPOUND", "ADDUCTS");
     if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
 
-    info.compound_exists = SqliteConnector::tableExists(db, "PRECURSOR_COMPOUND_MAPPING") &&
+    info.compound_exists = Internal::SqliteHelper::tableExists(db, "PRECURSOR_COMPOUND_MAPPING") &&
                            tableHasRows_(db, "PRECURSOR_COMPOUND_MAPPING");
 
-    info.peptidoforms_exists = SqliteConnector::tableExists(db, "TRANSITION_PEPTIDE_MAPPING") &&
+    info.peptidoforms_exists = Internal::SqliteHelper::tableExists(db, "TRANSITION_PEPTIDE_MAPPING") &&
                                tableHasRows_(db, "TRANSITION_PEPTIDE_MAPPING");
 
     std::string select_peptidoforms = "NULL AS peptidoforms ";
@@ -256,11 +257,11 @@ namespace OpenMS
 
     // Open database
     SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READ_ONLY);
-    db = conn.getDB();
+    db = Internal::SqliteHelper::getNativeHandle(conn);
     configurePQPReadConnection_(db);
 
     // Count transitions
-    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
+    Internal::SqliteHelper::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
     const Size num_transitions = static_cast<Size>(sqlite3_column_int64(cntstmt, 0));
     sqlite3_finalize(cntstmt);
@@ -270,7 +271,7 @@ namespace OpenMS
     PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id, true);
 
     // Execute SQL select statement
-    SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
+    Internal::SqliteHelper::prepareStatement(db, &stmt, query_info.select_sql);
     sqlite3_step(stmt);
     endProgress();
 
@@ -347,11 +348,11 @@ namespace OpenMS
 
     // Open database
     SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READ_ONLY);
-    db = conn.getDB();
+    db = Internal::SqliteHelper::getNativeHandle(conn);
     configurePQPReadConnection_(db);
 
     // Count transitions
-    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
+    Internal::SqliteHelper::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
     const Size num_transitions = static_cast<Size>(sqlite3_column_int64(cntstmt, 0));
     sqlite3_finalize(cntstmt);
@@ -361,12 +362,12 @@ namespace OpenMS
     // streaming query will read those tables once; reserve from the transition
     // count keeps allocation churn low without extra cold-cache I/O.
     const Size estimated_precursor_count = estimatePrecursorCountFromTransitions_(num_transitions);
-    if (SqliteConnector::tableExists(db, "PRECURSOR"))
+    if (Internal::SqliteHelper::tableExists(db, "PRECURSOR"))
     {
       exp.compounds.reserve(estimated_precursor_count);
       compound_seen.reserve(estimated_precursor_count);
     }
-    if (SqliteConnector::tableExists(db, "PROTEIN"))
+    if (Internal::SqliteHelper::tableExists(db, "PROTEIN"))
     {
       const Size estimated_protein_count = std::min(estimated_precursor_count, max_protein_reserve);
       exp.proteins.reserve(estimated_protein_count);
@@ -378,7 +379,7 @@ namespace OpenMS
     PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id, stable_order);
 
     // Execute SQL select statement
-    SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
+    Internal::SqliteHelper::prepareStatement(db, &stmt, query_info.select_sql);
     sqlite3_step(stmt);
     endProgress();
 
@@ -1007,17 +1008,17 @@ namespace OpenMS
 
     // Open database
     SqliteConnector conn(filename);
-    db = conn.getDB();
+    db = Internal::SqliteHelper::getNativeHandle(conn);
 
     // Count Precursors 
-    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM " + tableName + ";");
+    Internal::SqliteHelper::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM " + tableName + ";");
     sqlite3_step( cntstmt );
     sqlite3_finalize(cntstmt);
 
     std::string query = "SELECT ID, TRAML_ID FROM " + tableName + ";"; 
 
     // Execute SQL select statement
-    SqliteConnector::prepareStatement(db, &stmt, query);
+    Internal::SqliteHelper::prepareStatement(db, &stmt, query);
     sqlite3_step(stmt);
 
     while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)

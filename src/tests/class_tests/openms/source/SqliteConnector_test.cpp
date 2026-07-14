@@ -11,6 +11,12 @@
 
 ///////////////////////////
 
+// NOTE: this test deliberately includes only the public, SQLite-free header.
+// SQLite is a private dependency of OpenMS, so downstream consumers (like this
+// test) do not have <sqlite3.h> on their include path. The raw SQLite C API
+// (Internal::SqliteHelper, sqlite3*/sqlite3_stmt*) lives in the non-installed
+// <OpenMS/FORMAT/SqliteConnector_impl.h> and is exercised transitively by the
+// OSWFile / MzMLSqlite / TransitionPQP tests. Here we cover the public API only.
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <vector>
@@ -40,7 +46,7 @@ START_SECTION((SqliteConnector(const std::string& filename, const SqlOpenMode mo
   // READWRITE_OR_CREATE creates the database if it does not exist
   ptr = new SqliteConnector(tmp_db, Mode::READWRITE_OR_CREATE);
   TEST_NOT_EQUAL(ptr, null_ptr)
-  TEST_NOT_EQUAL(ptr->getDB(), nullptr)
+  TEST_NOT_EQUAL(ptr->nativeHandle(), nullptr)
 }
 END_SECTION
 
@@ -50,10 +56,12 @@ START_SECTION((~SqliteConnector()))
 }
 END_SECTION
 
-START_SECTION((sqlite3* getDB()))
+START_SECTION((void* nativeHandle() const))
 {
+  // The public accessor returns an opaque (void*) native handle without exposing
+  // any SQLite type; it must be non-null for an opened connection.
   SqliteConnector conn(tmp_db, Mode::READWRITE_OR_CREATE);
-  TEST_NOT_EQUAL(conn.getDB(), nullptr)
+  TEST_NOT_EQUAL(conn.nativeHandle(), nullptr)
 }
 END_SECTION
 
@@ -65,7 +73,7 @@ START_SECTION((void executeStatement(const std::string& statement)))
   conn.executeStatement("INSERT INTO T (ID, NAME) VALUES (1, 'a')");
   TEST_EQUAL(conn.tableExists("T"), true)
 
-  // malformed SQL -> IllegalArgument
+  // malformed SQL -> IllegalArgument (exercises the internal prepare/exec error path)
   TEST_EXCEPTION(Exception::IllegalArgument, conn.executeStatement("THIS IS NOT SQL"))
 }
 END_SECTION
@@ -101,7 +109,7 @@ START_SECTION((Size countTableRows(const std::string& table_name)))
   conn.executeStatement("INSERT INTO T (ID, NAME) VALUES (2, 'b')");
   TEST_EQUAL(conn.countTableRows("T"), 2)
 
-  // unknown table cannot be prepared -> IllegalArgument
+  // unknown table cannot be prepared -> IllegalArgument (exercises the internal prepare error path)
   TEST_EXCEPTION(Exception::IllegalArgument, conn.countTableRows("UNKNOWN"))
 }
 END_SECTION
@@ -113,41 +121,6 @@ START_SECTION((void executeBindStatement(const std::string& prepare_statement, c
   conn.executeStatement("CREATE TABLE T (ID INT, NAME TEXT)");
   conn.executeBindStatement("INSERT INTO T (ID, NAME) VALUES (1, ?1)", std::vector<std::string>{"bound_value"});
   TEST_EQUAL(conn.countTableRows("T"), 1)
-}
-END_SECTION
-
-START_SECTION((void prepareStatement(sqlite3_stmt** stmt, const std::string& prepare_statement)))
-{
-  // The happy path is exercised transitively by tableExists/columnExists/countTableRows
-  // above. Here we cover the error path without depending on the raw sqlite3 C API
-  // (sqlite3_stmt is only forward-declared in the public header).
-  SqliteConnector conn(tmp_db, Mode::READWRITE_OR_CREATE);
-  conn.executeStatement("DROP TABLE IF EXISTS T");
-  conn.executeStatement("CREATE TABLE T (ID INT, NAME TEXT)");
-
-  // invalid statement -> IllegalArgument (no statement is allocated on failure)
-  sqlite3_stmt* bad = nullptr;
-  TEST_EXCEPTION(Exception::IllegalArgument, conn.prepareStatement(&bad, "SELECT FROM NOPE NONSENSE"))
-}
-END_SECTION
-
-START_SECTION((static bool tableExists(sqlite3* db, const std::string& tablename)))
-{
-  SqliteConnector conn(tmp_db, Mode::READWRITE_OR_CREATE);
-  conn.executeStatement("DROP TABLE IF EXISTS T");
-  conn.executeStatement("CREATE TABLE T (ID INT, NAME TEXT)");
-  TEST_EQUAL(SqliteConnector::tableExists(conn.getDB(), "T"), true)
-  TEST_EQUAL(SqliteConnector::tableExists(conn.getDB(), "NOPE"), false)
-}
-END_SECTION
-
-START_SECTION((static bool columnExists(sqlite3* db, const std::string& tablename, const std::string& colname)))
-{
-  SqliteConnector conn(tmp_db, Mode::READWRITE_OR_CREATE);
-  conn.executeStatement("DROP TABLE IF EXISTS T");
-  conn.executeStatement("CREATE TABLE T (ID INT, NAME TEXT)");
-  TEST_EQUAL(SqliteConnector::columnExists(conn.getDB(), "T", "NAME"), true)
-  TEST_EQUAL(SqliteConnector::columnExists(conn.getDB(), "T", "MISSING"), false)
 }
 END_SECTION
 

@@ -10,9 +10,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
-// Forward declaration for SQLite
-struct sqlite3;
-
 namespace OpenMS
 {
 
@@ -210,12 +207,13 @@ private:
      * This helper builds the SQL query used by both readPQPInput_ and
      * streamPQPToLightTargetedExperiment_ to avoid code duplication.
      *
-     * @param[in] db The SQLite database connection
+     * @param[in] db Opaque native SQLite handle (sqlite3*), passed as void* so this
+     *               installed header stays free of any SQLite type (see SqliteConnector_impl.h)
      * @param[in] legacy_traml_id Whether to use legacy TraML IDs
      * @param[in] stable_order Whether to apply the legacy deterministic row order
      * @return PQPSqlQueryInfo containing the query and column availability flags
      */
-    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id, bool stable_order) const;
+    PQPSqlQueryInfo buildPQPSelectQuery_(void* db, bool legacy_traml_id, bool stable_order) const;
 
     /** @brief Read PQP SQLite file
      *

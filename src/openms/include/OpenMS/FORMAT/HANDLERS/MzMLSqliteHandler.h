@@ -13,10 +13,6 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
-// forward declarations
-struct sqlite3;
-struct sqlite3_stmt;
-
 namespace OpenMS
 {
   class ProgressLogger;
@@ -148,17 +144,19 @@ public:
 
 protected:
 
-      void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const;
+      // @p db is an opaque native SQLite handle (sqlite3*), passed as void* so that
+      // this installed header stays free of any SQLite type. See SqliteConnector_impl.h.
+      void populateChromatogramsWithData_(void* db, std::vector<MSChromatogram>& chromatograms) const;
 
-      void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const;
+      void populateChromatogramsWithData_(void* db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const;
 
-      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const;
+      void populateSpectraWithData_(void* db, std::vector<MSSpectrum>& spectra) const;
 
-      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const;
+      void populateSpectraWithData_(void* db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const;
 
-      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices = {}) const;
+      void prepareChroms_(void* db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices = {}) const;
 
-      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices = {}) const;
+      void prepareSpectra_(void* db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices = {}) const;
       //@}
 
 public:
