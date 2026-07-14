@@ -79,6 +79,11 @@ IGNORE_PREFIX          =
 # configuration options related to the HTML output
 #---------------------------------------------------------------------------
 GENERATE_HTML          = YES
+
+# Render LaTeX formulas client-side via MathJax (also set in Doxyfile.in and
+# inherited via @INCLUDE, but made explicit here) so the 'doc_dot' target does
+# not require LaTeX/dvips/ghostscript to render formulas.
+USE_MATHJAX            = YES
 HTML_HEADER            =
 HTML_FOOTER            = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/footer.html
 

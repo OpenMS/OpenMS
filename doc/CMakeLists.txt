@@ -88,8 +88,8 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # the doc targets
   #------------------------------------------------------------------------------
-  # As soon as there is a TeX formula in the html documentation we need LaTeX, dvips and ghostscript.
-  # Probably only affects class documentation.
+  # TeX formulas in the HTML documentation are rendered client-side via MathJax
+  # (USE_MATHJAX=YES in the Doxyfiles), so LaTeX, dvips and ghostscript are not needed.
 
   if (Doxygen_FOUND)
 
