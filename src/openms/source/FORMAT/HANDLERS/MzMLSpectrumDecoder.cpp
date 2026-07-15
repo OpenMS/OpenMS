@@ -16,6 +16,7 @@
 #include <xercesc/dom/DOMNodeList.hpp>
 
 #include <memory>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -132,7 +133,7 @@ namespace OpenMS
     {
       for (Size n = 0; n < data.decoded_char.size(); n++)
       {
-        String value = data.decoded_char[n];
+        std::string value = data.decoded_char[n];
         spectrum.getStringDataArrays().back().push_back(value);
       }
     }
@@ -422,8 +423,9 @@ namespace OpenMS
     return sptr;
   }
 
-  void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data)
+  void MzMLSpectrumDecoder::handleBinaryDataArray_(void* indexListNode_opaque, std::vector<BinaryData>& data)
   {
+    xercesc::DOMNode* indexListNode = static_cast<xercesc::DOMNode*>(indexListNode_opaque);
     // access result through data.back()
     data.emplace_back();
 
@@ -555,8 +557,8 @@ namespace OpenMS
     }
 
     OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("spectrum")) || xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("chromatogram")),
-          (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
-          String(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + String("'.")).c_str())
+          ("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '" +
+          StringUtils::toStr(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + std::string("'.")).c_str())
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).

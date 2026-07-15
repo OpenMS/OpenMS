@@ -14,28 +14,28 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool DigestionEnzymeRNA::setValueFromFile(const String& key, const String& value)
+  bool DigestionEnzymeRNA::setValueFromFile(const std::string& key, const std::string& value)
   {
     if (DigestionEnzyme::setValueFromFile(key, value))
     {
       return true;
     }
-    if (key.hasSuffix(":CutsAfter"))
+    if (StringUtils::hasSuffix(key, ":CutsAfter"))
     {
       setCutsAfterRegEx(value);
       return true;
     }
-    if (key.hasSuffix(":CutsBefore"))
+    if (StringUtils::hasSuffix(key, ":CutsBefore"))
     {
       setCutsBeforeRegEx(value);
       return true;
     }
-    if (key.hasSuffix(":ThreePrimeGain"))
+    if (StringUtils::hasSuffix(key, ":ThreePrimeGain"))
     {
       setThreePrimeGain(value);
       return true;
     }
-    if (key.hasSuffix(":FivePrimeGain"))
+    if (StringUtils::hasSuffix(key, ":FivePrimeGain"))
     {
       setFivePrimeGain(value);
       return true;
@@ -43,42 +43,42 @@ namespace OpenMS
     return false;
   }
 
-  void DigestionEnzymeRNA::setCutsAfterRegEx(const String& value)
+  void DigestionEnzymeRNA::setCutsAfterRegEx(const std::string& value)
   {
     cuts_after_regex_ = value;
   }
 
-  String DigestionEnzymeRNA::getCutsAfterRegEx() const
+  std::string DigestionEnzymeRNA::getCutsAfterRegEx() const
   {
     return cuts_after_regex_;
   }
 
-  void DigestionEnzymeRNA::setCutsBeforeRegEx(const String& value)
+  void DigestionEnzymeRNA::setCutsBeforeRegEx(const std::string& value)
   {
     cuts_before_regex_ = value;
   }
 
-  String DigestionEnzymeRNA::getCutsBeforeRegEx() const
+  std::string DigestionEnzymeRNA::getCutsBeforeRegEx() const
   {
     return cuts_before_regex_;
   }
 
-  void DigestionEnzymeRNA::setThreePrimeGain(const String& value)
+  void DigestionEnzymeRNA::setThreePrimeGain(const std::string& value)
   {
     three_prime_gain_ = value;
   }
 
-  String DigestionEnzymeRNA::getThreePrimeGain() const
+  std::string DigestionEnzymeRNA::getThreePrimeGain() const
   {
     return three_prime_gain_;
   }
 
-  void DigestionEnzymeRNA::setFivePrimeGain(const String& value)
+  void DigestionEnzymeRNA::setFivePrimeGain(const std::string& value)
   {
     five_prime_gain_ = value;
   }
 
-  String DigestionEnzymeRNA::getFivePrimeGain() const
+  std::string DigestionEnzymeRNA::getFivePrimeGain() const
   {
     return five_prime_gain_;
   }

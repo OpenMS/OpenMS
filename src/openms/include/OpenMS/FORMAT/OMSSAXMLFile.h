@@ -20,7 +20,6 @@
 
 namespace OpenMS
 {
-  class String;
   class ModificationsDB;
 
   /**
@@ -59,7 +58,7 @@ public:
 
       @ingroup FileIO
     */
-    void load(const String& filename,
+    void load(const std::string& filename,
               ProteinIdentification& protein_identification,
               PeptideIdentificationList& id_data,
               bool load_proteins = true,
@@ -70,13 +69,13 @@ public:
 
 protected:
     // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
+    void onEndElement(const char16_t* qname) override;
 
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+    void onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes) override;
 
     // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
+    void onCharacters(const char16_t* chars, Size /*length*/) override;
 
 private:
 
@@ -102,16 +101,16 @@ private:
 
     ProteinIdentification actual_protein_id_;
 
-    String tag_;
+    std::string tag_;
 
     /// site of the actual modification (simple position in the peptide)
     UInt actual_mod_site_;
 
     /// type of the modification
-    String actual_mod_type_;
+    std::string actual_mod_type_;
 
     /// modifications of the peptide defined by site and type
-    std::vector<std::pair<UInt, String> > modifications_;
+    std::vector<std::pair<UInt, std::string> > modifications_;
 
     /// should protein hits be read from the file?
     bool load_proteins_;
@@ -123,7 +122,7 @@ private:
     std::map<UInt, std::vector<const ResidueModification*> > mods_map_;
 
     /// modification mapping reverse, from the modification to the mod_num
-    std::map<String, UInt> mods_to_num_;
+    std::map<std::string, UInt> mods_to_num_;
 
     /// modification definitions set of the search, needed to annotate fixed modifications
     ModificationDefinitionsSet mod_def_set_;

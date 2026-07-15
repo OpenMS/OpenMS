@@ -10,8 +10,10 @@
 
 #include <array>
 #include <cstdlib>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -20,6 +22,7 @@
   #include <process.h>  // for _getpid()
 #elif __APPLE__
   #include <mach/mach.h>
+  #include <mach/mach_host.h>
   #include <mach/mach_init.h>
   #include <unistd.h>   // for getpid()
 #else
@@ -100,6 +103,56 @@ namespace OpenMS
     fclose(f);
     return true;
   }
+
+  bool read_available_memory_linux(size_t& mem_available)
+  {
+    mem_available = 0;
+
+    std::ifstream meminfo("/proc/meminfo");
+    std::string line;
+    while (std::getline(meminfo, line))
+    {
+      std::istringstream iss(line);
+      std::string key;
+      UInt64 value = 0;
+      if (!(iss >> key >> value))
+      {
+        continue;
+      }
+
+      if (key == "MemAvailable:")
+      {
+        if (value > static_cast<UInt64>(std::numeric_limits<size_t>::max()))
+        {
+          mem_available = std::numeric_limits<size_t>::max();
+        }
+        else
+        {
+          mem_available = static_cast<size_t>(value);
+        }
+        return true;
+      }
+    }
+
+    const long available_pages = sysconf(_SC_AVPHYS_PAGES);
+    const long page_size = sysconf(_SC_PAGESIZE);
+    if (available_pages <= 0 || page_size <= 0)
+    {
+      return false;
+    }
+
+    const UInt64 available_kb = static_cast<UInt64>(available_pages) *
+                                static_cast<UInt64>(page_size) / 1024ull;
+    if (available_kb > static_cast<UInt64>(std::numeric_limits<size_t>::max()))
+    {
+      mem_available = std::numeric_limits<size_t>::max();
+    }
+    else
+    {
+      mem_available = static_cast<size_t>(available_kb);
+    }
+    return true;
+  }
 #endif
 
   bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
@@ -130,6 +183,46 @@ namespace OpenMS
       return false;
     }
     mem_virtual = (size_t)mem.resident * (size_t)sysconf(_SC_PAGESIZE) / 1024; // byte to KB
+#endif
+    return true;
+  }
+
+  bool SysInfo::getFreeSystemMemory(size_t& mem_available)
+  {
+    mem_available = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    if (!GlobalMemoryStatusEx(&status))
+    {
+      return false;
+    }
+    mem_available = static_cast<size_t>(status.ullAvailPhys / 1024ull);
+#elif __APPLE__
+    vm_size_t page_size = 0;
+    if (KERN_SUCCESS != host_page_size(mach_host_self(), &page_size))
+    {
+      return false;
+    }
+
+    vm_statistics64_data_t vm_stat;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if (KERN_SUCCESS != host_statistics64(mach_host_self(),
+                                          HOST_VM_INFO64,
+                                          reinterpret_cast<host_info64_t>(&vm_stat),
+                                          &count))
+    {
+      return false;
+    }
+
+    const UInt64 available_pages = static_cast<UInt64>(vm_stat.free_count) +
+                                   static_cast<UInt64>(vm_stat.inactive_count);
+    mem_available = static_cast<size_t>(available_pages * static_cast<UInt64>(page_size) / 1024ull);
+#else // Linux
+    if (!read_available_memory_linux(mem_available))
+    {
+      return false;
+    }
 #endif
     return true;
   }
@@ -198,13 +291,13 @@ namespace OpenMS
     SysInfo::getProcessPeakMemoryConsumption(mem_after_peak);
   }
 
-  String SysInfo::MemUsage::delta(const String& event)
+  std::string SysInfo::MemUsage::delta(const std::string& event)
   {
     if (mem_after == 0)
     {
       after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
     }
-    String s = String("Memory usage (") + event + "): ";
+    std::string s =std::string("Memory usage (") + event + "): ";
     s += diff_str_(mem_before, mem_after) + " (working set delta)";
     if (mem_after_peak > 0)
     { // only if supported
@@ -213,13 +306,13 @@ namespace OpenMS
     return s;
   }
 
-  String SysInfo::MemUsage::usage()
+  std::string SysInfo::MemUsage::usage()
   {
     if (mem_after == 0)
     {
       after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
     }
-    String s("Memory usage: ");
+    std::string s("Memory usage: ");
     s += diff_str_(0, mem_after) + " (working set)";
     if (mem_after_peak > 0)
     { // only if supported
@@ -228,14 +321,14 @@ namespace OpenMS
     return s;
   }
 
-  String SysInfo::MemUsage::diff_str_(size_t mem_before, size_t mem_after)
+  std::string SysInfo::MemUsage::diff_str_(size_t mem_before, size_t mem_after)
   {
-    String s;
+    std::string s;
     if (mem_after < mem_before)
     {
-      s += String("-");
+      s +=std::string("-");
     }
-    s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
+    s =StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
 

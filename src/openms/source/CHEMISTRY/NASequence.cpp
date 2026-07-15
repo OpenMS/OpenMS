@@ -100,7 +100,7 @@ namespace OpenMS
     ConstRibonucleotidePtr threeEnd = nullptr;
     if (seq_[seq_.size() - length - 1]->getCode().back() == '*')
     {
-      static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+      static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
       threeEnd = rdb->getRibonucleotide("5'-p*");
     }
     return NASequence({seq_.end() - length, seq_.end()}, threeEnd, three_prime_);
@@ -121,7 +121,7 @@ namespace OpenMS
     if (start > 0 && seq_[start - 1]->getCode().back() == '*' )
     {
       cout << seq_[start - 1]->getCode();
-      static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+      static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
       five_prime = rdb->getRibonucleotide("5'-p*");
       if (five_prime == nullptr)
       {
@@ -282,11 +282,11 @@ namespace OpenMS
   NASequence NASequence::fromString(const char* s)
   {
     NASequence nas;
-    parseString_(String(s), nas);
+    parseString_(std::string(s), nas);
     return nas;
   }
 
-  NASequence NASequence::fromString(const String& s)
+  NASequence NASequence::fromString(const std::string& s)
   {
     NASequence nas;
     parseString_(s, nas);
@@ -298,7 +298,7 @@ namespace OpenMS
     string s;
     if (five_prime_)
     {
-      const String& code = five_prime_->getCode();
+      const std::string& code = five_prime_->getCode();
       if (code == "5'-p")
       {
         s = "p";
@@ -315,7 +315,7 @@ namespace OpenMS
 
     for (const auto& r : seq_)
     {
-      const String& code = r->getCode();
+      const std::string& code = r->getCode();
       if (code.size() == 1)
       {
         s += code;
@@ -328,7 +328,7 @@ namespace OpenMS
 
     if (three_prime_)
     {
-      const String& code = three_prime_->getCode();
+      const std::string& code = three_prime_->getCode();
       if (code == "3'-p")
       {
         s += "p";
@@ -352,16 +352,16 @@ namespace OpenMS
     five_prime_ = nullptr;
   }
 
-  void NASequence::parseString_(const String& s, NASequence& nas)
+  void NASequence::parseString_(const std::string& s, NASequence& nas)
   {
     nas.clear();
 
     if (s.empty())
       return;
 
-    static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
 
-    String::ConstIterator str_it = s.begin();
+    std::string::const_iterator str_it = s.begin();
     if (*str_it == 'p') // special case for 5' phosphate
     {
       nas.setFivePrimeMod(rdb->getRibonucleotide("5'-p"));
@@ -372,7 +372,7 @@ namespace OpenMS
       nas.setFivePrimeMod(rdb->getRibonucleotide("5'-p*"));
       ++str_it;
     }
-    String::ConstIterator stop = s.end();
+    std::string::const_iterator stop = s.end();
     if ((s.size() > 1) && (s.back() == 'p')) // special case for 3' phosphate
     {
       nas.setThreePrimeMod(rdb->getRibonucleotide("3'-p"));
@@ -399,7 +399,7 @@ namespace OpenMS
         }
         catch (Exception::ElementNotFound&)
         {
-          String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
+          std::string msg = "Cannot convert string to nucleic acid sequence: invalid character '" + StringUtils::toStr(*str_it) + "'";
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s, msg);
         }
       }
@@ -411,12 +411,12 @@ namespace OpenMS
     }
   }
 
-  String::ConstIterator NASequence::parseMod_(const String::ConstIterator str_it, const String& str, NASequence& nas)
+  std::string::const_iterator NASequence::parseMod_(const std::string::const_iterator str_it, const std::string& str, NASequence& nas)
   {
-    static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
-    String::ConstIterator mod_start(str_it);
-    String::ConstIterator mod_end(++mod_start);
+    std::string::const_iterator mod_start(str_it);
+    std::string::const_iterator mod_end(++mod_start);
     while ((mod_end != str.end()) && (*mod_end != ']'))
     {
       ++mod_end; // advance to closing bracket

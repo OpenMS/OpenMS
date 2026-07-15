@@ -12,6 +12,8 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <set>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -24,7 +26,7 @@ namespace OpenMS
   class OPENMS_DLLAPI PercolatorInfile
   {
     public:
-      static void store(const String& pin_file, 
+      static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
         const std::string& enz, 
@@ -59,18 +61,62 @@ namespace OpenMS
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
       * TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));      
       */
-      static PeptideIdentificationList load(const String& pin_file, 
+      static PeptideIdentificationList load(const std::string& pin_file, 
         bool higher_score_better, 
-        const String& score_name, 
+        const std::string& score_name, 
         const StringList& extra_scores,
         StringList& filenames, 
-        String decoy_prefix = "",
+        std::string decoy_prefix = "",
         double threshold = 0.01, 
         bool SageAnnotation = false);
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-      static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
-      
+      static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
+
+      /**
+       * @brief Returns the standard Percolator feature columns every .pin file should declare.
+       *
+       * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
+       * followed by the standard per-PSM features that @ref preparePin_ computes and
+       * sets on every hit: ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN,
+       * enzC, enzInt, dm, absdm. Callers should append their search-engine-specific
+       * extra_features (and finally Peptide, Proteins) to this list before calling @ref store.
+       * This is the single source of truth used by PercolatorAdapter and any other
+       * tool that emits .pin for external percolator consumption.
+       */
+      static StringList getStandardFeatureSet(int min_charge, int max_charge);
+
+      /**
+       * @brief Compute and stamp PIN-equivalent meta values on every PeptideHit.
+       *
+       * Runs the same per-hit computation that @ref preparePin_ applies when
+       * writing a .pin file — but mutates the PeptideIdentifications in place
+       * instead of writing to a text file. After this call, each kept hit
+       * carries the full set of PIN meta values:
+       *   SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime,
+       *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
+       *   absdm, Peptide, Proteins.
+       *
+       * Useful for in-process Percolator training (see OpenMS::Percolator):
+       * callers can then train on the exact same feature vectors the
+       * subprocess path would have seen via the .pin round-trip.
+       *
+       * Hits with empty PeptideEvidences or UNKNOWN target/decoy status are
+       * left untouched; their (pid_index, hit_index) pairs are returned so
+       * callers know to skip them.
+       *
+       * @param peptide_ids Mutated in place; each kept hit gets new meta values.
+       * @param enz         Enzyme name (same values accepted as for @ref store).
+       * @param min_charge  Lower bound for the charge{N} one-hot features.
+       * @param max_charge  Upper bound for the charge{N} one-hot features.
+       * @return Indices of skipped hits as (pid_index, hit_index) pairs.
+       */
+      static std::set<std::pair<size_t, size_t>> stampPinFeaturesOnHits(
+        PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge);
+
     protected:
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
@@ -83,7 +129,7 @@ namespace OpenMS
 
       static bool isEnz_(const char& n, const char& c, const std::string& enz);
 
-      static Size countEnzymatic_(const String& peptide, const std::string& enz);
+      static Size countEnzymatic_(const std::string& peptide, const std::string& enz);
 
   };
 } // namespace OpenMS

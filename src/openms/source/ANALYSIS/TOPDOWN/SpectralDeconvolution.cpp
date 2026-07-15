@@ -9,6 +9,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #ifdef _OPENMP
   #include <omp.h>
 #endif
@@ -142,7 +144,7 @@ namespace OpenMS
 
     for (const auto& p : spec)
     {
-      if (signal_mzs.find(p.getMZ()) != signal_mzs.end()) { continue; }
+      if (signal_mzs.contains(p.getMZ())) { continue; }
       nspec.push_back(p);
     }
     deconvolved_spectrum_.setOriginalSpectrum(nspec);
@@ -1185,7 +1187,7 @@ namespace OpenMS
     {
       auto& pg = deconvolved_spectrum_[k];
 
-      if (!indices.empty() && (indices.find(k) == indices.end()))
+      if (!indices.empty() && (!indices.contains(k)))
       {
         continue;
       }

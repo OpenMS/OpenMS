@@ -30,7 +30,7 @@ namespace OpenMS
 
   FeatureXMLFile::~FeatureXMLFile() = default;
 
-  Size FeatureXMLFile::loadSize(const String& filename)
+  Size FeatureXMLFile::loadSize(const std::string& filename)
   {
     FeatureMap dummy;
     Internal::FeatureXMLHandler handler(dummy, filename);
@@ -42,7 +42,7 @@ namespace OpenMS
     return handler.getSize();
   }
 
-  void FeatureXMLFile::load(const String& filename, FeatureMap& feature_map)
+  void FeatureXMLFile::load(const std::string& filename, FeatureMap& feature_map)
   {
     feature_map.clear(true);
     //set DocumentIdentifier
@@ -69,7 +69,7 @@ namespace OpenMS
     feature_map.updateRanges();
   }
 
-  void FeatureXMLFile::store(const String& filename, const FeatureMap& feature_map)
+  void FeatureXMLFile::store(const std::string& filename, const FeatureMap& feature_map)
   {
 
     if (!FileHandler::hasValidExtension(filename, FileTypes::FEATUREXML))
@@ -84,7 +84,7 @@ namespace OpenMS
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.
       // Note also that we are given a const reference.
-      OPENMS_LOG_INFO << String("FeatureXMLHandler::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+      OPENMS_LOG_INFO << std::string("FeatureXMLHandler::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
     }
 
     // This will throw if the unique ids are not unique,

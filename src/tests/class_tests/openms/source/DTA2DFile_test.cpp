@@ -56,7 +56,7 @@ START_SECTION(PeakFileOptions& getOptions())
   TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 END_SECTION
 
-START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
+START_SECTION((template<typename MapType> void load(const std::string& filename, MapType& map) ))
   TOLERANCE_ABSOLUTE(0.01)
 
   PeakMap e;
@@ -263,7 +263,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 END_SECTION
 
-START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))
+START_SECTION((template<typename MapType> void store(const std::string& filename, const MapType& map) const ))
   TOLERANCE_ABSOLUTE(0.1)
   std::string tmp_filename;
   PeakMap e;
@@ -402,7 +402,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
 
 END_SECTION
 
-START_SECTION((template<typename MapType> void storeTIC(const String& filename, const MapType& map) const ))
+START_SECTION((template<typename MapType> void storeTIC(const std::string& filename, const MapType& map) const ))
   TOLERANCE_ABSOLUTE(0.1)
   std::string tmp_filename;
   PeakMap e;

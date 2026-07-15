@@ -17,7 +17,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -47,7 +46,7 @@ namespace OpenMS
          
           Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
          */
-        static void concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine);
+        static void concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine);
 
         /**
           @brief mergeMULTISEPeptideIds
@@ -57,7 +56,7 @@ namespace OpenMS
          
           Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
          */
-        static void mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine);
+        static void mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine);
 
         /**
           @brief mergeMULTISEProteinIds
@@ -95,6 +94,20 @@ namespace OpenMS
           Creates and adds Comet specific Percolator features and registers them in feature_set
          */
         static void addCOMETFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
+
+        /**
+          @brief addANDESFeatures
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] feature_set register of added features
+
+          Collects and registers the andes search engine specific Percolator features.
+          andes annotates every PSM with its own numeric features as MetaValues named
+          with the "andes:" prefix (e.g. "andes:RankScore", "andes:RawScore", ...). Rather
+          than hard-coding the (currently 47) feature names here, all numeric "andes:"-prefixed
+          MetaValues found on the hits are collected, keeping the andes side the single source
+          of truth for its feature set.
+         */
+        static void addANDESFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
           @brief addMASCOTFeatures
@@ -150,10 +163,10 @@ namespace OpenMS
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
 
         /// helper function for assigning the frequently occurring feature delta score
-        static void assignDeltaScore_(std::vector<PeptideHit>& hits, const String& score_ref, const String& output_ref);
+        static void assignDeltaScore_(std::vector<PeptideHit>& hits, const std::string& score_ref, const std::string& output_ref);
 
         /// gets the scan identifier to merge by
-        static String getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start);
+        static std::string getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start);
 
         /// For accession dependent sorting of ProteinHits
         struct lq_ProteinHit

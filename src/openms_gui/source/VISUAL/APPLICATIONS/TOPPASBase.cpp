@@ -140,19 +140,20 @@ namespace OpenMS
     file->addSeparator();
     // Recent files
     file->addMenu(recent_files_menu_.getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
-    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const String& filename) { addTOPPASFile(filename, true);});
+    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const std::string& filename) { addTOPPASFile(filename, true);});
 
     file->addSeparator();
-    file->addAction("&Load TOPPAS resource file", this, SLOT(loadPipelineResourceFile()));
-    file->addAction("Sa&ve TOPPAS resource file", this, SLOT(savePipelineResourceFile()));
+    // loadPipelineResourceFile/savePipelineResourceFile are overloaded (instance slot vs. static helper); pick the no-arg instance slot
+    file->addAction("&Load TOPPAS resource file", this, qOverload<>(&TOPPASBase::loadPipelineResourceFile));
+    file->addAction("Sa&ve TOPPAS resource file", this, qOverload<>(&TOPPASBase::savePipelineResourceFile));
     file->addSeparator();
-    file->addAction("&Quit", qApp, SLOT(quit()));
+    file->addAction("&Quit", qApp, &QApplication::quit);
 
     //Pipeline menu
     QMenu* pipeline = new QMenu("&Pipeline", this);
     menuBar()->addMenu(pipeline);
-    pipeline->addAction("&Run (F5)", this, SLOT(runPipeline()));
-    pipeline->addAction("&Abort", this, SLOT(abortPipeline()));
+    pipeline->addAction("&Run (F5)", this, &TOPPASBase::runPipeline);
+    pipeline->addAction("&Abort", this, &TOPPASBase::abortPipeline);
 
     //Windows menu
     QMenu* windows = new QMenu("&Windows", this);
@@ -165,10 +166,10 @@ namespace OpenMS
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
     action->setShortcut(Qt::Key_F1);
-    action->setData(toQString(String("html/TOPPAS_tutorial.html")));
+    action->setData(toQString(std::string("html/TOPPAS_tutorial.html")));
 
     help->addSeparator();
-    help->addAction("&About", this, SLOT(showAboutDialog()));
+    help->addAction("&About", this, &TOPPASBase::showAboutDialog);
 
 
     //create status bar
@@ -240,7 +241,7 @@ namespace OpenMS
     desc_->document()->setDefaultFont(QFont("Arial", 12));
     description_bar->setWidget(desc_);
     windows->addAction(description_bar->toggleViewAction());
-    connect(desc_, SIGNAL(textChanged()), this, SLOT(descriptionUpdated_()));
+    connect(desc_, &QTextEdit::textChanged, this, &TOPPASBase::descriptionUpdated_);
 
     // set current path
     current_path_ = param_.getValue("preferences:default_path").toString();
@@ -278,7 +279,7 @@ namespace OpenMS
     savePreferences();
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
     // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-    if (String(tmp_path_).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
+    if (StringUtils::hasPrefix(StringUtils::substituted(std::string(tmp_path_), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
     {
       File::removeDirRecursively(tmp_path_);
     }
@@ -290,7 +291,7 @@ namespace OpenMS
     {
       return;
     }
-    //std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
+    //std::cerr << "changed to '" << StringUtils::toStr(desc_->toHtml()) << "'\n";
     activeSubWindow_()->getScene()->setChanged(true);
     activeSubWindow_()->getScene()->setDescription(desc_->toHtml());
   }
@@ -326,14 +327,14 @@ namespace OpenMS
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      if (it->second.category.trim().empty())
+      if (StringUtils::trim(it->second.category).empty())
         it->second.category = "Unassigned";
     }
 
     QSet<QString> category_set;
     for (ToolListType::const_iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      category_set << toQString(String(it->second.category));
+      category_set << toQString(std::string(it->second.category));
     }
 
     QStringList category_list = category_set.values();
@@ -369,7 +370,7 @@ namespace OpenMS
   {
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-      splash_screen->showMessage(toQString((String("Loading file: ") + *it)));
+      splash_screen->showMessage(toQString((std::string("Loading file: ") + *it)));
       splash_screen->repaint();
       QApplication::processEvents();
       addTOPPASFile(*it);
@@ -400,7 +401,7 @@ namespace OpenMS
     addTOPPASFile(fromQString(file_name), false);
   }
 
-  void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
+  void TOPPASBase::addTOPPASFile(const std::string& file_name, bool in_new_window)
   {
     if (file_name.empty()) return;
 
@@ -444,27 +445,24 @@ namespace OpenMS
       TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(*it);
       if (tv)
       {
-        connect(tv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
-        connect(tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
-        connect(tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
-        connect(tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
-        connect(tv, SIGNAL(toolFailed(const QString &)), this, SLOT(updateTOPPOutputLog(const QString &)));
-        // already done in ToppasScene:
+        connect(tv, &TOPPASToolVertex::toolStarted, this, &TOPPASBase::toolStarted);
+        connect(tv, &TOPPASToolVertex::toolFinished, this, &TOPPASBase::toolFinished);
+        connect(tv, &TOPPASToolVertex::toolCrashed, this, &TOPPASBase::toolCrashed);
+        connect(tv, &TOPPASToolVertex::toolFailed, this, &TOPPASBase::toolFailed);
+        // Note: failure logging is already routed by the scene (load()/include() call
+        // connectToolVertexSignals): toolFailed -> pipelineErrorSlot -> messageReady -> updateTOPPOutputLog.
         //connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
         continue;
       }
 
-      TOPPASMergerVertex* tmv = dynamic_cast<TOPPASMergerVertex*>(*it);
-      if (tmv)
-      {
-        connect(tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
-        continue;
-      }
+      // Mergers/collectors are wired by the scene (connectMergerVertexSignals) during load()/include();
+      // their mergeFailed is forwarded to pipelineErrorSlot -> messageReady -> updateTOPPOutputLog. No direct
+      // connection here, which would duplicate the log message.
 
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(*it);
       if (oflv)
       {
-        connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+        connect(oflv, &TOPPASOutputVertex::outputFileWritten, this, &TOPPASBase::outputVertexFinished);
         continue;
       }
     }
@@ -686,14 +684,15 @@ namespace OpenMS
     savePreferences();
   }
 
-  void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption)
+  void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const std::string& caption)
   {
     ws_->addSubWindow(tw);
     tw->showMaximized();
-    connect(tw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
-    connect(tw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
-    connect(tw, SIGNAL(toolDroppedOnWidget(double, double)), this, SLOT(insertNewVertex_(double, double)));
-    connect(tw, SIGNAL(pipelineDroppedOnWidget(const String &, bool)), this, SLOT(addTOPPASFile(const String &, bool)));
+    connect(tw, &TOPPASWidget::sendStatusMessage, this, &TOPPASBase::showStatusMessage);
+    connect(tw, &TOPPASWidget::sendCursorStatus, this, &TOPPASBase::showCursorStatus);
+    // insertNewVertex_ has a defaulted 3rd parameter; new-style connect ignores default args, so forward via lambda
+    connect(tw, &TOPPASWidget::toolDroppedOnWidget, this, [this](double x, double y) { insertNewVertex_(x, y); });
+    connect(tw, &TOPPASWidget::pipelineDroppedOnWidget, this, &TOPPASBase::addTOPPASFile);
     tw->setWindowTitle(toQString(caption));
 
     tw->addToTabBar(tab_bar_, caption, true);
@@ -708,15 +707,15 @@ namespace OpenMS
       tw->show();
     }
     TOPPASScene* scene = tw->getScene();
-    connect(scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
-    connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
-    connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
-    connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
-    connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
-    connect(scene, SIGNAL(messageReady(const QString &)), this, SLOT(updateTOPPOutputLog(const QString &)));
-    connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
-    connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
-    connect(scene, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
+    connect(scene, &TOPPASScene::saveMe, this, &TOPPASBase::savePipeline);
+    connect(scene, &TOPPASScene::selectionCopied, this, &TOPPASBase::saveToClipboard);
+    connect(scene, &TOPPASScene::requestClipboardContent, this, &TOPPASBase::sendClipboardContent);
+    connect(scene, &TOPPASScene::mainWindowNeedsUpdate, this, &TOPPASBase::updateMenu);
+    connect(scene, &TOPPASScene::openInTOPPView, this, &TOPPASBase::openFilesInTOPPView);
+    connect(scene, &TOPPASScene::messageReady, this, &TOPPASBase::updateTOPPOutputLog);
+    connect(scene, &TOPPASScene::entirePipelineFinished, this, &TOPPASBase::showPipelineFinishedLogMessage);
+    connect(scene, &TOPPASScene::entirePipelineFinished, this, &TOPPASBase::updateMenu);
+    connect(scene, &TOPPASScene::pipelineExecutionFailed, this, &TOPPASBase::updateMenu);
 
     QRectF scene_rect = scene->itemsBoundingRect();
     tw->fitInView(scene_rect, Qt::KeepAspectRatio);
@@ -857,10 +856,10 @@ namespace OpenMS
     }
   }
 
-  void TOPPASBase::loadPreferences(String filename)
+  void TOPPASBase::loadPreferences(std::string filename)
   {
     //compose default ini file path
-    String default_ini_file = fromQString(QDir::homePath()) + "/.TOPPAS.ini";
+    std::string default_ini_file = fromQString(QDir::homePath()) + "/.TOPPAS.ini";
 
     if (filename.empty())
     {
@@ -1061,7 +1060,7 @@ namespace OpenMS
 
     TOPPASScene* scene = activeSubWindow_()->getScene();
     QTreeWidgetItem* current_tool = item ? item : tools_tree_view_->currentItem();
-    String tool_name = fromQString(current_tool->text(0));
+    std::string tool_name = fromQString(current_tool->text(0));
     TOPPASVertex* tv = nullptr;
 
     if (tool_name == "<Input files>")
@@ -1072,25 +1071,27 @@ namespace OpenMS
     {
       tv = new TOPPASOutputFileListVertex();
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(tv);
-      connect(tv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+      connect(oflv, &TOPPASOutputVertex::outputFileWritten, this, &TOPPASBase::outputVertexFinished);
       scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
     }
     else if (tool_name == "<Output folder>")
     {
       tv = new TOPPASOutputFolderVertex();
       TOPPASOutputFolderVertex* oflv = dynamic_cast<TOPPASOutputFolderVertex*>(tv);
-      connect(tv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+      connect(oflv, &TOPPASOutputVertex::outputFileWritten, this, &TOPPASBase::outputVertexFinished);
       scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
     }
     else if (tool_name == "<Merger>")
     {
       tv = new TOPPASMergerVertex(true);
-      connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+      // route mergeFailed through the scene (-> pipelineErrorSlot: aborts the pipeline and logs),
+      // consistent with tool/output vertices; a direct log-only connection would not abort the run
+      scene->connectMergerVertexSignals(static_cast<TOPPASMergerVertex*>(tv));
     }
     else if (tool_name == "<Collector>")
     {
       tv = new TOPPASMergerVertex(false);
-      connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+      scene->connectMergerVertexSignals(static_cast<TOPPASMergerVertex*>(tv));
     }
     else if (tool_name == "<Splitter>")
     {
@@ -1103,7 +1104,7 @@ namespace OpenMS
         // category or tool name with types is selected (instead of a concrete type)
         return;
       }
-      String tool_type;
+      std::string tool_type;
       if (current_tool->parent() != nullptr && current_tool->parent()->parent() != nullptr)
       {
         // selected item is a type
@@ -1127,10 +1128,10 @@ namespace OpenMS
         return;
       }
 
-      connect(ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
-      connect(ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
-      connect(ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
-      connect(ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+      connect(ttv, &TOPPASToolVertex::toolStarted, this, &TOPPASBase::toolStarted);
+      connect(ttv, &TOPPASToolVertex::toolFinished, this, &TOPPASBase::toolFinished);
+      connect(ttv, &TOPPASToolVertex::toolCrashed, this, &TOPPASBase::toolCrashed);
+      connect(ttv, &TOPPASToolVertex::toolFailed, this, &TOPPASBase::toolFailed);
       // already done in ToppasScene:
       //connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 
@@ -1170,13 +1171,13 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
       }
-      text += " of node #" + String(tv->getTopoNr()) + " started. Processing ...";
+      text += " of node #" + StringUtils::toStr(tv->getTopoNr()) + " started. Processing ...";
 
       log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
     }
@@ -1188,8 +1189,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1206,8 +1207,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1224,8 +1225,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1237,9 +1238,9 @@ namespace OpenMS
     updateMenu();
   }
 
-  void TOPPASBase::outputVertexFinished(const String& file)
+  void TOPPASBase::outputVertexFinished(const std::string& file)
   {
-    String text = "Output file '" + file + "' written.";
+    std::string text = "Output file '" + file + "' written.";
     log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
   }
 

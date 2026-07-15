@@ -21,7 +21,7 @@ namespace OpenMS
 
   ConsensusMapNormalizerAlgorithmThreshold::~ConsensusMapNormalizerAlgorithmThreshold() = default;
 
-  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold, const String& acc_filter, const String& desc_filter)
+  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold, const std::string& acc_filter, const std::string& desc_filter)
   {
     Size number_of_features = map.size();
     Size number_of_maps = map.getColumnHeaders().size();

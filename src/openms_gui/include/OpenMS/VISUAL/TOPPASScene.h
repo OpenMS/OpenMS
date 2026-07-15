@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/TOPPASOutputVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
@@ -154,15 +154,15 @@ public:
     /// Runs the pipeline
     void runPipeline();
     /// Stores the pipeline to @p file, returns true on success
-    bool store(const String & file);
+    bool store(const std::string & file);
     /// Loads the pipeline from @p file
-    void load(const String & file);
+    void load(const std::string & file);
     /// Includes the pipeline @p scene
     void include(TOPPASScene * new_scene, QPointF pos = QPointF());
     /// Returns the file name
-    const String & getSaveFileName();
+    const std::string & getSaveFileName();
     /// Sets the file name
-    void setSaveFileName(const String & name);
+    void setSaveFileName(const std::string & name);
     /// Performs a topological sort of all vertices
     void topoSort(bool resort_all = true);
     /// Returns the name of the directory for output files
@@ -269,7 +269,7 @@ public slots:
     /// Writes the "tool crashed" message to the logfile (and to stdout if no gui available)
     void logToolCrashed();
     /// Writes the "output file written" message to the logfile (and to stdout if no gui available)
-    void logOutputFileWritten(const String & file);
+    void logOutputFileWritten(const std::string & file);
     //@}
 
 signals:
@@ -309,7 +309,7 @@ protected:
     /// The current potential target vertex of the hovering edge
     TOPPASVertex * potential_target_;
     /// The file name of this pipeline
-    String file_name_;
+    std::string file_name_;
     /// The path for temporary files
     QString tmp_path_;
     /// Are we in a GUI or is the scene used by ExecutePipeline (at the command line)?

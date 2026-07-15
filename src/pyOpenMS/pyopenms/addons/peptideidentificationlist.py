@@ -363,7 +363,7 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
     all_spectrum_reference = []
     all_score = []
     all_score_type = []
-    all_rank = []
+    all_hit_index = []
     all_p_id = []
 
     # Peak annotation arrays
@@ -431,8 +431,8 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
         pep_search_result = idsa.findScoreType(pep_id, pyopenms.IDType.PEP)
         pep_score_name = pep_search_result.score_name
 
-        for rank in range(num_hits):
-            hit = hits[rank]
+        for hit_idx in range(num_hits):
+            hit = hits[hit_idx]
             seq = hit.getSequence()
             charge = hit.getCharge()
 
@@ -571,7 +571,7 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
             all_spectrum_reference.append(spec_ref)
             all_score.append(hit.getScore())
             all_score_type.append(score_type)
-            all_rank.append(rank)
+            all_hit_index.append(hit_idx)
             all_p_id.append(pep_idx)
 
             # Metavalues
@@ -693,8 +693,8 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
         data_dict["score"] = pa.array(all_score, type=pa.float64())
     if should_include("score_type"):
         data_dict["score_type"] = pa.array(all_score_type, type=pa.utf8())
-    if should_include("rank"):
-        data_dict["rank"] = pa.array(all_rank, type=pa.int32())
+    if should_include("hit_index"):
+        data_dict["hit_index"] = pa.array(all_hit_index, type=pa.int32())
     if should_include("P_ID"):
         data_dict["P_ID"] = pa.array(all_p_id, type=pa.int32())
 
@@ -724,8 +724,8 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
             warnings.warn(f"Unknown column(s) ignored in to_psm_arrow(): {unknown}. "
                           f"Use psm_columns() to see available columns.")
 
-    # Sort by rt, observed_mz, precursor_charge, rank for consistent ordering
-    sort_cols = ["rt", "observed_mz", "precursor_charge", "rank"]
+    # Sort by rt, observed_mz, precursor_charge, hit_index for consistent ordering
+    sort_cols = ["rt", "observed_mz", "precursor_charge", "hit_index"]
     available_sort_cols = [(c, "ascending") for c in sort_cols if c in table.column_names]
     if available_sort_cols and table.num_rows > 0:
         import pyarrow.compute as pc
@@ -836,7 +836,7 @@ def psm_columns(self):
         "spectrum_reference",
         "score",
         "score_type",
-        "rank",
+        "hit_index",
         "P_ID",
         # Metavalues
         "psm_metavalues",

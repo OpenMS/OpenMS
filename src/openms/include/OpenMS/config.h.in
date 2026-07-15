@@ -24,8 +24,6 @@
 // include OPENMS_DLLAPI macros
 #include <OpenMS/OpenMSConfig.h>
 
-#include <boost/current_function.hpp>
-
 // Here are some global configuration flags for OpenMS
 
 // Define compiler specifics (used in VERY few places only)
@@ -34,8 +32,19 @@
 // GNU g++
 #cmakedefine OPENMS_COMPILER_GXX
 
-// __PRETTY_FUNCTION__ is a GNU G++ extension so we use the alternative in boost
-#define OPENMS_PRETTY_FUNCTION BOOST_CURRENT_FUNCTION
+// The most descriptive, compiler-provided name of the enclosing function. This
+// mirrors what boost/current_function.hpp (BOOST_CURRENT_FUNCTION) selected, but
+// uses the compiler builtins directly so no Boost header is pulled in here (this
+// header is included by almost every OpenMS TU). __PRETTY_FUNCTION__ (GCC/Clang)
+// and __FUNCSIG__ (MSVC) carry the full demangled signature; __func__ is the
+// standard fallback.
+#if defined(_MSC_VER)
+#  define OPENMS_PRETTY_FUNCTION __FUNCSIG__
+#elif defined(__GNUC__) || defined(__clang__)
+#  define OPENMS_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#else
+#  define OPENMS_PRETTY_FUNCTION __func__
+#endif
 
 // __FILENAME__ prints the path that is used during compilation of the object. Per default in CMake it is the full absolute path.
 // This is confusing for debug logs from executables on user machines and unnecessary.
@@ -132,6 +141,7 @@ static constexpr cstr past_last_slash(cstr str)
 
 #cmakedefine OPENMS_HAS_COINOR
 #cmakedefine OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
+#cmakedefine OPENMS_HAS_HIGHS
 
 #define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
 #define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@

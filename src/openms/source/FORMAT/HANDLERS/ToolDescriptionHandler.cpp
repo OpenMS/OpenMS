@@ -13,7 +13,7 @@ using namespace std;
 namespace OpenMS::Internal
 {
 
-    ToolDescriptionHandler::ToolDescriptionHandler(const String & filename, const String & version) :
+    ToolDescriptionHandler::ToolDescriptionHandler(const std::string & filename, const std::string & version) :
       ParamXMLHandler(p_, filename, version),
       p_(),
       tde_(),
@@ -27,11 +27,11 @@ namespace OpenMS::Internal
     ToolDescriptionHandler::~ToolDescriptionHandler()
     = default;
 
-    void ToolDescriptionHandler::startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void ToolDescriptionHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       if (in_ini_section_)
       {
-        ParamXMLHandler::startElement(uri, local_name, qname, attributes);
+        ParamXMLHandler::onStartElement(qname, attributes);
         return;
       }
 
@@ -41,7 +41,7 @@ namespace OpenMS::Internal
 
       if (tag_ == "tool")
       {
-        String status = attributeAsString_(attributes, "status");
+        std::string status = attributeAsString_(attributes, "status");
         if (status == "external")
         {
           td_.is_internal = false;
@@ -59,7 +59,7 @@ namespace OpenMS::Internal
       if (tag_ == "mapping")
       {
         Int id = attributeAsInt_(attributes, "id");
-        String command = attributeAsString_(attributes, "cl");
+        std::string command = attributeAsString_(attributes, "cl");
         tde_.tr_table.mapping[id] = command;
         return;
       }
@@ -111,11 +111,11 @@ namespace OpenMS::Internal
       error(LOAD, "ToolDescriptionHandler::startElement(): Unknown element found: '" + tag_ + "', ignoring.");
     }
 
-    void ToolDescriptionHandler::characters(const XMLCh * const chars, const XMLSize_t length)
+    void ToolDescriptionHandler::onCharacters(const char16_t* chars, Size length)
     {
       if (in_ini_section_)
       {
-        ParamXMLHandler::characters(chars, length);
+        ParamXMLHandler::onCharacters(chars, length);
         return;
       }
 
@@ -171,12 +171,12 @@ namespace OpenMS::Internal
       }
     }
 
-    void ToolDescriptionHandler::endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname)
+    void ToolDescriptionHandler::onEndElement(const char16_t* qname)
     {
-      String endtag_ = sm_.convert(qname);
+      std::string endtag_ = sm_.convert(qname);
       if (in_ini_section_ && endtag_ != "ini_param")
       {
-        ParamXMLHandler::endElement(uri, local_name, qname);
+        ParamXMLHandler::onEndElement(qname);
         return;
       }
 

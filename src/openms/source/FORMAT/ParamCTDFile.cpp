@@ -111,22 +111,22 @@ namespace OpenMS
             os << param_it->value.toString() << R"(" type="double")";
             break;
           case ParamValue::STRING_VALUE:
-            if (tag_list.find(TOPPBase::TAG_INPUT_FILE) != tag_list.end())
+            if (tag_list.contains(TOPPBase::TAG_INPUT_FILE))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="input-file")";
               tag_list.erase(TOPPBase::TAG_INPUT_FILE);
             }
-            else if (tag_list.find(TOPPBase::TAG_OUTPUT_FILE) != tag_list.end())
+            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_FILE))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-file")";
               tag_list.erase(TOPPBase::TAG_OUTPUT_FILE);
             }
-            else if (tag_list.find(TOPPBase::TAG_OUTPUT_DIR) != tag_list.end())
+            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_DIR))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-dir")";
               tag_list.erase(TOPPBase::TAG_OUTPUT_DIR);
             }
-            else if (tag_list.find(TOPPBase::TAG_OUTPUT_PREFIX) != tag_list.end())
+            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_PREFIX))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-prefix")";
               tag_list.erase(TOPPBase::TAG_OUTPUT_PREFIX);
@@ -139,7 +139,7 @@ namespace OpenMS
             else
             {
               std::string value = param_it->value.toString();
-              if (value.find('\t') != std::string::npos)
+              if (value.contains('\t'))
               {
                 replace(value, '\t', "&#x9;");
               }
@@ -147,12 +147,12 @@ namespace OpenMS
             }
             break;
           case ParamValue::STRING_LIST:
-            if (tag_list.find(TOPPBase::TAG_INPUT_FILE) != tag_list.end())
+            if (tag_list.contains(TOPPBase::TAG_INPUT_FILE))
             {
               os << R"(" type="input-file")";
               tag_list.erase(TOPPBase::TAG_INPUT_FILE);
             }
-            else if (tag_list.find(TOPPBase::TAG_OUTPUT_FILE) != tag_list.end())
+            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_FILE))
             {
               os << R"(" type="output-file")";
               tag_list.erase(TOPPBase::TAG_OUTPUT_FILE);
@@ -177,7 +177,7 @@ namespace OpenMS
 
         os << " description=\"" << escapeXML(description) << "\"";
 
-        if (tag_list.find("required") != tag_list.end())
+        if (tag_list.contains("required"))
         {
           os << R"( required="true")";
           tag_list.erase("required");
@@ -187,7 +187,7 @@ namespace OpenMS
           os << R"( required="false")";
         }
 
-        if (tag_list.find("advanced") != tag_list.end())
+        if (tag_list.contains("advanced"))
         {
           os << R"( advanced="true")";
           tag_list.erase("advanced");
@@ -269,7 +269,7 @@ namespace OpenMS
 
           if (!restrictions.empty())
           {
-            if (param_it->tags.find("input file") != param_it->tags.end() || param_it->tags.find("output file") != param_it->tags.end() || param_it->tags.find("output prefix") != param_it->tags.end())
+            if (param_it->tags.contains("input file") || param_it->tags.contains("output file") || param_it->tags.contains("output prefix"))
             {
               os << " supported_formats=\"" << escapeXML(restrictions) << "\"";
             }
@@ -294,7 +294,7 @@ namespace OpenMS
           case ParamValue::STRING_LIST:
             for (auto item : static_cast<const std::vector<std::string>&>(param_it->value))
             {
-              if (item.find('\t') != std::string::npos)
+              if (item.contains('\t'))
               {
                 replace(item, '\t', "&#x9;");
               }
@@ -340,15 +340,15 @@ namespace OpenMS
   std::string ParamCTDFile::escapeXML(const std::string& to_escape)
   {
     std::string copy = to_escape;
-    if (copy.find('&') != std::string::npos)
+    if (copy.contains('&'))
       replace(copy, '&', "&amp;");
-    if (copy.find('>') != std::string::npos)
+    if (copy.contains('>'))
       replace(copy, '>', "&gt;");
-    if (copy.find('"') != std::string::npos)
+    if (copy.contains('"'))
       replace(copy, '"', "&quot;");
-    if (copy.find('<') != std::string::npos)
+    if (copy.contains('<'))
       replace(copy, '<', "&lt;");
-    if (copy.find('\'') != std::string::npos)
+    if (copy.contains('\''))
       replace(copy, '\'', "&apos;");
 
     return copy;
@@ -360,7 +360,7 @@ namespace OpenMS
     {
       if (replace_in[i] == to_replace)
       {
-        replace_in = replace_in.substr(0, i) + replace_with + replace_in.substr(i + 1);
+        replace_in = StringUtils::substr(replace_in, 0, i) + replace_with + StringUtils::substr(replace_in, i + 1);
         i += replace_with.size();
       }
     }

@@ -12,8 +12,10 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <include/OpenMS/CONCEPT/Constants.h>
 
+#include <atomic>
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
@@ -56,6 +58,21 @@ namespace OpenMS
     return round_masses_;
   }
 
+  void CoarseIsotopePatternGenerator::setIsotopeOverride(const Element* element, const IsotopeDistribution& isotopes)
+  {
+    isotope_overrides_[element] = isotopes;
+  }
+
+  void CoarseIsotopePatternGenerator::clearIsotopeOverrides()
+  {
+    isotope_overrides_.clear();
+  }
+
+  const std::map<const Element*, IsotopeDistribution>& CoarseIsotopePatternGenerator::getIsotopeOverrides() const
+  {
+    return isotope_overrides_;
+  }
+
   IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
     if (formula.getCharge() < 0)
@@ -64,18 +81,46 @@ namespace OpenMS
                                     "CoarseIsotopePatternGenerator does not support negative charges (formula: " + formula.toString() + ").");
     }
 
+    if (formula.getCharge() != 0)
+    {
+      // DEPRECATED (OpenMS 3.x): a non-zero charge implicitly adds 'charge'-many H atoms to shift the pattern.
+      // This will change in OpenMS 4.0, where the charge is ignored and the neutral pattern is returned.
+      // run() is const and may be called from parallel regions, so the warn-once flag must be atomic.
+      static std::atomic<bool> warned_once{false};
+      if (!warned_once.exchange(true))
+      {
+        OPENMS_LOG_WARN << "Warning: CoarseIsotopePatternGenerator::run() was called with a non-zero charge ("
+                        << formula.getCharge() << "). The generator currently adds 'charge'-many hydrogen atoms to "
+                        << "shift the isotope pattern. This is deprecated and will change in OpenMS 4.0, where the "
+                        << "charge will be ignored and the neutral pattern returned. To keep the current behavior, make "
+                        << "the adduct explicit via EmpiricalFormula::addChargeAdduct(charge) and run() on the resulting "
+                        << "(neutral) formula. To obtain the neutral pattern now, set the charge to 0. "
+                        << "(This warning is shown once.)" << std::endl;
+      }
+    }
+
+    // Use a caller-supplied isotope distribution for an element if one was registered
+    // via setIsotopeOverride(), otherwise fall back to the element's natural distribution
+    // from the (immutable) ElementDB. This keeps labeled-pattern computations local and
+    // thread-safe instead of mutating the shared global element.
+    auto isotopesOf = [this](const Element* element) -> const IsotopeDistribution&
+    {
+      auto it = isotope_overrides_.find(element);
+      return it != isotope_overrides_.end() ? it->second : element->getIsotopeDistribution();
+    };
+
     IsotopeDistribution result;
 
     auto it = formula.begin();
     for (; it != formula.end(); ++it)
     {
-      IsotopeDistribution tmp = it->first->getIsotopeDistribution();
+      const IsotopeDistribution& tmp = isotopesOf(it->first);
       result.set(convolve(result.getContainer(),
                           convolvePow_(tmp.getContainer(), it->second)));
     }
-    
+
     // charged adducts are assumed to be H+, but are not part of the actual formula, yet are used in EmpiricalFormula::getMonoWeight();
-    auto proton_charge = ElementDB::getInstance()->getElement("H")->getIsotopeDistribution();
+    const IsotopeDistribution& proton_charge = isotopesOf(ElementDB::getInstance()->getElement("H"));
     result.set(convolve(result.getContainer(), convolvePow_(proton_charge.getContainer(), formula.getCharge())));
 
     // replace atomic numbers with masses.
@@ -158,6 +203,8 @@ namespace OpenMS
 
     // We need the solver to return atomic numbers to be compatible with calcFragmentIsotopeDist
     CoarseIsotopePatternGenerator solver(max_depth, false);
+    // honor any per-element isotope overrides set on this generator (e.g. isotope labeling)
+    for (const auto& ov : isotope_overrides_) { solver.setIsotopeOverride(ov.first, ov.second); }
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndCompAndS(average_weight_fragment, S_fragment, 4.9384, 7.7583, 1.3577, 1.4773, 0);
@@ -240,6 +287,8 @@ namespace OpenMS
 
     // We need the solver to return atomic numbers to be compatible with calcFragmentIsotopeDist
     CoarseIsotopePatternGenerator solver(max_depth, false);
+    // honor any per-element isotope overrides set on this generator (e.g. isotope labeling)
+    for (const auto& ov : isotope_overrides_) { solver.setIsotopeOverride(ov.first, ov.second); }
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndComp(average_weight_fragment, C, H, N, O, S, P);

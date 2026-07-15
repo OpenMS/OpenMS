@@ -14,15 +14,12 @@
  
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <xercesc/sax2/Attributes.hpp>
-#include <xercesc/sax2/DefaultHandler.hpp>
-#include <xercesc/util/XMLString.hpp>
+#include <OpenMS/FORMAT/HANDLERS/StringManager.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLAttributes.h>
 
 #include <iosfwd>
 #include <string>
-#include <memory>
+#include <string_view>
 
 
 namespace OpenMS
@@ -35,296 +32,13 @@ namespace OpenMS
   namespace Internal
   {
 
-    #define CONST_XMLCH(s) reinterpret_cast<const ::XMLCh*>(u ## s)
-
-    static_assert(sizeof(::XMLCh) == sizeof(char16_t),
-                  "XMLCh is not sized correctly for UTF-16.");
-
-    //Adapted from https://www.codeproject.com/articles/99551/redux-raii-adapter-for-xerces
-    //Copyright 2010 Orjan Westin
-    //Under BSD license
-    //========================================================================================================
-    template<typename T>
-    class OPENMS_DLLAPI shared_xerces_ptr
-    {
-      // Function to release Xerces data type with a release member function
-      template<typename U>
-      static void doRelease_(U* item)
-      {
-        // Only release this if it has no owner
-        if (nullptr == item->getOwnerDocument())
-          item->release();
-      }
-
-      static void doRelease_(char* item);
-      static void doRelease_(XMLCh* item);
-
-      // The actual data we're holding
-      std::shared_ptr<T> item_;
-    public:
-      // Default constructor
-      shared_xerces_ptr() = default;
-      // Assignment constructor
-      shared_xerces_ptr(T* item)
-          : item_(item, doRelease_ )
-      {}
-      // Assignment of data to guard
-      shared_xerces_ptr& operator=(T* item)
-      {
-        assign(item);
-        return *this;
-      }
-      // Give up hold on data
-      void reset()
-      {
-        item_.reset();
-      }
-      // Release currently held data, if any, to hold another
-      void assign(T* item)
-      {
-        item_.reset(item, doRelease_ );
-      }
-      // Get pointer to the currently held data, if any
-      T* get()
-      {
-        return item_.get();
-      }
-      const T* get() const
-      {
-        return item_.get();
-      }
-      // Return true if no data is held
-      bool is_released() const
-      {
-        return (nullptr == item_.get());
-      }
-    };
-
-    template <typename T>
-    class OPENMS_DLLAPI unique_xerces_ptr
-    {
-    private:
-
-      template<typename U>
-      static void doRelease_(U*& item)
-      {
-        // Only release this if it has no parent (otherwise
-        // parent will release it)
-        if (nullptr == item->getOwnerDocument())
-          item->release();
-      }
-
-      static void doRelease_(char*& item);
-      static void doRelease_(XMLCh*& item);
-
-      T* item_;
-
-    public:
-
-      // Hide copy constructor and assignment operator
-      unique_xerces_ptr(const unique_xerces_ptr<T>&) = delete;
-      unique_xerces_ptr& operator=(const unique_xerces_ptr<T>&) = delete;
-
-      unique_xerces_ptr()
-          : item_(nullptr)
-      {}
-
-      explicit unique_xerces_ptr(T* i)
-          : item_(i)
-      {}
-
-      ~unique_xerces_ptr()
-      {
-        xerces_release();
-      }
-
-      unique_xerces_ptr(unique_xerces_ptr<T>&& other) noexcept
-          : item_(nullptr)
-      {
-        this->swap(other);
-      }
-
-      void swap(unique_xerces_ptr<T>& other) noexcept
-      {
-        std::swap(item_, other.item_);
-      }
-
-      // Assignment of data to guard (not chainable)
-      void operator=(T* i)
-      {
-        reassign(i);
-      }
-
-      // Release held data (i.e. delete/free it)
-      void xerces_release()
-      {
-        if (!is_released())
-        {
-          // Use type-specific release mechanism
-          doRelease_(item_);
-          item_ = nullptr;
-        }
-      }
-
-      // Give up held data (i.e. return data without releasing)
-      T* yield()
-      {
-        T* tempItem = item_;
-        item_ = nullptr;
-        return tempItem;
-      }
-
-      // Release currently held data, if any, to hold another
-      void assign(T* i)
-      {
-        xerces_release();
-        item_ = i;
-      }
-
-      // Get pointer to the currently held data, if any
-      T* get() const
-      {
-        return item_;
-      }
-
-      // Return true if no data is held
-      bool is_released() const
-      {
-        return (nullptr == item_);
-      }
-    };
-
-    //========================================================================================================
-
-    /*
-     * @brief Helper class for XML parsing that handles the conversions of Xerces strings
-     *
-     * It provides the convert() function which internally calls
-     * XMLString::transcode and ensures that the memory is released properly
-     * through XMLString::release internally. It returns a std::string or
-     * std::basic_string<XMLCh> to the caller who takes ownership of the data.
-     *
-    */
-    class OPENMS_DLLAPI StringManager
-    {
-
-      typedef std::basic_string<XMLCh> XercesString;
-
-      /// Converts from a narrow-character string to a wide-character string.
-      inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
-      {
-        return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
-      }
-
-      /// Converts from a narrow-character string to a wide-character string.
-      inline static unique_xerces_ptr<XMLCh> fromNative_(const String& str)
-      {
-        return fromNative_(str.c_str());
-      }
-
-      /// Converts from a wide-character string to a narrow-character string.
-      inline static String toNative_(const XMLCh* str)
-      { 
-        String r;
-        XMLSize_t l = strLength(str);
-        if(isASCII(str, l))
-        {
-          appendASCII(str,l,r);
-        }
-        else
-        {
-          r = (unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
-        }
-        return r;
-      }
-
-      /// Converts from a wide-character string to a narrow-character string.
-      inline static String toNative_(const unique_xerces_ptr<XMLCh>& str)
-      {
-        return toNative_(str.get());
-      }
-
-protected:
-      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
-      static void compress64_ (const XMLCh * input_it, char* output_it);
-
-public:
-      /// Constructor
-      StringManager();
-
-      /// Destructor
-      ~StringManager();
-
-      /// Calculates the length of a XMLCh* string using SIMDe
-      // https://github.com/OpenMS/OpenMS/issues/8122
-      #if defined(__GNUC__)
-      __attribute__((no_sanitize("address")))
-      #elif defined(_MSC_VER)
-      __declspec(no_sanitize_address) 
-      #endif
-      static XMLSize_t strLength(const XMLCh* input_ptr);
-
-      /// Transcode the supplied C string to a xerces string
-      inline static XercesString convert(const char * str)
-      {
-        return fromNative_(str).get();
-      }
-
-      /// Transcode the supplied C++ string to a xerces string
-      inline static XercesString convert(const std::string & str)
-      {
-        return fromNative_(str.c_str()).get();
-      }
-
-      /// Transcode the supplied OpenMS string to a xerces string
-      inline static XercesString convert(const String & str)
-      {
-        return fromNative_(str.c_str()).get();
-      }
-
-      /// Transcode the supplied C string to a xerces string pointer
-      inline static unique_xerces_ptr<XMLCh> convertPtr(const char * str)
-      {
-        return fromNative_(str);
-      }
-
-      /// Transcode the supplied C++ string to a xerces string pointer
-      inline static unique_xerces_ptr<XMLCh> convertPtr(const std::string & str)
-      {
-        return fromNative_(str.c_str());
-      }
-
-      /// Transcode the supplied OpenMS string to a xerces string pointer
-      inline static unique_xerces_ptr<XMLCh> convertPtr(const String & str)
-      {
-        return fromNative_(str.c_str());
-      }
-
-      /// Transcode the supplied XMLCh* to a String
-      inline static String convert(const XMLCh * str)
-      {
-        return toNative_(str);
-      }
-      /// Checks if supplied chars in XMLCh* can be encoded with ASCII (i.e. the upper byte of each char is 0)
-      static bool isASCII(const XMLCh * chars, const XMLSize_t length);
-
-      
-      
-      /**
-       * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String
-       *
-       * @note Assumes that the XMLCh* only contains ASCII characters
-       *
-      */
-      static void appendASCII(const XMLCh * str, const XMLSize_t length, String & result);
-
-    };
+    // XMLCh string handling lives in StringManager (Xerces-free public API);
+    // shared_xerces_ptr / unique_xerces_ptr / CONST_XMLCH are declared there.
 
     /**
         @brief Base class for XML handlers.
     */
-    class OPENMS_DLLAPI XMLHandler :
-      public xercesc::DefaultHandler
+    class OPENMS_DLLAPI XMLHandler
     {
 public:
 
@@ -356,38 +70,36 @@ public:
 
 
       /// Default constructor
-      XMLHandler(const String & filename, const String & version);
+      XMLHandler(const std::string & filename, const std::string & version);
       /// Destructor
-      ~XMLHandler() override;
+      virtual ~XMLHandler();
 
       /// Release internal memory used for parsing (call
       void reset();
 
+      /// Fatal error handler. Throws a ParseError exception
+      void fatalError(ActionMode mode, const std::string & msg, UInt line = 0, UInt column = 0) const;
+      /// Error handler for recoverable errors.
+      void error(ActionMode mode, const std::string & msg, UInt line = 0, UInt column = 0) const;
+      /// Warning handler.
+      void warning(ActionMode mode, const std::string & msg, UInt line = 0, UInt column = 0) const;
 
       /**
-          @name Reimplemented XERCES-C error handlers
+          @name Native (Xerces-free) SAX callbacks
 
-          These methods forward the error message to our own error handlers below.
+          Subclasses override these. @c qname / @c chars are UTF-16 code units (as
+          delivered by the parser); attributes are exposed through the Xerces-free
+          @ref XMLAttributes view. The Xerces SAX parser is bridged to these
+          callbacks by the internal SAX2HandlerAdapter.
       */
       //@{
-      void fatalError(const xercesc::SAXParseException & exception) override;
-      void error(const xercesc::SAXParseException & exception) override;
-      void warning(const xercesc::SAXParseException & exception) override;
-      //@}
-
-      /// Fatal error handler. Throws a ParseError exception
-      void fatalError(ActionMode mode, const String & msg, UInt line = 0, UInt column = 0) const;
-      /// Error handler for recoverable errors.
-      void error(ActionMode mode, const String & msg, UInt line = 0, UInt column = 0) const;
-      /// Warning handler.
-      void warning(ActionMode mode, const String & msg, UInt line = 0, UInt column = 0) const;
-
-      /// Parsing method for character data
-      void characters(const XMLCh * const chars, const XMLSize_t length) override;
       /// Parsing method for opening tags
-      void startElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname, const xercesc::Attributes & attrs) override;
+      virtual void onStartElement(const char16_t * qname, const XMLAttributes & attributes);
       /// Parsing method for closing tags
-      void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname) override;
+      virtual void onEndElement(const char16_t * qname);
+      /// Parsing method for character data
+      virtual void onCharacters(const char16_t * chars, Size length);
+      //@}
 
       /// Writes the contents to a stream.
       virtual void writeTo(std::ostream & /*os*/);
@@ -405,15 +117,15 @@ public:
         need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
         Escaped characters are: & < > " ' 
       */
-      static String writeXMLEscape(const String& to_escape)
+      static std::string writeXMLEscape(const std::string& to_escape)
       {
-        String _copy = to_escape;
+        std::string _copy = to_escape;
         // has() is cheap, so check before calling substitute(), since substitute() will usually happen rarely
-        if (_copy.has('&')) _copy.substitute("&","&amp;");
-        if (_copy.has('>')) _copy.substitute(">","&gt;");
-        if (_copy.has('"')) _copy.substitute("\"","&quot;");
-        if (_copy.has('<')) _copy.substitute("<","&lt;");
-        if (_copy.has('\'')) _copy.substitute("'","&apos;");
+        if (StringUtils::has(_copy, '&')) StringUtils::substitute(_copy, "&","&amp;");
+        if (StringUtils::has(_copy, '>')) StringUtils::substitute(_copy, ">","&gt;");
+        if (StringUtils::has(_copy, '"')) StringUtils::substitute(_copy, "\"","&quot;");
+        if (StringUtils::has(_copy, '<')) StringUtils::substitute(_copy, "<","&lt;");
+        if (StringUtils::has(_copy, '\'')) StringUtils::substitute(_copy, "'","&apos;");
 
         return _copy;
       }
@@ -431,13 +143,13 @@ public:
       *  @throws Exception::ConversionError if the value does not fit into the internal representation or (for few types) exceeds the XSD specs.
       * 
       */
-      static DataValue fromXSDString(const String& type, const String& value)
+      static DataValue fromXSDString(const std::string& type, const std::string& value)
       {
         DataValue data_value;
         // float type
         if (type == "xsd:double" || type == "xsd:float" || type == "xsd:decimal")
         {
-          data_value = DataValue(value.toDouble());
+          data_value = DataValue(StringUtils::toDouble(value));
         }
         // <=32 bit integer types
         else if (type == "xsd:byte" ||          // 8bit signed
@@ -446,14 +158,14 @@ public:
                  type == "xsd:short" ||         // 16bit signed
                  type == "xsd:unsignedByte" || type == "xsd:unsignedInt")
         {
-          data_value = DataValue(value.toInt32());
+          data_value = DataValue(StringUtils::toInt32(value));
         }
         // 64 bit integer types
         else if (type == "xsd:long" || type == "xsd:unsignedLong" ||       // 64bit signed or unsigned respectively
                  type == "xsd:integer" || type == "xsd:negativeInteger" || // any 'integer' has arbitrary size... but we have to cope with 64bit for now.
                  type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger")
         {
-          data_value = DataValue(value.toInt64()); // internally a signed 64-bit integer. So if someone uses 2^64-1 as value, toInt64() will raise an exception...
+          data_value = DataValue(StringUtils::toInt64(value)); // internally a signed 64-bit integer. So if someone uses 2^64-1 as value, toInt64() will raise an exception...
         }
         // everything else is treated as a string
         else
@@ -476,9 +188,9 @@ public:
          @param[in] unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
-      DataValue cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, 
-                               const String& accession, const String& name, const String& value,
-                               const String& unit_accession) const;
+      DataValue cvParamToValue(const ControlledVocabulary& cv, const std::string& parent_tag, 
+                               const std::string& accession, const std::string& name, const std::string& value,
+                               const std::string& unit_accession) const;
 
       /**
          @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
@@ -496,10 +208,10 @@ public:
 
 protected:
       /// File name
-      String file_;
+      std::string file_;
 
       /// Schema version
-      String version_;
+      std::string version_;
 
       /// Helper class for string conversion
       StringManager sm_;
@@ -509,23 +221,27 @@ protected:
 
           This member is used only in those XML parsers that need this information.
       */
-      std::vector<String> open_tags_;
+      std::vector<std::string> open_tags_;
 
       /// parse only until total number of scans and chroms have been determined from attributes
       LOADDETAIL load_detail_; 
 
 
       /// Returns if two Xerces strings are equal
-      inline bool equal_(const XMLCh * a, const XMLCh * b) const
+      inline bool equal_(const char16_t * a, const char16_t * b) const
       {
-        return xercesc::XMLString::compareString(a, b) == 0;
+        // Guard null pointers before constructing views: u16string_view(nullptr)
+        // is UB, whereas the previous XMLString::compareString tolerated nulls
+        // (both null => equal, one null => unequal), which this reproduces.
+        if (a == nullptr || b == nullptr) return a == b;
+        return std::u16string_view(a) == std::u16string_view(b);
       }
 
       ///@name General MetaInfo handling (for idXML, featureXML, consensusXML)
       //@{
 
       /// Writes the content of MetaInfoInterface to the file
-      void writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
+      void writeUserParam_(const std::string & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
 
       //@}
 
@@ -533,45 +249,45 @@ protected:
       //@{
 
       /// Array of CV term lists (one sublist denotes one term and it's children)
-      std::vector<std::vector<String> > cv_terms_;
+      std::vector<std::vector<std::string> > cv_terms_;
 
       /// Converts @p term to the index of the term in the cv_terms_ entry @p section
       /// If the term is not found, @p result_on_error is returned (0 by default)
-      SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0);
+      SignedSize cvStringToEnum_(const Size section, const std::string & term, const char * message, const SignedSize result_on_error = 0);
 
       //@}
 
-      ///@name String conversion
+      ///@name std::string conversion
       //@{
 
-      /// Conversion of a String to an integer value
-      inline Int asInt_(const String & in) const
+      /// Conversion of a std::string to an integer value
+      inline Int asInt_(const std::string & in) const
       {
         Int res = 0;
         try
         {
-          res = in.toInt();
+          res = StringUtils::toInt32(in);
         }
         catch (Exception::ConversionError&)
         {
-          error(LOAD, String("Int conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Int conversion error of \"") + in + "\"");
         }
         return res;
       }
 
       /// Conversion of a Xerces string to an integer value
-      inline Int asInt_(const XMLCh * in) const
+      inline Int asInt_(const char16_t * in) const
       {
-        return xercesc::XMLString::parseInt(in);
+        return sm_.parseInt(in);
       }
 
-      /// Conversion of a String to an unsigned integer value
-      inline UInt asUInt_(const String & in) const
+      /// Conversion of a std::string to an unsigned integer value
+      inline UInt asUInt_(const std::string & in) const
       {
         UInt res = 0;
         try
         {
-          Int tmp = in.toInt();
+          Int tmp = StringUtils::toInt32(in);
           if (tmp < 0)
           {
             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
@@ -580,37 +296,37 @@ protected:
         }
         catch (Exception::ConversionError& )
         {
-          error(LOAD, String("UInt conversion error of \"") + in + "\"");
+          error(LOAD,std::string("UInt conversion error of \"") + in + "\"");
         }
         return res;
       }
 
-      /// Conversion of a String to a double value
-      inline double asDouble_(const String & in) const
+      /// Conversion of a std::string to a double value
+      inline double asDouble_(const std::string & in) const
       {
         double res = 0.0;
         try
         {
-          res = in.toDouble();
+          res = StringUtils::toDouble(in);
         }
         catch (Exception::ConversionError& )
         {
-          error(LOAD, String("Double conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Double conversion error of \"") + in + "\"");
         }
         return res;
       }
 
-      /// Conversion of a String to a float value
-      inline float asFloat_(const String & in) const
+      /// Conversion of a std::string to a float value
+      inline float asFloat_(const std::string & in) const
       {
         float res = 0.0;
         try
         {
-          res = in.toFloat();
+          res = StringUtils::toFloat(in);
         }
         catch (Exception::ConversionError& )
         {
-          error(LOAD, String("Float conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Float conversion error of \"") + in + "\"");
         }
         return res;
       }
@@ -622,7 +338,7 @@ protected:
 
           @n For all other values a parse error is produced.
       */
-      inline bool asBool_(const String & in) const
+      inline bool asBool_(const std::string & in) const
       {
         if (in == "true" || in == "TRUE" || in == "True" || in == "1")
         {
@@ -634,13 +350,13 @@ protected:
         }
         else
         {
-          error(LOAD, String("Boolean conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Boolean conversion error of \"") + in + "\"");
         }
         return false;
       }
 
       /// Conversion of a xs:datetime string to a DateTime value
-      inline DateTime asDateTime_(String date_string) const
+      inline DateTime asDateTime_(std::string date_string) const
       {
         DateTime date_time;
         if (!date_string.empty())
@@ -648,13 +364,13 @@ protected:
           try
           {
             //strip away milliseconds
-            date_string.trim();
-            date_string = date_string.substr(0, 19);
+            StringUtils::trim(date_string);
+            date_string = StringUtils::substr(date_string, 0, 19);
             date_time.set(date_string);
           }
           catch (Exception::ParseError& /*err*/ )
           {
-            error(LOAD, String("DateTime conversion error of \"") + date_string + "\"");
+            error(LOAD,std::string("DateTime conversion error of \"") + date_string + "\"");
           }
         }
         return date_time;
@@ -666,67 +382,46 @@ protected:
       //@{
 
       /// Converts an attribute to a String
-      inline String attributeAsString_(const xercesc::Attributes & a, const char * name) const
+      inline std::string attributeAsString_(const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
-        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
+        const char16_t * val = a.value(name);
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return sm_.convert(val);
       }
 
       /// Converts an attribute to a Int
-      inline Int attributeAsInt_(const xercesc::Attributes & a, const char * name) const
+      inline Int attributeAsInt_(const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
-        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
-        return xercesc::XMLString::parseInt(val);
+        const char16_t * val = a.value(name);
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
+        return sm_.parseInt(val);
       }
 
       /// Converts an attribute to a double
-      inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
+      inline double attributeAsDouble_(const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
-        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
-        return String(sm_.convert(val)).toDouble();
+        const char16_t * val = a.value(name);
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
+        return StringUtils::toDouble(sm_.convert(val));
       }
 
       /// Converts an attribute to a DoubleList
-      inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
-      {
-        String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<double>(tmp.substr(1, tmp.size() - 2));
-      }
+      DoubleList attributeAsDoubleList_(const XMLAttributes & a, const char * name) const;
 
       /// Converts an attribute to an IntList
-      inline IntList attributeAsIntList_(const xercesc::Attributes & a, const char * name) const
-      {
-        String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<Int>(tmp.substr(1, tmp.size() - 2));
-      }
+      IntList attributeAsIntList_(const XMLAttributes & a, const char * name) const;
 
       /// Converts an attribute to an StringList
-      inline StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
-      {
-        String tmp(expectList_(attributeAsString_(a, name)));         
-        StringList tmp_list = ListUtils::create<String>(tmp.substr(1, tmp.size() - 2)); // between [ and ]
-  
-        if (tmp.hasSubstring("\\|")) // check full string for escaped comma
-        {
-          for (String& s : tmp_list)
-          {
-            s.substitute("\\|", ",");
-          }          
-        }
-        return tmp_list;
-      }
+      StringList attributeAsStringList_(const XMLAttributes & a, const char * name) const;
 
       /**
           @brief Assigns the attribute content to the String @a value if the attribute is present
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsString_(String & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsString_(std::string & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = sm_.convert(val);
@@ -740,12 +435,12 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsInt_(Int & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
-          value = xercesc::XMLString::parseInt(val);
+          value = sm_.parseInt(val);
           return true;
         }
         return false;
@@ -756,12 +451,12 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsUInt_(UInt & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
-          value = xercesc::XMLString::parseInt(val);
+          value = sm_.parseInt(val);
           return true;
         }
         return false;
@@ -772,12 +467,12 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsDouble_(double & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
-          value = String(sm_.convert(val)).toDouble();
+          value =StringUtils::toDouble(sm_.convert(val));
           return true;
         }
         return false;
@@ -788,9 +483,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
@@ -804,9 +499,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsStringList_(StringList & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
@@ -820,9 +515,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsIntList_(IntList & value, const XMLAttributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);
@@ -832,63 +527,42 @@ protected:
       }
 
       /// Converts an attribute to a String
-      inline String attributeAsString_(const xercesc::Attributes & a, const XMLCh * name) const
+      inline std::string attributeAsString_(const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
-        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
+        const char16_t * val = a.value(name);
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return sm_.convert(val);
       }
 
       /// Converts an attribute to a Int
-      inline Int attributeAsInt_(const xercesc::Attributes & a, const XMLCh * name) const
+      inline Int attributeAsInt_(const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
-        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
-        return xercesc::XMLString::parseInt(val);
+        const char16_t * val = a.value(name);
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
+        return sm_.parseInt(val);
       }
 
       /// Converts an attribute to a double
-      inline double attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
+      inline double attributeAsDouble_(const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
-        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
-        return sm_.convert(val).toDouble();
+        const char16_t * val = a.value(name);
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
+        return StringUtils::toDouble(sm_.convert(val));
       }
 
       /// Converts an attribute to a DoubleList
-      inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
-      {
-        String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<double>(tmp.substr(1, tmp.size() - 2));
-      }
+      DoubleList attributeAsDoubleList_(const XMLAttributes & a, const char16_t * name) const;
 
       /// Converts an attribute to a IntList
-      inline IntList attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const
-      {
-        String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<Int>(tmp.substr(1, tmp.size() - 2));
-      }
+      IntList attributeAsIntList_(const XMLAttributes & a, const char16_t * name) const;
 
       /// Converts an attribute to a StringList
-      inline StringList attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
-      {
-        String tmp(expectList_(attributeAsString_(a, name)));
-        StringList tmp_list = ListUtils::create<String>(tmp.substr(1, tmp.size() - 2)); // between [ and ]
-
-        if (tmp.hasSubstring("\\|")) // check full string for escaped comma
-        {
-          for (String& s : tmp_list)
-          {
-            s.substitute("\\|", ",");
-          }          
-        }
-        return tmp_list;
-      }
+      StringList attributeAsStringList_(const XMLAttributes & a, const char16_t * name) const;
 
       /// Assigns the attribute content to the String @a value if the attribute is present
-      inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsString_(std::string& value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = sm_.convert(val);
@@ -898,36 +572,36 @@ protected:
       }
 
       /// Assigns the attribute content to the Int @a value if the attribute is present
-      inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsInt_(Int & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
-          value = xercesc::XMLString::parseInt(val);
+          value = sm_.parseInt(val);
           return true;
         }
         return false;
       }
 
       /// Assigns the attribute content to the UInt @a value if the attribute is present
-      inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsUInt_(UInt & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
-          value = xercesc::XMLString::parseInt(val);
+          value = sm_.parseInt(val);
           return true;
         }
         return false;
       }
 
       /// Assigns the attribute content to the double @a value if the attribute is present
-      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsDouble_(double & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
-          value = sm_.convert(val).toDouble();
+          value = StringUtils::toDouble(sm_.convert(val));
           return true;
         }
         return false;
@@ -938,9 +612,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsDoubleList_(DoubleList & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
@@ -954,9 +628,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsIntList_(IntList & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);
@@ -970,9 +644,9 @@ protected:
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsStringList_(StringList & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const XMLCh * val = a.getValue(name);
+        const char16_t * val = a.value(name);
         if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
@@ -987,11 +661,11 @@ private:
       /// Not implemented
       XMLHandler();
 
-      inline const String& expectList_(const String& str) const
+      inline const std::string& expectList_(const std::string& str) const
       {
-        if (!(str.hasPrefix('[') && str.hasSuffix(']')))
+        if (!(StringUtils::hasPrefix(str, '[') && StringUtils::hasSuffix(str, ']')))
         {
-          fatalError(LOAD, String("List argument is not a string representation of a list!"));
+          fatalError(LOAD,std::string("List argument is not a string representation of a list!"));
         }
         return str;
       }

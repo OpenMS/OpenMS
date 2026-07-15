@@ -24,7 +24,7 @@ using namespace OpenMS;
 
 typedef OpenSwath::LightTransition TransitionType;
 
-typedef std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> TransitionGroupMapPtrType;
+typedef std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> TransitionGroupMapPtrType;
 
 OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType getData()
 {
@@ -36,7 +36,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
 {
   OpenSwath::LightTargetedExperiment exp;
   {
-    String native_id = "tr1";
+    std::string native_id = "tr1";
     TransitionType tr;
     tr.product_mz = 500.00;
     tr.precursor_mz = 412;
@@ -48,7 +48,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
   }
 
   {
-    String native_id = "tr2";
+    std::string native_id = "tr2";
     TransitionType tr;
     tr.product_mz = 600.00;
     tr.precursor_mz = 412;
@@ -60,7 +60,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
   }
 
   {
-    String native_id = "tr3";
+    std::string native_id = "tr3";
     TransitionType tr;
     tr.product_mz = 700.00;
     tr.precursor_mz = 412;
@@ -72,7 +72,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
   }
 
   {
-    String native_id = "tr4";
+    std::string native_id = "tr4";
     TransitionType tr;
     tr.product_mz = 800.00;
     tr.precursor_mz = 412;
@@ -92,7 +92,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
 
 void addTransitionsPep2( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & transition_group, OpenSwath::LightTargetedExperiment& exp)
 {
-  String native_id = "tr5";
+  std::string native_id = "tr5";
   TransitionType tr;
   tr.product_mz = 900.00;
   tr.precursor_mz = 500.0;
@@ -109,7 +109,7 @@ void addTransitionsPep2( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType
 }
 void addTransitionsPep3( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & transition_group, OpenSwath::LightTargetedExperiment& exp)
 {
-  String native_id = "tr6";
+  std::string native_id = "tr6";
   TransitionType tr;
   tr.product_mz = 950.00;
   tr.precursor_mz = 600.0;
@@ -158,7 +158,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
   OpenSwath::LightTargetedExperiment targ_exp = addTransitions(transition_group);
 
   // Add one group to the map
-  std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
+  std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
   transition_group_map["group1"] = &transition_group;
   transition_group_map["group2"] = &transition_group;
   transition_group_map["group3"] = &transition_group;
@@ -409,7 +409,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
 }
 END_SECTION
 
-START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map, const std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef, TransformationDescription& im_trafo))
+START_SECTION( void correctIM(const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map, const std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef, TransformationDescription& im_trafo))
 {
 
   // m/z targets for correction are : 500.00, 600.00, 700.00, 800.00, 900.00, 950.00
@@ -429,7 +429,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
   bool pasef = false;
 
   // Add one group to the map
-  std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
+  std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
   transition_group_map["group1"] = &gr1;
   transition_group_map["group2"] = &gr2;
   transition_group_map["group3"] = &gr3;

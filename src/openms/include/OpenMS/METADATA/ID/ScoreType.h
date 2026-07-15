@@ -32,7 +32,7 @@ namespace OpenMS
       {
       }
 
-      explicit ScoreType(const String& name, bool higher_better):
+      explicit ScoreType(const std::string& name, bool higher_better):
         cv_term(), higher_better(higher_better)
       {
         cv_term.setName(name);

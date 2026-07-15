@@ -12,7 +12,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
@@ -22,11 +26,17 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <algorithm>
+#include <exception>
 #include <limits>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -36,7 +46,7 @@ namespace // anonymous
   /// Try to extract a scan number from a native ID string.
   /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
   /// Returns -1 on failure.
-  Int extractScan(const String& native_id)
+  Int extractScan(const std::string& native_id)
   {
     std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
     if (regex_str.empty())
@@ -46,10 +56,107 @@ namespace // anonymous
     boost::regex scan_regex(regex_str);
     return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
   }
+
+  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
+  /// MetaInfoRegistry::getName() takes an `omp critical` lock, so caching by index pays
+  /// that lock at most once per unique key for the whole range instead of once per
+  /// metavalue per feature (as getKeys()/getMetaValue() would). Registered names are
+  /// non-empty, so an empty cache slot reliably means "not yet resolved".
+  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
+  {
+    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
+    std::string& name = cache[index];
+    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
+    return name;
+  }
 } // anonymous namespace
 
 
-std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
+namespace // anonymous (feature range builder + shared per-map lookups)
+{
+
+/// Per-map, read-only lookups derived once from the ConsensusMap's protein
+/// identifications. Shared by the whole-table and streaming feature export paths
+/// (built once, reused across all batches).
+struct FeatureIdLookups
+{
+  std::unordered_map<std::string, double> pg_qvalue;               ///< accession -> protein-group q-value
+  std::unordered_map<std::string, std::vector<std::string>> gg_accessions; ///< accession -> gene accessions
+  std::unordered_map<std::string, std::vector<std::string>> gg_names;      ///< accession -> gene names
+};
+
+/// Build the per-map protein-group q-value and gene-info lookups from the
+/// ConsensusMap's ProteinIdentifications.
+FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
+{
+  FeatureIdLookups lut;
+  for (const auto& prot_id : cmap.getProteinIdentifications())
+  {
+    // Gene info from ProteinHit metavalues
+    for (const auto& ph : prot_id.getHits())
+    {
+      const std::string& acc = ph.getAccession();
+      if (ph.metaValueExists("gene_accession"))
+      {
+        lut.gg_accessions[acc].push_back(ph.getMetaValue("gene_accession").toString());
+      }
+      if (ph.metaValueExists("gene_name"))
+      {
+        lut.gg_names[acc].push_back(ph.getMetaValue("gene_name").toString());
+      }
+    }
+
+    for (const auto& pg : prot_id.getProteinGroups())
+    {
+      for (const auto& acc : pg.accessions)
+      {
+        lut.pg_qvalue[acc] = pg.probability;
+      }
+    }
+    for (const auto& ig : prot_id.getIndistinguishableProteins())
+    {
+      for (const auto& acc : ig.accessions)
+      {
+        if (!lut.pg_qvalue.contains(acc))
+        {
+          lut.pg_qvalue[acc] = ig.probability;
+        }
+      }
+    }
+  }
+  return lut;
+}
+
+/// Build Parquet WriterProperties from the OpenMS config (shared by the one-shot
+/// and streaming feature export paths).
+std::shared_ptr<parquet::WriterProperties> makeFeatureWriterProperties(const ParquetWriteConfig& config)
+{
+  auto builder = parquet::WriterProperties::Builder();
+  switch (config.compression)
+  {
+    case ParquetWriteConfig::Compression::NONE:   builder.compression(arrow::Compression::UNCOMPRESSED); break;
+    case ParquetWriteConfig::Compression::SNAPPY: builder.compression(arrow::Compression::SNAPPY); break;
+    case ParquetWriteConfig::Compression::GZIP:   builder.compression(arrow::Compression::GZIP); builder.compression_level(config.compression_level); break;
+    case ParquetWriteConfig::Compression::LZ4:    builder.compression(arrow::Compression::LZ4); break;
+    case ParquetWriteConfig::Compression::ZSTD:   builder.compression(arrow::Compression::ZSTD); builder.compression_level(config.compression_level); break;
+  }
+  builder.data_pagesize(config.data_page_size);
+  if (config.write_statistics) { builder.enable_statistics(); }
+  else                         { builder.disable_statistics(); }
+  return builder.build();
+}
+
+/// Build a QPXFeatureSchema Arrow table for the half-open feature range
+/// [range_begin, range_end) of @p cmap. @p id_lut holds the prebuilt per-map
+/// protein-group/gene lookups. Each row is independent (no cross-row state), so
+/// any contiguous sub-range yields a self-contained, schema-valid table; this is
+/// what lets exportToParquetStreaming() flush one batch at a time. Shared by
+/// exportToArrow() (whole map) and exportToParquetStreaming() (one batch per call).
+std::shared_ptr<arrow::Table> buildFeatureTableRange(
+  const ConsensusMap& cmap,
+  const FeatureIdLookups& id_lut,
+  size_t range_begin,
+  size_t range_end)
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder, anchor_protein_builder;
@@ -205,7 +312,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   arrow::ListBuilder pg_positions_builder(arrow::default_memory_pool(), pgp_struct_b);
 
   arrow::Status status;
-  const Size num_features = cmap.size();
+  const Size num_features = range_end - range_begin;
 
   // Reserve capacity for simple column builders
   #define RESERVE_OR_FAIL(builder) \
@@ -239,45 +346,10 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   // Build column header lookup
   const auto& column_headers = cmap.getColumnHeaders();
 
-  // Build protein group q-value lookup and gene info lookup
-  std::unordered_map<std::string, double> pg_qvalue_lookup;
-  std::unordered_map<std::string, std::vector<std::string>> gg_accessions_lookup;
-  std::unordered_map<std::string, std::vector<std::string>> gg_names_lookup;
-
-  for (const auto& prot_id : cmap.getProteinIdentifications())
-  {
-    // Gene info from ProteinHit metavalues
-    for (const auto& ph : prot_id.getHits())
-    {
-      const std::string& acc = ph.getAccession();
-      if (ph.metaValueExists("gene_accession"))
-      {
-        gg_accessions_lookup[acc].push_back(ph.getMetaValue("gene_accession").toString());
-      }
-      if (ph.metaValueExists("gene_name"))
-      {
-        gg_names_lookup[acc].push_back(ph.getMetaValue("gene_name").toString());
-      }
-    }
-
-    for (const auto& pg : prot_id.getProteinGroups())
-    {
-      for (const auto& acc : pg.accessions)
-      {
-        pg_qvalue_lookup[acc] = pg.probability;
-      }
-    }
-    for (const auto& ig : prot_id.getIndistinguishableProteins())
-    {
-      for (const auto& acc : ig.accessions)
-      {
-        if (pg_qvalue_lookup.find(acc) == pg_qvalue_lookup.end())
-        {
-          pg_qvalue_lookup[acc] = ig.probability;
-        }
-      }
-    }
-  }
+  // Per-map protein-group q-value and gene-info lookups (prebuilt once, shared across batches)
+  const auto& pg_qvalue_lookup = id_lut.pg_qvalue;
+  const auto& gg_accessions_lookup = id_lut.gg_accessions;
+  const auto& gg_names_lookup = id_lut.gg_names;
 
   // Metavalue keys excluded from additional_scores on PeptideHit
   static const std::unordered_set<std::string> excluded_hit_mvs = {
@@ -286,8 +358,35 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
   IDScoreSwitcherAlgorithm idsa;
 
-  for (const auto& cf : cmap)
+  // Lazily-filled MetaInfo index->name cache shared across all features in this range
+  // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
+  std::vector<std::string> meta_name_cache;
+
+  // Pre-resolve the fixed dedicated-column metavalue names to registry indices ONCE for this range.
+  // String-keyed exists()/getValue() take the MetaInfoRegistry omp-critical lock via getIndex() on
+  // every call; resolving once and using the index overloads (lock-free flat_map lookups) keeps the
+  // parallel build from serializing on that lock. UInt(-1) = name never registered on any object =>
+  // treated as absent (matches the sentinel check in the string-keyed exists()).
+  auto& mreg = MetaInfoInterface::metaRegistry();
+  const UInt idx_target_decoy       = mreg.getIndex("target_decoy");
+  const UInt idx_predicted_RT       = mreg.getIndex("predicted_RT");
+  const UInt idx_predicted_rt       = mreg.getIndex("predicted_rt");
+  const UInt idx_ion_mobility       = mreg.getIndex("ion_mobility");
+  const UInt idx_IM                 = mreg.getIndex("IM");
+  const UInt idx_spectrum_reference = mreg.getIndex("spectrum_reference");
+  const UInt idx_missed_cleavages   = mreg.getIndex("missed_cleavages");
+  const UInt idx_start_ion_mobility = mreg.getIndex("start_ion_mobility");
+  const UInt idx_stop_ion_mobility  = mreg.getIndex("stop_ion_mobility");
+  const UInt idx_rt_start           = mreg.getIndex("rt_start");
+  const UInt idx_rt_stop            = mreg.getIndex("rt_stop");
+  // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
+  // metaValueExists() does not special-case the sentinel the way the string overload does.
+  auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
+  { return idx != static_cast<UInt>(-1) && m.metaValueExists(idx); };
+
+  for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
   {
+    const auto& cf = cmap[feat_idx];
     const auto& pep_ids = cf.getPeptideIdentifications();
     bool has_id = !pep_ids.empty() && !pep_ids[0].getHits().empty();
     const PeptideHit* best_hit = has_id ? &pep_ids[0].getHits()[0] : nullptr;
@@ -358,7 +457,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -376,7 +475,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
           {
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -433,15 +532,17 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     if (has_id)
     {
       auto result = idsa.findScoreType(pep_ids[0], IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      // Resolve the (dynamic) PEP score name to an index once per feature (lock-free use below).
+      const UInt idx_pep = result.score_name.empty() ? static_cast<UInt>(-1) : mreg.getIndex(result.score_name);
       if (!result.score_name.empty() && best_hit)
       {
         if (result.is_main_score_type)
         {
           (void)pep_builder.Append(best_hit->getScore());
         }
-        else if (best_hit->metaValueExists(result.score_name))
+        else if (metaHas(*best_hit, idx_pep))
         {
-          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(result.score_name)));
+          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(idx_pep)));
         }
         else
         {
@@ -459,10 +560,10 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === is_decoy ===
-    if (best_hit && best_hit->metaValueExists("target_decoy"))
+    if (best_hit && metaHas(*best_hit, idx_target_decoy))
     {
-      std::string td = best_hit->getMetaValue("target_decoy").toString();
-      (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
+      std::string td = best_hit->getMetaValue(idx_target_decoy).toString();
+      (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
     }
     else
     {
@@ -473,13 +574,16 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)additional_scores_builder.Append();
     if (best_hit)
     {
-      std::vector<String> keys;
-      best_hit->getKeys(keys);
-      for (const auto& key : keys)
+      // Single index-based pass over the hit's metavalues (avoids getKeys()/getMetaValue(string),
+      // which take the MetaInfoRegistry lock per key); names resolved via the shared cache. Same
+      // iteration order (by index) and same filtering as the previous getKeys() loop.
+      for (auto mv_it = best_hit->metaBegin(); mv_it != best_hit->metaEnd(); ++mv_it)
       {
-        if (excluded_hit_mvs.count(key)) continue;
-        const DataValue& val = best_hit->getMetaValue(key);
-        if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
+        const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+        if (excluded_hit_mvs.contains(key)) continue;
+        const DataValue& val = mv_it->second;
+        const auto vt = val.valueType();
+        if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
             && Scores::isKnownScoreType(key))
         {
           (void)as_struct_b->Append();
@@ -499,13 +603,13 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === predicted_rt ===
-    if (best_hit && best_hit->metaValueExists("predicted_RT"))
+    if (best_hit && metaHas(*best_hit, idx_predicted_RT))
     {
-      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue("predicted_RT"))));
+      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue(idx_predicted_RT))));
     }
-    else if (best_hit && best_hit->metaValueExists("predicted_rt"))
+    else if (best_hit && metaHas(*best_hit, idx_predicted_rt))
     {
-      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue("predicted_rt"))));
+      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue(idx_predicted_rt))));
     }
     else
     {
@@ -539,9 +643,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       {
         // Prefer the dedicated member, fall back to metavalue
         spec_ref = pep_ids[0].getSpectrumReference();
-        if (spec_ref.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+        if (spec_ref.empty() && metaHas(pep_ids[0], idx_spectrum_reference))
         {
-          spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
+          spec_ref = pep_ids[0].getMetaValue(idx_spectrum_reference).toString();
         }
       }
 
@@ -560,31 +664,31 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)cv_params_builder.AppendNull();
 
     // === ion_mobility, start/stop ===
-    if (!pep_ids.empty() && pep_ids[0].metaValueExists("ion_mobility"))
+    if (!pep_ids.empty() && metaHas(pep_ids[0], idx_ion_mobility))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue("ion_mobility"))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue(idx_ion_mobility))));
     }
-    else if (!pep_ids.empty() && pep_ids[0].metaValueExists("IM"))
+    else if (!pep_ids.empty() && metaHas(pep_ids[0], idx_IM))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue("IM"))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue(idx_IM))));
     }
     else
     {
       (void)ion_mobility_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("start_ion_mobility"))
+    if (metaHas(cf, idx_start_ion_mobility))
     {
-      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("start_ion_mobility"))));
+      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_start_ion_mobility))));
     }
     else
     {
       (void)im_start_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("stop_ion_mobility"))
+    if (metaHas(cf, idx_stop_ion_mobility))
     {
-      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("stop_ion_mobility"))));
+      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_stop_ion_mobility))));
     }
     else
     {
@@ -592,9 +696,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === missed_cleavages ===
-    if (best_hit && best_hit->metaValueExists("missed_cleavages"))
+    if (best_hit && metaHas(*best_hit, idx_missed_cleavages))
     {
-      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue("missed_cleavages"))));
+      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue(idx_missed_cleavages))));
     }
     else
     {
@@ -745,9 +849,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === rt_start / rt_stop ===
-    if (cf.metaValueExists("rt_start"))
+    if (metaHas(cf, idx_rt_start))
     {
-      (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("rt_start"))));
+      (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_start))));
     }
     else if (cf.getWidth() > 0)
     {
@@ -758,9 +862,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       (void)rt_start_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("rt_stop"))
+    if (metaHas(cf, idx_rt_stop))
     {
-      (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("rt_stop"))));
+      (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_stop))));
     }
     else if (cf.getWidth() > 0)
     {
@@ -866,10 +970,18 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   return table;
 }
 
+} // anonymous namespace (feature range builder + shared per-map lookups)
+
+
+std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
+{
+  return buildFeatureTableRange(cmap, buildFeatureIdLookups(cmap), 0, cmap.size());
+}
+
 
 bool ConsensusMapArrowExport::exportToParquet(
   const ConsensusMap& cmap,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportToArrow(cmap);
@@ -888,43 +1000,7 @@ bool ConsensusMapArrowExport::exportToParquet(
   }
   const auto& outfile = *result;
 
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-
+  auto writer_props = makeFeatureWriterProperties(config);
   auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
 
   // Write
@@ -940,6 +1016,155 @@ bool ConsensusMapArrowExport::exportToParquet(
   }
 
   return true;
+}
+
+
+bool ConsensusMapArrowExport::exportToParquetStreaming(
+  const ConsensusMap& cmap,
+  const std::string& filename,
+  size_t batch_size,
+  const ParquetWriteConfig& config,
+  int n_threads)
+{
+  if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
+
+  // Resolve the number of OpenMP threads used to build each batch's partitions.
+  // 1 = serial (default), 0 = all cores, N = fixed. Without OpenMP, always serial.
+  int threads = n_threads;
+#ifdef _OPENMP
+  if (threads <= 0) { threads = omp_get_max_threads(); }
+#endif
+  if (threads < 1) { threads = 1; }
+
+  // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
+  const auto id_lut = buildFeatureIdLookups(cmap);
+
+  // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
+  // cannot race across the OpenMP workers below. Runs once, serially. (ProForma and the
+  // SpectrumNativeIDParser scan path resolve through ModificationsDB/ResidueDB/AASequence, which are
+  // warmed here — the same set the PSM streaming path pre-warms.)
+  ModificationsDB::getInstance();
+  ResidueDB::getInstance();
+  (void)Scores::isKnownScoreType("q-value");
+  (void)AASequence::fromString("PEPTIDEK").getMZ(2); // inits AASequence static residue path
+
+  // The writer's schema must match each batch table's schema exactly. buildFeatureTableRange()
+  // stamps QPXFeatureSchema::schema() on every batch, so open the writer with the same schema.
+  const auto schema = QPXFeatureSchema::schema();
+
+  auto file_result = arrow::io::FileOutputStream::Open(filename);
+  if (!file_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open " << filename << " for writing: "
+                     << file_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto outfile = file_result.ValueOrDie();
+
+  auto writer_props = makeFeatureWriterProperties(config);
+  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+
+  auto writer_result = parquet::arrow::FileWriter::Open(
+    *schema, arrow::default_memory_pool(), outfile, writer_props, arrow_props);
+  if (!writer_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open Parquet writer for " << filename << ": "
+                     << writer_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto writer = std::move(writer_result).ValueOrDie();
+
+  const int64_t rg = static_cast<int64_t>(config.row_group_size);
+
+  // Build one feature batch [b, e): partition it into W contiguous sub-ranges, build each sub-table
+  // in parallel (OpenMP), then write them in index order (serial — the FileWriter is not thread-safe).
+  // Peak memory stays batch-bounded (the W sub-tables together hold one batch's rows). Row content and
+  // order are identical to the serial path (contiguous, in-order), so output is deterministic for any
+  // thread count.
+  auto write_batch = [&](size_t b, size_t e) -> bool
+  {
+    const size_t rows = e - b;
+    const int W = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(rows, 1)));
+    std::vector<std::shared_ptr<arrow::Table>> parts(W);
+    std::vector<std::exception_ptr> errs(W);
+
+    #pragma omp parallel for num_threads(W) schedule(static)
+    for (int t = 0; t < W; ++t)
+    {
+      try
+      {
+        const size_t base = rows / W, rem = rows % W;
+        const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
+        const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
+        parts[t] = buildFeatureTableRange(cmap, id_lut, sb, se);
+      }
+      catch (...)
+      {
+        errs[t] = std::current_exception(); // never let an exception escape the OpenMP region
+      }
+    }
+
+    // Surface any worker exception as a logged failure (convert to the bool error contract).
+    for (int t = 0; t < W; ++t)
+    {
+      if (errs[t])
+      {
+        try { std::rethrow_exception(errs[t]); }
+        catch (const std::exception& ex) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw: " << ex.what() << std::endl; }
+        catch (...)                      { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw (unknown exception)" << std::endl; }
+        return false;
+      }
+    }
+
+    // Write partitions in index order (serial — the FileWriter is not thread-safe).
+    for (int t = 0; t < W; ++t)
+    {
+      if (!parts[t])
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch partition " << t << std::endl;
+        return false;
+      }
+      auto st = writer->WriteTable(*parts[t], rg);
+      if (!st.ok())
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write feature batch to " << filename << ": "
+                         << st.ToString() << std::endl;
+        return false;
+      }
+    }
+    return true;
+  };
+
+  bool ok = true;
+  const size_t N = cmap.size();
+  if (N == 0)
+  {
+    ok = write_batch(0, 0); // valid 0-row file (schema only), matching the one-shot path
+  }
+  else
+  {
+    for (size_t b = 0; b < N && ok; b += batch_size)
+    {
+      ok = write_batch(b, std::min(b + batch_size, N));
+    }
+  }
+
+  // Close the writer (flushes the footer) then the sink, regardless of write outcome.
+  auto writer_close = writer->Close();
+  if (!writer_close.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close Parquet writer for " << filename << ": "
+                     << writer_close.ToString() << std::endl;
+    ok = false;
+  }
+  auto outfile_close = outfile->Close();
+  if (!outfile_close.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close output stream for " << filename << ": "
+                     << outfile_close.ToString() << std::endl;
+    ok = false;
+  }
+  return ok;
 }
 
 } // namespace OpenMS

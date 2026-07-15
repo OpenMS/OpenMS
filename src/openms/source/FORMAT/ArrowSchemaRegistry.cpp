@@ -153,7 +153,7 @@ namespace OpenMS
     return arrow::schema({
       arrow::field(ACCESSION, arrow::utf8(), /*nullable=*/false),
       arrow::field(SCORE, arrow::float64(), /*nullable=*/false),
-      arrow::field(RANK, arrow::int32(), /*nullable=*/true),
+      arrow::field(RANK, arrow::int32(), /*nullable=*/false),
       arrow::field(COVERAGE, arrow::float64(), /*nullable=*/true),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/true),
       arrow::field(DESCRIPTION, arrow::utf8(), /*nullable=*/true),
@@ -365,6 +365,17 @@ namespace OpenMS
     }));
   }
 
+  std::shared_ptr<arrow::DataType> PSMSchema::proteinAccessionsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("accession", arrow::utf8(), /*nullable=*/false),
+      arrow::field("aa_before", arrow::utf8(), /*nullable=*/true),
+      arrow::field("aa_after",  arrow::utf8(), /*nullable=*/true),
+      arrow::field("start",     arrow::int32(), /*nullable=*/true),
+      arrow::field("end",       arrow::int32(), /*nullable=*/true),
+    }));
+  }
+
   std::shared_ptr<arrow::Schema> PSMSchema::schema()
   {
     return arrow::schema({
@@ -377,7 +388,7 @@ namespace OpenMS
       arrow::field(CALCULATED_MZ, arrow::float64()),
       arrow::field(OBSERVED_MZ, arrow::float64()),
       arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
-      arrow::field(PROTEIN_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(PROTEIN_ACCESSIONS, proteinAccessionsType()),
       arrow::field(PREDICTED_RT, arrow::float64()),
       arrow::field(REFERENCE_FILE_NAME, arrow::utf8()),
       arrow::field(CV_PARAMS, arrow::utf8()),
@@ -388,11 +399,15 @@ namespace OpenMS
       arrow::field(SCORE, arrow::float64()),
       arrow::field(SCORE_TYPE, arrow::utf8()),
       arrow::field(HIGHER_SCORE_BETTER, arrow::boolean()),
-      arrow::field(RANK, arrow::int32()),
+      arrow::field(HIT_INDEX, arrow::int32()),
       arrow::field(PEPTIDE_IDENTIFICATION_INDEX, arrow::int32()),
       arrow::field(PSM_METAVALUES, metavaluesType()),
       arrow::field(SPECTRUM_METAVALUES, metavaluesType()),
       arrow::field(RUN_IDENTIFIER, arrow::utf8()),
+      arrow::field(MZ_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(INTENSITY_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
+      arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
     });
   }
 
@@ -475,6 +490,88 @@ namespace OpenMS
       arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
       arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
       arrow::field(ION_MOBILITY_ARRAY, arrow::list(arrow::float32())),
+    });
+  }
+
+  // -- QPXPgSchema (quantms Parquet eXchange format, protein group table) --
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::intensitiesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("label", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensity", arrow::float32(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::additionalIntensitiesType()
+  {
+    auto int_pair_type = arrow::struct_({
+      arrow::field("intensity_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensity_value", arrow::float32(), /*nullable=*/false)
+    });
+    return arrow::list(arrow::struct_({
+      arrow::field("label", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensities", arrow::list(int_pair_type), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::peptidesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("protein_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("peptide_count", arrow::int32(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::peptideCountsType()
+  {
+    return arrow::struct_({
+      arrow::field("unique_sequences", arrow::int32(), /*nullable=*/false),
+      arrow::field("total_sequences", arrow::int32(), /*nullable=*/false)
+    });
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::featureCountsType()
+  {
+    return arrow::struct_({
+      arrow::field("unique_features", arrow::int32(), /*nullable=*/false),
+      arrow::field("total_features", arrow::int32(), /*nullable=*/false)
+    });
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::additionalScoresType()
+  {
+    return QPXPSMSchema::additionalScoresType();
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::cvParamsType()
+  {
+    return QPXPSMSchema::cvParamsType();
+  }
+
+  std::shared_ptr<arrow::Schema> QPXPgSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(PG_ACCESSIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
+      arrow::field(PG_NAMES, arrow::list(arrow::utf8())),
+      arrow::field(GG_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
+      arrow::field(GG_QVALUE, arrow::float64()),
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
+      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(GLOBAL_QVALUE, arrow::float64()),
+      arrow::field(PG_QVALUE, arrow::float64()),
+      arrow::field(INTENSITIES, intensitiesType()),
+      arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
+      arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
+      arrow::field(CONTAMINANT, arrow::boolean()),
+      arrow::field(PEPTIDES, peptidesType(), /*nullable=*/false),
+      arrow::field(PEPTIDE_COUNTS, peptideCountsType()),
+      arrow::field(FEATURE_COUNTS, featureCountsType()),
+      arrow::field(SEQUENCE_COVERAGE, arrow::float32()),
+      arrow::field(MOLECULAR_WEIGHT, arrow::float32()),
+      arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
+      arrow::field(CV_PARAMS, cvParamsType()),
     });
   }
 
@@ -878,6 +975,42 @@ namespace OpenMS
       arrow::field(ANNOTATION, arrow::utf8()),
       arrow::field(MOBILITY_DATA, arrow::binary()),
       arrow::field(INTENSITY_DATA, arrow::binary()),
+      arrow::field(MOBILITY_COMPRESSION, arrow::int64()),
+      arrow::field(INTENSITY_COMPRESSION, arrow::int64()),
+    });
+  }
+
+  // -- XIPMSchema --
+
+  std::shared_ptr<arrow::Schema> XIPMSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(SOURCE_FILE, arrow::utf8()),
+      arrow::field(MS_LEVEL, arrow::int64()),
+      arrow::field(PEAKMAP_TYPE, arrow::utf8()),
+      arrow::field(PRECURSOR_ID, arrow::int64()),
+      arrow::field(TRANSITION_ID, arrow::int64()),
+      arrow::field(MODIFIED_SEQUENCE, arrow::utf8()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int64()),
+      arrow::field(PRODUCT_CHARGE, arrow::int64()),
+      arrow::field(DETECTING_TRANSITION, arrow::int64()),
+      arrow::field(PRECURSOR_DECOY, arrow::int64()),
+      arrow::field(PRODUCT_DECOY, arrow::int64()),
+      arrow::field(TRANSITION_ORDINAL, arrow::int64()),
+      arrow::field(TRANSITION_TYPE, arrow::utf8()),
+      arrow::field(ANNOTATION, arrow::utf8()),
+      arrow::field(TARGET_MZ, arrow::float64()),
+      arrow::field(TARGET_RT, arrow::float64()),
+      arrow::field(TARGET_ION_MOBILITY, arrow::float64()),
+      arrow::field(RT_START, arrow::float64()),
+      arrow::field(RT_END, arrow::float64()),
+      arrow::field(MZ_DATA, arrow::binary()),
+      arrow::field(RT_DATA, arrow::binary()),
+      arrow::field(MOBILITY_DATA, arrow::binary()),
+      arrow::field(INTENSITY_DATA, arrow::binary()),
+      arrow::field(MZ_COMPRESSION, arrow::int64()),
+      arrow::field(RT_COMPRESSION, arrow::int64()),
       arrow::field(MOBILITY_COMPRESSION, arrow::int64()),
       arrow::field(INTENSITY_COMPRESSION, arrow::int64()),
     });

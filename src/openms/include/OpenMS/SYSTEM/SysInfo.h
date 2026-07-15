@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -41,6 +41,17 @@ namespace OpenMS
       /// @param[out] mem_virtual Total virtual memory allocated by this process
       /// @return True on success, false otherwise. If false is returned, then @p mem_virtual is set to 0.
       static bool getProcessPeakMemoryConsumption(size_t& mem_virtual);
+
+      /**
+        @brief Get currently available physical system memory in KiloBytes (KB).
+
+        On Linux this prefers MemAvailable from /proc/meminfo so file-system
+        cache that can be reclaimed by the kernel is counted as available.
+
+        @param[out] mem_available Available physical system memory
+        @return True on success, false otherwise. If false is returned, then @p mem_available is set to 0.
+      */
+      static bool getFreeSystemMemory(size_t& mem_available);
 
       /// `@brief` Get the current process ID
       ///
@@ -76,17 +87,16 @@ namespace OpenMS
         void after();
         /// get difference in memory usage between the two timepoints
         /// @ref after() will be called unless it was called earlier
-        String delta(const String& event = "delta");
+        std::string delta(const std::string& event = "delta");
 
         /// get current memory usage (i.e. 'after')
         /// @ref after() will be called unless it was called earlier
-        String usage();
+        std::string usage();
 
       private:
         // convert difference to string
-        String diff_str_(size_t mem_before, size_t mem_after);
+        std::string diff_str_(size_t mem_before, size_t mem_after);
 
       };
   };
 }
-

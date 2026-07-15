@@ -220,7 +220,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
       {
         // filter out if too many features from same map
         Size map_idx = kd_data.mapIndex(*idx_it);
-        if (map_indices.find(map_idx) != map_indices.end())
+        if (map_indices.contains(map_idx))
         {
           if (++nr_conflicts > max_nr_conflicts)
           {

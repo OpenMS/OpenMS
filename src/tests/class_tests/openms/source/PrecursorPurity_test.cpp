@@ -10,6 +10,8 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
@@ -56,7 +58,7 @@ END_SECTION
 
 START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
 
-  unordered_map<String, PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
+  unordered_map<std::string, PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
 
   TEST_EQUAL(purityscores.size(), 5)
 
@@ -186,5 +188,57 @@ END_SECTION
 
 
 
+START_SECTION((static Size countSPSPrecursorsMatchingPeptideFragments(const std::vector<Precursor>& sps_precursors, const AASequence& peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, int max_fragment_charge)))
+
+  AASequence peptide = AASequence::fromString("PEPTIDER");
+
+  // some singly charged b/y fragment ion m/z of PEPTIDER (computed independently)
+  const double b4 = 425.20308;
+  const double y3 = 419.18849;
+  const double y6 = 730.37299;
+
+  auto make_precursor = [](double mz)
+  {
+    Precursor p;
+    p.setMZ(mz);
+    return p;
+  };
+
+  // empty inputs return 0
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments({}, peptide, 0.02, false, 1), 0)
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments({make_precursor(b4)}, AASequence(), 0.02, false, 1), 0)
+
+  // three matching fragments, all should be counted (Da tolerance)
+  std::vector<Precursor> sps = {make_precursor(b4), make_precursor(y3), make_precursor(y6)};
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(sps, peptide, 0.02, false, 1), 3)
+
+  // add a peak that does not correspond to any fragment ion -> still 3 matches
+  sps.push_back(make_precursor(500.0));
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(sps, peptide, 0.02, false, 1), 3)
+
+  // ppm tolerance: 10 ppm around b4 (~0.004 Th) still matches, but a peak 0.05 Th off does not
+  std::vector<Precursor> sps_ppm = {make_precursor(b4 + 0.003), make_precursor(b4 + 0.05)};
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(sps_ppm, peptide, 20.0, true, 1), 1)
+
+  // a charge < 1 is treated as charge 1
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments({make_precursor(b4)}, peptide, 0.02, false, 0), 1)
+
+  // self-consistency check: precursors set to exact theoretical fragment m/z (charge 1 and 2) must all match
+  TheoreticalSpectrumGenerator tsg;
+  std::vector<float> theo_mzs;
+  tsg.getPrefixAndSuffixIonsMZ(theo_mzs, peptide, 2);
+  std::vector<Precursor> sps_theo;
+  for (float mz : theo_mzs)
+  {
+    sps_theo.push_back(make_precursor(mz));
+  }
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(sps_theo, peptide, 0.001, false, 2), sps_theo.size())
+
+  // a doubly charged fragment is not matched when only singly charged fragments are considered
+  const double y7_2plus = 430.21143;
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments({make_precursor(y7_2plus)}, peptide, 0.02, false, 1), 0)
+  TEST_EQUAL(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments({make_precursor(y7_2plus)}, peptide, 0.02, false, 2), 1)
+
+END_SECTION
 
 END_TEST

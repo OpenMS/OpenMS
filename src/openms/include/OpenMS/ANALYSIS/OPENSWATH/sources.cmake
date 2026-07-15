@@ -11,6 +11,7 @@ set(sources_list_h
   DIAPrescoring.h
   DIAScoring.h
   IonMobilityScoring.h
+  LevelContextInference.h
   MasstraceCorrelator.h
   MRMAssay.h
   MRMDecoy.h
@@ -24,16 +25,31 @@ set(sources_list_h
   MRMRTNormalizer.h
   MRMScoring.h
   MRMTransitionGroupPicker.h
+  OpenSwathGeneInference.h
   OpenSwathHelper.h
+  OpenSwathExportConfig.h
+  OpenSwathExportData.h
+  OpenSwathMatrixExporter.h
+  OpenSwathParquetExporter.h
+  OpenSwathInferenceConfig.h
+  OpenSwathInferenceData.h
   OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathOSWParquetReader.h
+  OpenSwathPercolatorScoring.h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
+  OpenSwathResultsExporter.h
+  TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
+  OpenSwathWorkflowScheduler.h
+  PeakMapExtractor.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h
+  OpenSwathPeptideInference.h
+  OpenSwathPeptidoformInference.h
+  OpenSwathProteinInference.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h

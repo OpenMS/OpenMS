@@ -40,13 +40,10 @@ OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
-String.h
-StringConversions.h
 StringUtils.h
-StringUtilsSimple.h
 StringListUtils.h
-StringView.h
 ToolDescription.h
+TypeAliases.h
 )
 
 ### add path to the filenames

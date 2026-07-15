@@ -39,14 +39,14 @@ namespace bp = boost::process;
 namespace OpenMS
 {
 
-  bool RWrapper::runScript(const String& script_file, const std::vector<String>& cmd_args, const String& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
+  bool RWrapper::runScript(const std::string& script_file, const std::vector<std::string>& cmd_args, const std::string& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
   {
     if (find_R && !findR(executable, verbose))
     {
       return false;
     }
 
-    String fullscript;
+    std::string fullscript;
     try
     {
       fullscript = findScript(script_file, verbose);
@@ -129,7 +129,7 @@ namespace OpenMS
     return true;
   }
 
-  bool RWrapper::findR(const String& executable /*= "Rscript"*/, bool verbose /*= true*/)
+  bool RWrapper::findR(const std::string& executable /*= "Rscript"*/, bool verbose /*= true*/)
   {
     if (verbose) OPENMS_LOG_INFO << "Finding R interpreter 'Rscript' ...";
 
@@ -205,12 +205,12 @@ namespace OpenMS
     return true;
   }
 
-  OpenMS::String RWrapper::findScript(const String& script_file, bool verbose /*= true*/)
+  std::string RWrapper::findScript(const std::string& script_file, bool verbose /*= true*/)
   {
-    String s;
+    std::string s;
     try
     {
-      s = File::find(script_file, StringList(1, File::getOpenMSDataPath().ensureLastChar('/') + "SCRIPTS"));
+      { auto p = File::getOpenMSDataPath(); StringUtils::ensureLastChar(p, '/'); s = File::find(script_file, StringList(1, p + "SCRIPTS")); }
     }
     catch (...)
     {

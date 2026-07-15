@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
@@ -49,7 +50,7 @@ bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
 double averagine_similarity = 0.75;
 double averagine_similarity_scaling = 0.75;
-String averagine_type="peptide";
+std::string averagine_type="peptide";
 
 // construct list of peak patterns
 MultiplexDeltaMasses shifts1;
@@ -77,8 +78,8 @@ MultiplexClustering* nullPointer = nullptr;
 MultiplexClustering* ptr;
 
 START_SECTION(MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical))
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical);
-    std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
+    // constructor-only test; the expensive cluster() run is exercised (and its
+    // result asserted on) in the cluster() section below, so do not run it here.
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;

@@ -10,7 +10,6 @@
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
@@ -24,9 +23,9 @@ namespace OpenMS
 
   UnimodXMLFile::~UnimodXMLFile() = default;
 
-  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*> & modifications)
+  void UnimodXMLFile::load(const std::string& filename, vector<ResidueModification*> & modifications)
   {
-    String file = File::find(filename);
+    std::string file = File::find(filename);
 
     Internal::UnimodXMLHandler handler(modifications, file);
     parse_(file, &handler);

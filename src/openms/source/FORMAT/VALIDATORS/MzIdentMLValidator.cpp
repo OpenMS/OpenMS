@@ -10,7 +10,6 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS::Internal

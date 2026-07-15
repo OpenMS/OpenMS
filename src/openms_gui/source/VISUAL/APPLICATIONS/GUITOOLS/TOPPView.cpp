@@ -26,13 +26,13 @@
 */
 
 //QT
-#include <QtWidgets/QSplashScreen>
 #include <QMessageBox>
 
 //OpenMS
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/VISUAL/MISC/InteractiveSplashScreen.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //STL
@@ -74,6 +74,9 @@ void print_usage()
        << "  --force          Forces scan for new tools" << "\n"
        << "  --skip_tool_scan Skips scan for new tools" << "\n"
        << "\n"
+       << "Note: Qt command line options (e.g. '-style <style>' or '-stylesheet <file>')" << "\n"
+       << "      are supported as well and are passed on to Qt." << "\n"
+       << "\n"
        << "Hints:" << "\n"
        << " - To open several files in one window put a '+' in between the files." << "\n"
        << " - '@bw' after a map file displays the dots in a white to black gradient." << "\n"
@@ -104,24 +107,11 @@ int main(int argc, const char** argv)
   param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
 
   // '--help' given
+  // (handled before constructing a QApplication, so that '--help' also works in headless environments)
   if (param.exists("help"))
   {
     print_usage();
     return 0;
-  }
-
-  // test if unknown options were given
-  if (param.exists("unknown"))
-  {
-    // if TOPPView is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
-    // if this is the only unknown option it will be ignored .. maybe this should be solved directly
-    // in Param.h
-    if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
-    {
-      cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage();
-      return 1;
-    }
   }
 
   try
@@ -140,6 +130,27 @@ int main(int argc, const char** argv)
 
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
+
+    // Qt has now consumed (and removed from argc/argv) the command line arguments it recognizes,
+    // e.g. '-style', '-stylesheet', '-platform', ... (see https://doc.qt.io/qt-5/qapplication.html#QApplication).
+    // This allows users to customize the GUI appearance. We therefore re-parse the now reduced command
+    // line and only afterwards check for unknown options, so that Qt arguments are not mistaken for them.
+    param.clear();
+    param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
+
+    // test if unknown options were given
+    if (param.exists("unknown"))
+    {
+      // if TOPPView is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
+      // if this is the only unknown option it will be ignored .. maybe this should be solved directly
+      // in Param.h
+      if (!(StringUtils::hasSubstring(param.getValue("unknown").toString(), "-psn") && !StringUtils::hasSubstring(param.getValue("unknown").toString(), ", ")))
+      {
+        cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
+        print_usage();
+        return 1;
+      }
+    }
 
     TOPPViewBase::TOOL_SCAN mode = TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
     if (param.exists("force"))
@@ -168,12 +179,10 @@ int main(int argc, const char** argv)
     pt_ver.setPen(Qt::black);
     // draw version number dynamcially on top left corner
     pt_ver.drawText(5, 5 + 15, toQString(VersionInfo::getVersion()));
-    QSplashScreen splash_screen(qpm);
+    InteractiveSplashScreen splash_screen(qpm);
     splash_screen.show();
-    
+
     QApplication::processEvents();
-    StopWatch stop_watch;
-    stop_watch.start();
 
     if (param.exists("ini"))
     {
@@ -186,13 +195,9 @@ int main(int argc, const char** argv)
       tb.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
 
-    // We are about to show the application.
-    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
-    while (stop_watch.getClockTime() < 3.0) /*wait*/
-    {
-    }
-    stop_watch.stop();
-    splash_screen.close();
+    // Keep the splashscreen up for at least 3 seconds so it can be read, but let the user
+    // dismiss it earlier with a mouse click or key press. The event loop stays responsive.
+    splash_screen.showFor(3.0);
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
@@ -203,31 +208,31 @@ int main(int argc, const char** argv)
   //######################## ERROR HANDLING #################################
   catch (Exception::UnableToCreateFile& e)
   {
-    cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileNotFound& e)
   {
-    cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileNotReadable& e)
   {
-    cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileEmpty& e)
   {
-    cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::ParseError& e)
   {
-    cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::InvalidValue& e)
   {
-    cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::BaseException& e)
   {
-    cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
 
   return 1;

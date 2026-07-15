@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 ///////////////////////////
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -34,14 +35,14 @@ START_SECTION(~ProtXMLFile())
   delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String &filename, ProteinIdentification &protein_ids, PeptideIdentification &peptide_ids))
+START_SECTION(void load(const std::string &filename, ProteinIdentification &protein_ids, PeptideIdentification &peptide_ids))
 {
   ProtXMLFile f;
   ProteinIdentification proteins;
   PeptideIdentification peptides;
-  String prot_file;
+  std::string prot_file;
 
-  StringList ids = ListUtils::create<String>("16627578304933075941,13229490167902618598");
+  StringList ids = ListUtils::create<std::string>("16627578304933075941,13229490167902618598");
   // we do this twice, just to check that members are correctly reset etc..
   for (Int i=0;i<2;++i)
   {
@@ -90,7 +91,7 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(peptides.getHits()[0].getSequence(), aa_seq);
     TEST_EQUAL(peptides.getHits()[0].getCharge(), 2);
     TEST_EQUAL(peptides.getHits()[0].getScore(), 0.8633);
-    set<String> protein_accessions = peptides.getHits()[0].extractProteinAccessionsSet();
+    set<std::string> protein_accessions = peptides.getHits()[0].extractProteinAccessionsSet();
     TEST_EQUAL(protein_accessions.size(), 1);
     TEST_EQUAL(*protein_accessions.begin(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_unique"), true);
@@ -103,12 +104,113 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
 }
 END_SECTION
 
-START_SECTION(void store(const String &filename, const ProteinIdentification &protein_ids, const PeptideIdentification &peptide_ids, const String &document_id=""))
+START_SECTION(void store(const std::string &filename, const ProteinIdentification &protein_ids, const PeptideIdentification &peptide_ids, const std::string &document_id=""))
 {
   ProtXMLFile f;
   ProteinIdentification proteins;
   PeptideIdentification peptides;
   TEST_EXCEPTION(Exception::NotImplemented, f.store("notimplemented.protXML", proteins, peptides ))
+}
+END_SECTION
+
+// Test that probability=0 (subsumable) proteins are filtered out during parsing
+// while preserving normal protein groups and indistinguishable proteins.
+START_SECTION([EXTRA] probability zero protein filtering)
+{
+  ProtXMLFile f;
+  ProteinIdentification proteins;
+  PeptideIdentification peptides;
+  std::string prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_3.protXML");
+  f.load(prot_file, proteins, peptides);
+
+  // 5 protein_groups in input, but group 5 is all-subsumable (prob=0) and must NOT
+  // be inserted as an empty group -> 4 groups survive
+  TEST_EQUAL(proteins.getProteinGroups().size(), 4);
+
+  // Group 1: leader only (subsumable protein was filtered)
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[0], "LEADER_PROT");
+  TEST_REAL_SIMILAR(proteins.getProteinGroups()[0].probability, 0.9998);
+
+  // Group 2: protein + indistinguishable sibling (unaffected)
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions.size(), 2);
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions[0], "PROT_A");
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions[1], "PROT_B");
+
+  // Group 3: single protein (unaffected)
+  TEST_EQUAL(proteins.getProteinGroups()[2].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[2].accessions[0], "SINGLE_PROT");
+
+  // Group 4: subsumable protein appeared FIRST and was skipped; only the valid
+  // protein that followed it in the same group survives
+  TEST_EQUAL(proteins.getProteinGroups()[3].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[3].accessions[0], "VALID_AFTER");
+  TEST_REAL_SIMILAR(proteins.getProteinGroups()[3].probability, 0.9500);
+
+  // 4 indistinguishable groups. The fixture has 8 <protein> elements (one indist
+  // group each without filtering); the 4 probability=0 proteins (SUBSUMABLE_PROT,
+  // SUB_FIRST, ALLZERO_A, ALLZERO_B) create none, and the <indistinguishable_protein>
+  // sibling under the skipped SUB_FIRST is not registered either -> 4 survive.
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 4);
+
+  // Indist group 1: leader only
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "LEADER_PROT");
+
+  // Indist group 2: PROT_A + PROT_B
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions.size(), 2);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions[0], "PROT_A");
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions[1], "PROT_B");
+
+  // Indist group 3: single
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions[0], "SINGLE_PROT");
+
+  // Indist group 4: VALID_AFTER only (SUB_FIRST + SUB_FIRST_SIB skipped)
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions[0], "VALID_AFTER");
+
+  // 5 protein hits (LEADER_PROT, PROT_A, PROT_B, SINGLE_PROT, VALID_AFTER -- no
+  // SUBSUMABLE_PROT, SUB_FIRST, SUB_FIRST_SIB, ALLZERO_A, ALLZERO_B)
+  TEST_EQUAL(proteins.getHits().size(), 5);
+  TEST_EQUAL(proteins.getHits()[0].getAccession(), "LEADER_PROT");
+  TEST_REAL_SIMILAR(proteins.getHits()[0].getScore(), 0.9998);
+  TEST_EQUAL(proteins.getHits()[1].getAccession(), "PROT_A");
+  TEST_REAL_SIMILAR(proteins.getHits()[1].getScore(), 0.9000);
+  TEST_EQUAL(proteins.getHits()[2].getAccession(), "PROT_B");
+  TEST_REAL_SIMILAR(proteins.getHits()[2].getScore(), 0.9000); // inherited from leader
+  TEST_EQUAL(proteins.getHits()[3].getAccession(), "SINGLE_PROT");
+  TEST_REAL_SIMILAR(proteins.getHits()[3].getScore(), 0.8000);
+  TEST_EQUAL(proteins.getHits()[4].getAccession(), "VALID_AFTER");
+  TEST_REAL_SIMILAR(proteins.getHits()[4].getScore(), 0.9500);
+
+  // 5 peptide hits (2 from leader, 1 from group 2, 1 from group 3, 1 from VALID_AFTER
+  // -- NOT any subsumable protein's peptide)
+  TEST_EQUAL(peptides.getHits().size(), 5);
+
+  // Verify the surviving peptides are exactly the expected ones (in document order)
+  // and carry evidence only for surviving proteins -- guards against a regression
+  // that keeps the count at 5 but substitutes a skipped peptide or attaches stale
+  // evidence from a filtered protein.
+  TEST_EQUAL(peptides.getHits()[0].getSequence().toString(), "AAAPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[1].getSequence().toString(), "BBPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[2].getSequence().toString(), "SHAREDPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[3].getSequence().toString(), "UNIQUEPEPTIDE");
+  TEST_EQUAL(peptides.getHits()[4].getSequence().toString(), "VALIDPEP");
+
+  // The two leader peptides reference only LEADER_PROT (the subsumable sibling that
+  // also listed AAAPEPTIDE was filtered, so no stale evidence remains).
+  TEST_EQUAL(peptides.getHits()[0].getPeptideEvidences().size(), 1);
+  TEST_EQUAL(peptides.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "LEADER_PROT");
+
+  // SHAREDPEPTIDE belongs to the PROT_A/PROT_B indistinguishable group -> two evidences.
+  TEST_EQUAL(peptides.getHits()[2].getPeptideEvidences().size(), 2);
+  TEST_EQUAL(peptides.getHits()[2].getPeptideEvidences()[0].getProteinAccession(), "PROT_A");
+  TEST_EQUAL(peptides.getHits()[2].getPeptideEvidences()[1].getProteinAccession(), "PROT_B");
+
+  // VALIDPEP references only VALID_AFTER (SUB_FIRST + SUB_FIRST_SIB were skipped).
+  TEST_EQUAL(peptides.getHits()[4].getPeptideEvidences().size(), 1);
+  TEST_EQUAL(peptides.getHits()[4].getPeptideEvidences()[0].getProteinAccession(), "VALID_AFTER");
 }
 END_SECTION
 

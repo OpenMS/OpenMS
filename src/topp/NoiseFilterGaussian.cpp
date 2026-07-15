@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -84,7 +85,7 @@ public:
 
   public:
 
-    NFGaussMzMLConsumer(const String& filename, const GaussFilter& gf) :
+    NFGaussMzMLConsumer(const std::string& filename, const GaussFilter& gf) :
       MSDataWritingConsumer(filename) 
     {
       gf_ = gf;
@@ -107,17 +108,17 @@ public:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
 
     registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
-    setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
+    setValidStrings_("processOption", ListUtils::create<std::string>("inmemory,lowmemory"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     return GaussFilter().getDefaults();
   }
@@ -147,7 +148,7 @@ public:
     //-------------------------------------------------------------
     in = getStringOption_("in");
     out = getStringOption_("out");
-    String process_option = getStringOption_("processOption");
+    std::string process_option = getStringOption_("processOption");
 
     Param filter_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to filter", filter_param, 3);
@@ -208,7 +209,7 @@ public:
     }
     catch (Exception::IllegalArgument & e)
     {
-      writeLogError_(String("Error: ") + e.what());
+      writeLogError_(std::string("Error: ") + e.what());
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -224,8 +225,8 @@ public:
     return EXECUTION_OK;
   }
 
-  String in;
-  String out;
+  std::string in;
+  std::string out;
 };
 
 

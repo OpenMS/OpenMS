@@ -111,7 +111,7 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty."
+      OPENMS_LOG_WARN << "The spectrum with RT: " + StringUtils::toStr(exp_spectrum.getRT()) + " is empty."
                       << "\n";
       return;
     }
@@ -288,29 +288,37 @@ namespace OpenMS
     bool print_warning {false};
 
     // computation of ppms
-    // computes the FragmentMassError
+    // Both overloads use the same two-pass computation so their average/variance agree:
+    // variance must be accumulated against the FINAL average over all ppm errors, not a
+    // moving/partial average inside the loop.
+    // first pass: accumulate all ppm errors
     for (auto& pep_id : pep_ids)
     {
       calculateFME_(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
+    }
 
-      // if there are no matching peaks, the counter is zero and it is not possible to find ppms
-      if (counter_ppm == 0)
-      {
-        results_.push_back(result);
-        return;
-      }
-      // computes average
-      result.average_ppm = accumulator_ppm / counter_ppm;
+    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
+    if (counter_ppm == 0)
+    {
+      results_.push_back(result);
+      return;
+    }
 
+    // computes average
+    result.average_ppm = accumulator_ppm / counter_ppm;
+
+    // computes variance (second pass: against the final average)
+    for (const auto& pep_id : pep_ids)
+    {
       calculateVariance_(result, pep_id, counter_ppm);
     }
 
     results_.push_back(result);
   }
 
-  const String& FragmentMassError::getName() const
+  const std::string& FragmentMassError::getName() const
   {
-    static const String& name = "FragmentMassError";
+    static const std::string& name = "FragmentMassError";
     return name;
   }
 

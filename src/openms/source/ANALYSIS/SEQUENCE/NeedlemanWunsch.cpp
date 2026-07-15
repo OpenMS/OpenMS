@@ -102,7 +102,7 @@ namespace OpenMS
     const auto it = std::find(first, last, matrix);
     if (it == last)
     {
-      String msg = "Matrix is not known! Valid choices are: "+
+      std::string msg = "Matrix is not known! Valid choices are: "+
                    ListUtils::concatenate(NamesOfScoringMatrices, ", ");
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      msg);
@@ -126,7 +126,7 @@ namespace OpenMS
     return gap_penalty_;
   }
 
-  int NeedlemanWunsch::align(const String& seq1, const String& seq2)
+  int NeedlemanWunsch::align(const std::string& seq1, const std::string& seq2)
   {
     unsigned seq1_len = (unsigned)seq1.length();
     unsigned seq2_len = (unsigned)seq2.length();

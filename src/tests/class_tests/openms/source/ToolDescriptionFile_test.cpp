@@ -11,10 +11,8 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 ///////////////////////////
 
-#include <filesystem>
 #include <vector>
 #include <string>
 
@@ -41,30 +39,23 @@ START_SECTION(virtual ~ToolDescriptionFile())
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, std::vector< Internal::ToolDescription > &tds)))
+START_SECTION((void load(const std::string &filename, std::vector< Internal::ToolDescription > &tds)))
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
-  std::filesystem::path dir_path{std::string(ToolHandler::getExternalToolsPath())};
-  std::vector<std::string> files;
-  for (const auto& entry : std::filesystem::directory_iterator(dir_path))
-  {
-    if (entry.path().extension() == ".ttd")
-    {
-      files.push_back(entry.path().string());
-    }
-  }
+  const std::vector<std::string> files = {
+    OPENMS_GET_TEST_DATA_PATH("ToolDescriptionFile_test_1.ttd"),
+    OPENMS_GET_TEST_DATA_PATH("ToolDescriptionFile_test_2.ttd")
+  };
   for (const auto& file : files)
   {
     f.load(file, tds);
-    //std::cerr << "load: " << file << "\n";
     TEST_EQUAL(!tds.empty(), true)
   }
-  
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const std::vector< Internal::ToolDescription > &tds) const ))
+START_SECTION((void store(const std::string &filename, const std::vector< Internal::ToolDescription > &tds) const ))
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;

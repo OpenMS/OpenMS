@@ -13,21 +13,19 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 ///////////////////////////
 
-#include <OpenMS/config.h>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
-
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/config.h>
 #include <arrow/api.h>
 
 using namespace OpenMS;
@@ -58,8 +56,8 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   f.setIntensity(1000.0f);
   f.setCharge(2);
   f.setOverallQuality(0.95f);
-  f.setQuality(0, 0.9f);   // RT quality
-  f.setQuality(1, 0.85f);  // MZ quality
+  f.setQuality(0, 0.9f);  // RT quality
+  f.setQuality(1, 0.85f); // MZ quality
   f.setWidth(1.5f);
   f.setUniqueId(12345);
 
@@ -76,7 +74,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   // Add metavalues
   f.setMetaValue("my_int", 42);
   f.setMetaValue("my_float", 3.14);
-  f.setMetaValue("my_string", String("hello"));
+  f.setMetaValue("my_string", std::string("hello"));
 
   fm.push_back(f);
 
@@ -131,16 +129,16 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
 
   // Verify convex hulls (list<struct{hull_index, points}>)
   auto col_hulls = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("convex_hulls")->chunk(0));
-  TEST_EQUAL(col_hulls->value_length(0), 1)  // 1 hull
+  TEST_EQUAL(col_hulls->value_length(0), 1) // 1 hull
   auto hull_struct = std::static_pointer_cast<arrow::StructArray>(col_hulls->value_slice(0));
   auto hull_idx_arr = std::static_pointer_cast<arrow::Int32Array>(hull_struct->field(0));
   TEST_EQUAL(hull_idx_arr->Value(0), 0)
   auto points_list = std::static_pointer_cast<arrow::ListArray>(hull_struct->field(1));
-  TEST_EQUAL(points_list->value_length(0), 4)  // 4 points
+  TEST_EQUAL(points_list->value_length(0), 4) // 4 points
 
   // Verify metavalues (list<struct{name, value, value_type}>)
   auto col_mv = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("metavalues")->chunk(0));
-  TEST_EQUAL(col_mv->value_length(0), 3)  // 3 metavalues (my_int, my_float, my_string; FWHM is excluded)
+  TEST_EQUAL(col_mv->value_length(0), 3) // 3 metavalues (my_int, my_float, my_string; FWHM is excluded)
 }
 END_SECTION
 
@@ -217,7 +215,7 @@ END_SECTION
 // Round-trip tests (export -> import)
 /////////////////////////////////////////////////////////////
 
-START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls and metavalues)
+START_SECTION(importFeaturesFromArrow - round - trip with subordinates and hulls and metavalues)
 {
   // === Build source FeatureMap ===
   FeatureMap fm_in;
@@ -247,10 +245,10 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   // Metavalues (note: setWidth also adds FWHM metavalue)
   f1.setMetaValue("my_int", 42);
   f1.setMetaValue("my_float", 3.14);
-  f1.setMetaValue("my_string", String("hello"));
-  f1.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
-  f1.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
-  f1.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
+  f1.setMetaValue("my_string", std::string("hello"));
+  f1.setMetaValue("test_int_list", DataValue(IntList {1, 2, 3}));
+  f1.setMetaValue("test_double_list", DataValue(DoubleList {1.5, 2.5}));
+  f1.setMetaValue("test_string_list", DataValue(StringList {"a", "b", "c"}));
 
   // Subordinate A (uid=101)
   Feature subA;
@@ -304,7 +302,7 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   TEST_EQUAL(ok, true)
 
   // === Verify structure ===
-  TEST_EQUAL(fm_out.size(), 2)  // 2 top-level features
+  TEST_EQUAL(fm_out.size(), 2) // 2 top-level features
 
   // Feature 1 checks
   const Feature& out_f1 = fm_out[0];
@@ -343,11 +341,11 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
 
   // Check list metavalue types are preserved
   TEST_EQUAL(out_f1.getMetaValue("test_int_list").valueType(), DataValue::INT_LIST)
-  TEST_EQUAL(out_f1.getMetaValue("test_int_list") == DataValue(IntList{1, 2, 3}), true)
+  TEST_EQUAL(out_f1.getMetaValue("test_int_list") == DataValue(IntList {1, 2, 3}), true)
   TEST_EQUAL(out_f1.getMetaValue("test_double_list").valueType(), DataValue::DOUBLE_LIST)
-  TEST_EQUAL(out_f1.getMetaValue("test_double_list") == DataValue(DoubleList{1.5, 2.5}), true)
+  TEST_EQUAL(out_f1.getMetaValue("test_double_list") == DataValue(DoubleList {1.5, 2.5}), true)
   TEST_EQUAL(out_f1.getMetaValue("test_string_list").valueType(), DataValue::STRING_LIST)
-  TEST_EQUAL(out_f1.getMetaValue("test_string_list") == DataValue(StringList{"a", "b", "c"}), true)
+  TEST_EQUAL(out_f1.getMetaValue("test_string_list") == DataValue(StringList {"a", "b", "c"}), true)
 
   // Check subordinates of feature 1
   TEST_EQUAL(out_f1.getSubordinates().size(), 2)
@@ -487,7 +485,7 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
 }
 END_SECTION
 
-START_SECTION(importPSMsFromArrow - PSM round-trip)
+START_SECTION(importPSMsFromArrow - PSM round - trip)
 {
   // === Build source FeatureMap ===
   FeatureMap fm_in;
@@ -588,7 +586,7 @@ END_SECTION
 // Full Parquet directory round-trip test
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportToParquet / importFromParquet - full round-trip)
+START_SECTION(exportToParquet / importFromParquet - full round - trip)
 {
   FeatureMap fm;
 
@@ -684,7 +682,7 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   fm.setUnassignedPeptideIdentifications({unassigned});
 
   // --- Export to temp directory ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -728,7 +726,14 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 
   // --- Verify protein identifications ---
   TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getIdentifier(), "run_full_1")
+  // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
+  // (per-feature + unassigned) are re-stamped in lock-step.
+  const std::string& fm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  TEST_NOT_EQUAL(fm_synth_id, "")
+  TEST_NOT_EQUAL(fm_synth_id, "run_full_1")
+  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
+  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
   TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
@@ -736,11 +741,146 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 }
 END_SECTION
 
+START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet content idempotency)
+{
+  // The sections above check memory -> parquet -> memory fidelity. This pins the complementary contract
+  // (issue #9460 §3): a *second* serialization is idempotent -- re-exporting an imported bundle and
+  // re-importing it yields field-identical content. It catches asymmetric export/import bugs where one
+  // side silently drops or rewrites a field. The run identifier is re-synthesized on every load, so we
+  // compare content (features, hulls, subordinates, metavalues, PSMs, protein hits/groups) and assert
+  // identifier consistency *within* each map, not the volatile run-id string across maps.
+  FeatureMap fm;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_idem");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+  ProteinHit ph;
+  ph.setAccession("Q99999");
+  ph.setScore(0.002);
+  prot_id.insertHit(ph);
+  ProteinIdentification::ProteinGroup pg;
+  pg.probability = 0.95;
+  pg.accessions = {"Q99999"};
+  prot_id.insertProteinGroup(pg);
+  fm.setProteinIdentifications({prot_id});
+
+  Feature f1;
+  f1.setRT(111.0);
+  f1.setMZ(555.5);
+  f1.setIntensity(1234.0f);
+  f1.setCharge(2);
+  f1.setUniqueId(7001);
+  f1.setMetaValue("label", "alpha");
+  f1.setMetaValue("count", 7);
+  ConvexHull2D hull;
+  hull.setHullPoints({{110.0, 554.0}, {110.0, 557.0}, {112.0, 557.0}, {112.0, 554.0}});
+  f1.getConvexHulls().push_back(hull);
+  Feature sub;
+  sub.setRT(111.2);
+  sub.setMZ(555.6);
+  sub.setIntensity(600.0f);
+  sub.setCharge(2);
+  sub.setUniqueId(7002);
+  f1.getSubordinates().push_back(sub);
+  PeptideIdentification pep;
+  pep.setScoreType("expect");
+  pep.setHigherScoreBetter(false);
+  pep.setIdentifier("run_idem");
+  PeptideHit pep_hit;
+  pep_hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  pep_hit.setScore(0.002);
+  pep_hit.setCharge(2);
+  pep.insertHit(pep_hit);
+  f1.setPeptideIdentifications({pep});
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setRT(222.0);
+  f2.setMZ(666.6);
+  f2.setIntensity(4321.0f);
+  f2.setCharge(3);
+  f2.setUniqueId(8001);
+  fm.push_back(f2);
+
+  // first serialization round: memory -> parquet -> fm1
+  std::string dir1;
+  NEW_TMP_FILE(dir1) dir1 += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, dir1), true)
+  FeatureMap fm1;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir1, fm1), true)
+
+  // second serialization round: re-export fm1 -> parquet -> fm2
+  std::string dir2;
+  NEW_TMP_FILE(dir2) dir2 += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm1, dir2), true)
+  FeatureMap fm2;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir2, fm2), true)
+
+  // the two imported maps must be field-identical
+  TEST_EQUAL(fm1.size(), fm2.size())
+  TEST_EQUAL(fm1.size(), 2)
+  for (Size i = 0; i < fm1.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(fm1[i].getRT(), fm2[i].getRT())
+    TEST_REAL_SIMILAR(fm1[i].getMZ(), fm2[i].getMZ())
+    TEST_REAL_SIMILAR(fm1[i].getIntensity(), fm2[i].getIntensity())
+    TEST_EQUAL(fm1[i].getCharge(), fm2[i].getCharge())
+    TEST_EQUAL(fm1[i].getUniqueId(), fm2[i].getUniqueId())
+    TEST_EQUAL(fm1[i].getSubordinates().size(), fm2[i].getSubordinates().size())
+    TEST_EQUAL(fm1[i].getConvexHulls().size(), fm2[i].getConvexHulls().size())
+  }
+  TEST_EQUAL(fm2[0].getMetaValue("label").toString(), "alpha")
+  TEST_EQUAL(int(fm2[0].getMetaValue("count")), 7)
+  TEST_EQUAL(fm2[0].getConvexHulls()[0].getHullPoints().size(), 4)
+  TEST_EQUAL(fm2[0].getSubordinates()[0].getUniqueId(), 7002)
+  TEST_EQUAL(fm1[0].getMetaValue("label").toString(), fm2[0].getMetaValue("label").toString())
+  TEST_EQUAL(int(fm1[0].getMetaValue("count")), int(fm2[0].getMetaValue("count")))
+  const auto& hull_points1 = fm1[0].getConvexHulls()[0].getHullPoints();
+  const auto& hull_points2 = fm2[0].getConvexHulls()[0].getHullPoints();
+  TEST_EQUAL(hull_points1.size(), hull_points2.size())
+  for (Size i = 0; i < hull_points1.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(hull_points1[i][0], hull_points2[i][0])
+    TEST_REAL_SIMILAR(hull_points1[i][1], hull_points2[i][1])
+  }
+  TEST_REAL_SIMILAR(fm1[0].getSubordinates()[0].getRT(), fm2[0].getSubordinates()[0].getRT())
+  TEST_REAL_SIMILAR(fm1[0].getSubordinates()[0].getMZ(), fm2[0].getSubordinates()[0].getMZ())
+  TEST_REAL_SIMILAR(fm1[0].getSubordinates()[0].getIntensity(), fm2[0].getSubordinates()[0].getIntensity())
+  TEST_EQUAL(fm1[0].getSubordinates()[0].getCharge(), fm2[0].getSubordinates()[0].getCharge())
+  TEST_EQUAL(fm1[0].getSubordinates()[0].getUniqueId(), fm2[0].getSubordinates()[0].getUniqueId())
+  TEST_EQUAL(fm1[0].getPeptideIdentifications().size(), fm2[0].getPeptideIdentifications().size())
+  TEST_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits().size(), fm2[0].getPeptideIdentifications()[0].getHits().size())
+  TEST_STRING_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(),
+                    fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString())
+  TEST_REAL_SIMILAR(fm1[0].getPeptideIdentifications()[0].getHits()[0].getScore(), fm2[0].getPeptideIdentifications()[0].getHits()[0].getScore())
+  TEST_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), fm2[0].getPeptideIdentifications()[0].getHits()[0].getCharge())
+  TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDEK")
+  TEST_REAL_SIMILAR(fm2[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.002)
+  TEST_EQUAL(fm1.getProteinIdentifications().size(), fm2.getProteinIdentifications().size())
+  TEST_EQUAL(fm1.getProteinIdentifications()[0].getHits().size(), fm2.getProteinIdentifications()[0].getHits().size())
+  TEST_EQUAL(fm1.getProteinIdentifications()[0].getHits()[0].getAccession(), fm2.getProteinIdentifications()[0].getHits()[0].getAccession())
+  TEST_REAL_SIMILAR(fm1.getProteinIdentifications()[0].getHits()[0].getScore(), fm2.getProteinIdentifications()[0].getHits()[0].getScore())
+  TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[0].getAccession(), "Q99999")
+  TEST_EQUAL(fm1.getProteinIdentifications()[0].getProteinGroups().size(), fm2.getProteinIdentifications()[0].getProteinGroups().size())
+  const auto& group1 = fm1.getProteinIdentifications()[0].getProteinGroups()[0];
+  const auto& group2 = fm2.getProteinIdentifications()[0].getProteinGroups()[0];
+  TEST_REAL_SIMILAR(group1.probability, group2.probability)
+  TEST_EQUAL(group1.accessions.size(), group2.accessions.size())
+  TEST_EQUAL(group1.accessions[0], group2.accessions[0])
+  TEST_EQUAL(group2.accessions[0], "Q99999")
+  // identifier consistency within each imported map: the stamped pep-id identifier equals the protein run identifier
+  TEST_STRING_EQUAL(fm1[0].getPeptideIdentifications()[0].getIdentifier(), fm1.getProteinIdentifications()[0].getIdentifier())
+  TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getIdentifier(), fm2.getProteinIdentifications()[0].getIdentifier())
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // FeatureMap-level metadata round-trip tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-trip (DocumentIdentifier + DataProcessing))
+START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round - trip(DocumentIdentifier + DataProcessing))
 {
   FeatureMap fm;
 
@@ -758,7 +898,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-tr
   dp1.setCompletionTime(DateTime::fromString("2025-06-15T14:30:00", "yyyy-MM-ddThh:mm:ss"));
   dp1.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
   dp1.getProcessingActions().insert(DataProcessing::FILTERING);
-  dp1.setMetaValue("parameter_file", String("params.ini"));
+  dp1.setMetaValue("parameter_file", std::string("params.ini"));
   dp1.setMetaValue("num_threads", 8);
 
   DataProcessing dp2;
@@ -785,7 +925,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-tr
   fm.setProteinIdentifications({prot_id});
 
   // --- Export to temp directory ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -834,7 +974,8 @@ END_SECTION
 // PSM completeness round-trip test
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip (metavalues, additional_scores, is_decoy, protein_accessions, higher_score_better))
+START_SECTION(exportToParquet / importFromParquet - PSM completeness round
+              - trip(metavalues, additional_scores, is_decoy, protein_accessions, higher_score_better))
 {
   FeatureMap fm;
 
@@ -880,8 +1021,8 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip 
   hit1.setCharge(2);
   hit1.setRank(1);
   hit1.setMetaValue("target_decoy", "target");
-  hit1.setMetaValue("MS:1002252", 0.95);  // additional score: xcorr
-  hit1.setMetaValue("MS:1002253", 12.5);  // additional score: deltacn
+  hit1.setMetaValue("MS:1002252", 0.95); // additional score: xcorr
+  hit1.setMetaValue("MS:1002253", 12.5); // additional score: deltacn
   hit1.setMetaValue("predicted_RT", 99.5);
   hit1.setMetaValue("ion_mobility", 0.85);
   hit1.setMetaValue("custom_psm_int", 42);
@@ -932,7 +1073,7 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip 
   fm.setUnassignedPeptideIdentifications({pep_id2});
 
   // --- Export and import ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -958,7 +1099,8 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip 
   for (const auto& h : out_pid1.getHits())
   {
     if (h.getScore() < 0.01) target_hit = &h;
-    else decoy_hit = &h;
+    else
+      decoy_hit = &h;
   }
   TEST_NOT_EQUAL(target_hit, nullptr)
   TEST_NOT_EQUAL(decoy_hit, nullptr)
@@ -1004,7 +1146,7 @@ END_SECTION
 // PSM per-PSM higher_score_better + scan/reference_file_name round-trip
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better independent from ProteinIdentification)
+START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_better independent from ProteinIdentification)
 {
   FeatureMap fm;
 
@@ -1060,7 +1202,7 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   fm.setUnassignedPeptideIdentifications({pep_id2});
 
   // --- Export and import ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -1072,7 +1214,7 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   // Verify per-PSM higher_score_better: pep_id1 should be true (not run-level false)
   TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
   const PeptideIdentification& out_pid1 = imported[0].getPeptideIdentifications()[0];
-  TEST_EQUAL(out_pid1.isHigherScoreBetter(), true)  // per-PSM value, NOT run-level false
+  TEST_EQUAL(out_pid1.isHigherScoreBetter(), true) // per-PSM value, NOT run-level false
   TEST_EQUAL(out_pid1.getScoreType(), "xcorr")
 
   // Verify unassigned PSM: higher_score_better should be false
@@ -1086,6 +1228,106 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   const PeptideHit& out_hit1 = out_pid1.getHits()[0];
   TEST_EQUAL(out_hit1.metaValueExists("scan"), true)
   TEST_EQUAL(static_cast<int>(out_hit1.getMetaValue("scan")), 99)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// FeatureMap-level MetaValue round-trip (spectra_data + scalars)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - FeatureMap - level MetaValue round - trip)
+{
+  FeatureMap fm;
+
+  // setPrimaryMSRunPath stores its argument into the `spectra_data` meta-value
+  // on the FeatureMap itself (FeatureMap.cpp:415). This is the path that
+  // pre-fix FeatureMapArrowIO dropped on store.
+  fm.setPrimaryMSRunPath(StringList {"run_A.mzML", "run_B.mzML"});
+
+  // Plus a few scalar / typed meta-values to exercise the typed deserializer.
+  fm.setMetaValue("custom_int", 1234);
+  fm.setMetaValue("custom_double", 2.71828);
+  fm.setMetaValue("custom_string", std::string("free-form text"));
+  fm.setMetaValue("custom_int_list", DataValue(IntList {10, 20, 30}));
+  fm.setMetaValue("custom_double_list", DataValue(DoubleList {1.5, 2.5}));
+
+  // Minimal ProteinIdentification so exportToParquet succeeds.
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_mv_test");
+  fm.setProteinIdentifications({prot_id});
+
+  // One feature so the map is non-empty.
+  Feature f;
+  f.setRT(50.0);
+  f.setMZ(400.0);
+  f.setIntensity(500.0f);
+  f.setCharge(1);
+  f.setUniqueId(101);
+  fm.push_back(f);
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // Verify spectra_data round-trips and getPrimaryMSRunPath reads back the paths.
+  StringList ms_runs;
+  imported.getPrimaryMSRunPath(ms_runs);
+  TEST_EQUAL(ms_runs.size(), 2)
+  TEST_EQUAL(ms_runs[0], "run_A.mzML")
+  TEST_EQUAL(ms_runs[1], "run_B.mzML")
+
+  // Verify scalar meta-values restore with the correct type.
+  TEST_EQUAL(imported.metaValueExists("custom_int"), true)
+  TEST_EQUAL(static_cast<int>(imported.getMetaValue("custom_int")), 1234)
+  TEST_REAL_SIMILAR(static_cast<double>(imported.getMetaValue("custom_double")), 2.71828)
+  TEST_EQUAL(StringUtils::toStr(imported.getMetaValue("custom_string")), "free-form text")
+
+  // List-typed meta-values restore as their original types.
+  IntList out_il = imported.getMetaValue("custom_int_list");
+  TEST_EQUAL(out_il.size(), 3)
+  TEST_EQUAL(out_il[0], 10)
+  TEST_EQUAL(out_il[2], 30)
+  DoubleList out_dl = imported.getMetaValue("custom_double_list");
+  TEST_EQUAL(out_dl.size(), 2)
+  TEST_REAL_SIMILAR(out_dl[0], 1.5)
+  TEST_REAL_SIMILAR(out_dl[1], 2.5)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+{
+  FeatureMap fm;
+
+  ProteinIdentification p1;
+  p1.setIdentifier("dup");
+  ProteinIdentification p2;
+  p2.setIdentifier("dup");
+  fm.setProteinIdentifications({p1, p2});
+
+  Feature f;
+  f.setRT(50.0);
+  f.setMZ(400.0);
+  f.setIntensity(500.0f);
+  f.setCharge(1);
+  f.setUniqueId(101);
+  fm.push_back(f);
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  // The store-side check fires before any Arrow builder is allocated, so no
+  // partial .featureparquet exists on disk after the throw.
+  TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(fm, tmp_dir))
 }
 END_SECTION
 

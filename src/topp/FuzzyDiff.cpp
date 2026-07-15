@@ -64,9 +64,9 @@ protected:
     setMinFloat_("absdiff", 0);
     addEmptyLine_();
 
-    registerStringList_("whitelist", "<string list>", ListUtils::create<String>("<?xml-stylesheet"), "Lines containing one of these strings are skipped", false, true);
+    registerStringList_("whitelist", "<string list>", ListUtils::create<std::string>("<?xml-stylesheet"), "Lines containing one of these strings are skipped", false, true);
 
-    registerStringList_("matched_whitelist", "<string list>", ListUtils::create<String>(""), "Lines where one file contains one string and the other file another string are skipped. Input is given as list of colon separated tuples, e.g. String1:String2 String3:String4", false, true);
+    registerStringList_("matched_whitelist", "<string list>", ListUtils::create<std::string>(""), "Lines where one file contains one string and the other file another string are skipped. Input is given as list of colon separated tuples, e.g. String1:String2 String3:String4", false, true);
 
     registerIntOption_("verbose", "<int>", 2, "set verbose level:\n"
                                               "0 = very quiet mode (absolutely no output)\n"
@@ -92,8 +92,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in1 = getStringOption_("in1");
-    String in2 = getStringOption_("in2");
+    std::string in1 = getStringOption_("in1");
+    std::string in2 = getStringOption_("in2");
     double acceptable_ratio = getDoubleOption_("ratio");
     double acceptable_absdiff = getDoubleOption_("absdiff");
     StringList whitelist = getStringList_("whitelist");
@@ -103,9 +103,9 @@ protected:
     int first_column = getIntOption_("first_column");
     bool do_sort = getFlag_("sort");
 
-    // This is for debugging the parsing of whitelist_ from cmdline or ini file.  Converting StringList back to String is intentional.
-    writeDebug_(String("whitelist: ") + String(whitelist) + " (size: " + whitelist.size() + ")", 1);
-    writeDebug_(String("matched_whitelist: ") + String(raw_matched_whitelist) + " (size: " + raw_matched_whitelist.size() + ")", 1);
+    // This is for debugging the parsing of whitelist_ from cmdline or ini file.  Converting StringList back to std::string is intentional.
+    writeDebug_(std::string("whitelist: ") + ListUtils::concatenate(whitelist, ", ") + " (size: " + whitelist.size() + ")", 1);
+    writeDebug_(std::string("matched_whitelist: ") + ListUtils::concatenate(raw_matched_whitelist, ", ") + " (size: " + raw_matched_whitelist.size() + ")", 1);
 
     OpenMS::FuzzyStringComparator fsc;
 
@@ -114,12 +114,12 @@ protected:
     {
 
       // Split each entry at the colon to produce a pair of strings
-      std::vector<String> tmp;
-      raw_matched_whitelist[i].split(":", tmp);
+      std::vector<std::string> tmp;
+      StringUtils::split(raw_matched_whitelist[i], ":", tmp);
       if (tmp.size() != 2)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
+          std::string(raw_matched_whitelist[i]) + " does not have the format String1:String2");
       }
 
       parsed_matched_whitelist.emplace_back(tmp[0], tmp[1]);
@@ -134,13 +134,13 @@ protected:
     fsc.setFirstColumn(first_column);
 
     // If sorting is requested, sort both files (keeping header) and write to temp files
-    String compare_in1 = in1;
-    String compare_in2 = in2;
-    String temp_file1, temp_file2;
+    std::string compare_in1 = in1;
+    std::string compare_in2 = in2;
+    std::string temp_file1, temp_file2;
 
     if (do_sort)
     {
-      auto sortFile = [](const String& input_file, String& output_file)
+      auto sortFile = [](const std::string& input_file, std::string& output_file)
       {
         std::ifstream infile(input_file);
         if (!infile)

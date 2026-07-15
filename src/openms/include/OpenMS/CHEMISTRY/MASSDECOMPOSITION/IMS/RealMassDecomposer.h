@@ -21,84 +21,106 @@ namespace OpenMS
   {
 
     /**
-      @brief Handles decomposing of non-integer values/masses
-      over a set of non-integer weights with an error allowed.
+      @brief Decomposes a real-valued mass over a real-valued alphabet
+             of @ref Weights, within a configurable absolute mass error.
 
-      Implements a decomposition of non-integer values with a certain error
-      allowed. Exactness of decomposition can also be tuned by setting a
-      precision factor for weights defining their scaling magnitude.
+      Translates the real-valued problem into integer mass decomposition
+      against the @ref Weights' scaled integer alphabet: it computes the
+      integer-mass window that brackets the user-supplied
+      @c [mass - error, mass + error] range (accounting for the
+      precision-induced rounding errors stored on @ref Weights), runs an
+      @ref IntegerMassDecomposer over each integer mass in the window,
+      then drops every integer decomposition whose reconstructed real
+      parent mass still differs from @p mass by more than @p error.
 
-      Works in fact as a wrapper for classes that handle exact mass decomposing
-      using integer arithmetics. Instead of decomposing a single value as done
-      by integer mass decomposers, @c RealMassDecomposer defines a set of values
-      that lie in the allowed range (defined by error and false negatives
-      appeared due to rounding), scales those to integers, decomposes
-      them using @c IntegerMassDecomposer, does some checks (i.e. on false
-      positives appeared due to rounding) and collects decompositions together.
-
-      @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
+      @ingroup Analysis_DeNovo
     */
     class OPENMS_DLLAPI RealMassDecomposer
     {
 public:
 
-      /// Type of integer decomposer.
+      /// Underlying integer decomposer.
       typedef IntegerMassDecomposer<> integer_decomposer_type;
 
-      /// Type of integer values that are decomposed.
+      /// Integer mass values consumed by the integer decomposer.
       typedef integer_decomposer_type::value_type integer_value_type;
 
-      /// Type of result decompositions from integer decomposer.
+      /// Result type of the integer decomposer (collection of decompositions).
       typedef integer_decomposer_type::decompositions_type decompositions_type;
 
-      /// Type of the number of decompositions.
+      /// Counter type returned by @ref getNumberOfDecompositions.
       typedef unsigned long long number_of_decompositions_type;
 
+      /// Per-alphabet-entry count constraint: alphabet index -> (min count, max count); both bounds inclusive.
       typedef std::map<unsigned int, std::pair<unsigned int, unsigned int> > constraints_type;
 
       /**
-        Constructor with weights.
+        @brief Construct from an alphabet of @ref Weights.
 
-        @param[in] weights Weights over which values/masses to be decomposed.
+        The alphabet's precision and rounding-error bounds are captured
+        at construction time and reused on every subsequent
+        @ref getDecompositions / @ref getNumberOfDecompositions call.
+
+        @param[in] weights Real-valued alphabet to decompose against.
       */
       explicit RealMassDecomposer(const Weights & weights);
 
       /**
-        Gets all decompositions for a @c mass with an @c error allowed.
+        @brief All decompositions of @p mass within absolute tolerance @p error.
 
-        @param[in] mass Mass to be decomposed.
-        @param[out] error Error allowed between given and result decomposition.
-        @return All possible decompositions for a given mass and error.
+        Returns every alphabet-multiplicity vector whose reconstructed
+        parent mass lies in @c [mass - error, mass + error].
+
+        @param[in] mass  Target real-valued mass.
+        @param[in] error Absolute mass tolerance.
+        @return Decompositions whose reconstructed real parent mass is
+                within @p error of @p mass.
       */
       decompositions_type getDecompositions(double mass, double error);
 
+      /**
+        @brief Same as @ref getDecompositions(double,double), additionally filtered by per-alphabet count bounds.
+
+        For each entry @c (idx, (lo, hi)) in @p constraints, only
+        decompositions @c d with @c lo @c <= @c d[idx] @c <= @c hi are
+        kept. Constraints whose alphabet index does not appear in @p
+        decompositions are simply skipped.
+
+        @param[in] mass        Target real-valued mass.
+        @param[in] error       Absolute mass tolerance.
+        @param[in] constraints Per-alphabet-entry count bounds.
+        @return Decompositions that satisfy both the mass tolerance and
+                every supplied count constraint.
+      */
       decompositions_type getDecompositions(double mass, double error, const constraints_type & constraints);
 
       /**
-       Gets a number of all decompositions for a @c mass with an @c error
-       allowed. It's similar to the @c getDecompositions(double,double) function
-       but less space consuming, since doesn't use container to store decompositions.
+        @brief Count of decompositions of @p mass within absolute tolerance @p error.
 
-       @param[in] mass Mass to be decomposed.
-       @param[out] error Error allowed between given and result decomposition.
-       @return Number of all decompositions for a given mass and error.
+        Equivalent in result to @c getDecompositions(@p mass, @p error).size()
+        but does not materialise the individual decompositions.
+
+        When @c mass - error is non-positive, the integer-mass window
+        starts at @c 1 rather than at a non-positive value.
+
+        @param[in] mass  Target real-valued mass.
+        @param[in] error Absolute mass tolerance.
+        @return Number of decompositions whose reconstructed real
+                parent mass is within @p error of @p mass.
       */
       number_of_decompositions_type getNumberOfDecompositions(double mass, double error);
 
 private:
-      /// Weights over which values/masses to be decomposed.
+      /// Alphabet captured at construction time.
       Weights weights_;
 
-      /// Minimal and maximal rounding errors.
+      /// Minimum and maximum relative rounding errors of @ref weights_, captured at construction time.
       std::pair<double, double> rounding_errors_;
 
-      /// Precision to scale double values to integer
+      /// Precision of @ref weights_, captured at construction time.
       double precision_;
 
-      /**
-        Decomposer to be used for exact decomposing using
-        integer arithmetic.
-      */
+      /// Lazy integer decomposer reused across calls; captured at construction time.
       std::shared_ptr<integer_decomposer_type> decomposer_;
     };
 

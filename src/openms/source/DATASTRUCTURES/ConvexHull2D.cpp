@@ -45,7 +45,7 @@ namespace OpenMS
     //different points now => return false
     for (const auto& point_pair : rhs.map_points_)
     {
-      if (map_points_.find(point_pair.first) != map_points_.end())
+      if (map_points_.contains(point_pair.first))
       {
         if (map_points_.at(point_pair.first) != point_pair.second)
         {
@@ -162,7 +162,7 @@ namespace OpenMS
   {
     outer_points_.clear();
 
-    if (map_points_.find(point[0]) != map_points_.end())
+    if (map_points_.contains(point[0]))
     {
       if (map_points_.at(point[0]).encloses(point[1]))
       {
@@ -236,7 +236,7 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    if (map_points_.find(point[0]) != map_points_.end())
+    if (map_points_.contains(point[0]))
     {
       if (map_points_.at(point[0]).encloses(point[1]))
       {

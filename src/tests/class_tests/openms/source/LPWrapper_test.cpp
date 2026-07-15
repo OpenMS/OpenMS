@@ -18,6 +18,9 @@
     #include "coin-or/CoinModel.hpp"
   #endif
 #endif
+#ifdef OPENMS_HAS_HIGHS
+  #include <Highs.h>
+#endif
 ///////////////////////////
 
 using namespace OpenMS;
@@ -60,17 +63,17 @@ END_SECTION
 START_SECTION((Int addRow(fewer args)))
 {
   lp.addColumn();
-  lp.addRow(indices,values,String("row1"));
+  lp.addRow(indices,values,std::string("row1"));
   TEST_EQUAL(lp.getNumberOfRows(),1);
   TEST_EQUAL(lp.getRowName(0),"row1");
 }
 END_SECTION
 
 
-START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const String &name)))
+START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const std::string &name)))
 {
-  lp.addRow(indices,values,String("row2"));
-  lp.addColumn(indices,values,String("col3"));
+  lp.addRow(indices,values,std::string("row2"));
+  lp.addColumn(indices,values,std::string("col3"));
   TEST_EQUAL(lp.getNumberOfColumns(),3);
   TEST_EQUAL(lp.getColumnName(2),"col3");
 }
@@ -78,52 +81,52 @@ END_SECTION
 
 START_SECTION((Int addRow(all args)))
 {
-  lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addRow(indices,values,std::string("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
   TEST_EQUAL(lp.getRowName(2),"row3");
 }
 END_SECTION
 
-START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const String &name, double lower_bound, double upper_bound, Type type)))
+START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const std::string &name, double lower_bound, double upper_bound, Type type)))
 {
-  lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addColumn(indices,values,std::string("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
   TEST_EQUAL(lp.getColumnName(3),"col4");
 }
 END_SECTION
 
-START_SECTION((void setColumnName(Int index, const String &name)))
+START_SECTION((void setColumnName(Int index, const std::string &name)))
 {
   lp.setColumnName(0,"col1");
   TEST_EQUAL(lp.getColumnName(0),"col1");  
 }
 END_SECTION
 
-START_SECTION((String getColumnName(Int index)))
+START_SECTION((std::string getColumnName(Int index)))
 {
   TEST_EQUAL(lp.getColumnName(0),"col1"); 
 }
 END_SECTION
 
-START_SECTION((String getRowName(Int index)))
+START_SECTION((std::string getRowName(Int index)))
 {
   TEST_EQUAL(lp.getRowName(0),"row1"); 
 }
 END_SECTION
 
-START_SECTION((Int getRowIndex(const String &name)))
+START_SECTION((Int getRowIndex(const std::string &name)))
 {
   TEST_EQUAL(lp.getRowIndex("row1"),0); 
 }
 END_SECTION
 
-START_SECTION((Int getColumnIndex(const String &name)))
+START_SECTION((Int getColumnIndex(const std::string &name)))
 {
   TEST_EQUAL(lp.getColumnIndex("col1"),0); 
 }
 END_SECTION
 
-START_SECTION((void setRowName(Int index, const String &name)))
+START_SECTION((void setRowName(Int index, const std::string &name)))
 {
   lp.setRowName(0,"new_row1");
   TEST_EQUAL(lp.getRowName(0),"new_row1"); 
@@ -215,12 +218,19 @@ START_SECTION((void deleteRow(Int index)))
       TEST_EQUAL(lp.getNumberOfRows(),2)
     }
 #ifdef OPENMS_HAS_COINOR
-  else
+  else if (lp.getSolver() == LPWrapper::SOLVER_COINOR)
     {
       // CoinOr doesn't delete the column, but sets all entries to zero and deletes the bounds, names, objective coeff etc.
       TEST_REAL_SIMILAR(lp.getObjective(2),0.)
       TEST_REAL_SIMILAR(lp.getColumnLowerBound(2),-COIN_DBL_MAX)
       TEST_REAL_SIMILAR(lp.getColumnUpperBound(2),COIN_DBL_MAX)  
+    }
+#endif
+#ifdef OPENMS_HAS_HIGHS
+  else if (lp.getSolver() == LPWrapper::SOLVER_HIGHS)
+    {
+      // HiGHS actually deletes the row
+      TEST_EQUAL(lp.getNumberOfRows(),2)
     }
 #endif
 }
@@ -261,7 +271,7 @@ START_SECTION((double getElement(Int row_index, Int column_index)))
 END_SECTION
 
 
-START_SECTION((void readProblem(String filename, String format)))
+START_SECTION((void readProblem(std::string filename, std::string format)))
 {
   if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
     {
@@ -303,13 +313,34 @@ START_SECTION((void readProblem(String filename, String format)))
       TEST_EQUAL(lp.getElement(2,1),2)
     }
 #endif
+#ifdef OPENMS_HAS_HIGHS
+  else if (lp.getSolver()==LPWrapper::SOLVER_HIGHS)
+    {
+      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+      TEST_EQUAL(lp.getNumberOfColumns(),2)
+      TEST_EQUAL(lp.getNumberOfRows(),3)
+      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getObjective(0),1)
+      TEST_EQUAL(lp.getObjective(1),0)
+      TEST_EQUAL(lp.getRowUpperBound(0),0)
+      TEST_EQUAL(lp.getRowUpperBound(1),12)
+      TEST_EQUAL(lp.getRowUpperBound(2),12)
+      TEST_EQUAL(lp.getElement(0,0),1)
+      TEST_EQUAL(lp.getElement(0,1),-1)
+      TEST_EQUAL(lp.getElement(1,0),2)
+      TEST_EQUAL(lp.getElement(1,1),3)
+      TEST_EQUAL(lp.getElement(2,0),3)
+      TEST_EQUAL(lp.getElement(2,1),2)
+    }
+#endif
 }
 END_SECTION
 
-START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
+START_SECTION((void writeProblem(const std::string &filename, const WriteFormat format) const ))
 {
 #ifdef OPENMS_HAS_COINOR
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
     LPWrapper lp2;
@@ -329,8 +360,30 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
     TEST_EQUAL(lp2.getElement(1,1),3)
     TEST_EQUAL(lp2.getElement(2,0),3)
     TEST_EQUAL(lp2.getElement(2,1),2)
+#elif defined(OPENMS_HAS_HIGHS)
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    tmp_filename += ".mps"; // HiGHS uses extension to determine format
+    lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
+    LPWrapper lp2;
+    lp2.readProblem(tmp_filename,"MPS");
+    TEST_EQUAL(lp2.getNumberOfColumns(),2)
+    TEST_EQUAL(lp2.getNumberOfRows(),3)
+    TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getObjective(0),1)
+    TEST_EQUAL(lp2.getObjective(1),0)
+    TEST_EQUAL(lp2.getRowUpperBound(0),0)
+    TEST_EQUAL(lp2.getRowUpperBound(1),12)
+    TEST_EQUAL(lp2.getRowUpperBound(2),12)
+    TEST_EQUAL(lp2.getElement(0,0),1)
+    TEST_EQUAL(lp2.getElement(0,1),-1)
+    TEST_EQUAL(lp2.getElement(1,0),2)
+    TEST_EQUAL(lp2.getElement(1,1),3)
+    TEST_EQUAL(lp2.getElement(2,0),3)
+    TEST_EQUAL(lp2.getElement(2,1),2)
 #else
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
     LPWrapper lp2;
@@ -390,9 +443,15 @@ START_SECTION((SolverStatus getStatus()))
       TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
     }
 #ifdef OPENMS_HAS_COINOR
-  else
+  else if (lp4.getSolver() == LPWrapper::SOLVER_COINOR)
   {
     TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
+  }
+#endif
+#ifdef OPENMS_HAS_HIGHS
+  else if (lp4.getSolver() == LPWrapper::SOLVER_HIGHS)
+  {
+    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
   }
 #endif
 
@@ -437,6 +496,8 @@ START_SECTION((SOLVER getSolver() const ))
 
 #ifdef OPENMS_HAS_COINOR
   TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
+#elif defined(OPENMS_HAS_HIGHS)
+  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_HIGHS)
 #else
   TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
 #endif

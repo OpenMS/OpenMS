@@ -15,25 +15,25 @@
 namespace OpenMS::Internal
 {
 
-    void MzMLHandlerHelper::warning(int mode, const String & msg, UInt line, UInt column)
+    void MzMLHandlerHelper::warning(int mode, const std::string & msg, UInt line, UInt column)
     {
-      String error_message;
+      std::string error_message;
       if (mode == 0)
       {
-        error_message =  String("While loading '") + "': " + msg;
+        error_message =std::string("While loading '") + "': " + msg;
       }
       else if (mode == 1)
       {
-        error_message =  String("While storing '") + "': " + msg;
+        error_message =std::string("While storing '") + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message += String("( in line ") + line + " column " + column + ")";
+        error_message +=std::string("( in line ") + line + " column " + column + ")";
       }
       OPENMS_LOG_WARN << error_message << std::endl;
     }
 
-  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, const String& indent, bool use_numpress)
+  std::string MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, const std::string& indent, bool use_numpress)
   {
     if (opt.getCompression())
     {
@@ -128,7 +128,7 @@ namespace OpenMS::Internal
 
       // TODO calculate checksum here:
       // SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
-      String sha1_checksum = "0";
+      std::string sha1_checksum = "0";
       os << sha1_checksum << "</fileChecksum>\n";
 
       os << "</indexedmzML>";
@@ -144,7 +144,7 @@ namespace OpenMS::Internal
       // this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
       if (!skipXMLCheck)
       {
-        bindata.base64.removeWhitespaces();
+        StringUtils::removeWhitespaces(bindata.base64);
       }
 
       // Catch proteowizard invalid conversion where 
@@ -157,7 +157,7 @@ namespace OpenMS::Internal
       if (bindata.np_compression != MSNumpressCoder::NONE && 
           bindata.data_type == BinaryData::DT_NONE)
       {
-        MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") + 
+        MzMLHandlerHelper::warning(0,std::string("Invalid mzML format: Numpress-compressed binary data array '") + 
             bindata.meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
         bindata.data_type = BinaryData::DT_FLOAT;
         bindata.precision = BinaryData::PRE_64;
@@ -189,7 +189,7 @@ namespace OpenMS::Internal
           Base64::decode(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.floats_64, bindata.compression);
           if (bindata.size != bindata.floats_64.size())
           {
-            MzMLHandlerHelper::warning(0, String("Float binary data array '") + bindata.meta.getName() + 
+            MzMLHandlerHelper::warning(0,std::string("Float binary data array '") + bindata.meta.getName() + 
                 "' has length " + bindata.floats_64.size() + ", but should have length " + bindata.size + ".");
             bindata.size = bindata.floats_64.size();
           }
@@ -199,7 +199,7 @@ namespace OpenMS::Internal
           Base64::decode(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.floats_32, bindata.compression);
           if (bindata.size != bindata.floats_32.size())
           {
-            MzMLHandlerHelper::warning(0, String("Float binary data array '") + bindata.meta.getName() + 
+            MzMLHandlerHelper::warning(0,std::string("Float binary data array '") + bindata.meta.getName() + 
                 "' has length " + bindata.floats_32.size() + ", but should have length " + bindata.size + ".");
             bindata.size = bindata.floats_32.size();
           }
@@ -229,7 +229,7 @@ namespace OpenMS::Internal
           Base64::decodeIntegers(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.ints_64, bindata.compression);
           if (bindata.size != bindata.ints_64.size())
           {
-            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + bindata.meta.getName() + 
+            MzMLHandlerHelper::warning(0,std::string("Integer binary data array '") + bindata.meta.getName() + 
                 "' has length " + bindata.ints_64.size() + ", but should have length " + bindata.size + ".");
             bindata.size = bindata.ints_64.size();
           }
@@ -239,7 +239,7 @@ namespace OpenMS::Internal
           Base64::decodeIntegers(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.ints_32, bindata.compression);
           if (bindata.size != bindata.ints_32.size())
           {
-            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + bindata.meta.getName() + 
+            MzMLHandlerHelper::warning(0,std::string("Integer binary data array '") + bindata.meta.getName() + 
                 "' has length " + bindata.ints_32.size() + ", but should have length " + bindata.size + ".");
             bindata.size = bindata.ints_32.size();
           }
@@ -250,7 +250,7 @@ namespace OpenMS::Internal
         Base64::decodeStrings(bindata.base64, bindata.decoded_char, bindata.compression);
         if (bindata.size != bindata.decoded_char.size())
         {
-          MzMLHandlerHelper::warning(0, String("String binary data array '") + bindata.meta.getName() + 
+          MzMLHandlerHelper::warning(0,std::string("std::string binary data array '") + bindata.meta.getName() + 
               "' has length " + bindata.decoded_char.size() + ", but should have length " + bindata.size + ".");
           bindata.size = bindata.decoded_char.size();
         }
@@ -258,14 +258,14 @@ namespace OpenMS::Internal
       else 
       {
         // TODO throw error?
-        MzMLHandlerHelper::warning(0, String("Invalid mzML format: Binary data array '") + bindata.meta.getName() + 
+        MzMLHandlerHelper::warning(0,std::string("Invalid mzML format: Binary data array '") + bindata.meta.getName() + 
             "' has no child term of MS:1000518 (binary data type) set. Cannot automatically deduce data type.");
       }
     }
 
   }
 
-  void MzMLHandlerHelper::computeDataProperties_(const std::vector<BinaryData>& data, bool& precision_64, SignedSize& index, const String& index_name)
+  void MzMLHandlerHelper::computeDataProperties_(const std::vector<BinaryData>& data, bool& precision_64, SignedSize& index, const std::string& index_name)
   {
     SignedSize i(0);
     for (auto const&  bindata : data)
@@ -281,10 +281,10 @@ namespace OpenMS::Internal
   }
 
   bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data,
-                                                       const String& accession,
-                                                       const String& value,
-                                                       const String& name,
-                                                       const String& unit_accession)
+                                                       const std::string& accession,
+                                                       const std::string& value,
+                                                       const std::string& name,
+                                                       const std::string& unit_accession)
   {
     bool is_default_array = (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595");
 

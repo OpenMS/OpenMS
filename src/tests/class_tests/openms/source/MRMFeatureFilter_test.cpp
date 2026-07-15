@@ -102,10 +102,10 @@ END_SECTION
 //}
 //END_SECTION
 
-START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name) const)
+START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const std::string & feature_name) const)
 {
   MRMFeatureFilter mrmff;
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   double inf = std::numeric_limits<double>::infinity();
   // dummy features
   OpenMS::Feature component_1, component_2;
@@ -143,7 +143,7 @@ END_SECTION
 
 START_SECTION(bool checkMetaValue(
   const Feature & component,
-  const String & meta_value_key,
+  const std::string & meta_value_key,
   const double & meta_value_l,
   const double & meta_value_u,
   bool & key_exists
@@ -153,7 +153,7 @@ START_SECTION(bool checkMetaValue(
   bool metavalue_exists;
 
   //make test feature
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   OpenMS::Feature component_1;
   component_1.setMetaValue(feature_name, 5.0);
   component_1.setMetaValue("native_id","component1");
@@ -175,7 +175,7 @@ END_SECTION
 
 START_SECTION(void updateMetaValue(
   const Feature & component,
-  const String & meta_value_key,
+  const std::string & meta_value_key,
   double & meta_value_l,
   double & meta_value_u,
   bool & key_exists
@@ -185,7 +185,7 @@ START_SECTION(void updateMetaValue(
   bool metavalue_exists;
 
   //make test feature
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   OpenMS::Feature component_1;
   component_1.setMetaValue(feature_name, 5.0);
   component_1.setMetaValue("native_id", "component1");
@@ -215,7 +215,7 @@ END_SECTION
 
 START_SECTION(void setMetaValue(
   const Feature & component,
-  const String & meta_value_key,
+  const std::string & meta_value_key,
   double & meta_value_l,
   double & meta_value_u,
   bool & key_exists
@@ -225,7 +225,7 @@ START_SECTION(void setMetaValue(
   bool metavalue_exists;
 
   //make test feature
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   OpenMS::Feature component_1;
   component_1.setMetaValue(feature_name, 5.0);
   component_1.setMetaValue("native_id", "component1");
@@ -256,7 +256,7 @@ END_SECTION
 
 START_SECTION(void initMetaValue(
   const Feature & component,
-  const String & meta_value_key,
+  const std::string & meta_value_key,
   double & meta_value_l,
   double & meta_value_u,
   bool & key_exists
@@ -266,7 +266,7 @@ START_SECTION(void initMetaValue(
   bool metavalue_exists;
 
   //make test feature
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   OpenMS::Feature component_1;
   component_1.setMetaValue(feature_name, 5.0);
   component_1.setMetaValue("native_id", "component1");
@@ -358,7 +358,7 @@ START_SECTION(countLabelsAndTransitionTypes(const Feature & component_group, con
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
 
-  std::map<String,int> test1 = mrmff.countLabelsAndTransitionTypes(component_1, transitions);
+  std::map<std::string,int> test1 = mrmff.countLabelsAndTransitionTypes(component_1, transitions);
   TEST_EQUAL(test1["n_heavy"], 1);
   TEST_EQUAL(test1["n_light"], 2);
   TEST_EQUAL(test1["n_quantifying"], 2);

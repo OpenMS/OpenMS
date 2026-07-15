@@ -12,7 +12,7 @@ All PSM export methods return results sorted by:
 1. rt (retention time)
 2. observed_mz (precursor m/z)
 3. precursor_charge
-4. rank (hit rank within identification)
+4. hit_index (positional, hit index within identification)
 """
 
 import pytest
@@ -104,14 +104,14 @@ def test_psm_df_basic():
     # Check required columns exist
     required_cols = [
         "sequence", "peptidoform", "precursor_charge",
-        "observed_mz", "rt", "rank", "score", "score_type",
+        "observed_mz", "rt", "hit_index", "score", "score_type",
         "protein_accessions", "P_ID"
     ]
     for col in required_cols:
         assert col in df.columns, f"Missing column: {col}"
 
     # Check ranks are correct
-    assert list(df["rank"]) == [0, 1, 0]
+    assert list(df["hit_index"]) == [0, 1, 0]
 
     # Check P_ID correctly tracks identification index
     assert list(df["P_ID"]) == [0, 0, 1]
@@ -124,7 +124,7 @@ def test_psm_df_top_hit_only():
 
     # Should have 2 rows (1 per identification)
     assert len(df) == 2
-    assert list(df["rank"]) == [0, 0]
+    assert list(df["hit_index"]) == [0, 0]
 
 
 def test_psm_df_columns_filter():
@@ -506,7 +506,7 @@ def test_psm_columns():
     assert "ion_mobility_array" in columns  # QPX field
     # OpenMS-specific fields
     assert "P_ID" in columns
-    assert "rank" in columns
+    assert "hit_index" in columns
     assert "spectrum_reference" in columns
     assert "score" in columns
     assert "score_type" in columns
@@ -883,7 +883,7 @@ def test_psm_df_sorting():
 
     # For same RT (200), should be sorted by rank: 0, 1
     assert list(df["sequence"]) == ["FIRST", "SECNDA", "SECNDC", "THIRD"]
-    assert list(df["rank"]) == [0, 0, 1, 0]
+    assert list(df["hit_index"]) == [0, 0, 1, 0]
 
 
 def test_psm_df_sorting_by_mz():
@@ -1076,7 +1076,7 @@ def test_to_psm_arrow_empty_list():
     expected_columns = ["sequence", "peptidoform", "modifications",
                         "precursor_charge", "posterior_error_probability",
                         "is_decoy", "observed_mz", "protein_accessions",
-                        "rt", "score", "rank", "P_ID"]
+                        "rt", "score", "hit_index", "P_ID"]
     for col in expected_columns:
         assert col in table.schema.names, f"Missing column {col} in empty table schema"
 
@@ -1105,7 +1105,7 @@ def test_to_psm_arrow_vs_psm_df_data_equivalence():
     assert len(df) == len(arrow_df)
 
     # Check scalar column values match
-    for col in ['sequence', 'precursor_charge', 'observed_mz', 'rt', 'rank']:
+    for col in ['sequence', 'precursor_charge', 'observed_mz', 'rt', 'hit_index']:
         if col in df.columns and col in arrow_df.columns:
             assert list(df[col]) == list(arrow_df[col]), f"Mismatch in column {col}"
 

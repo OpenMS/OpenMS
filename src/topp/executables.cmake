@@ -55,6 +55,7 @@ IDRipper
 IDRTCalibration
 IDScoreSwitcher
 IDSplitter
+INIUpdater
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
@@ -96,12 +97,15 @@ OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
+OpenSwathExport
+OpenSwathInfer
+OpenSwathPercolatorScoring
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
 PeakPickerIM
 PeptideIndexer
-PeptideDataBaseSearchFI
+ProSE
 PercolatorAdapter
 PhosphoScoring
 ProteinInference
@@ -136,6 +140,7 @@ StaticModification
 TICCalculator
 TextExporter
 TriqlerConverter
+UniPEFF
 XFDR
 XMLValidator
 )
@@ -146,6 +151,8 @@ if(NOT DISABLE_OPENSWATH)
     TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
+    OpenSwathPeakMapExtractor
+    TransitionListEvidenceFilter
     OpenSwathWorkflow
     OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML
@@ -155,9 +162,15 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(TOPP_executables
   ${TOPP_executables}
-  QPXConverter
   ParquetConverter
 )
+
+if(WITH_WNETALIGN)
+  set(TOPP_executables
+    ${TOPP_executables}
+    FeatureLinkerWNet
+  )
+endif()
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)

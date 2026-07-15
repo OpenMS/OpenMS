@@ -10,14 +10,12 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
-// Forward declaration for SQLite
-struct sqlite3;
-
 namespace OpenMS
 {
+  class SqliteConnector;
 
   /**
-      @brief This class supports reading and writing of PQP files. 
+      @brief This class supports reading and writing of PQP files.
 
       The PQP files are SQLite databases consisting of several tables
       representing the data contained in TraML files. For another file format that stores transitions, see also
@@ -201,6 +199,8 @@ private:
       std::string select_sql;      ///< The complete SQL SELECT query
       bool drift_time_exists;      ///< Whether LIBRARY_DRIFT_TIME column exists
       bool gene_exists;            ///< Whether GENE table exists
+      bool compound_exists;        ///< Whether compound mappings exist
+      bool peptidoforms_exists;    ///< Whether transition-to-peptide mappings exist
     };
 
     /** @brief Build the SQL query for reading PQP transitions
@@ -208,11 +208,13 @@ private:
      * This helper builds the SQL query used by both readPQPInput_ and
      * streamPQPToLightTargetedExperiment_ to avoid code duplication.
      *
-     * @param[in] db The SQLite database connection
+     * @param[in] conn Open SQLite connection (SQLite-type-free; the native handle is
+     *                 resolved in the .cpp via SqliteConnector_impl.h)
      * @param[in] legacy_traml_id Whether to use legacy TraML IDs
+     * @param[in] stable_order Whether to apply the legacy deterministic row order
      * @return PQPSqlQueryInfo containing the query and column availability flags
      */
-    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id) const;
+    PQPSqlQueryInfo buildPQPSelectQuery_(SqliteConnector& conn, bool legacy_traml_id, bool stable_order) const;
 
     /** @brief Read PQP SQLite file
      *

@@ -36,12 +36,12 @@ START_SECTION((~SpectrumSettings()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((const String& getNativeID() const))
+START_SECTION((const std::string& getNativeID() const))
 	SpectrumSettings tmp;
 	TEST_STRING_EQUAL(tmp.getNativeID(),"");
 END_SECTION
 
-START_SECTION((void setNativeID(const String& native_id)))
+START_SECTION((void setNativeID(const std::string& native_id)))
 	SpectrumSettings tmp;
 	tmp.setNativeID("nid");
 	TEST_STRING_EQUAL(tmp.getNativeID(),"nid");
@@ -168,12 +168,12 @@ START_SECTION((void setType(SpectrumType type)))
 	TEST_EQUAL(tmp.getType(), SpectrumSettings::SpectrumType::CENTROID);
 END_SECTION
 
-START_SECTION((const String& getComment() const))
+START_SECTION((const std::string& getComment() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getComment(), "");
 END_SECTION
 
-START_SECTION((void setComment(const String& comment)))
+START_SECTION((void setComment(const std::string& comment)))
 	SpectrumSettings tmp;
 	tmp.setComment("bla");
 	TEST_EQUAL(tmp.getComment(), "bla");

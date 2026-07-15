@@ -28,30 +28,30 @@ START_TEST(StringManager, "$Id$")
 
 
 const XMLCh russianHello[] = {
-    0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x043C, 
+    0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x043C,
     0x0438, 0x0440,0x0000 // "Привет мир" (Hello World in Russian)
 };
-XMLSize_t r_length = xercesc::XMLString::stringLen(russianHello);
+size_t r_length = StringManager::strLength(russianHello);
 
-const XMLCh ascii[] = { 
+const XMLCh ascii[] = {
     0x0048,0x0065,0x006C,0x006C,0x006F,0x002C,0x0057,0x006F,
     0x0072,0x006C,0x0064,0x0021, 0x0000};
-XMLSize_t a_length = xercesc::XMLString::stringLen(ascii); 
+size_t a_length = StringManager::strLength(ascii);
 
-const XMLCh mixed[] = { 
+const XMLCh mixed[] = {
     0x0048, 0x0065,0x0432, 0x0435, 0x0442, 0x043C, 0x006F,
     0x0072,0x006C,0x0064, 0x0021, 0x0000 };
-XMLSize_t m_length = xercesc::XMLString::stringLen(mixed);
+size_t m_length = StringManager::strLength(mixed);
 
 const XMLCh empty[] = {0};
-XMLSize_t e_length = xercesc::XMLString::stringLen(empty);
+size_t e_length = StringManager::strLength(empty);
 
 const XMLCh upperBoundary [] = {0x00FF,0x00FF,0x0000};
-XMLSize_t u_length = xercesc::XMLString::stringLen(upperBoundary);
+size_t u_length = StringManager::strLength(upperBoundary);
 
 bool isAscii = false;
 
-START_SECTION(isASCII(const XMLCh * chars, const XMLSize_t length))
+START_SECTION(isASCII(const XMLCh * chars, const size_t length))
   isAscii = StringManager::isASCII(ascii,a_length);
   TEST_TRUE(isAscii)
 
@@ -90,14 +90,14 @@ START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
     StringManager_test::compress64(eight_block,o1_str.data());
     std::string res1_str = "Hello,Wo";
     TEST_STRING_EQUAL(o1_str,res1_str);
-    
-   
-    std::string o2_str(8,'\0'); 
+
+
+    std::string o2_str(8,'\0');
     StringManager_test::compress64(eight_block_negative,o2_str.data());
     std::string res2_str = res1_str;
     TEST_STRING_EQUAL(o2_str, res2_str);
 
-    
+
     std::string o3_str(8,'\0');
     StringManager_test::compress64(eight_block_mixed,o3_str.data());
     std::string res3_str = {0x42,0x45,0x4C,0x41,0x42,0x45,0x4C,0x41};
@@ -108,7 +108,7 @@ START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
     o4_str [1]  ='B';
     o4_str [2]  ='R';
     o4_str [3]  ='A';
-    
+
     StringManager_test::compress64(eight_block_kadabra,((o4_str.data())+4));
     std::string res4_str = "ABRAKADABRA!";
     TEST_STRING_EQUAL(o4_str, res4_str);
@@ -116,18 +116,18 @@ START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
 END_SECTION
 
 //Tests Number of Chars not Dividable by 8
-OpenMS::String o5_str;
+std::string o5_str;
 std::string res5_str = "Hello,World!";
 
 //Checks how the Function handles Data thats already stored in Output string
-OpenMS::String o6_str = "Gruess Gott und ";
+std::string o6_str = "Gruess Gott und ";
 std::string res6_str = "Gruess Gott und Hello,World!";
 
-OpenMS::String o7_str;
-std::string res7_str = "";
+std::string o7_str;
+std::string res7_str;
 
 
-START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & result))
+START_SECTION(appendASCII(const XMLCh * chars, const size_t length, String & result))
 
     StringManager::appendASCII(ascii,a_length,o5_str);
     TEST_STRING_EQUAL(o5_str, res5_str);
@@ -137,7 +137,7 @@ START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & 
 
     StringManager::appendASCII(empty,e_length,o7_str);
     TEST_STRING_EQUAL(o7_str, res7_str);
-    
+
 
 END_SECTION
 XMLCh* nullPointer = nullptr;
@@ -155,5 +155,5 @@ END_SECTION
 END_TEST
 
 
-    
+
 

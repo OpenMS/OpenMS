@@ -6,37 +6,36 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <sqlite3.h>
 
 #include <cstring> // for strcmp
 #include <iostream>
 
 namespace OpenMS
 {
-  SqliteConnector::SqliteConnector(const String& filename, const SqlOpenMode mode)
+  SqliteConnector::SqliteConnector(const std::string& filename, const SqlOpenMode mode)
   {
     openDatabase_(filename, mode);
   }
+
   SqliteConnector::~SqliteConnector()
   {
-    int rc = sqlite3_close_v2(db_);
+    int rc = sqlite3_close_v2(static_cast<sqlite3*>(db_));
     if (rc != SQLITE_OK)
     {
       std::cout << " Encountered error in ~SqliteConnector: " << rc << std::endl;
     }
   }
 
-  void SqliteConnector::openDatabase_(const String& filename, const SqlOpenMode mode)
+  void SqliteConnector::openDatabase_(const std::string& filename, const SqlOpenMode mode)
   {
     // Open database
     int flags = 0;
     switch (mode)
     {
-      case SqlOpenMode::READONLY:
+      case SqlOpenMode::READ_ONLY:
         flags = SQLITE_OPEN_READONLY;
         break;
       case SqlOpenMode::READWRITE:
@@ -46,54 +45,41 @@ namespace OpenMS
         flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
         break;
     }
-    int rc = sqlite3_open_v2(filename.c_str(), &db_, flags, nullptr);
+    sqlite3* db = nullptr;
+    int rc = sqlite3_open_v2(filename.c_str(), &db, flags, nullptr);
+    db_ = db;
     if (rc)
     {
-      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not open sqlite db '" + filename + "' in mode " + String(int(mode)));
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not open sqlite db '" + filename + "' in mode " + StringUtils::toStr(int(mode)));
     }
   }
 
-  bool SqliteConnector::columnExists(sqlite3 *db, const String& tablename, const String& colname)
+  bool SqliteConnector::tableExists(const std::string& tablename)
   {
-    bool found = false;
-
-    sqlite3_stmt* xcntstmt;
-    prepareStatement(db, &xcntstmt, "PRAGMA table_info(" + tablename + ")");
-
-    // Go through all columns and check whether the required column exists
-    sqlite3_step(xcntstmt);
-    while (sqlite3_column_type(xcntstmt, 0) != SQLITE_NULL)
-    {
-      if (strcmp(colname.c_str(), reinterpret_cast<const char*>(sqlite3_column_text(xcntstmt, 1))) == 0)
-      {
-        found = true;
-        break;
-      }
-      sqlite3_step(xcntstmt);
-    }
-    sqlite3_finalize(xcntstmt);
-
-    return found;
+    return Internal::SqliteHelper::tableExists(static_cast<sqlite3*>(db_), tablename);
   }
 
-  bool SqliteConnector::tableExists(sqlite3 *db, const String& tablename)
+  bool SqliteConnector::columnExists(const std::string& tablename, const std::string& colname)
   {
-    sqlite3_stmt* stmt;
-    prepareStatement(db, &stmt, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + tablename + "';");
-
-    sqlite3_step(stmt);
-    // if we get a row back, the table exists:
-    bool found = (sqlite3_column_type(stmt, 0) != SQLITE_NULL);
-    sqlite3_finalize(stmt);
-
-    return found;
+    return Internal::SqliteHelper::columnExists(static_cast<sqlite3*>(db_), tablename, colname);
   }
 
-  Size SqliteConnector::countTableRows(const String& table_name)
+  void SqliteConnector::executeStatement(const std::string& statement)
   {
+    Internal::SqliteHelper::executeStatement(static_cast<sqlite3*>(db_), statement);
+  }
+
+  void SqliteConnector::executeBindStatement(const std::string& prepare_statement, const std::vector<std::string>& data)
+  {
+    Internal::SqliteHelper::executeBindStatement(static_cast<sqlite3*>(db_), prepare_statement, data);
+  }
+
+  Size SqliteConnector::countTableRows(const std::string& table_name)
+  {
+    sqlite3* db = static_cast<sqlite3*>(db_);
     sqlite3_stmt* stmt;
-    String select_runs = "SELECT count(*) FROM " + table_name + ";";
-    this->prepareStatement(&stmt, select_runs);
+    std::string select_runs = "SELECT count(*) FROM " + table_name + ";";
+    Internal::SqliteHelper::prepareStatement(db, &stmt, select_runs);
     sqlite3_step(stmt);
     if (sqlite3_column_type(stmt, 0) == SQLITE_NULL)
     {
@@ -104,66 +90,101 @@ namespace OpenMS
     return res;
   }
 
-  void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
-  {
-    char *zErrMsg = nullptr;
-    int rc = sqlite3_exec(db, statement.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
-    if (rc != SQLITE_OK)
-    {
-      String error(zErrMsg);
-      std::cerr << "Error message after sqlite3_exec" << std::endl;
-      std::cerr << "Prepared statement " << statement << std::endl;
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
-    }
-  }
-
-  void SqliteConnector::prepareStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement)
-  {
-    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), (int)prepare_statement.size(), stmt, nullptr);
-    if (rc != SQLITE_OK)
-    {
-      std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
-      std::cerr << "Prepared statement " << prepare_statement << std::endl;
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-    }
-  }
-
-  void SqliteConnector::executeBindStatement(sqlite3 *db, const String& prepare_statement, const std::vector<String>& data)
-  {
-    int rc;
-    sqlite3_stmt *stmt = nullptr;
-    prepareStatement(db, &stmt, prepare_statement);
-    for (Size k = 0; k < data.size(); k++)
-    {
-      // Fifth argument is a destructor for the blob.
-      // SQLITE_STATIC because the statement is finalized
-      // before the buffer is freed:
-      rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), (int)data[k].size(), SQLITE_STATIC);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
-        std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        // TODO this is a mem-leak (missing sqlite3_finalize())
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE)
-    {
-      std::cerr << "SQL error after sqlite3_step" << std::endl;
-      std::cerr << "Prepared statement " << prepare_statement << std::endl;
-      // TODO this is a mem-leak (missing sqlite3_finalize())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-    }
-
-    // free memory
-    sqlite3_finalize(stmt);
-  }
-
   namespace Internal::SqliteHelper
     {
+      bool columnExists(sqlite3 *db, const std::string& tablename, const std::string& colname)
+      {
+        bool found = false;
+
+        sqlite3_stmt* xcntstmt;
+        prepareStatement(db, &xcntstmt, "PRAGMA table_info(" + tablename + ")");
+
+        // Go through all columns and check whether the required column exists
+        sqlite3_step(xcntstmt);
+        while (sqlite3_column_type(xcntstmt, 0) != SQLITE_NULL)
+        {
+          if (strcmp(colname.c_str(), reinterpret_cast<const char*>(sqlite3_column_text(xcntstmt, 1))) == 0)
+          {
+            found = true;
+            break;
+          }
+          sqlite3_step(xcntstmt);
+        }
+        sqlite3_finalize(xcntstmt);
+
+        return found;
+      }
+
+      bool tableExists(sqlite3 *db, const std::string& tablename)
+      {
+        sqlite3_stmt* stmt;
+        prepareStatement(db, &stmt, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + tablename + "';");
+
+        sqlite3_step(stmt);
+        // if we get a row back, the table exists:
+        bool found = (sqlite3_column_type(stmt, 0) != SQLITE_NULL);
+        sqlite3_finalize(stmt);
+
+        return found;
+      }
+
+      void executeStatement(sqlite3 *db, const std::string& statement)
+      {
+        char *zErrMsg = nullptr;
+        int rc = sqlite3_exec(db, statement.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
+        if (rc != SQLITE_OK)
+        {
+          std::string error(zErrMsg);
+          std::cerr << "Error message after sqlite3_exec" << std::endl;
+          std::cerr << "Prepared statement " << statement << std::endl;
+          sqlite3_free(zErrMsg);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+        }
+      }
+
+      void prepareStatement(sqlite3 *db, sqlite3_stmt** stmt, const std::string& prepare_statement)
+      {
+        int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), (int)prepare_statement.size(), stmt, nullptr);
+        if (rc != SQLITE_OK)
+        {
+          std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
+          std::cerr << "Prepared statement " << prepare_statement << std::endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+        }
+      }
+
+      void executeBindStatement(sqlite3 *db, const std::string& prepare_statement, const std::vector<std::string>& data)
+      {
+        int rc;
+        sqlite3_stmt *stmt = nullptr;
+        prepareStatement(db, &stmt, prepare_statement);
+        for (Size k = 0; k < data.size(); k++)
+        {
+          // Fifth argument is a destructor for the blob.
+          // SQLITE_STATIC because the statement is finalized
+          // before the buffer is freed:
+          rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), (int)data[k].size(), SQLITE_STATIC);
+          if (rc != SQLITE_OK)
+          {
+            std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
+            std::cerr << "Prepared statement " << prepare_statement << std::endl;
+            // TODO this is a mem-leak (missing sqlite3_finalize())
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+          }
+        }
+
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE)
+        {
+          std::cerr << "SQL error after sqlite3_step" << std::endl;
+          std::cerr << "Prepared statement " << prepare_statement << std::endl;
+          // TODO this is a mem-leak (missing sqlite3_finalize())
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+        }
+
+        // free memory
+        sqlite3_finalize(stmt);
+      }
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
@@ -189,16 +210,6 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_int64(stmt, pos);
-          return true;
-        }
-        return false;
-      }
-
-      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
-      {
-        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
-        {
-          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
           return true;
         }
         return false;
@@ -247,11 +258,11 @@ namespace OpenMS
       }
 
       /// Special case: store integer in a string data value
-      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
+      bool extractValueIntStr(std::string* dst, sqlite3_stmt* stmt, int pos)
       {
         if (sqlite3_column_type(stmt, pos) == SQLITE_INTEGER)
         {
-          *dst = sqlite3_column_int(stmt, pos);
+          *dst = StringUtils::toStr(sqlite3_column_int(stmt, pos));
           return true;
         }
         return false;
@@ -260,9 +271,9 @@ namespace OpenMS
       double extractDouble(sqlite3_stmt* stmt, int pos)
       {
         double res;
-        if (!extractValue<double>(&res, stmt, pos)) 
+        if (!extractValue<double>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to double failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to double failed");
         }
         return res;
       }
@@ -272,7 +283,7 @@ namespace OpenMS
         double res; // there is no sqlite3_column_float.. so we extract double and convert
         if (!extractValue<double>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to double/float failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to double/float failed");
         }
         return (float)res;
       }
@@ -282,7 +293,7 @@ namespace OpenMS
         int res;
         if (!extractValue<int>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to int failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to int failed");
         }
         return res;
       }
@@ -292,17 +303,17 @@ namespace OpenMS
         Int64 res;
         if (!extractValue<Int64>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to Int64 failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to Int64 failed");
         }
         return res;
       }
 
-      String extractString(sqlite3_stmt* stmt, int pos)
+      std::string extractString(sqlite3_stmt* stmt, int pos)
       {
-        String res;
-        if (!extractValue<String>(&res, stmt, pos))
+        std::string res;
+        if (!extractValue<std::string>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to String failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to std::string failed");
         }
         return res;
       }
@@ -320,5 +331,3 @@ namespace OpenMS
     }
 
 }
-
-

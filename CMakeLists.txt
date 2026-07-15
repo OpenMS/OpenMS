@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
@@ -8,6 +8,24 @@
 
 
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+
+# The vcpkg toolchain must be selected before project() initializes compilers.
+# Existing system/contrib dependency discovery remains the default.
+option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management." OFF)
+
+if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
+  set(_openms_submodule_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
+  if(EXISTS "${_openms_submodule_vcpkg_toolchain}")
+    set(CMAKE_TOOLCHAIN_FILE "${_openms_submodule_vcpkg_toolchain}" CACHE FILEPATH "CMake toolchain file")
+  else()
+    message(FATAL_ERROR
+      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found. Initialize the "
+      "vcpkg submodule or set CMAKE_TOOLCHAIN_FILE.")
+  endif()
+
+  unset(_openms_submodule_vcpkg_toolchain)
+endif()
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -59,8 +77,33 @@ option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript 
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
-option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
+set(_openms_with_thermo_raw_default ON)
+# Thermo's RawFileReader does not ship native dependencies for Linux aarch64,
+# so the .NET runtime can build the bridge but throws a managed exception when
+# actually opening a RAW file. Default OFF on that platform.
+# macOS arm64 is natively supported as of openms-thermo-bridge v0.2.0.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
+  set(_openms_with_thermo_raw_default OFF)
+endif()
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
+option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
+option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
+  if(WITH_THERMO_RAW)
+    message(WARNING
+      "Thermo RAW support is disabled by default on Linux aarch64 because "
+      "Thermo RawFileReader native dependencies are not available there. You explicitly "
+      "enabled WITH_THERMO_RAW=ON. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
+      "and contact Thermo Fisher support by email if this support matters for your workflow.")
+  else()
+    message(STATUS
+      "Thermo RAW support defaults to OFF on Linux aarch64. Please vote on "
+      "https://github.com/thermofisherlsms/RawFileReader/issues/21 and contact Thermo Fisher "
+      "support by email if native support matters for your workflow.")
+  endif()
+endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
@@ -74,26 +117,53 @@ endif()
 
 if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
   include(FetchContent)
-  set(OPENTIMS_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
+  # Mirror of the timsrust_cpp_bridge "test-data-v1" release, hosted on the OpenMS
+  # infra fileserver (archive.openms.de). NOTE: this host currently answers only on
+  # plain HTTP (no HTTPS listener yet) and port 80 is reachable only from whitelisted
+  # CI/build networks at the perimeter firewall. URL_HASH pins each file's
+  # integrity so the weaker transport cannot corrupt a download silently.
+  set(OPENTIMS_TESTDATA_URL "http://archive.openms.de/openms/testfiles")
   FetchContent_Declare(
     opentims_testdata_dda
     URL "${OPENTIMS_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
+    URL_HASH SHA256=659d691e48d621edcd1fecb8448de5731147c009bda42ba6e7e5ed53e46dc15c
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_Declare(
     opentims_testdata_dia
     URL "${OPENTIMS_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
+    URL_HASH SHA256=bacf98b472ed3a3cfef2c2595a726fc6c06f059a41c17d9035b2b864932b6f5d
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_Declare(
     opentims_testdata_fasta
     URL "${OPENTIMS_TESTDATA_URL}/human_sp.fasta"
+    URL_HASH SHA256=b205ed9970fee62413e2f192c6fb82daab86e4a5897ef521f907ecbfcd7b3e63
     DOWNLOAD_NO_EXTRACT TRUE
   )
   FetchContent_MakeAvailable(opentims_testdata_dda opentims_testdata_dia opentims_testdata_fasta)
   set(OPENTIMS_DDA_TEST_DATA "${opentims_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
   set(OPENTIMS_DIA_TEST_DATA "${opentims_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
   set(OPENTIMS_TEST_FASTA "${opentims_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
+endif()
+
+if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
+  include(FetchContent)
+  # Angiotensin_AllScans.raw originally from PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader
+  # (BSD-2-Clause, (c) 2018 Battelle Memorial Institute), commit 1d8ff309. Contains
+  # 87 MS1 (FTMS Full ms) plus hundreds of MS2 scans with HCD and supplemental-
+  # activation (ETD+HCD, ETD+CID) filters at precursor m/z 432.9 — exercises the
+  # full activation-method switch in ThermoRawFile.cpp and MS1+MSn round-trip via
+  # mzML. Served from the OpenMS infra mirror (see OPENTIMS_TESTDATA_URL note above
+  # re: plain HTTP); URL_HASH below pins integrity/reproducibility.
+  FetchContent_Declare(
+    thermo_raw_testdata
+    URL "http://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
+    URL_HASH SHA256=3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(thermo_raw_testdata)
+  set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/Angiotensin_AllScans.raw" CACHE PATH "Path to Thermo RAW test file")
 endif()
 
 #------------------------------------------------------------------------------
@@ -183,6 +253,11 @@ endif()
 #------------------------------------------------------------------------------
 # Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
 #------------------------------------------------------------------------------
+if(OPENMS_USE_VCPKG)
+  message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
+else()
+  message(STATUS "Dependency provider: system/contrib")
+endif()
 include(cmake/setup_lib_find_paths.cmake)
 
 #------------------------------------------------------------------------------
@@ -278,7 +353,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Enable AddressSanitizer
-#------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
@@ -407,10 +482,10 @@ if(UNIX)
 			# Since we rely on copying instead of "installing" for KNIME packaging
 			# we need to do it during building already.
 			# In this case, make sure that e.g. Qt is in a system path if you want to test it locally.
-			
+
 			# bakes in "@executable_path/../lib" for all targets
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-			
+
 			# makes sure that our libs are built in a way that their install names are:
 			# @rpath/libOpenMS.dylib
 			# such that when executables link to it, they can look it up via rpath above
@@ -420,18 +495,18 @@ if(UNIX)
 			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
 		endif()
   endif()
-  
+
   # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
   # We need to include all link directories that should be specified by the
   # dependency target to our RPATH as well.
   if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
-  
+
   #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
   #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
   #endif()
-  
+
   # our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
   if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
@@ -472,7 +547,15 @@ include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # find the Doxygen (required by /doc and /src/OpenMS)
-find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+## 'dot' (Graphviz) is requested as an OPTIONAL component so that machines without it still
+## build all non-dot documentation targets. Provides the Doxygen::doxygen / Doxygen::dot imported
+## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
+
+if(WITH_ONNX)
+  # 1. Tell CMake to look for the package ONLY if the switch is ON
+  find_package(ONNXRuntime REQUIRED)
+endif()
 
 
 #------------------------------------------------------------------------------
@@ -543,7 +626,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     endif()
     set(CPACK_GENERATOR "ZIP")
     # For now we use the package nsis script to ensure all dependencies
-    # are met for the portable version. 
+    # are met for the portable version.
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()

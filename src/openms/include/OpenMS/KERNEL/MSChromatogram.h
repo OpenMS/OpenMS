@@ -50,7 +50,7 @@ public:
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
-    /// String data array vector type
+    /// std::string data array vector type
     typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
     typedef std::vector<StringDataArray> StringDataArrays;
     /// Integer data array vector type
@@ -135,10 +135,10 @@ public:
     ///@name Accessors for meta information
     ///@{
     /// Returns the name
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// Sets the name
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     ///@}
 
@@ -415,12 +415,12 @@ public:
 protected:
 
     /// Name
-    String name_;
+    std::string name_;
 
     /// Float data arrays
     FloatDataArrays float_data_arrays_;
 
-    /// String data arrays
+    /// std::string data arrays
     StringDataArrays string_data_arrays_;
 
     /// Integer data arrays

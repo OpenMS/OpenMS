@@ -21,7 +21,7 @@ namespace OpenMS
 
   void ConsensusIDAlgorithmSimilarity::apply_(
     PeptideIdentificationList& ids,
-    const map<String, String>& se_info,
+    const map<std::string, std::string>& se_info,
     SequenceGrouping& results)
   {
     for (PeptideIdentificationList::iterator id = ids.begin();
@@ -31,7 +31,7 @@ namespace OpenMS
           id->getScoreType() != "pep" &&
           id->getScoreType() != "MS:1001493")
       {
-        String msg = "Score type must be 'Posterior Error Probability'";
+        std::string msg = "Score type must be 'Posterior Error Probability'";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, id->getScoreType());
       }
@@ -40,7 +40,7 @@ namespace OpenMS
     for (PeptideIdentificationList::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)
     {
-      String score_type = id1->getScoreType();
+      std::string score_type = id1->getScoreType();
       auto se = se_info.find(id1->getIdentifier());
       if (se != se_info.end())
       {

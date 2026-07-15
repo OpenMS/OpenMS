@@ -1,0 +1,65 @@
+name: Welcome New Contributor
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Get contributor info
+        id: contributor
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            echo "username=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
+            echo "association=${{ github.event.pull_request.author_association }}" >> $GITHUB_OUTPUT
+          else
+            echo "username=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
+            echo "association=${{ github.event.issue.author_association }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Welcome Contributor
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const association = '${{ steps.contributor.outputs.association }}';
+            const username = '${{ steps.contributor.outputs.username }}';
+            const eventName = context.eventName;
+            const issueNumber = eventName === 'pull_request_target'
+              ? context.payload.pull_request.number
+              : context.issue.number;
+            
+            // NONE means they have never had a PR merged in this repo
+            // another implementation https://github.com/llvm/llvm-project/blob/c8655fce45af6f2c13285f218bba83d39c84d5a4/.github/workflows/new-prs.yml
+            // https://github.com/llvm/llvm-project/blob/c8655fce45af6f2c13285f218bba83d39c84d5a4/.github/workflows/new-issues.yml
+            if (!['OWNER', 'CONTRIBUTOR', 'COLLABORATOR', 'MEMBER', 'MANNEQUIN'].includes(association)) {
+              
+              // 1. Add Label
+              await github.rest.issues.addLabels({
+                issue_number: issueNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['new contributor']
+              });
+
+              // 2. Post Comment
+              const type = eventName === 'pull_request_target' ? 'PR' : 'issue';
+              const body = `Welcome @${username} and thank you for your contribution to OpenMS! To help us better understand our userbase and contributors, we would appreciate if you could complete the survey at the link below. Completing this survey will help us get to your ${type} sooner. Thank you for your participation!\n\n[Survey](https://tally.so/r/pbV6Qq)`;
+
+              await github.rest.issues.createComment({
+                issue_number: issueNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+      - name: Debug association
+        run: echo "Association=${{ steps.contributor.outputs.association }}"

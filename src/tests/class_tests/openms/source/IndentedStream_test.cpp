@@ -80,14 +80,14 @@ START_SECTION(IndentedStream& operator<<(IndentedStream& self))
 END_SECTION
 
 
-const String x20(TEST_CONSOLE_WIDTH * 2 + 1, 'x'); // test string (2 full lines plus one 'x')
-const String xC(TEST_CONSOLE_WIDTH, 'x');          // full console width of 'x'
+const std::string x20(TEST_CONSOLE_WIDTH * 2 + 1, 'x'); // test string (2 full lines plus one 'x')
+const std::string xC(TEST_CONSOLE_WIDTH, 'x');          // full console width of 'x'
 
 START_SECTION((template<typename T> IndentedStream & operator<<(const T& data)))
 {
   stringstream ss;
   int indent = 3;
-  String s_indent(indent, ' ');
+  std::string s_indent(indent, ' ');
   IndentedStream is(ss, indent, 10);
   is << 3 << " " << '\n' << 'c';
   TEST_EQUAL(ss.str(), "3 \n" + s_indent + "c")
@@ -109,8 +109,8 @@ START_SECTION(IndentedStream& indent(const UInt new_indent))
   stringstream ss;
   int indent = 3;
   int indent_new = 5;
-  String s_indent(indent, ' ');
-  String s_indent_new(indent_new, ' ');
+  std::string s_indent(indent, ' ');
+  std::string s_indent_new(indent_new, ' ');
   IndentedStream is(ss, indent, 10);
   is << xC  // a full line
      << 'y' // indented 'y'
@@ -118,7 +118,7 @@ START_SECTION(IndentedStream& indent(const UInt new_indent))
      << xC; // a full line which does not fit and triggers a linebreak
   TEST_EQUAL(ss.str(), xC  + "\n" 
                        + s_indent + "y" + (xC.data() + indent + 1) + "\n" // +1 to skip one 'x'
-                         + s_indent_new + xC.suffix(indent + 1))
+                         + s_indent_new + StringUtils::suffix(xC, indent + 1))
 }
 END_SECTION
 

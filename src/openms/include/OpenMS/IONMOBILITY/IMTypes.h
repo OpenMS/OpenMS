@@ -108,12 +108,48 @@ namespace OpenMS
     static IMFormat determineIMFormat(const MSSpectrum& spec);
 
     /**
-     * \brief 
-     * \param from Drift unit to convert from
-     * \return A more general DIM_UNIT (or exception)
-     * \throws Exception::ConversionError if @p from has invalid value (e.g. 'NONE')
+     * @brief Convert a DriftTimeUnit to the more general DIM_UNIT.
+     * @param[in] from Drift unit to convert from
+     * @return A more general DIM_UNIT
+     * @throws Exception::ConversionError if @p from has an invalid value (e.g. 'NONE')
      */
     static DIM_UNIT fromIMUnit(const DriftTimeUnit from);
+
+    /// Mass of N2 (the most common drift/buffer gas) in Da; default buffer gas for the CCS conversions below.
+    /// The rounded value 28.0 is used (rather than 28.006148) to match the calibration constant below,
+    /// which was validated against the Bruker/alphatims and MaxQuant CCS values.
+    inline static constexpr double N2_BUFFER_GAS_MASS = 28.0;
+
+    /**
+      @brief Convert a reduced inverse ion mobility (1/K0) to a collision cross section (CCS) via the Mason-Schamp relation.
+
+      Uses the conventional single-temperature form
+        CCS = (C * |charge| / sqrt(mu)) * (1/K0)
+      with the Bruker calibration constant C = 1059.62245 (validated against alphatims and MaxQuant CCS
+      values for an N2 drift gas at the usual calibration temperature). @c mu is the ion-gas reduced mass
+        mu = (m_ion * m_gas) / (m_ion + m_gas),
+      with the ion mass approximated as m_ion = mz * |charge|.
+
+      @param[in] one_over_k0     Reduced inverse ion mobility 1/K0 in V*s/cm^2; must be > 0.
+      @param[in] mz              Precursor m/z of the ion; must be > 0.
+      @param[in] charge          Precursor charge; the sign is ignored (|charge| is used) and it must be non-zero.
+      @param[in] buffer_gas_mass Drift-gas mass in Da; defaults to N2 (@ref N2_BUFFER_GAS_MASS).
+      @return Collision cross section in square Angstrom (Angstrom^2).
+      @throws Exception::InvalidValue if @p one_over_k0 <= 0, @p mz <= 0, or @p charge == 0.
+    */
+    static double oneOverK0ToCCS(double one_over_k0, double mz, int charge, double buffer_gas_mass = N2_BUFFER_GAS_MASS);
+
+    /**
+      @brief Inverse of @ref oneOverK0ToCCS - convert a collision cross section (CCS) back to reduced inverse ion mobility (1/K0).
+
+      @param[in] ccs             Collision cross section in square Angstrom (Angstrom^2); must be > 0.
+      @param[in] mz              Precursor m/z of the ion; must be > 0.
+      @param[in] charge          Precursor charge; the sign is ignored (|charge| is used) and it must be non-zero.
+      @param[in] buffer_gas_mass Drift-gas mass in Da; defaults to N2 (@ref N2_BUFFER_GAS_MASS).
+      @return Reduced inverse ion mobility 1/K0 in V*s/cm^2.
+      @throws Exception::InvalidValue if @p ccs <= 0, @p mz <= 0, or @p charge == 0.
+    */
+    static double ccsToOneOverK0(double ccs, double mz, int charge, double buffer_gas_mass = N2_BUFFER_GAS_MASS);
   };
 
 };

@@ -43,40 +43,40 @@ START_SECTION((void setFileSize(float file_size)))
   TEST_REAL_SIMILAR(tmp.getFileSize(),1.667f);
 END_SECTION
 
-START_SECTION((const String& getFileType() const))
+START_SECTION((const std::string& getFileType() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileType(), "");
 END_SECTION
 
-START_SECTION((void setFileType(const String& file_type)))
+START_SECTION((void setFileType(const std::string& file_type)))
   SourceFile tmp;
 	tmp.setFileType("PEAKDATA");
   TEST_EQUAL(tmp.getFileType(), "PEAKDATA");
 END_SECTION
 
-START_SECTION((const String& getNameOfFile() const))
+START_SECTION((const std::string& getNameOfFile() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getNameOfFile(),"");
 END_SECTION
 
-START_SECTION((void setNameOfFile(const String& name_of_file)))
+START_SECTION((void setNameOfFile(const std::string& name_of_file)))
   SourceFile tmp;
   tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
   TEST_EQUAL(tmp.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 END_SECTION
 
-START_SECTION((const String& getPathToFile() const))
+START_SECTION((const std::string& getPathToFile() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getPathToFile(),"");
 END_SECTION
 
-START_SECTION((void setPathToFile(const String& path_path_to_file)))
+START_SECTION((void setPathToFile(const std::string& path_path_to_file)))
   SourceFile tmp;
   tmp.setPathToFile("/misc/sturm/mp3/");
   TEST_EQUAL(tmp.getPathToFile(),"/misc/sturm/mp3/");
 END_SECTION
 
-START_SECTION((const String& getChecksum() const))
+START_SECTION((const std::string& getChecksum() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getChecksum(), "");
 END_SECTION
@@ -86,19 +86,19 @@ START_SECTION(ChecksumType getChecksumType() const)
   TEST_EQUAL(tmp.getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 END_SECTION
 
-START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
+START_SECTION((void setChecksum(const std::string& checksum, ChecksumType type)))
   SourceFile tmp;
   tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::ChecksumType::SHA1);
   TEST_EQUAL(tmp.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
   TEST_EQUAL(tmp.getChecksumType(), SourceFile::ChecksumType::SHA1);
 END_SECTION
 
-START_SECTION((const String& getNativeIDType() const))
+START_SECTION((const std::string& getNativeIDType() const))
 	SourceFile tmp;
 	TEST_STRING_EQUAL(tmp.getNativeIDType(), "");
 END_SECTION
 
-START_SECTION((void setNativeIDType(const String& type)))
+START_SECTION((void setNativeIDType(const std::string& type)))
   SourceFile tmp;
   tmp.setNativeIDType("bla");
   TEST_STRING_EQUAL(tmp.getNativeIDType(), "bla");

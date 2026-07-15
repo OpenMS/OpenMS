@@ -44,22 +44,22 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const String & HPLC::getInstrument() const
+  const std::string & HPLC::getInstrument() const
   {
     return instrument_;
   }
 
-  void HPLC::setInstrument(const String & instrument)
+  void HPLC::setInstrument(const std::string & instrument)
   {
     instrument_ = instrument;
   }
 
-  const String & HPLC::getColumn() const
+  const std::string & HPLC::getColumn() const
   {
     return column_;
   }
 
-  void HPLC::setColumn(const String & column)
+  void HPLC::setColumn(const std::string & column)
   {
     column_ = column;
   }
@@ -94,12 +94,12 @@ namespace OpenMS
     flux_ = flux;
   }
 
-  String HPLC::getComment() const
+  std::string HPLC::getComment() const
   {
     return comment_;
   }
 
-  void HPLC::setComment(String comment)
+  void HPLC::setComment(std::string comment)
   {
     comment_ = std::move(comment);
   }

@@ -245,9 +245,15 @@ else()
       ${OPENSWATHALGO_TARGET}
       Eigen3::Eigen
     )
+    # The trailing "$<0:>" is an (empty) generator expression: it makes CMake use
+    # this path verbatim instead of appending a per-configuration subdirectory on
+    # multi-config generators (Visual Studio, Xcode). Without it the modules land
+    # in pyopenms/Release/, where pyopenms/__init__.py (pkgutil.iter_modules, which
+    # does not recurse) cannot find them, and `import pyopenms` fails with
+    # "Failed to import any pyOpenMS bindings".
     set_target_properties(${target_name} PROPERTIES
-      LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
-      RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+      LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms/$<0:>"
+      RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms/$<0:>"
     )
     if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
       set_target_properties(${target_name} PROPERTIES
@@ -303,7 +309,14 @@ else()
   # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
   # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
   if(NOT OPENMS_ARROW_TARGET)
-    find_package(Arrow 23 CONFIG REQUIRED)
+    # Don't pin the version in find_package — Arrow's ConfigVersion uses
+    # SameMajorVersion compatibility, so requesting 23 rejects 24.x. Check the
+    # version manually after the call. Mirrors the main cmake path in
+    # cmake/cmake_findExternalLibs.cmake.
+    find_package(Arrow CONFIG REQUIRED)
+    if(Arrow_VERSION VERSION_LESS 23)
+      message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+    endif()
     if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
       set(OPENMS_ARROW_TARGET Arrow::arrow_static)
     elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
@@ -509,18 +522,58 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # Override pyproject.toml's addopts which uses -v (verbose).
   set(_PYTEST_ARGS -m pytest -o addopts=-q\ --tb=short)
 
+  # On Windows, when NO_DEPENDENCIES=ON the OpenMS runtime libraries are not
+  # copied next to the compiled extension modules. Python >= 3.8 does not search
+  # PATH for an extension module's dependent DLLs, and Windows has no RPATH, so
+  # pyopenms/__init__.py registers the directories holding OpenMS.dll and its
+  # transitive dependencies via os.add_dll_directory(), reading them from the
+  # PYOPENMS_DLL_PATH environment variable. We set that variable for the test
+  # process with `cmake -E env` so the TARGET_FILE_DIR generator expression (the
+  # per-configuration OpenMS bin folder) is resolved; being an environment
+  # variable it also reaches child processes that some tests spawn to
+  # `import pyopenms`. Harmless no-op when the dependencies are already bundled
+  # (NO_DEPENDENCIES=OFF) and on non-Windows.
+  set(_pyopenms_test_cmd_prefix "")
+  if(WIN32)
+    set(_pyopenms_dll_dirs "$<TARGET_FILE_DIR:${OPENMS_TARGET}>")
+    string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>$<TARGET_FILE_DIR:${OPENSWATHALGO_TARGET}>")
+    if(OPENMS_CONTRIB_LIBS)
+      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${OPENMS_CONTRIB_LIBS}/lib")
+    endif()
+    if(QT_INSTALL_BINS)
+      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
+    endif()
+    set(_pyopenms_test_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_dll_dirs}")
+  endif()
+
   add_test(
     NAME pyopenms_unittests
-    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+    COMMAND ${_pyopenms_test_cmd_prefix} ${Python_EXECUTABLE} ${_PYTEST_ARGS}
       --ignore=tests/unittests/test_docstrings.py
       --ignore=tests/unittests/test_docstring_format.py
       tests/unittests
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
   )
 
+  # Mirror the BrukerTimsFile_test pattern: forward optional CMake-configured
+  # paths to real Bruker .d directories as environment variables, so
+  # test_BrukerTimsFile.py can skip when they are unset.
+  if(OPENTIMS_DDA_TEST_DATA OR OPENTIMS_DIA_TEST_DATA)
+    set(_pyopenms_test_env "")
+    if(OPENTIMS_DDA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DDA_TEST_DATA=${OPENTIMS_DDA_TEST_DATA}")
+    endif()
+    if(OPENTIMS_DIA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DIA_TEST_DATA=${OPENTIMS_DIA_TEST_DATA}")
+    endif()
+    set_tests_properties(pyopenms_unittests PROPERTIES
+      ENVIRONMENT "${_pyopenms_test_env}"
+    )
+  endif()
+
   add_test(
     NAME pyopenms_docstring_tests
-    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+    COMMAND ${_pyopenms_test_cmd_prefix} ${Python_EXECUTABLE} ${_PYTEST_ARGS}
       tests/unittests/test_docstrings.py
       tests/unittests/test_docstring_format.py
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
@@ -528,7 +581,7 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
 
   add_test(
     NAME pyopenms_integration_tests
-    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} tests/integration_tests
+    COMMAND ${_pyopenms_test_cmd_prefix} ${Python_EXECUTABLE} ${_PYTEST_ARGS} tests/integration_tests
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
   )
 
@@ -537,7 +590,7 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   if(_pyopenms_toplevel_tests)
     add_test(
       NAME pyopenms_feature_tests
-      COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} ${_pyopenms_toplevel_tests}
+      COMMAND ${_pyopenms_test_cmd_prefix} ${Python_EXECUTABLE} ${_PYTEST_ARGS} ${_pyopenms_toplevel_tests}
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
     )
   endif()

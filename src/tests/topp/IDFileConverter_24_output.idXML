@@ -44,6 +44,7 @@
 			<ProteinHit id="PH_11" accession="DECOY_DECOY_tr|E9QEY6|E9QEY6_DANRE_UNMAPPED" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="354.990447531899974" RT="75.0" spectrum_reference="scan=7" >
 			<PeptideHit score="0.0" sequence="QRM(Oxidation)ADVKKVAADM(Oxidation)EEEKD" charge="6" aa_before="D X X X X X" aa_after="R X X X X X" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5" >
@@ -53,15 +54,11 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="MS:1002252" value="0.998"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.998"/>
 				<UserParam type="float" name="MS:1002253" value="0.045"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.045"/>
 				<UserParam type="float" name="MS:1002254" value="1.0e-03"/>
-				<UserParam type="float" name="COMET:deltacnstar" value="1.0e-03"/>
 				<UserParam type="float" name="MS:1002255" value="41.799999999999997"/>
-				<UserParam type="float" name="COMET:spscore" value="41.799999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="84.0"/>
-				<UserParam type="float" name="COMET:sprank" value="84.0"/>
 				<UserParam type="float" name="MS:1002257" value="27.899999999999999"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
@@ -79,18 +76,13 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="MS:1002252" value="0.998"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.998"/>
 				<UserParam type="float" name="MS:1002253" value="0.045"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.045"/>
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
-				<UserParam type="float" name="COMET:deltacnstar" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="41.799999999999997"/>
-				<UserParam type="float" name="COMET:spscore" value="41.799999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="84.0"/>
-				<UserParam type="float" name="COMET:sprank" value="84.0"/>
 				<UserParam type="float" name="MS:1002257" value="27.899999999999999"/>
 			</PeptideHit>
-			<UserParam type="string" name="base_name" value="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="669.061888531899967" RT="78.0" spectrum_reference="scan=9" >
 			<PeptideHit score="0.0" sequence="LPVLYSSPAALLALRVC(Carbamidomethyl)QGVVKVSAGVSRRGC(Carbamidomethyl)AGAVPVM" charge="6" aa_before="D" aa_after="-" protein_refs="PH_11" >
@@ -100,15 +92,11 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="MS:1002252" value="1.474"/>
-				<UserParam type="float" name="COMET:xcorr" value="1.474"/>
 				<UserParam type="float" name="MS:1002253" value="0.018"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.018"/>
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
-				<UserParam type="float" name="COMET:deltacnstar" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="100.200000000000003"/>
-				<UserParam type="float" name="COMET:spscore" value="100.200000000000003"/>
 				<UserParam type="float" name="MS:1002256" value="16.0"/>
-				<UserParam type="float" name="COMET:sprank" value="16.0"/>
 				<UserParam type="float" name="MS:1002257" value="3.44"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
@@ -119,7 +107,6 @@
 				<UserParam type="float" name="_ar_0_subscore_nmc" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 			</PeptideHit>
-			<UserParam type="string" name="base_name" value="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

@@ -7,9 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -345,10 +349,10 @@ namespace OpenMS
     return score;
   }
 
-  std::unordered_map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra)
+  std::unordered_map<std::string, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra)
   {
-    std::unordered_map<String, PrecursorPurity::PurityScores> purityscores;
-    std::pair<std::unordered_map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
+    std::unordered_map<std::string, PrecursorPurity::PurityScores> purityscores;
+    std::pair<std::unordered_map<std::string, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
     int spectra_size = static_cast<int>(spectra.size());
 
     if (spectra[0].getMSLevel() != 1 && !ignore_missing_precursor_spectra)
@@ -365,20 +369,20 @@ namespace OpenMS
         if (parent_spectrum_it == spectra.end() && !ignore_missing_precursor_spectra)
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. An MS2 spectrum without parent spectrum detected. Precursor Purity info will not be calculated!\n";
-          return std::unordered_map<String, PrecursorPurity::PurityScores>();
+          return std::unordered_map<std::string, PrecursorPurity::PurityScores>();
         }
         if (spectra[i].getNativeID().empty())
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Spectrum without an ID. Precursor Purity info will not be calculated!\n";
-          return std::unordered_map<String, PrecursorPurity::PurityScores>();
+          return std::unordered_map<std::string, PrecursorPurity::PurityScores>();
         }
 
         // check for uniqueness of IDs by inserting initialized (0-value) scores into map
-        insert_return_value = purityscores.insert(std::pair<String, PrecursorPurity::PurityScores>(spectra[i].getNativeID(), PrecursorPurity::PurityScores()));
+        insert_return_value = purityscores.insert(std::pair<std::string, PrecursorPurity::PurityScores>(spectra[i].getNativeID(), PrecursorPurity::PurityScores()));
         if (!insert_return_value.second)
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Duplicate Spectrum IDs. Precursor Purity info will not be calculated!\n";
-          return std::unordered_map<String, PrecursorPurity::PurityScores>();
+          return std::unordered_map<std::string, PrecursorPurity::PurityScores>();
         }
       }
     }
@@ -403,5 +407,43 @@ namespace OpenMS
     } // end of parallelized spectra loop
     return purityscores;
   } // end of function def
+
+  Size PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(const std::vector<Precursor>& sps_precursors, const AASequence& peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, int max_fragment_charge)
+  {
+    if (sps_precursors.empty() || peptide.empty())
+    {
+      return 0;
+    }
+    if (max_fragment_charge < 1)
+    {
+      max_fragment_charge = 1;
+    }
+
+    // generate theoretical b- and y-ion m/z values (default TheoreticalSpectrumGenerator ion types)
+    // for all charge states up to max_fragment_charge; the returned vector is sorted ascending
+    TheoreticalSpectrumGenerator tsg;
+    std::vector<float> theo_mzs;
+    tsg.getPrefixAndSuffixIonsMZ(theo_mzs, peptide, max_fragment_charge);
+
+    if (theo_mzs.empty())
+    {
+      return 0;
+    }
+
+    Size matching = 0;
+    for (const Precursor& prec : sps_precursors)
+    {
+      const double mz = prec.getMZ();
+      const double tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMassAbs(fragment_mass_tolerance, mz) : fragment_mass_tolerance;
+
+      // find the first theoretical peak that is not smaller than (mz - tolerance)
+      auto it = std::lower_bound(theo_mzs.begin(), theo_mzs.end(), static_cast<float>(mz - tolerance));
+      if (it != theo_mzs.end() && *it <= static_cast<float>(mz + tolerance))
+      {
+        ++matching;
+      }
+    }
+    return matching;
+  }
 
 }

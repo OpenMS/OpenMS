@@ -62,6 +62,9 @@
 				<UserParam type="string" name="CometAdapter:1:no_progress" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:force" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:export_mode" value="auto"/>
+				<UserParam type="float" name="CometAdapter:1:calibration_tolerance" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:calibrate" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:decoy_string" value=""/>
 				<UserParam type="string" name="CometAdapter:1:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="CometAdapter:1:missing_decoy_action" value="warn"/>
@@ -108,19 +111,14 @@
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="0.377"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.377"/>
 				<UserParam type="float" name="MS:1002253" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="1.0"/>
-				<UserParam type="float" name="COMET:spscore" value="1.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="COMET:sprank" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="170.0"/>
-				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
 				<UserParam type="float" name="COMET:lnExpect" value="5.135798437050262"/>
-				<UserParam type="float" name="Comet:IonFrac" value="0.0333"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0333"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -134,19 +132,14 @@
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="0.276"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.276"/>
 				<UserParam type="float" name="MS:1002253" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="0.0"/>
-				<UserParam type="float" name="COMET:spscore" value="0.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="COMET:sprank" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="999.0"/>
-				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
 				<UserParam type="float" name="COMET:lnExpect" value="6.906754778648554"/>
-				<UserParam type="float" name="Comet:IonFrac" value="0.0167"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0167"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -160,19 +153,14 @@
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="0.291"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.291"/>
 				<UserParam type="float" name="MS:1002253" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="0.0"/>
-				<UserParam type="float" name="COMET:spscore" value="0.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="COMET:sprank" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="309.0"/>
-				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
 				<UserParam type="float" name="COMET:lnExpect" value="5.733341276897746"/>
-				<UserParam type="float" name="Comet:IonFrac" value="0.0152"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0152"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -186,19 +174,14 @@
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="0.068"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.068"/>
 				<UserParam type="float" name="MS:1002253" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="0.0"/>
-				<UserParam type="float" name="COMET:spscore" value="0.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="COMET:sprank" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="999.0"/>
-				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
 				<UserParam type="float" name="COMET:lnExpect" value="6.906754778648554"/>
-				<UserParam type="float" name="Comet:IonFrac" value="0.0167"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0167"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -212,19 +195,14 @@
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="0.134"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.134"/>
 				<UserParam type="float" name="MS:1002253" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="0.0"/>
-				<UserParam type="float" name="COMET:spscore" value="0.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="COMET:sprank" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="999.0"/>
-				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
 				<UserParam type="float" name="COMET:lnExpect" value="6.906754778648554"/>
-				<UserParam type="float" name="Comet:IonFrac" value="0.0147"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0147"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>

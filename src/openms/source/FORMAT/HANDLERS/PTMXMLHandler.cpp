@@ -9,12 +9,11 @@
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
 
-    PTMXMLHandler::PTMXMLHandler(map<String, pair<String, String> > & ptm_informations, const String & filename) :
+    PTMXMLHandler::PTMXMLHandler(map<std::string, pair<std::string, std::string> > & ptm_informations, const std::string & filename) :
       XMLHandler(filename, ""),
       ptm_informations_(ptm_informations)
     {
@@ -26,7 +25,7 @@ namespace OpenMS::Internal
     void PTMXMLHandler::writeTo(std::ostream & os)
     {
       os << "<PTMs>" << "\n";
-      for (map<String, pair<String, String> >::const_iterator ptm_i = ptm_informations_.begin(); ptm_i != ptm_informations_.end(); ++ptm_i)
+      for (map<std::string, pair<std::string, std::string> >::const_iterator ptm_i = ptm_informations_.begin(); ptm_i != ptm_informations_.end(); ++ptm_i)
       {
         os << "\t<PTM>" << "\n";
         os << "\t\t<name>" << ptm_i->first << "</name>" << "\n";             // see header
@@ -37,34 +36,34 @@ namespace OpenMS::Internal
       os << "</PTMs>" << "\n";
     }
 
-    void PTMXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & /*attributes*/)
+    void PTMXMLHandler::onStartElement(const char16_t * const qname, const XMLAttributes & /*attributes*/)
     {
-      tag_ = String(sm_.convert(qname)).trim();
+      tag_ =StringUtils::trimmed(std::string(sm_.convert(qname)));
       open_tag_ = true;
     }
 
-    void PTMXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const /*qname*/)
+    void PTMXMLHandler::onEndElement(const char16_t* /*qname*/)
     {
-//          tag_ = String(sm_.convert(qname)).trim();
+//          tag_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(qname)));
       tag_ = "";
       open_tag_ = false;
     }
 
-    void PTMXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void PTMXMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       if (open_tag_)
       {
         if (tag_ == "name")
         {
-          name_ = String(sm_.convert(chars)).trim();
+          name_ =StringUtils::trimmed(std::string(sm_.convert(chars)));
         }
         else if (tag_ == "composition")
         {
-          composition_ = String(sm_.convert(chars)).trim();
+          composition_ =StringUtils::trimmed(std::string(sm_.convert(chars)));
         }
         else if (tag_ == "possible_amino_acids")
         {
-          ptm_informations_[name_] = make_pair(composition_, String(sm_.convert(chars)).trim());
+          ptm_informations_[name_] = make_pair(composition_,StringUtils::trimmed(std::string(sm_.convert(chars))));
         }
       }
     }

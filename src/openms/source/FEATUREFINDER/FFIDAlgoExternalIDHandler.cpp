@@ -40,7 +40,7 @@ namespace Internal
     svm_n_samples_ = param.getValue("svm:samples");
     svm_xval_out_ = param.getValue("svm:xval_out").toString();
     svm_quality_cutoff = svm_min_prob_;
-    svm_predictor_names_ = ListUtils::create<String>(param.getValue("svm:predictors").toString());
+    svm_predictor_names_ = ListUtils::create<std::string>(param.getValue("svm:predictors").toString());
     debug_level_ = param.getValue("debug");
   }
 
@@ -235,19 +235,19 @@ namespace Internal
     }
   }
 
-  void FFIDAlgoExternalIDHandler::checkNumObservations_(Size n_pos, Size n_neg, const String& note) const
+  void FFIDAlgoExternalIDHandler::checkNumObservations_(Size n_pos, Size n_neg, const std::string& note) const
   {
     if (n_pos < svm_n_parts_)
     {
-      String msg = "Not enough positive observations for " +
-        String(svm_n_parts_) + "-fold cross-validation" + note + ".";
+      std::string msg = "Not enough positive observations for " +
+        StringUtils::toStr(svm_n_parts_) + "-fold cross-validation" + note + ".";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
     }
     if (n_neg < svm_n_parts_)
     {
-      String msg = "Not enough negative observations for " +
-        String(svm_n_parts_) + "-fold cross-validation" + note + ".";
+      std::string msg = "Not enough negative observations for " +
+        StringUtils::toStr(svm_n_parts_) + "-fold cross-validation" + note + ".";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -267,7 +267,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     const Size half_win_size = window_size / 2;
     if (valid_obs.size() < half_win_size + 1)
     {
-      String msg = "Not enough observations for intensity-bias filtering.";
+      std::string msg = "Not enough observations for intensity-bias filtering.";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -388,7 +388,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     // values for all features per predictor (this way around to simplify scaling
     // of predictors):
     SimpleSVM::PredictorMap predictors;
-    for (const String& pred : svm_predictor_names_)
+    for (const std::string& pred : svm_predictor_names_)
     {
       predictors[pred].reserve(features.size());
       for (Feature& feat : features)
@@ -412,7 +412,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
-      String feature_class = features[feat_index].getMetaValue("feature_class");
+      std::string feature_class = StringUtils::toStr(features[feat_index].getMetaValue("feature_class"));
       int label = -1;
       if (feature_class == "positive")
       {
@@ -469,10 +469,10 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     }
     if ((debug_level_ > 0) && svm_params.getValue("kernel") == "linear")
     {
-      std::map<String, double> feature_weights;
+      std::map<std::string, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
       OPENMS_LOG_DEBUG << "SVM feature weights:" << std::endl;
-      for (std::map<String, double>::iterator it = feature_weights.begin();
+      for (std::map<std::string, double>::iterator it = feature_weights.begin();
            it != feature_weights.end(); ++it)
       {
         OPENMS_LOG_DEBUG << "- " << it->first << ": " << it->second << std::endl;
@@ -495,7 +495,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
 
   void FFIDAlgoExternalIDHandler::finalizeAssayFeatures_(Feature& best_feature, double best_quality, double quality_cutoff)
   {
-    const String& feature_class = best_feature.getMetaValue("feature_class");
+    const std::string& feature_class = StringUtils::toStr(best_feature.getMetaValue("feature_class"));
     if (feature_class == "positive") // true positive prediction
     {
       svm_probs_internal_[best_quality].first++;
@@ -532,16 +532,16 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     n_external_features_ = 0;
     FeatureMap::Iterator best_it = features.begin();
     double best_quality = 0.0;
-    String previous_ref;
+    std::string previous_ref;
     for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
     {
       // features from same assay (same "PeptideRef") appear consecutively;
       // if this is a new assay, finalize the previous one:
-      String peptide_ref = it->getMetaValue("PeptideRef");
+      std::string peptide_ref = StringUtils::toStr(it->getMetaValue("PeptideRef"));
       // remove region number, if present:
       Size pos_slash = peptide_ref.rfind('/');
       Size pos_colon = peptide_ref.find(':', pos_slash + 2);
-      peptide_ref = peptide_ref.substr(0, pos_colon);
+      peptide_ref = StringUtils::substr(peptide_ref, 0, pos_colon);
 
       if (peptide_ref != previous_ref)
       {
