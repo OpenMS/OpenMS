@@ -659,6 +659,13 @@ class TestEmpiricalFormulaMethods:
         ef = pyopenms.EmpiricalFormula("C6H12O6")
         assert hasattr(ef, 'getConditionalFragmentIsotopeDist')
 
+    def test_add_charge_adduct(self):
+        ef = pyopenms.EmpiricalFormula("C6H12O6")
+        ef.setCharge(2)
+        ef.addChargeAdduct(ef.getCharge())
+        assert ef.getCharge() == 0
+        assert ef.getNumberOf(pyopenms.ElementDB.getInstance().getElement("H")) == 14
+
 
 class TestAASequenceIadd:
     """AASequence missing __iadd__."""

@@ -249,11 +249,6 @@ namespace OpenMS
     return tools_internal_;
   }
 
-  std::string ToolHandler::getExternalToolsPath()
-  {
-    return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
-  }
-
   std::string ToolHandler::getInternalToolsPath()
   {
     return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";

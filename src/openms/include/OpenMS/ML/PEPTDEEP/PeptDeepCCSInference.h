@@ -33,6 +33,7 @@ namespace OpenMS
     /// @param peptides A vector of raw uppercase peptide strings.
     /// @param charges A vector of precursor charge states. Must match peptides size.
     /// @return A vector of predicted CCS values corresponding to the input peptides.
+    /// @throws Exception::IllegalArgument if peptides is empty, charges.size() != peptides.size(), or a sequence is invalid/modified.
     std::vector<float> predictCCS(
       const std::vector<std::string>& peptides,
       const std::vector<float>& charges);

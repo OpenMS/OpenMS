@@ -83,7 +83,6 @@ fi
 if [ "$SKIP_DOC_DEPS" = false ]; then
   brew install \
     doxygen \
-    ghostscript \
     graphviz
 fi
 # [installation_documentation]
