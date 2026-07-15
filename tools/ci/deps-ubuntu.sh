@@ -88,6 +88,5 @@ sudo apt-get install -y --no-install-recommends \
 # Optional dependencies:
 sudo apt-get -qq install -y \
   doxygen \
-  ghostscript \
   graphviz
 # [installation_documentation]

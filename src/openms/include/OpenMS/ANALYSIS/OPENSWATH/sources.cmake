@@ -40,6 +40,7 @@ set(sources_list_h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathResultsExporter.h
+  TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
   OpenSwathWorkflowScheduler.h
   PeakMapExtractor.h

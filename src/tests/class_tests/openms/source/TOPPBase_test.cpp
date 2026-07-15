@@ -162,11 +162,6 @@ class TOPPBaseTest
       return parseRange_(text, low, high);
     }
 
-    TOPPBase::ExitCodes runExternalProcess(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const
-    {
-      return runExternalProcess_(executable, arguments, workdir);
-    }
-
 };
 
 // Test class for no-optional parameters
@@ -713,32 +708,8 @@ START_SECTION(([EXTRA]void parseRange_(const std::string& text, double& low, dou
 }
 END_SECTION
 
-START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const))
-{
-
-// we just need ANY commandline tool available on (hopefully) all boxes.
-// note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
-#ifdef OPENMS_WINDOWSPLATFORM
-  const std::string exe = "cmd";
-  const std::vector<std::string> args = {"/C", "echo hi"};
-  const std::vector<std::string> args_broken = {"/C", "doesnotexist"};
-#else
-  const std::string exe = "ls";
-  const std::vector<std::string> args = {"-l"};
-  const std::vector<std::string> args_broken = {"-0"};
-#endif //
-
-  TOPPBaseTest topp;
-  auto result = topp.runExternalProcess("/path/does/not/exists.exe", {}, "");
-  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_NOTFOUND);
-
-  result = topp.runExternalProcess(exe, args_broken, "");
-  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_ERROR);
-
-  result = topp.runExternalProcess(exe, args, "");
-  TEST_EQUAL(result, TOPPBase::EXECUTION_OK);
-}
-END_SECTION
+// NOTE: runExternalProcess_() moved to TOPPExternalToolBase; its test lives in
+// TOPPExternalToolBase_test.cpp.
 
 START_SECTION(([EXTRA] data processing methods))
 	PeakMap exp;
@@ -892,6 +863,35 @@ START_SECTION(([EXTRA] test flag with trailing arguments))
   TOPPBaseTest tmp_flag2;
   TOPPBase::ExitCodes ec_flag2 = tmp_flag2.main(6, string_cl_flag2);
   TEST_EQUAL(ec_flag2, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] -log writes a log file))
+{
+  // Characterize the '-log' behaviour (protects the TOPPLogger composition refactor):
+  // running with '-log <file> -debug 1' must create a non-empty log file whose
+  // lines carry the tool's ini-location prefix (written by writeDebug_/writeLog*_).
+  std::string logfilename;
+  NEW_TMP_FILE(logfilename);
+  const char* lf = logfilename.c_str();
+  const char* log_opt = "-log";
+  const char* dbg_opt = "-debug";
+  const char* dbg_val = "1";
+  const char* log_cl[5] = {a1, log_opt, lf, dbg_opt, dbg_val}; // "TOPPBaseTest -log <file> -debug 1"
+  TOPPBaseTest tmp_log(5, log_cl);
+
+  TextFile tf(logfilename);
+  std::string content;
+  for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it) { content += *it + "\n"; }
+  TEST_FALSE(content.empty())
+  TEST_TRUE(content.find("TOPPBaseTest:1:") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Citation::toString()))
+{
+  Citation c = {"Surname I", "A title", "Journal. 2024; 1:2-3", "10.1000/xyz"};
+  TEST_EQUAL(c.toString(), "Surname I. A title. Journal. 2024; 1:2-3. doi:10.1000/xyz.")
 }
 END_SECTION
 

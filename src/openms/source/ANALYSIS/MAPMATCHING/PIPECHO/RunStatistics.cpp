@@ -150,30 +150,53 @@ RunStatistics::normal_t RunStatistics::init_im_tolerance(const Run& run, bool en
 
 /******************************************************************************/
 Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
-                           std::optional<double> donor_rt_override) const
+                           std::optional<double> donor_rt_override,
+                           RtScoreMode rt_mode,
+                           const boost::math::normal* rt_dist) const
 {
+  // Neutral RT agreement used when a calibrated mode is requested but the run
+  // pair has no estimable RT prediction-error distribution (too few anchors).
+  // Codex review: an absent distribution must NOT become a hard penalty, or it
+  // would inject a spurious "this pair is unreliable" axis that the SVM can pick
+  // up (and that the decoy null does not symmetrically reproduce); a neutral
+  // value keeps the column rectangular without confounding the FDR.
+  constexpr double NEUTRAL_RT = 0.5;
+
   // For decoys the RT difference is measured against the randomised RT anchor,
   // not the donor's true RT (otherwise decoys carry an artificially huge RT
-  // error and the classifier separates them trivially -- a label leak).
+  // error and the classifier separates them trivially -- a label leak). On the
+  // local adaptive RT path donor_rt is the locally PREDICTED acceptor RT centre,
+  // so the SIGNED residual below is exactly what the RT prediction-error
+  // distribution (built leave-one-out from anchors) is calibrated against.
   const double donor_rt = donor_rt_override.value_or(donor.getRT());
+  const double signed_rt = acceptor.getRT() - donor_rt;
   Score s = {.intensity = calc_intensity_score(acceptor),
-             .rt_diff_error = std::fabs(acceptor.getRT() - donor_rt),
+             .rt_diff_error = std::fabs(signed_rt),
              .mass_error = calc_mass_error_score(donor, acceptor),
              .im_diff_score = -1.0, // sentinel: ion mobility not applicable
              .isotope_score = calc_isotope_score(donor, acceptor),
+             .rt_score = -1.0,      // sentinel: RT not calibrated (Raw path)
              .mbr_score = MIN_SCORE};
 
+  // Calibrate the RT residual into a [0, 1] agreement score (FlashLFQ-style:
+  // the two-tailed CDF of the signed residual under the run pair's RT
+  // prediction-error distribution). Only on the local adaptive RT path; the
+  // global/baseline path keeps the raw rt_diff_error and the -1 sentinel, so its
+  // output stays byte-identical.
+  if (rt_mode != RtScoreMode::Raw)
+  {
+    s.rt_score = (rt_dist != nullptr) ? calc_score_using(*rt_dist, signed_rt)
+                                      : NEUTRAL_RT;
+  }
+
   // The MBR bootstrap score is the geometric mean of the agreement scores.
-  // Retention time is intentionally EXCLUDED: the current rt_diff_error is a raw,
+  // Retention time was historically EXCLUDED because the raw rt_diff_error is an
   // un-normalised |Δrt| with inverted monotonicity (a larger RT error would
-  // *increase* the score), and on pre-aligned runs the in-window decoys share the
-  // targets' RT range -- so multiplying it in only distorts the geometric mean and
-  // the best-acceptor/bootstrap ranking that mbr_score drives. A faithful RT
-  // agreement score (FlashLFQ uses an anchor-peptide RT prediction-error
-  // distribution) is a follow-up; RT is still given to the SVM as a feature.
-  // Ion mobility is an optional extra factor, included only when the data carries
-  // it (e.g. timsTOF/.d). `measures` tracks how many scores are multiplied below;
-  // keep it in sync with the product.
+  // *increase* the score). With a CALIBRATED rt_score on the local path that
+  // objection is gone, so RtScoreMode::SvmAndMbr folds it in like the other
+  // agreement scores. Ion mobility is an optional extra factor, included only
+  // when the data carries it (e.g. timsTOF/.d). `measures` tracks how many scores
+  // are multiplied below; keep it in sync with the product.
   double product = s.intensity * s.mass_error;
   double measures = 2.0;
 
@@ -181,6 +204,20 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
   {
     s.im_diff_score = *im;
     product *= *im;
+    measures += 1.0;
+  }
+
+  // Fold the calibrated RT score into the geometric mean. build_rt_error_dist()
+  // guarantees a distribution for every calibrated run pair (a window-scale default
+  // backs anchor-poor pairs), so rt_dist is non-null here for all pairs and the RT
+  // factor is folded uniformly -- keeping the geomean's factor count constant across
+  // the donor runs mbr_score is ranked against. The rt_dist != nullptr guard is a
+  // defensive fallback: were a distribution ever absent, rt_score would be the NEUTRAL
+  // 0.5 and folding it (bumping the exponent) would NOT be neutral for mbr_score, so we
+  // skip it there -- the 0.5 still goes to the SVM column for rectangularity (Codex review).
+  if (rt_mode == RtScoreMode::SvmAndMbr && rt_dist != nullptr)
+  {
+    product *= s.rt_score;
     measures += 1.0;
   }
 
@@ -265,8 +302,15 @@ double RunStatistics::calc_isotope_score(const Feature& donor, const Feature& ac
 double RunStatistics::calc_score_using(const normal_t& dist, double value) const
 {
   if (! dist.has_value()) return MIN_SCORE;
-  double diff = std::fabs(dist->mean() - value);
-  return bound(2 * boost::math::cdf(*dist, dist->mean() - diff));
+  return calc_score_using(*dist, value);
+}
+
+/******************************************************************************/
+double RunStatistics::calc_score_using(const boost::math::normal& dist,
+                                       double value) const
+{
+  double diff = std::fabs(dist.mean() - value);
+  return bound(2 * boost::math::cdf(dist, dist.mean() - diff));
 }
 
 } // namespace OpenMS::PipEcho

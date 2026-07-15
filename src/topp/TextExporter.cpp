@@ -74,6 +74,8 @@ Depending on the input and the parameters, the output contains the following col
 - a @p FEATURE line contains data of a single feature; further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p quality, @p rt_quality, @p mz_quality, @p rt_start, @p rt_end
 - a @p PEPTIDE line contains data of a peptide hit annotated to the previous feature; further columns: same as for @p UNASSIGNEDPEPTIDE
 
+With the @p id:add_usi flag, peptide-identification rows gain an additional @p USI column; set @p id:usi_dataset_id to a ProteomeXchange accession (e.g., @p PXD000561) for complete USIs.
+
 With the @p no_ids flag, only @p FEATURE lines (without the @p FEATURE indicator) are written.
 
 With the @p feature:minimal flag, only the @p rt, @p mz, and @p intensity columns of @p FEATURE lines are written.
@@ -85,6 +87,8 @@ Output format produced for the @p out parameter:
 - a @p MAP line contains information about a sub-map; further columns: @p id, @p filename, @p label, @p size (potentially followed by further columns containing meta data, depending on the input)
 - a @p CONSENSUS line contains data of a single consensus feature; further columns: @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf, @p rt_X0, @p mz_X0, ..., rt_X1, mz_X1, ...
 - @p "..._cf" columns refer to the consensus feature itself, @p "..._Xi" columns refer to a sub-feature from the map with ID "Xi" (no @p quality column in this case); missing sub-features are indicated by "nan" values
+
+With the @p id:add_usi flag, exported @p UNASSIGNEDPEPTIDE and @p PEPTIDE rows gain an additional @p USI column.
 
 With the @p no_ids flag, only @p MAP and @p CONSENSUS lines are written.
 
@@ -114,6 +118,7 @@ With the @p no_ids flag, the additional columns are not included.
 - see above for the formats of @p RUN, @p PROTEIN, @p PEPTIDE lines
 - additional column for @p PEPTIDE lines: @p predicted_rt (predicted retention time)
 - additional column for @p PEPTIDE lines: @p predicted_pt (predicted proteotypicity)
+- additional column for @p PEPTIDE lines with @p id:add_usi: @p USI (Universal Spectrum Identifier)
 
 With the @p id:proteins_only flag, only @p RUN and @p PROTEIN lines are written.
 
@@ -678,8 +683,8 @@ protected:
 
       registerStringOption_("id:annotations", "<method>", "none", "Format of peak annotations.", false);
       setValidStrings_("id:annotations", ListUtils::create<std::string>("none,default"));
-      registerFlag_("id:add_usi", "Add a column with Universal Spectrum Identifiers (USI) for peptide identifications. Requires setting 'id:usi_dataset_id'.", false);
-      registerStringOption_("id:usi_dataset_id", "<dataset>", "", "ProteomeXchange dataset identifier for USI generation (e.g., 'PXD000561'). Required when 'id:add_usi' is set.", false);
+      registerFlag_("id:add_usi", "Add a column with Universal Spectrum Identifiers (USI) for exported peptide identifications. Set 'id:usi_dataset_id' to generate complete USIs.", false);
+      registerStringOption_("id:usi_dataset_id", "<dataset>", "", "ProteomeXchange dataset identifier for USI generation (e.g., 'PXD000561'). Needed for complete USIs when 'id:add_usi' is set.", false);
       
       addEmptyLine_();
 

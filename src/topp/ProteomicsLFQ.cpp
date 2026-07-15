@@ -642,6 +642,9 @@ protected:
 
       Param pe_param = getParam_().copy("PipEcho:", true);
       pe_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+      // Pass the host's raw-spectra chromatographic FWHM down for PIP-ECHO's
+      // local_rt:auto window sizing (used only when local_rt:enabled+auto are set).
+      pe_param.setValue("local_rt:median_fwhm", median_fwhm);
       writeDebug_("Parameters passed to the PIP-ECHO algorithm", pe_param, 3);
 
       linker.setParameters(pe_param);

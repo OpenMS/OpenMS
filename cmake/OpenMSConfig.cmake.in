@@ -24,6 +24,15 @@ endif()
 #TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
 find_dependency(CURL)
 find_dependency(XercesC)
+# Boost::boost (header-only) is part of OpenMS's PUBLIC link interface because
+# the installed public header config.h includes <boost/current_function.hpp>
+# (via Macros.h). Its imported target must therefore exist before the targets
+# file below is included, otherwise consumers configuring against the install
+# tree (e.g. the pyOpenMS wheel build with NO_DEPENDENCIES=ON) fail with
+# "target Boost::boost not found". Only the header-only target is public; the
+# compiled components (date_time/iostreams/regex) stay PRIVATE and are not
+# needed here.
+find_dependency(Boost 1.81.0)
 # Find Eigen
 # Try the version range first (CMake 3.19+ with compatible Eigen config)
 # Use find_package instead of find_dependency so QUIET failures don't abort
@@ -32,10 +41,10 @@ if(NOT TARGET Eigen3::Eigen)
     # Fall back to simple version check for older Eigen/CMake configurations
     find_dependency(Eigen3 3.4.0 REQUIRED)
 endif()
-find_dependency(LIBSVM 2.91)
 
-# Rest are private linked libraries
-#find_dependency(Boost COMPONENTS @OpenMS_BOOST_COMPONENTS@)
+# Rest are private linked libraries (compiled Boost components are PRIVATE, only
+# the header-only Boost::boost target found above is part of the public interface)
+#find_dependency(LIBSVM 2.91) # now PRIVATE: not exposed in the public API, encapsulated by SimpleSVM (see #8547)
 #find_dependency(COIN)
 #find_dependency(GLPK)
 #find_dependency(ZLIB)

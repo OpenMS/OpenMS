@@ -44,6 +44,20 @@ if (OpenMS_FOUND)
     target_link_libraries(${i} OpenMS my_custom_lib)
   endforeach(i)
 
+  ## Downstream link contract: since the Qt removal, OpenMSConfig.cmake no longer
+  ## declares Qt6 as a (transitive) dependency. An external consumer that wants Qt must find and link
+  ## it itself. This target uses a Qt type and links Qt6::Core *explicitly* after finding Qt6 here --
+  ## it builds only because this project supplies Qt, not because OpenMS leaks it transitively. Guarded
+  ## so the external-code test still configures cleanly on runners without Qt6.
+  find_package(Qt6 COMPONENTS Core QUIET)
+  if (Qt6_FOUND)
+    add_executable(TestExternalCodeQt TestExternalCodeQt.cpp)
+    target_link_libraries(TestExternalCodeQt OpenMS my_custom_lib Qt6::Core)
+    add_test(TestExternalCodeQt TestExternalCodeQt)
+  else()
+    message(STATUS "Qt6 not found - skipping TestExternalCodeQt (transitive-Qt link-contract check).")
+  endif()
+
 else(OpenMS_FOUND)
   message(FATAL_ERROR "OpenMSConfig.cmake file not found!")
 endif(OpenMS_FOUND)

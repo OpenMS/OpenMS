@@ -33,6 +33,7 @@
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 //STL
 #include <algorithm>
+#include <cmath>
 
 //QT
 #include <QMouseEvent>
@@ -83,7 +84,7 @@ namespace OpenMS
     linear_gradient_.fromString(param_.getValue("dot:gradient"));
 
     // connect preferences change to the right slot
-    connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParametersChanged_()));
+    connect(this, &PlotCanvas::preferencesChange, this, &Plot2DCanvas::currentLayerParametersChanged_);
   }
 
   Plot2DCanvas::~Plot2DCanvas() = default;
@@ -120,7 +121,118 @@ namespace OpenMS
     a.setArea(VisibleArea::AreaXYType(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5))));
     return getCurrentLayer().findHighestDataPoint(a.getAreaUnit());
   }
-  
+
+  PeakIndex Plot2DCanvas::findNearestPrecursor_(const QPoint& pos, int& dist_sq)
+  {
+    PeakIndex nearest; // invalid by default
+    if (layers_.empty())
+    {
+      return nearest;
+    }
+    // only peak layers carry precursor information
+    const auto* lp = dynamic_cast<const LayerDataPeak*>(&getCurrentLayer());
+    if (lp == nullptr)
+    {
+      return nearest;
+    }
+    const auto& peak_map = lp->getPeakData()->getMSExperiment();
+
+    const int tolerance_px = 5; // same pixel tolerance as findNearestPeak_
+    int min_dist_sq = tolerance_px * tolerance_px + 1;
+    try
+    { // mapping the precursor position only works for RT/m/z views, not e.g. ion mobility (IM, m/z) views
+      auto it_end = peak_map.RTEnd(visible_area_.getAreaUnit().getMaxRT());
+      auto it_begin = peak_map.RTBegin(visible_area_.getAreaUnit().getMinRT());
+      for (auto it = it_begin; it != it_end; ++it)
+      {
+        if (it->getMSLevel() != 2 || it->getPrecursors().empty())
+        {
+          continue;
+        }
+        // position of the precursor in the MS2 scan (same position as drawn by Painter2DPeak)
+        const auto data_xy = unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+        const QPoint p_px = dataToWidget_(data_xy.getX(), data_xy.getY());
+        const int dx = p_px.x() - pos.x();
+        const int dy = p_px.y() - pos.y();
+        // Skip precursors outside the tolerance in either axis first. This is required for correctness:
+        // a precursor whose m/z is far outside the visible range maps to a pixel position far off-screen,
+        // and computing dx*dx + dy*dy directly would overflow the (32-bit) int and could wrap to a small
+        // value, wrongly selecting an off-screen precursor.
+        if (std::abs(dx) > tolerance_px || std::abs(dy) > tolerance_px)
+        {
+          continue;
+        }
+        const int d_sq = dx * dx + dy * dy;
+        if (d_sq < min_dist_sq)
+        {
+          min_dist_sq = d_sq;
+          nearest = PeakIndex(std::distance(peak_map.begin(), it), 0); // spectrum index + precursor index (0)
+        }
+      }
+    }
+    catch (...)
+    { // wrong coordinate system => no precursor positions available
+      return PeakIndex();
+    }
+    dist_sq = min_dist_sq;
+    return nearest;
+  }
+
+  PointXYType Plot2DCanvas::precursorIndexToXY_(const PeakIndex& precursor) const
+  {
+    const auto& lp = dynamic_cast<const LayerDataPeak&>(getCurrentLayer());
+    const auto& spec = lp.getPeakData()->getMSExperiment()[precursor.spectrum];
+    return unit_mapper_.map(Peak2D({spec.getRT(), spec.getPrecursors()[precursor.peak].getMZ()}, {}));
+  }
+
+  void Plot2DCanvas::highlightPrecursor_(QPainter& painter, const PeakIndex& precursor)
+  {
+    if (!precursor.isValid())
+    {
+      return;
+    }
+    try
+    {
+      const auto p_px = dataToWidget_(precursorIndexToXY_(precursor));
+      painter.save();
+      painter.setPen(QPen(Qt::red, 2));
+      painter.drawEllipse(p_px.x() - 5, p_px.y() - 5, 10, 10);
+      painter.restore();
+    }
+    catch (...)
+    { // wrong coordinate system => nothing to highlight
+    }
+  }
+
+  void Plot2DCanvas::drawPrecursorCoordinates_(QPainter& painter, const PeakIndex& precursor)
+  {
+    if (!precursor.isValid())
+    {
+      return;
+    }
+    const auto* lp = dynamic_cast<const LayerDataPeak*>(&getCurrentLayer());
+    if (lp == nullptr)
+    {
+      return;
+    }
+    try
+    {
+      const auto& spec = lp->getPeakData()->getMSExperiment()[precursor.spectrum];
+      const auto xy_point = precursorIndexToXY_(precursor);
+      const int charge = spec.getPrecursors()[precursor.peak].getCharge();
+
+      QStringList lines;
+      lines << "MS2 precursor";
+      lines << toQString(unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()));
+      lines << toQString(unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()));
+      lines << QString("charge: ") + (charge != 0 ? QString::number(charge) : QString("unknown"));
+      drawText_(painter, lines);
+    }
+    catch (...)
+    { // wrong coordinate system => nothing to draw
+    }
+  }
+
   double Plot2DCanvas::adaptPenScaling_(double ratio_data2pixel, double& pen_width) const
   {
     // is the coverage OK using current pen width?
@@ -248,6 +360,7 @@ namespace OpenMS
   {
     // deselect all peaks
     selected_peak_.clear();
+    selected_precursor_.clear();
     measurement_start_.clear();
 
     auto& layer = getCurrentLayer();
@@ -316,6 +429,7 @@ namespace OpenMS
 
     // unselect all peaks
     selected_peak_.clear();
+    selected_precursor_.clear();
     measurement_start_.clear();
 
     intensityModeChange_();
@@ -328,6 +442,7 @@ namespace OpenMS
   {
     // unselect all peaks
     selected_peak_.clear();
+    selected_precursor_.clear();
     measurement_start_.clear();
 
     layers_.setCurrentLayer(layer_index);
@@ -558,6 +673,7 @@ namespace OpenMS
     if (action_mode_ == AM_MEASURE || action_mode_ == AM_TRANSLATE)
     {
       highlightPeak_(painter, selected_peak_);
+      highlightPrecursor_(painter, selected_precursor_); // mutually exclusive with selected_peak_
     }
 
     // draw delta for measuring
@@ -568,6 +684,7 @@ namespace OpenMS
     else
     {
       drawCoordinates_(painter, selected_peak_);
+      drawPrecursorCoordinates_(painter, selected_precursor_); // mutually exclusive with selected_peak_
     }
 
     painter.end();
@@ -691,6 +808,31 @@ namespace OpenMS
     {
       //highlight peak
       selected_peak_ = near_peak;
+      selected_precursor_.clear();
+
+      // add MS2 precursor markers to the pool of considered peaks (only if they are actually displayed);
+      // the marker (MS1 peak or precursor) closest to the cursor wins
+      if (!layers_.empty() && getLayerFlag(LayerDataBase::P_PRECURSORS))
+      {
+        int prec_dist_sq = 0;
+        const PeakIndex near_precursor = findNearestPrecursor_(pos, prec_dist_sq);
+        if (near_precursor.isValid())
+        {
+          // squared pixel distance of the MS1 peak candidate to the cursor (if any)
+          auto peakDistSq = [&](const PeakIndex& pk) {
+            const auto p_px = dataToWidget_(getCurrentLayer().peakIndexToXY(pk, unit_mapper_));
+            const int dx = p_px.x() - pos.x();
+            const int dy = p_px.y() - pos.y();
+            return dx * dx + dy * dy;
+          };
+          if (!selected_peak_.isValid() || prec_dist_sq < peakDistSq(selected_peak_))
+          {
+            selected_precursor_ = near_precursor;
+            selected_peak_.clear();
+          }
+        }
+      }
+
       update_(OPENMS_PRETTY_FUNCTION);
 
       //show meta data in status bar (if available)
@@ -726,7 +868,7 @@ namespace OpenMS
             }
             else
             {
-              status += (std::string)dv;
+              status += dv.toString();
             }
           }
         }
@@ -770,6 +912,7 @@ namespace OpenMS
     {
       //Zoom mode => no peak should be selected
       selected_peak_.clear();
+      selected_precursor_.clear();
       update_(OPENMS_PRETTY_FUNCTION);
     }
 
@@ -1312,6 +1455,7 @@ namespace OpenMS
   {
     //update nearest peak
     selected_peak_.clear();
+    selected_precursor_.clear();
     recalculateRanges_();
     resetZoom(false);     //no repaint as this is done in intensityModeChange_() anyway
     intensityModeChange_();

@@ -12,6 +12,9 @@
 
 #include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
 
+#include <cstdio>
+#include <cstring>
+
 namespace OpenMS
 {
   UInt64 UniqueIdGenerator::seed_ = 0;
@@ -33,6 +36,28 @@ namespace OpenMS
 #else
     return (*instance.dist_)(*instance.rng_);
 #endif
+  }
+
+  std::string UniqueIdGenerator::getUUID()
+  {
+    // Two independent 64-bit draws from the shared, once-seeded generator give us
+    // the 128 bits of a UUID without reseeding a fresh RNG per call (which would
+    // depend on std::random_device's entropy quality on every single call).
+    UInt64 hi = getUniqueId();
+    UInt64 lo = getUniqueId();
+    Byte bytes[16];
+    std::memcpy(bytes, &hi, 8);
+    std::memcpy(bytes + 8, &lo, 8);
+    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
+    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
+    char buf[37];
+    std::snprintf(buf, sizeof(buf),
+      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+      bytes[0], bytes[1], bytes[2], bytes[3],
+      bytes[4], bytes[5], bytes[6], bytes[7],
+      bytes[8], bytes[9], bytes[10], bytes[11],
+      bytes[12], bytes[13], bytes[14], bytes[15]);
+    return std::string(buf);
   }
 
   UInt64 UniqueIdGenerator::getSeed()

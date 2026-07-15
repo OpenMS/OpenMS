@@ -604,6 +604,17 @@ add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
 
+# TOPP_FileConverter_nonascii: read AND write through a non-ASCII (UTF-8) path. This guards against
+# regressions in non-ASCII path handling. The non-ASCII name is materialized into the temp dir at test time (not
+# committed as a fixture filename), so the cell exercises FileConverter's non-ASCII -in/-out path handling
+# on every platform. Output equals the plain FileConverter_1 conversion (same input), so the existing
+# FileConverter_1_output.mzML is reused as the reference; the embedded (non-ASCII) source path is whitelisted.
+add_test("TOPP_FileConverter_nonascii_prepare" ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/FileConverter_1_input.mzData "${TESTS_TEMP_DIR}/FileConverter_äö_in.mzData")
+add_test("TOPP_FileConverter_nonascii" ${TOPP_BIN_PATH}/FileConverter -test -in "${TESTS_TEMP_DIR}/FileConverter_äö_in.mzData" -out "${TESTS_TEMP_DIR}/FileConverter_äö_out.mzML" -out_type mzML)
+add_test("TOPP_FileConverter_nonascii_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 "${TESTS_TEMP_DIR}/FileConverter_äö_out.mzML" -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML)
+set_tests_properties("TOPP_FileConverter_nonascii" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii_prepare")
+set_tests_properties("TOPP_FileConverter_nonascii_out1" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii")
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)
@@ -977,6 +988,17 @@ set_tests_properties("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1" PROPERTIES 
 add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -ini ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.ini -out ${TESTS_TEMP_DIR}/TMTElevenPlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTElevenPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1")
+
+# TMT 32-plex / 35-plex end-to-end: the 32/35-plex methods are registered in the
+# IsobaricQuantitationMethod factory; run them on the TMT10 fixture and confirm 32/35 channels are
+# quantified (consensusXML diffs clean). Isotope correction is not yet supported for these methods (the
+# matrix is always identity), so it is disabled to avoid the identity-matrix rejection.
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyTwoPlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1")
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyFivePlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1")
 
 add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/MS3_nonHierarchical.mzML -extraction:select_activation "Collision-induced dissociation" -type tmt10plex -out ${TESTS_TEMP_DIR}/MS3TMT10Plex_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/MS3TMT10Plex_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS3TMT10Plex_test.consensusXML )
@@ -1685,6 +1707,19 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathFeatureXMLToTSV_3_output.short.tmp.csv -in2 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_3_output.short.csv)
   set_tests_properties("TOPP_OpenSwathFeatureXMLToTSV_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathFeatureXMLToTSV_test_3")
 
+  add_test("TOPP_TransitionListEvidenceFilter_test_1" ${TOPP_BIN_PATH}/TransitionListEvidenceFilter
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_output.tmp.tsv
+    -out_type tsv
+    -mz_extraction_window_ms1 100000
+    -mz_extraction_window_ms1_unit ppm
+    -mz_extraction_window_ms2 100
+    -mz_extraction_window_ms2_unit Th
+    -Algorithm:ms2_min_fragment_hits 1
+    -Algorithm:min_supported_precursors 1
+    -test)
+
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.TraML -out ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output.mzML)
   set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_1")
@@ -1830,6 +1865,9 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
 
+  add_test("TOPP_OpenSwathWorkflow_1_library_prefilter" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_library_prefilter.tmp.featureXML
+    -enable_ms1 "false" -Library:prefilter:enabled -Library:prefilter:ms2_min_fragment_hits "1" -Library:prefilter:min_supported_precursors "1" -mz_extraction_window_ms1 "100000" -mz_extraction_window_ms1_unit "ppm" -irt_mz_extraction_window "100" -irt_mz_extraction_window_unit "Th" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
+
   add_test("TOPP_OpenSwathWorkflow_1_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.xic.tmp.featureXML -out_qc ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.xic.tmp.json
     -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_1_xic_text" ${TOPP_BIN_PATH}/TextExporter -test -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic.tsv -out_type tsv -xic:mode summary)
@@ -1851,6 +1889,18 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_3_out2" ${DIFF} -whitelist "id=" ${ZLIB_NG_MZML_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_3.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
+
+  # Wave-scheduler thread invariance: the auto SWATH wave scheduler derives its wave count from the
+  # scoring-thread count, and parallel scoring jobs append peak groups in completion order (the only
+  # normalization is a per-wave, unstable FeatureMap::sortByPosition). The feature *values* are therefore
+  # thread-count independent, but the on-disk *order* and the synthetic feature ids are not. Run the
+  # parallel path (-threads 4, in-memory, single batch), canonicalize the order with FileFilter -sort,
+  # and diff against the serial-order reference; only the whitelisted feature ids differ.
+  add_test("TOPP_OpenSwathWorkflow_threads4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 4 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads4_sort" ${TOPP_BIN_PATH}/FileFilter -test -sort -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads4_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_threads_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_threads4_sort" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads4")
+  set_tests_properties("TOPP_OpenSwathWorkflow_threads4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads4_sort")
 
   # Also test with readoptions cache
   add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_5.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_5.tmp.featureXML
@@ -2453,6 +2503,20 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeled_2_out1" PROPERTIES DEPENDS "TO
 add_test("TOPP_FeatureLinkerUnlabeled_3" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_3_output.tmp.consensusXML)
 add_test("TOPP_FeatureLinkerUnlabeled_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_3_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_output.consensusXML)
 set_tests_properties("TOPP_FeatureLinkerUnlabeled_3_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_3")
+# Parquet directory-bundle round-trip (issue #9460 §3, L144): prove FeatureLinker reads .featureparquet
+# bundles and writes a .consensusparquet bundle -- FileHandler directory dispatch beyond FileConverter.
+# Inputs are converted from clean (X-free) featureXML fixtures at test time; the output bundle is converted
+# back to consensusXML and diffed against a committed reference. The volatile dataProcessing provenance
+# (input/output temp paths) is whitelisted; timestamps/versions are deterministic under -test.
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_prep1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML -out ${TESTS_TEMP_DIR}/FLU_parquet_in1.featureparquet -out_type featureparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_prep2" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML -out ${TESTS_TEMP_DIR}/FLU_parquet_in2.featureparquet -out_type featureparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_prep3" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out ${TESTS_TEMP_DIR}/FLU_parquet_in3.featureparquet -out_type featureparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -in ${TESTS_TEMP_DIR}/FLU_parquet_in1.featureparquet ${TESTS_TEMP_DIR}/FLU_parquet_in2.featureparquet ${TESTS_TEMP_DIR}/FLU_parquet_in3.featureparquet -out ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_back" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusparquet -out ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusXML -out_type consensusXML)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_out1" ${DIFF} -whitelist "id=" "href=" "parameter: in" "parameter: out" -in1 ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_parquet_output.consensusXML)
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_parquet" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_parquet_prep1;TOPP_FeatureLinkerUnlabeled_parquet_prep2;TOPP_FeatureLinkerUnlabeled_parquet_prep3")
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_parquet_back" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_parquet")
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_parquet_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_parquet_back")
 # "unlabeled" algorithm with "use_identifications" option:
 add_test("TOPP_FeatureLinkerUnlabeled_4" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_4_output.tmp.consensusXML)
 add_test("TOPP_FeatureLinkerUnlabeled_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_4_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_4_output.consensusXML)

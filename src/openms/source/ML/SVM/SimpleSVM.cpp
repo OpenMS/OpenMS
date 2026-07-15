@@ -101,6 +101,20 @@ void SimpleSVM::Impl::clear_()
   delete[] data_.y;
   data_.x = nullptr;
   data_.y = nullptr;
+  // Drop all training-derived state so the object stays consistent with model_.
+  // This matters when loadModel() replaces a model previously trained via setup():
+  // stale state must not leak into later calls (e.g. predict()/getFeatureWeights()/
+  // writeXvalResults()). In particular the log2_* grids and performance_ must be
+  // cleared together, or writeXvalResults() would loop over the stale grids while
+  // indexing an emptied performance_ (out of bounds). setup() repopulates all of
+  // these right after calling clear_().
+  nodes_.clear();
+  scaling_.clear();
+  predictor_names_.clear();
+  performance_.clear();
+  log2_C_.clear();
+  log2_gamma_.clear();
+  log2_p_.clear();
 }
 
 void SimpleSVM::Impl::scaleData_(PredictorMap& predictors)
@@ -525,6 +539,56 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
            << endl;
 }
 
+void SimpleSVM::loadModel(const std::string& filename)
+{
+  pimpl_->clear_(); // discard any previously trained/loaded model and its state
+  pimpl_->model_ = svm_load_model(filename.c_str());
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                filename, "Could not load SVM model");
+  }
+  // A loaded model carries no predictor names or scaling (they are not stored in
+  // the LIBSVM model file), so only the vector-based predict() overload -- which
+  // addresses features positionally -- is meaningful for it.
+}
+
+void SimpleSVM::saveModel(const std::string& filename) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "No SVM model to save (use the 'setup' or "
+                                  "'loadModel' method first)");
+  }
+  if (svm_save_model(filename.c_str(), pimpl_->model_) != 0)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        filename);
+  }
+}
+
+double SimpleSVM::predict(const vector<double>& features) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "SVM model has not been trained or loaded (use "
+                                  "the 'setup' or 'loadModel' method)");
+  }
+  // Build a dense LIBSVM node array: feature i -> 1-based index i+1, terminated
+  // by the index == -1 sentinel expected by LIBSVM.
+  vector<svm_node> nodes(features.size() + 1);
+  for (Size i = 0; i < features.size(); ++i)
+  {
+    nodes[i].index = static_cast<int>(i + 1);
+    nodes[i].value = features[i];
+  }
+  nodes[features.size()].index = -1;
+  nodes[features.size()].value = 0.0;
+  return svm_predict(pimpl_->model_, nodes.data());
+}
+
 // predict on (subset) of training data
 void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
@@ -683,6 +747,15 @@ void SimpleSVM::getFeatureWeights(map<std::string, double>& feature_weights) con
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "SVM model has not been trained (use the "
                                   "'setup' method)");
+  }
+  if (pimpl_->predictor_names_.empty())
+  {
+    // A model loaded via loadModel() has no predictor names, so weights cannot be
+    // mapped back to features. Guard against indexing the empty predictor_names_.
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Feature weights require a model trained via the "
+                                  "'setup' method (a model loaded via 'loadModel' "
+                                  "has no predictor names)");
   }
   Size k = pimpl_->model_->nr_class;
   if (k > 2)

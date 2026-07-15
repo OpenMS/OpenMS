@@ -243,7 +243,7 @@ namespace OpenMS
      */
     static bool getTDLabel_(const MetaInfoInterface &idOrHit)
     {
-      return std::string(idOrHit.getMetaValue("target_decoy"))[0] == 't';
+      return idOrHit.getMetaValue("target_decoy").toString()[0] == 't';
     }
 
     /**

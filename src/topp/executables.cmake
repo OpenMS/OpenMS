@@ -152,6 +152,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathPeakMapExtractor
+    TransitionListEvidenceFilter
     OpenSwathWorkflow
     OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML

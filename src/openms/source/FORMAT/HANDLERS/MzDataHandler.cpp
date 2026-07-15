@@ -82,7 +82,7 @@ namespace OpenMS::Internal
       StringUtils::split("CID;PSD;PD;SID", ';', cv_terms_[18]);
     }
 
-    void MzDataHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MzDataHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       // skip current spectrum
       if (skip_spectrum_)
@@ -180,25 +180,25 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzDataHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void MzDataHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      static const XMLCh * s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh * s_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh * s_id = xercesc::XMLString::transcode("id");
-      static const XMLCh * s_count = xercesc::XMLString::transcode("count");
-      static const XMLCh * s_spectrumtype = xercesc::XMLString::transcode("spectrumType");
-      static const XMLCh * s_methodofcombination = xercesc::XMLString::transcode("methodOfCombination");
-      static const XMLCh * s_acqnumber = xercesc::XMLString::transcode("acqNumber");
-      static const XMLCh * s_mslevel = xercesc::XMLString::transcode("msLevel");
-      static const XMLCh * s_mzrangestart = xercesc::XMLString::transcode("mzRangeStart");
-      static const XMLCh * s_mzrangestop = xercesc::XMLString::transcode("mzRangeStop");
-      static const XMLCh * s_supdataarrayref = xercesc::XMLString::transcode("supDataArrayRef");
-      static const XMLCh * s_precision = xercesc::XMLString::transcode("precision");
-      static const XMLCh * s_endian = xercesc::XMLString::transcode("endian");
-      static const XMLCh * s_length = xercesc::XMLString::transcode("length");
-      static const XMLCh * s_comment = xercesc::XMLString::transcode("comment");
-      static const XMLCh * s_accessionnumber = xercesc::XMLString::transcode("accessionNumber");
+      static const char16_t* s_name = u"name";
+      static const char16_t* s_accession = u"accession";
+      static const char16_t* s_value = u"value";
+      static const char16_t* s_id = u"id";
+      static const char16_t* s_count = u"count";
+      static const char16_t* s_spectrumtype = u"spectrumType";
+      static const char16_t* s_methodofcombination = u"methodOfCombination";
+      static const char16_t* s_acqnumber = u"acqNumber";
+      static const char16_t* s_mslevel = u"msLevel";
+      static const char16_t* s_mzrangestart = u"mzRangeStart";
+      static const char16_t* s_mzrangestop = u"mzRangeStop";
+      static const char16_t* s_supdataarrayref = u"supDataArrayRef";
+      static const char16_t* s_precision = u"precision";
+      static const char16_t* s_endian = u"endian";
+      static const char16_t* s_length = u"length";
+      static const char16_t* s_comment = u"comment";
+      static const char16_t* s_accessionnumber = u"accessionNumber";
 
       std::string tag = sm_.convert(qname);
       open_tags_.push_back(tag);
@@ -240,9 +240,10 @@ namespace OpenMS::Internal
       else if (tag == "software")
       {
         data_processing_ = DataProcessingPtr(new DataProcessing);
-        if (attributes.getIndex(sm_.convert("completionTime").c_str()) != -1)
+        std::string completion_time;
+        if (optionalAttributeAsString_(completion_time, attributes, "completionTime"))
         {
-          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime").c_str())).c_str()));
+          data_processing_->setCompletionTime(asDateTime_(completion_time));
         }
       }
       else if (tag == "precursor")
@@ -430,12 +431,12 @@ namespace OpenMS::Internal
       //std::cout << "end startelement" << std::endl;
     }
 
-    void MzDataHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void MzDataHandler::onEndElement(const char16_t* qname)
     {
       static UInt scan_count = 0;
 
-      static const XMLCh * s_spectrum = xercesc::XMLString::transcode("spectrum");
-      static const XMLCh * s_mzdata = xercesc::XMLString::transcode("mzData");
+      static const char16_t* s_spectrum = u"spectrum";
+      static const char16_t* s_mzdata = u"mzData";
 
       open_tags_.pop_back();
       //std::cout << "End: '" << sm_.convert(qname) << "'" << std::endl;

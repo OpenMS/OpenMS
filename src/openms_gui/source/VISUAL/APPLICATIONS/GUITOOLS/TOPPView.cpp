@@ -26,14 +26,13 @@
 */
 
 //QT
-#include <QtWidgets/QSplashScreen>
 #include <QMessageBox>
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/VISUAL/MISC/InteractiveSplashScreen.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //STL
@@ -180,12 +179,10 @@ int main(int argc, const char** argv)
     pt_ver.setPen(Qt::black);
     // draw version number dynamcially on top left corner
     pt_ver.drawText(5, 5 + 15, toQString(VersionInfo::getVersion()));
-    QSplashScreen splash_screen(qpm);
+    InteractiveSplashScreen splash_screen(qpm);
     splash_screen.show();
-    
+
     QApplication::processEvents();
-    StopWatch stop_watch;
-    stop_watch.start();
 
     if (param.exists("ini"))
     {
@@ -198,13 +195,9 @@ int main(int argc, const char** argv)
       tb.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
 
-    // We are about to show the application.
-    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
-    while (stop_watch.getClockTime() < 3.0) /*wait*/
-    {
-    }
-    stop_watch.stop();
-    splash_screen.close();
+    // Keep the splashscreen up for at least 3 seconds so it can be read, but let the user
+    // dismiss it earlier with a mouse click or key press. The event loop stays responsive.
+    splash_screen.showFor(3.0);
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
