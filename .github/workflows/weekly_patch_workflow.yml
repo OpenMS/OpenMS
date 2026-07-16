@@ -13,11 +13,20 @@ jobs:
   weekly_patch:
     runs-on: ubuntu-latest
     steps:
+      # Step 0: Configure GitHub App token
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.OPENMS_GITHUB_APP_ID }}
+          private-key: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+
       # Step 1: Checkout the repo with full depth to query all branches/tags
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0 
+          token: ${{ steps.app-token.outputs.token }}
 
       # Step 2: Configure Git identity for commits/tagging
       - name: Configure Git identity
@@ -50,7 +59,7 @@ jobs:
           MINOR=$(echo "$VERSION_PART" | cut -d. -f2)
 
           # 3. Locate the latest tag matching vMAJOR.MINOR.*
-          LATEST_TAG=$(git tag -l "v$MAJOR.$MINOR.*" | sort -V | tail -n 1)
+          LATEST_TAG=$(git tag -l "v$MAJOR.$MINOR.*" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -n 1)
 
           if [[ -z "$LATEST_TAG" ]]; then
             echo "No existing tag found for v$MAJOR.$MINOR.*. Defaulting to patch version 0."
