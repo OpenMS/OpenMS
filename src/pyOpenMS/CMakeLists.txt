@@ -31,7 +31,7 @@ option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
 option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
 
 set(PYOPENMS_DOMAINS
-    kernel metadata chemistry analysis featurefinder
+    kernel metadata chemistry analysis featurefinder qc
     format processing datastructures ml misc
     spectrum chromatogram experiment
 )
