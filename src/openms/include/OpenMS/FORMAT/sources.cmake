@@ -137,6 +137,7 @@ list(APPEND sources_list_h PSMArrowIO.h)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)
+  list(APPEND sources_list_h BrukerTimsImagingFile.h)
   list(APPEND sources_list_h RationalScan2ImConverter.h)
 endif()
 
