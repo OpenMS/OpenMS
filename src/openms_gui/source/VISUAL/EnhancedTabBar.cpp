@@ -23,7 +23,7 @@ namespace OpenMS
   EnhancedTabBar::EnhancedTabBar(QWidget * parent) :
     QTabBar(parent)
   {
-    connect(this, SIGNAL(currentChanged(int)), this, SLOT(currentChanged_(int)));
+    connect(this, &QTabBar::currentChanged, this, &EnhancedTabBar::currentChanged_);
 
     //set up drag-and-drop
     setAcceptDrops(true);

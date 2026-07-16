@@ -201,6 +201,17 @@ endif()
 add_test("TOPP_CometAdapter_missing" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Comet_1_out.tmp.idXML -comet_executable "/does/not/exists/path.exe")
 set_tests_properties("TOPP_CometAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
 
+## test returncode when the external program is present but FAILS to run: must be EXTERNAL_PROGRAM_ERROR (9),
+## distinct from EXTERNAL_PROGRAM_NOTFOUND (14) above. The false executable exits 1,
+## so the adapter runs it and maps the non-zero exit to code 9. Unix-only (no portable always-failing exe on Windows).
+if (NOT WIN32)
+  find_program(FALSE_EXECUTABLE false)
+  if (FALSE_EXECUTABLE)
+    add_test("TOPP_CometAdapter_failing" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Comet_failing_out.tmp.idXML -comet_executable "${FALSE_EXECUTABLE}")
+    set_tests_properties("TOPP_CometAdapter_failing" PROPERTIES SKIP_RETURN_CODE 9) ## EXTERNAL_PROGRAM_ERROR
+  endif()
+endif()
+
 
 #------------------------------------------------------------------------------
 if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
@@ -353,4 +364,3 @@ if (NOT (${LUCIPHOR_BINARY} STREQUAL "LUCIPHOR_BINARY-NOTFOUND"))
   add_test("TOPP_LuciphorAdapter_1_out1" ${DIFF} -in1 LuciphorAdapter_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/LuciphorAdapter_1_output.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_LuciphorAdapter_1_out1" PROPERTIES DEPENDS "TOPP_LuciphorAdapter_1")
 endif()
-

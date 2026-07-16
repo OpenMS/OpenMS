@@ -149,6 +149,27 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
     TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0132435)
   }
   
+  // --- migration path for the deprecated implicit charge behavior (issue #4449) ---
+  // addChargeAdduct(q) makes the ionization explicit; running the resulting neutral formula
+  // is equivalent to running the plain neutral formula with q extra hydrogen atoms.
+  {
+    EmpiricalFormula neutral("C6H12O6");
+    neutral.addChargeAdduct(2); // -> C6H14O6, charge 0 (no deprecation warning on run())
+    TEST_EQUAL(neutral.getCharge(), 0)
+
+    CoarseIsotopePatternGenerator gen(3);
+    IsotopeDistribution id_explicit = gen.run(neutral);
+    IsotopeDistribution id_ref = gen.run(EmpiricalFormula("C6H14O6"));
+    TEST_EQUAL(id_explicit.size(), id_ref.size())
+    for (Size i = 0; i < id_explicit.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(id_explicit[i].getMZ(), id_ref[i].getMZ())
+      TEST_REAL_SIMILAR(id_explicit[i].getIntensity(), id_ref[i].getIntensity())
+    }
+    // reproduces the deprecated setCharge(2) masses to within the electron mass per charge
+    TEST_EQUAL(fabs(id_explicit[0].getMZ() - 182.077943) < 0.005, true)
+  }
+
   ef.setCharge(-2);
   {
     CoarseIsotopePatternGenerator gen(3);

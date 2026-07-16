@@ -93,6 +93,13 @@ std::optional<double> feature_mass_error(const Feature& feature)
   const double theoretical = hit.getSequence().getMZ(hit.getCharge());
   double observed = peps[0].hasMZ() ? peps[0].getMZ() : feature.getMZ();
   if (! std::isfinite(observed) || observed <= 0.0) { observed = feature.getMZ(); }
+  // Both inputs to getPPM must be valid: the fallback feature m/z may itself be
+  // invalid, and the theoretical m/z (getPPM's denominator) is never guaranteed.
+  if (! std::isfinite(observed) || observed <= 0.0
+      || ! std::isfinite(theoretical) || theoretical <= 0.0)
+  {
+    return {};
+  }
   return Math::getPPM(observed, theoretical);
 }
 

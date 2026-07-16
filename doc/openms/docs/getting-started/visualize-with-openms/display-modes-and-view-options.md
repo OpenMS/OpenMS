@@ -34,7 +34,8 @@ Switching between raw data and peak mode.
 
 ### 2D (Peaks)
 
-`MS/MS` precursor peaks can be highlighted.
+The precursors of `MS/MS` (fragment) scans can be marked. When enabled, hovering over a precursor marker highlights it and
+shows the precursor's **RT**, **m/z** and charge in the upper left corner (see *Views in TOPPView*, 2D View).
 Projections to **m/z** and **RT** axis can be shown.
 
 ### 2D (Features)

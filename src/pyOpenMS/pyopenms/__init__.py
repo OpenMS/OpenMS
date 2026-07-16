@@ -171,6 +171,26 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
 
 
+# On Windows, Python >= 3.8 no longer uses PATH to resolve an extension module's
+# dependent DLLs; only the module's own directory, System32 and directories
+# registered via os.add_dll_directory() are searched. A wheel ships OpenMS.dll and
+# its dependencies next to the modules (found automatically), but an in-tree build
+# with NO_DEPENDENCIES=ON keeps them elsewhere (the OpenMS bin and contrib lib
+# folders). PYOPENMS_DLL_PATH (os.pathsep-separated) lets the caller point pyOpenMS
+# at those directories. Because it is an environment variable it also propagates to
+# child processes that `import pyopenms` (e.g. the subprocess probes in the test
+# suite), which os.add_dll_directory() alone cannot do. Inert when unset.
+_dll_directory_handles = []  # keep handles alive for the process lifetime
+if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+    for _dll_dir in os.environ.get("PYOPENMS_DLL_PATH", "").split(os.pathsep):
+        if _dll_dir and os.path.isdir(_dll_dir):
+            try:
+                _dll_directory_handles.append(os.add_dll_directory(_dll_dir))
+            except OSError:
+                pass
+    del _dll_dir
+
+
 def _import_submodules():
     """Import all nanobind submodules and merge into this namespace."""
     import importlib

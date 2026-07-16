@@ -16,9 +16,14 @@
 #include "Score.h"
 #include "Util.h"
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <set>
+#include <unordered_map>
 
 namespace OpenMS::PipEcho
 {
@@ -74,6 +79,246 @@ void prepare_feature(Feature& feature)
 } // namespace
 
 /******************************************************************************/
+// [LOCAL-RT] Per-(donor_run, acceptor_run) local RT calibration built from
+// peptides identified (=donors) in BOTH runs. Models the residual local RT error
+// remaining AFTER the global b-spline alignment (the quantity the single global
+// window -- sized by the worst-case anchor residual -- fails to localise).
+// predict() re-centers on the locally predicted acceptor RT and sizes the
+// half-window from the local residual scatter; sparse queries use a tight fixed
+// fallback (never the global window). Enabled by the 'local_rt:enabled' parameter.
+// Built per pair in the single-threaded matching loop (see group()).
+// Inspired by FlashLfqEngine.PredictRetentionTime: gather up to
+// `n_anchors` shared anchors per side WITHIN `locality_s` of the donor RT,
+// re-center on their median RT shift, and size the half-window as c*stddev,
+// HARD-CAPPED at cap_s (FlashLFQ MaxMbrRtWindow = 1.0 min => +/-30 s). Sparse
+// (<2 local anchors) -> a tight fixed fallback window, NEVER the global window.
+// This is the key fix: PIP-ECHO's window was sized from the global worst-case
+// alignment residual (here +/-1206 s); FlashLFQ never searches wider than ~30 s.
+struct LocalRtModel
+{
+  std::vector<double> anchor_rt;   ///< donor-run RT of shared anchors (ascending)
+  std::vector<double> residual;    ///< acceptor_run_RT - donor_run_RT (parallel)
+  // Defaults are FlashLFQ-INSPIRED but GENEROUS, not the literal constants:
+  // FlashLFQ's +/-30 s cap assumes well-aligned bulk data + a calibrated RT
+  // score in a geomean. PIP-ECHO feeds RAW rt to an SVM on poorly-aligned
+  // single-cell data, where +/-30 s over-tightens (censors the RT dynamic range
+  // and starves decoys). So cap/locality are loosened; the window stays data-
+  // driven (c*sigma) and the cap is only a backstop. See adaptive widening below.
+  double locality_s = 120.0;       ///< anchors within +/- this of donor RT (FlashLFQ 0.5 min, loosened)
+  std::size_t n_anchors = 3;       ///< max anchors per side (FlashLFQ NumberOfAnchorPeptidesForMbr)
+  double c = 3.0;                  ///< half-window = c*stddev (FlashLFQ width 6*SD => 3*SD half)
+  double floor_s = 5.0;            ///< min half-window (guard degenerate near-zero scatter)
+  double cap_s = 100.0;            ///< generous half-window backstop (NOT FlashLFQ's 30 s)
+  double fallback_half_s = 15.0;   ///< half-window when <2 local anchors (FlashLFQ 0.25 min)
+  double widen = 1.0;              ///< adaptive-widening multiplier (decoy estimability)
+  double hard_ceiling = 1e9;       ///< absolute max half-window (= global rt window)
+
+  /// [LOCAL-RT calibrated] Run-pair RT prediction-error distribution, built
+  /// leave-one-out from the anchors (FlashLFQ AddRtPredErrorDistribution): for
+  /// each anchor, predict its centre from the OTHER local anchors and record the
+  /// residual; fit a robust Normal(median, IQR/1.349). Used to convert a query's
+  /// signed RT residual into a [0, 1] agreement score. Empty when too few anchors.
+  std::optional<boost::math::normal> rt_error;
+
+  /// supported = had >=2 local anchors (sigma-sized window); else a tight fallback.
+  struct Pred { double center; double half_window; bool supported; };
+
+  /// Apply the adaptive-widening factor, bounded by the global ceiling.
+  double scale(double half) const { return std::min(half * widen, hard_ceiling); }
+
+  /// Nearest <=n_anchors-per-side residuals within locality_s of r, leave-one-out
+  /// (the query donor's own anchor, at ~r, is skipped). Used by predict() and by
+  /// the auto-parameter estimation.
+  std::vector<double> gather(double r) const
+  {
+    const std::size_t n = anchor_rt.size();
+    std::vector<double> res;
+    if (n == 0) { return res; }
+    const std::size_t idx = static_cast<std::size_t>(
+      std::lower_bound(anchor_rt.begin(), anchor_rt.end(), r) - anchor_rt.begin());
+    constexpr double self_eps = 1e-6;
+    res.reserve(2 * n_anchors);
+    for (std::size_t i = idx, k = 0; i < n && k < n_anchors; ++i)  // forward (>= r)
+    {
+      const double d = std::fabs(anchor_rt[i] - r);
+      if (d > locality_s) { break; }
+      if (d <= self_eps) { continue; }
+      res.push_back(residual[i]); ++k;
+    }
+    for (std::size_t i = idx, k = 0; i > 0 && k < n_anchors; )     // backward (< r)
+    {
+      --i;
+      const double d = std::fabs(r - anchor_rt[i]);
+      if (d > locality_s) { break; }
+      if (d <= self_eps) { continue; }
+      res.push_back(residual[i]); ++k;
+    }
+    return res;
+  }
+
+  /// Sample standard deviation of the local RT shifts at r (nullopt if <2 local
+  /// anchors). [LOCAL-RT auto] used to estimate the global window scales.
+  std::optional<double> local_sigma_at(double r) const
+  {
+    std::vector<double> res = gather(r);
+    if (res.size() < 2) { return std::nullopt; }
+    double mean = 0.0;
+    for (double v : res) { mean += v; }
+    mean /= static_cast<double>(res.size());
+    double var = 0.0;
+    for (double v : res) { var += (v - mean) * (v - mean); }
+    var /= static_cast<double>(res.size() - 1);
+    const double sd = std::sqrt(var);
+    return std::isfinite(sd) ? std::optional<double>(sd) : std::nullopt;
+  }
+
+  /// Median gap between consecutive anchors (0 if <2). [LOCAL-RT auto]
+  double median_anchor_gap() const
+  {
+    if (anchor_rt.size() < 2) { return 0.0; }
+    std::vector<double> gaps;
+    gaps.reserve(anchor_rt.size() - 1);
+    for (std::size_t i = 1; i < anchor_rt.size(); ++i) { gaps.push_back(anchor_rt[i] - anchor_rt[i - 1]); }
+    std::sort(gaps.begin(), gaps.end());
+    return gaps[gaps.size() / 2];
+  }
+
+  Pred predict(double r) const
+  {
+    if (anchor_rt.empty()) { return {r, scale(fallback_half_s), false}; }
+    std::vector<double> res = gather(r);
+    if (res.empty()) { return {r, scale(fallback_half_s), false}; }
+    std::sort(res.begin(), res.end());
+    // Guard against absurd shifts from unreliable anchors: never center the search
+    // outside the donor's global RT window.
+    const double shift = std::clamp(res[res.size() / 2], -hard_ceiling, hard_ceiling);
+    if (res.size() < 2) { return {r + shift, scale(fallback_half_s), false}; }
+
+    double mean = 0.0;
+    for (double v : res) { mean += v; }
+    mean /= static_cast<double>(res.size());
+    double var = 0.0;
+    for (double v : res) { var += (v - mean) * (v - mean); }
+    var /= static_cast<double>(res.size() - 1);      // sample stddev (FlashLFQ)
+    double sd = std::sqrt(var);
+    if (! std::isfinite(sd)) { sd = 0.0; }            // NaN/inf guard -> floor window
+    const double half = std::clamp(c * sd, floor_s, cap_s);
+    return {r + shift, scale(half), true};
+  }
+
+  /// [LOCAL-RT calibrated] Build the run-pair RT prediction-error distribution
+  /// (rt_error). Must be called AFTER the gather parameters (locality_s, n_anchors)
+  /// are set, since it reuses gather(). Mirrors FlashLFQ's AddRtPredErrorDistribution:
+  /// for each anchor the prediction error = actual residual - the SAME local median shift
+  /// predict() applies at that RT (no shift when the anchor has no local neighbours),
+  /// fit as a robust Normal(median, IQR/1.349). A calibrated run pair ALWAYS yields a
+  /// distribution -- a generous window-scale default backs the estimate when anchors are
+  /// too few or their spread is degenerate -- rather than leaving rt_error empty. That
+  /// keeps the RT factor folded for EVERY pair, so the mbr_score geometric mean has a
+  /// constant number of factors across pairs; mixing 2- and 3-factor geomeans would make
+  /// mbr_score incomparable across the donor runs it is ranked against (Acceptor::push_back
+  /// and the FDR-fallback q-value sort). cf FlashLFQ, which substitutes a default Normal
+  /// rather than dropping the RT factor.
+  void build_rt_error_dist()
+  {
+    rt_error.reset();
+
+    // Prediction error per anchor, using the SAME centring predict() applies at that RT:
+    // no local neighbours -> unshifted (error = residual); otherwise remove the local
+    // median shift. This keeps the fitted distribution consistent with how predict()
+    // centres each query -- including sparse pairs, whose queries mostly get an unshifted
+    // centre, so their errors reduce to the raw local shifts.
+    std::vector<double> errs;
+    errs.reserve(anchor_rt.size());
+    for (std::size_t i = 0; i < anchor_rt.size(); ++i)
+    {
+      std::vector<double> nb = gather(anchor_rt[i]);  // leave-one-out (skips self)
+      double shift = 0.0;
+      if (! nb.empty()) { std::sort(nb.begin(), nb.end()); shift = nb[nb.size() / 2]; }
+      errs.push_back(residual[i] - shift);
+    }
+
+    // Robust Normal(median, IQR/1.349), with a sample-stddev fallback for a degenerate IQR
+    // (heavily tied errors) that keeps the robust median centre (Codex review).
+    double centre = 0.0, sd = 0.0;
+    if (errs.size() >= 4)
+    {
+      std::sort(errs.begin(), errs.end());
+      auto pct = [&](double p) {
+        return errs[std::min(errs.size() - 1, static_cast<std::size_t>(p * errs.size()))];
+      };
+      centre = errs[errs.size() / 2];
+      sd = (pct(0.75) - pct(0.25)) / 1.349;
+      if (! std::isfinite(sd) || sd <= 0.0)
+      {
+        double mean = 0.0;
+        for (double e : errs) { mean += e; }
+        mean /= static_cast<double>(errs.size());
+        double var = 0.0;
+        for (double e : errs) { var += (e - mean) * (e - mean); }
+        var /= static_cast<double>(errs.size() - 1);
+        sd = std::sqrt(var);
+      }
+    }
+
+    // [FIXED ARITY] Guarantee a valid distribution for every calibrated pair -- too few
+    // anchors, or a near-zero spread, back off to a generous window-scale sigma
+    // (cap = c*sigma_max), or the global window as an absolute last resort. Never leave
+    // rt_error empty: an empty distribution would drop the RT factor for this pair and
+    // desync the geomean arity across pairs (see the method doc above).
+    if (! std::isfinite(sd) || sd <= 0.0)
+    {
+      centre = 0.0;
+      // Re-guard: extreme but parameter-valid c/cap_s could make cap_s/c non-finite or
+      // non-positive, so fall back to the global window (finite & positive) if so.
+      sd = (c > 0.0 && std::isfinite(cap_s) && cap_s > 0.0) ? cap_s / c : 0.0;
+      if (! std::isfinite(sd) || sd <= 0.0) { sd = std::max(hard_ceiling, 1.0); }
+    }
+    rt_error = boost::math::normal(centre, sd);
+  }
+};
+
+namespace
+{
+// Build a LocalRtModel from the two runs' donors (peptides identified in both),
+// keyed by sequence+charge; residual = acceptor-run RT - donor-run RT.
+LocalRtModel build_local_rt_model(const DonorMap& donor_donors,
+                                  const DonorMap& acceptor_donors)
+{
+  // One robust anchor per peptide (seq+charge) per run: median RT over duplicate
+  // features, so multi-feature/charge-state peptides don't inject arbitrary
+  // residuals that inflate the local-sigma tail driving the auto cap (Codex review).
+  auto median_rt_by_key = [](const auto& storage) {
+    std::unordered_map<std::string, std::vector<double>> tmp;
+    for (const auto& d : storage) { tmp[feature_sequence_key(d->feature)].push_back(d->feature.getRT()); }
+    std::unordered_map<std::string, double> med;
+    med.reserve(tmp.size());
+    for (auto& [k, v] : tmp) { std::sort(v.begin(), v.end()); med[k] = v[v.size() / 2]; }
+    return med;
+  };
+  const auto donor_rt = median_rt_by_key(donor_donors.storage);
+  const auto acc_rt = median_rt_by_key(acceptor_donors.storage);
+  std::vector<std::pair<double, double>> pairs;  // (donor_rt, residual) one per shared key
+  for (const auto& [key, drt] : donor_rt)
+  {
+    auto it = acc_rt.find(key);
+    if (it == acc_rt.end()) { continue; }
+    pairs.emplace_back(drt, it->second - drt);
+  }
+  std::sort(pairs.begin(), pairs.end());
+  LocalRtModel m;  // params filled by set_local_rt_model
+  m.anchor_rt.reserve(pairs.size());
+  m.residual.reserve(pairs.size());
+  for (const auto& p : pairs)
+  {
+    m.anchor_rt.push_back(p.first);
+    m.residual.push_back(p.second);
+  }
+  return m;
+}
+} // namespace
+
+/******************************************************************************/
 Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     mz_max_diff(params),
     mz_grid_center(0.5),
@@ -86,14 +331,148 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     // setMinInt("max_training_points", 0) guarantees a non-negative value.
     max_training_points(static_cast<std::size_t>(
       static_cast<int>(params.getValue("max_training_points")))),
-    rng_(static_cast<std::mt19937::result_type>(
-      static_cast<int>(params.getValue("random_seed"))))
+    rng_seed_(static_cast<std::mt19937::result_type>(
+      static_cast<int>(params.getValue("random_seed")))),
+    rng_(rng_seed_)
 {
   OPENMS_LOG_INFO << "MBR via PIP-ECHO(" << mz_range.first << ", "
                   << mz_range.second << ", " << mz_grid_center << ", "
                   << mz_max_diff.mz_diff(mz_range.second - mz_range.first)
                   << ", " << rt_sec_max_window << ", " << mbr_fdr << ")"
-                  << std::endl;
+                  << '\n';
+
+  // Local adaptive RT window (experimental; default off -> the global window).
+  use_local_rt_ = params.getValue("local_rt:enabled").toString() == "true";
+  if (use_local_rt_)
+  {
+    lrt_cap_ = params.getValue("local_rt:max_window");
+    lrt_floor_ = params.getValue("local_rt:min_window");
+    lrt_locality_ = params.getValue("local_rt:anchor_window");
+    lrt_n_anchors_ = static_cast<std::size_t>(static_cast<int>(params.getValue("local_rt:anchors")));
+    lrt_c_ = params.getValue("local_rt:sigma_scale");
+    lrt_fallback_half_ = params.getValue("local_rt:fallback_window");
+    use_auto_ = params.getValue("local_rt:auto").toString() == "true";
+    host_fwhm_ = params.getValue("local_rt:median_fwhm");
+    const std::string rt_mode = params.getValue("local_rt:rt_score").toString();
+    if (rt_mode == "svm") { lrt_rt_mode_ = RtScoreMode::Svm; }
+    else if (rt_mode == "svm_and_mbr") { lrt_rt_mode_ = RtScoreMode::SvmAndMbr; }
+    else { lrt_rt_mode_ = RtScoreMode::Raw; }
+    OPENMS_LOG_INFO << "PIP-ECHO: local adaptive RT window enabled"
+                    << (use_auto_ ? " (auto window estimation)" : "")
+                    << " [rt_score=" << rt_mode << "]." << '\n';
+  }
+}
+
+/******************************************************************************/
+void Impl::set_local_rt_model(const DonorMap& donor_donors,
+                              const DonorMap& acceptor_donors)
+{
+  if (! use_local_rt_) { return; }
+  // FlashLFQ-inspired but generous (single-cell has poorer alignment + raw-RT-to-SVM
+  // vs FlashLFQ's bulk + calibrated-RT-in-geomean): the window is data-driven c*sigma,
+  // the cap is a generous backstop, and adaptive widening (group()) handles decoy
+  // estimability. All values come from the 'local_rt:' parameters.
+  LocalRtModel m = build_local_rt_model(donor_donors, acceptor_donors);
+  m.locality_s = lrt_locality_;
+  m.n_anchors = lrt_n_anchors_;
+  m.c = lrt_c_;
+  m.floor_s = lrt_floor_;
+  m.cap_s = lrt_cap_;
+  m.fallback_half_s = lrt_fallback_half_;
+  m.widen = lrt_widen_;                                     // adaptive-widening multiplier
+  m.hard_ceiling = rt_sec_max_window;                      // never exceed the global window
+  if (m.floor_s > m.cap_s) { m.floor_s = m.cap_s; }         // guard std::clamp(lo>hi) UB
+  // Build the calibrated RT prediction-error distribution AFTER the gather params
+  // are set (it reuses gather()); only needed when a calibrated RT mode is active.
+  if (lrt_rt_mode_ != RtScoreMode::Raw) { m.build_rt_error_dist(); }
+  local_rt_ = std::make_shared<const LocalRtModel>(std::move(m));
+}
+
+/******************************************************************************/
+// [LOCAL-RT auto] Estimate the global (experiment-wide) window scales from the
+// data so one config works across short and long gradients. Self-contained from
+// feature RTs (local-sigma + anchor density); median_fwhm is an OPTIONAL host
+// refinement (features carry no usable width). Sets lrt_cap_/floor_/locality_/
+// fallback_; no-op unless 'local_rt:auto' is enabled.
+void Impl::estimate_auto_params(const RunMap& runs)
+{
+  if (! use_local_rt_ || ! use_auto_) { return; }
+
+  constexpr double MARGIN = 2.0;   // locality = gap_med * anchors * margin
+  constexpr double K_FWHM = 4.0;   // cap FWHM lower-guard multiple
+  const double c = lrt_c_;
+
+  // Build each (donor_run, acceptor_run) pair model once; gather inter-anchor gaps.
+  std::vector<LocalRtModel> models;
+  std::vector<double> gaps;
+  for (const auto& a_run : runs)
+  {
+    for (const auto& d_run : runs)
+    {
+      if (d_run.first == a_run.first) { continue; }
+      LocalRtModel m = build_local_rt_model(d_run.second.donors, a_run.second.donors);
+      m.n_anchors = lrt_n_anchors_;
+      const double g = m.median_anchor_gap();
+      if (g > 0.0) { gaps.push_back(g); }
+      models.push_back(std::move(m));
+    }
+  }
+  if (gaps.empty())
+  {
+    OPENMS_LOG_WARN << "[LOCAL-RT] auto: no shared anchors found; keeping default windows."
+                    << '\n';
+    return;
+  }
+  std::sort(gaps.begin(), gaps.end());
+  const double gap_med = gaps[gaps.size() / 2];
+  const double locality = gap_med * static_cast<double>(lrt_n_anchors_) * MARGIN;
+
+  // Sample the local RT-shift sigma within that locality across all pairs.
+  std::vector<double> sigmas;
+  for (auto& m : models)
+  {
+    m.locality_s = locality;
+    for (double a : m.anchor_rt)
+    {
+      if (auto s = m.local_sigma_at(a); s.has_value() && *s > 0.0) { sigmas.push_back(*s); }
+    }
+  }
+
+  const bool fwhm_used = host_fwhm_ > 0.0;
+  double cap = 0.0, floor = 0.0;
+  double p25 = 0, p50 = 0, p75 = 0, p90 = 0, p95 = 0;
+  if (sigmas.size() >= 2)
+  {
+    std::sort(sigmas.begin(), sigmas.end());
+    auto pct = [&](double p) {
+      return sigmas[std::min(sigmas.size() - 1, static_cast<std::size_t>(p * sigmas.size()))];
+    };
+    p25 = pct(0.25); p50 = pct(0.50); p75 = pct(0.75); p90 = pct(0.90); p95 = pct(0.95);
+    cap = std::max(c * p90, 0.25 * gap_med);         // sigma-driven, anchor-spacing guard
+    // Floor = minimum window. With FWHM it should reflect chromatographic peak/apex
+    // width, NOT alignment scatter (which already enters via c*sigma and the cap);
+    // otherwise locally well-aligned donors get a needlessly broad minimum. Without
+    // FWHM, fall back to a sigma-based floor (P25, not P10: avoid too-perfect tails).
+    floor = fwhm_used ? std::max(1.5 * host_fwhm_, p25)
+                      : std::max(c * p25, 0.10 * cap);
+  }
+  else  // too few sigma samples -> density-only fallback
+  {
+    cap = std::max(0.25 * gap_med, 1.0);
+    floor = fwhm_used ? 1.5 * host_fwhm_ : 0.10 * cap;
+  }
+  if (fwhm_used) { cap = std::max(cap, K_FWHM * host_fwhm_); }  // physical lower guard on cap
+  floor = std::min(floor, cap);
+
+  lrt_cap_ = cap;
+  lrt_floor_ = floor;
+  lrt_locality_ = locality;
+  lrt_fallback_half_ = floor;
+  OPENMS_LOG_INFO << "[LOCAL-RT] auto windows (" << (fwhm_used ? "FWHM-aware" : "RT-residual only")
+                  << "): cap=" << cap << "s floor=" << floor << "s locality=" << locality
+                  << "s | local-sigma P25/50/75/90/95=" << p25 << "/" << p50 << "/" << p75 << "/"
+                  << p90 << "/" << p95 << "s gap_med=" << gap_med << "s fwhm=" << host_fwhm_
+                  << "s n=" << sigmas.size() << '\n';
 }
 
 /******************************************************************************/
@@ -179,17 +558,49 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
   // FIXME: What does the paper say about finding acceptor peaks?
   // In FlashLFQ they do some weird envelope cutting and don't use
   // the actual found peak (FindIndividualAcceptorPeak).
-  const double rt = rt_override.value_or(donor.feature.getRT());
-  const AcceptorMap::grid_center_t center(rt, donor.feature.getMZ());
+  const double anchor_rt = rt_override.value_or(donor.feature.getRT());
+
+  // [LOCAL-RT] re-center the search on the locally predicted acceptor RT
+  // and gate to the local residual scatter. Unlike the global baseline, the window
+  // is ALWAYS bounded (<= cap_s; tight fallback when local anchors are sparse) --
+  // there is no fall-through to the +/-1206 s global window. The score's
+  // rt_diff_error is measured against the predicted center. Baseline path (env
+  // unset) is byte-identical: local_on stays false, no re-center, no gate.
+  double center_rt = anchor_rt;
+  double rt_gate = std::numeric_limits<double>::infinity();  // no extra gate (baseline)
+  bool local_on = false;
+  if (use_local_rt_ && local_rt_)
+  {
+    const LocalRtModel::Pred p = local_rt_->predict(anchor_rt);
+    center_rt = p.center;
+    rt_gate = p.half_window;
+    local_on = true;
+    if (p.supported) { ++lrt_supported_; } else { ++lrt_fallback_; }
+  }
+  const std::optional<double> eff_override =
+    local_on ? std::optional<double>(center_rt) : rt_override;
+
+  // [LOCAL-RT calibrated] On the local path, score the RT residual against this
+  // run pair's calibrated RT prediction-error distribution (see RtScoreMode). The
+  // baseline/global path stays Raw -> byte-identical.
+  const RtScoreMode rt_mode = local_on ? lrt_rt_mode_ : RtScoreMode::Raw;
+  const boost::math::normal* rt_dist =
+    (local_on && local_rt_ && local_rt_->rt_error.has_value())
+      ? &*local_rt_->rt_error
+      : nullptr;
+
+  const AcceptorMap::grid_center_t center(center_rt, donor.feature.getMZ());
   const AcceptorMap::grid_index_t index
     = acceptors.grid.cellIndexAtClusterCenter(center);
 
   return acceptors.nearby<match_t>(
     index, window.grid_neighbors, match_t {},
     [&](match_t best_match, AcceptorMap::value_type acceptor) -> match_t {
-      if (acceptor->is_donor_compatible(donor, window, rt_override))
+      if (acceptor->is_donor_compatible(donor, window, eff_override)
+          && std::fabs(acceptor->feature.getRT() - center_rt) <= rt_gate)
       {
-        Score score(stats.score(donor.feature, acceptor->feature, rt_override));
+        Score score(stats.score(donor.feature, acceptor->feature, eff_override,
+                                rt_mode, rt_dist));
 
         if (! best_match.has_value()
             || best_match->first.mbr_score < score.mbr_score)
@@ -229,7 +640,22 @@ Impl::find_random_donor(const DonorMap& donors,
 
   const double mass_min_diff = 5.0 * Constants::PROTON_MASS_U;
   const double mass_max_diff = 11.0 * Constants::PROTON_MASS_U;
-  const double rt_min_diff = window.rt_tol * 2.0; // FIXME: Is this okay?
+  // [LOCAL-RT] require the decoy anchor far enough in RT to be a genuine wrong-RT
+  // null, but SCALE that distance with the local window rather than a fixed floor:
+  // a fixed floor (formerly 120 s) is a large fraction of a short gradient and starves
+  // decoys there. Mirror FlashLFQ/PIP-ECHO (Alg 13): separation = 4 * half-window
+  // (== FlashLFQ's 2*Width), which shrinks on well-aligned/short gradients and grows
+  // on wide ones -- no fixed floor.
+  double rt_min_diff = window.rt_tol * 2.0; // FIXME: Is this okay?
+  if (use_local_rt_ && local_rt_)
+  {
+    const LocalRtModel::Pred p = local_rt_->predict(start.feature.getRT());
+    // Use the BASE (un-widened) local window for decoy-donor separation: tying it
+    // to the widened window would push decoy donors farther away on each widening
+    // pass, opposing the decoy generation widening is meant to achieve (Codex review).
+    const double lw = p.half_window / std::max(local_rt_->widen, 1.0);
+    rt_min_diff = 4.0 * lw;
+  }
 
   const double start_mass = mass(start);
   const double start_rt = start.feature.getRT();
@@ -289,6 +715,16 @@ Impl::find_random_donor(const DonorMap& donors,
 /******************************************************************************/
 void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 {
+  // [LOCAL-RT] report how often the local window was used vs fell back.
+  if (use_local_rt_)
+  {
+    const std::size_t tot = lrt_supported_ + lrt_fallback_;
+    const double frac = tot ? (100.0 * lrt_fallback_ / tot) : 0.0;
+    OPENMS_LOG_INFO << "[LOCAL-RT] find_acceptor_for queries: supported="
+                    << lrt_supported_ << " fallback=" << lrt_fallback_ << " ("
+                    << frac << "% fallback)" << '\n';
+  }
+
   using ident_val_t = std::set<FeatureRef, FeatureRefCmp>;
   using ident_map_t = std::map<std::string, ident_val_t>;
   struct transfer_info_t
@@ -364,7 +800,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 
   OPENMS_LOG_INFO << "PIP-ECHO: added " << acceptors_seen
                   << " acceptors to the consensus map with " << decoys_seen
-                  << " decoys seen" << std::endl;
+                  << " decoys seen" << '\n';
 
   // We can now turn that IdentMap into a ConsensusMap.
   for (auto& group : ident_map)
@@ -401,7 +837,7 @@ std::string Impl::path_from_feature_map(const FeatureMap& map)
 
   if (paths.empty())
   {
-    OPENMS_LOG_WARN << "Warning: feature map has no MS run path!" << std::endl;
+    OPENMS_LOG_WARN << "Warning: feature map has no MS run path!" << '\n';
     return "unknown";
   }
   else
@@ -409,7 +845,7 @@ std::string Impl::path_from_feature_map(const FeatureMap& map)
     if (paths.size() > 1)
     {
       OPENMS_LOG_WARN << "Warning: feature map has more than one MS run path, "
-                      << "using first path: " << paths[0] << std::endl;
+                      << "using first path: " << paths[0] << '\n';
     }
 
     return paths[0];

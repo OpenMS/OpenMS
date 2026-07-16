@@ -73,6 +73,7 @@ set(datastructures_executables_list
   Matrix_test
   MatrixEigen_test
   OPXLDataStructs_test
+  OSWData_test
   Param_test
   ParamValue_test
   QTCluster_test
@@ -82,6 +83,10 @@ set(datastructures_executables_list
   String_test
   #ToolDescription_test
 )
+
+if(WITH_ONNX)
+  list(APPEND datastructures_executables_list PeptDeepInference_test)
+endif()
 
 set(metadata_executables_list
   AcquisitionInfo_test
@@ -146,6 +151,7 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  UpdateCheck_test
 )
 
 set(kernel_executables_list
@@ -459,6 +465,7 @@ set(chemistry_executables_list
   DecoyGenerator_test
   DigestionEnzyme_test
   DigestionEnzymeProtein_test
+  DigestionEnzymeRNA_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
@@ -480,6 +487,7 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
+  MonosaccharideDB_test
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
@@ -487,6 +495,7 @@ set(chemistry_executables_list
   ProFormaParser_test
   ProteaseDB_test
   ProteaseDigestion_test
+  RNaseDB_test
   RNaseDigestion_test
   RealMassDecomposer_test
   ResidueDB_test
@@ -649,6 +658,7 @@ set(applications_executables_list
   #MapAlignerBase_test
   SearchEngineBase_test
   TOPPBase_test
+  TOPPExternalToolBase_test
   ToolHandler_test
   ParameterInformation_test
   ConsoleUtils_test
@@ -663,7 +673,7 @@ set(transformations_executables_list
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
-  ExtendedIsotopeModel_test  
+  ExtendedIsotopeModel_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderIdentificationAlgorithm_test
@@ -720,6 +730,7 @@ if(NOT DISABLE_OPENSWATH)
     PeakMapExtractor_test
     OpenSwathHelper_test
     OpenSwathOSWWriter_test
+    TransitionListEvidenceFilter_test
     OpenSwathScoring_test
     OpenSwathScores_test
     OpenSwathWorkflowScheduler_test
@@ -759,6 +770,7 @@ if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
+  list(APPEND swath_executables_list OpenSwathMatrixExporter_test)
   list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
   list(APPEND swath_executables_list OpenSwathResultsExporter_test)
   list(APPEND swath_executables_list OpenSwathParquetExporter_test)

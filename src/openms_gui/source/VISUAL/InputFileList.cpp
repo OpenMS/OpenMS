@@ -38,10 +38,10 @@ namespace OpenMS
       ui_(new Ui::InputFileList)
     {
       ui_->setupUi(this);
-      connect(ui_->add_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
-      connect(ui_->edit_button, SIGNAL(clicked()), this, SLOT(editCurrentItem()));
-      connect(ui_->remove_button, SIGNAL(clicked()), this, SLOT(removeSelected()));
-      connect(ui_->remove_all_button, SIGNAL(clicked()), this, SLOT(removeAll()));
+      connect(ui_->add_button, &QPushButton::clicked, this, &InputFileList::showFileDialog);
+      connect(ui_->edit_button, &QPushButton::clicked, this, &InputFileList::editCurrentItem);
+      connect(ui_->remove_button, &QPushButton::clicked, this, &InputFileList::removeSelected);
+      connect(ui_->remove_all_button, &QPushButton::clicked, this, &InputFileList::removeAll);
     }
 
     InputFileList::~InputFileList()

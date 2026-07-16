@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
 # $Authors: Stephan Aiche $
@@ -113,6 +113,13 @@ endforeach()
 
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
+# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
+# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
+# themselves.
+target_link_libraries(ZipInputStream_test XercesC::XercesC)
+target_link_libraries(GzipInputStream_test XercesC::XercesC)
+target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
+target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test ${LPTARGET})
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
@@ -282,3 +289,25 @@ foreach(i ${TEST_executables})
   list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})
+
+if(WITH_ONNX)
+  # Class tests run from the build-tree test directory and expect models below data/.
+  # Reuse the models downloaded by src/openms/CMakeLists.txt instead of downloading
+  # them again. No .onnx.data sidecars are needed because the exported models are
+  # embedded-weight ONNX files.
+  set(TEST_DATA_DIR "${CMAKE_BINARY_DIR}/src/tests/class_tests/openms/data")
+  file(MAKE_DIRECTORY "${TEST_DATA_DIR}")
+
+  foreach(MODEL IN LISTS OPENMS_PEPTDEEP_MODELS)
+    set(SOURCE_MODEL "${OPENMS_PEPTDEEP_MODEL_DIR}/${MODEL}")
+    set(TEST_MODEL "${TEST_DATA_DIR}/${MODEL}")
+
+    if(NOT EXISTS "${SOURCE_MODEL}")
+      message(FATAL_ERROR
+        "Expected PeptDeep model was not found: ${SOURCE_MODEL}. "
+        "The OpenMS ONNX model download step should have created this file.")
+    endif()
+
+    configure_file("${SOURCE_MODEL}" "${TEST_MODEL}" COPYONLY)
+  endforeach()
+endif()

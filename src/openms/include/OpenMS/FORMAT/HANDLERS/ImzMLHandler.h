@@ -54,8 +54,7 @@ namespace Internal
 
     @b Inheritance diagram:
     @code
-    xercesc::DefaultHandler
-      └─ OpenMS::Internal::XMLHandler
+    OpenMS::Internal::XMLHandler
             └─ OpenMS::Internal::MzMLHandler
                   └─ OpenMS::Internal::ImzMLHandler  ← this class
                         └─ ImzMLInterceptConsumer : IMSDataConsumer
@@ -118,14 +117,9 @@ namespace Internal
     // SAX2 overrides (MzMLHandler is called through for MS:* terms)
     // ------------------------------------------------------------------
 
-    void startElement(const XMLCh*               uri,
-                      const XMLCh*               localname,
-                      const XMLCh*               qname,
-                      const xercesc::Attributes& attrs) override;
+    void onStartElement(const char16_t* qname, const XMLAttributes& attrs) override;
 
-    void endElement(const XMLCh* uri,
-                    const XMLCh* localname,
-                    const XMLCh* qname) override;
+    void onEndElement(const char16_t* qname) override;
 
   private:
 

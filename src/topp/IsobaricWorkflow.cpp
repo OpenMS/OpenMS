@@ -19,6 +19,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
@@ -193,6 +194,10 @@ protected:
 
     registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
+    registerFlag_("count_sps_matches", "For SPS-MS3: count how many of the co-isolated MS3 precursors (SPS ions) match a b/y fragment ion of the identified peptide. The count is stored as meta value 'sps_matched_ions' on the consensus feature. Off by default.", true);
+    registerDoubleOption_("sps_fragment_mass_tolerance", "<tolerance>", 20.0, "Mass tolerance for matching MS3 SPS precursors to theoretical b/y fragment ions of the identified peptide (only used with 'count_sps_matches').", false, true);
+    registerStringOption_("sps_fragment_mass_tolerance_unit", "<unit>", "ppm", "Unit of 'sps_fragment_mass_tolerance'.", false, true);
+    setValidStrings_("sps_fragment_mass_tolerance_unit", {"ppm", "Da"});
     //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
     registerDoubleOption_("protein_score", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
@@ -479,6 +484,10 @@ protected:
 
     bool calc_id_purity = getParam_().getValue("calculate_id_purity").toBool();
 
+    bool count_sps_matches = getParam_().getValue("count_sps_matches").toBool();
+    double sps_fragment_mass_tolerance = getDoubleOption_("sps_fragment_mass_tolerance");
+    bool sps_fragment_mass_tolerance_unit_ppm = getStringOption_("sps_fragment_mass_tolerance_unit") == "ppm";
+
 
     Param extract_param(getParam_().copy("extraction:", true));
     IsobaricChannelExtractor channel_extractor(quant_method.get());
@@ -643,18 +652,41 @@ protected:
 
             std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
 
+            // For SPS-MS3: optionally count how many of the co-isolated MS3 precursors (SPS ions)
+            // match a theoretical b/y fragment ion of the identified peptide. This estimates how many
+            // of the ions selected for MS3 originate from true fragments of the identified peptide.
+            int sps_matched_ions = -1;
+            int sps_precursor_count = -1;
+            if (count_sps_matches && has_ms3 && !pep.getHits().empty())
+            {
+              const AASequence& seq = pep.getHits()[0].getSequence();
+              const auto& sps_precursors = exp[quant_spec_idx].getPrecursors();
+              // SPS fragments of a precursor of charge z are typically singly to (z-1) charged
+              const int id_charge = exp[id_spec_idx].getPrecursors().empty() ? 1 : exp[id_spec_idx].getPrecursors()[0].getCharge();
+              const int max_fragment_charge = std::max(1, id_charge - 1);
+              sps_precursor_count = static_cast<int>(sps_precursors.size());
+              sps_matched_ions = static_cast<int>(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(
+                sps_precursors, seq, sps_fragment_mass_tolerance, sps_fragment_mass_tolerance_unit_ppm, max_fragment_charge));
+            }
+
             // TODO if itys are all zero we can actually skip correction and quantification
             // NNLS modifies input, so we need a copy of the correction matrix
             Matrix<double> m = correction_matrix;
             std::vector<double> corrected(itys.size(), 0.);
             NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
             fillConsensusFeature_(cur_cmap[pep_idx], pep, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
+            if (sps_matched_ions >= 0)
+            {
+              cur_cmap[pep_idx].setMetaValue("sps_matched_ions", sps_matched_ions);
+              cur_cmap[pep_idx].setMetaValue("sps_precursor_count", sps_precursor_count);
+            }
             for (Size i = 0; i < channel_qc.size(); ++i)
             {
               // TODO ProteomeDiscoverer also outputs:
               //  - Reporter S/N but with S/N they mean the intensity corrected for the noise value from the raw thermo Orbitrap files
               //    (and I dont think we read them, see https://github.com/compomics/ThermoRawFileParser/blob/c293d4aa1b04bfd62124ff42c512572427a4316a/Writer/MzMlSpectrumWriter.cs#L1664)
-              //  - For SPS-MS3 the number of precursor windows that actually surround a fragment from the identified peptide! Useful, but currently not implemented here.
+              //  - For SPS-MS3 the number of precursor windows that actually surround a fragment from the identified peptide.
+              //    This is available (opt-in) via the 'count_sps_matches' flag and stored as meta value 'sps_matched_ions'.
               qc[i].mz_deltas[pep_idx] = channel_qc[i].first;
               if (channel_qc[i].second > 1)
               {
@@ -907,28 +939,47 @@ protected:
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
 
-        // Feature-level export
-        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/quantms.feature.parquet"))
+        // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
+        // data there is ~one consensus feature per PSM, so the feature table has millions of
+        // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
+        // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet",
+                                                               /*batch_size=*/1000000,
+                                                               ParquetWriteConfig{},
+                                                               /*n_threads=*/0))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
-        // PSM-level export: collect all peptide IDs from consensus map
-        PeptideIdentificationList all_pepids;
+        // PSM-level export: collect non-owning pointers to all peptide IDs in the
+        // consensus map (assigned per feature, then unassigned). Avoids deep-copying
+        // millions of PeptideIdentifications; pointers reference into `cmap`, which
+        // outlives the streaming export below.
+        std::vector<const PeptideIdentification*> all_pepid_ptrs;
+        size_t n_pep = cmap.getUnassignedPeptideIdentifications().size();
+        for (const auto& feature : cmap) { n_pep += feature.getPeptideIdentifications().size(); }
+        all_pepid_ptrs.reserve(n_pep);
         for (const auto& feature : cmap)
         {
           for (const auto& pepid : feature.getPeptideIdentifications())
           {
-            all_pepids.push_back(pepid);
+            all_pepid_ptrs.push_back(&pepid);
           }
         }
         for (const auto& pepid : cmap.getUnassignedPeptideIdentifications())
         {
-          all_pepids.push_back(pepid);
+          all_pepid_ptrs.push_back(&pepid);
         }
 
-        if (!QPXFile::exportToParquet(cmap.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+        // Streaming/batched write keeps peak memory bounded for very large PSM counts;
+        // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        if (!QPXFile::exportToParquetStreaming(cmap.getProteinIdentifications(), all_pepid_ptrs,
+                                               out_qpx + "/quantms.psm.parquet",
+                                               /*export_all_psms=*/false,
+                                               /*batch_size=*/1000000,
+                                               ParquetWriteConfig{},
+                                               /*n_threads=*/0))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;

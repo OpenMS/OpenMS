@@ -3225,7 +3225,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
           .def_rw("detailed", &FileInfo::Options::detailed)
           .def_rw("check_corrupt", &FileInfo::Options::check_corrupt)
           .def_rw("validate", &FileInfo::Options::validate)
-          .def_rw("check_index", &FileInfo::Options::check_index);
+          .def_rw("check_index", &FileInfo::Options::check_index)
+          .def_rw("log_type", &FileInfo::Options::log_type);
 
       fi.def(nb::init<>())
         .def("__copy__", [](const FileInfo& self){ return FileInfo(self); })

@@ -35,13 +35,13 @@ public:
       void writeTo(std::ostream & os) override;
 
       // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t /*length*/) override;
+      void onCharacters(const char16_t* chars, Size /*length*/) override;
 
 protected:
       std::map<std::string, std::pair<std::string, std::string> > & ptm_informations_;

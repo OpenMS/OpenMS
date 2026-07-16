@@ -921,7 +921,7 @@ namespace OpenMS
     f.close();
   }
 
-  void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
+  void PepXMLFile::readRTMZCharge_(const Internal::XMLAttributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
     charge_ = attributeAsInt_(attributes, "assumed_charge");
@@ -1082,10 +1082,7 @@ namespace OpenMS
     know that the last - and only - element should be the correct one.
   */
 
-  void PepXMLFile::startElement(const XMLCh* const /*uri*/,
-                                const XMLCh* const /*local_name*/,
-                                const XMLCh* const qname,
-                                const xercesc::Attributes& attributes)
+  void PepXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string element = sm_.convert(qname);
 
@@ -1211,7 +1208,6 @@ namespace OpenMS
         if (search_engine_ == "Comet")
         {
           peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
-          peptide_hit_.setMetaValue("COMET:xcorr", value); // name: COMET:xcorr
         }
         else
         {
@@ -1249,24 +1245,20 @@ namespace OpenMS
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
-          peptide_hit_.setMetaValue("COMET:spscore", value); // name: Comet:spscore
         }
         else if (name == "sprank")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
-          peptide_hit_.setMetaValue("COMET:sprank", value); // name: Comet:sprank
         }
         else if (name == "deltacnstar")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
-          peptide_hit_.setMetaValue("COMET:deltacnstar", value); // name: Comet:deltacnstar
         }
         else if (name == "lnrSp")
         {
           value = attributeAsDouble_(attributes, "value");
-          peptide_hit_.setMetaValue("Comet:lnrSp", value); // name: Comet:lnrSp
           peptide_hit_.setMetaValue("COMET:lnRankSP", value); // name: COMET:lnRankSP
         }              
         else if (name == "deltLCn")
@@ -1282,7 +1274,6 @@ namespace OpenMS
         else if (name == "IonFrac")
         {
           value = attributeAsDouble_(attributes, "value");
-          peptide_hit_.setMetaValue("Comet:IonFrac", value); // name: Comet:IonFrac
           peptide_hit_.setMetaValue("COMET:IonFrac", value); // matched_ions / total_ions
         }
         else if (name == "lnNumSP")
@@ -2041,9 +2032,7 @@ namespace OpenMS
     return found;
   }
 
-  void PepXMLFile::endElement(const XMLCh* const /*uri*/,
-                              const XMLCh* const /*local_name*/,
-                              const XMLCh* const qname)
+  void PepXMLFile::onEndElement(const char16_t* qname)
   {
     std::string element = sm_.convert(qname);
 

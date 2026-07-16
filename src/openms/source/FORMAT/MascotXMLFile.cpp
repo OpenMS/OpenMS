@@ -8,7 +8,6 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS

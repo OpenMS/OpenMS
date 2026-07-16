@@ -18,7 +18,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -155,7 +155,7 @@ namespace OpenMS
                                                  const String& prefix)
     {
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, "PRAGMA table_info('" + table_name + "');");
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, "PRAGMA table_info('" + table_name + "');");
       std::vector<String> columns;
       Sql::SqlState state = Sql::nextRow(stmt);
       while (state == Sql::SqlState::SQL_ROW)
@@ -496,7 +496,7 @@ namespace OpenMS
         }
         select_sql += "ORDER BY FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, FEATURE.ID;";
 
-        conn.prepareStatement(&stmt, select_sql);
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, select_sql);
         Sql::SqlState state = Sql::nextRow(stmt);
         std::unordered_map<std::pair<Int64, Int64>, int, PairHash<std::pair<Int64, Int64>>> group_to_key;
         int next_group_key = 0;
@@ -573,7 +573,7 @@ namespace OpenMS
         "  AND PRECURSOR.DECOY = 0 "
         "ORDER BY FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, FEATURE_TRANSITION.TRANSITION_ID;";
 
-      conn.prepareStatement(&stmt, select_sql);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, select_sql);
       Sql::SqlState state = Sql::nextRow(stmt);
       int next_group_key = 0;
       std::vector<ScoreRow> base_rows;
@@ -1110,7 +1110,7 @@ namespace OpenMS
           "QVALUE REAL NOT NULL, "
           "PEP REAL NOT NULL);";
       }
-      sqlite3* db = conn.getDB();
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
       sqlite3_stmt* insert_stmt = nullptr;
       bool transaction_started = false;
       conn.executeStatement("BEGIN IMMEDIATE TRANSACTION;");
@@ -1130,13 +1130,13 @@ namespace OpenMS
 
         if (transition_level)
         {
-          conn.prepareStatement(&insert_stmt,
+          Internal::SqliteHelper::prepareStatement(conn, &insert_stmt,
             "INSERT INTO SCORE_TRANSITION (FEATURE_ID, TRANSITION_ID, SCORE, RANK, PVALUE, QVALUE, PEP) "
             "VALUES (?, ?, ?, ?, ?, ?, ?);");
         }
         else
         {
-          conn.prepareStatement(&insert_stmt,
+          Internal::SqliteHelper::prepareStatement(conn, &insert_stmt,
             "INSERT INTO " + table_name + " (FEATURE_ID, SCORE, RANK, PVALUE, QVALUE, PEP) "
             "VALUES (?, ?, ?, ?, ?, ?);");
         }

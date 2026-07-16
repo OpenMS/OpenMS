@@ -495,6 +495,7 @@ The elements are initialized with data from IUPAC tables.
         .def("getNumberOfAtoms", [](const OpenMS::EmpiricalFormula& self) { return self.getNumberOfAtoms(); }, "Returns the total number of atoms")
         .def("getCharge", [](const OpenMS::EmpiricalFormula& self) { return self.getCharge(); }, "Returns the total charge")
         .def("setCharge", [](OpenMS::EmpiricalFormula& self, int charge) { return self.setCharge(charge); }, "charge"_a, "Sets the charge")
+        .def("addChargeAdduct", [](OpenMS::EmpiricalFormula& self, int count, const std::string& adduct) -> OpenMS::EmpiricalFormula& { return self.addChargeAdduct(count, adduct); }, "count"_a = 1, "adduct"_a = "H", nb::rv_policy::reference_internal, "Makes ionization explicit: adds `count` copies of `adduct` (default: a hydrogen atom) to the formula and resets the charge to zero")
         .def("toString", [](const OpenMS::EmpiricalFormula& self) { return self.toString(); }, "Returns the formula as a string (charges are not included)")
         .def("getElementalComposition", [](const OpenMS::EmpiricalFormula& self) { return self.toMap(); }, "Get elemental composition as a hash {'Symbol' -> NrAtoms}")
         .def(nb::self + nb::self)
@@ -1723,6 +1724,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
         .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
         .value("BJELLQVIST", OpenMS::ProteomicsPkaScale::BJELLQVIST)
+        .value("SIZE_OF_PROTEOMICS_PKA_SCALES", OpenMS::ProteomicsPkaScale::SIZE_OF_PROTEOMICS_PKA_SCALES)
         .export_values();
 
     // IsoelectricPoint
@@ -2072,8 +2074,16 @@ the fixed and variable modifications given to the constructor
         .value("YIon", OpenMS::NASequence::NASFragmentType::YIon)
         .value("ZIon", OpenMS::NASequence::NASFragmentType::ZIon)
         .value("Precursor", OpenMS::NASequence::NASFragmentType::Precursor)
+        .value("BIonMinusH20", OpenMS::NASequence::NASFragmentType::BIonMinusH20)
+        .value("YIonMinusH20", OpenMS::NASequence::NASFragmentType::YIonMinusH20)
+        .value("BIonMinusNH3", OpenMS::NASequence::NASFragmentType::BIonMinusNH3)
+        .value("YIonMinusNH3", OpenMS::NASequence::NASFragmentType::YIonMinusNH3)
+        .value("NonIdentified", OpenMS::NASequence::NASFragmentType::NonIdentified)
+        .value("Unannotated", OpenMS::NASequence::NASFragmentType::Unannotated)
         .value("WIon", OpenMS::NASequence::NASFragmentType::WIon)
+        .value("AminusB", OpenMS::NASequence::NASFragmentType::AminusB)
         .value("DIon", OpenMS::NASequence::NASFragmentType::DIon)
+        .value("SizeOfNASFragmentType", OpenMS::NASequence::NASFragmentType::SizeOfNASFragmentType)
         ;
 
     // -----------------------------------------------------------------------

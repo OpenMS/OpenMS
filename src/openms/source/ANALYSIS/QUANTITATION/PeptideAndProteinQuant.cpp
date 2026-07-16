@@ -594,7 +594,7 @@ namespace OpenMS
     std::string filename = "default";
     if (features.metaValueExists("filename"))
     {
-      filename = File::stemName(features.getMetaValue("filename"));
+      filename = File::stemName(features.getMetaValue("filename").toString());
     }
     else if (!ed.getMSFileSection().empty())
     {

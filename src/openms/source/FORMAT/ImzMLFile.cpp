@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -502,8 +503,9 @@ void ImzMLFile::loadImpl_(const std::string& filename,
   reader->setFeature(xercesc::XMLUni::fgXercesDisableDefaultEntityResolution, true);
   reader->setFeature(xercesc::XMLUni::fgXercesSchema, false);
   reader->setFeature(xercesc::XMLUni::fgXercesSchemaFullChecking, false);
-  reader->setContentHandler(&handler);
-  reader->setErrorHandler(&handler);
+  Internal::SAX2HandlerAdapter adapter(handler);
+  reader->setContentHandler(&adapter);
+  reader->setErrorHandler(&adapter);
 
   try
   {
