@@ -51,6 +51,21 @@ namespace OpenMS
       }
       return td == ProteinHit::TargetDecoyType::TARGET;
     }
+
+    /// Validate target/decoy annotations before entering code that may run in an OpenMP region,
+    /// where exceptions cannot safely propagate back to the caller.
+    void validateTargetDecoyAnnotations_(const IDBoostGraph::Graph& graph)
+    {
+      IDBoostGraph::Graph::vertex_iterator vertex_it, vertex_end;
+      boost::tie(vertex_it, vertex_end) = boost::vertices(graph);
+      for (; vertex_it != vertex_end; ++vertex_it)
+      {
+        if (graph[*vertex_it].which() == 0) // protein
+        {
+          isTargetProteinOrThrow_(boost::get<ProteinHit*>(graph[*vertex_it]));
+        }
+      }
+    }
   }
 
   /// Hasher for sets of uints using boost::hash_range
@@ -969,6 +984,20 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Graph empty. Build it first.");
     }
 
+    // Fail on the caller thread before the component loop enters an OpenMP region. Exceptions
+    // thrown by a worker are not allowed to escape an OpenMP worksharing-loop iteration.
+    if (ccs_.empty())
+    {
+      validateTargetDecoyAnnotations_(g);
+    }
+    else
+    {
+      for (const Graph& component : ccs_)
+      {
+        validateTargetDecoyAnnotations_(component);
+      }
+    }
+
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
 
@@ -1748,4 +1777,3 @@ namespace OpenMS
     }
   }
 }
-

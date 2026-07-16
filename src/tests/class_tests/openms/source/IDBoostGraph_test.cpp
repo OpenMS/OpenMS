@@ -203,7 +203,7 @@ START_TEST(IDBoostGraph, "$Id$")
     }
     END_SECTION
 
-    START_SECTION([EXTRA] getProteinScores_ requires target_decoy)
+    START_SECTION([EXTRA] target_decoy annotations are required)
     {
       vector<ProteinIdentification> prots;
       PeptideIdentificationList peps;
@@ -219,15 +219,24 @@ START_TEST(IDBoostGraph, "$Id$")
         idb.computeConnectedComponents();
         ScoreToTgtDecLabelPairs scores;
         idb.getProteinScores_(scores);
-        TEST_EQUAL(scores.empty(), false)
+        TEST_FALSE(scores.empty())
         bool all_target = true;
         for (const auto& s : scores) { if (s.second != 1.0) { all_target = false; } }
-        TEST_EQUAL(all_target, true)
+        TEST_TRUE(all_target)
       }
 
-      // Negative path: a missing "target_decoy" must now throw MissingInformation instead of
-      // silently being misclassified as a decoy (score label 0).
-      for (auto& ph : prots[0].getHits()) { ph.removeMetaValue("target_decoy"); }
+      // The resolver parallelizes connected components with OpenMP. Missing annotations must be
+      // rejected on the caller thread before an exception can escape a worksharing-loop iteration.
+      {
+        IDBoostGraph idb{prots[0], peps, 1, false, false};
+        idb.computeConnectedComponents();
+        idb.clusterIndistProteinsAndPeptides();
+        for (auto& ph : prots[0].getHits()) { ph.removeMetaValue("target_decoy"); }
+        TEST_EXCEPTION(Exception::MissingInformation, idb.resolveGraphPeptideCentric())
+      }
+
+      // A missing "target_decoy" must throw MissingInformation instead of silently being
+      // misclassified as a decoy (score label 0).
       {
         IDBoostGraph idb{prots[0], peps, 1, false, false};
         idb.computeConnectedComponents();

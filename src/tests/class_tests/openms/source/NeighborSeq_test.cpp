@@ -204,15 +204,17 @@ START_SECTION(bool isNeighborPeptide(const AASequence& neighbor_candidate,
 }
 END_SECTION
 
-START_SECTION([EXTRA] NeighborSeq owns its peptides (construct from a temporary))
+START_SECTION([EXTRA] NeighborSeq owns its moved-in peptides)
 {
-  // the constructor takes std::vector<AASequence>&& and the member now
-  // OWNS the vector (it used to alias the argument via a const-reference, which dangled the
-  // instant a temporary argument's lifetime ended). Constructing from a pure temporary and
-  // querying after the full expression has ended must be safe and correct (UB under the old
-  // reference member; ASan/valgrind would flag a use-after-free).
-  NeighborSeq ns(std::vector<AASequence>{AASequence::fromString("VELQSK"),
-                                         AASequence::fromString("TVDQLK")});
+  std::vector<AASequence> source_peptides{AASequence::fromString("VELQSK"),
+                                          AASequence::fromString("TVDQLK")};
+  NeighborSeq ns(std::move(source_peptides));
+
+  // Reusing the moved-from source must not alter the instance. The old const-reference member
+  // observed these replacement peptides instead of the ones supplied at construction.
+  source_peptides = {AASequence::fromString(std::string(100, 'A')),
+                     AASequence::fromString(std::string(100, 'W'))};
+
   const double pc_tolerance = 0.01;
   const double mz_bin_size = 0.05;
   TEST_TRUE(ns.isNeighborPeptide(AASequence::fromString("VESQLK"), pc_tolerance, false, 0.25, mz_bin_size))

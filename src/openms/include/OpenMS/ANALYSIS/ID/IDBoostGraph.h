@@ -413,6 +413,8 @@ namespace OpenMS
     /// @pre Graph must contain PeptideCluster nodes (e.g. with clusterIndistProteinsAndPeptides).
     /// @param[in] removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
     ///     ID data structure. Only deactivate if you know what you are doing.
+    /// @throws Exception::MissingInformation if a protein hit has no target/decoy annotation.
+    /// @throws Exception::InvalidValue if a protein hit has an unsupported target/decoy annotation.
     void resolveGraphPeptideCentric(bool removeAssociationsInData = true);
 
 
@@ -635,4 +637,3 @@ namespace OpenMS
     bool operator==(const IDBoostGraph::ProteinGroup& lhs, const IDBoostGraph::ProteinGroup& rhs);
   } //namespace Internal
 } //namespace OpenMS
-
