@@ -1,0 +1,105 @@
+name: Weekly OpenMS Patch Release
+
+on:
+  schedule:
+    - cron: '0 3 * * 2' # Runs every Tuesday at 03:00 UTC (4:00 AM CET) 
+  workflow_dispatch: # Allows manual execution from the Actions UI for testing
+
+# Required permissions for pushing commits and tags back to the repo
+permissions:
+  contents: write
+
+jobs:
+  weekly_patch:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repo with full depth to query all branches/tags
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 
+
+      # Step 2: Configure Git identity for commits/tagging
+      - name: Configure Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Step 3: Find the latest release branch & analyze activity since the last tag
+      - name: Analyze release branch and commits
+        id: analyze
+        run: |
+          # Fetch all remote branches and tags to ensure local copy is fully synced
+          git fetch --all --tags --prune
+
+          # 1. Identify the latest release branch (matching pattern releases/vN.M.0)
+          LATEST_BRANCH=$(git branch -r | grep -E 'origin/releases/v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/.*origin\///' | sort -V | tail -n 1)
+
+          if [[ -z "$LATEST_BRANCH" ]]; then
+            echo "::error::No release branches matching 'releases/vN.M.0' found."
+            exit 1
+          fi
+          echo "Latest release branch detected: $LATEST_BRANCH"
+
+          # Track and checkout the latest release branch locally
+          git checkout -b "$LATEST_BRANCH" "origin/$LATEST_BRANCH" || git checkout "$LATEST_BRANCH"
+
+          # 2. Extract MAJOR and MINOR version numbers
+          VERSION_PART=$(echo "$LATEST_BRANCH" | sed -E 's|releases/v||')
+          MAJOR=$(echo "$VERSION_PART" | cut -d. -f1)
+          MINOR=$(echo "$VERSION_PART" | cut -d. -f2)
+
+          # 3. Locate the latest tag matching vMAJOR.MINOR.*
+          LATEST_TAG=$(git tag -l "v$MAJOR.$MINOR.*" | sort -V | tail -n 1)
+
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "No existing tag found for v$MAJOR.$MINOR.*. Defaulting to patch version 0."
+            PATCH=0
+            LATEST_TAG="v$MAJOR.$MINOR.0"
+          else
+            PATCH=$(echo "$LATEST_TAG" | cut -d. -f3)
+            echo "Latest tag found: $LATEST_TAG (current patch version: $PATCH)"
+          fi
+
+          # 4. Check for any commits on this branch since that tag
+          if git rev-parse "$LATEST_TAG" >/dev/null 2>&1; then
+            COMMITS_SINCE_TAG=$(git log "$LATEST_TAG"..HEAD --oneline | wc -l)
+          else
+            # safety net in case tag does not exist for the branch (should not happen though)
+            echo "Tag $LATEST_TAG does not exist. Assuming initial execution."
+            COMMITS_SINCE_TAG=1
+          fi
+
+          if [[ "$COMMITS_SINCE_TAG" -eq 0 ]]; then
+            echo "No new commits found on $LATEST_BRANCH since tag $LATEST_TAG."
+            echo "changes_exist=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found $COMMITS_SINCE_TAG new commit(s) since tag $LATEST_TAG."
+            echo "changes_exist=true" >> $GITHUB_OUTPUT
+            
+            # Set environment variables for the next step
+            NEW_PATCH=$((PATCH + 1))
+            echo "BRANCH_NAME=$LATEST_BRANCH" >> $GITHUB_ENV
+            echo "MAJOR=$MAJOR" >> $GITHUB_ENV
+            echo "MINOR=$MINOR" >> $GITHUB_ENV
+            echo "NEW_PATCH=$NEW_PATCH" >> $GITHUB_ENV
+          fi
+
+      # Step 4: Run the version bump, commit changes, and push the release tag
+      - name: Update version, commit, and tag if necessary
+        if: steps.analyze.outputs.changes_exist == 'true'
+        run: |
+          # 1. Update version numbers using the project's update script
+          bash tools/update_version_numbers.sh "$MAJOR" "$MINOR" "$NEW_PATCH"
+
+          # 2. Commit and push the version updates back to the release branch
+          git add .
+          git commit -m "Bump version to $MAJOR.$MINOR.$NEW_PATCH"
+          git push origin HEAD:"$BRANCH_NAME"
+
+          # 3. Tag the release branch with vN.M.(P+1) and push it
+          NEW_TAG="v$MAJOR.$MINOR.$NEW_PATCH"
+          echo "Tagging and pushing $NEW_TAG..."
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"
+
