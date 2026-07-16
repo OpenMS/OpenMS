@@ -156,7 +156,6 @@ NB_MODULE(_pyopenms_qc, m) {
         .def("__copy__",     [](const OpenMS::TIC& self) { return self; })
         .def("__deepcopy__", [](const OpenMS::TIC& self, nb::dict&) { return self; }, "memo"_a)
         .def("compute",    &OpenMS::TIC::compute, "exp"_a, "bin_size"_a = 0.0f, "ms_level"_a = 1)
-        .def("getResults", &OpenMS::TIC::getResults, nb::rv_policy::reference_internal)
         .def("addMetaDataMetricsToMzTab", &OpenMS::TIC::addMetaDataMetricsToMzTab, "meta"_a, "tics"_a)
         ;
 
@@ -304,6 +303,9 @@ NB_MODULE(_pyopenms_qc, m) {
 
     auto dbs_cls = nb::class_<OpenMS::DBSuitability>(m, "DBSuitability")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::DBSuitability&>())
+        .def("__copy__",     [](const OpenMS::DBSuitability& self) { return self; })
+        .def("__deepcopy__", [](const OpenMS::DBSuitability& self, nb::dict&) { return self; }, "memo"_a)
         // compute takes PeptideIdentificationList&&; copy in Python, move in C++
         .def("compute",
              [](OpenMS::DBSuitability& self,

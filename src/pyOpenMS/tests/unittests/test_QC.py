@@ -1,7 +1,7 @@
 """Smoke tests for OpenMS Quality Control (QC) Python bindings.
 
-Run directly (from OUTSIDE the source tree to avoid shadowing):
-    PYTHONPATH=/path/to/OpenMS-build/pyOpenMS python3 src/pyOpenMS/tests/unittests/test_QC.py
+Run directly (from /tmp to avoid shadowing):
+    cd /tmp && PYTHONPATH=/path/to/OpenMS-build/pyOpenMS python3 /path/to/OpenMS/src/pyOpenMS/tests/unittests/test_QC.py
 """
 
 import copy
@@ -186,6 +186,15 @@ def test_db_suitability_empty_results():
     assert len(db.getResults()) == 0
 
 
+def test_db_suitability_copy():
+    """DBSuitability should support copy and deepcopy."""
+    db = oms.DBSuitability()
+    db2 = copy.copy(db)
+    db3 = copy.deepcopy(db)
+    assert len(db2.getResults()) == 0
+    assert len(db3.getResults()) == 0
+
+
 def test_db_suitability_data_defaults():
     """DBSuitabilityData fields should have correct defaults."""
     data = oms.DBSuitabilityData()
@@ -194,11 +203,12 @@ def test_db_suitability_data_defaults():
     assert data.suitability == 0.0
 
 
+
 def test_feature_summary_requirements():
-    """FeatureSummary should require POSTFDRFEAT."""
+    """FeatureSummary should require PREFDRFEAT."""
     fs = oms.FeatureSummary()
     req = fs.requirements()
-    assert req.isSuperSetOf(oms.QCBaseRequires.POSTFDRFEAT)
+    assert req.isSuperSetOf(oms.QCBaseRequires.PREFDRFEAT)
 
 
 def test_feature_summary_result_defaults():
@@ -277,6 +287,7 @@ if __name__ == "__main__":
         test_fragment_mass_error_statistics_defaults,
         test_contaminants_empty_results,
         test_db_suitability_empty_results,
+        test_db_suitability_copy,
         test_db_suitability_data_defaults,
         test_feature_summary_requirements,
         test_feature_summary_result_defaults,
