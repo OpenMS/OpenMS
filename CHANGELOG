@@ -108,6 +108,7 @@ General:
   - Perf: PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_() now uses a precomputed std::map<(stemName,label),sample_id> (O(log n) lookup per call) instead of a per-call linear scan over the MS file section with heap-allocating string operations; fixes IsobaricWorkflow/ProteinQuantifier/ProteomicsLFQ hanging for hours at "Quantifying peptides" on large isobaric experiments (e.g. 600 files × 18 channels → ~10¹¹ allocating string comparisons); results are bit-for-bit identical (#9672)
   - TOPPView and TOPPAS now forward generic Qt command line options (e.g. '-style <style>', '-stylesheet <file>', '-platform ...') to Qt instead of aborting with "Unknown option(s)"; the QApplication is constructed before the unknown-option check so Qt can consume and remove its own arguments first (fixes #4963)
   - TOPPView: each MS2 precursor's isolation window (start/end) is now drawn as a dashed line in the 2D view; precursor markers are selectable and display RT, m/z, and charge (#9715)
+  - Cleanup: removed the orphaned share/OpenMS/TOOLS/EXTERNAL .ttd tree, the ten R helper scripts only reachable through it, and the dead ToolHandler::getExternalToolsPath() accessor; all were vestigial after GenericWrapper's removal in #8981 and were no longer scanned or invoked at runtime, but were still shipped to users via the blanket share/OpenMS install rule. ToolDescriptionFile (.ttd) parsing itself remains live for TOOLS/INTERNAL (#9735)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -585,6 +586,7 @@ Documentation:
   - Test creation documentation updated with modern test file template (#8548)
   - GNU/Linux source build docs: added a clang-specific note on installing the OpenMP runtime and development headers (with the common Debian/Ubuntu package name), with a pointer from the general GNU/Linux source-build page to the compiler-specific notes (#9162)
   - TextExporter: documented the existing USI export column (id:add_usi) for featureXML, consensusXML, and idXML peptide-identification output (#9173)
+  - Documented the .NET 8 runtime requirement for native Thermo .raw file reading via the openms-thermo-bridge, covering installation and DOTNET_ROOT configuration on Linux, macOS, and Windows (incl. the Linux/aarch64 platform limitation and the distinction from the .NET Framework 3.5 required by ProteoWizard); OPENMS_THERMO_BRIDGE CMake option documentation expanded accordingly (#9736)
 
 Build System:
   - macOS notarization with timestamping integrated into CI (#8486, #8494, #8527)
