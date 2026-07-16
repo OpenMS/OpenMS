@@ -205,6 +205,54 @@ START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not dupl
 }
 END_SECTION
 
+START_SECTION([EXTRA] writePQPOutput_ is safe against SQL injection in library string fields)
+{
+  // Regression test for the SQL-injection class of bug fixed in GH #9730 / #9734:
+  // TransitionPQPFile concatenated untrusted library string fields (compound name,
+  // SMILES, sum formula, adducts, peptide id, group label, protein accession, ...)
+  // directly into INSERT statements executed via sqlite3_exec, with no binding or
+  // escaping. A value containing a single quote breaks the statement, and a crafted
+  // value can inject arbitrary SQL.
+  const std::string evil = "o'brien'); DROP TABLE COMPOUND;--";
+
+  TargetedExperiment targeted_exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML"), targeted_exp);
+
+  // Inject the evil string into a free-text (non-reference) compound field so that
+  // all internal references stay valid and only the SQL write path is exercised.
+  auto compounds = targeted_exp.getCompounds();
+  TEST_FALSE(compounds.empty())
+  const Size n_compounds = compounds.size();
+  compounds[0].smiles_string = evil;
+  targeted_exp.setCompounds(compounds);
+
+  std::string pqp_file;
+  NEW_TMP_FILE(pqp_file);
+
+  TransitionPQPFile pqp;
+  // With the old concatenating writer this throws (the single quote produces
+  // malformed SQL that sqlite3_exec rejects); with the parameterized fix the
+  // write must simply succeed.
+  pqp.convertTargetedExperimentToPQP(pqp_file.c_str(), targeted_exp);
+
+  // If the injected "DROP TABLE COMPOUND" had executed, the table would be gone and
+  // countTableRows() would throw; every compound must still be present.
+  SqliteConnector conn(pqp_file);
+  TEST_EQUAL(conn.countTableRows("COMPOUND"), n_compounds)
+
+  // The value must round-trip verbatim: read the library back and confirm the
+  // injected string is preserved as data, not parsed as SQL or silently mangled.
+  OpenSwath::LightTargetedExperiment light_exp;
+  pqp.convertPQPToTargetedExperiment(pqp_file.c_str(), light_exp, true);
+  bool value_survived = false;
+  for (const auto& c : light_exp.compounds)
+  {
+    if (c.smiles == evil) { value_survived = true; break; }
+  }
+  TEST_TRUE(value_survived)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
