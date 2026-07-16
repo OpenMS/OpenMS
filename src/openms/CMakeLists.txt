@@ -340,7 +340,14 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
+install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
+  DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
+  RENAME OpenMS-BSD-3-Clause.txt
+  COMPONENT share
+)
+if(INSTALL_OPENMS_EXAMPLES)
+  install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
+endif()
 
 # Devs also need our custom find modules
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)

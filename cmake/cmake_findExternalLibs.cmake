@@ -673,7 +673,8 @@ if (WITH_THERMO_RAW)
       if(EXISTS "${_openms_thermo_license_file}")
         install(FILES "${_openms_thermo_license_file}"
                 DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
-                RENAME "ThermoRawFileReader-License.doc")
+                RENAME "ThermoRawFileReader-License.doc"
+                COMPONENT share)
       endif()
     endif()
   endif()
