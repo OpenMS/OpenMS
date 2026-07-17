@@ -225,6 +225,10 @@ public:
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
     static std::string getOpenMSDataPath();
 
+    /// Returns a human-readable description of where getOpenMSDataPath() resolved from
+    /// (e.g. "the executable location (../share/OpenMS)"). Useful for diagnostics.
+    static const std::string& getOpenMSDataPathSource();
+
     /// Returns the OpenMS home path (environment variable overwrites the default home path)
     static std::string getOpenMSHomePath();
 
@@ -369,9 +373,6 @@ private:
 
     /// Resolve (once, thread-safe) and return the OpenMS data path together with where it was found.
     static const OpenMSDataPath_& resolveOpenMSDataPath_();
-
-    /// Human-readable description of where getOpenMSDataPath() was resolved from (for diagnostics in error messages).
-    static const std::string& getOpenMSDataPathSource_();
 
 #ifdef OPENMS_WINDOWSPLATFORM
     /**

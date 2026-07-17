@@ -500,7 +500,7 @@ namespace OpenMS
     //if the file was not found, throw an exception that also points at the resolved data path
     //(this is the usual culprit for missing standard share/OpenMS files, e.g. a stale OPENMS_DATA_PATH)
     const std::string hint = "OpenMS searched its shared-data directory '" + getOpenMSDataPath()
-      + "' (resolved from " + getOpenMSDataPathSource_() + "). "
+      + "' (resolved from " + getOpenMSDataPathSource() + "). "
       + "If this is a wrong or outdated OpenMS installation, set the OPENMS_DATA_PATH environment variable "
       + "to the matching '.../share/OpenMS' directory, or unset it if it points to a stale location";
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, hint);
@@ -595,18 +595,12 @@ namespace OpenMS
 
       std::string found_path_from;
       bool from_env(false);
-      if (getenv("OPENMS_DATA_PATH") != nullptr)
-      {
-        path = getenv("OPENMS_DATA_PATH");
-        from_env = true;
-        path_checked = isOpenMSDataPath_(path);
-        if (path_checked)
-        {
-          found_path_from = "the OPENMS_DATA_PATH environment variable";
-        }
-      }
 
-      // probe the install path
+  #if !defined(OPENMS_WINDOWSPLATFORM)
+      // Probe the compiled-in install path (baked to CMAKE_INSTALL_PREFIX at build time).
+      // Skipped on Windows: CMake's default prefix bakes to the wrong "(x86)/OpenMS_host"
+      // tree, which never matches the real 64-bit install dir and could pick up an
+      // unrelated OpenMS installation. On Linux/macOS the baked prefix is genuinely correct.
       if (!path_checked)
       {
         path = OPENMS_INSTALL_DATA_PATH;
@@ -616,8 +610,9 @@ namespace OpenMS
           found_path_from = "the compiled-in installation path (OPENMS_INSTALL_DATA_PATH)";
         }
       }
+  #endif
 
-      // probe the OPENMS_DATA_PATH macro
+      // probe the OPENMS_DATA_PATH macro (compiled-in build path; used by devs/CI in the build tree)
       if (!path_checked)
       {
         path = OPENMS_DATA_PATH;
@@ -635,7 +630,10 @@ namespace OpenMS
       }
   #endif
 
-      // On Linux and Apple check relative from the executable
+      // Probe relative to the executable (../share/OpenMS).
+      // For installed builds this is the deterministic source of truth: it resolves from the
+      // binary's own location, so a stale OPENMS_DATA_PATH from an old or side-by-side install
+      // cannot hijack data resolution.
       if (!path_checked)
       {
         path = getExecutablePath() + "../share/OpenMS";
@@ -643,6 +641,22 @@ namespace OpenMS
         if (path_checked)
         {
           found_path_from = "the executable location (../share/OpenMS)";
+        }
+      }
+
+      // Finally, fall back to the OPENMS_DATA_PATH environment variable.
+      // Probed LAST so installed tools resolve deterministically from the binary location and a
+      // stale/leftover OPENMS_DATA_PATH cannot override it. pyOpenMS still relies on this: there
+      // the executable is python.exe, the exe-relative probe fails, and resolution falls through
+      // to the env var pyOpenMS sets itself in __init__.py.
+      if (!path_checked && getenv("OPENMS_DATA_PATH") != nullptr)
+      {
+        path = getenv("OPENMS_DATA_PATH");
+        from_env = true;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked)
+        {
+          found_path_from = "the OPENMS_DATA_PATH environment variable";
         }
       }
 
@@ -677,7 +691,7 @@ namespace OpenMS
     return resolveOpenMSDataPath_().path;
   }
 
-  const std::string& File::getOpenMSDataPathSource_()
+  const std::string& File::getOpenMSDataPathSource()
   {
     return resolveOpenMSDataPath_().source;
   }
