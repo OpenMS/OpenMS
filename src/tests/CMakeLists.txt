@@ -11,9 +11,21 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_tests")
 
 option(ENABLE_STYLE_TESTING "Enables checking of code convention violations (cpplint) and static code analysis (cppchecker). Note that this will disable the regular test system." OFF)
-option(ENABLE_TOPP_TESTING "Enables tests for TOPP. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
+set(_openms_topp_testing_default ON)
+if(DEFINED BUILD_TOPP_TOOLS)
+  set(_openms_topp_testing_default ${BUILD_TOPP_TOOLS})
+endif()
+option(ENABLE_TOPP_TESTING "Enables tests for TOPP. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ${_openms_topp_testing_default})
 option(ENABLE_CLASS_TESTING "Enables tests for library classes. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
-option(ENABLE_PIPELINE_TESTING "Enables the additional testing of various TOPPAS pipelines when 'make test' is called." ON)
+option(ENABLE_PIPELINE_TESTING "Enables the additional testing of various TOPPAS pipelines when 'make test' is called." ${_openms_topp_testing_default})
+unset(_openms_topp_testing_default)
+
+if(DEFINED BUILD_TOPP_TOOLS
+   AND NOT BUILD_TOPP_TOOLS
+   AND (ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING))
+  message(FATAL_ERROR
+    "ENABLE_TOPP_TESTING and ENABLE_PIPELINE_TESTING require BUILD_TOPP_TOOLS to be ON.")
+endif()
 
 #------------------------------------------------------------------------------
 # we only test if we have no package target
