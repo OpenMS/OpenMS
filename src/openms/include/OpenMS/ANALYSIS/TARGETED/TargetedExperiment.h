@@ -176,6 +176,7 @@ public:
 
     const std::vector<Protein> & getProteins() const;
 
+    /// @throw Exception::ElementNotFound if no protein with the given @p ref exists
     const Protein & getProteinByRef(const std::string & ref) const;
 
     bool hasProtein(const std::string & ref) const;
@@ -196,10 +197,12 @@ public:
 
     bool hasPeptide(const std::string & ref) const;
 
+    /// @throw Exception::ElementNotFound if no peptide with the given @p ref exists
     const Peptide & getPeptideByRef(const std::string & ref) const;
 
     bool hasCompound(const std::string & ref) const;
 
+    /// @throw Exception::ElementNotFound if no compound with the given @p ref exists
     const Compound & getCompoundByRef(const std::string & ref) const;
 
     void addPeptide(const Peptide & rhs);
