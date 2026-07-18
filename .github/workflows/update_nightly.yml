@@ -57,36 +57,58 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
 
     - name: Call CI
+      id: call_ci
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
-      run: |
-        gh workflow run openms-ci-full --ref nightly
+      continue-on-error: true
+      run: .github/workflows/scripts/dispatch_with_retry.sh openms-ci-full nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Build Develop for cache
+      id: build_cache
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
-      run: |
-        gh workflow run openms-ci-full --ref develop
+      continue-on-error: true
+      run: .github/workflows/scripts/dispatch_with_retry.sh openms-ci-full develop
       env:
         GH_TOKEN: ${{ github.token }}
-        
+
     - name: Build wheels
+      id: build_wheels
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
-      run: |
-        gh workflow run pyopenms-wheels-cibuildwheel --ref nightly
+      continue-on-error: true
+      run: .github/workflows/scripts/dispatch_with_retry.sh pyopenms-wheels-cibuildwheel nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Deploy to Bioconda
+      id: deploy_bioconda
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
-      run: |
-        gh workflow run "Deploy to Bioconda" --ref nightly
+      continue-on-error: true
+      run: .github/workflows/scripts/dispatch_with_retry.sh "Deploy to Bioconda" nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Deploy container images
+      id: deploy_containers
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
-      run: |
-        gh workflow run containerdeploy.yml --ref nightly
+      continue-on-error: true
+      run: .github/workflows/scripts/dispatch_with_retry.sh containerdeploy.yml nightly
       env:
         GH_TOKEN: ${{ github.token }}
+
+    - name: Verify all downstream workflow dispatches succeeded
+      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
+      run: |
+        status=0
+        check() {
+          if [ "$2" != "success" ]; then
+            echo "::error::Failed to trigger '$1' after retries"
+            status=1
+          fi
+        }
+        check "openms-ci-full (nightly)"                "${{ steps.call_ci.outcome }}"
+        check "openms-ci-full (develop)"                "${{ steps.build_cache.outcome }}"
+        check "pyopenms-wheels-cibuildwheel (nightly)"   "${{ steps.build_wheels.outcome }}"
+        check "Deploy to Bioconda (nightly)"             "${{ steps.deploy_bioconda.outcome }}"
+        check "Deploy container images (nightly)"        "${{ steps.deploy_containers.outcome }}"
+        exit $status
