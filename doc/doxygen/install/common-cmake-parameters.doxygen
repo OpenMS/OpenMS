@@ -45,6 +45,20 @@ The most important CMake variables are:
     not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
   </tr>
   <tr>
+    <th valign="top">BUILD_TOPP_TOOLS=On/Off</td>
+    <td>Defines if the TOPP command-line tools should be built. Set to "Off" together
+    with <code>INSTALL_OPENMS_EXAMPLES=Off</code> to build and install only the core
+    OpenMS SDK (library and headers) without the TOPP tools. Requires
+    <code>ENABLE_CWL_GENERATION=Off</code> and <code>ENABLE_PREPARE_KNIME_PACKAGE=Off</code>;
+    <code>ENABLE_TOPP_TESTING</code>/<code>ENABLE_PIPELINE_TESTING</code> default to
+    following this flag. (Default: On)</td>
+  </tr>
+  <tr>
+    <th valign="top">INSTALL_OPENMS_EXAMPLES=On/Off</td>
+    <td>Defines if the OpenMS example data should be installed. Set to "Off" for a
+    smaller, core-only SDK install. (Default: On)</td>
+  </tr>
+  <tr>
     <th valign="top">WITH_OPENTIMS=On/Off</td>
     <td>Enables support for reading Bruker TimsTOF <code>.d</code> directories
     directly (without prior conversion to mzML) via the

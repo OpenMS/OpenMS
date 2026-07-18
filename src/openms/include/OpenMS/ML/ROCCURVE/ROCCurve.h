@@ -68,8 +68,8 @@ public:
       /// returns -1 if there are not enough positives
       double cutoffPos(double fraction = 0.95);
 
-      /// returns the score at which you would need to set a cutoff to have fraction positives
-      /// returns -1 if there are not enough positives
+      /// returns the score at which you would need to set a cutoff to have fraction negatives
+      /// returns -1 if there are not enough negatives
       double cutoffNeg(double fraction = 0.95);
 
       // @}
