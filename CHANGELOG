@@ -84,6 +84,15 @@ General:
   - Removed the unregistered developer runners under src/tests/topp/ProteomicsLFQTestScripts,
     which no CTest target ran (run_lfq.sh and run_BSA.sh were additionally hardwired to personal
     machine paths), and the ProteomicsLFQ documentation line that pointed to them (#9945)
+  - Cleanup: pruned share/OpenMS/SCHEMAS from 62 to 23 XSD files, keeping only the schemas OpenMS
+    actually loads at runtime (the current version each format's *File class validates against when
+    isValid() is called, their <xs:include> closure, the four auto-detected mzIdentML versions, and
+    Param_1_7_0 used for CTD/CWL export). The 39 removed files (superseded format versions plus the
+    never-loaded CvMapping, CTD_0_3, qcML_0.0.7, mzQCML_0_0_5 and mzQuantML_1_0_0-rc2) remain
+    available from the release/3.5.0 tag; a new SCHEMAS/README.md documents what is kept and where
+    the archived schemas live. Also fixed two dangling schema references that pointed at
+    non-existent files: QcMLFile (qcml.xsd) and PepXMLFileMascot (PepXML_1_8.xsd) now declare no
+    bundled schema. Normal file reading/writing is unaffected (#9757)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
