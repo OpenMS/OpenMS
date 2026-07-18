@@ -1,4 +1,4 @@
-name: openms-ci-windows-test
+name: FOR_TESTING_build_test_deploy_windows
 
 on:
   workflow_dispatch:
