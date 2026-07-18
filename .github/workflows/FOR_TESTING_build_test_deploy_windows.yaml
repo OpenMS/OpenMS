@@ -1,4 +1,4 @@
-name: FOR_TESTING_build_test_deploy_windows
+name: openms-ci-windows-test
 
 on:
   workflow_dispatch:
@@ -70,9 +70,11 @@ jobs:
         ENABLE_STYLE_TESTING: "OFF"
         ENABLE_TOPP_TESTING: "ON"
         ENABLE_CLASS_TESTING: "ON"
-        ENABLE_DOCS: "OFF"
+        ENABLE_DOCS: "ON"
         ENABLE_GCC_WERROR: "OFF"
         ENABLE_CWL: "ON"
+        PYOPENMS: "OFF"
+        NO_DEPENDENCIES: "ON"
         SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
         WITH_GUI: "ON"
         SIGNING_IDENTITY: "-"
@@ -121,8 +123,12 @@ jobs:
         SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
         CI_PROVIDER: "GitHub-Actions"
         BUILD_NAME: "windows-test-${{ github.run_number }}"
-        SIGNING_IDENTITY: "-"
+        SIGNING_IDENTITY: "Developer ID Application: OpenMS Inc. (C64UCGJ5PL)"
+        SIGNING_EMAIL: "apple@openms.de"
+        CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
         USE_EXTERNAL_JSON: "OFF"
+        USE_EXTERNAL_SQLITECPP: "OFF"
+        USE_EXTERNAL_SIMDE: "OFF"
 
     - name: Upload installer as artifact
       uses: actions/upload-artifact@v7
