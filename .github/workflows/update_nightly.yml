@@ -59,34 +59,34 @@ jobs:
     - name: Call CI
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run openms-ci-full --ref nightly
+        .github/scripts/gh_dispatch_retry.sh openms-ci-full nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Build Develop for cache
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run openms-ci-full --ref develop
+        .github/scripts/gh_dispatch_retry.sh openms-ci-full develop
       env:
         GH_TOKEN: ${{ github.token }}
-        
+
     - name: Build wheels
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run pyopenms-wheels-cibuildwheel --ref nightly
+        .github/scripts/gh_dispatch_retry.sh pyopenms-wheels-cibuildwheel nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Deploy to Bioconda
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run "Deploy to Bioconda" --ref nightly
+        .github/scripts/gh_dispatch_retry.sh "Deploy to Bioconda" nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Deploy container images
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run containerdeploy.yml --ref nightly
+        .github/scripts/gh_dispatch_retry.sh containerdeploy.yml nightly
       env:
         GH_TOKEN: ${{ github.token }}
