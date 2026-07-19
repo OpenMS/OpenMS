@@ -121,7 +121,7 @@ START_SECTION(([EXTRA] read mzIdentML Modification without the optional location
   PeptideIdentificationList peptide_ids;
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_missing_mod_location.mzid"), protein_ids, peptide_ids);
 
-  ABORT_IF(peptide_ids.size() != 4)
+  ABORT_IF(peptide_ids.size() != 5)
   for (Size i = 0; i < peptide_ids.size(); ++i)
   {
     ABORT_IF(peptide_ids[i].getHits().empty())
@@ -150,6 +150,12 @@ START_SECTION(([EXTRA] read mzIdentML Modification without the optional location
   // 4) Control: a regular internal modification WITH a valid 'location' is still parsed correctly
   const AASequence& carbamidomethyl_seq = peptide_ids[3].getHits()[0].getSequence();
   TEST_EQUAL(carbamidomethyl_seq.toString(), "PEPTIDEC(Carbamidomethyl)K")
+
+  // 5) Acetyl without 'location' but with residues="K" -> residue-specific (internal), position unknown,
+  //    so it is skipped rather than forced onto the N-terminus even though Acetyl supports the N-terminus
+  const AASequence& acetyl_on_k_seq = peptide_ids[4].getHits()[0].getSequence();
+  TEST_EQUAL(acetyl_on_k_seq.toUnmodifiedString(), "PEPTIKDE")
+  TEST_EQUAL(acetyl_on_k_seq.isModified(), false)
 }
 END_SECTION
 

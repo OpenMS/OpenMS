@@ -131,7 +131,9 @@ protected:
       /// Best-effort inference of a modification's mzIdentML @c location (0 = N-terminus, @p peptide_length + 1 = C-terminus)
       /// for the case where the optional @c location attribute is absent. The position is derived from the terminal
       /// specificity of the referenced modification(s) in the ModificationsDB. Returns -1 if no unique terminal
-      /// position can be inferred (e.g. for a modification that may also occur internally).
+      /// position can be inferred, i.e. when the modification may also occur internally, or when the @c Modification
+      /// names a concrete @c residues amino acid (a residue-specific/internal modification whose exact position is
+      /// unknown without @c location).
       SignedSize inferModificationLocation_(xercesc::DOMElement* modification_element, Size peptide_length) const;
       void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
       void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);

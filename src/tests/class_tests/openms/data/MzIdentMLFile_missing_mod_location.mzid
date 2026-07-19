@@ -49,10 +49,19 @@
 			<cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl" value=""/>
 		</Modification>
 	</Peptide>
+	<!-- Acetyl WITHOUT 'location' but WITH residues="K": residue-specific (internal) even though Acetyl
+	     supports the N-terminus, so the exact position is unknown and it must be skipped, not forced N-terminal -->
+	<Peptide id="PEP_acetyl_on_K">
+		<PeptideSequence>PEPTIKDE</PeptideSequence>
+		<Modification residues="K" monoisotopicMassDelta="42.010565">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:1" name="Acetyl" value=""/>
+		</Modification>
+	</Peptide>
 	<PeptideEvidence id="PEV_acetyl" peptide_ref="PEP_acetyl" dBSequence_ref="DBS_1" post="P" pre="-" isDecoy="0"/>
 	<PeptideEvidence id="PEV_oxidation" peptide_ref="PEP_oxidation" dBSequence_ref="DBS_1" post="P" pre="K" isDecoy="0"/>
 	<PeptideEvidence id="PEV_amidated" peptide_ref="PEP_amidated" dBSequence_ref="DBS_1" post="C" pre="M" isDecoy="0"/>
 	<PeptideEvidence id="PEV_carbamidomethyl" peptide_ref="PEP_carbamidomethyl" dBSequence_ref="DBS_1" post="X" pre="R" isDecoy="0"/>
+	<PeptideEvidence id="PEV_acetyl_on_K" peptide_ref="PEP_acetyl_on_K" dBSequence_ref="DBS_1" post="R" pre="K" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
 	<SpectrumIdentification id="SI_1" spectrumIdentificationProtocol_ref="SIP_1" spectrumIdentificationList_ref="SIL_1" activityDate="2006-01-12T12:13:14">
@@ -128,6 +137,13 @@
 					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.04"/>
 				</SpectrumIdentificationItem>
 				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="40.0"/>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_1" spectrumID="index=5" id="SIR_5">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_acetyl_on_K" calculatedMassToCharge="500.0" experimentalMassToCharge="500.0" chargeState="2" id="SII_5">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_acetyl_on_K"/>
+					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.05"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="50.0"/>
 			</SpectrumIdentificationResult>
 		</SpectrumIdentificationList>
 	</AnalysisData>

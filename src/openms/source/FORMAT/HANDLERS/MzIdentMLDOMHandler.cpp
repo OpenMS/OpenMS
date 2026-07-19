@@ -2388,6 +2388,20 @@ namespace OpenMS::Internal
       // is only assigned for modifications that are *exclusively* C-terminal: a modification that may also
       // sit on an internal residue (e.g. Oxidation, which has a rare 'Any C-term' variant next to its common
       // 'Anywhere' ones) has a genuinely unknown position when 'location' is missing and is left unassigned.
+
+      // A location-less modification that names a concrete residue (mzIdentML 'residues' attribute, e.g.
+      // "K") is residue-specific, not terminal: even knowing the residue type, its exact position is still
+      // unknown without 'location' (the residue may occur several times), so we must not force it onto a
+      // terminus. Only the terminus marker "." (or an absent/empty value) is compatible with terminal
+      // placement. This matches real data: in mzIdentML from Mascot (and search engines generally) internal
+      // modifications carry residues="<AA>", while the terminal modifications for which 'location' is
+      // sometimes dropped carry residues="." or no 'residues' attribute at all.
+      const std::string residues = StringManager::convert(modification_element->getAttribute(CONST_XMLCH("residues")));
+      if (!residues.empty() && residues != ".")
+      {
+        return -1;
+      }
+
       const ModificationsDB* mod_db = ModificationsDB::getInstance();
       for (DOMElement* cvp = modification_element->getFirstElementChild(); cvp != nullptr; cvp = cvp->getNextElementSibling())
       {
