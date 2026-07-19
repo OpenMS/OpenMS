@@ -130,21 +130,21 @@ START_SECTION(([EXTRA] read mzIdentML Modification without the optional location
   // 1) N-terminal Acetyl without 'location' -> inferred as N-terminal
   const AASequence& acetyl_seq = peptide_ids[0].getHits()[0].getSequence();
   TEST_EQUAL(acetyl_seq.toUnmodifiedString(), "PEPTIDEK")
-  TEST_EQUAL(acetyl_seq.hasNTerminalModification(), true)
-  TEST_EQUAL(acetyl_seq.hasCTerminalModification(), false)
+  TEST_TRUE(acetyl_seq.hasNTerminalModification())
+  TEST_FALSE(acetyl_seq.hasCTerminalModification())
   TEST_EQUAL(acetyl_seq.getNTerminalModificationName(), "Acetyl")
 
   // 2) Oxidation without 'location' -> position not uniquely terminal -> skipped (but no crash and no misplacement)
   const AASequence& oxidation_seq = peptide_ids[1].getHits()[0].getSequence();
   TEST_EQUAL(oxidation_seq.toUnmodifiedString(), "PEPTIDEM")
-  TEST_EQUAL(oxidation_seq.isModified(), false)
+  TEST_FALSE(oxidation_seq.isModified())
   TEST_EQUAL(oxidation_seq.toString(), "PEPTIDEM")
 
   // 3) Amidated without 'location' -> exclusively C-terminal -> inferred as C-terminal
   const AASequence& amidated_seq = peptide_ids[2].getHits()[0].getSequence();
   TEST_EQUAL(amidated_seq.toUnmodifiedString(), "PEPTIDER")
-  TEST_EQUAL(amidated_seq.hasCTerminalModification(), true)
-  TEST_EQUAL(amidated_seq.hasNTerminalModification(), false)
+  TEST_TRUE(amidated_seq.hasCTerminalModification())
+  TEST_FALSE(amidated_seq.hasNTerminalModification())
   TEST_EQUAL(amidated_seq.getCTerminalModificationName(), "Amidated")
 
   // 4) Control: a regular internal modification WITH a valid 'location' is still parsed correctly
@@ -155,7 +155,7 @@ START_SECTION(([EXTRA] read mzIdentML Modification without the optional location
   //    so it is skipped rather than forced onto the N-terminus even though Acetyl supports the N-terminus
   const AASequence& acetyl_on_k_seq = peptide_ids[4].getHits()[0].getSequence();
   TEST_EQUAL(acetyl_on_k_seq.toUnmodifiedString(), "PEPTIKDE")
-  TEST_EQUAL(acetyl_on_k_seq.isModified(), false)
+  TEST_FALSE(acetyl_on_k_seq.isModified())
 }
 END_SECTION
 
