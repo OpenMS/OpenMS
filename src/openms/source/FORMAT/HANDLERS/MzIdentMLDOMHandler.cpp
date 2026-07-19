@@ -2375,6 +2375,68 @@ namespace OpenMS::Internal
 //      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
     }
 
+    SignedSize MzIdentMLDOMHandler::inferModificationLocation_(DOMElement* modification_element, Size peptide_length) const
+    {
+      // The 'location' attribute of a <Modification> is optional in mzIdentML (schema use="optional").
+      // Several search engines omit it for terminal modifications. As a best-effort recovery, look up the
+      // referenced modification(s) in the ModificationsDB and derive the position from their terminal
+      // specificity: 0 for the N-terminus or peptide_length + 1 for the C-terminus. Returns -1 if no
+      // terminal position can be inferred.
+      //
+      // The N-terminus is preferred because N-terminal modifications (e.g. acetylation, the case reported
+      // in #5443) are by far the most common ones for which producers drop the 'location'. The C-terminus
+      // is only assigned for modifications that are *exclusively* C-terminal: a modification that may also
+      // sit on an internal residue (e.g. Oxidation, which has a rare 'Any C-term' variant next to its common
+      // 'Anywhere' ones) has a genuinely unknown position when 'location' is missing and is left unassigned.
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
+      for (DOMElement* cvp = modification_element->getFirstElementChild(); cvp != nullptr; cvp = cvp->getNextElementSibling())
+      {
+        const std::string mod_name = StringManager::convert(cvp->getAttribute(CONST_XMLCH("name")));
+        // guard with has() first: searchModifications() would otherwise log a "not found" warning for
+        // non-modification cvParams (e.g. neutral loss terms) that legitimately appear as children here.
+        if (mod_name.empty() || !mod_db->has(mod_name))
+        {
+          continue;
+        }
+
+        std::set<const ResidueModification*> mods;
+        mod_db->searchModifications(mods, mod_name);
+
+        bool can_be_n_terminal = false; // has an N_TERM / PROTEIN_N_TERM variant
+        bool can_be_c_terminal = false; // has a  C_TERM / PROTEIN_C_TERM variant
+        bool can_be_internal = false;   // has an ANYWHERE variant (i.e. may sit on an internal residue)
+        for (const ResidueModification* mod : mods)
+        {
+          switch (mod->getTermSpecificity())
+          {
+            case ResidueModification::N_TERM:
+            case ResidueModification::PROTEIN_N_TERM:
+              can_be_n_terminal = true;
+              break;
+            case ResidueModification::C_TERM:
+            case ResidueModification::PROTEIN_C_TERM:
+              can_be_c_terminal = true;
+              break;
+            case ResidueModification::ANYWHERE:
+              can_be_internal = true;
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (can_be_n_terminal)
+        {
+          return 0; // N-terminus
+        }
+        if (can_be_c_terminal && !can_be_internal)
+        {
+          return static_cast<SignedSize>(peptide_length) + 1; // C-terminus (only if not also internal)
+        }
+      }
+      return -1; // position could not be inferred
+    }
+
     AASequence MzIdentMLDOMHandler::parsePeptideSiblings_(DOMElement* peptide)
     {
       DOMNodeList* peptideSiblings = peptide->getChildNodes();
@@ -2446,14 +2508,36 @@ namespace OpenMS::Internal
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if (XMLString::equals(element_sib->getTagName(), CONST_XMLCH("Modification")))
           {
-            SignedSize index = -2;
-            try
+            // 'location' is optional in mzIdentML: the 1-based position of the modified residue,
+            // with 0 = N-terminus and (peptide length + 1) = C-terminus.
+            const std::string location_str = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("location")));
+            SignedSize index = -2; // sentinel: no valid location determined (yet)
+            if (!location_str.empty())
             {
-              index = static_cast<SignedSize>(StringUtils::toInt32(StringManager::convert(element_sib->getAttribute(CONST_XMLCH("location")))));
+              try
+              {
+                index = static_cast<SignedSize>(StringUtils::toInt32(location_str));
+              }
+              catch (...)
+              {
+                OPENMS_LOG_WARN << "Found unreadable modification location '" << location_str << "'." << endl;
+              }
             }
-            catch (...)
+
+            // Some search engines omit 'location' for terminal modifications (e.g. N-terminal acetylation).
+            // Previously the missing/invalid location left 'index' at a negative sentinel, which was then used
+            // as an (invalid) residue position and crashed the reader with an IndexOverflow exception (#5443).
+            // If the location is missing, unreadable, or out of range, try to infer a terminal position from
+            // the modification's terminal specificity; otherwise skip the modification instead of crashing.
+            if (index < 0 || index > static_cast<SignedSize>(aas.size()) + 1)
             {
-              OPENMS_LOG_WARN << "Found unreadable modification location." << endl;
+              const SignedSize inferred_index = inferModificationLocation_(element_sib, aas.size());
+              if (inferred_index < 0)
+              {
+                OPENMS_LOG_WARN << "Skipping modification with missing or invalid 'location' attribute; its position could not be inferred." << endl;
+                continue;
+              }
+              index = inferred_index;
             }
 
             //double monoisotopicMassDelta = StringManager::convert(element_dbs->getAttribute(CONST_XMLCH("monoisotopicMassDelta")));

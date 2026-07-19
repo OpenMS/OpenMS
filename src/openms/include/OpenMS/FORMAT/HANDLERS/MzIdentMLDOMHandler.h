@@ -128,6 +128,11 @@ protected:
       void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
       //AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
       AASequence parsePeptideSiblings_(xercesc::DOMElement* peptide);
+      /// Best-effort inference of a modification's mzIdentML @c location (0 = N-terminus, @p peptide_length + 1 = C-terminus)
+      /// for the case where the optional @c location attribute is absent. The position is derived from the terminal
+      /// specificity of the referenced modification(s) in the ModificationsDB. Returns -1 if no unique terminal
+      /// position can be inferred (e.g. for a modification that may also occur internally).
+      SignedSize inferModificationLocation_(xercesc::DOMElement* modification_element, Size peptide_length) const;
       void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
       void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);
       void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
