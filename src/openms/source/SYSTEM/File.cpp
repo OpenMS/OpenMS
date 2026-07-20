@@ -500,9 +500,10 @@ namespace OpenMS
     //if the file was not found, throw an exception that also points at the resolved data path
     //(this is the usual culprit for missing standard share/OpenMS files, e.g. a stale OPENMS_DATA_PATH)
     const std::string hint = "OpenMS searched its shared-data directory '" + getOpenMSDataPath()
-      + "' (resolved from " + getOpenMSDataPathSource() + "). "
-      + "If this is a wrong or outdated OpenMS installation, set the OPENMS_DATA_PATH environment variable "
-      + "to the matching '.../share/OpenMS' directory, or unset it if it points to a stale location";
+      + "' (via " + getOpenMSDataPathSource() + "). "
+      + "If this is a wrong or outdated OpenMS installation, reinstall OpenMS (or ensure the executable sits "
+      + "next to its '.../share/OpenMS' directory); OPENMS_DATA_PATH is only used as a last-resort fallback, "
+      + "so unset it if it points to a stale location";
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, hint);
   }
 
@@ -607,7 +608,7 @@ namespace OpenMS
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "the compiled-in installation path (OPENMS_INSTALL_DATA_PATH)";
+          found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled-in install)";
         }
       }
   #endif
@@ -617,7 +618,7 @@ namespace OpenMS
       {
         path = OPENMS_DATA_PATH;
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "the compiled-in build path (OPENMS_DATA_PATH)";
+        if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled-in build)";
       }
 
   #if defined(__APPLE__)
@@ -626,7 +627,7 @@ namespace OpenMS
       {
         path = getExecutablePath() + "../../../share/OpenMS";
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "the application bundle (relative to the executable)";
+        if (path_checked) found_path_from = "app bundle (exe-relative)";
       }
   #endif
 
@@ -640,7 +641,7 @@ namespace OpenMS
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "the executable location (../share/OpenMS)";
+          found_path_from = "exe-relative (../share/OpenMS)";
         }
       }
 
@@ -656,7 +657,7 @@ namespace OpenMS
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "the OPENMS_DATA_PATH environment variable";
+          found_path_from = "OPENMS_DATA_PATH env";
         }
       }
 
