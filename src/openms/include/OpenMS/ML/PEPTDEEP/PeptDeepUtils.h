@@ -17,7 +17,6 @@ namespace OpenMS {
 
     // --- Shared PeptDeep Architecture Constants ---
     constexpr int64_t PEPTDEEP_MOD_ELEMENTS = 109;
-    const std::string PEPTDEEP_VALID_AAS = "ACDEFGHIKLMNPQRSTVWY";
 
     /**
      * @brief Maps amino acid characters to 1-based token indices for PeptDeep models.
@@ -37,18 +36,12 @@ namespace OpenMS {
 
     /**
      * @brief Validates a peptide sequence for PeptDeep inference.
-     * Throws explicit OpenMS exceptions if the sequence is invalid, too long, or contains modifications.
-     * * @param peptide The raw peptide string to validate.
+     * Complex character validation and modification parsing is handled downstream by AASequence.
+     * @param peptide The raw peptide string to validate.
      */
     inline void validatePeptide(const std::string& peptide) {
         if (peptide.empty()) {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence cannot be empty.");
-        }
-        if (peptide.find_first_of("[]()") != std::string::npos) {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modified peptides are not currently supported in this engine.");
-        }
-        if (peptide.find_first_not_of(PEPTDEEP_VALID_AAS) != std::string::npos) {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unsupported residue encountered.", peptide);
         }
     }
 

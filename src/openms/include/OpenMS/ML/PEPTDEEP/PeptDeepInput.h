@@ -45,41 +45,20 @@ namespace OpenMS
 
     /// @brief Shared featurization for PeptDeep RT, CCS, and MS2 ONNX predictors.
     ///
-    /// Modified peptides are intentionally rejected for now. The generated mod_x
-    /// tensor is zero-filled and therefore represents unmodified peptides only.
+    /// Dynamically handles both unmodified and modified peptides.
     class OPENMS_DLLAPI PeptDeepInputBuilder
     {
     public:
-      /// @brief Tokenizes a batch of unmodified peptides into a padded aa_indices/mod_x tensor pair.
-      /// @param peptides A vector of raw uppercase peptide strings. Must be non-empty.
-      /// @param config Padding policy (terminal tokens, fixed sequence length).
-      /// @return A PeptDeepInputBatch with aa_indices and a zero-filled mod_x populated; charges/nces/instrument_indices left empty.
-      /// @throws Exception::IllegalArgument if peptides is empty or contains an invalid sequence (see validatePeptide()).
-      /// @throws Exception::InvalidValue if config.fixed_sequence_length is shorter than the longest encoded peptide.
-      static PeptDeepInputBatch buildUnmodifiedPeptideBatch(
+      static PeptDeepInputBatch buildPeptideBatch(
         const std::vector<std::string>& peptides,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
-      /// @brief Like buildUnmodifiedPeptideBatch(), additionally populating the (scaled) charges field.
-      /// @param peptides A vector of raw uppercase peptide strings.
-      /// @param charges Precursor charge states, one per peptide. Must match peptides size.
-      /// @param config Padding policy (terminal tokens, fixed sequence length).
-      /// @return A PeptDeepInputBatch with aa_indices, mod_x, and charges populated.
-      /// @throws Exception::IllegalArgument if charges.size() != peptides.size(), or via buildUnmodifiedPeptideBatch().
-      static PeptDeepInputBatch buildUnmodifiedChargedBatch(
+      static PeptDeepInputBatch buildChargedBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
-      /// @brief Like buildUnmodifiedChargedBatch(), additionally populating the (scaled) nces and instrument_indices fields.
-      /// @param peptides A vector of raw uppercase peptide strings.
-      /// @param charges Precursor charge states, one per peptide. Must match peptides size.
-      /// @param nces Normalized collision energies, one per peptide. Must match peptides size.
-      /// @param instrument_indices Categorical instrument identifiers, one per peptide. Must match peptides size.
-      /// @param config Padding policy (terminal tokens, fixed sequence length).
-      /// @return A PeptDeepInputBatch with all fields populated.
-      /// @throws Exception::IllegalArgument if any of charges/nces/instrument_indices does not match peptides.size(), or via buildUnmodifiedChargedBatch().
-      static PeptDeepInputBatch buildUnmodifiedInstrumentBatch(
+      static PeptDeepInputBatch buildInstrumentBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,
         const std::vector<float>& nces,

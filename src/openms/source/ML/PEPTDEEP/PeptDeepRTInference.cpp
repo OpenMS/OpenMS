@@ -91,7 +91,7 @@ namespace OpenMS
                     chunk_peptides.push_back(peptides[group_indices[chunk_start + j]]);
                 }
 
-                ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch(chunk_peptides, input_config);
+                ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPeptideBatch(chunk_peptides, input_config);
                 const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
                 const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
 

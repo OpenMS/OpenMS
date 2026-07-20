@@ -99,7 +99,7 @@ namespace OpenMS
           chunk_charges.push_back(charges[original_idx]);
         }
 
-        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedChargedBatch(chunk_peptides, chunk_charges, input_config);
+        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildChargedBatch(chunk_peptides, chunk_charges, input_config);
         const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
         const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
 

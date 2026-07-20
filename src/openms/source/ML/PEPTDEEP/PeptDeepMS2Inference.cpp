@@ -99,7 +99,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                 chunk_instruments.push_back(instrument_indices[original_idx]);
             }
 
-            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedInstrumentBatch(
+            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildInstrumentBatch(
                 chunk_peptides, chunk_charges, chunk_nces, chunk_instruments, input_config);
 
             const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
