@@ -142,9 +142,9 @@ Var EnvVarUpdateLoc
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Add survey link at the end of the installer
-!define MUI_FINISHPAGE_TEXT "Thanks for installing OpenMS!$\r$\n\ $\r$\n\ Join the OpenMS community:"
-!define MUI_FINISHPAGE_LINK "Complete our user survey"
+!define MUI_FINISHPAGE_LINK "Join the community - complete our user survey"
 !define MUI_FINISHPAGE_LINK_LOCATION "https://tally.so/r/pbV6Qq"
+!define MUI_FINISHPAGE_LINK_COLOR "0066CC"
 
 # Remember the installer language
 !define UMUI_LANGUAGE_REGISTRY_ROOT SHCTX
