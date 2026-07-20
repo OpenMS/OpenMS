@@ -37,6 +37,19 @@ public:
       // Docu in base class
       void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
+      /**
+        @brief Whether a @em PARAMETERS element was encountered while parsing.
+
+        Callers use this to reject documents that are not parameter files at all: unknown elements
+        are silently ignored, so without this check any well-formed XML parses "successfully" into
+        an empty Param. Note that this deliberately does not test the *root* element -- CTD files
+        wrap @em PARAMETERS in a @em tool root, and ToolDescriptionHandler embeds it in @em ttd.
+      */
+      bool hasSeenParametersElement() const
+      {
+        return parameters_element_seen_;
+      }
+
 protected:
       /// The current absolute path (concatenation of nodes_ with <i>:</i> in between)
       std::string path_;
@@ -44,6 +57,9 @@ protected:
       Param& param_;
       /// Map of node descriptions (they are set at the end of parsing)
       std::map<std::string, std::string> descriptions_;
+
+      /// Whether a 'PARAMETERS' element was seen (see hasSeenParametersElement())
+      bool parameters_element_seen_{false};
 
       ///Temporary data for parsing of item lists
       struct

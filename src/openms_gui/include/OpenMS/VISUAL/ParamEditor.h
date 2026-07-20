@@ -168,8 +168,15 @@ public:
     
     /// load method for Param object
     void load(Param& param);
-    /// store edited data in Param object
-    void store();
+    /**
+      @brief Store edited data in the Param object.
+
+      @return Whether the Param object was updated. This fails if an editor is still open with data
+              that could not be committed, e.g. because the entered value is not a valid number or
+              violates the parameter's restrictions. Callers that write the Param to disk must not
+              do so when this returns false, as it would persist the outdated value.
+    */
+    bool store();
     /// Indicates if the data changed since last save
     bool isModified() const;
     /// Clears all parameters

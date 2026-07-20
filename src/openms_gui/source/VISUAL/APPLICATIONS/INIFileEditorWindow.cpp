@@ -102,7 +102,13 @@ namespace OpenMS
       return false;
     }
 
-    editor_->store();
+    // refuse to write rather than persist the outdated param when an edit could not be committed
+    // (e.g. the open editor holds a value that violates the parameter's restrictions)
+    if (!editor_->store())
+    {
+      QMessageBox::warning(this, "Not saved", "The file was not saved because the value currently being edited could not be applied. Please correct it and save again.");
+      return false;
+    }
 
     ParamXMLFile paramFile;
     paramFile.store(filename_.toStdString(), param_);
@@ -118,7 +124,11 @@ namespace OpenMS
       if (!filename_.endsWith(".ini"))
         filename_.append(".ini");
 
-      editor_->store();
+      if (!editor_->store())
+      {
+        QMessageBox::warning(this, "Not saved", "The file was not saved because the value currently being edited could not be applied. Please correct it and save again.");
+        return false;
+      }
 
       ParamXMLFile paramFile;
       paramFile.store(filename_.toStdString(), param_);

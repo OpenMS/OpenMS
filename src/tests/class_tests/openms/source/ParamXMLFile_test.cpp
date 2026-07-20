@@ -16,10 +16,12 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
 #include <fstream>
+#include <filesystem>
 #ifdef __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wshadow"
@@ -484,6 +486,111 @@ START_SECTION([EXTRA] loading files that omit the optional 'required' attribute)
   paramFile.load(filename, p2);
   TEST_TRUE(p2.hasTag("TagMatrix:adv_true_req_absent", "advanced"))
   TEST_FALSE(p2.hasTag("TagMatrix:adv_true_req_absent", "required"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] load() rejects documents that are not parameter files))
+{
+  ParamXMLFile paramFile;
+
+  // Any well-formed XML used to parse successfully: unknown elements are ignored, so an unrelated
+  // document loaded as an empty Param and reported success. In an editor that means opening a
+  // foreign file appears to work and saving then replaces it. See OpenMS/OpenMS#9768.
+  std::string html_file;
+  NEW_TMP_FILE(html_file)
+  {
+    std::ofstream os(html_file.c_str());
+    os << "<html><body/></html>\n";
+  }
+  Param p_html;
+  TEST_EXCEPTION(Exception::ParseError, paramFile.load(html_file, p_html))
+
+  // ITEM elements below a foreign root must not be imported either
+  std::string wrapper_file;
+  NEW_TMP_FILE(wrapper_file)
+  {
+    std::ofstream os(wrapper_file.c_str());
+    os << "<wrapper><ITEM name=\"x\" value=\"7\" type=\"int\"/></wrapper>\n";
+  }
+  Param p_wrapper;
+  TEST_EXCEPTION(Exception::ParseError, paramFile.load(wrapper_file, p_wrapper))
+  TEST_EQUAL(p_wrapper.size(), 0)
+
+  // a genuine parameter file still loads
+  Param p_good;
+  p_good.setValue("test:int", 17, "intdesc");
+  std::string good_file;
+  NEW_TMP_FILE(good_file)
+  paramFile.store(good_file, p_good);
+  Param p_reloaded;
+  paramFile.load(good_file, p_reloaded);
+  TEST_EQUAL(p_reloaded.size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store() does not destroy the previous file when it cannot write))
+{
+  ParamXMLFile paramFile;
+
+  Param p_orig;
+  p_orig.setValue("test:int", 17, "intdesc");
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  paramFile.store(filename, p_orig);
+
+  Param p_new;
+  p_new.setValue("test:int", 99, "intdesc");
+
+  // Make the target read-only. The old implementation opened it with ofstream::out, which truncates
+  // before anything is known to be writable; the new one must refuse up-front and leave it alone.
+  // See OpenMS/OpenMS#9768.
+  std::filesystem::permissions(filename, std::filesystem::perms::owner_read);
+  if (!File::writable(filename)) // a root user ignores the permission bits, so skip there
+  {
+    TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store(filename, p_new))
+    std::filesystem::permissions(filename, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
+
+    // the original content survived
+    Param p_check;
+    paramFile.load(filename, p_check);
+    TEST_EQUAL(p_check.size(), 1)
+    TEST_EQUAL((int)p_check.getValue("test:int"), 17)
+  }
+  std::filesystem::permissions(filename, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
+
+  // a directory must not be silently removed and replaced by the ini file either
+  std::string dirname = filename + ".dir";
+  std::filesystem::create_directory(dirname);
+  TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store(dirname, p_new))
+  TEST_TRUE(std::filesystem::is_directory(dirname))
+
+  // a successful store replaces the content, preserves permissions and leaves no temporaries behind
+  std::filesystem::permissions(filename, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
+  auto perms_before = std::filesystem::status(filename).permissions();
+  paramFile.store(filename, p_new);
+  TEST_EQUAL(std::filesystem::status(filename).permissions() == perms_before, true)
+
+  Param p_check2;
+  paramFile.load(filename, p_check2);
+  TEST_EQUAL((int)p_check2.getValue("test:int"), 99)
+
+  // temporaries are named "<target>.<unique>.tmp", so scan the directory rather than a fixed name
+  std::filesystem::path target_path(filename);
+  std::filesystem::path target_dir = target_path.parent_path();
+  if (target_dir.empty()) // NEW_TMP_FILE may hand out a plain filename in the working directory
+  {
+    target_dir = ".";
+  }
+  Size leftover = 0;
+  for (const auto& e : std::filesystem::directory_iterator(target_dir))
+  {
+    const std::string name = e.path().filename().string();
+    if (name.rfind(target_path.filename().string() + ".", 0) == 0 && name.size() > 4 && name.compare(name.size() - 4, 4, ".tmp") == 0)
+    {
+      ++leftover;
+    }
+  }
+  TEST_EQUAL(leftover, 0)
 }
 END_SECTION
 

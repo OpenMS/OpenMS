@@ -161,12 +161,16 @@ namespace OpenMS
 
       if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
       {
-        int index = static_cast<QComboBox *>(editor)->findText(str);
+        QComboBox* box = static_cast<QComboBox *>(editor);
+        int index = box->findText(str);
         if (index == -1)
-        {
+        { // the stored value is not among the valid strings (e.g. written by an older version, or
+          // edited by hand). Offering it as an entry of its own keeps it when the user opens the
+          // cell and leaves again -- selecting index 0 instead would silently blank the parameter.
+          box->insertItem(0, str);
           index = 0;
         }
-        static_cast<QComboBox *>(editor)->setCurrentIndex(index);
+        box->setCurrentIndex(index);
       }
       else if (qobject_cast<QLineEdit *>(editor))      // LineEdit for other values
       {
@@ -364,6 +368,10 @@ namespace OpenMS
         model->setData(index, QBrush(Qt::yellow), Qt::BackgroundRole);
         emit modified(true);  // let parent know that we changed something
       }
+
+      // the editor's content is now in the model (or was identical to it); every path that returns
+      // early above leaves the flag set, so that ParamEditor::store() knows the value was rejected
+      has_uncommited_data_ = false;
     }
 
     void ParamEditorDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex &) const
@@ -397,7 +405,10 @@ namespace OpenMS
 
     void ParamEditorDelegate::commitAndCloseLineEdit_()
     {
-      has_uncommited_data_ = false;
+      // Do not clear has_uncommited_data_ here: setModelData() bails out (after warning the user)
+      // when the entered value is not a valid number or violates the parameter's restrictions, and
+      // clears the flag itself once it has actually stored. Clearing it up-front would tell
+      // ParamEditor::store() the edit was committed when it was rejected.
       OpenMSLineEdit * editor = qobject_cast<OpenMSLineEdit *>(sender());
       emit commitData(editor);
       emit closeEditor(editor);
@@ -722,29 +733,41 @@ namespace OpenMS
     tree_->resizeColumnToContents(3);
   }
 
-  void ParamEditor::store()
+  bool ParamEditor::store()
   {
-    //std::cerr << "store entered ...\n";
-
-    // store only if no line-edit is opened (in which case data is uncommitted and will not be saved)
-    // this applies only to INIFileEditor, where pressing Ctrl-s results in saving the current (but outdated) param
-    if (param_ != nullptr &&
-        !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
+    if (param_ == nullptr)
     {
-      //std::cerr << "and done!...\n";
-      QTreeWidgetItem * parent = tree_->invisibleRootItem();
-      //param_->clear();
-
-      for (Int i = 0; i < parent->childCount(); ++i)
-      {
-        map<std::string, std::string> section_descriptions;
-        storeRecursive_(parent->child(i), "", section_descriptions);        //whole tree recursively
-      }
-
-      setModified(false);
+      return false;
     }
-    //else std::cerr << "store aborted!\n";
 
+    // An editor may still be open with data the user typed but never committed -- this happens in
+    // INIFileEditor when Ctrl-S is pressed while the cursor sits in a QLineEdit. Commit it first,
+    // otherwise the caller goes on to write the previous, outdated param and the edit is lost
+    // silently. Moving focus to the tree makes the line edit emit lostFocus, which commits it.
+    auto* delegate = static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate());
+    if (delegate->hasUncommittedData())
+    {
+      tree_->setFocus(Qt::OtherFocusReason);
+    }
+
+    // The commit can still fail -- setModelData() rejects values that are not valid numbers or that
+    // violate the parameter's restrictions, and only clears the flag once it has actually stored.
+    // Report that to the caller instead of storing, so nobody writes the outdated value to disk.
+    if (delegate->hasUncommittedData())
+    {
+      return false;
+    }
+
+    QTreeWidgetItem * parent = tree_->invisibleRootItem();
+
+    for (Int i = 0; i < parent->childCount(); ++i)
+    {
+      map<std::string, std::string> section_descriptions;
+      storeRecursive_(parent->child(i), "", section_descriptions);        //whole tree recursively
+    }
+
+    setModified(false);
+    return true;
   }
 
   void ParamEditor::clear()
