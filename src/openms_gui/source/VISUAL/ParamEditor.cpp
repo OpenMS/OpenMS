@@ -18,6 +18,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
+#include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
@@ -65,6 +66,9 @@ namespace OpenMS
     ParamEditorDelegate::ParamEditorDelegate(QObject* parent) :
       QItemDelegate(parent)
     {
+      // ParamEditor::store() reads this before any editor has been created, so it must not be
+      // left indeterminate -- a garbage 'true' would refuse to save with no editor open at all
+      has_uncommited_data_ = false;
     }
 
     QWidget* ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
@@ -744,8 +748,14 @@ namespace OpenMS
     // INIFileEditor when Ctrl-S is pressed while the cursor sits in a QLineEdit. Commit it first,
     // otherwise the caller goes on to write the previous, outdated param and the edit is lost
     // silently. Moving focus to the tree makes the line edit emit lostFocus, which commits it.
+    //
+    // The focus widget is checked as well as the flag: the input file / output file / output dir
+    // cells are plain QLineEdits that never set has_uncommited_data_, but they hold an uncommitted
+    // path just the same (the one picked in the file dialog), and QItemDelegate's own focus-out
+    // handling commits them. Without this, Ctrl-S right after picking a path saved the old one.
     auto* delegate = static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate());
-    if (delegate->hasUncommittedData())
+    QWidget* focus = QApplication::focusWidget();
+    if (delegate->hasUncommittedData() || (focus != nullptr && focus != tree_ && tree_->isAncestorOf(focus)))
     {
       tree_->setFocus(Qt::OtherFocusReason);
     }
