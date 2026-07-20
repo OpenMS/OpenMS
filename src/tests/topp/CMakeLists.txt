@@ -206,6 +206,14 @@ add_test("TOPP_Decharger_1_out3" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}
 set_tests_properties("TOPP_Decharger_1_out3" PROPERTIES DEPENDS "TOPP_Decharger_1" )
 
 #------------------------------------------------------------------------------
+# DIAPseudoSpectra tests
+# Synthetic diaPASEF fixture: one 2+ precursor; MS2 window with 3 co-eluting fragments plus an
+# IM-offset decoy and a flat-XIC decoy that MUST be rejected. Guards the co-localization core.
+add_test("TOPP_DIAPseudoSpectra_1" ${TOPP_BIN_PATH}/DIAPseudoSpectra -test -in ${DATA_DIR_TOPP}/DIAPseudoSpectra_1_input.mzML -out ${TESTS_TEMP_DIR}/DIAPseudoSpectra_1.tmp.mzML)
+add_test("TOPP_DIAPseudoSpectra_1_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 ${TESTS_TEMP_DIR}/DIAPseudoSpectra_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/DIAPseudoSpectra_1_output.mzML )
+set_tests_properties("TOPP_DIAPseudoSpectra_1_out1" PROPERTIES DEPENDS "TOPP_DIAPseudoSpectra_1")
+
+#------------------------------------------------------------------------------
 # DTAExtractor tests
 add_test("TOPP_DTAExtractor_1" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/DTAExtractor -rt :61)
 add_test("TOPP_DTAExtractor_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DTAExtractor_RT60.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_1_output.dta )

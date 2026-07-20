@@ -57,6 +57,7 @@ namespace OpenMS
     tools_map["DatabaseFilter"] = Internal::ToolDescription("DatabaseFilter", cat_file_filter_extract_merge);
     tools_map["DatabaseSuitability"] = Internal::ToolDescription("DatabaseSuitability", cat_QC);
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", cat_quant);
+    tools_map["DIAPseudoSpectra"] = Internal::ToolDescription("DIAPseudoSpectra", cat_targeted);
     tools_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", cat_file_filter_extract_merge);
     tools_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", cat_misc);
     tools_map["Digestor"] = Internal::ToolDescription("Digestor", cat_ID_proc);

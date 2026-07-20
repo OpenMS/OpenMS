@@ -25,6 +25,7 @@ DTAExtractor
 EICExtractor
 Epifany
 ExternalCalibration
+DIAPseudoSpectra
 FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIdentification
