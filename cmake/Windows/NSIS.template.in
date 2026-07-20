@@ -141,6 +141,11 @@ Var EnvVarUpdateLoc
 !define MUI_FINISHPAGE_SHOWREADME $INSTDIR\ReleaseNotes.txt
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
+# Add survey link at the end of the installer
+!define MUI_FINISHPAGE_TEXT "Thanks for installing OpenMS!$\r$\n\ $\r$\n\ Join the OpenMS community:"
+!define MUI_FINISHPAGE_LINK "Complete our user survey"
+!define MUI_FINISHPAGE_LINK_LOCATION "https://tally.so/r/pbV6Qq"
+
 # Remember the installer language
 !define UMUI_LANGUAGE_REGISTRY_ROOT SHCTX
 !define UMUI_LANGUAGE_REGISTRY_KEY ${PRODUCT_UNINST_KEY}
