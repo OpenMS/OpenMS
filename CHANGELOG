@@ -92,7 +92,10 @@ General:
     available from the release/3.5.0 tag; a new SCHEMAS/README.md documents what is kept and where
     the archived schemas live. Also fixed two dangling schema references that pointed at
     non-existent files: QcMLFile (qcml.xsd) and PepXMLFileMascot (PepXML_1_8.xsd) now declare no
-    bundled schema. Normal file reading/writing is unaffected (#9757)
+    bundled schema -- since both paths were already broken, their isValid() (which nothing in the
+    codebase calls) now throws NotImplemented rather than a file-not-found error, i.e. semantic
+    schema validation stays unavailable for these two formats. Normal file reading/writing is
+    unaffected (#9757)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)

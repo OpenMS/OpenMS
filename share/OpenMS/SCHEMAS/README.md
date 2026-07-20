@@ -5,8 +5,12 @@ This directory bundles **only the XML schemas that OpenMS loads at runtime**.
 A schema here is read from disk when a file's `isValid()` method is called
 (e.g. by the `XMLValidator` TOPP tool or by unit tests), via
 `File::find("/SCHEMAS/<name>.xsd")`. Regular reading/writing of OpenMS files
-does **not** validate against these schemas, so only the *current* schema
-version per format needs to be shipped.
+does **not** validate against these schemas, so a schema only needs to be
+shipped if something loads it — usually the *current* version of each format,
+plus any older version still under a runtime or tooling contract (for example
+`Param_1_7_0.xsd`, emitted for CTD/CWL export, and the `mzIdentML` versions
+selected by auto-detection). Every entry in the table below is kept for one of
+those reasons.
 
 Because the whole `share/OpenMS/` tree is installed wholesale, every file in
 this folder ends up in every OpenMS package. To keep that payload minimal, we
@@ -57,5 +61,8 @@ those schemas.
 ## Adding a new schema version
 
 When you bump a format's schema, add the new `<name>_<version>.xsd` here, point
-the corresponding `*File` class at it, and remove the now-superseded version
-(it stays reachable through the release tag that last shipped it).
+the corresponding `*File` class at it, and remove the superseded version **only
+if nothing still references it** — check for version auto-detection (e.g.
+`MzIdentMLFile`), an `<xs:include>` from another bundled schema, and tool
+contracts (e.g. `Param_1_7_0.xsd`). Anything you remove stays reachable through
+the release tag that last shipped it.
