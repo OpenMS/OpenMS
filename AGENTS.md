@@ -662,5 +662,4 @@ perf report
 - https://github.com/orgs/OpenMS/packages
 - https://github.com/OpenMS/NSIS
 - http://miktex.org/
-- http://www.ghostscript.com/
 - http://www.graphviz.org
