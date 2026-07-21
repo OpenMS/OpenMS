@@ -12,6 +12,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <algorithm>
+
 namespace OpenMS
 {
 
@@ -80,10 +82,21 @@ protected:
         map_idx++;
       }
 
-      // canonical ordering for checking the results:
-      out.sortByQuality();
-      out.sortByMaps();
-      out.sortBySize();
+      // Position first, so the order is independent of the features' (random) unique ids;
+      // size/maps/quality only break exact-position ties.
+      std::stable_sort(out.begin(), out.end(),
+        [](const ConsensusFeature& a, const ConsensusFeature& b)
+        {
+          if (ConsensusFeature::PositionLess()(a, b)) { return true; }   // asc
+          if (ConsensusFeature::PositionLess()(b, a)) { return false; }
+          if (ConsensusFeature::SizeLess()(b, a)) { return true; }       // desc
+          if (ConsensusFeature::SizeLess()(a, b)) { return false; }
+          if (ConsensusFeature::MapsLess()(a, b)) { return true; }       // asc
+          if (ConsensusFeature::MapsLess()(b, a)) { return false; }
+          if (ConsensusFeature::QualityLess()(a, b)) { return true; }    // asc
+          if (ConsensusFeature::QualityLess()(b, a)) { return false; }
+          return false;
+        });
     }
 private:
     ///Copy constructor is not implemented -> private
