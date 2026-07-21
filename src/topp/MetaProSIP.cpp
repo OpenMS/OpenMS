@@ -1315,6 +1315,14 @@ protected:
     cluster_labels.clear();
     binned_peptide_ria.clear();
 
+    // defensive guard: a zero bin count would make 'binned' empty and the clamp below
+    // (to binned.size() - 1) would index binned[0] on an empty vector. Callers enforce a
+    // positive bin count (see 'heatmap_bins' registration), so there is nothing to bin here.
+    if (n_heatmap_bins == 0)
+    {
+      return;
+    }
+
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_clusters.begin(); cit != sip_clusters.end(); ++cit)
     {
       const vector<SIPPeptide>& sip_peptides = *cit;
@@ -2112,6 +2120,7 @@ protected:
     registerDoubleOption_("pattern_2H_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerDoubleOption_("pattern_18O_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation.", false, true);
+    setMinInt_("heatmap_bins", 1); // at least one bin: 0 underflows and negative values wrap to a huge Size (see createBinnedPeptideRIAData_)
 
     registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false, true);
     StringList valid_extensions;
