@@ -9,9 +9,12 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -19,8 +22,11 @@
 #include <algorithm>
 #include <cmath>
 #include <chrono>
+#include <functional>
 #include <cstdio>
 #include <fstream>
+#include <atomic>
+#include <thread>
 #include <map>
 #include <string>
 #include <vector>
@@ -93,6 +99,29 @@ namespace
     return " [RSS " + cur + ", peak " + peak + "]";
   }
 
+  /// [dyn-mem] Bytes we may still allocate. MemAvailable is the kernel's own estimate of what
+  /// can be handed out without swapping (it accounts for reclaimable page cache), which is the
+  /// right quantity on a SHARED node -- MemFree would ignore cache and MemTotal would ignore
+  /// the other users. Add our own RSS back: memory we already hold is part of our budget, not
+  /// somebody else's. Returns 0 if unreadable, which the caller treats as "admit one at a time".
+  static size_t availableBytes_()
+  {
+    std::ifstream mi("/proc/meminfo");
+    if (!mi) return 0;
+    std::string line;
+    size_t avail_kb = 0;
+    while (std::getline(mi, line))
+      if (line.rfind("MemAvailable:", 0) == 0)
+      { avail_kb = strtoull(line.c_str() + 13, nullptr, 10); break; }
+    if (!avail_kb) return 0;
+    std::ifstream st("/proc/self/status");
+    size_t rss_kb = 0;
+    while (st && std::getline(st, line))
+      if (line.rfind("VmRSS:", 0) == 0)
+      { rss_kb = strtoull(line.c_str() + 6, nullptr, 10); break; }
+    return (avail_kb + rss_kb) * 1024ull;
+  }
+
   struct Trace
   {
     double mz = 0.0;
@@ -111,6 +140,7 @@ namespace
     double rt = 0.0;
     double im = 0.0;
     size_t trace_idx = 0;    ///< index into ms1 traces
+    bool guessed = false;    ///< [way-4] charge was DEFAULTED, not isotope-supported
   };
 
   /// MassTraceDetection locates the per-peak IM array by the exact name
@@ -155,11 +185,17 @@ namespace
   /// candidate fragment as a precomputed dot product instead of an O(P log F) per-pair search.
   /// This is the hot-path optimization: precursor XIC is prepared once per precursor (not per
   /// fragment), fragment means/norms are precomputed once per window. [perf]
+  /// CSR layout: one `vector<vector<...>>` costs 24 B of header PER FRAGMENT before a single
+  /// support point is stored -- ~200 MB/window at 8.5 M fragments, and scattered allocations.
+  /// A flat array + offsets costs 4 B/fragment and is contiguous for the correlation loop. [compact]
   struct FragGrid
   {
     vector<double> rt;                          ///< sorted unique grid RTs (size G)
-    vector<vector<pair<int, float>>> sup;       ///< per fragment: (grid index, intensity)
+    vector<uint32_t> off;                       ///< size F+1; fragment i spans [off[i], off[i+1])
+    vector<pair<int, float>> flat;              ///< (grid index, intensity), concatenated
     vector<double> mean, invnorm;               ///< per fragment: mean and 1/norm over the full grid
+    size_t supBegin(size_t i) const { return off[i]; }
+    size_t supEnd(size_t i)   const { return off[i + 1]; }
   };
 
 
@@ -338,6 +374,62 @@ namespace
     return m;
   }
 
+  /// [stream] Pick-and-compact consumer: removes the one-shot-read memory floor.
+  ///
+  /// MEASURED: `loadExperiment` reaches 90.3 GB RSS / 99.0 GB peak at t=0s, BEFORE any compaction
+  /// exists — so the compact store (10 B/peak, 20.9 GB for 2.19e9 peaks) can never lower the peak.
+  /// The floor is the whole run being resident at once. BrukerTimsFile::loadDIAStreaming hands us one
+  /// frame at a time, so we peak-pick and compact each frame on arrival and never hold the raw run.
+  ///
+  /// Windows are keyed by the SAME (lo,hi) isolation-window key used downstream, taken from the
+  /// spectrum's own precursor, so routing is identical to the old split - not by swath_nr, whose
+  /// ordering is the reader's business and need not match ours.
+  class PickCompactConsumer : public FullSwathFileConsumer
+  {
+  public:
+    PickCompactConsumer(PeakPickerIM& picker, map<pair<int, int>, vector<CompactFrame>>& windows,
+                        PeakMap& ms1, CompactStats& stats,
+                        std::function<pair<int, int>(double, double)> keyfn)
+      : picker_(picker), windows_(windows), ms1_(ms1), stats_(stats), keyfn_(std::move(keyfn)) {}
+
+    size_t frames_seen = 0;
+
+  protected:
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
+    {
+      // MS1 stays a PeakMap: it is only ~4% of frames (1,343 of 33,553) and MassTraceDetection
+      // needs it whole for the run-level precursor pass.
+      ensureIMArrayName(s);
+      if (s.getIMPeakType() != IMPeakType::IM_CENTROIDED) picker_.pickIMCluster(s);
+      ensureIMArrayName(s);
+      ms1_.addSpectrum(std::move(s));
+      ++frames_seen;
+    }
+
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t /*swath_nr*/) override
+    {
+      const auto& prec = s.getPrecursors();
+      if (prec.empty()) return;                      // no isolation window -> not routable
+      const double c = prec[0].getMZ();
+      const double lo = c - prec[0].getIsolationWindowLowerOffset();
+      const double hi = c + prec[0].getIsolationWindowUpperOffset();
+      ensureIMArrayName(s);
+      if (s.getIMPeakType() != IMPeakType::IM_CENTROIDED) picker_.pickIMCluster(s);
+      ensureIMArrayName(s);
+      windows_[keyfn_(lo, hi)].push_back(compactify(s, stats_));   // raw frame dies here
+      ++frames_seen;
+    }
+
+    void ensureMapsAreFilled_() override {}          // we own the containers; nothing to finalise
+
+  private:
+    PeakPickerIM& picker_;
+    map<pair<int, int>, vector<CompactFrame>>& windows_;
+    PeakMap& ms1_;
+    CompactStats& stats_;
+    std::function<pair<int, int>(double, double)> keyfn_;
+  };
+
   /// Build the per-window FragGrid from IM-sorted fragment traces.
   FragGrid buildFragGrid(const vector<Trace>& frags)
   {
@@ -347,24 +439,27 @@ namespace
     sort(g.rt.begin(), g.rt.end());
     g.rt.erase(unique(g.rt.begin(), g.rt.end()), g.rt.end());
     const double G = (double)g.rt.size();
-    g.sup.resize(frags.size());
     g.mean.resize(frags.size());
     g.invnorm.resize(frags.size());
+    g.off.resize(frags.size() + 1, 0);
+    size_t total = 0;
+    for (const auto& f : frags) total += f.xic.size();
+    g.flat.reserve(total);
     for (size_t i = 0; i < frags.size(); ++i)
     {
       double sum = 0, sumsq = 0;
-      auto& sup = g.sup[i];
-      sup.reserve(frags[i].xic.size());
+      g.off[i] = (uint32_t)g.flat.size();
       for (const auto& p : frags[i].xic)
       {
         int gi = (int)(lower_bound(g.rt.begin(), g.rt.end(), p.first) - g.rt.begin());
-        sup.emplace_back(gi, (float)p.second);
+        g.flat.emplace_back(gi, (float)p.second);
         sum += p.second; sumsq += p.second * p.second;
       }
       g.mean[i] = sum / G;
       double var = sumsq - G * g.mean[i] * g.mean[i];
       g.invnorm[i] = var > 0 ? 1.0 / sqrt(var) : 0.0; // 0 => constant/degenerate -> never correlates
     }
+    g.off[frags.size()] = (uint32_t)g.flat.size();   // CSR sentinel
     return g;
   }
 }
@@ -396,7 +491,9 @@ protected:
     registerIntOption_("assembly:min_fragments", "<n>", 3, "Emit a pseudo-spectrum only if it has at least this many fragments.", false);
     registerIntOption_("assembly:max_fragments", "<n>", 500, "Keep at most this many (top-ranked) fragments per pseudo-spectrum.", false);
     registerFlag_("assembly:competitive", "Assign each fragment to only its single best-correlating precursor (de-chimerize). Shorthand for rp_max=1; the harder endpoint of the rp_max dial. [bench]");
+    registerDoubleOption_("assembly:apportion", "<p>", 0.0, "[route-4] Split a shared fragment's INTENSITY across the precursors that claim it, weight w_i = corr_i^p / sum(corr^p), instead of copying it at full intensity into all of them (mean fan-out 6.45). Fragment COUNT is unchanged - only the weighting - so it sidesteps every falsified count knob (rank-pruning, competitive, min_corr, min_corr_pts). 0 = OFF. Try 1 (linear) or 2 (sharper); p->inf degenerates to competitive, which IS falsified. Share-all path only.", false);
     registerIntOption_("assembly:rp_max", "<n>", 0, "Soft RP rank-pruning (DIA-Umpire style): keep each fragment in only its top-N best-correlating precursors. 0 = unlimited (share-all, the default and current best); 1 = competitive (winner-take-all). Small N (2-8) is the useful range given typical fan-out ~6. RFmax (per-precursor fragment cap) is 'max_fragments'. Runs emit a fan-out histogram so you can see whether a given rp_max actually bites. [bench]", false);
+    registerFlag_("assembly:open_search_safe", "[way-4] ANNOTATION-SAFE output for BLIND/OPEN search. In open search a wrong charge is catastrophic in a way closed search hides: assigning z' instead of z shifts the neutral mass by dM=(z'-z)(m/z-1.0073), so ONE charge step at m/z 500 fabricates a ~499 Da 'modification'. Closed search barely notices (charge unset cost only 1.3%: 8,123->8,019) because the engine enumerates charge; an open engine trusts the annotation. This flag therefore: (a) emits charge UNSET for every precursor whose charge was GUESSED rather than isotope-supported, so the engine enumerates instead of trusting a default; (b) records the isotope-offset hypothesis as a meta value so delta-mass inference can correct BEFORE assigning a modification, rather than reporting phantom +-1.00335/+-2.0067 Da shifts. Use for open/variant search; leave off for closed-search peptide counting.");
     registerIntOption_("assembly:default_charge", "<z>", 2, "Charge for precursors with no isotope support: >0 assigns that charge (diaTracer-style; 2 = most common); 0 = leave charge UNSET so the search engine searches its charge range and picks the right one (recovers 3+/4+ that a forced 2 would lose).", false);
 
     registerTOPPSubsection_("trace", "Mass-trace detection (see MassTraceDetection)");
@@ -410,6 +507,8 @@ protected:
     registerDoubleOption_("trace:ms1_chrom_peak_snr", "<x>", 3.0, "Apex signal-to-noise multiplier for MS1 traces (effective apex threshold = this x noise_threshold_int). OpenMS default 3.0.", false, true);
     registerDoubleOption_("trace:ms2_chrom_peak_snr", "<x>", 1.0, "Apex signal-to-noise multiplier for MS2 (fragment) traces. 1.0 = the ms2_noise_threshold_int you set IS the apex threshold; 3.0 would reproduce the old hidden 3x. Lower = more weak fragments recovered.", false);
     registerDoubleOption_("trace:ms2_min_length_sec", "<sec>", 0.0, "Minimum MS2 (fragment) mass-trace length (seconds). 0 = no length filter (diaTracer-style relaxed MS2); MS1 keeps trace:min_length_sec.", false);
+    registerDoubleOption_("trace:ms2_split_valleys", "<chrom_fwhm>", 0.0, "[way-2] Split MS2 mass traces at chromatographic local minima via ElutionPeakDetection (which MassTraceDetection never does - it only terminates on outliers, so two peptides 25 s apart within the m/z tolerance MERGE). Value is chrom_fwhm in seconds; it sets both the Savitzky-Golay window and the local-extrema half-window. 0 = OFF. Try 6-8 (peaks here are 5-30 s). width_filtering is forced off so this only SPLITS, never deletes.", false);
+    registerDoubleOption_("trace:ms1_split_valleys", "<chrom_fwhm>", 0.0, "[way-2] Same, for MS1 traces. Merged MS1 traces produce merged precursors, so this is the side that can change WHICH precursors exist. 0 = OFF.", false);
     registerDoubleOption_("trace:max_trace_length_sec", "<sec>", -1.0, "DANGER - NOT a guard. MassTraceDetection::isTraceValid_ RETURNS FALSE on over-length traces and peaks are marked visited only for VALID traces, so an over-length blob is rejected, re-seeded by the next apex, and rejected again - emitting NOTHING at that m/z. Setting this DELETES signal (the falsified direction). Kept only for diagnostics; leave at -1. Splitting requires ElutionPeakDetection, not this. [merged-trace]", false, true);
 registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Same as frame_aggregation_n but for the MS1 (PRECURSOR) map. This is the one that can add DEPTH: measurement shows we identify MORE spectra than diaTracer (3.7%% vs 2.0%% of spectra) but cover FEWER distinct peptides (4.6 vs 1.46 PSMs/peptide), i.e. we miss low-abundance PRECURSORS. Aggregating MS2 alone cannot fix that. 1 = off.", false);
     registerIntOption_("trace:frame_aggregation_n", "<n>", 1, "[cross-frame] Number of ADJACENT RT frames (= adjacent diaPASEF CYCLES, since each isolation window is sampled once per cycle) summed into a composite (m/z x 1/K0) frame BEFORE MS2 peak/trace detection, diaTracer-style. 1 = off (current behaviour). 5 = user request. Sliding window, stride 1, so the RT axis and point count are preserved; note adjacent output points then share input frames and are AUTOCORRELATED, which inflates Pearson r - benchmark, do not assume.", false);
@@ -426,8 +525,17 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     registerDoubleOption_("consolidate:delta_im", "<1/K0>", 0.02, "Precursor IM tolerance for feature consolidation. Set larger than the 12 m/z x 2 IM sub-range split to merge a feature emitted from BOTH IM sub-ranges.", false, true);
     registerFlag_("consolidate:same_charge_only", "Only merge spectra that also agree in charge (safer; leaves genuine multi-charge observations intact).");
 
+    registerFlag_("perf:stream_load", "[stream] Read the .d frame-by-frame via BrukerTimsFile::loadDIAStreaming, peak-picking and compacting each frame on arrival, instead of loadExperiment() which holds the entire run (MEASURED 90.3 GB RSS at t=0s - that one-shot read IS the memory floor and no downstream compaction can lower it). Bruker .d only.");
+    registerIntOption_("trace:native_ms2_neighbors", "<n>", 0, "[stream] NATIVE cross-frame aggregation in the READER (BrukerTimsFile Config dia_ms2_n_neighbors): adjacent frames each side, 0=off, 1=3-frame sum, 2=5-frame sum. This sums RAW frames BEFORE centroiding, which is what diaTracer does; the tool-level frame_aggregation_n sums AFTER centroiding and lost 26% of peptides. Requires perf:stream_load.", false);
+    registerIntOption_("trace:native_ms1_neighbors", "<n>", 0, "[stream] Same, for MS1 frames (BrukerTimsFile Config ms1_n_neighbors). Requires perf:stream_load.", false);
+
     registerTOPPSubsection_("perf", "Concurrency / memory tradeoff");
-    registerIntOption_("perf:max_concurrent_windows", "<n>", 0, "Max isolation windows processed concurrently. Peak RAM scales with windows IN FLIGHT (each holds its frames + traces + grid), not with the total window count, so lowering this trades wall time for RAM. 0 = unlimited (use all threads).", false);
+    registerIntOption_("perf:trace_bands", "<n>", 0, "[parallel] Split each window's fragment m/z range into N bands traced CONCURRENTLY. The diaPASEF method fixes the window count (24 here), which caps window-level parallelism far below the core count; banding lifts the ceiling to threads. Traces cannot span more than trace:mass_error_ppm in m/z, so banding with a halo is exact. 0 = auto (windows x bands >= threads), 1 = off.", false);
+    registerDoubleOption_("perf:mem_fraction", "<f>", 0.75, "[dyn-mem] Fraction of currently-FREE RAM (/proc/meminfo MemAvailable + our own RSS) the window loop may commit. Concurrency is re-decided at every window admission, so the run adapts to other jobs on a shared node. One window is always admitted regardless, so a single oversized window cannot deadlock.", false);
+    registerIntOption_("perf:max_concurrent_windows", "<n>", 0, "UPPER bound on isolation windows processed concurrently (memory admission may run fewer). Peak RAM scales with windows IN FLIGHT (each holds its frames + traces + grid), not with the total window count, so lowering this trades wall time for RAM. 0 = unlimited (use all threads).", false);
+
+    registerTOPPSubsection_("diag", "Diagnostics ('debug' is reserved by TOPP)");
+    registerStringOption_("diag:dump_ms1_tsv", "<prefix>", "", "[ms1-funnel] Write MS1 traces and inferred precursors to <prefix>.traces.tsv / <prefix>.precursors.tsv so precursor loss can be attributed to a stage (no trace / no hypothesis / no spectrum) rather than inferred from the final count. Empty = off.", false, true);
 
     registerIntOption_("max_charge", "<n>", 5, "Maximum precursor charge considered during isotope inference.", false);
     // NOTE: the subsection MUST be registered or printUsage_() throws ElementNotFound — which turns
@@ -453,9 +561,12 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
   /// Leaving snr at the OpenMS default 3.0 silently triples the fragment apex threshold.
   /// diaTracer deliberately runs MS2 with "more relaxed constraints" than MS1 (Nat Commun 16:95
   /// Methods) — so MS1 and MS2 get INDEPENDENT snr / min-length here. [recall]
-  vector<Trace> detectTraces_(const PeakMap& map, double delta_im, double noise,
+  /// `map` is taken by NON-const ref and CLEARED as soon as MassTraceDetection has consumed it:
+  /// it is dead from that point on, but at ~20 B/peak (Peak1D 16 + IM float 4) it is ~1.1 GB per
+  /// window that would otherwise stay resident through the valley-splitting peak. [compact]
+  vector<Trace> detectTraces_(PeakMap& map, double delta_im, double noise,
                               double snr, double min_len, double min_sample_rate, double max_len,
-                              String* span_log = nullptr)
+                              double split_valleys, String* span_log = nullptr, int bands = 1)
   {
     MassTraceDetection mtd;
     mtd.setLogType(ProgressLogger::NONE); // quiet + thread-safe (called from the parallel window loop)
@@ -474,7 +585,117 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     mtd.setParameters(p);
 
     vector<MassTrace> mts;
-    mtd.run(map, mts);
+    if (bands > 1)
+    {
+      // [bands] The diaPASEF method fixes the window count at 24, so parallelising over
+      // windows caps us at 24 threads however many cores exist. Fragment traces at
+      // different m/z are INDEPENDENT, so a window's peaks can be partitioned by m/z and
+      // traced concurrently. A trace can never span more than mass_error_ppm in m/z, so a
+      // halo of 20x that tolerance makes the partition exact; each trace is kept only by the
+      // band whose CORE contains its centroid, so halo duplicates are dropped rather than merged.
+      const double ppm = getDoubleOption_("trace:mass_error_ppm");
+      // Band edges from m/z QUANTILES, not uniform m/z: peak density varies by orders of
+      // magnitude across a window, and uniform edges would leave one band holding most of the work.
+      vector<double> sample;
+      for (const auto& s : map)
+        for (Size i = 0; i < s.size(); i += 97) sample.push_back(s[i].getMZ());
+      sort(sample.begin(), sample.end());
+      vector<double> edge(bands + 1);
+      if (sample.empty()) { edge.assign(bands + 1, 0.0); }
+      else
+        for (int b = 0; b <= bands; ++b)
+          edge[b] = sample[std::min(sample.size() - 1, (size_t)((double)b / bands * sample.size()))];
+      edge.front() = 0.0; edge.back() = std::numeric_limits<double>::max();
+      vector<double> ().swap(sample);
+
+      // Partition ONCE (peaks are copied into exactly one core band plus any halo it falls in),
+      // then release the source map so the halo duplicates are the only overhead.
+      vector<PeakMap> sub(bands);
+      for (const auto& s : map)
+      {
+        const auto* ima = s.getFloatDataArrays().empty() ? nullptr : &s.getFloatDataArrays()[0];
+        for (int b = 0; b < bands; ++b)
+        {
+          const double h = edge[b] * ppm * 1e-6 * 20.0;
+          const double lo = edge[b] - h, hi = edge[b + 1] + h;
+          MSSpectrum t; t.setRT(s.getRT()); t.setMSLevel(1);
+          OpenMS::DataArrays::FloatDataArray ia;
+          ia.setName(Constants::UserParam::ION_MOBILITY);
+          for (Size i = 0; i < s.size(); ++i)
+            if (s[i].getMZ() >= lo && s[i].getMZ() < hi)
+            { t.push_back(s[i]); if (ima && i < ima->size()) ia.push_back((*ima)[i]); }
+          if (!t.empty()) { t.getFloatDataArrays().push_back(std::move(ia)); sub[b].addSpectrum(std::move(t)); }
+        }
+      }
+      map.clear(true);
+      vector<vector<MassTrace>> per(bands);
+      #pragma omp parallel for schedule(dynamic) num_threads(bands)
+      for (int b = 0; b < bands; ++b)
+      {
+        MassTraceDetection m2; m2.setLogType(ProgressLogger::NONE); m2.setParameters(p);
+        vector<MassTrace> t;
+        sub[b].sortSpectra();
+        m2.run(sub[b], t);
+        sub[b].clear(true);
+        // keep only traces whose centroid lies in this band's CORE -> no duplicates from the halo
+        for (auto& mt : t)
+        {
+          const double c = mt.getCentroidMZ();
+          if (c >= edge[b] && c < edge[b + 1]) per[b].push_back(std::move(mt));
+        }
+      }
+      size_t tot = 0; for (const auto& v : per) tot += v.size();
+      mts.reserve(tot);
+      for (auto& v : per) { for (auto& t : v) mts.push_back(std::move(t)); vector<MassTrace>().swap(v); }
+    }
+    else
+    {
+      mtd.run(map, mts);
+      map.clear(true); // [compact] dead from here; ~1.1 GB/window freed before the EPD peak
+    }
+
+    // [way-2] SPLIT MASS TRACES AT CHROMATOGRAPHIC VALLEYS.
+    // MassTraceDetection never splits at a local minimum: it terminates only on consecutive-miss
+    // outliers or sample_rate, and max_trace_length only DISCARDS. So two peptides eluting 25 s apart
+    // within the m/z tolerance merge into ONE multi-modal trace, whose XIC then correlates with
+    // everything under it. ElutionPeakDetection is the OpenMS stage that actually smooths and splits
+    // at local minima - we never ran it. width_filtering is forced to "off" because "fixed" is a
+    // DELETION filter ([min_fwhm,max_fwhm]) and blanket deletion is on the falsified list.
+    if (split_valleys > 0.0 && !mts.empty())
+    {
+      ElutionPeakDetection epd;
+      Param ep = epd.getParameters();
+      ep.setValue("chrom_fwhm", split_valleys);      // sets SG window AND the local-extrema half-window
+      ep.setValue("width_filtering", "off");         // never delete on width - only split
+      ep.setValue("masstrace_snr_filtering", "false");
+      epd.setParameters(ep);
+      // MEMORY: detectPeaks(mts, split) materialises the ENTIRE output while the entire input
+      // is still live -- measured as ~2.9 GB of a ~5.8 GB per-window peak, the single largest
+      // term. Feed it in batches instead and free each batch as it is consumed, so the
+      // transient is one batch rather than a full second copy. [compact]
+      const size_t BATCH = 250000;
+      const size_t n_in = mts.size();
+      vector<MassTrace> out;
+      out.reserve(n_in);                              // split only ever grows the count
+      for (size_t b = 0; b < n_in; b += BATCH)
+      {
+        const size_t e = std::min(n_in, b + BATCH);
+        vector<MassTrace> chunk(std::make_move_iterator(mts.begin() + b),
+                                std::make_move_iterator(mts.begin() + e));
+        // release the consumed slice's heap NOW, not at end of loop (MassTrace has no swap())
+        for (size_t i = b; i < e; ++i) mts[i] = MassTrace();
+        vector<MassTrace> part;
+        epd.detectPeaks(chunk, part);
+        vector<MassTrace>().swap(chunk);
+        for (auto& t : part) out.push_back(std::move(t));
+      }
+      if (!out.empty())
+      {
+        if (span_log) *span_log += " | valley-split " + String(n_in) + " -> " + String(out.size())
+                                 + " traces (" + String((int)(1000.0 * out.size() / n_in) / 10.0) + "%)";
+        mts.swap(out);
+      }
+    }
     // [merged-trace] instrumentation: is trace merging actually happening? Log the RT-span
     // distribution. Peaks are 5-30 s here, so a large p90/max means multi-modal merged traces.
     if (!mts.empty())
@@ -828,7 +1049,8 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
         if (fg.invnorm[fi] == 0.0) continue;                           // degenerate fragment
         if (fabs(f.mz - pc.mono_mz) < 0.01) continue;                  // exclude precursor peak [M-7]
         double dot = 0; int overlap = 0;
-        for (const auto& gv : fg.sup[fi]) { float pv = pdense[gv.first]; if (pv != 0.0f) { dot += (double)pv * gv.second; ++overlap; } }
+        for (size_t k = fg.supBegin(fi), ke = fg.supEnd(fi); k < ke; ++k)
+        { const auto& gv = fg.flat[k]; float pv = pdense[gv.first]; if (pv != 0.0f) { dot += (double)pv * gv.second; ++overlap; } }
         if (overlap < min_corr_pts) continue;                          // overlap guard [H-4]
         double c = (dot - G * pmean * fg.mean[fi]) * pinv * fg.invnorm[fi]; // Pearson
         if (c < min_corr) continue;                                    // correlation gate
@@ -907,7 +1129,46 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     PeakMap exp;
     // Accept mzML, mzPeak, or a Bruker .d directory; FileHandler auto-detects the format
     // (mzPeak -> MzPeakFile; .d -> BrukerTimsFile, requires WITH_OPENTIMS).
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::MZPEAK, FileTypes::BRUKER_TDF}, log_type_);
+    PeakMap ms1_map;
+    map<pair<int, int>, vector<CompactFrame>> ms2_by_window;
+    CompactStats cstat;
+    auto winKey = [](double lo, double hi) {
+      return make_pair((int)llround(lo * 100.0), (int)llround(hi * 100.0));
+    };
+    const bool stream_load = getFlag_("perf:stream_load");
+    bool streamed = false;
+
+    if (stream_load)
+    {
+      // [stream] frame-by-frame: pick + compact on arrival, never hold the whole run.
+      // Also the ONLY place the reader's NATIVE pre-centroid frame aggregation is reachable.
+      BrukerTimsFile::Config cfg;
+      cfg.dia_ms2_n_neighbors = getIntOption_("trace:native_ms2_neighbors");
+      cfg.ms1_n_neighbors     = getIntOption_("trace:native_ms1_neighbors");
+      PeakPickerIM spicker;
+      Param sp = spicker.getParameters();
+      sp.setValue("pickIMCluster:im_tolerance_cluster", getDoubleOption_("gate:delta_im"));
+      sp.setValue("pickIMCluster:ppm_tolerance_cluster", getDoubleOption_("trace:mass_error_ppm"));
+      spicker.setParameters(sp);
+      PickCompactConsumer consumer(spicker, ms2_by_window, ms1_map, cstat, winKey);
+      try
+      {
+        BrukerTimsFile().loadDIAStreaming(in, consumer, cfg);
+        streamed = true;
+        writeLogInfo_("[stream] frame-by-frame load done: " + String(consumer.frames_seen)
+                      + " frames, MS1 " + String(ms1_map.size()) + ", windows "
+                      + String(ms2_by_window.size()) + " (native ms2_neighbors="
+                      + String(cfg.dia_ms2_n_neighbors) + ")" + clk_() + rss_());
+      }
+      catch (const Exception::BaseException& e)
+      {
+        writeLogWarn_(String("[stream] streaming load failed (") + e.getName()
+                      + "); falling back to loadExperiment. " + e.getMessage());
+      }
+    }
+
+    if (!streamed)
+      FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::MZPEAK, FileTypes::BRUKER_TDF}, log_type_);
 
     //-------------------------------------------------------------
     // Input normalization / validation [C-4]
@@ -957,16 +1218,9 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     }
     if (pick_err) std::rethrow_exception(pick_err);
 
-    PeakMap ms1_map;
-    // Group MS2 spectra by their isolation window (m/z). ponytail: window m/z proxy for the full
-    // m/z x IM acquisition tile; precursor-IM band enforcement is refined via the gate below. [C-3]
-    map<pair<int, int>, vector<CompactFrame>> ms2_by_window;
-    CompactStats cstat;  // [compact] ~10 B/peak, no MSSpectrum overhead
-    auto winKey = [](double lo, double hi) {
-      return make_pair((int)llround(lo * 100.0), (int)llround(hi * 100.0));
-    };
     // Serial dispatch: MOVE (not copy) frames into the MS1 map / per-window MS2 maps to avoid
     // transient memory doubling; container inserts aren't thread-safe so this stays serial.
+    if (!streamed)
     for (MSSpectrum& s : exp)
     {
       if (!s.containsIMData()) continue;
@@ -1015,11 +1269,12 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     const double ms2_snr = getDoubleOption_("trace:ms2_chrom_peak_snr");
     const double ms2_minlen = getDoubleOption_("trace:ms2_min_length_sec");
     const double ms2_msr = getDoubleOption_("trace:ms2_min_sample_rate");
+    const double ms2_split = getDoubleOption_("trace:ms2_split_valleys");
     const double max_trace_len = getDoubleOption_("trace:max_trace_length_sec");
     const int agg_n = getIntOption_("trace:frame_aggregation_n");
     String ms1_span;
     vector<Trace> ms1_traces = detectTraces_(ms1_map, delta_im, getDoubleOption_("trace:noise_threshold_int"),
-                                             ms1_snr, getDoubleOption_("trace:min_length_sec"), getDoubleOption_("trace:ms1_min_sample_rate"), max_trace_len, &ms1_span);
+                                             ms1_snr, getDoubleOption_("trace:min_length_sec"), getDoubleOption_("trace:ms1_min_sample_rate"), max_trace_len, getDoubleOption_("trace:ms1_split_valleys"), &ms1_span);
     writeLogInfo_("MS1 " + ms1_span);   // [merged-trace] measure, do not assume
     const double iso_im_tol = getDoubleOption_("charge:iso_im_tolerance");
     const double ms2_noise = getDoubleOption_("trace:ms2_noise_threshold_int");
@@ -1042,9 +1297,35 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     const int default_charge = getIntOption_("assembly:default_charge");
     // rp_max = per-fragment precursor cap. 0 = share-all (stream, memory-light). competitive flag = rp_max 1.
     int rp_max = getIntOption_("assembly:rp_max");
+    const double apportion = getDoubleOption_("assembly:apportion");
     if (getFlag_("assembly:competitive") && rp_max <= 0) rp_max = 1;
     Size n_default = 0;
-    for (auto& pc : precursors) if (pc.charge == 0) { pc.charge = default_charge; ++n_default; }
+    const bool open_safe = getFlag_("assembly:open_search_safe");
+    // [way-4] A GUESSED charge and an isotope-SUPPORTED charge must not be emitted identically.
+    // Closed search hides the difference (engine enumerates); open search does not.
+    for (auto& pc : precursors)
+      if (pc.charge == 0) { pc.guessed = true; pc.charge = open_safe ? 0 : default_charge; ++n_default; }
+    // [ms1-funnel] Measured recall against a DIA-NN truth set is 74.3% vs diaTracer's 84.4%, but a
+    // single number cannot say WHERE a precursor is lost: no MS1 trace at all, a trace that never
+    // became a hypothesis, or a hypothesis that never produced a spectrum. Dump both upstream
+    // stages so the loss can be attributed to one of them instead of guessed at.
+    const String ms1_dump = getStringOption_("diag:dump_ms1_tsv");
+    if (!ms1_dump.empty())
+    {
+      ofstream ft((ms1_dump + ".traces.tsv").c_str());
+      ft << "mz\trt\tim\tintensity\n";
+      for (const auto& t : ms1_traces)
+        ft << t.mz << '\t' << t.rt << '\t' << t.im << '\t' << t.intensity << '\n';
+      ft.close();
+      ofstream fp((ms1_dump + ".precursors.tsv").c_str());
+      fp << "mono_mz\tcharge\trt\tim\tguessed\n";
+      for (const auto& pc : precursors)
+        fp << pc.mono_mz << '\t' << pc.charge << '\t' << pc.rt << '\t' << pc.im << '\t'
+           << (pc.guessed ? 1 : 0) << '\n';
+      fp.close();
+      writeLogInfo_("MS1 funnel dump: " + String(ms1_traces.size()) + " traces, "
+                    + String(precursors.size()) + " precursors -> " + ms1_dump + ".{traces,precursors}.tsv");
+    }
     // sort precursors by mono m/z so each window can binary-search its members instead of
     // rescanning all ~1M precursors per window (total order for determinism). [code-review]
     sort(precursors.begin(), precursors.end(), [](const Precursor_& a, const Precursor_& b) {
@@ -1097,14 +1378,45 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
     // peak RSS scales with the number of windows in flight, not with the window count. Capping
     // concurrency trades wall time for RAM. 0 = unlimited (previous behaviour). [mem]
     const int max_conc = getIntOption_("perf:max_concurrent_windows");
-    int n_conc = (int)window_list.size();
+    int n_threads = 1;
 #ifdef _OPENMP
-    n_conc = std::min(n_conc, omp_get_max_threads());
+    n_threads = omp_get_max_threads();
 #endif
+    // [bands] The window count is FIXED BY THE ACQUISITION METHOD (24 tiles here), so
+    // min(windows, threads) pinned us to 24 cores no matter the machine -- measured: 24
+    // concurrent windows on a 224-core node ran at load ~20. The ceiling is now the thread
+    // count, with each window split into m/z bands to supply the extra work units.
+    int n_bands = getIntOption_("perf:trace_bands");
+    if (n_bands <= 0)  // auto: enough bands that windows x bands covers every thread
+      n_bands = (int)std::ceil((double)n_threads / std::max<size_t>(window_list.size(), 1));
+    n_bands = std::max(1, n_bands);
+    int n_conc = std::min<int>((int)window_list.size(), n_threads);
     if (max_conc > 0) n_conc = std::min(n_conc, max_conc);
     if (n_conc < 1) n_conc = 1;
-    writeLogInfo_("Processing " + String(window_list.size()) + " isolation windows (OpenMP over windows, "
-                  + String(n_conc) + " concurrent)..." + rss_());
+#ifdef _OPENMP
+    // outer loop over windows + inner loop over bands = two live levels
+    if (n_bands > 1) omp_set_max_active_levels(2);
+#endif
+    writeLogInfo_("Parallelism: " + String(window_list.size()) + " windows x " + String(n_bands)
+                  + " m/z bands = " + String((int)window_list.size() * n_bands) + " trace units for "
+                  + String(n_threads) + " threads");
+    // [dyn-mem] Thread count is the UPPER bound; free RAM is the real one. A static cap either
+    // wastes cores on a big machine or OOMs on a shared one, and this node is shared. Admit each
+    // window only when its projected footprint fits in currently-free RAM, re-read from
+    // /proc/meminfo at each admission so the run yields to other jobs instead of fighting them.
+    // Always admit when nothing is in flight, so the loop cannot deadlock on a single huge window.
+    const double mem_frac = getDoubleOption_("perf:mem_fraction");
+    std::atomic<size_t> inflight{0};
+    // Projected footprint per window, from its own compact size. Multiplier measured on S23:
+    // ~5.8 GB peak against ~0.56 GB compact (materialised PeakMap at 20 B/peak, MassTrace at
+    // 168 B header/trace, valley-split batch, FragGrid). Conservative by design.
+    auto project = [&](const vector<CompactFrame>& fr) {
+      size_t b = 0; for (const auto& f : fr) b += f.bytes();
+      return (size_t)(b * 10.0) + (size_t)256 * 1024 * 1024;
+    };
+    writeLogInfo_("Processing " + String(window_list.size()) + " isolation windows (OpenMP over windows, <="
+                  + String(n_conc) + " concurrent, admission bounded by " + String((int)(mem_frac * 100))
+                  + "% of free RAM)..." + rss_());
 
     #pragma omp parallel for schedule(dynamic) num_threads(n_conc)
     for (long wi = 0; wi < (long)window_list.size(); ++wi)
@@ -1113,6 +1425,21 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
       {
         const double win_lo = window_list[wi].first.first / 100.0;
         const double win_hi = window_list[wi].first.second / 100.0;
+        // [dyn-mem] wait for room before materialising anything
+        const size_t need = project(*window_list[wi].second);
+        for (;;)
+        {
+          bool go = false;
+          #pragma omp critical(admit)
+          {
+            const size_t budget = (size_t)(availableBytes_() * mem_frac);
+            // "at least one": an empty pipeline always admits, however large the window
+            if (inflight.load() == 0 || inflight.load() + need <= budget) { inflight += need; go = true; }
+          }
+          if (go) break;
+          std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+        struct Release { std::atomic<size_t>& c; size_t n; ~Release() { c -= n; } } rel{inflight, need};
         // [compact] materialise ONLY this window, and free its compact frames as we go
         PeakMap wmap = materializeWindow(*window_list[wi].second);
         for (MSSpectrum& s : wmap) s.setMSLevel(1); // MassTraceDetection traces MS1-level only
@@ -1120,7 +1447,7 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
         // [cross-frame] sum adjacent cycles for THIS window before detecting fragment traces
         if (agg_n > 1) aggregateFrames_(wmap, agg_n, mass_ppm, delta_im);
         String ms2_span;
-        vector<Trace> frag_traces = detectTraces_(wmap, delta_im, ms2_noise, ms2_snr, ms2_minlen, ms2_msr, max_trace_len, &ms2_span);
+        vector<Trace> frag_traces = detectTraces_(wmap, delta_im, ms2_noise, ms2_snr, ms2_minlen, ms2_msr, max_trace_len, ms2_split, &ms2_span, n_bands);
         // (compact frames already released inside materializeWindow) [par-Crit-3]
         #pragma omp critical
         {
@@ -1158,7 +1485,53 @@ registerIntOption_("trace:frame_aggregation_ms1_n", "<n>", 1, "[cross-frame] Sam
         // (charge 0 is NOT dropped: emitted with charge UNSET so the engine searches its range.)
         size_t plo = lower_bound(prec_mz.begin(), prec_mz.end(), win_lo) - prec_mz.begin();
         size_t phi = upper_bound(prec_mz.begin(), prec_mz.end(), win_hi) - prec_mz.begin();
-        if (rp_max <= 0)
+        if (apportion > 0.0 && rp_max <= 0)
+        {
+          // [route-4] INTENSITY APPORTIONMENT — the only assembly lever that is not a count knob.
+          //
+          // Route 3 measured that for ~80% (chance-corrected) of the peptides diaTracer finds and we
+          // miss, we DO have a precursor at the right (RT, m/z, IM): we emit a spectrum there, but the
+          // right fragments never arrive with enough weight. Under share-all a fragment is copied at
+          // FULL intensity into every gated precursor (mean fan-out 6.45), so a chimeric contribution
+          // is indistinguishable from a private one and the true owner is diluted in rank.
+          //
+          // Every count-based remedy is falsified (rank-pruning, competitive, min_corr, min_corr_pts —
+          // all monotonic losses). So: keep the fragment in ALL precursors (count unchanged) but split
+          // its INTENSITY by relative correlation, w_i = corr_i^p / sum_j corr_j^p. The owner keeps
+          // most of the signal, chimeric copies are down-weighted, and because max_fragments ranks on
+          // score*intensity the ranking changes without any fragment being removed.
+          // p = apportion (1 = linear, higher = sharper). p->inf degenerates to competitive, which is
+          // falsified, so keep p modest.
+          const size_t NF = frag_traces.size();
+          vector<float> wsum(NF, 0.0f);
+          for (size_t pi = plo; pi < phi; ++pi)
+          {
+            const Precursor_& pc = precursors[pi];
+            if (!std::isfinite(pc.rt) || !std::isfinite(pc.im)) continue;
+            scoreCandidates_(pc, frag_traces, frag_im, ms1_traces, fg, delta_im, delta_rt, min_corr,
+                             min_corr_pts, pdense, [&](size_t fi, double c) {
+              wsum[fi] += (float)std::pow(std::max(c, 0.0), apportion);
+            });
+          }
+          for (size_t pi = plo; pi < phi; ++pi)
+          {
+            const Precursor_& pc = precursors[pi];
+            if (!std::isfinite(pc.rt) || !std::isfinite(pc.im)) continue;
+            vector<pair<double, double>> frags;
+            vector<double> frag_scores;
+            scoreCandidates_(pc, frag_traces, frag_im, ms1_traces, fg, delta_im, delta_rt, min_corr,
+                             min_corr_pts, pdense, [&](size_t fi, double c) {
+              const double w = wsum[fi] > 0.0f ? std::pow(std::max(c, 0.0), apportion) / wsum[fi] : 1.0;
+              const double inten = frag_traces[fi].intensity * w;
+              frags.emplace_back(frag_traces[fi].mz, inten);
+              frag_scores.push_back(c * inten);
+            });
+            MSSpectrum ms2;
+            assembleFromList_(pc, win_lo, win_hi, frags, frag_scores, min_frags, max_frags, ms2);
+            if (!ms2.empty()) bucket.push_back(std::move(ms2));
+          }
+        }
+        else if (rp_max <= 0)
         {
           // Share-all (default, current best): each fragment goes to EVERY gated precursor.
           // Streamed per precursor -> memory-light.
