@@ -78,47 +78,36 @@ def test_msspectrum_drift_time_unit_enum_property():
     assert s.getDriftTimeUnit() == DriftTimeUnit.MILLISECOND
 
 
-def test_getitem_returns_reference_inplace_mutation():
-    """spectrum[i] returns a reference: spectrum[i].mz = x mutates the real peak (#9760)."""
+def test_getitem_returns_copy():
+    """
+    spectrum[i] returns a copy, so mutating the indexed peak does NOT change the
+    underlying peak. In-place mutation via indexing is intentionally not supported
+    here; a proper index-based View is tracked as a follow-up to #9760.
+    """
     from pyopenms import MSSpectrum
 
     s = MSSpectrum()
     s.set_peaks(([100.0, 200.0], [10.0, 20.0]))
 
-    # mutate through the indexed peak
+    # mutate through the indexed peak (operates on a copy)
     s[0].mz = 999.0
     s[1].intensity = 55.0
 
-    # the change is visible on a fresh index read ...
-    assert s[0].mz == pytest.approx(999.0)
-    assert s[1].intensity == pytest.approx(55.0)
-    # ... and in the underlying peak data
+    # the underlying peak data is unchanged
+    assert s[0].mz == pytest.approx(100.0)
+    assert s[1].intensity == pytest.approx(20.0)
     mz, intensity = s.get_peaks()
-    assert mz[0] == pytest.approx(999.0)
-    assert intensity[1] == pytest.approx(55.0)
+    assert mz[0] == pytest.approx(100.0)
+    assert intensity[1] == pytest.approx(20.0)
 
-
-def test_getitem_reference_invalidation_is_documented_behavior():
-    """
-    A reference obtained from spectrum[i] dangles if the spectrum reallocates
-    (push_back / resize / set_peaks), mirroring C++ iterator invalidation.
-
-    We do NOT dereference a stale reference here (that would be undefined behavior).
-    Instead we assert the safe pattern: re-index after mutation always sees the
-    current data.
-    """
-    from pyopenms import MSSpectrum, Peak1D
-
-    s = MSSpectrum()
-    s.set_peaks(([100.0], [10.0]))
-
-    # Reallocating the peak container; do not reuse any previously held reference.
-    s.push_back(Peak1D())
-    s[1].mz = 300.0
-
-    # Safe: fresh indexing reflects the new state.
-    assert s.size() == 2
-    assert s[1].mz == pytest.approx(300.0)
+    # the supported way to update a peak in place is __setitem__
+    from pyopenms import Peak1D
+    pk = Peak1D()
+    pk.mz = 999.0
+    pk.intensity = 55.0
+    s[0] = pk
+    assert s[0].mz == pytest.approx(999.0)
+    assert s[0].intensity == pytest.approx(55.0)
 
 
 def test_getters_setters_still_present_additive():

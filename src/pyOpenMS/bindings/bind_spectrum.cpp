@@ -317,13 +317,10 @@ Usage:
             return self.size();
         }, "Returns the number of peaks")
 
-        .def("__getitem__", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::Peak1D& {
+        .def("__getitem__", [](const OpenMS::MSSpectrum& self, size_t i) {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];  // Return by reference so spectrum[i].mz = x mutates in place (issue #9760).
-                             // Matches Mobilogram/FeatureMap/ConsensusMap __getitem__. The reference
-                             // dangles if the spectrum reallocates (push_back/resize/set_peaks), same
-                             // as C++ iterator invalidation.
-        }, nb::rv_policy::reference_internal, "i"_a, "Returns a reference to the peak at index i")
+            return self[i];  // Return by value (copy)
+        }, "i"_a, "Returns a copy of the peak at index i")
         .def("__setitem__", [](OpenMS::MSSpectrum& self, size_t i, const OpenMS::Peak1D& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
