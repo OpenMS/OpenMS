@@ -1261,6 +1261,11 @@ add_test("TOPP_IDFilter_24" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_IDFilter_24_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFilter_24_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IDFilter_24_output.consensusXML)
 set_tests_properties("TOPP_IDFilter_24_out1" PROPERTIES DEPENDS "TOPP_IDFilter_24")
 
+add_test("TOPP_IDFilter_25_reference" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/IDFilter_25_reference_output.tmp.idXML -score:psm 0.95)
+add_test("TOPP_IDFilter_25" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/IDFilter_25_output.tmp.idXML -score:peptide 0.95 -score:type_peptide PEP)
+add_test("TOPP_IDFilter_25_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFilter_25_output.tmp.idXML -in2 ${TESTS_TEMP_DIR}/IDFilter_25_reference_output.tmp.idXML)
+set_tests_properties("TOPP_IDFilter_25_out1" PROPERTIES DEPENDS "TOPP_IDFilter_25;TOPP_IDFilter_25_reference")
+
 #-----------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
 # featureXML input:
