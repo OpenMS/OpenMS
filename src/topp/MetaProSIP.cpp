@@ -495,6 +495,14 @@ class MetaProSIPReporting
 public:
   static void plotHeatMap(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<vector<double> >& binned_ria, vector<std::string> class_labels, Size debug_level = 0, const std::string& executable = "R")
   {
+    // nothing to plot: an empty RIA matrix (e.g. no reported peptides, or a degenerate
+    // bin count relayed by a caller) would index binned_ria[0] below out of bounds
+    if (binned_ria.empty())
+    {
+      OPENMS_LOG_WARN << "No peptide RIA data available; skipping heat map generation." << endl;
+      return;
+    }
+
     std::string filename =std::string("heatmap") + file_suffix + "." + file_extension;
     std::string script_filename =std::string("heatmap") + file_suffix + std::string(".R");
 
