@@ -2127,7 +2127,7 @@ protected:
     registerDoubleOption_("pattern_13C_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerDoubleOption_("pattern_2H_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerDoubleOption_("pattern_18O_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
-    registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation.", false, true);
+    registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation (must be >= 1).", false, true);
     setMinInt_("heatmap_bins", 1); // at least one bin: 0 underflows and negative values wrap to a huge Size (see createBinnedPeptideRIAData_)
 
     registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false, true);
