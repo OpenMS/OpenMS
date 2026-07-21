@@ -909,8 +909,7 @@ namespace OpenMS
           }
           else
           {
-            // issue #9488, PROC-32: score_type is not present as main or secondary score for
-            // this ID: remove all of its hits, as documented in the @note above.
+            // Remove all hits when the requested score type is absent, as documented above.
             id.getHits().clear();
             any_id_missing_score_type = true;
           }

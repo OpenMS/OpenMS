@@ -147,8 +147,8 @@ protected:
   };
 
   /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.
-  /// If no scans with the required level are present, 0.0 is returned
+  /// If @p n_scans is zero or no scans with the required level are present, 0.0 is returned.
+  /// Percentiles outside the range [0, 100] are clamped to the nearest boundary.
   OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans = 10, const double percentile = 80);
 
 } // namespace OpenMS
-

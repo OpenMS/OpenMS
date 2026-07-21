@@ -107,10 +107,9 @@ END_SECTION
 
 START_SECTION((float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans, const double percentile)))
 {
-  // issue #9488, PROC-23: build an interleaved MS1/MS2 experiment where the two
-  // levels have clearly different intensities. The picker must sample only spectra
-  // of the requested ms_level (via the filtered scan-index list), so the result is
-  // level-deterministic even though the random draw is non-deterministic.
+  // Build an interleaved MS1/MS2 experiment where the two levels have clearly
+  // different intensities. The picker must sample only non-empty spectra of the
+  // requested MS level, so the result is deterministic despite the random draw.
   MSExperiment exp;
   for (int i = 0; i < 20; ++i)
   {
@@ -135,6 +134,10 @@ START_SECTION((float estimateNoiseFromRandomScans(const MSExperiment& exp, const
       ms2.push_back(p);
     }
     exp.addSpectrum(ms2);
+
+    MSSpectrum empty_ms1;
+    empty_ms1.setMSLevel(1);
+    exp.addSpectrum(empty_ms1);
   }
 
   // all MS1 spectra carry intensity 1000.0 -> any sampled MS1 scan yields 1000.0
@@ -143,11 +146,18 @@ START_SECTION((float estimateNoiseFromRandomScans(const MSExperiment& exp, const
   TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(exp, 2, 10, 80), 1.0)
   // empty experiment must return 0.0 (no matching scans)
   TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(MSExperiment(), 1, 10, 80), 0.0)
+  // requesting no scans must return 0.0 instead of dividing by zero
+  TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(exp, 1, 0, 80), 0.0)
+
+  // A sole eligible spectrum at the final experiment index must be sampled.
+  MSExperiment final_candidate_exp;
+  final_candidate_exp.addSpectrum(exp[1]);  // wrong MS level
+  final_candidate_exp.addSpectrum(exp[2]);  // empty requested MS level
+  final_candidate_exp.addSpectrum(exp[0]);  // sole eligible spectrum
+  TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(final_candidate_exp, 1, 1, 100), 1000.0)
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-

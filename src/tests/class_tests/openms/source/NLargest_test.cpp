@@ -122,7 +122,7 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   e_ptr->filterPeakSpectrum(s_da);
 
 /*
-issue #9488, PROC-15: after filtering, NLargest restores ascending m/z (position) order.
+After filtering, NLargest restores ascending m/z (position) order.
 The 10 surviving peaks (the most intense ones) sorted by m/z are:
 mz  int  DA_int DA_string
 46  46.1 46      up

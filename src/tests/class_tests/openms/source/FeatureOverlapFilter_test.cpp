@@ -478,9 +478,7 @@ END_SECTION
 
 START_SECTION(mergeFAIMSFeatures - preserves attached metadata)
 {
-  // issue #9488, PROC-31: the merge path used to call feature_map.clear() with the
-  // default (true), wiping protein/peptide IDs, meta info and the unique id. Now it
-  // must preserve them (only the feature container is cleared).
+  // Verify that merging preserves map metadata while replacing the feature container.
   FeatureMap fmap;
   Feature f1 = createTestFeature(100.0, 500.0, 1000.0, 2);
   f1.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);

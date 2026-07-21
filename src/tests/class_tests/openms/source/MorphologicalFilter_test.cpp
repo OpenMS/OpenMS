@@ -676,10 +676,8 @@ END_SECTION
 
 START_SECTION([EXTRA] thread-safety / reentrancy of filter)
 {
-  // issue #9488, PROC-33: the scratch buffers in filterRange/applyErosion_/applyDilation_ used
-  // to be function-local 'static', i.e. shared across instances and threads. Run two independent
-  // MorphologicalFilter instances concurrently on different spectra and assert each result matches
-  // a serial reference run. Before the fix this corrupts intermittently; after it is deterministic.
+  // Run two independent MorphologicalFilter instances concurrently on different
+  // spectra and assert that each result matches a serial reference run.
   const double spacing = 0.25;
 
   // spec_a uses the existing test data; spec_b uses shifted intensities (different content).
@@ -741,10 +739,19 @@ START_SECTION([EXTRA] thread-safety / reentrancy of filter)
 
   TEST_EQUAL(result_a.size(), expected_a.size());
   TEST_EQUAL(result_b.size(), expected_b.size());
-  for (UInt i = 0; i != data_size; ++i)
+  if (result_a.size() == expected_a.size())
   {
-    TEST_REAL_SIMILAR(result_a[i].getIntensity(), expected_a[i].getIntensity());
-    TEST_REAL_SIMILAR(result_b[i].getIntensity(), expected_b[i].getIntensity());
+    for (Size i = 0; i != expected_a.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(result_a[i].getIntensity(), expected_a[i].getIntensity());
+    }
+  }
+  if (result_b.size() == expected_b.size())
+  {
+    for (Size i = 0; i != expected_b.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(result_b[i].getIntensity(), expected_b[i].getIntensity());
+    }
   }
 }
 END_SECTION
@@ -752,4 +759,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

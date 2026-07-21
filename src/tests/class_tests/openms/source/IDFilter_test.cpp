@@ -487,8 +487,7 @@ END_SECTION
 
 START_SECTION((template <class IdentificationType> static void filterHitsByScore(vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)))
 {
-  // issue #9488, PROC-32: documented contract is "Removes a hit if the score_type is not found
-  // at all". Previously such hits were silently KEPT; the fix removes them.
+  // The documented contract removes hits when the requested score type is absent.
 
   // Case A: the ID's main score type ("Mascot") IS the requested RAW score type, so this behaves
   // exactly like the 2-arg overload (threshold 33 keeps 5 hits).

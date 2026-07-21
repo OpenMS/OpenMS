@@ -512,8 +512,8 @@ namespace OpenMS
     }
 
     // Combine back: merged FAIMS features + untouched non-FAIMS features.
-    // issue #9488, PROC-31: pass false to clear ONLY the feature container and preserve
-    // attached metadata (protein/peptide IDs, document/unique IDs, data processing, MetaInfo).
+    // Clear only the feature container and preserve attached metadata such as
+    // protein/peptide IDs, document/unique IDs, data processing, and MetaInfo.
     // Note: unassigned peptide identifications are kept on feature_map but are NOT
     // carried over from the temporary faims_features/non_faims_features maps.
     feature_map.clear(false);

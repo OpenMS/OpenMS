@@ -65,9 +65,7 @@ public:
       }
       spectrum.select(indices);
 
-      // issue #9488, PROC-15: restore natural m/z (position) order; select() left the
-      // spectrum in descending-intensity order, which is surprising for an "N largest"
-      // filter. sortByPosition() reorders peaks and parallel data arrays in lockstep.
+      // Restore natural m/z order after selecting peaks by descending intensity.
       spectrum.sortByPosition();
     }
 

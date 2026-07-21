@@ -11,6 +11,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <algorithm>
 #include <random>
 
 using namespace std;
@@ -20,6 +21,11 @@ namespace OpenMS
 
   float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans, const double percentile)
   {
+    if (n_scans == 0)
+    {
+      return 0.0f;
+    }
+
     vector<Size> spec_indices;
     for (Size i = 0; i < exp.size(); ++i)
     {
@@ -29,28 +35,27 @@ namespace OpenMS
       }
     }
 
-    if (spec_indices.empty()) return 0.0f;
+    if (spec_indices.empty())
+    {
+      return 0.0f;
+    }
 
     std::default_random_engine generator(time(nullptr));
-    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    std::uniform_int_distribution<Size> distribution(0, spec_indices.size() - 1);
+    const double bounded_percentile = std::clamp(percentile, 0.0, 100.0);
 
-    float noise = 0.0;
-    UInt count = 0;
+    float noise = 0.0f;
     vector<float> tmp;
-    while (count++ < n_scans)
+    for (UInt count = 0; count < n_scans; ++count)
     {
-      // issue #9488, PROC-23: index through the filtered scan-index list (spec_indices)
-      // instead of the full experiment, so only non-empty spectra of the requested
-      // ms_level are sampled; clamp the percentile index to stay in range.
-      Size pick = (Size)(distribution(generator) * (spec_indices.size() - 1));
-      Size scan = spec_indices[pick];
+      // Sample only non-empty spectra of the requested MS level.
+      const Size scan = spec_indices[distribution(generator)];
       tmp.clear();
       for (const auto& peak : exp[scan])
       {
         tmp.push_back(peak.getIntensity());
       }
-      Size idx = (Size)(tmp.size() * percentile / 100.0);
-      if (idx >= tmp.size()) idx = tmp.size() - 1; // clamp for percentile==100 / tiny spectra
+      const Size idx = std::min(static_cast<Size>(tmp.size() * bounded_percentile / 100.0), tmp.size() - 1);
       std::nth_element(tmp.begin(), tmp.begin() + idx, tmp.end());
       noise += tmp[idx];
     }

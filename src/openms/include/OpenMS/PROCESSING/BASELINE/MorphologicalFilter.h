@@ -125,9 +125,8 @@ namespace OpenMS
 
       @note The data must be sorted according to ascending m/z!
 
-      @note issue #9488, PROC-33: Each MorphologicalFilter instance is reentrant; distinct
-      instances may be used concurrently from different threads. A single instance must not be
-      shared across threads (it carries per-call state in struct_size_in_datapoints_).
+      @note Distinct instances may be used concurrently from different threads. A single instance
+      must not be shared across threads because it carries per-call state.
 
       @htmlinclude OpenMS_MorphologicalFilter.parameters
 
@@ -171,8 +170,8 @@ namespace OpenMS
     template<typename InputIterator, typename OutputIterator>
     void filterRange(InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)
     {
-      // issue #9488, PROC-33: local scratch buffer (must NOT be static: that would break reentrancy / thread-safety)
-      std::vector<typename InputIterator::value_type> buffer;
+      // Reuse scratch storage without sharing it across threads.
+      static thread_local std::vector<typename InputIterator::value_type> buffer;
       const UInt size = input_end - input_begin;
 
       // determine the struct size in data points if not already set
@@ -331,8 +330,8 @@ namespace OpenMS
       const Int size = input_end - input;
       const Int struc_size_half = struc_size / 2; // yes, integer division
 
-      // issue #9488, PROC-33: local scratch buffer (must NOT be static: that would break reentrancy / thread-safety)
-      std::vector<ValueType> buffer;
+      // Reuse scratch storage without sharing it across threads.
+      static thread_local std::vector<ValueType> buffer;
       if (Int(buffer.size()) < struc_size)
         buffer.resize(struc_size);
 
@@ -442,8 +441,8 @@ namespace OpenMS
       const Int size = input_end - input;
       const Int struc_size_half = struc_size / 2; // yes, integer division
 
-      // issue #9488, PROC-33: local scratch buffer (must NOT be static: that would break reentrancy / thread-safety)
-      std::vector<ValueType> buffer;
+      // Reuse scratch storage without sharing it across threads.
+      static thread_local std::vector<ValueType> buffer;
       if (Int(buffer.size()) < struc_size)
         buffer.resize(struc_size);
 

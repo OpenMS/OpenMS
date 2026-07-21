@@ -62,7 +62,7 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 
 	TEST_EQUAL(spec.size(), 121)
 
-	// issue #9488, PROC-16: a scaler must return peaks in m/z (position) order
+	// A scaler must return peaks in m/z (position) order.
 	TEST_EQUAL(spec.isSorted(), true)
 	TEST_REAL_SIMILAR(spec.begin()->getPosition()[0], 104.0541)        // lowest m/z first
 	TEST_REAL_SIMILAR((spec.end()-1)->getPosition()[0], 1251.3613)     // highest m/z last
@@ -86,7 +86,7 @@ START_SECTION((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  // issue #9488, PROC-16: a scaler must return peaks in m/z (position) order
+  // A scaler must return peaks in m/z (position) order.
   TEST_EQUAL(pm.begin()->isSorted(), true)
   TEST_REAL_SIMILAR(pm.begin()->begin()->getPosition()[0], 104.0541)
   TEST_REAL_SIMILAR((pm.begin()->end()-1)->getPosition()[0], 1251.3613)
@@ -107,7 +107,7 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   TEST_EQUAL(spec.size(), 121)
 
-  // issue #9488, PROC-16: a scaler must return peaks in m/z (position) order
+  // A scaler must return peaks in m/z (position) order.
   TEST_EQUAL(spec.isSorted(), true)
   TEST_REAL_SIMILAR(spec.begin()->getPosition()[0], 104.0541)
   TEST_REAL_SIMILAR((spec.end()-1)->getPosition()[0], 1251.3613)
