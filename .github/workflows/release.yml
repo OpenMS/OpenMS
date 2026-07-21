@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-and-test:
+    name: "Build, Test, and Package"
     strategy:
       fail-fast: false
       matrix:
@@ -20,6 +21,11 @@ jobs:
           - os: ubuntu-24.04
             compiler: g++
     runs-on: ${{ matrix.os }}
+    outputs:
+      has_version: ${{ steps.version.outputs.has_version }}
+      version: ${{ steps.version.outputs.version }}
+      version_name: ${{ steps.version.outputs.name }}
+      version_type: ${{ steps.version.outputs.type }}
 
     steps:
       - uses: actions/checkout@v6
@@ -28,6 +34,10 @@ jobs:
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+
+      - name: Parse the Version Number
+        id: version
+        uses: ./.github/actions/version
 
       - name: Compute Package Type
         id: package-info
@@ -146,80 +156,574 @@ jobs:
           pkgutil --check-signature "$PKG_FILE" || echo "Warning: pkgutil verification returned non-zero"
           spctl -a -vvv -t install "$PKG_FILE" || echo "Warning: spctl assessment returned non-zero"
 
-      # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
-      # - name: Upload packages as artifacts
-      #   if: steps.set-vars.outputs.pkg_type != 'none'
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: ${{ format('installer-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
-      #     path: |
-      #       ${{ github.workspace }}/build/*.exe
-      #       ${{ github.workspace }}/build/*.deb
-      #       ${{ github.workspace }}/build/*.pkg
+      - name: Upload Packages as Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('installer-{0}-{1}-{2}', steps.version.outputs.name, runner.os, runner.arch) }}
+          path: |
+            ${{ github.workspace }}/build/*.exe
+            ${{ github.workspace }}/build/*.deb
+            ${{ github.workspace }}/build/*.pkg
 
-      # Zip the documentation first, since there are :: which make the upload action choke.
-      # - name: Zip Documentation
-      #   if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      #   uses: thedoctor0/zip-release@0.7.6
-      #   with:
-      #     type: 'zip'
-      #     directory: ${{ github.workspace }}/build/doc
-      #     exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
-      #     filename: 'documentation.zip'
+      # Zip the documentation first, since there are :: which make the
+      # upload action choke.
+      - name: Zip Documentation
+        if: runner.os == 'Linux'
+        uses: thedoctor0/zip-release@0.7.6
+        with:
+          type: 'zip'
+          directory: ${{ github.workspace }}/build/doc
+          exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
+          filename: 'documentation.zip'
 
-      # Compress the source
-      # - name: Create tarball
-      #   if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      #   run: |
-      #     # Write the archive to RUNNER_TEMP, i.e. OUTSIDE ${{ github.workspace }} (the directory
-      #     # being archived). Writing it in-tree makes the output file grow inside the directory tar
-      #     # is reading, so GNU tar reports "tar: .: file changed as we read it" and exits 1, which
-      #     # fails the step under `bash -e`.
-      #     tar --exclude='build/*' \
-      #         --exclude='THIRDPARTY/**' \
-      #         --exclude='contrib/**' \
-      #         --exclude='.git/**' \
-      #         --exclude='.github/**' \
-      #         --exclude='vcpkg*/**' \
-      #         -czf ${{ runner.temp }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} .
+      - name: Upload Documentation as artifacts
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation
+          path: |
+            ${{ github.workspace }}/build/doc/documentation.zip
 
-      # Upload the source tar
-      # - name: Upload source tar as artifact
-      #   if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
-      #     path: |
-      #       ${{ runner.temp }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
+      - name: Create a tarball of the Source Code
+        if: runner.os == 'Linux'
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          # FIXME: Why not use `git archive`?
+          tar \
+            --directory "$GITHUB_WORKSPACE" \
+            --exclude='build/*' \
+            --exclude='THIRDPARTY/**' \
+            --exclude='contrib/**' \
+            --exclude='.git/**' \
+            --exclude='.github/**' \
+            --exclude='vcpkg*/**' \
+            -czf "$RUNNER_TEMP/OpenMS-${VERSION}.tar.gz" .
 
+      - name: Upload Source Code as an Artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: OpenMS-${{ steps.version.outputs.name }}.tar.gz
+          path: |
+            ${{ runner.temp }}/OpenMS-${{ steps.version.outputs.name }}.tar.gz
 
-      # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
-      # - name: Upload Documentation as artifacts
-      #   if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: documentation
-      #     path: |
-      #       ${{ github.workspace }}/build/doc/documentation.zip
+      - name: Generate KNIME descriptors and payloads
+        shell: bash
+        run: |
+          cd build || exit 1
 
-      # We never want to build the KNIME update site on our second
-      # Ubuntu + Clang matrix entry even if inputs.knime is true, so
-      # we check for that specific os + compiler combo we also don't
-      # want it from both the arm and x86_64 builds
-      # - name: Generate KNIME descriptors and payloads
-      #   if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
-      #   shell: bash
-      #   run: |
-      #     cd $GITHUB_WORKSPACE/build/
-      #     # TODO use CTest or script to upload to CDash?
-      #     cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
-      #     cmake --build . --target prepare_knime_package
+          cmake \
+            -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" \
+            -DENABLE_PREPARE_KNIME_PACKAGE=ON \
+            ..
 
-      # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-      # we also don't want it from both the arm and x86_64 builds
-      # - name: Upload KNIME payload and descriptors as artifacts
-      #   if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
-      #     path: ${{ github.workspace }}/build/knime/**/*
+          ninja prepare_knime_package
+
+      - name: Upload KNIME payload and descriptors as artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('knime-{0}-{1}', runner.os, runner.arch) }}
+          path: ${{ github.workspace }}/build/knime/**/*
+
+  deploy-installer:
+    name: "Deploy Installer"
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions
+
+      - name: Prepare for rsync
+        id: ssh
+        uses: ./.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+
+      - name: Download the Installer
+        uses: actions/download-artifact@v8
+        with:
+          pattern: installer-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/downloads
+
+      - name: Upload Installer and Mark as Latest
+        if: steps.ssh.outputs.have_key == 'true'
+        shell: bash
+        env:
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
+          SSH: ${{ steps.ssh.outputs.ssh }}
+        run: |
+          rsync \
+            --progress \
+            -avz \
+            -e "$SSH" \
+            "$GITHUB_WORKSPACE"/downloads/* \
+            "$USER@$HOST:/OpenMSInstaller/$VERSION_TYPE/$VERSION"
+
+          # Mark this as the latest release by creating a dead symlink and
+          # syncing that.  On the remote end the link will work.
+          ln -s "$VERSION" latest
+
+          rsync \
+            --progress \
+            -avz \
+            -e "$SSH" \
+            latest \
+            "$USER@$HOST:/OpenMSInstaller/$VERSION_TYPE/"
+
+  deploy-docs:
+    name: "Deploy Documentation"
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions
+
+      - name: Prepare for rsync
+        id: ssh
+        uses: ./.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+
+      - name: Download the Documentation
+        uses: actions/download-artifact@v8
+        with:
+          name: documentation
+          path: ${{ github.workspace }}/downloads
+
+      - name: Upload Documentation and Mark as Latest
+        if: steps.ssh.outputs.have_key == 'true'
+        shell: bash
+        env:
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
+          SSH: ${{ steps.ssh.outputs.ssh }}
+        run: |
+          unzip \
+            "$GITHUB_WORKSPACE/downloads/documentation.zip" \
+            -d "$GITHUB_WORKSPACE/downloads"
+
+          rm "$GITHUB_WORKSPACE/downloads/documentation.zip"
+
+          rsync \
+            --progress \
+            -avz \
+            -e "$SSH" \
+            "$GITHUB_WORKSPACE"/downloads/ \
+            "$USER@$HOST:/Documentation/$VERSION_TYPE/$VERSION"
+
+          # Mark this as the latest release by creating a dead symlink and
+          # syncing that.  On the remote end the link will work.
+          ln -s "$VERSION" latest
+
+          rsync \
+            --progress \
+            -avz \
+            -e "$SSH" \
+            latest \
+            "$USER@$HOST:/Documentation/$VERSION_TYPE/"
+
+  deploy-knime:
+    name: "Deploy KNIME"
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-test
+    env:
+      KNIME: 5.3
+      JAVA_VER: 17
+      PLUGIN_BUILD: knime/plugin-build
+      PLUGIN_SOURCE: knime/plugin-source
+      GKN_PLUGIN_PATH: knime/GenericKnimeNodes
+      OPENMS_KNIME_PATH: knime/plugin-source/de.openms.feature/contributing-plugins
+      THIRDPARTY_PATH: knime/plugin-source/de.openms.thirdparty.feature/contributing-plugins
+      DYNAMIC_JSVIEWERS_PATH: knime/de.openms.knime.dynamicJSViewers
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions
+          path: OpenMS
+
+      - name: Prepare for rsync
+        id: ssh
+        uses: ./OpenMS/.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+
+      - uses: actions/checkout@v6
+        with:
+          repository: "genericworkflownodes/GenericKnimeNodes"
+          ref: "develop"
+          path: ${{ env.GKN_PLUGIN_PATH }}
+
+      - uses: actions/checkout@v6
+        with:
+          repository: "OpenMS/de.openms.knime"
+          ref: "develop"
+          path: ${{ env.OPENMS_KNIME_PATH }}
+
+      - uses: actions/checkout@v6
+        with:
+          repository: "genericworkflownodes/de.openms.knime.dynamicJSViewers"
+          ref: "master"
+          path: ${{ env.DYNAMIC_JSVIEWERS_PATH }}
+
+      - uses: actions/checkout@v6
+        with:
+          repository: "genericworkflownodes/buildresources"
+          ref: "master"
+          path: "knime/buildresources"
+
+      - name: Download KNIME Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: knime-*
+          merge-multiple: true
+          path: ${{ env.PLUGIN_SOURCE }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VER }}
+          distribution: 'temurin'
+
+      - name: Generate KNIME Plugin Sources
+        shell: bash
+        run: |
+          # FIXME: This should really be part of the OpenMS KNIME build.
+          mkdir -p "$PLUGIN_BUILD" "$THIRDPARTY_PATH"
+
+          # We check exemplary in de.openms.lib. It should never happen that one
+          # platform produced one plugin but not the other.
+          if [[ "$(find "$PLUGIN_SOURCE/de.openms.feature/de.openms.lib/payload" | wc -l)" -le 2 ]]; then
+            echo >&2 "ERROR: Not enough payloads for each platform. Aborting..."
+            exit 1
+          fi
+
+          function update_dates() {
+            local dir=$1
+            local date=$2
+
+            find \
+              "$dir" \
+              -iname manifest.mf \
+              -exec sed -i -e "s/qualifier/${date}/g" '{}' ';'
+
+            find \
+              "$dir" \
+              -iname pom.xml \
+              -exec sed -i -e "1 h;1! H;\$! d;$ {g;s/-SNAPSHOT/\.${date}/;}" '{}' ';'
+          }
+
+          CONTRIBUTING_DATE=$(
+            cd "$OPENMS_KNIME_PATH" &&
+              git log -1 --format="%cd" --date="format:%Y%m%d%H%M"
+          )
+
+          echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
+          update_dates "$OPENMS_KNIME_PATH" "$CONTRIBUTING_DATE"
+
+          # move to thirdparty feature so they get installed together
+          mv "$OPENMS_KNIME_PATH/de.openms.thirdparty.knime.startupCheck" \
+            "$THIRDPARTY_PATH/de.openms.thirdparty.knime.startupCheck"
+
+          rm -r \
+            "$OPENMS_KNIME_PATH/.git" \
+            "$OPENMS_KNIME_PATH/de.openms.knime.startupCheck.test"
+
+          CONTRIBUTING_DATE=$(
+            cd "$DYNAMIC_JSVIEWERS_PATH" &&
+              git log -1 --format="%cd" --date="format:%Y%m%d%H%M"
+          )
+
+          mv \
+            "$DYNAMIC_JSVIEWERS_PATH/de.openms.knime.dynamicJSViewers.feature" \
+            "$PLUGIN_SOURCE/"
+
+          mkdir -p "$PLUGIN_SOURCE/de.openms.knime.dynamicJSViewers.feature/contributing-plugins"
+
+          mv "$DYNAMIC_JSVIEWERS_PATH/de.openms.knime.dynamicJSViewers" \
+            "$PLUGIN_SOURCE/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/"
+
+          rm -rf "$PLUGIN_SOURCE/de.openms.knime.dynamicJSViewers.feature/.settings"
+
+          update_dates \
+            "$PLUGIN_SOURCE/de.openms.knime.dynamicJSViewers.feature/contributing-plugins" \
+            "$CONTRIBUTING_DATE"
+
+          # build the plugin source code
+          (cd "$GKN_PLUGIN_PATH" &&
+            ant \
+              -Dplugin.dir="$GITHUB_WORKSPACE/$PLUGIN_SOURCE" \
+              -Dgenerate.extra.arguments="-r -u" \
+              -Dcustom.plugin.generator.target="$GITHUB_WORKSPACE/$PLUGIN_BUILD")
+
+      - name: Build KNIME Update Site
+        shell: bash
+        run: |
+          # fix folder structure
+          rsync -avu "$PLUGIN_BUILD"/ knime/
+          cd knime || exit
+
+          # a special class that maps node names from old openms to openms
+          # thirdparty (we should be able to remove it future releases)
+          cp \
+            buildresources/de.openms.thirdparty/src/de/openms/thirdparty/knime/OpenMSNodeFactoryClassMapper.java \
+            de.openms.thirdparty/src/de/openms/thirdparty/knime/
+
+          # insert contents of the snippet before </plugin> in the
+          # plugin.xml. The snippet registers the class mapper.
+          f1="$(cat buildresources/de.openms.thirdparty/plugin.xml.snippet)"
+
+          awk \
+            -vf1="$f1" \
+            -e '/<\/plugin>/{print f1;print;next}1' \
+            de.openms.thirdparty/plugin.xml \
+            >buildresources/my.tmp &&
+            mv buildresources/my.tmp de.openms.thirdparty/plugin.xml
+
+          rm -r buildresources
+          rm -r plugin-build
+
+          # remove maven pom.xmls since we will do a full pomless build. poms
+          # are only necessary if you want to develop on a single plugin, e.g.,
+          # in eclipse.
+          find . -mindepth 2 -name "pom.xml*" -delete
+
+          # Build update site. Downloads necessary plugins from the dependency update sites from KNIME and GKN (for the correct KNIME version)
+          mvn \
+            --no-transfer-progress \
+            "-Dknime.version=${KNIME}" \
+            "-Djava.majorversion=${JAVA_VER}" \
+            "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" \
+            clean verify
+
+      - name: Upload KNIME Update Site and Mark as Latest
+        if: steps.ssh.outputs.have_key == 'true'
+        shell: bash
+        env:
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
+          SSH: ${{ steps.ssh.outputs.ssh }}
+        run: |
+          source="$GITHUB_WORKSPACE/knime/de.openms.update/target/repository"
+          chmod -R o+rX "$source"
+
+          rsync \
+            --progress \
+            -avz \
+            --mkpath \
+            -e "$SSH" \
+            "$source"/* \
+            "$USER@$HOST:/knime-plugin/updateSite/$VERSION_TYPE/$VERSION"
+
+          # Mark this as the latest release by creating a dead symlink and
+          # syncing that.  On the remote end the link will work.
+          ln -s "$VERSION" latest
+
+          rsync \
+            --progress \
+            -avz \
+            -e "$SSH" \
+            latest \
+            "$USER@$HOST:/knime-plugin/updateSite/$VERSION_TYPE/"
+
+  publish-release:
+    name: "Publish Release"
+    runs-on: ubuntu-latest
+    permissions: write-all
+    needs:
+      - build-and-test
+      - deploy-installer
+      - deploy-docs
+      - deploy-knime
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .github/workflows/release-announcement.txt
+            CHANGELOG
+
+      - name: Create Change Log
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
+        shell: bash
+        run: |
+          # Return lines matching releases.
+          function releases() {
+            grep --line-number -- "----[[:space:]]*OpenMS" CHANGELOG
+          }
+
+          # Return the two lines matching the current release.
+          function this_version() {
+            grep --fixed-strings -A1 "$VERSION"
+          }
+
+          # Return line numbers from grep output
+          function line_numbers() {
+            cut --delimiter=: --fields=1
+          }
+
+          # Line numbers delimiting releases.
+          lines=()
+
+          if releases | this_version >/dev/null; then
+            # We have a matching release.
+            mapfile lines < <(releases | this_version | line_numbers)
+          else
+            # Use the latest release info instead.
+            mapfile lines < <(releases | head -n 2 | line_numbers)
+          fi
+
+          beg=$((lines[0] + 2))
+          end=$((lines[1] - 2))
+
+          sed --quiet -e "${beg},${end} p" CHANGELOG >release-changelog.txt
+
+      - name: Upload CHANGELOG as Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: changelog.txt
+          path: release-changelog.txt
+          archive: false
+
+      - name: Generate Release Announcement
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
+        shell: bash
+        run: |
+          # Okay, maybe this is over the top.
+          awk \
+            --assign VERSION_TYPE="$VERSION_TYPE" \
+            --assign VERSION="$VERSION" \
+            --assign CHANGELOG_FILE="release-changelog.txt" \
+            --source '
+              BEGIN {
+                cl_text = ""
+                while ((getline line < CHANGELOG_FILE) > 0) {
+                  cl_text = cl_text (cl_text ? ORS : "") line
+                }
+                close(CHANGELOG_FILE)
+              } {
+                line = $0
+
+                while (match(line, /@@([A-Z_]+)@@/, matches)) {
+                  alt = "MISSING"
+
+                  switch(matches[1]) {
+                  case "VERSION_TYPE":
+                    alt = VERSION_TYPE
+                    break
+                  case "VERSION":
+                    alt = VERSION
+                    break
+                  case "CHANGELOG":
+                    alt = cl_text
+                    break
+                  default:
+                    alt = "MISSING"
+                    break;
+                  }
+
+                  line = substr(line, 1, RSTART - 1) alt substr(line, RSTART + RLENGTH)
+                }
+
+                print line
+              }' <.github/workflows/release-announcement.txt >release-announcement.txt
+
+      - name: Upload Release Announcement as Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-announcement.txt
+          path: release-announcement.txt
+          archive: false
+
+      - name: Download the Installer
+        uses: actions/download-artifact@v8
+        with:
+          pattern: installer-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/downloads
+
+      - name: Download Source Archive
+        uses: actions/download-artifact@v8
+        with:
+          name: OpenMS-${{ needs.build-and-test.outputs.version_name }}.tar.gz
+          path: ${{ github.workspace }}/downloads
+
+      - name: Publish OpenMS Release
+        if: needs.build-and-test.outputs.has_version == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          name: Release ${{ needs.build-and-test.outputs.version }}
+          body_path: release-announcement.txt
+          make_latest: true
+          files: downloads/*
+
+  create-website-update:
+    name: Create Website Update
+    if: needs.build-and-test.outputs.has_version == 'true'
+    runs-on: ubuntu-latest
+    permissions: write-all
+    needs:
+      - build-and-test
+      - publish-release
+    steps:
+      - name: get a token so that we can update the website
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.OPENMS_GITHUB_APP_ID }}
+          private-key: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: checkout website
+        uses: actions/checkout@v6
+        with:
+          path: OpenMS-website
+          repository: OpenMS/OpenMS-website
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Download the Release Announcement
+        uses: actions/download-artifact@v8
+        with:
+          name: release-announcement.txt
+          path: ${{ github.workspace }}/downloads
+
+      - name: create text for website and update it.
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run:  |
+            cp \
+              "$GITHUB_WORKSPACE/release-announcement.txt" \
+              "OpenMS-website/content/en/news/release${VERSION}.md"
+
+            pushd OpenMS-website || exit 1
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git checkout -b "releaseannouncement${VERSION}"
+            git add "content/en/news/release${VERSION}.md"
+            git commit -am "Announce release ${VERSION}"
+            git push --set-upstream origin "releaseannouncement${VERSION}"
+            gh pr create \
+              --title "Release announcement for ${VERSION}" \
+              --body "announces ${VERSION}"
+            popd
