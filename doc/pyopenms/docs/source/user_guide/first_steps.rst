@@ -167,10 +167,17 @@ iterate through the spectra as follows:
 Iteration
 *********
 
+.. note::
+
+   Core classes such as :py:class:`~.MSSpectrum` and :py:class:`~.Peak1D`
+   expose common scalar attributes as snake_case properties (e.g.
+   ``spec.ms_level``, ``spec.rt``, ``peak.mz``, ``peak.intensity``). These are
+   equivalent to the ``getX()`` / ``setX()`` methods, which still work.
+
 .. code-block:: python
 
     for spec in exp:
-        print("MS Level:", spec.getMSLevel())
+        print("MS Level:", spec.ms_level)
 
 .. code-block:: output
 
@@ -183,7 +190,7 @@ This iterates through all available :py:class:`~.MSSpectra`, we can also access 
 
 .. code-block:: python
 
-    print("MS Level:", exp[1].getMSLevel())
+    print("MS Level:", exp[1].ms_level)
 
 .. code-block:: output
 
@@ -209,7 +216,7 @@ slower):
 .. code-block:: python
 
     for peak in spec:
-        print(peak.getIntensity())
+        print(peak.intensity)
 
 .. code-block:: output
 
