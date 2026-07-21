@@ -221,6 +221,12 @@ if (TARGET ArrowSchemaRegistry_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathResultsExporter_test)
+  target_link_libraries(OpenSwathResultsExporter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 if (TARGET OpenSwathParquetExporter_test)
   target_link_libraries(OpenSwathParquetExporter_test
     ${OPENMS_ARROW_TARGET}

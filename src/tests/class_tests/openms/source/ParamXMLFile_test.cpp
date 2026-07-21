@@ -442,6 +442,51 @@ START_SECTION([EXTRA] loading 1.6.2 files)
 }
 END_SECTION
 
+START_SECTION([EXTRA] loading files that omit the optional 'required' attribute)
+{
+  // 'required' is optional in the schema, but ParamXMLFile always writes it out explicitly, so
+  // the code path where it is absent is only reached by hand-written / third-party INIs and by
+  // INIs written against the Param 1.0-1.2 schemas (which had no 'required' attribute at all).
+  // The fixture is therefore loaded directly instead of being produced by the writer.
+  Param p;
+  ParamXMLFile paramFile;
+  paramFile.load(OPENMS_GET_TEST_DATA_PATH("Param_advanced_no_required.ini"), p);
+
+  // an advanced ITEM without a 'required' attribute must not inherit 'required'
+  TEST_TRUE(p.hasTag("TagMatrix:adv_true_req_absent", "advanced"))
+  TEST_FALSE(p.hasTag("TagMatrix:adv_true_req_absent", "required"))
+
+  TEST_TRUE(p.hasTag("TagMatrix:adv_true_req_false", "advanced"))
+  TEST_FALSE(p.hasTag("TagMatrix:adv_true_req_false", "required"))
+
+  TEST_TRUE(p.hasTag("TagMatrix:adv_true_req_true", "advanced"))
+  TEST_TRUE(p.hasTag("TagMatrix:adv_true_req_true", "required"))
+
+  TEST_FALSE(p.hasTag("TagMatrix:adv_absent_req_true", "advanced"))
+  TEST_TRUE(p.hasTag("TagMatrix:adv_absent_req_true", "required"))
+
+  TEST_FALSE(p.hasTag("TagMatrix:adv_absent_req_absent", "advanced"))
+  TEST_FALSE(p.hasTag("TagMatrix:adv_absent_req_absent", "required"))
+
+  TEST_FALSE(p.hasTag("TagMatrix:adv_false_req_absent", "advanced"))
+  TEST_FALSE(p.hasTag("TagMatrix:adv_false_req_absent", "required"))
+
+  // ITEMLIST parses the same two attributes in a separate branch
+  TEST_TRUE(p.hasTag("TagMatrix:list_adv_true_req_absent", "advanced"))
+  TEST_FALSE(p.hasTag("TagMatrix:list_adv_true_req_absent", "required"))
+
+  // a load/store round trip must not turn the advanced entry into a required one
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  paramFile.store(filename, p);
+
+  Param p2;
+  paramFile.load(filename, p2);
+  TEST_TRUE(p2.hasTag("TagMatrix:adv_true_req_absent", "advanced"))
+  TEST_FALSE(p2.hasTag("TagMatrix:adv_true_req_absent", "required"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

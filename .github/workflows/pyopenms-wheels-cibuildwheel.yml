@@ -134,6 +134,8 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DBUILD_TOPP_TOOLS=OFF \
+                -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -216,6 +218,8 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DBUILD_TOPP_TOOLS=OFF \
+                -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -294,6 +298,8 @@ jobs:
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
+            -DBUILD_TOPP_TOOLS=OFF \
+            -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON
@@ -402,6 +408,8 @@ jobs:
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
+            -DBUILD_TOPP_TOOLS=OFF \
+            -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF

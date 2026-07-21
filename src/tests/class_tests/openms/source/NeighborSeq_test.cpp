@@ -204,6 +204,25 @@ START_SECTION(bool isNeighborPeptide(const AASequence& neighbor_candidate,
 }
 END_SECTION
 
+START_SECTION([EXTRA] NeighborSeq owns its moved-in peptides)
+{
+  std::vector<AASequence> source_peptides{AASequence::fromString("VELQSK"),
+                                          AASequence::fromString("TVDQLK")};
+  NeighborSeq ns(std::move(source_peptides));
+
+  // Reusing the moved-from source must not alter the instance. The old const-reference member
+  // observed these replacement peptides instead of the ones supplied at construction.
+  source_peptides = {AASequence::fromString(std::string(100, 'A')),
+                     AASequence::fromString(std::string(100, 'W'))};
+
+  const double pc_tolerance = 0.01;
+  const double mz_bin_size = 0.05;
+  TEST_TRUE(ns.isNeighborPeptide(AASequence::fromString("VESQLK"), pc_tolerance, false, 0.25, mz_bin_size))
+  auto stats = ns.getNeighborStats();
+  TEST_EQUAL(stats.total(), 2)
+}
+END_SECTION
+
 START_SECTION(NeighborStats getNeighborStats() const)
 {
   NOT_TESTABLE // tested above
