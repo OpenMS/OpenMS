@@ -24,18 +24,23 @@ namespace OpenMS
 {
 
   void SignalToNoiseEstimatorMedianRapid::computeNoiseInWindows_(
-      const std::vector<double>& mz_array, std::vector<double> int_array, 
+      const std::vector<double>& mz_array, std::vector<double> int_array,
       std::vector<double> & result, double mz_start)
   {
     // PRECONDITION
     assert(mz_array.size() == int_array.size());
     assert(mz_array.size() > 2);
 
-    // compute mean and standard deviation
-    double sum = std::accumulate(int_array.begin(), int_array.end(), 0.0);
-    double int_mean = sum / int_array.size();
-    double sq_sum = std::inner_product(int_array.begin(), int_array.end(), int_array.begin(), 0.0);
-    double int_stdev = std::sqrt(sq_sum / int_array.size() - int_mean * int_mean);
+    // Fallback noise value that is imputed whenever a window's median is exactly
+    // zero. It is derived from the mean and standard deviation of the whole
+    // intensity array. Computing those requires two full passes over the data,
+    // yet a median of exactly zero is rare in practice, so we defer the
+    // computation and only perform it (once, cached) if a zero median is
+    // actually encountered.
+    // Note: computeMedian_ permutes int_array in place, but mean and stdev are
+    // invariant under permutation, so computing them lazily mid-loop is safe.
+    double zero_fallback = 0.0;
+    bool zero_fallback_computed = false;
 
     std::vector<double>::const_iterator mz_start_it = mz_array.begin();
     std::vector<double>::const_iterator mz_end_it;
@@ -53,22 +58,31 @@ namespace OpenMS
 
       // compute median of all data between intensity start and intensity end
       double median = computeMedian_(int_start_win, int_end_win);
-      result[i] = median;
 
       // Deal with a median of zero
       //
       // If we find a zero here, try to impute some value that might make sense as noise value ...
-      // alternatively, one could also remove all zeros and compute the median on that 
-      if (result[i] == 0)
+      // alternatively, one could also remove all zeros and compute the median on that
+      if (median == 0.0)
       {
-        // Legacy implementation from SignalToNoiseEstimatorMedian
-        //
-        // max_intensity_ = gauss_global.mean + std::sqrt(gauss_global.variance) * auto_max_stdev_Factor_;
-        // From the maximum intensity we can compute the value of the lowest
-        // bin in the histogram of the SignalToNoiseEstimatorMedian algorithm:
-        // maximum intensity divided by 60 
-        result[i] = (int_mean  + 3.0 * int_stdev) / 60;
-      }  
+        if (!zero_fallback_computed)
+        {
+          // Legacy implementation from SignalToNoiseEstimatorMedian
+          //
+          // max_intensity_ = gauss_global.mean + std::sqrt(gauss_global.variance) * auto_max_stdev_Factor_;
+          // From the maximum intensity we can compute the value of the lowest
+          // bin in the histogram of the SignalToNoiseEstimatorMedian algorithm:
+          // maximum intensity divided by 60
+          double sum = std::accumulate(int_array.begin(), int_array.end(), 0.0);
+          double int_mean = sum / int_array.size();
+          double sq_sum = std::inner_product(int_array.begin(), int_array.end(), int_array.begin(), 0.0);
+          double int_stdev = std::sqrt(sq_sum / int_array.size() - int_mean * int_mean);
+          zero_fallback = (int_mean + 3.0 * int_stdev) / 60;
+          zero_fallback_computed = true;
+        }
+        median = zero_fallback;
+      }
+      result[i] = median;
 
       mz_start_it = mz_end_it;
       int_start_win = int_end_win;
@@ -79,28 +93,28 @@ namespace OpenMS
   double SignalToNoiseEstimatorMedianRapid::computeMedian_(std::vector<double>::iterator & first, std::vector<double>::iterator & last)
   {
     std::iterator_traits< std::vector<double>::const_iterator >::difference_type iterator_pos = std::distance(first, last);
-    std::nth_element(first, first + iterator_pos / 2, last);
-
-    double median;
     if (iterator_pos == 0)
     {
-      median = 0.0;
+      return 0.0;
     }
-    else if (iterator_pos % 2 == 0)
+
+    std::vector<double>::iterator mid = first + iterator_pos / 2;
+    std::nth_element(first, mid, last);
+
+    if (iterator_pos % 2 != 0)
     {
-      // even case
-      // compute the arithmetic mean between the two middle elements
-      double f = *(first + iterator_pos / 2);
-      std::nth_element(first, first + iterator_pos / 2 -1, last);
-      double s = *(first + iterator_pos / 2 - 1);
-      median = (f+s)/2.0; 
+      // odd case: the element at the midpoint is the median
+      return *mid;
     }
-    else
-    {
-      // odd case
-      median = *(first + iterator_pos / 2);
-    }
-    return median;
+
+    // even case: arithmetic mean of the two middle elements.
+    // After nth_element, every element in [first, mid) is <= *mid, so the lower
+    // of the two central order statistics is simply the maximum of that left
+    // partition. Using max_element here (O(n/2)) avoids a second full
+    // nth_element (O(n)) over the whole window.
+    double upper = *mid;
+    double lower = *std::max_element(first, mid);
+    return (upper + lower) / 2.0;
   }
 
 } // namespace OpenMS
