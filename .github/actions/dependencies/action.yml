@@ -105,14 +105,14 @@ runs:
         conda info
 
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        # doxygen and ghostscript are installed here (conda-forge) instead of via Chocolatey:
+        # doxygen is installed here (conda-forge) instead of via Chocolatey:
         #  - choco 'doxygen.portable' downloads from doxygen.nl, which intermittently returns
         #    HTTP 403 and aborts the whole job before it can build.
-        #  - choco 'ghostscript' (Ghostscript.app) hangs its installer (gs10071w64.exe) for the
-        #    full 2700s timeout on the windows-2025 (Server 2025) image, failing the job.
-        # Both are needed for the docs (enable_docs=ON, built on Windows to catch errors
-        # pre-merge); conda-forge ships them into Library/bin (already on PATH below).
-        conda install -c conda-forge libarrow libparquet libzip doxygen ghostscript -y
+        # doxygen is needed for the docs (enable_docs=ON, built on Windows to catch errors
+        # pre-merge); conda-forge ships it into Library/bin (already on PATH below).
+        # Ghostscript is no longer required: LaTeX formulas are rendered client-side via
+        # MathJax (USE_MATHJAX=YES in doc/doxygen/Doxyfile*.in).
+        conda install -c conda-forge libarrow libparquet libzip doxygen -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
@@ -150,9 +150,9 @@ runs:
       if: inputs.os == 'Windows'
       shell: bash
       run: |
-        # NOTE: doxygen AND ghostscript are installed via conda-forge in the Conda step above,
-        # not here: choco 'doxygen.portable' frequently 403s from doxygen.nl, and choco
-        # 'ghostscript' hangs its installer for the full 2700s timeout on windows-2025.
+        # NOTE: doxygen is installed via conda-forge in the Conda step above, not here:
+        # choco 'doxygen.portable' frequently 403s from doxygen.nl. (Ghostscript is no
+        # longer needed -- LaTeX formulas render client-side via MathJax.)
         choco install -y --no-progress \
           ccache \
           graphviz

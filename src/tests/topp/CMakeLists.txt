@@ -1449,6 +1449,14 @@ add_test("TOPP_MetaProSIP_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_1_ou
 set_tests_properties("TOPP_MetaProSIP_1_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
 add_test("TOPP_MetaProSIP_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_1_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_1_output_2.csv )
 set_tests_properties("TOPP_MetaProSIP_1_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
+# reject non-positive heat map bin counts: 0 makes the bin vector empty (out-of-bounds write) and
+# negative values wrap to a huge Size when stored as 'n_heatmap_bins' (see createBinnedPeptideRIAData_)
+add_test("TOPP_MetaProSIP_2" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_2_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_2_output_2.tmp.csv -heatmap_bins 0)
+# assert the specific parse-time rejection diagnostic, not just any non-zero exit
+# (PASS_REGULAR_EXPRESSION ignores the exit code; it cannot be combined with WILL_FAIL, which would invert a regex match)
+set_tests_properties("TOPP_MetaProSIP_2" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## bins must be >= 1
+add_test("TOPP_MetaProSIP_3" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_2.tmp.csv -heatmap_bins -1)
+set_tests_properties("TOPP_MetaProSIP_3" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## negative wraps to a huge Size
 
 #------------------------------------------------------------------------------
 # MetaboliteAdductDecharger tests
@@ -4254,6 +4262,17 @@ set_tests_properties("TOPP_Digestor_1_out" PROPERTIES DEPENDS "TOPP_Digestor_1")
 add_test("TOPP_Digestor_2" ${TOPP_BIN_PATH}/Digestor -test -in ${DATA_DIR_TOPP}/Digestor_1_input.fasta -out ${TESTS_TEMP_DIR}/Digestor_2_output.tmp.fasta -min_length 1 -missed_cleavages 0 -replace_ambiguous)
 add_test("TOPP_Digestor_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Digestor_2_output.tmp.fasta -in2 ${DATA_DIR_TOPP}/Digestor_2_output.fasta)
 set_tests_properties("TOPP_Digestor_2_out" PROPERTIES DEPENDS "TOPP_Digestor_2")
+
+
+#------------------------------------------------------------------------------
+# EICExtractor:
+# A negative 'rt_collect' must be rejected during parameter validation instead of being
+# silently wrapped into a huge unsigned scan count (see setMinInt_ in EICExtractor.cpp).
+# We match the offending parameter name in the error output rather than only checking for a
+# non-zero exit code, because the tool would also exit non-zero for unrelated reasons (e.g.
+# missing required inputs) and that would not actually exercise the range restriction.
+add_test("TOPP_EICExtractor_1" ${TOPP_BIN_PATH}/EICExtractor -rt_collect -1)
+set_tests_properties("TOPP_EICExtractor_1" PROPERTIES PASS_REGULAR_EXPRESSION "rt_collect")
 
 
 #------------------------------------------------------------------------------

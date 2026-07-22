@@ -648,3 +648,107 @@ class TestPEFFFile:
             pass
         finally:
             os.unlink(path)
+
+
+# -----------------------------------------------------------------------
+# bind_spectrum.cpp -- MSSpectrum.get_peaks
+# -----------------------------------------------------------------------
+
+
+class TestMSSpectrumGetPeaks:
+    """get_peaks() must RETURN the (mz, intensity) arrays the C++ fills by
+    reference, not drop them."""
+
+    def test_get_peaks_returns_tuple(self):
+        np = pytest.importorskip("numpy")
+        from pyopenms import MSSpectrum
+
+        spec = MSSpectrum()
+        mz = [100.0, 200.0, 300.0, 400.0, 500.0]
+        intensity = [1000.0, 2000.0, 3000.0, 2000.0, 1000.0]
+        spec.set_peaks((mz, intensity))
+
+        result = spec.get_peaks()
+        assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"
+        assert len(result) == 2
+        mz_out, int_out = result
+        assert len(mz_out) == 5
+        assert len(int_out) == 5
+        # full-precision m/z, single-precision intensity (the wrapped contract)
+        assert mz_out.dtype == np.float64
+        assert int_out.dtype == np.float32
+        np.testing.assert_array_almost_equal(mz_out, mz)
+        np.testing.assert_array_almost_equal(int_out, intensity, decimal=3)
+
+    def test_get_peaks_empty(self):
+        np = pytest.importorskip("numpy")
+        from pyopenms import MSSpectrum
+
+        mz_out, int_out = MSSpectrum().get_peaks()
+        assert len(mz_out) == 0
+        assert len(int_out) == 0
+        assert mz_out.dtype == np.float64
+        assert int_out.dtype == np.float32
+
+
+# -----------------------------------------------------------------------
+# bind_experiment.cpp -- MSExperiment.get2DPeakData / *Long / *IM
+# -----------------------------------------------------------------------
+
+
+class TestMSExperimentGet2DPeakData:
+    """get2DPeakData / get2DPeakDataLong / get2DPeakDataIM must RETURN the
+    (rt, mz, intensity[, ion_mobility]) arrays the C++ fills by reference
+    without dropping values."""
+
+    @staticmethod
+    def _make_exp():
+        from pyopenms import MSExperiment, MSSpectrum
+        exp = MSExperiment()
+        for rt, mzs in ((100.0, [150.0, 250.0]), (200.0, [160.0, 260.0])):
+            s = MSSpectrum()
+            s.setRT(rt)
+            s.setMSLevel(1)
+            s.set_peaks((mzs, [1000.0, 2000.0]))
+            exp.addSpectrum(s)
+        exp.updateRanges()
+        return exp
+
+    def test_get2DPeakData_returns_triple(self):
+        np = pytest.importorskip("numpy")
+        exp = self._make_exp()
+
+        result = exp.get2DPeakData(50.0, 250.0, 100.0, 300.0, 1)
+        assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"
+        assert len(result) == 3
+        rt, mz, intensity = result
+        # all four peaks across the two MS1 spectra fall inside the range -> output non-empty
+        assert len(rt) == 4
+        assert len(mz) == 4
+        assert len(intensity) == 4
+        assert set(np.round(np.asarray(mz, dtype=float), 1)) == {150.0, 250.0, 160.0, 260.0}
+        assert float(np.asarray(intensity, dtype=float).sum()) == pytest.approx(6000.0, abs=1.0)
+
+    def test_get2DPeakDataLong_returns_triple_full_precision(self):
+        np = pytest.importorskip("numpy")
+        exp = self._make_exp()
+
+        rt, mz, intensity = exp.get2DPeakDataLong(50.0, 250.0, 100.0, 300.0, 1)
+        assert len(rt) == 4
+        assert len(mz) == 4
+        assert len(intensity) == 4
+        # the "Long" path keeps rt/mz at full (float64) precision
+        assert rt.dtype == np.float64
+        assert mz.dtype == np.float64
+        assert intensity.dtype == np.float32
+
+    def test_get2DPeakDataIM_returns_quadruple(self):
+        pytest.importorskip("numpy")
+        exp = self._make_exp()
+
+        result = exp.get2DPeakDataIM(50.0, 250.0, 100.0, 300.0, 1)
+        assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"
+        assert len(result) == 4  # rt, mz, intensity, ion_mobility
+        rt, mz, intensity, ion_mobility = result
+        # the four parallel arrays are all populated to the same length (output not dropped)
+        assert len(rt) == len(mz) == len(intensity) == len(ion_mobility)

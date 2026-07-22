@@ -221,6 +221,7 @@ RequestExecutionLevel user ; will ask elevation only if necessary
 		${if} $CmdLineDir != ""
 			StrCpy $INSTDIR $CmdLineDir
 		${elseif} $PerMachineInstallationFolder != ""
+		${andif} $PerMachineInstallationVersion == "${VERSION}"
 			StrCpy $INSTDIR $PerMachineInstallationFolder
 		${else}
 			!if "${UNINSTALLER_FUNCPREFIX}" == ""
@@ -252,6 +253,7 @@ RequestExecutionLevel user ; will ask elevation only if necessary
 		${if} $CmdLineDir != ""
 			StrCpy $INSTDIR $CmdLineDir
 		${elseif} $PerUserInstallationFolder != ""
+		${andif} $PerUserInstallationVersion == "${VERSION}"
 			StrCpy $INSTDIR $PerUserInstallationFolder
 		${else}
 			!if "${UNINSTALLER_FUNCPREFIX}" == ""

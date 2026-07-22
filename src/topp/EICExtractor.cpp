@@ -162,6 +162,7 @@ public:
     registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
+    setMinInt_("rt_collect", 0); // negative counts are meaningless and would wrap around when used in unsigned/iterator arithmetic
 
     registerTOPPSubsection_("auto_rt", "Parameters for automatic detection of injection RT peaks (no need to specify them in 'pos' input file)");
     registerFlag_("auto_rt:enabled", "Automatically detect injection peaks from TIC and quantify all m/z x RT combinations.");
@@ -225,7 +226,10 @@ public:
 
     double rttol = getDoubleOption_("rt_tol");
     double mztol = getDoubleOption_("mz_tol");
-    Size rt_collect = getIntOption_("rt_collect");
+    // keep the (already >= 0 validated) value in a signed type: it is combined with signed
+    // iterator distances below, and storing it in an unsigned Size would turn any stray
+    // negative value into a huge count
+    Int rt_collect = getIntOption_("rt_collect");
 
     //-------------------------------------------------------------
     // loading input

@@ -32,10 +32,6 @@ namespace OpenMS
          The search path can be augmented via the @c OPENMS_TTD_INTERNAL_PATH environment
          variable.
 
-    @note @ref ToolHandler::getExternalToolsPath returns the @c [OpenMS]/share/TOOLS/EXTERNAL location, but
-          this directory is not currently scanned for @c .ttd entries by this class — only the
-          @c TOOLS/INTERNAL tree is loaded.
-
     Used by TOPPAS for the visual workflow editor's tool palette and by the TOPP runtime to
     look up tools and their categories.
 
@@ -82,12 +78,6 @@ public:
       @return Category string (e.g. @c "Quantitation") or an empty string if @p toolname is unknown.
     */
     static std::string getCategory(const std::string& toolname);
-
-    /**
-      @brief Resolved file-system path of the external-tool config directory.
-      @return @c File::getOpenMSDataPath() + @c "/TOOLS/EXTERNAL".
-    */
-    static std::string getExternalToolsPath();
 
     /**
       @brief Resolved file-system path of the internal-tool config directory (root of the @c .ttd search).

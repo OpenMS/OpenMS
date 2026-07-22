@@ -772,6 +772,7 @@ if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
   list(APPEND swath_executables_list OpenSwathMatrixExporter_test)
   list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
+  list(APPEND swath_executables_list OpenSwathResultsExporter_test)
   list(APPEND swath_executables_list OpenSwathParquetExporter_test)
 endif()
 

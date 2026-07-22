@@ -112,6 +112,53 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
 }
 END_SECTION
 
+START_SECTION(([EXTRA] read mzIdentML Modification without the optional location attribute (issue #5443)))
+{
+  // The 'location' attribute of <Modification> is optional in mzIdentML; some search engines omit it for
+  // terminal modifications. Reading such a file used to crash with an IndexOverflow exception. The reader
+  // must now infer a terminal position (or skip the modification) instead of applying a negative index.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_missing_mod_location.mzid"), protein_ids, peptide_ids);
+
+  ABORT_IF(peptide_ids.size() != 5)
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    ABORT_IF(peptide_ids[i].getHits().empty())
+  }
+
+  // 1) N-terminal Acetyl without 'location' -> inferred as N-terminal
+  const AASequence& acetyl_seq = peptide_ids[0].getHits()[0].getSequence();
+  TEST_EQUAL(acetyl_seq.toUnmodifiedString(), "PEPTIDEK")
+  TEST_TRUE(acetyl_seq.hasNTerminalModification())
+  TEST_FALSE(acetyl_seq.hasCTerminalModification())
+  TEST_EQUAL(acetyl_seq.getNTerminalModificationName(), "Acetyl")
+
+  // 2) Oxidation without 'location' -> position not uniquely terminal -> skipped (but no crash and no misplacement)
+  const AASequence& oxidation_seq = peptide_ids[1].getHits()[0].getSequence();
+  TEST_EQUAL(oxidation_seq.toUnmodifiedString(), "PEPTIDEM")
+  TEST_FALSE(oxidation_seq.isModified())
+  TEST_EQUAL(oxidation_seq.toString(), "PEPTIDEM")
+
+  // 3) Amidated without 'location' -> exclusively C-terminal -> inferred as C-terminal
+  const AASequence& amidated_seq = peptide_ids[2].getHits()[0].getSequence();
+  TEST_EQUAL(amidated_seq.toUnmodifiedString(), "PEPTIDER")
+  TEST_TRUE(amidated_seq.hasCTerminalModification())
+  TEST_FALSE(amidated_seq.hasNTerminalModification())
+  TEST_EQUAL(amidated_seq.getCTerminalModificationName(), "Amidated")
+
+  // 4) Control: a regular internal modification WITH a valid 'location' is still parsed correctly
+  const AASequence& carbamidomethyl_seq = peptide_ids[3].getHits()[0].getSequence();
+  TEST_EQUAL(carbamidomethyl_seq.toString(), "PEPTIDEC(Carbamidomethyl)K")
+
+  // 5) Acetyl without 'location' but with residues="K" -> residue-specific (internal), position unknown,
+  //    so it is skipped rather than forced onto the N-terminus even though Acetyl supports the N-terminus
+  const AASequence& acetyl_on_k_seq = peptide_ids[4].getHits()[0].getSequence();
+  TEST_EQUAL(acetyl_on_k_seq.toUnmodifiedString(), "PEPTIKDE")
+  TEST_FALSE(acetyl_on_k_seq.isModified())
+}
+END_SECTION
+
 START_SECTION(void store(std::string filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids) )
 {
   //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
