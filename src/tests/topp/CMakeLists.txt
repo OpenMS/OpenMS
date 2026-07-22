@@ -4265,6 +4265,17 @@ set_tests_properties("TOPP_Digestor_2_out" PROPERTIES DEPENDS "TOPP_Digestor_2")
 
 
 #------------------------------------------------------------------------------
+# EICExtractor:
+# A negative 'rt_collect' must be rejected during parameter validation instead of being
+# silently wrapped into a huge unsigned scan count (see setMinInt_ in EICExtractor.cpp).
+# We match the offending parameter name in the error output rather than only checking for a
+# non-zero exit code, because the tool would also exit non-zero for unrelated reasons (e.g.
+# missing required inputs) and that would not actually exercise the range restriction.
+add_test("TOPP_EICExtractor_1" ${TOPP_BIN_PATH}/EICExtractor -rt_collect -1)
+set_tests_properties("TOPP_EICExtractor_1" PROPERTIES PASS_REGULAR_EXPRESSION "rt_collect")
+
+
+#------------------------------------------------------------------------------
 # EPIFANY:
 add_test("TOPP_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out ${TESTS_TEMP_DIR}/Epifany_1_out.tmp.idXML)
 add_test("TOPP_Epifany_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/Epifany_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)
