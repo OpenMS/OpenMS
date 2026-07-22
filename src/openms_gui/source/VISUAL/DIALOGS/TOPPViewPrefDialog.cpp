@@ -17,6 +17,7 @@
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -88,6 +89,19 @@ namespace OpenMS
         case Qt::CheckState::Unchecked: return "false";
         default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Checkbox had unexpected state",StringUtils::toStr(cs));
       }
+    }
+
+    void TOPPViewPrefDialog::accept()
+    {
+      // Commit the embedded TSG parameter editor before accepting. If a value could not be applied
+      // (invalid number / restriction violated), keep the dialog open: otherwise the dialog would
+      // accept and getParam() would read the stale, uncorrected value.
+      if (!ui_->param_editor_spec_gen_->store())
+      {
+        QMessageBox::warning(this, "Not applied", "A value currently being edited could not be applied. Please correct it and try again.");
+        return;
+      }
+      QDialog::accept();
     }
 
     Param TOPPViewPrefDialog::getParam() const

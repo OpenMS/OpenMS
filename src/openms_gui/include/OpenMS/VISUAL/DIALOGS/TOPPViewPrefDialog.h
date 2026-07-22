@@ -43,7 +43,16 @@ public:
 
       /// update the parameters given the current GUI state.
       /// Can be used to obtain default parameters and their names.
+      /// @note This commits the embedded parameter editor but ignores whether the commit was
+      ///       rejected. Call it only when no invalid edit is pending (it is invoked after accept(),
+      ///       which refuses to close on a rejected edit, and at construction where none is pending).
       Param getParam() const;
+
+public slots:
+      /// Commit the embedded parameter editor before closing; if a value could not be applied
+      /// (invalid number / restriction violated) the dialog stays open instead of accepting a stale
+      /// value that getParam() would then read.
+      void accept() override;
 
 protected slots:
       void browseDefaultPath_();

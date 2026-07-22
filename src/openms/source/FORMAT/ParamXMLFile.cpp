@@ -13,30 +13,50 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 #include <filesystem>
 #include <cerrno>
+#include <fcntl.h> // common to both platforms
 #ifdef OPENMS_WINDOWSPLATFORM
   #include <io.h>
   #include <share.h>
   #include <sys/stat.h>
-  #include <fcntl.h>
 #else
-  #include <fcntl.h>
   #include <unistd.h>
 #endif
 
 namespace
 {
-  /**
-    @brief Create a new, empty file next to @p target and return its path (empty on failure).
+  /// An exclusively-created temporary file: its path together with the still-open write descriptor.
+  struct ExclusiveTempFile
+  {
+    std::filesystem::path path;
+    int fd = -1; ///< -1 means creation failed
+  };
 
-    The file is created exclusively, i.e. the call fails if the path already exists. That matters
-    because the temporary lives in whatever directory the user's file is in: with a plain
-    std::ofstream another process could pre-create the path as a symlink -- the name is derived from
-    a timestamp and PID and is therefore guessable -- and have us truncate whatever it points at.
+  /**
+    @brief Create a new, empty file next to @p target, opened exclusively, and return its path
+           together with the still-open write descriptor (@c fd == -1 on failure).
+
+    The file is created with @c O_EXCL, i.e. the call fails if the path already exists. That matters
+    because the temporary lives in whatever directory the user's file is in, and its name is derived
+    from a timestamp and PID and is therefore guessable: without @c O_EXCL another process could
+    pre-create the path as a symlink and have us truncate whatever it points at.
+
+    The descriptor is deliberately kept open so the caller can write through it directly. Closing it
+    and reopening the path with a fresh std::ofstream would reintroduce exactly that race -- another
+    process could swap the name for a symlink between the two opens and redirect our write. Content
+    is written in binary mode (LF line endings on all platforms), matching the repository's
+    paramXML/INI reference files and the binary output of the base XMLFile writer.
+
+    When @p restrictive is true (we are replacing an existing file) the file is created owner-only so
+    the (possibly sensitive) parameters are not briefly world/group-readable while they are being
+    written; the caller restores the target's permissions afterwards. When false (a new file) the
+    normal umask-based default permissions are used, so a freshly created file is not unexpectedly
+    restricted to owner-only.
   */
-  std::filesystem::path createExclusiveTempFile(const std::filesystem::path& target)
+  ExclusiveTempFile createExclusiveTempFile(const std::filesystem::path& target, [[maybe_unused]] bool restrictive)
   {
     for (int attempt = 0; attempt < 32; ++attempt)
     {
@@ -44,22 +64,23 @@ namespace
       tmp += "." + OpenMS::File::getUniqueName(false) + ".tmp";
 #ifdef OPENMS_WINDOWSPLATFORM
       int fd = -1;
-      errno_t err = _wsopen_s(&fd, tmp.wstring().c_str(), _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+      errno_t err = _wsopen_s(&fd, tmp.wstring().c_str(), _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY, _SH_DENYRW, _S_IREAD | _S_IWRITE);
       if (err == 0 && fd != -1)
       {
-        _close(fd);
-        return tmp;
+        return {tmp, fd};
       }
       if (err != EEXIST)
       {
         break;
       }
 #else
-      int fd = ::open(tmp.c_str(), O_CREAT | O_EXCL | O_WRONLY, 0666);
+      // 0600 while replacing (owner-only during write); 0666 for a new file so the process umask
+      // determines the final permissions as it would for an ordinary new file.
+      const int mode = restrictive ? 0600 : 0666;
+      int fd = ::open(tmp.c_str(), O_CREAT | O_EXCL | O_WRONLY, mode);
       if (fd != -1)
       {
-        ::close(fd);
-        return tmp;
+        return {tmp, fd};
       }
       if (errno != EEXIST)
       {
@@ -68,6 +89,70 @@ namespace
 #endif
     }
     return {};
+  }
+
+  /**
+    @brief Close a descriptor obtained from createExclusiveTempFile(). Returns 0 on success, -1 on error.
+
+    The result must be checked: on NFS or when a quota is hit, the write error is not reported by the
+    individual write() calls (the data is only buffered) but surfaces here at close time. Ignoring it
+    would let an incomplete temporary be renamed over the previously-valid target.
+  */
+  int closeDescriptor(int fd)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    return _close(fd);
+#else
+    return ::close(fd);
+#endif
+  }
+
+  /**
+    @brief Non-mutating check that an @em existing path is writable.
+
+    Deliberately not OpenMS::File::writable(): that probes a non-existent path by creating and then
+    removing it, and if its internal existence check hits a transient stat error it treats the path
+    as non-existent and opens it with a truncating std::ofstream -- which would destroy the very
+    target we are trying to preserve. access()/_waccess_s only query permissions and never mutate;
+    any error is reported as "not writable" (fail closed).
+  */
+  bool isExistingPathWritable(const std::filesystem::path& p)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    return _waccess_s(p.wstring().c_str(), 2) == 0; // 2 = write permission
+#else
+    return ::access(p.c_str(), W_OK) == 0;
+#endif
+  }
+
+  /// Write the whole buffer to @p fd, looping over partial writes. Returns false on any error.
+  bool writeAllToDescriptor(int fd, const char* data, std::size_t size)
+  {
+    std::size_t written = 0;
+    while (written < size)
+    {
+      const std::size_t remaining = size - written;
+#ifdef OPENMS_WINDOWSPLATFORM
+      const unsigned int chunk = remaining > 0x40000000u ? 0x40000000u : static_cast<unsigned int>(remaining);
+      const int n = _write(fd, data + written, chunk);
+#else
+      const ssize_t n = ::write(fd, data + written, remaining);
+#endif
+      if (n < 0)
+      {
+        if (errno == EINTR)
+        {
+          continue; // interrupted before any byte was written -- retry
+        }
+        return false;
+      }
+      if (n == 0)
+      {
+        return false; // no progress on a regular file -- treat as failure rather than spin forever
+      }
+      written += static_cast<std::size_t>(n);
+    }
+    return true;
   }
 } // namespace
 
@@ -95,97 +180,151 @@ namespace OpenMS
     namespace fs = std::filesystem;
 
     // Serialise into a temporary file and rename it over the target, so that a failure part way
-    // through (full disk, I/O error, crash) leaves the previous, valid file untouched. Opening the
-    // target directly would truncate it before we know the new content can be written at all -- for
-    // an editor that file is often the user's only copy.
+    // through (full disk, I/O error) leaves the previous, valid file untouched. Opening the target
+    // directly would truncate it before we know the new content can be written at all -- for an
+    // editor that file is often the user's only copy. (Note: this is not a durability guarantee
+    // across an OS/power crash -- there is no fsync of the file or its parent directory.)
     std::error_code ec;
-    // resolve symlinks so we replace the file that is linked to, not the link itself.
-    // canonical() follows a whole chain of links; on failure (e.g. a dangling link) we keep the
-    // path as given and simply create it.
+
+    // Resolve symlinks so we replace the file the link points at, not any link in the chain. We
+    // cannot rely on canonical() alone: it fails on a dangling link. Following the chain by hand
+    // lets us create a not-yet-existing target while leaving every intermediate link intact -- each
+    // relative hop is resolved against the directory of the link it came from. A cycle or an
+    // over-long chain is rejected. Inspection errors fail closed (throw): silently continuing could
+    // let a transient I/O error cause us to replace a symlink or special file we could not classify.
     fs::path target(filename);
-    if (fs::is_symlink(target, ec))
+    fs::file_status target_status;
     {
-      fs::path resolved = fs::canonical(target, ec);
-      if (!ec)
+      int hops = 0;
+      while (true)
       {
-        target = resolved;
+        target_status = fs::symlink_status(target, ec); // does not follow the final link
+        if (ec)
+        {
+          if (ec == std::errc::no_such_file_or_directory)
+          { // the path (or a parent component) does not exist: a new file to be created. Some
+            // std::filesystem implementations report this via ec rather than file_type::not_found.
+            target_status = fs::file_status(fs::file_type::not_found);
+            ec.clear();
+            break;
+          }
+          // any other error means we cannot classify the target -- fail closed rather than risk
+          // replacing something we could not inspect
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "could not determine the type of the target");
+        }
+        if (target_status.type() != fs::file_type::symlink)
+        {
+          break; // reached a non-symlink terminal (regular, special, directory, or not-found)
+        }
+        if (++hops > 40) // more hops than any real chain -- almost certainly a cycle
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "the target is a cyclic or excessively long symlink chain");
+        }
+        fs::path link_target = fs::read_symlink(target, ec);
+        if (ec)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "could not read the target symlink");
+        }
+        target = link_target.is_absolute() ? link_target : target.parent_path() / link_target;
       }
-      ec.clear();
     }
-    // Refuse targets that must not be replaced by a rename. Opening the target directly used to
-    // reject these implicitly; without the check we would happily remove a directory or overwrite a
-    // write-protected file, because on POSIX rename() is governed by the directory's permissions.
-    if (fs::exists(target, ec))
+    // Only a regular file (or a not-yet-existing path) may be created or replaced by the rename.
+    // Reject a directory, a special file (FIFO, socket, device) or a write-protected regular file:
+    // the old stream-based code rejected these implicitly by failing to open them for writing, and
+    // replacing them by rename would silently destroy them. The type comes from the cached
+    // symlink_status above (no extra lookup); the writability check uses a non-mutating access()
+    // that fails closed, so neither can fail open and destroy the target.
+    const bool target_exists = fs::exists(target_status);
+    if (target_exists && (!fs::is_regular_file(target_status) || !isExistingPathWritable(target)))
     {
-      if (fs::is_directory(target, ec) || !File::writable(target.string()))
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "the target exists but is not a writable regular file");
     }
     ec.clear();
 
-    // keep the temporary next to the target so the rename stays within one filesystem
-    fs::path tmp = createExclusiveTempFile(target);
-    if (tmp.empty())
+    // Serialise the whole document up front. Doing this before touching the target means a
+    // serialisation failure cannot leave a half-written temporary behind, and lets us write the
+    // result through the exclusive descriptor in one go.
+    std::ostringstream buffer;
+    writeXMLToStream(&buffer, param);
+    if (!buffer) // a stream-buffer/allocation failure can set badbit without throwing
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "failed to serialise the parameters");
+    }
+    const std::string data = buffer.str();
+
+    // keep the temporary next to the target so the rename stays within one filesystem. When we are
+    // replacing an existing file, create the temporary owner-only so its (possibly sensitive)
+    // content is not briefly world/group-readable; when creating a new file, use the normal default
+    // permissions (umask-based) so a new file is not unexpectedly restricted to 0600.
+    ExclusiveTempFile tmp = createExclusiveTempFile(target, /* restrictive = */ target_exists);
+    if (tmp.fd == -1)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "could not create a temporary file next to the target");
     }
 
+    // Write through the descriptor we still hold from the exclusive create -- never by reopening
+    // the path, which would let another process redirect the write via a symlink. The close result
+    // is part of the check: on NFS / at a quota the write error surfaces only at close time.
+    const bool write_ok = writeAllToDescriptor(tmp.fd, data.data(), data.size());
+    const bool close_ok = (closeDescriptor(tmp.fd) == 0);
+    if (!write_ok || !close_ok) // e.g. the disk filled up
     {
-      std::ofstream os(tmp, std::ofstream::out);
-      if (!os)
-      {
-        fs::remove(tmp, ec);
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      try
-      {
-        writeXMLToStream(&os, param);
-      }
-      catch (...)
-      {
-        os.close();
-        fs::remove(tmp, ec);
-        throw;
-      }
-      os.close();
-      if (!os) // flush/close failed, e.g. the disk filled up
-      {
-        fs::remove(tmp, ec);
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
+      fs::remove(tmp.path, ec);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "could not write the temporary file");
     }
 
-    // Carry over the permissions of the file we are replacing. Note that replacing by rename gives
-    // the target a new inode, so ownership, ACLs, extended attributes and hard links to it are not
-    // preserved -- the accepted trade-off for not truncating the only copy on a failed write (Qt's
-    // QSaveFile behaves the same way).
-    if (fs::exists(target, ec))
+    // Carry over the permissions of the file we are replacing (the temporary was created owner-only
+    // in that case). Note that replacing by rename gives the target a new inode, so ownership, ACLs,
+    // extended attributes and hard links to it are not preserved -- the accepted trade-off for not
+    // truncating the only copy on a failed write (Qt's QSaveFile behaves the same way). A failed
+    // permission copy is left best-effort: the file keeps its owner-only temporary permissions,
+    // which is safe (does not grant any group/other mode bits).
+    if (target_exists)
     {
       auto perms = fs::status(target, ec).permissions();
       if (!ec)
       {
-        fs::permissions(tmp, perms, ec);
+        fs::permissions(tmp.path, perms, ec);
       }
     }
 
-    fs::rename(tmp, target, ec);
-    if (ec)
-    { // POSIX replaces the target atomically. Windows refuses when it exists, so retry after
-      // removing it -- but only for a plain file we already know we may overwrite, and never as a
-      // blanket reaction to an arbitrary rename failure, which would delete the user's data and
-      // then still fail.
+    fs::rename(tmp.path, target, ec);
+#ifdef OPENMS_WINDOWSPLATFORM
+    bool original_removed = false;
+    if (ec == std::errc::file_exists)
+    { // POSIX (and Windows MoveFileEx with replacement) replace the target atomically; only a
+      // Windows configuration that refuses to rename onto an existing file reaches here. Retry
+      // after removing the target -- but only for that specific error, and only for a plain file we
+      // already established we may overwrite, never as a blanket reaction to an arbitrary failure.
       std::error_code probe;
       if (fs::is_regular_file(target, probe) && fs::remove(target, probe))
       {
-        fs::rename(tmp, target, ec);
+        original_removed = true;
+        fs::rename(tmp.path, target, ec);
       }
     }
+    if (ec && original_removed)
+    { // The original was already deleted and the replacement could not be moved into place.
+      // Removing tmp now would destroy both copies -- the very data loss this mechanism exists to
+      // prevent. Leave the freshly written content under the temporary name and point at it.
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "the previous file was removed but the new content could not be put in place; it has been preserved as '" + tmp.path.string() + "'");
+    }
+#endif
     if (ec)
     {
+      // The original (if any) is still intact, so discarding the freshly written temporary is safe.
       std::error_code ignored;
-      fs::remove(tmp, ignored);
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      fs::remove(tmp.path, ignored);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "could not replace the target with the temporary file");
     }
   }
 

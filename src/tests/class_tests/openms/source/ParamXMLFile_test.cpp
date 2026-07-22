@@ -22,6 +22,9 @@
 
 #include <fstream>
 #include <filesystem>
+#ifndef OPENMS_WINDOWSPLATFORM
+  #include <sys/stat.h> // mkfifo, for the special-file rejection test
+#endif
 #ifdef __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wshadow"
@@ -563,12 +566,13 @@ START_SECTION(([EXTRA] store() does not destroy the previous file when it cannot
   std::filesystem::create_directory(dirname);
   TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store(dirname, p_new))
   TEST_TRUE(std::filesystem::is_directory(dirname))
+  std::filesystem::remove(dirname); // not registered with NEW_TMP_FILE, so remove it explicitly
 
   // a successful store replaces the content, preserves permissions and leaves no temporaries behind
   std::filesystem::permissions(filename, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
   auto perms_before = std::filesystem::status(filename).permissions();
   paramFile.store(filename, p_new);
-  TEST_EQUAL(std::filesystem::status(filename).permissions() == perms_before, true)
+  TEST_TRUE(std::filesystem::status(filename).permissions() == perms_before)
 
   Param p_check2;
   paramFile.load(filename, p_check2);
@@ -591,6 +595,123 @@ START_SECTION(([EXTRA] store() does not destroy the previous file when it cannot
     }
   }
   TEST_EQUAL(leftover, 0)
+
+  // storing through a symlink must replace the link's target, not the link itself (POSIX only)
+#ifndef OPENMS_WINDOWSPLATFORM
+  {
+    std::string real_file;
+    NEW_TMP_FILE(real_file)
+    Param p_real;
+    p_real.setValue("test:int", 1, "intdesc");
+    paramFile.store(real_file, p_real);
+
+    std::string link_file = real_file + ".link";
+    std::error_code sec;
+    std::filesystem::create_symlink(real_file, link_file, sec);
+    if (!sec) // some filesystems disallow symlinks; skip there
+    {
+      Param p_via_link;
+      p_via_link.setValue("test:int", 2, "intdesc");
+      paramFile.store(link_file, p_via_link);
+
+      TEST_TRUE(std::filesystem::is_symlink(link_file)) // the link is preserved ...
+      Param p_check_link;
+      paramFile.load(real_file, p_check_link);          // ... and its target received the new content
+      TEST_EQUAL((int)p_check_link.getValue("test:int"), 2)
+
+      std::filesystem::remove(link_file);
+    }
+
+    // a dangling symlink is resolved to its (non-existing) target, which is then created -- the link
+    // itself must not be replaced by a regular file
+    std::string dangling_target = real_file + ".dangling_target";
+    std::string dangling_link = real_file + ".dangling_link";
+    std::filesystem::remove(dangling_target); // make sure it does not exist
+    std::error_code dec;
+    std::filesystem::create_symlink(dangling_target, dangling_link, dec);
+    if (!dec)
+    {
+      Param p_dangling;
+      p_dangling.setValue("test:int", 3, "intdesc");
+      paramFile.store(dangling_link, p_dangling);
+
+      TEST_TRUE(std::filesystem::is_symlink(dangling_link))      // link preserved
+      TEST_TRUE(std::filesystem::is_regular_file(dangling_target)) // its target was created
+      Param p_check_dangling;
+      paramFile.load(dangling_target, p_check_dangling);
+      TEST_EQUAL((int)p_check_dangling.getValue("test:int"), 3)
+
+      std::filesystem::remove(dangling_link);
+      std::filesystem::remove(dangling_target);
+    }
+
+    // a special file (here: a FIFO) must be rejected, not silently replaced by a regular file
+    std::string fifo_file = real_file + ".fifo";
+    std::filesystem::remove(fifo_file);
+    if (mkfifo(fifo_file.c_str(), 0600) == 0)
+    {
+      Param p_fifo;
+      p_fifo.setValue("test:int", 4, "intdesc");
+      TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store(fifo_file, p_fifo))
+      std::error_code fec;
+      TEST_TRUE(std::filesystem::is_fifo(std::filesystem::status(fifo_file, fec))) // still a FIFO
+      std::filesystem::remove(fifo_file);
+    }
+
+    // a CHAIN of symlinks ending in a non-existing target: every intermediate link must survive and
+    // the terminal target must be created (link1 -> link2 -> chain_target)
+    std::string chain_target = real_file + ".chain_target";
+    std::string chain_mid = real_file + ".chain_mid";
+    std::string chain_head = real_file + ".chain_head";
+    std::filesystem::remove(chain_target);
+    std::filesystem::remove(chain_mid);
+    std::filesystem::remove(chain_head);
+    std::error_code cec1, cec2;
+    std::filesystem::create_symlink(chain_target, chain_mid, cec1);  // chain_mid -> chain_target (dangling)
+    std::filesystem::create_symlink(chain_mid, chain_head, cec2);    // chain_head -> chain_mid
+    if (!cec1 && !cec2)
+    {
+      Param p_chain;
+      p_chain.setValue("test:int", 5, "intdesc");
+      paramFile.store(chain_head, p_chain);
+
+      TEST_TRUE(std::filesystem::is_symlink(chain_head))         // both links preserved ...
+      TEST_TRUE(std::filesystem::is_symlink(chain_mid))
+      TEST_TRUE(std::filesystem::is_regular_file(chain_target))  // ... terminal target created
+      Param p_check_chain;
+      paramFile.load(chain_target, p_check_chain);
+      TEST_EQUAL((int)p_check_chain.getValue("test:int"), 5)
+    }
+    { // cleanup, regardless of which of the create_symlink() calls above succeeded
+      std::error_code rec;
+      std::filesystem::remove(chain_head, rec);
+      std::filesystem::remove(chain_mid, rec);
+      std::filesystem::remove(chain_target, rec);
+    }
+
+    // a symlink CYCLE must be rejected, not silently broken (cyc_a -> cyc_b -> cyc_a)
+    std::string cyc_a = real_file + ".cyc_a";
+    std::string cyc_b = real_file + ".cyc_b";
+    std::filesystem::remove(cyc_a);
+    std::filesystem::remove(cyc_b);
+    std::error_code yec1, yec2;
+    std::filesystem::create_symlink(cyc_b, cyc_a, yec1);
+    std::filesystem::create_symlink(cyc_a, cyc_b, yec2);
+    if (!yec1 && !yec2)
+    {
+      Param p_cyc;
+      p_cyc.setValue("test:int", 6, "intdesc");
+      TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store(cyc_a, p_cyc))
+      TEST_TRUE(std::filesystem::is_symlink(cyc_a)) // cycle left intact
+      TEST_TRUE(std::filesystem::is_symlink(cyc_b))
+    }
+    { // cleanup, regardless of which of the create_symlink() calls above succeeded
+      std::error_code rec;
+      std::filesystem::remove(cyc_a, rec);
+      std::filesystem::remove(cyc_b, rec);
+    }
+  }
+#endif
 }
 END_SECTION
 

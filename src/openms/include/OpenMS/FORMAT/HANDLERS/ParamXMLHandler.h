@@ -38,12 +38,15 @@ public:
       void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       /**
-        @brief Whether a @em PARAMETERS element was encountered while parsing.
+        @brief Whether a @em PARAMETERS element was encountered anywhere while parsing.
 
         Callers use this to reject documents that are not parameter files at all: unknown elements
         are silently ignored, so without this check any well-formed XML parses "successfully" into
-        an empty Param. Note that this deliberately does not test the *root* element -- CTD files
-        wrap @em PARAMETERS in a @em tool root, and ToolDescriptionHandler embeds it in @em ttd.
+        an empty Param. This reports @em PARAMETERS anywhere in the document rather than requiring
+        it as the *root* element on purpose: ParamXMLFile uses it to accept CTD documents, which
+        wrap @em PARAMETERS inside a @em tool root and are loaded through ParamXMLFile as well.
+        (ToolDescriptionHandler, which parses @em .ttd files, separately reuses this handler for the
+        parameter section it embeds, but does not go through ParamXMLFile::load().)
       */
       bool hasSeenParametersElement() const
       {

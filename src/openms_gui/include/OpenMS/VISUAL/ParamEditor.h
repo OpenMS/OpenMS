@@ -13,6 +13,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <QtCore/QPointer>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QTreeWidget>
@@ -82,9 +83,26 @@ public:
       void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
       /// Updates the editor for the item specified by index according to the style option given.
       void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
+      /// Destroys the editor. Overridden to reset the commit state when an edit is abandoned (ESC).
+      void destroyEditor(QWidget * editor, const QModelIndex & index) const override;
 
-      /// true if the underlying tree has an open QLineEdit which has uncommitted data
+      /// true if the most recent commit attempt could not be applied (invalid value / restriction
+      /// violated), so the edited value has not reached the model and the param must not be saved
       bool hasUncommittedData() const;
+      /**
+        @brief Commit the currently-open editor (if any) into the model, synchronously.
+
+        Emits commitData/closeEditor directly rather than relying on focus movement, because for the
+        plain QLineEdit editors (input/output file, output dir) Qt would only queue the commit, so a
+        save triggered right afterwards would still write the previous value. Returns true if nothing
+        is left uncommitted afterwards (i.e. the value was applied or there was no editor), false if
+        the value was rejected.
+      */
+      bool commitActiveEditor();
+      /// Reset the edit state (no pending/rejected edit, no active editor). Called when the edited
+      /// Param is replaced (load/clear), so a rejection recorded in one document does not block
+      /// saving an unrelated one.
+      void resetCommitState();
 signals:
       /// signal for showing ParamEditor if the Model data changed
       void modified(bool) const;
@@ -104,12 +122,23 @@ private slots:
 private:
       /// Not implemented
       ParamEditorDelegate();
+      /// Lifecycle of the value being edited, tracked so store() knows whether it may be saved.
+      enum class CommitState
+      {
+        Committed, ///< no pending edit, or the last edit reached the model
+        Editing,   ///< an editor is open and its value has not yet been committed
+        Rejected   ///< the last commit attempt was refused (invalid value / restriction violated)
+      };
+
       /// used to modify value of output and input files( not for output and input lists)
       mutable QString fileName_;
       /// holds a directory name (for output directories)
       mutable QString dirName_;
-      /// true if a QLineEdit is still open and has not committed its data yet (so storing the current param is a bad idea)
-      mutable bool has_uncommited_data_;
+      /// state of the value currently or most recently edited (see CommitState)
+      mutable CommitState commit_state_;
+      /// the editor currently open (null if none); used to commit it synchronously in store().
+      /// QPointer so it auto-nulls if the editor is destroyed behind our back.
+      mutable QPointer<QWidget> active_editor_;
     };
 
     /// QTreeWidget that emits a signal whenever a new row is selected
@@ -175,6 +204,11 @@ public:
               that could not be committed, e.g. because the entered value is not a valid number or
               violates the parameter's restrictions. Callers that write the Param to disk must not
               do so when this returns false, as it would persist the outdated value.
+
+      @note A successful store() commits the edits into the Param but does @em not clear the
+            modified flag: whether the document is "clean" depends on it having been persisted, which
+            only the caller knows. Callers should call setModified(false) after a successful write;
+            others may read isModified() afterwards to detect whether anything changed.
     */
     bool store();
     /// Indicates if the data changed since last save
@@ -205,7 +239,9 @@ protected:
     Internal::ParamTree* tree_;
     /// The data to edit
     Param* param_;
-    /// Indicates that the data was modified since last store/load operation
+    /// Indicates that the data was modified since it was last loaded or marked clean by the owner.
+    /// Note: store() commits edits but does not clear this (see store()); the owner calls
+    /// setModified(false) once the data has actually been persisted.
     bool modified_;
     /// Indicates if normal mode or advanced mode is activated
     bool advanced_mode_;
