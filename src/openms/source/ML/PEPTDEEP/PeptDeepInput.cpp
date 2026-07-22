@@ -10,6 +10,7 @@
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <algorithm>
 #include <string>
@@ -27,27 +28,13 @@ namespace
     return seq.size() + (config.add_terminal_tokens ? 2 : 0);
   }
 
-  // Generates the 109-element tensor based on atomic composition (Periodic Table index)
-  std::vector<float> createModVector(int C, int H, int N, int O, int P, int S) {
-      std::vector<float> mod(109, 0.0f);
-      if (H != 0) mod[0]  = static_cast<float>(H); // Hydrogen (Atomic #1)
-      if (C != 0) mod[5]  = static_cast<float>(C); // Carbon   (Atomic #6)
-      if (N != 0) mod[6]  = static_cast<float>(N); // Nitrogen (Atomic #7)
-      if (O != 0) mod[7]  = static_cast<float>(O); // Oxygen   (Atomic #8)
-      if (P != 0) mod[14] = static_cast<float>(P); // Phospho  (Atomic #15)
-      if (S != 0) mod[15] = static_cast<float>(S); // Sulfur   (Atomic #16)
-      return mod;
-  }
-
-  // Map OpenMS string names to the AlphaPeptDeep elemental tensors
-  const std::unordered_map<std::string, std::vector<float>> PEPTDEEP_MOD_DICT = {
-      {"Oxidation", createModVector(0, 0, 0, 1, 0, 0)},          // +1 Oxygen
-      {"Phospho", createModVector(0, 1, 0, 3, 1, 0)},            // +1 H, +3 O, +1 P
-      {"Acetyl", createModVector(2, 2, 0, 1, 0, 0)},             // +2 C, +2 H, +1 O
-      {"Carbamidomethyl", createModVector(2, 3, 1, 1, 0, 0)},    // +2 C, +3 H, +1 N, +1 O
-      {"Deamidation", createModVector(0, -1, -1, 1, 0, 0)},      // +1 O, -1 H, -1 N
-      {"Amidation", createModVector(0, 1, 1, -1, 0, 0)}          // +1 H, +1 N, -1 O
+  // Maps the element symbol to AlphaPeptDeep's exact tensor index based on model_const.yaml.
+  // Expand this dictionary if there are other specific elements in the official YAML.
+  const std::unordered_map<std::string, int> PEPTDEEP_ELEMENT_INDICES = {
+      {"C", 0}, {"H", 1}, {"N", 2}, {"O", 3}, {"P", 4}, {"S", 5}, {"B", 6}, {"F", 7}
   };
+
+  constexpr int PEPTDEEP_OTHER_ELEMENT_INDEX = 108; // The final channel for unknown elements
 }
 
 namespace OpenMS
@@ -70,6 +57,12 @@ namespace OpenMS
         longest_encoded = std::max(longest_encoded, encodedLength_(peptide, config));
       }
 
+      // FIX #1: Restore guard to prevent heap corruption out-of-bounds write
+      if (config.fixed_sequence_length > 0 && longest_encoded > config.fixed_sequence_length)
+      {
+         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide length exceeds fixed sequence length.");
+      }
+
       const size_t sequence_length = config.fixed_sequence_length == 0 ? longest_encoded : config.fixed_sequence_length;
 
       PeptDeepInputBatch batch;
@@ -85,10 +78,42 @@ namespace OpenMS
         OpenMS::AASequence seq = OpenMS::AASequence::fromString(peptides[batch_idx]);
         size_t written = 0;
 
+        // Helper lambda to apply getDiffFormula modifications to a specific tensor site
+        auto apply_modification = [&](const OpenMS::ResidueModification* mod, size_t site_index) {
+          if (mod != nullptr)
+          {
+              OpenMS::EmpiricalFormula diff_formula = mod->getDiffFormula();
+              size_t tensor_offset = (batch_idx * sequence_length * PEPTDEEP_MOD_ELEMENTS) + (site_index * PEPTDEEP_MOD_ELEMENTS);
+
+              for (auto const& element_count : diff_formula)
+              {
+                  std::string element_symbol = element_count.first->getSymbol();
+                  int count = element_count.second;
+
+                  // Lookup the element or fallback to the "Other" channel
+                  auto it = PEPTDEEP_ELEMENT_INDICES.find(element_symbol);
+                  int tensor_elem_index = (it != PEPTDEEP_ELEMENT_INDICES.end()) ? it->second : PEPTDEEP_OTHER_ELEMENT_INDEX;
+
+                  batch.mod_x[tensor_offset + tensor_elem_index] += static_cast<float>(count);
+              }
+          }
+        };
+
         if (config.add_terminal_tokens)
         {
           batch.aa_indices.push_back(0);
+
+          // FIX #3: N-terminal modifications (Site 0)
+          if (seq.hasNTerminalModification())
+          {
+              apply_modification(seq.getNTerminalModification(), written);
+          }
+
           ++written;
+        }
+        else if (seq.hasNTerminalModification())
+        {
+          apply_modification(seq.getNTerminalModification(), written);
         }
 
         for (size_t i = 0; i < seq.size(); ++i)
@@ -97,28 +122,10 @@ namespace OpenMS
           char aa = seq[i].getOneLetterCode()[0];
           batch.aa_indices.push_back(getAAIndex(aa));
 
-          // 2. Extract Modifications
+          // 2. Extract standard internal modifications using getDiffFormula()
           if (seq[i].isModified())
           {
-            std::string mod_name = seq[i].getModificationName();
-            size_t tensor_offset = (batch_idx * sequence_length * PEPTDEEP_MOD_ELEMENTS) + (written * PEPTDEEP_MOD_ELEMENTS);
-
-            //  Mapping: Look up the modification in our dictionary
-            auto it = PEPTDEEP_MOD_DICT.find(mod_name);
-            if (it != PEPTDEEP_MOD_DICT.end())
-            {
-                // Overwrite the zeros with the 109-element chemical features
-                const std::vector<float>& mod_features = it->second;
-                for (size_t elem = 0; elem < PEPTDEEP_MOD_ELEMENTS; ++elem)
-                {
-                    batch.mod_x[tensor_offset + elem] = mod_features[elem];
-                }
-            }
-            else
-            {
-                // Throw a clean exception if an unsupported modification is passed in
-                throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unsupported PeptDeep modification: " + mod_name);
-            }
+              apply_modification(seq[i].getModification(), written);
           }
 
           ++written;
@@ -127,7 +134,18 @@ namespace OpenMS
         if (config.add_terminal_tokens)
         {
           batch.aa_indices.push_back(0);
+
+          // FIX #3: C-terminal modifications (Site -1)
+          if (seq.hasCTerminalModification())
+          {
+              apply_modification(seq.getCTerminalModification(), written);
+          }
+
           ++written;
+        }
+        else if (seq.hasCTerminalModification())
+        {
+           apply_modification(seq.getCTerminalModification(), written - 1);
         }
 
         while (written < batch.sequence_length)

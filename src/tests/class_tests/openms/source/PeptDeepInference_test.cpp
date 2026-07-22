@@ -91,7 +91,6 @@ START_SECTION(PeptDeepInputBuilder)
     STATUS("Testing shared PeptDeep input featurization...");
 
     vector<string> peptides = {"AGHCEWQMKYR", "PEPTIDE"};
-    // Updated function name
     ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPeptideBatch(peptides);
 
     TEST_EQUAL(batch.batch_size, 2);
@@ -109,7 +108,6 @@ START_SECTION(PeptDeepInputBuilder)
     vector<float> nces = {30.0f, 27.0f};
     vector<int64_t> instruments = {0, 2};
 
-    // Updated function name
     ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildInstrumentBatch(peptides, charges, nces, instruments);
 
     TEST_REAL_SIMILAR(instrument_batch.charges[0], 0.2f);
@@ -118,7 +116,7 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_REAL_SIMILAR(instrument_batch.nces[1], 0.27f);
     TEST_EQUAL(instrument_batch.instrument_indices[1], 2);
 
-    STATUS("Testing modified peptide featurization (mod_x tensor)...");
+    STATUS("Testing native getDiffFormula() modification featurization (mod_x tensor)...");
 
     std::vector<std::string> mod_peptides = {"PEP(Oxidation)TIDE", "M(Oxidation)Y(Phospho)PEP"};
     ML::PeptDeepInputBatch mod_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(mod_peptides);
@@ -134,25 +132,40 @@ START_SECTION(PeptDeepInputBuilder)
 
     // 1. Verify "PEP(Oxidation)TIDE"
     // Token indices: Terminal(0), P(1), E(2), P[Oxidation](3).
-    // Oxidation adds 1 Oxygen (Atomic index 7).
+    // Oxidation adds 1 Oxygen. AlphaPeptDeep index for Oxygen is 3.
     size_t pep_mod_pos = 3;
-    size_t pep_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (pep_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 7;
+    size_t pep_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (pep_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     TEST_REAL_SIMILAR(mod_batch.mod_x[pep_oxygen_idx], 1.0f);
 
-    // Ensure the adjacent Nitrogen index (6) is 0
+    // Ensure the adjacent Nitrogen index (2) is 0
     TEST_REAL_SIMILAR(mod_batch.mod_x[pep_oxygen_idx - 1], 0.0f);
 
     // 2. Verify "M(Oxidation)Y(Phospho)PEP"
     // Token indices: Terminal(0), M[Oxidation](1), Y[Phospho](2).
-    // Phospho adds H(1), O(3), P(1) -> Atomic indices 0, 7, 14
+    // Phospho (HPO3) adds H(1), O(3), P(1). AlphaPeptDeep indices: H=1, O=3, P=4.
     size_t phos_mod_pos = 2;
-    size_t phos_h_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 0;
-    size_t phos_o_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 7;
-    size_t phos_p_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 14;
+    size_t phos_h_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
+    size_t phos_o_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    size_t phos_p_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 4;
 
     TEST_REAL_SIMILAR(mod_batch.mod_x[phos_h_idx], 1.0f);
     TEST_REAL_SIMILAR(mod_batch.mod_x[phos_o_idx], 3.0f); // 3 Oxygen atoms
     TEST_REAL_SIMILAR(mod_batch.mod_x[phos_p_idx], 1.0f);
+
+    STATUS("Testing terminal modifications...");
+    // N-term Acetyl (UniMod:1)
+    std::vector<std::string> term_peptides = {"(Acetyl)PEPTIDE"};
+    ML::PeptDeepInputBatch term_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(term_peptides);
+
+    // Acetyl adds C(2), H(2), O(1). AlphaPeptDeep indices: C=0, H=1, O=3.
+    // Must be placed at Site 0 (the N-terminal padding token).
+    size_t acetyl_c_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 0;
+    size_t acetyl_h_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
+    size_t acetyl_o_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+
+    TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_c_idx], 2.0f);
+    TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_h_idx], 2.0f);
+    TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_o_idx], 1.0f);
 
     STATUS("Testing engine boundaries: Multi-modifications, batch mixing, and exceptions...");
 
@@ -168,28 +181,28 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_EQUAL(mixed_batch.sequence_length, 9); // "PEPTIDE" is longest (7 + 2 terminals)
     TEST_EQUAL(mixed_batch.mod_x.size(), 2 * 9 * ML::PEPTDEEP_MOD_ELEMENTS);
 
-    // Verify Row 0 (Unmodified) remains strictly 0.0 at a location where Row 1 has a modification
-    size_t row0_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 7;
+    // Verify Row 0 (Unmodified) remains strictly 0.0 at a location where Row 1 has a modification (Oxygen, index 3)
+    size_t row0_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     TEST_REAL_SIMILAR(mixed_batch.mod_x[row0_oxygen_idx], 0.0f);
 
     // Verify Row 1 (Heavily Modified) populated correctly without offsetting out of bounds
-    size_t row1_m1_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 7;
-    size_t row1_m3_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (3 * ML::PEPTDEEP_MOD_ELEMENTS) + 7;
+    size_t row1_m1_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    size_t row1_m3_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (3 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     TEST_REAL_SIMILAR(mixed_batch.mod_x[row1_m1_oxygen_idx], 1.0f);
     TEST_REAL_SIMILAR(mixed_batch.mod_x[row1_m3_oxygen_idx], 1.0f);
 
     // 2. The Sad Path (Exception Handling)
-    STATUS("Testing unsupported modification exception traps...");
+    STATUS("Testing out-of-bounds heap corruption guard and invalid modification traps...");
 
-    // Trap A: Completely fake modification (Caught by OpenMS AASequence parser)
+    // Trap A: Trigger the fixed_sequence_length memory leak guard
+    ML::PeptDeepInputConfig strict_config;
+    strict_config.fixed_sequence_length = 5;
+    std::vector<std::string> long_peptides = {"PEPTIDEK"}; // Length 8 + 2 = 10
+    TEST_EXCEPTION(Exception::IllegalArgument, ML::PeptDeepInputBuilder::buildPeptideBatch(long_peptides, strict_config));
+
+    // Trap B: Completely fake modification (Caught by OpenMS AASequence parser)
     std::vector<std::string> fake_peptides = {"PEP(FakeMod)TIDE"};
     TEST_EXCEPTION(Exception::InvalidValue, ML::PeptDeepInputBuilder::buildPeptideBatch(fake_peptides));
-
-    // Trap B: Real modification but unsupported by PeptDeep (Caught by our dictionary trap)
-    // We use a chemically valid target (Lysine 'K') and a valid Unimod (34 = Methyl)
-    // to bypass the AASequence validity check, forcing it to reach our custom dictionary trap.
-    std::vector<std::string> unsupported_peptides = {"PEPK(UniMod:34)TIDE"};
-    TEST_EXCEPTION(Exception::IllegalArgument, ML::PeptDeepInputBuilder::buildPeptideBatch(unsupported_peptides));
 
 END_SECTION
 

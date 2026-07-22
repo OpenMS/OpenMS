@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <onnxruntime_cxx_api.h>
 #include <map>
 #include <stdexcept>
@@ -39,7 +40,6 @@ namespace OpenMS
         {
             input_config.fixed_sequence_length = static_cast<size_t>(input_shape[1]);
         }
-        // Fully unconstrained dynamic length mode optimized for updated ONNX models.
 
         std::vector<std::vector<size_t>> groups;
         if (input_config.fixed_sequence_length > 0)
@@ -56,7 +56,8 @@ namespace OpenMS
             std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
             for (size_t i = 0; i < peptides.size(); ++i)
             {
-                indices_by_encoded_length[peptides[i].size() + 2].push_back(i);
+                // FIX: Parse the sequence first so modification strings aren't counted as length
+                indices_by_encoded_length[OpenMS::AASequence::fromString(peptides[i]).size() + 2].push_back(i);
             }
             for (auto& item : indices_by_encoded_length)
             {

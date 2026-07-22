@@ -45,19 +45,39 @@ namespace OpenMS
 
     /// @brief Shared featurization for PeptDeep RT, CCS, and MS2 ONNX predictors.
     ///
-    /// Dynamically handles both unmodified and modified peptides.
+    /// Dynamically handles both unmodified and modified peptides, parsing modifications
+    /// natively into a 109-element elemental feature tensor using empirical formulas.
     class OPENMS_DLLAPI PeptDeepInputBuilder
     {
     public:
+      /// @brief Builds a baseline tensor batch containing amino acid indices and modification features.
+      /// @param peptides A vector of peptide sequences (supports OpenMS AASequence bracket notation).
+      /// @param config Configuration dictating padding and terminal token policies.
+      /// @return A PeptDeepInputBatch populated with sequence lengths, aa_indices, and mod_x.
+      /// @throws Exception::IllegalArgument If the batch is empty or a peptide exceeds a fixed sequence length.
       static PeptDeepInputBatch buildPeptideBatch(
         const std::vector<std::string>& peptides,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
+      /// @brief Builds a tensor batch incorporating precursor charge states (primarily for CCS and RT).
+      /// @param peptides A vector of peptide sequences.
+      /// @param charges A vector of precursor charges corresponding to the peptides.
+      /// @param config Configuration dictating padding and terminal token policies.
+      /// @return A PeptDeepInputBatch populated with baseline features and scaled charges.
+      /// @throws Exception::IllegalArgument If the size of the peptides and charges vectors do not match.
       static PeptDeepInputBatch buildChargedBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
+      /// @brief Builds a full tensor batch including Normalized Collision Energies and instrument details (for MS2).
+      /// @param peptides A vector of peptide sequences.
+      /// @param charges A vector of precursor charges corresponding to the peptides.
+      /// @param nces A vector of Normalized Collision Energies (NCE).
+      /// @param instrument_indices A vector of instrument identifier indices.
+      /// @param config Configuration dictating padding and terminal token policies.
+      /// @return A fully populated PeptDeepInputBatch ready for MS2 ONNX inference.
+      /// @throws Exception::IllegalArgument If any of the input vectors differ in size.
       static PeptDeepInputBatch buildInstrumentBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,

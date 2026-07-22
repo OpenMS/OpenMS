@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 #include <algorithm>
@@ -37,7 +38,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input vectors must have the same size.");
     }
 
-    // 1. Grouping by Sequence Length (Justin's dynamic optimization)
+    // 1. Grouping by Sequence Length
     ML::PeptDeepInputConfig input_config;
     const std::vector<int64_t> input_shape = model_.getInputShape(0);
     if (input_shape.size() >= 2 && input_shape[1] > 0) {
@@ -54,7 +55,8 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     } else {
         std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
         for (size_t i = 0; i < peptides.size(); ++i) {
-            indices_by_encoded_length[peptides[i].size() + 2].push_back(i);
+            // FIX: Parse the sequence first so modification strings aren't counted as length
+            indices_by_encoded_length[OpenMS::AASequence::fromString(peptides[i]).size() + 2].push_back(i);
         }
         for (auto& item : indices_by_encoded_length) {
             groups.push_back(std::move(item.second));
@@ -126,15 +128,15 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                     input_tensors.push_back(Ort::Value::CreateTensor<float>(
                         model_.memoryInfo(), batch.mod_x.data(), batch.mod_x.size(), expected_shape.data(), expected_shape.size()));
                 } else if (name == "charges" || name == "charge") {
-                    expected_shape = {batch_size_cast, 1}; // <--- REVERT TO 2D
+                    expected_shape = {batch_size_cast, 1};
                     input_tensors.push_back(Ort::Value::CreateTensor<float>(
                         model_.memoryInfo(), batch.charges.data(), batch.charges.size(), expected_shape.data(), expected_shape.size()));
                 } else if (name == "nces" || name == "nce") {
-                    expected_shape = {batch_size_cast, 1}; // <--- REVERT TO 2D
+                    expected_shape = {batch_size_cast, 1};
                     input_tensors.push_back(Ort::Value::CreateTensor<float>(
                         model_.memoryInfo(), batch.nces.data(), batch.nces.size(), expected_shape.data(), expected_shape.size()));
                 } else if (name == "instrument_indices" || name == "instrument") {
-                    expected_shape = {batch_size_cast}; // <--- KEEP AS 1D
+                    expected_shape = {batch_size_cast};
                     input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
                         model_.memoryInfo(), batch.instrument_indices.data(), batch.instrument_indices.size(), expected_shape.data(), expected_shape.size()));
                 } else {
@@ -155,7 +157,10 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
 
             for (size_t j = 0; j < current_chunk_size; ++j) {
                 const std::string& current_peptide = chunk_peptides[j];
-                int64_t valid_fragments = current_peptide.size() - 1;
+
+                // FIX: Use true amino acid count for MS2 fragment rows
+                int64_t valid_fragments = OpenMS::AASequence::fromString(current_peptide).size() - 1;
+
                 int64_t start_row = (actual_rows > valid_fragments) ? (actual_rows - valid_fragments) / 2 : 0;
 
                 std::vector<float> intensities;
@@ -171,7 +176,6 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                     for (int64_t k_ion = 0; k_ion < num_ions; ++k_ion) {
                         float val = batch_floatarr[(row_idx * num_ions) + k_ion];
 
-                        // Capping massive padding logits to prevent Base Peak Normalization failure
                         if (val > 10.0f) {
                             val = 0.0f;
                         }
