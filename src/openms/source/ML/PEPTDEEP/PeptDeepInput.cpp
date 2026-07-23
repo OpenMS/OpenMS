@@ -14,7 +14,7 @@
 
 #include <algorithm>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 namespace
 {
@@ -23,18 +23,23 @@ namespace
 
   size_t encodedLength_(const std::string& peptide, const OpenMS::ML::PeptDeepInputConfig& config)
   {
-    // Note: AASequence::fromString is used to get the true length minus the modification brackets
     OpenMS::AASequence seq = OpenMS::AASequence::fromString(peptide);
     return seq.size() + (config.add_terminal_tokens ? 2 : 0);
   }
 
-  // Maps the element symbol to AlphaPeptDeep's exact tensor index based on model_const.yaml.
-  // Expand this dictionary if there are other specific elements in the official YAML.
-  const std::unordered_map<std::string, int> PEPTDEEP_ELEMENT_INDICES = {
-      {"C", 0}, {"H", 1}, {"N", 2}, {"O", 3}, {"P", 4}, {"S", 5}, {"B", 6}, {"F", 7}
+  // AlphaPeptDeep's precise mod_elements order for tensor mapping
+  const std::vector<std::string> ALPHAPEPTDEEP_MOD_ELEMENTS = {
+      "C", "H", "N", "O", "P", "S", "Br", "Cl", "F", "Fe", "I", "K", "Na", "Zn",
+      "Se", "Mg", "Ca", "Cu", "Mn", "Ni", "Mo", "Ag", "Co", "Au", "V", "Pt",
+      "Ru", "Cd", "Cr", "W", "Pb", "Li", "Rb", "Cs", "Fr", "Be", "Sr", "Ba",
+      "Ra", "Sc", "Y", "Ti", "Zr", "Hf", "Rf", "Nb", "Ta", "Db", "Tc", "Re",
+      "Bh", "Os", "Hs", "Rh", "Ir", "Mt", "Pd", "Ds", "Rg", "Cn", "Nh", "Fl",
+      "Mc", "Lv", "Ts", "Og", "B", "Al", "Ga", "In", "Tl", "Si", "Ge", "Sn",
+      "Uut", "As", "Sb", "Bi", "Uup", "Te", "Po", "At", "Uus", "Rn", "Uuo",
+      "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm",
+      "Yb", "Lu", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es",
+      "Fm", "Md", "No", "Lr"
   };
-
-  constexpr int PEPTDEEP_OTHER_ELEMENT_INDEX = 108; // The final channel for unknown elements
 }
 
 namespace OpenMS
@@ -57,7 +62,6 @@ namespace OpenMS
         longest_encoded = std::max(longest_encoded, encodedLength_(peptide, config));
       }
 
-      // FIX #1: Restore guard to prevent heap corruption out-of-bounds write
       if (config.fixed_sequence_length > 0 && longest_encoded > config.fixed_sequence_length)
       {
          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide length exceeds fixed sequence length.");
@@ -70,7 +74,6 @@ namespace OpenMS
       batch.sequence_length = sequence_length;
       batch.aa_indices.reserve(batch.batch_size * batch.sequence_length);
 
-      // Zero-fill the mod_x tensor upfront for the whole batch
       batch.mod_x.assign(batch.batch_size * batch.sequence_length * PEPTDEEP_MOD_ELEMENTS, 0.0f);
 
       for (size_t batch_idx = 0; batch_idx < peptides.size(); ++batch_idx)
@@ -78,7 +81,7 @@ namespace OpenMS
         OpenMS::AASequence seq = OpenMS::AASequence::fromString(peptides[batch_idx]);
         size_t written = 0;
 
-        // Helper lambda to apply getDiffFormula modifications to a specific tensor site
+        // Apply modifications by placing them at their specific AlphaPeptDeep index
         auto apply_modification = [&](const OpenMS::ResidueModification* mod, size_t site_index) {
           if (mod != nullptr)
           {
@@ -87,12 +90,20 @@ namespace OpenMS
 
               for (auto const& element_count : diff_formula)
               {
-                  std::string element_symbol = element_count.first->getSymbol();
+                  std::string symbol = element_count.first->getSymbol();
                   int count = element_count.second;
 
-                  // Lookup the element or fallback to the "Other" channel
-                  auto it = PEPTDEEP_ELEMENT_INDICES.find(element_symbol);
-                  int tensor_elem_index = (it != PEPTDEEP_ELEMENT_INDICES.end()) ? it->second : PEPTDEEP_OTHER_ELEMENT_INDEX;
+                  auto it = std::find(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), ALPHAPEPTDEEP_MOD_ELEMENTS.end(), symbol);
+                  int tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1; // Default to "Other"
+
+                  if (it != ALPHAPEPTDEEP_MOD_ELEMENTS.end())
+                  {
+                      tensor_elem_index = std::distance(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), it);
+                      if (tensor_elem_index >= static_cast<int>(PEPTDEEP_MOD_ELEMENTS))
+                      {
+                          tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1;
+                      }
+                  }
 
                   batch.mod_x[tensor_offset + tensor_elem_index] += static_cast<float>(count);
               }
@@ -102,13 +113,10 @@ namespace OpenMS
         if (config.add_terminal_tokens)
         {
           batch.aa_indices.push_back(0);
-
-          // FIX #3: N-terminal modifications (Site 0)
           if (seq.hasNTerminalModification())
           {
               apply_modification(seq.getNTerminalModification(), written);
           }
-
           ++written;
         }
         else if (seq.hasNTerminalModification())
@@ -118,29 +126,23 @@ namespace OpenMS
 
         for (size_t i = 0; i < seq.size(); ++i)
         {
-          // 1. Tokenize the un-modified base amino acid
           char aa = seq[i].getOneLetterCode()[0];
           batch.aa_indices.push_back(getAAIndex(aa));
 
-          // 2. Extract standard internal modifications using getDiffFormula()
           if (seq[i].isModified())
           {
               apply_modification(seq[i].getModification(), written);
           }
-
           ++written;
         }
 
         if (config.add_terminal_tokens)
         {
           batch.aa_indices.push_back(0);
-
-          // FIX #3: C-terminal modifications (Site -1)
           if (seq.hasCTerminalModification())
           {
               apply_modification(seq.getCTerminalModification(), written);
           }
-
           ++written;
         }
         else if (seq.hasCTerminalModification())

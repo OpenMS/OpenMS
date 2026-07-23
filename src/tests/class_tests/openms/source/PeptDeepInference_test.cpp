@@ -56,6 +56,20 @@ static const string& csvField(const vector<string>& fields, const map<string, si
     return fields[it->second];
 }
 
+// Helper to pull AlphaPeptDeep modified sequences and strip terminal underscores
+static string getSequenceFromCSV(const vector<string>& fields, const map<string, size_t>& index)
+{
+    string pep_seq;
+    if (index.find("modified_sequence") != index.end()) {
+        pep_seq = csvField(fields, index, "modified_sequence");
+        if (!pep_seq.empty() && pep_seq.front() == '_') pep_seq.erase(0, 1);
+        if (!pep_seq.empty() && pep_seq.back() == '_') pep_seq.pop_back();
+    } else {
+        pep_seq = csvField(fields, index, "sequence");
+    }
+    return pep_seq;
+}
+
 START_TEST(PeptDeepInference, "$Id$")
 
 // Note: These paths will be resolved by the OpenMS CMake testing environment
@@ -122,43 +136,29 @@ START_SECTION(PeptDeepInputBuilder)
     ML::PeptDeepInputBatch mod_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(mod_peptides);
 
     TEST_EQUAL(mod_batch.batch_size, 2);
-
-    // Sequence lengths:
-    // 1. "PEP(Oxidation)TIDE" -> 7 + 2 terminal tokens = 9
-    // 2. "M(Oxidation)Y(Phospho)PEP" -> 5 + 2 terminal tokens = 7
-    // Batch should dynamically pad to the longest sequence (9)
     TEST_EQUAL(mod_batch.sequence_length, 9);
     TEST_EQUAL(mod_batch.mod_x.size(), 2 * 9 * ML::PEPTDEEP_MOD_ELEMENTS);
 
     // 1. Verify "PEP(Oxidation)TIDE"
-    // Token indices: Terminal(0), P(1), E(2), P[Oxidation](3).
-    // Oxidation adds 1 Oxygen. AlphaPeptDeep index for Oxygen is 3.
     size_t pep_mod_pos = 3;
     size_t pep_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (pep_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     TEST_REAL_SIMILAR(mod_batch.mod_x[pep_oxygen_idx], 1.0f);
-
-    // Ensure the adjacent Nitrogen index (2) is 0
     TEST_REAL_SIMILAR(mod_batch.mod_x[pep_oxygen_idx - 1], 0.0f);
 
     // 2. Verify "M(Oxidation)Y(Phospho)PEP"
-    // Token indices: Terminal(0), M[Oxidation](1), Y[Phospho](2).
-    // Phospho (HPO3) adds H(1), O(3), P(1). AlphaPeptDeep indices: H=1, O=3, P=4.
     size_t phos_mod_pos = 2;
     size_t phos_h_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
     size_t phos_o_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     size_t phos_p_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 4;
 
     TEST_REAL_SIMILAR(mod_batch.mod_x[phos_h_idx], 1.0f);
-    TEST_REAL_SIMILAR(mod_batch.mod_x[phos_o_idx], 3.0f); // 3 Oxygen atoms
+    TEST_REAL_SIMILAR(mod_batch.mod_x[phos_o_idx], 3.0f);
     TEST_REAL_SIMILAR(mod_batch.mod_x[phos_p_idx], 1.0f);
 
     STATUS("Testing terminal modifications...");
-    // N-term Acetyl (UniMod:1)
     std::vector<std::string> term_peptides = {"(Acetyl)PEPTIDE"};
     ML::PeptDeepInputBatch term_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(term_peptides);
 
-    // Acetyl adds C(2), H(2), O(1). AlphaPeptDeep indices: C=0, H=1, O=3.
-    // Must be placed at Site 0 (the N-terminal padding token).
     size_t acetyl_c_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 0;
     size_t acetyl_h_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
     size_t acetyl_o_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
@@ -167,10 +167,12 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_h_idx], 2.0f);
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_o_idx], 1.0f);
 
-    STATUS("Testing engine boundaries: Multi-modifications, batch mixing, and exceptions...");
+    STATUS("Testing parsed-length grouping logic...");
+    std::vector<std::string> length_peptides = {"M(Oxidation)PEPT"};
+    ML::PeptDeepInputBatch length_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(length_peptides);
+    TEST_EQUAL(length_batch.sequence_length, 7);
 
-    // 1. The Mixed Batch Test (Unmodified + Heavily Modified)
-    // Ensures tensor offsets don't leak between sequence positions or batch rows.
+    STATUS("Testing engine boundaries: Multi-modifications, batch mixing, and exceptions...");
     std::vector<std::string> mixed_peptides = {
         "PEPTIDE",                             // Row 0: No mods
         "M(Oxidation)M(Oxidation)M(Oxidation)" // Row 1: Max mods
@@ -178,29 +180,23 @@ START_SECTION(PeptDeepInputBuilder)
     ML::PeptDeepInputBatch mixed_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(mixed_peptides);
 
     TEST_EQUAL(mixed_batch.batch_size, 2);
-    TEST_EQUAL(mixed_batch.sequence_length, 9); // "PEPTIDE" is longest (7 + 2 terminals)
+    TEST_EQUAL(mixed_batch.sequence_length, 9);
     TEST_EQUAL(mixed_batch.mod_x.size(), 2 * 9 * ML::PEPTDEEP_MOD_ELEMENTS);
 
-    // Verify Row 0 (Unmodified) remains strictly 0.0 at a location where Row 1 has a modification (Oxygen, index 3)
     size_t row0_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     TEST_REAL_SIMILAR(mixed_batch.mod_x[row0_oxygen_idx], 0.0f);
 
-    // Verify Row 1 (Heavily Modified) populated correctly without offsetting out of bounds
     size_t row1_m1_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     size_t row1_m3_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (3 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
     TEST_REAL_SIMILAR(mixed_batch.mod_x[row1_m1_oxygen_idx], 1.0f);
     TEST_REAL_SIMILAR(mixed_batch.mod_x[row1_m3_oxygen_idx], 1.0f);
 
-    // 2. The Sad Path (Exception Handling)
     STATUS("Testing out-of-bounds heap corruption guard and invalid modification traps...");
-
-    // Trap A: Trigger the fixed_sequence_length memory leak guard
     ML::PeptDeepInputConfig strict_config;
     strict_config.fixed_sequence_length = 5;
-    std::vector<std::string> long_peptides = {"PEPTIDEK"}; // Length 8 + 2 = 10
+    std::vector<std::string> long_peptides = {"PEPTIDEK"};
     TEST_EXCEPTION(Exception::IllegalArgument, ML::PeptDeepInputBuilder::buildPeptideBatch(long_peptides, strict_config));
 
-    // Trap B: Completely fake modification (Caught by OpenMS AASequence parser)
     std::vector<std::string> fake_peptides = {"PEP(FakeMod)TIDE"};
     TEST_EXCEPTION(Exception::InvalidValue, ML::PeptDeepInputBuilder::buildPeptideBatch(fake_peptides));
 
@@ -274,8 +270,7 @@ START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predicti
             }
 
             vector<string> fields = splitCSVLine(line);
-
-            peptides.push_back(csvField(fields, index, "sequence"));
+            peptides.push_back(getSequenceFromCSV(fields, index));
             expected_rt_preds.push_back(static_cast<float>(stod(csvField(fields, index, "rt_pred_onnx"))));
         }
 
@@ -324,7 +319,7 @@ START_SECTION(PeptDeepCCSInference ONNX parity with AlphaPeptDeep Python predict
             }
 
             vector<string> fields = splitCSVLine(line);
-            peptides.push_back(csvField(fields, index, "sequence"));
+            peptides.push_back(getSequenceFromCSV(fields, index));
             charges.push_back(static_cast<float>(stod(csvField(fields, index, "charge"))));
             expected_ccs_preds.push_back(static_cast<float>(stod(csvField(fields, index, "ccs_pred_onnx"))));
         }
@@ -361,13 +356,9 @@ START_SECTION(PeptDeepMS2Inference)
     TEST_EQUAL(ms2_preds.size(), 1);
 
     // PEPTIDEK length = 8. Valid fragments = 7.
-    // AlphaPeptDeep outputs 8 ion types per fragment (b1, b2, y1, y2, etc.)
-    // Exact expected length = (8 - 1) * 8 = 56
     size_t expected_length = (ms2_peptides[0].length() - 1) * 8;
     TEST_EQUAL(ms2_preds[0].size(), expected_length);
 
-    // Verify Base Peak Normalization
-    // Since we applied Base Peak Normalization, the max value in the spectrum MUST be exactly 1.0
     float max_intensity = 0.0f;
     for (float val : ms2_preds[0]) {
         if (val > max_intensity) {
@@ -407,7 +398,7 @@ START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predicti
             }
 
             vector<string> fields = splitCSVLine(line);
-            peptides.push_back(csvField(fields, spectra_index, "sequence"));
+            peptides.push_back(getSequenceFromCSV(fields, spectra_index));
             charges.push_back(static_cast<float>(stod(csvField(fields, spectra_index, "charge"))));
             nces.push_back(static_cast<float>(stod(csvField(fields, spectra_index, "nce"))));
             instruments.push_back(static_cast<int64_t>(stoll(csvField(fields, spectra_index, "instrument_index"))));

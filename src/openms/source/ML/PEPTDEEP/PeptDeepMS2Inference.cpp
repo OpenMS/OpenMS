@@ -190,7 +190,6 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                     val /= apex;
                     if (val < 1e-4f) val = 0.0f;
                 }
-                if (!intensities.empty()) intensities[0] = 0.0f;
 
                 predictions[group_indices[chunk_start + j]] = std::move(intensities);
             }
