@@ -46,6 +46,11 @@ START_SECTION((static ToolListType getTOPPToolList()))
 #else
   TEST_TRUE(list.find("ImageCreator") == list.end())
 #endif
+#ifdef WITH_WNETALIGN
+  TEST_TRUE(list.find("FeatureLinkerWNet") != list.end())
+#else
+  TEST_TRUE(list.find("FeatureLinkerWNet") == list.end())
+#endif
 }
 END_SECTION
 
