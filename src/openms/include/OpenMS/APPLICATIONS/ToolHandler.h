@@ -52,12 +52,13 @@ public:
     /**
       @brief List every official TOPP tool enabled in this build, keyed by tool name.
 
-      Includes only the hard-coded "internal" tool registry — external @c .ttd entries are not
-      merged here. Each value carries the tool's KNIME-style category string (e.g.
-      @c "Quantitation", @c "File Converter") used by TOPPAS for grouping. A small number of
-      tools are registered only when the corresponding build-time option is enabled (e.g.
-      @c ExecutePipeline / @c ImageCreator require @c WITH_GUI, @c FeatureLinkerWNet requires
-      @c WITH_WNETALIGN) and are omitted from the map otherwise.
+      Starts from the hard-coded official tool registry below and merges in internal tools
+      discovered from @c .ttd config files under @ref getInternalToolsPath (a name collision
+      between the two throws Exception::InvalidValue). Each value carries the tool's KNIME-style
+      category string (e.g. @c "Quantitation", @c "File Converter") used by TOPPAS for grouping.
+      A small number of tools are registered only when the corresponding build-time option is
+      enabled (e.g. @c ExecutePipeline / @c ImageCreator require @c WITH_GUI, @c FeatureLinkerWNet
+      requires @c WITH_WNETALIGN) and are omitted from the map otherwise.
 
       @return Map @c toolname -> @ref Internal::ToolDescription for every tool enabled in this build.
     */
