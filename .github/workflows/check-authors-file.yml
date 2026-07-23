@@ -23,6 +23,7 @@ jobs:
       - name: Check the AUTHORS File
         run: |
           mkdir -p pr-comment
+          touch pr-comment/body
           exit_code=0
           ci-tools/scripts/authors.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
 

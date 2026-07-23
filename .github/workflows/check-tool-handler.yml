@@ -22,6 +22,7 @@ jobs:
       - name: Check the ToolHandler.cpp file
         run: |
           mkdir -p pr-comment
+          touch pr-comment/body
           exit_code=0
           ci-tools/scripts/check-tool-handler.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
 

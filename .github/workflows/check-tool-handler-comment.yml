@@ -32,9 +32,21 @@ jobs:
         id: resolve
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          pr_number=$(gh api "repos/${{ github.repository }}/commits/${{ github.event.workflow_run.head_sha }}/pulls" --jq '.[0].number // empty')
-          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          # The commit -> PRs API doesn't document a response order and can list more
+          # than one PR for a commit, so only proceed when exactly one open PR matches
+          # this run's actual head commit; otherwise fail closed (skip commenting).
+          prs=$(gh api "repos/$REPO/commits/$HEAD_SHA/pulls" \
+            --jq '[.[] | select(.state == "open" and .head.sha == env.HEAD_SHA)]')
+          count=$(jq 'length' <<< "$prs")
+          if [ "$count" -eq 1 ]; then
+            echo "pr_number=$(jq '.[0].number' <<< "$prs")" >> "$GITHUB_OUTPUT"
+          else
+            echo "Found $count matching open PR(s) for $HEAD_SHA; skipping comment." >&2
+            echo "pr_number=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Post comment on the PR
         # hashFiles() only checks that the artifact contained a "body" file, not that
@@ -44,7 +56,9 @@ jobs:
         if: steps.resolve.outputs.pr_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
         run: |
           if [ -s pr-comment/body ]; then
-            gh pr comment "${{ steps.resolve.outputs.pr_number }}" --repo "${{ github.repository }}" --body-file pr-comment/body
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file pr-comment/body
           fi
