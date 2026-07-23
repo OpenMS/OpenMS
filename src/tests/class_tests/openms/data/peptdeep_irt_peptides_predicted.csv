@@ -1,4 +1,4 @@
-sequence,pep_name,irt,mods,mod_sites,naked_sequence,nAA,rt_pred,rt_pred_onnx,rt_pred_abs_diff,irt_pred,irt_pred_onnx,irt_pred_abs_diff,irt_abs_error
+sequence,pep_name,irt,mods,mod_sites,modified_sequence,nAA,rt_pred,rt_pred_onnx,rt_pred_abs_diff,irt_pred,irt_pred_onnx,irt_pred_abs_diff,irt_abs_error
 LGGNEQVTR,RT-pep a,-24.92,,,LGGNEQVTR,9,0.07280364632606506,0.07280362,2.9802322387695312e-08,-28.14884679268701,-28.148851,4.601966310247008e-06,3.2288513946533186
 GAGSSEPVTGLDAK,RT-pep b,0.0,,,GAGSSEPVTGLDAK,14,0.27119576930999756,0.2711957,5.960464477539063e-08,2.053499355194667,2.0534897,9.670136073225422e-06,2.0534896850585938
 VEATFGVDESNAK,RT-pep c,12.39,,,VEATFGVDESNAK,13,0.33264923095703125,0.33264923,0.0,11.408904664303641,11.408905,3.6499323385896787e-07,0.9810949707031256

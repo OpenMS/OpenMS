@@ -1,4 +1,4 @@
-row_id,index,sequence,naked_sequence,charge,nce,instrument_index,instrument,mods,mod_sites,nAA
+row_id,index,sequence,modified_sequence,charge,nce,instrument_index,instrument,mods,mod_sites,nAA
 0,11256,AGPPSEILPLVQAVPK,AGPPSEILPLVQAVPK,2,26.91,0,QE,,,16
 1,51679,DLHEFALQNLMHIGPLYPHAFK,DLHEFALQNLMHIGPLYPHAFK,4,26.12,0,QE,,,22
 2,67150,EDDEHQVIIK,EDDEHQVIIK,2,26.5,0,QE,,,10

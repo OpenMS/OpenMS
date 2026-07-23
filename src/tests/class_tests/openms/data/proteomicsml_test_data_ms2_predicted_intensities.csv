@@ -1,4 +1,4 @@
-row_id,sequence,naked_sequence,charge,nce,instrument_index,instrument,mods,mod_sites,nAA,fragment_position,ion_index,ion_type,intensity_peptdeep,intensity_onnx,intensity_abs_diff,intensity_onnx_raw
+row_id,sequence,modified_sequence,charge,nce,instrument_index,instrument,mods,mod_sites,nAA,fragment_position,ion_index,ion_type,intensity_peptdeep,intensity_onnx,intensity_abs_diff,intensity_onnx_raw
 0,AGPPSEILPLVQAVPK,AGPPSEILPLVQAVPK,2,26.91,0,QE,,,16,0,0,b_z1,0.0,0.0,0.0,1.1342660855007125e-07
 0,AGPPSEILPLVQAVPK,AGPPSEILPLVQAVPK,2,26.91,0,QE,,,16,0,1,b_z2,0.0,0.0,0.0,6.892500437061244e-08
 0,AGPPSEILPLVQAVPK,AGPPSEILPLVQAVPK,2,26.91,0,QE,,,16,0,2,y_z1,0.0,0.0,0.0,2.530070162265474e-07

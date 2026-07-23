@@ -1,4 +1,4 @@
-raw file,sequence,naked_sequence,retention time,mods,mod_sites,nAA,rt_pred,rt_pred_onnx,rt_pred_abs_diff,irt_pred,irt_pred_onnx,irt_pred_abs_diff,rt_pred_min,rt_pred_min_onnx,rt_pred_min_abs_diff
+raw file,sequence,modified_sequence,retention time,mods,mod_sites,nAA,rt_pred,rt_pred_onnx,rt_pred_abs_diff,irt_pred,irt_pred_onnx,irt_pred_abs_diff,rt_pred_min,rt_pred_min_onnx,rt_pred_min_abs_diff
 01640c_BG6-Thermo_SRM_Pool_47_01_01-3xHCD-1h-R2,SPNPLLTFSVK,SPNPLLTFSVK,44.875,,,11,0.7052850723266602,0.7052852,1.1920928955078125e-07,68.13734982068792,68.13737,1.742784724001467e-05,45.133931077905594,45.133938,6.757787765820922e-06
 01748a_BB2-TUM_second_pool_44_01_01-DDA-1h-R1,TAWAISQLATR,TAWAISQLATR,39.351,,,11,0.6186800003051758,0.61868,0.0,54.95297372745495,54.952972,1.315345578234428e-06,41.025671393561886,41.025673,1.519035770058963e-06
 01650b_BC5-TUM_first_pool_77_01_01-ETD-1h-R2,AVVQVFEGTSGIDAK,AVVQVFEGTSGIDAK,37.999,,,15,0.5914181470870972,0.59141815,0.0,50.80274883373861,50.80275,8.000504507776895e-07,39.73245876891856,39.73246,1.2530540942634616e-06
