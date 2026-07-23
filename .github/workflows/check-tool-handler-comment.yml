@@ -37,8 +37,14 @@ jobs:
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
 
       - name: Post comment on the PR
-        if: steps.resolve.outputs.pr_number != '' && hashFiles('pr-comment/body') != ''
+        # hashFiles() only checks that the artifact contained a "body" file, not that
+        # it has content (the check step always creates it via shell redirection, even
+        # when there's nothing to say) — so the actual "is there anything to post?"
+        # check has to happen with a real, in-shell `-s` (exists-and-non-empty) test.
+        if: steps.resolve.outputs.pr_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment "${{ steps.resolve.outputs.pr_number }}" --repo "${{ github.repository }}" --body-file pr-comment/body
+          if [ -s pr-comment/body ]; then
+            gh pr comment "${{ steps.resolve.outputs.pr_number }}" --repo "${{ github.repository }}" --body-file pr-comment/body
+          fi
