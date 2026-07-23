@@ -1,0 +1,32 @@
+name: Post AUTHORS file check comment
+on:
+  workflow_run:
+    workflows: [ "Check AUTHORS File" ]
+    types: [ "completed" ]
+
+# Runs in the base repository's context (never checks out the fork's code), so it can
+# safely hold a privileged token to comment on the PR. The PR number and comment body
+# are handed over via the artifact uploaded by the "Check AUTHORS File" run, since
+# github.event.workflow_run.pull_requests is empty for PRs from forks.
+jobs:
+  comment:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Download PR comment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: authors-pr-comment
+          path: pr-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Post comment on the PR
+        if: hashFiles('pr-comment/body') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "$(cat pr-comment/pr-number)" --repo "${{ github.repository }}" --body-file pr-comment/body

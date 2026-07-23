@@ -1,7 +1,7 @@
 name: Check AUTHORS File
 run-name: Checking if ${{ github.actor }} is in the AUTHORS file
 on:
-  pull_request_target:
+  pull_request:
     types: [ "opened" ]
     branches: [ "develop" ]
 jobs:
@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - name: Clone PR Repository
         uses: actions/checkout@v6
@@ -23,16 +22,33 @@ jobs:
           path: ci-tools
       - name: Check the AUTHORS File
         run: |
+          mkdir -p pr-comment
+          echo "${{ github.event.pull_request.number }}" > pr-comment/pr-number
           exit_code=0
           ci-tools/scripts/authors.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
 
           if [ "$exit_code" -eq 100 ]; then
-            ci-tools/scripts/authors.sh -p "$ACTOR" "$GITHUB_BASE_REF" "HEAD" |
-              gh pr comment "$PR" --body-file -
+            ci-tools/scripts/authors.sh -p "$ACTOR" "$GITHUB_BASE_REF" "HEAD" > pr-comment/body
           elif [ "$exit_code" -ne 0 ]; then
             exit "$exit_code"
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR: ${{ github.event.pull_request.html_url }}
           ACTOR: ${{ github.actor }}
+      # Uploading the comment body as an artifact (instead of posting it directly with
+      # `gh pr comment` here) lets this job run under the unprivileged, read-only
+      # GITHUB_TOKEN that GitHub issues for `pull_request` runs triggered from forks.
+      # A separate `workflow_run`-triggered job (check-authors-file-comment.yml) picks
+      # the artifact up and posts the comment with a privileged token, without ever
+      # having to check out the fork's code itself. See check-authors-file-comment.yml
+      # for why: `actions/checkout` refuses to check out a fork's PR head in a
+      # `pull_request_target` job (https://gh.io/securely-using-pull_request_target),
+      # which is what this workflow used before and why it started failing for every
+      # external contributor's PR.
+      - name: Upload PR comment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authors-pr-comment
+          path: pr-comment/
+          if-no-files-found: ignore
+          retention-days: 1
