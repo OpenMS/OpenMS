@@ -50,7 +50,7 @@ namespace OpenMS
 public:
 
     /**
-      @brief List every official TOPP tool enabled in this build, keyed by tool name.
+      @brief List every TOPP tool enabled in this build, keyed by tool name.
 
       Starts from the hard-coded official tool registry below and merges in internal tools
       discovered from @c .ttd config files under @ref getInternalToolsPath (a name collision
