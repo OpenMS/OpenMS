@@ -22,7 +22,6 @@ jobs:
       - name: Check the ToolHandler.cpp file
         run: |
           mkdir -p pr-comment
-          echo "${{ github.event.pull_request.number }}" > pr-comment/pr-number
           exit_code=0
           ci-tools/scripts/check-tool-handler.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
 

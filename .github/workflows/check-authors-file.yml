@@ -23,7 +23,6 @@ jobs:
       - name: Check the AUTHORS File
         run: |
           mkdir -p pr-comment
-          echo "${{ github.event.pull_request.number }}" > pr-comment/pr-number
           exit_code=0
           ci-tools/scripts/authors.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
 
