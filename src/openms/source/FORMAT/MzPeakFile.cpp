@@ -28,15 +28,19 @@
 #include <algorithm>
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <bit>
 #include <cmath>
 #include <cstdint>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
+#include <parquet/metadata.h>
 #include <parquet/properties.h>
+#include <parquet/statistics.h>
 #include <string>
 #include <vector>
 
@@ -643,6 +647,69 @@ namespace
     }
   }
 
+  /// Given the raw per-row vectors for one spectrum, apply null-fill
+  /// reconstruction (profile only) and push the resulting peaks into @p spec.
+  /// Shared between addSpectraFromTable_() and getSpectrum().
+  void fillSpectrumPeaks_(std::vector<double>& mz_values,
+                          std::vector<bool>& mz_valid,
+                          std::vector<float>& int_values,
+                          const std::vector<double>& beta,
+                          bool reconstruct,
+                          MSSpectrum& spec)
+  {
+    std::vector<double> final_mz;
+    std::vector<float> final_int;
+    if (reconstruct && std::find(mz_valid.begin(), mz_valid.end(), false) != mz_valid.end())
+    {
+      // NF-1: use the per-spectrum polynomial model; fall back to filtering nulls.
+      auto rec = reconstruct_null_mz_(mz_values, mz_valid, beta);
+      if (! rec.empty())
+      {
+        final_mz = std::move(rec);
+        final_int = int_values;
+      }
+      else
+      {
+        for (std::size_t k = 0; k < mz_valid.size(); ++k)
+        {
+          if (mz_valid[k])
+          {
+            final_mz.push_back(mz_values[k]);
+            final_int.push_back(int_values[k]);
+          }
+        }
+      }
+    }
+    else
+    {
+      final_mz = mz_values;
+      final_int = int_values;
+    }
+    spec.reserve(final_mz.size());
+    for (std::size_t k = 0; k < final_mz.size(); ++k)
+      spec.push_back(Peak1D(final_mz[k], final_int[k]));
+  }
+
+  /// Apply per-spectrum metadata (ms_level, RT, type, polarity, CV params,
+  /// precursors, native id) onto @p spec.
+  /// Shared between addSpectraFromTable_() and getSpectrum().
+  void applySpectrumMeta_(const SpectrumMeta& sm, uint64_t idx, MSSpectrum& spec)
+  {
+    if (sm.ms_level > 0) spec.setMSLevel(static_cast<UInt>(sm.ms_level));
+    spec.setRT(sm.retention_time);
+    if (sm.representation == "MS:1000127") spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    else if (sm.representation == "MS:1000128")
+      spec.setType(SpectrumSettings::SpectrumType::PROFILE);
+    if (sm.polarity > 0) spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
+    else if (sm.polarity < 0)
+      spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
+    for (const CvParam& p : sm.parameters)
+      applyCVParamToSpectrum_(p, spec);
+    buildPrecursors_(sm.precursors, spec);
+    if (! sm.native_id.empty()) spec.setMetaValue("mzpeak_native_id", sm.native_id);
+    spec.setNativeID("index=" + String(idx));
+  }
+
   /// Decode all point-layout spectra from a data/peaks table and add them to
   /// @p exp. Rows are grouped by spectrum_index. When @p reconstruct is true
   /// (profile data), interior null m/z values are reconstructed from the
@@ -688,76 +755,15 @@ namespace
       }
       i = j;
 
-      // Reconstruct null-marked m/z for profile spectra.  NF-1: when
-      // reconstruction is declined (non-interior-paired null layout, or no
-      // model), filter null positions out so callers never see spurious
-      // (m/z=0, intensity=0) peaks.  When reconstruction succeeds the output
-      // has the same length as mz_values so intensity alignment is preserved.
-      std::vector<double> final_mz;
-      std::vector<float> final_int;
-      if (reconstruct && std::find(mz_valid.begin(), mz_valid.end(), false) != mz_valid.end())
-      {
-        std::vector<double> betas;
-        if (auto it = meta.find(cur); it != meta.end()) betas = it->second.mz_delta_model;
-        auto rec = reconstruct_null_mz_(mz_values, mz_valid, betas);
-        if (! rec.empty())
-        {
-          final_mz = std::move(rec);
-          final_int = int_values;
-        }
-        else
-        {
-          for (std::size_t k = 0; k < mz_valid.size(); ++k)
-          {
-            if (mz_valid[k])
-            {
-              final_mz.push_back(mz_values[k]);
-              final_int.push_back(int_values[k]);
-            }
-          }
-        }
-      }
-      else
-      {
-        final_mz = mz_values;
-        final_int = int_values;
-      }
-
       MSSpectrum spec;
-      spec.reserve(final_mz.size());
-      for (std::size_t k = 0; k < final_mz.size(); ++k)
-      {
-        spec.push_back(Peak1D(final_mz[k], final_int[k]));
-      }
+      std::vector<double> beta;
+      if (auto it = meta.find(cur); it != meta.end()) beta = it->second.mz_delta_model;
+      fillSpectrumPeaks_(mz_values, mz_valid, int_values, beta, reconstruct, spec);
 
-      if (auto it = meta.find(cur); it != meta.end())
-      {
-        const SpectrumMeta& sm = it->second;
-        if (sm.ms_level > 0) spec.setMSLevel(static_cast<UInt>(sm.ms_level));
-        spec.setRT(sm.retention_time);
+      if (auto it = meta.find(cur); it != meta.end()) applySpectrumMeta_(it->second, cur, spec);
+      else
+        spec.setNativeID("index=" + String(cur)); // no metadata entry — keep at least the index id
 
-        // Spectrum type from the representation accession (MS:1000127/1000128).
-        if (sm.representation == "MS:1000127") spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-        else if (sm.representation == "MS:1000128")
-          spec.setType(SpectrumSettings::SpectrumType::PROFILE);
-
-        // Polarity (mzPeak scan polarity: +1 positive, -1 negative).
-        if (sm.polarity > 0) spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
-        else if (sm.polarity < 0)
-          spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
-
-        // Per-spectrum flat CV params via the dispatch helper.
-        for (const CvParam& p : sm.parameters)
-          applyCVParamToSpectrum_(p, spec);
-
-        // Precursors (isolation offsets + activation + every selected ion).
-        buildPrecursors_(sm.precursors, spec);
-
-        // Keep the mzPeak native id (controllerType=...) without breaking the
-        // stable "index=N" id used for lookups.
-        if (! sm.native_id.empty()) spec.setMetaValue("mzpeak_native_id", sm.native_id);
-      }
-      spec.setNativeID("index=" + String(cur));
       spec.sortByPosition();
       exp.addSpectrum(std::move(spec));
     }
@@ -1748,11 +1754,251 @@ namespace
     writeTableWithProps_(path, table, {});
   }
 
+  /// Build a row-group index for a Parquet FileReader: for each row group,
+  /// record the (min, max) of the spectrum_index column (the first UINT64 leaf
+  /// under the "point." prefix) and the row-group number.  Row groups without
+  /// statistics get (0, UINT64_MAX) so they are always considered a match.
+  void buildRgIndex_(parquet::arrow::FileReader* reader, std::vector<std::tuple<uint64_t, uint64_t, int>>& out)
+  {
+    out.clear();
+    auto fmd = reader->parquet_reader()->metadata();
+    auto schema = fmd->schema();
+
+    // Find "point.spectrum_index" leaf column
+    int spec_col = -1;
+    for (int c = 0; c < schema->num_columns(); ++c)
+    {
+      if (schema->Column(c)->path()->ToDotString() == "point.spectrum_index")
+      {
+        spec_col = c;
+        break;
+      }
+    }
+
+    const int n_rgs = fmd->num_row_groups();
+    for (int rg = 0; rg < n_rgs; ++rg)
+    {
+      if (spec_col < 0)
+      {
+        out.emplace_back(uint64_t(0), std::numeric_limits<uint64_t>::max(), rg);
+        continue;
+      }
+      auto chunk = fmd->RowGroup(rg)->ColumnChunk(spec_col);
+      if (! chunk->is_stats_set())
+      {
+        out.emplace_back(uint64_t(0), std::numeric_limits<uint64_t>::max(), rg);
+        continue;
+      }
+      auto stats = chunk->statistics();
+      if (! stats || ! stats->HasMinMax())
+      {
+        out.emplace_back(uint64_t(0), std::numeric_limits<uint64_t>::max(), rg);
+        continue;
+      }
+      auto typed = std::dynamic_pointer_cast<parquet::Int64Statistics>(stats);
+      if (! typed)
+      {
+        out.emplace_back(uint64_t(0), std::numeric_limits<uint64_t>::max(), rg);
+        continue;
+      }
+      out.emplace_back(std::bit_cast<uint64_t>(typed->min()), std::bit_cast<uint64_t>(typed->max()), rg);
+    }
+  }
+
 } // namespace
+
+// ==========================================================================
+// On-disc reader state (PIMPL — keeps Arrow/Parquet types out of the header).
+// ==========================================================================
+
+struct MzPeakFile::OnDiscState
+{
+  String filename;
+  String data_entry;
+  String peaks_entry;
+  String meta_entry;
+  std::map<uint64_t, SpectrumMeta> meta;
+  std::unique_ptr<File::TempDir> temp_dir;
+  std::shared_ptr<arrow::io::RandomAccessFile> data_raf;
+  std::unique_ptr<parquet::arrow::FileReader> data_reader;
+  std::shared_ptr<arrow::io::RandomAccessFile> peaks_raf;
+  std::unique_ptr<parquet::arrow::FileReader> peaks_reader;
+  std::vector<std::tuple<uint64_t, uint64_t, int>> data_rg_index;
+  std::vector<std::tuple<uint64_t, uint64_t, int>> peaks_rg_index;
+  bool data_rg_built = false;
+  bool peaks_rg_built = false;
+};
 
 MzPeakFile::MzPeakFile() = default;
 
 MzPeakFile::~MzPeakFile() = default;
+
+// ==========================================================================
+// On-disc streaming interface.
+// ==========================================================================
+
+void MzPeakFile::openFile(const String& filename)
+{
+  if (! File::exists(filename)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename); }
+
+  // Build into a local state so any throw leaves the previously-open file intact.
+  auto state = std::make_unique<OnDiscState>();
+  state->filename = filename;
+
+  // 1. Parse the index JSON (always small — just JSON, not peak data).
+  std::string index_json = readEntryBytes_(filename, "mzpeak_index.json", state->temp_dir);
+  try
+  {
+    nlohmann::json idx = nlohmann::json::parse(index_json);
+    for (const auto& f : idx.at("files"))
+    {
+      std::string name = f.value("name", "");
+      std::string entity = f.value("entity_type", "");
+      std::string kind = f.value("data_kind", "");
+      if (entity != "spectrum") continue;
+      if (kind == "data arrays") state->data_entry = name;
+      else if (kind == "peaks")
+        state->peaks_entry = name;
+      else if (kind == "metadata")
+        state->meta_entry = name;
+    }
+  }
+  catch (const std::exception& e)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, std::string("Failed to parse mzpeak_index.json: ") + e.what());
+  }
+
+  // 2. Load the metadata table (one row per spectrum — typically kilobytes to
+  //    low megabytes regardless of how many peaks each spectrum has).
+  if (! state->meta_entry.empty())
+  {
+    auto meta_table = readTableFromArchive_(filename, state->meta_entry, state->temp_dir);
+    state->meta = readSpectraMeta_(meta_table);
+    auto precs = readPrecursors_(meta_table);
+    for (auto& [si, plist] : precs)
+    {
+      auto it = state->meta.find(si);
+      if (it != state->meta.end()) it->second.precursors = std::move(plist);
+    }
+  }
+
+  // 3. Open Parquet readers for the point tables — data stays on disc; readers
+  //    are kept alive so row-group reads in getSpectrum() seek rather than
+  //    re-decompress the whole file.
+  auto openReader_
+    = [&](const String& entry, std::shared_ptr<arrow::io::RandomAccessFile>& raf_out, std::unique_ptr<parquet::arrow::FileReader>& reader_out) {
+        if (entry.empty()) return;
+        auto raf_result = ZipRandomAccessFile::Open(filename, entry, state->temp_dir);
+        if (! raf_result.ok())
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "Failed to open '" + entry + "': " + raf_result.status().ToString());
+        raf_out = raf_result.ValueOrDie();
+        auto reader_result = parquet::arrow::OpenFile(raf_out, arrow::default_memory_pool());
+        if (! reader_result.ok())
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "Failed to open Parquet reader for '" + entry + "': " + reader_result.status().ToString());
+        reader_out = std::move(reader_result.ValueOrDie());
+      };
+
+  openReader_(state->data_entry, state->data_raf, state->data_reader);
+  openReader_(state->peaks_entry, state->peaks_raf, state->peaks_reader);
+
+  on_disc_ = std::move(state);
+}
+
+Size MzPeakFile::getNrSpectra() const
+{ return on_disc_ ? static_cast<Size>(on_disc_->meta.size()) : Size(0); }
+
+MSSpectrum MzPeakFile::getSpectrum(Size index)
+{
+  if (! on_disc_) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no file open; call openFile() first");
+
+  auto it = on_disc_->meta.find(static_cast<uint64_t>(index));
+  if (it == on_disc_->meta.end())
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spectrum index out of range: " + String(index));
+
+  const SpectrumMeta& sm = it->second;
+
+  // Route to the right Parquet file: centroid (MS:1000127) → peaks file, else data file.
+  // If the primary file is absent (e.g. centroid-only archive with no data file, or vice versa),
+  // fall back to whichever reader is available.
+  const bool is_centroid = (sm.representation == "MS:1000127");
+  parquet::arrow::FileReader* reader = nullptr;
+  bool reconstruct = false;
+  if (is_centroid && on_disc_->peaks_reader) { reader = on_disc_->peaks_reader.get(); }
+  else if (on_disc_->data_reader)
+  {
+    reader = on_disc_->data_reader.get();
+    reconstruct = true;
+  }
+  else if (on_disc_->peaks_reader) { reader = on_disc_->peaks_reader.get(); }
+
+  MSSpectrum spec;
+  if (reader)
+  {
+    // Build row-group index lazily (reads only Parquet file metadata, not data).
+    const bool use_peaks = (reader == on_disc_->peaks_reader.get());
+    auto& rg_index = use_peaks ? on_disc_->peaks_rg_index : on_disc_->data_rg_index;
+    bool& rg_built = use_peaks ? on_disc_->peaks_rg_built : on_disc_->data_rg_built;
+    if (! rg_built)
+    {
+      buildRgIndex_(reader, rg_index);
+      rg_built = true;
+    }
+
+    // Select only row groups whose spectrum_index range includes this spectrum.
+    const uint64_t target = static_cast<uint64_t>(index);
+    std::vector<int> matching_rgs;
+    for (const auto& [min_si, max_si, rg] : rg_index)
+    {
+      if (min_si <= target && target <= max_si) matching_rgs.push_back(rg);
+    }
+
+    if (! matching_rgs.empty())
+    {
+      std::shared_ptr<arrow::Table> table;
+      auto status = reader->ReadRowGroups(matching_rgs, &table);
+      if (! status.ok())
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, on_disc_->filename,
+                                    "Failed to read row groups for spectrum " + String(index) + ": " + status.ToString());
+
+      auto pts = pointStruct_(table);
+      if (pts)
+      {
+        auto si_field = pts->GetFieldByName("spectrum_index");
+        auto mz_field = pts->GetFieldByName("mz");
+        auto int_field = pts->GetFieldByName("intensity");
+
+        if (si_field && mz_field && int_field && si_field->type_id() == arrow::Type::UINT64 && mz_field->type_id() == arrow::Type::DOUBLE
+            && int_field->type_id() == arrow::Type::FLOAT)
+        {
+          auto si = std::static_pointer_cast<arrow::UInt64Array>(si_field);
+          auto mz = std::static_pointer_cast<arrow::DoubleArray>(mz_field);
+          auto intensity = std::static_pointer_cast<arrow::FloatArray>(int_field);
+
+          std::vector<double> mz_values;
+          std::vector<bool> mz_valid;
+          std::vector<float> int_values;
+          for (int64_t r = 0; r < pts->length(); ++r)
+          {
+            if (si->Value(r) != target) continue;
+            const bool ok = ! mz->IsNull(r);
+            mz_valid.push_back(ok);
+            mz_values.push_back(ok ? mz->Value(r) : 0.0);
+            int_values.push_back(intensity->IsNull(r) ? 0.0f : intensity->Value(r));
+          }
+
+          // Reconstruct null-marked m/z for profile spectra (mirrors load()).
+          fillSpectrumPeaks_(mz_values, mz_valid, int_values, sm.mz_delta_model, reconstruct, spec);
+        }
+      }
+    }
+  }
+
+  applySpectrumMeta_(sm, static_cast<uint64_t>(index), spec);
+  spec.sortByPosition();
+  return spec;
+}
 
 void MzPeakFile::load(const String& filename, MapType& map) const
 {

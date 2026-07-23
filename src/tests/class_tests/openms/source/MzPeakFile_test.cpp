@@ -564,4 +564,79 @@ START_SECTION([EXTRA] mzML->mzpeak->mzML cross-validation (INT-07))
 }
 END_SECTION
 
+// ==========================================================================
+// On-disc streaming interface
+// ==========================================================================
+
+START_SECTION((void openFile(const String& filename)))
+{
+  // Missing file must raise FileNotFound.
+  MzPeakFile f;
+  TEST_EXCEPTION(Exception::FileNotFound, f.openFile("does_not_exist.mzpeak"))
+
+  // getNrSpectra() returns 0 before any openFile().
+  MzPeakFile f2;
+  TEST_EQUAL(f2.getNrSpectra(), 0)
+
+  // Open the bundled fixture.
+  MzPeakFile od;
+  od.openFile(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"));
+
+  // 48 spectra — identical count to load().
+  TEST_EQUAL(od.getNrSpectra(), 48)
+
+  // Re-open on same instance: old state is cleanly replaced, count unchanged.
+  od.openFile(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"));
+  TEST_EQUAL(od.getNrSpectra(), 48)
+}
+END_SECTION
+
+START_SECTION((MSSpectrum getSpectrum(Size index)))
+{
+  // No file open: must throw.
+  MzPeakFile f;
+  TEST_EXCEPTION(Exception::IllegalArgument, f.getSpectrum(0))
+
+  // Load full experiment for comparison.
+  MSExperiment ref;
+  MzPeakFile().load(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), ref);
+
+  MzPeakFile od;
+  od.openFile(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"));
+
+  // Out-of-range index must throw.
+  TEST_EXCEPTION(Exception::InvalidParameter, od.getSpectrum(48))
+
+  // Verify every spectrum against the bulk-load reference: ms_level, RT,
+  // peak count, first and last m/z and intensity.
+  TOLERANCE_ABSOLUTE(1e-9) // mz: double precision
+  for (Size i = 0; i < ref.size(); ++i)
+  {
+    MSSpectrum s = od.getSpectrum(i);
+    const MSSpectrum& r = ref[i];
+
+    TEST_EQUAL(s.getMSLevel(), r.getMSLevel())
+
+    TOLERANCE_ABSOLUTE(1e-5) // RT: allow float-serialisation rounding
+    TEST_REAL_SIMILAR(s.getRT(), r.getRT())
+
+    TEST_EQUAL(s.size(), r.size())
+
+    if (! r.empty() && s.size() == r.size())
+    {
+      TOLERANCE_ABSOLUTE(1e-9)
+      TEST_REAL_SIMILAR(s[0].getMZ(), r[0].getMZ())
+      TEST_REAL_SIMILAR(s[r.size() - 1].getMZ(), r[r.size() - 1].getMZ())
+
+      TOLERANCE_RELATIVE(1.0 + 1e-3) // intensity: float32
+      TEST_REAL_SIMILAR(s[0].getIntensity(), r[0].getIntensity())
+      TEST_REAL_SIMILAR(s[r.size() - 1].getIntensity(), r[r.size() - 1].getIntensity())
+
+      TOLERANCE_RELATIVE(1.0)
+      TOLERANCE_ABSOLUTE(1e-4)
+    }
+  }
+}
+END_SECTION
+
 END_TEST
