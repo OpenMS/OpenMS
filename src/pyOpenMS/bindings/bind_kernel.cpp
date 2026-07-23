@@ -1917,6 +1917,17 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
         .def("setMZ", [](OpenMS::Peak1D& self, double mz) { return self.setMZ(mz); }, "mz"_a, "Sets the m/z (mass-to-charge) value of the peak")
         .def("getPos", [](const OpenMS::Peak1D& self) { return self.getPos(); }, "Returns the position (alias for getMZ)")
         .def("setPos", [](OpenMS::Peak1D& self, double pos) { return self.setPos(pos); }, "pos"_a, "Sets the position (alias for setMZ)")
+        // Pythonic snake_case properties over the scalar getters/setters (issue #9760).
+        // Additive: the getX()/setX() methods above are unchanged. 'pos' is intentionally
+        // omitted because it is an alias of mz (avoid alias pairs; keep the property list reviewable).
+        .def_prop_rw("mz",
+            [](const OpenMS::Peak1D& self) { return self.getMZ(); },
+            [](OpenMS::Peak1D& self, double v) { self.setMZ(v); },
+            "The m/z (mass-to-charge) value of the peak")
+        .def_prop_rw("intensity",
+            [](const OpenMS::Peak1D& self) { return self.getIntensity(); },
+            [](OpenMS::Peak1D& self, float v) { self.setIntensity(v); },
+            "The intensity (height) of the peak")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::Peak1D& self) {
