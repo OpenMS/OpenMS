@@ -231,7 +231,7 @@ void readMetaValues(
 
     if (type_str == "int")
     {
-      try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
+      try { target.setMetaValue(name, static_cast<SignedSize>(std::stoll(value_str))); }
       catch (...) { target.setMetaValue(name, value_str); }
     }
     else if (type_str == "double" || type_str == "float")

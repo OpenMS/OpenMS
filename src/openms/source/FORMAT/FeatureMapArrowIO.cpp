@@ -1543,18 +1543,19 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   };
 
   std::vector<PepIdGroup> groups;
-  int32_t current_p_id = -1;
+  std::unordered_map<int32_t, size_t> p_id_to_idx;
 
   for (int64_t row = 0; row < num_rows; ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
 
-    // Start a new group if P_ID changes.
-    // Note: This assumes rows with the same P_ID are contiguous in the table,
-    // which is guaranteed by QPXFile::exportToArrow. If the Parquet file has been
-    // externally sorted/filtered, non-contiguous rows with the same P_ID will be
-    // split into separate PeptideIdentification objects.
-    if (groups.empty() || p_id != current_p_id)
+    // Group PSM rows by P_ID using a first-seen lookup rather than assuming the
+    // rows are contiguous. A standard OpenMS export writes rows of one P_ID
+    // contiguously, but an externally sorted/filtered Parquet file may interleave
+    // them; grouping by value (as QPXFile and ConsensusMapArrowIO already do) keeps
+    // all hits of one logical PeptideIdentification together in either case.
+    auto [pid_it, pid_inserted] = p_id_to_idx.try_emplace(p_id, groups.size());
+    if (pid_inserted)
     {
       PepIdGroup group;
       group.feature_id_is_null = isNull_(col_feature_id, row);
@@ -1616,8 +1617,8 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
 
       groups.push_back(std::move(group));
-      current_p_id = p_id;
     }
+    const size_t gidx = pid_it->second;
 
     // Add a PeptideHit to the current group
     PeptideHit hit;
@@ -1735,7 +1736,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
 
-    groups.back().pep_id.getHits().push_back(std::move(hit));
+    groups[gidx].pep_id.getHits().push_back(std::move(hit));
   }
 
   // Assign PeptideIdentifications to features or as unassigned

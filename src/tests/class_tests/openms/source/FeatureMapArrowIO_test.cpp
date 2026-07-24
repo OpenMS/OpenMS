@@ -387,6 +387,40 @@ START_SECTION(importFeaturesFromArrow - round - trip with subordinates and hulls
 }
 END_SECTION
 
+START_SECTION([EXTRA] importFeaturesFromArrow - large integer metavalue (> INT32_MAX) survives round-trip)
+{
+  // Regression for ArrowIOHelpers::readMetaValues integer parsing (finding #19):
+  // an "int"-typed meta-value whose value exceeds INT32_MAX must be parsed with
+  // std::stoll and stored as SignedSize. Before the fix std::stol -> static_cast<int>
+  // truncated 5000000000 down to 705032704.
+  FeatureMap fm_in;
+  Feature f;
+  f.setRT(10.0);
+  f.setMZ(200.0);
+  f.setIntensity(100.0f);
+  f.setCharge(1);
+  f.setUniqueId(555);
+  f.setMetaValue("big", (OpenMS::SignedSize)5000000000LL); // > INT32_MAX (2147483647)
+  fm_in.push_back(f);
+
+  // Round-trip through the Arrow table (export then import).
+  auto table = FeatureMapArrowIO::exportFeaturesToArrow(fm_in);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+
+  FeatureMap fm_out;
+  bool ok = FeatureMapArrowIO::importFeaturesFromArrow(table, fm_out);
+  TEST_EQUAL(ok, true)
+  TEST_EQUAL(fm_out.size(), 1)
+
+  const Feature& out_f = fm_out[0];
+  TEST_EQUAL(out_f.metaValueExists("big"), true)
+  // Stored as an integer meta-value, not truncated to a smaller type on import.
+  TEST_EQUAL(out_f.getMetaValue("big").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL((OpenMS::SignedSize)out_f.getMetaValue("big"), 5000000000LL)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // PSM export and round-trip tests
 /////////////////////////////////////////////////////////////
@@ -579,6 +613,106 @@ START_SECTION(importPSMsFromArrow - PSM round - trip)
   TEST_EQUAL(out_hit2.getSequence().toString(), "ACDEFGHIK")
   TEST_REAL_SIMILAR(out_hit2.getScore(), 0.80)
   TEST_EQUAL(out_hit2.getCharge(), 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value not adjacency)
+{
+  // Regression for FeatureMapArrowIO::importPSMsFromArrow grouping (finding #20):
+  // PSM rows must be grouped into PeptideIdentifications by their P_ID VALUE, not by
+  // row adjacency. An externally sorted/filtered Parquet file can interleave rows of
+  // different P_IDs; the buggy adjacency-based grouping split each interleaved
+  // PeptideIdentification into several single-hit PeptideIdentifications.
+
+  // === Build a FeatureMap with 2 features, each with one 2-hit PeptideIdentification ===
+  FeatureMap fm_in;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_ilv");
+  prot_id.setScoreType("TestScore");
+  prot_id.setHigherScoreBetter(true);
+  fm_in.getProteinIdentifications().push_back(prot_id);
+
+  auto make_feature = [](UInt64 uid, double rt, double mz, const std::string& seqA,
+                         double scoreA, const std::string& seqB, double scoreB) -> Feature
+  {
+    Feature f;
+    f.setRT(rt);
+    f.setMZ(mz);
+    f.setIntensity(1000.0f);
+    f.setCharge(2);
+    f.setUniqueId(uid);
+
+    PeptideIdentification pep_id;
+    pep_id.setIdentifier("run_ilv");
+    pep_id.setScoreType("TestScore");
+    pep_id.setHigherScoreBetter(true);
+    pep_id.setRT(rt);
+    pep_id.setMZ(mz);
+
+    PeptideHit h1;
+    h1.setSequence(AASequence::fromString(seqA));
+    h1.setScore(scoreA);
+    h1.setCharge(2);
+    pep_id.getHits().push_back(h1);
+
+    PeptideHit h2;
+    h2.setSequence(AASequence::fromString(seqB));
+    h2.setScore(scoreB);
+    h2.setCharge(2);
+    pep_id.getHits().push_back(h2);
+
+    f.getPeptideIdentifications().push_back(pep_id);
+    return f;
+  };
+
+  fm_in.push_back(make_feature(9001, 100.0, 500.0, "PEPTIDER", 0.95, "PEPTIDEK", 0.80));
+  fm_in.push_back(make_feature(9002, 200.0, 600.0, "ACDEFGHIK", 0.90, "ACDEFGHIR", 0.70));
+
+  // === Export PSMs: 2 pep-ids x 2 hits = 4 rows ===
+  // Row layout: [0]=f9001 hit0 (P_ID 0), [1]=f9001 hit1 (P_ID 0),
+  //             [2]=f9002 hit0 (P_ID 1), [3]=f9002 hit1 (P_ID 1)
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in);
+  TEST_NOT_EQUAL(psm_table, nullptr)
+  TEST_EQUAL(psm_table->num_rows(), 4)
+
+  // === Permute rows into interleaved P_ID order {0, 2, 1, 3} ===
+  // Result P_ID sequence becomes 0, 1, 0, 1 -- the adjacency-based grouping would
+  // create four single-hit PeptideIdentifications; grouping by value keeps two 2-hit
+  // PeptideIdentifications. Built by concatenating single-row table slices (equivalent
+  // to arrow::compute::Take with indices {0,2,1,3}, without the compute dependency).
+  auto interleaved_result = arrow::ConcatenateTables({
+    psm_table->Slice(0, 1),
+    psm_table->Slice(2, 1),
+    psm_table->Slice(1, 1),
+    psm_table->Slice(3, 1)});
+  TEST_TRUE(interleaved_result.ok())
+  auto interleaved = *interleaved_result;
+  TEST_EQUAL(interleaved->num_rows(), 4)
+
+  // === Import into a fresh FeatureMap whose 2 features carry the matching unique ids ===
+  FeatureMap fm_out;
+  fm_out.setProteinIdentifications(fm_in.getProteinIdentifications());
+  Feature of1;
+  of1.setUniqueId(9001);
+  Feature of2;
+  of2.setUniqueId(9002);
+  fm_out.push_back(of1);
+  fm_out.push_back(of2);
+
+  bool ok = FeatureMapArrowIO::importPSMsFromArrow(interleaved, fm_out);
+  TEST_EQUAL(ok, true)
+
+  // === Each feature must receive exactly ONE PeptideIdentification with TWO hits ===
+  // (buggy adjacency grouping yields two 1-hit PeptideIdentifications per feature).
+  TEST_EQUAL(fm_out.size(), 2)
+  TEST_EQUAL(fm_out[0].getUniqueId(), 9001)
+  TEST_EQUAL(fm_out[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(fm_out[0].getPeptideIdentifications()[0].getHits().size(), 2)
+
+  TEST_EQUAL(fm_out[1].getUniqueId(), 9002)
+  TEST_EQUAL(fm_out[1].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(fm_out[1].getPeptideIdentifications()[0].getHits().size(), 2)
 }
 END_SECTION
 

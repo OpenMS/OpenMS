@@ -772,6 +772,8 @@ namespace OpenMS
     setQualityQPs_.clear(); // clear
     setQualityAts_.clear(); // clear
     setQualityQPs_members_.clear(); // clear
+    run_Name_ID_map_.clear(); // clear derived name->ID map alongside its data maps
+    set_Name_ID_map_.clear(); // clear derived name->ID map alongside its data maps
 
     parse_(filename, this);
   }
