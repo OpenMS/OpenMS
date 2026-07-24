@@ -122,7 +122,7 @@ START_SECTION(PeptDeepInputBuilder)
     vector<float> nces = {30.0f, 27.0f};
     vector<int64_t> instruments = {0, 2};
 
-    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildInstrumentBatch(peptides, charges, nces, instruments);
+    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildProductMetaBatch(peptides, charges, nces, instruments);
 
     TEST_REAL_SIMILAR(instrument_batch.charges[0], 0.2f);
     TEST_REAL_SIMILAR(instrument_batch.charges[1], 0.3f);
@@ -166,6 +166,19 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_c_idx], 2.0f);
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_h_idx], 2.0f);
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_o_idx], 1.0f);
+
+    STATUS("Testing element beyond CHNOPS and isotope fallback (Channel 108)...");
+    // "Label:13C(6)15N(2)" uses isotopes. OpenMS EmpiricalFormula returns "13C" and "15N".
+    // Since these are not in the standard 109 ALPHAPEPTDEEP_MOD_ELEMENTS array,
+    // they correctly fallback to the final 'Other' channel (index 108).
+    std::vector<std::string> iso_peptides = {"K(Label:13C(6)15N(2))PEPTIDE"};
+    ML::PeptDeepInputBatch iso_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(iso_peptides);
+
+    size_t k_mod_pos = 1; // K is at index 1 (N-term padding is 0)
+    size_t iso_other_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 108;
+
+    // The modification adds 6 13C and 2 15N = 8 total unknown elements mapped to the Other channel.
+    TEST_REAL_SIMILAR(iso_batch.mod_x[iso_other_idx], 8.0f);
 
     STATUS("Testing parsed-length grouping logic...");
     std::vector<std::string> length_peptides = {"M(Oxidation)PEPT"};

@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Satyam Yadav $
+// $Authors: Satyam Yadav, Justin Sing $
 // --------------------------------------------------------------------------
 #pragma once
 
@@ -17,6 +17,21 @@ namespace OpenMS {
 
     // --- Shared PeptDeep Architecture Constants ---
     constexpr int64_t PEPTDEEP_MOD_ELEMENTS = 109;
+
+    /// @brief AlphaPeptDeep's exact 109-element array for modification tensor mapping.
+    /// Elements missing from this list (e.g., isotopes like "13C") are gracefully binned into the final "Other" channel.
+    const std::vector<std::string> ALPHAPEPTDEEP_MOD_ELEMENTS = {
+        "C", "H", "N", "O", "P", "S", "Br", "Cl", "F", "Fe", "I", "K", "Na", "Zn",
+        "Se", "Mg", "Ca", "Cu", "Mn", "Ni", "Mo", "Ag", "Co", "Au", "V", "Pt",
+        "Ru", "Cd", "Cr", "W", "Pb", "Li", "Rb", "Cs", "Fr", "Be", "Sr", "Ba",
+        "Ra", "Sc", "Y", "Ti", "Zr", "Hf", "Rf", "Nb", "Ta", "Db", "Tc", "Re",
+        "Bh", "Os", "Hs", "Rh", "Ir", "Mt", "Pd", "Ds", "Rg", "Cn", "Nh", "Fl",
+        "Mc", "Lv", "Ts", "Og", "B", "Al", "Ga", "In", "Tl", "Si", "Ge", "Sn",
+        "Uut", "As", "Sb", "Bi", "Uup", "Te", "Po", "At", "Uus", "Rn", "Uuo",
+        "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm",
+        "Yb", "Lu", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es",
+        "Fm", "Md", "No", "Lr"
+    };
 
     /**
      * @brief Maps amino acid characters to 1-based token indices for PeptDeep models.
@@ -43,14 +58,6 @@ namespace OpenMS {
         if (peptide.empty()) {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence cannot be empty.");
         }
-    }
-
-    /**
-     * @brief Generates an empty mod_x tensor for unmodified peptides.
-     * Resolves to a flat vector of zeros of size (batch_size * sequence_length * 109).
-     */
-    inline std::vector<float> generateUnmodifiedModXTensor(size_t batch_size, size_t sequence_length) {
-        return std::vector<float>(batch_size * sequence_length * PEPTDEEP_MOD_ELEMENTS, 0.0f);
     }
 
   }

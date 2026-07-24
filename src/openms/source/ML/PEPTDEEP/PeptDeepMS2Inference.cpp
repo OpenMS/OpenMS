@@ -17,6 +17,11 @@
 #include <string>
 #include <map>
 
+namespace {
+    constexpr float MAX_PREDICTED_INTENSITY = 10.0f; // Cap artifactual spikes from the ONNX model
+    constexpr float MIN_INTENSITY_THRESHOLD = 1e-4f; // Floor near-zero noise after normalization
+}
+
 namespace OpenMS {
 
 PeptDeepMS2Inference::PeptDeepMS2Inference(const std::string& model_path, int intra_op_threads, size_t batch_size)
@@ -55,7 +60,6 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     } else {
         std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
         for (size_t i = 0; i < peptides.size(); ++i) {
-            // FIX: Parse the sequence first so modification strings aren't counted as length
             indices_by_encoded_length[OpenMS::AASequence::fromString(peptides[i]).size() + 2].push_back(i);
         }
         for (auto& item : indices_by_encoded_length) {
@@ -101,7 +105,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                 chunk_instruments.push_back(instrument_indices[original_idx]);
             }
 
-            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildInstrumentBatch(
+            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildProductMetaBatch(
                 chunk_peptides, chunk_charges, chunk_nces, chunk_instruments, input_config);
 
             const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
@@ -158,8 +162,12 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
             for (size_t j = 0; j < current_chunk_size; ++j) {
                 const std::string& current_peptide = chunk_peptides[j];
 
-                // FIX: Use true amino acid count for MS2 fragment rows
-                int64_t valid_fragments = OpenMS::AASequence::fromString(current_peptide).size() - 1;
+                size_t parsed_size = OpenMS::AASequence::fromString(current_peptide).size();
+                if (parsed_size < 1) {
+                    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parsed peptide sequence cannot be empty.");
+                }
+
+                int64_t valid_fragments = static_cast<int64_t>(parsed_size) - 1;
 
                 int64_t start_row = (actual_rows > valid_fragments) ? (actual_rows - valid_fragments) / 2 : 0;
 
@@ -176,7 +184,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                     for (int64_t k_ion = 0; k_ion < num_ions; ++k_ion) {
                         float val = batch_floatarr[(row_idx * num_ions) + k_ion];
 
-                        if (val > 10.0f) {
+                        if (val > MAX_PREDICTED_INTENSITY) {
                             val = 0.0f;
                         }
                         intensities.push_back(val < 0.0f ? 0.0f : val);
@@ -188,7 +196,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                 if (apex <= 0.0f) apex = 1.0f;
                 for (float& val : intensities) {
                     val /= apex;
-                    if (val < 1e-4f) val = 0.0f;
+                    if (val < MIN_INTENSITY_THRESHOLD) val = 0.0f;
                 }
 
                 predictions[group_indices[chunk_start + j]] = std::move(intensities);

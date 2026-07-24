@@ -32,9 +32,10 @@ namespace OpenMS
         ~PeptDeepRTInference();
 
         /**
-         * @brief Predicts Retention Times for a list of peptide sequences
-         * @param peptides A vector of peptide strings (e.g., "PEPTIDEK")
-         * @return A vector of predicted RT values corresponding to the input peptides
+         * @brief Predicts Retention Times for a list of peptide sequences.
+         * @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
+         * @return A vector of predicted RT values corresponding to the input peptides.
+         * @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
          */
         std::vector<float> predictRT(const std::vector<std::string>& peptides);
 

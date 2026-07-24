@@ -59,13 +59,13 @@ namespace OpenMS
         const std::vector<std::string>& peptides,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
-      /// @brief Builds a tensor batch incorporating precursor charge states (primarily for CCS and RT).
+      /// @brief Builds a tensor batch incorporating precursor charge states (primarily for CCS).
       /// @param peptides A vector of peptide sequences.
       /// @param charges A vector of precursor charges corresponding to the peptides.
       /// @param config Configuration dictating padding and terminal token policies.
       /// @return A PeptDeepInputBatch populated with baseline features and scaled charges.
       /// @throws Exception::IllegalArgument If the size of the peptides and charges vectors do not match.
-      static PeptDeepInputBatch buildChargedBatch(
+      static PeptDeepInputBatch buildPrecursorBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
@@ -78,7 +78,7 @@ namespace OpenMS
       /// @param config Configuration dictating padding and terminal token policies.
       /// @return A fully populated PeptDeepInputBatch ready for MS2 ONNX inference.
       /// @throws Exception::IllegalArgument If any of the input vectors differ in size.
-      static PeptDeepInputBatch buildInstrumentBatch(
+      static PeptDeepInputBatch buildProductMetaBatch(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,
         const std::vector<float>& nces,

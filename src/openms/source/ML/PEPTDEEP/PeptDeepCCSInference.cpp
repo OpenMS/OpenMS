@@ -61,7 +61,6 @@ namespace OpenMS
       std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
       for (size_t i = 0; i < peptides.size(); ++i)
       {
-        // FIX: Parse the sequence first so modification strings aren't counted as length
         indices_by_encoded_length[OpenMS::AASequence::fromString(peptides[i]).size() + 2].push_back(i);
       }
       for (auto& item : indices_by_encoded_length)
@@ -101,7 +100,7 @@ namespace OpenMS
           chunk_charges.push_back(charges[original_idx]);
         }
 
-        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildChargedBatch(chunk_peptides, chunk_charges, input_config);
+        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPrecursorBatch(chunk_peptides, chunk_charges, input_config);
         const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
         const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
 

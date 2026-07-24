@@ -26,20 +26,6 @@ namespace
     OpenMS::AASequence seq = OpenMS::AASequence::fromString(peptide);
     return seq.size() + (config.add_terminal_tokens ? 2 : 0);
   }
-
-  // AlphaPeptDeep's precise mod_elements order for tensor mapping
-  const std::vector<std::string> ALPHAPEPTDEEP_MOD_ELEMENTS = {
-      "C", "H", "N", "O", "P", "S", "Br", "Cl", "F", "Fe", "I", "K", "Na", "Zn",
-      "Se", "Mg", "Ca", "Cu", "Mn", "Ni", "Mo", "Ag", "Co", "Au", "V", "Pt",
-      "Ru", "Cd", "Cr", "W", "Pb", "Li", "Rb", "Cs", "Fr", "Be", "Sr", "Ba",
-      "Ra", "Sc", "Y", "Ti", "Zr", "Hf", "Rf", "Nb", "Ta", "Db", "Tc", "Re",
-      "Bh", "Os", "Hs", "Rh", "Ir", "Mt", "Pd", "Ds", "Rg", "Cn", "Nh", "Fl",
-      "Mc", "Lv", "Ts", "Og", "B", "Al", "Ga", "In", "Tl", "Si", "Ge", "Sn",
-      "Uut", "As", "Sb", "Bi", "Uup", "Te", "Po", "At", "Uus", "Rn", "Uuo",
-      "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm",
-      "Yb", "Lu", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es",
-      "Fm", "Md", "No", "Lr"
-  };
 }
 
 namespace OpenMS
@@ -160,7 +146,7 @@ namespace OpenMS
       return batch;
     }
 
-    PeptDeepInputBatch PeptDeepInputBuilder::buildChargedBatch(
+    PeptDeepInputBatch PeptDeepInputBuilder::buildPrecursorBatch(
       const std::vector<std::string>& peptides,
       const std::vector<float>& charges,
       const PeptDeepInputConfig& config)
@@ -182,7 +168,7 @@ namespace OpenMS
       return batch;
     }
 
-    PeptDeepInputBatch PeptDeepInputBuilder::buildInstrumentBatch(
+    PeptDeepInputBatch PeptDeepInputBuilder::buildProductMetaBatch(
       const std::vector<std::string>& peptides,
       const std::vector<float>& charges,
       const std::vector<float>& nces,
@@ -195,7 +181,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide, charge, NCE, and instrument input vectors must have the same size.");
       }
 
-      PeptDeepInputBatch batch = buildChargedBatch(peptides, charges, config);
+      PeptDeepInputBatch batch = buildPrecursorBatch(peptides, charges, config);
       batch.nces.reserve(batch_size);
       batch.instrument_indices.reserve(batch_size);
 
