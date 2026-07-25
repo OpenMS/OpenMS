@@ -18,6 +18,7 @@ yields the original values.
 """
 
 import gc
+import sys
 
 import pytest
 
@@ -162,10 +163,48 @@ CONTAINERS = [
 IDS = [c[0] for c in CONTAINERS]
 
 
+def _expected(factory, extract):
+    """Reference values, read while the container is provably alive.
+
+    This must NOT iterate a temporary: on a build without the keep-alive the
+    temporary is freed before iteration, so computing the baseline that way
+    would itself trigger the use-after-free under test and could compare
+    garbage against garbage.
+    """
+    container = factory()
+    values = [extract(x) for x in container]
+    del container
+    return values
+
+
+@pytest.mark.parametrize("name,factory,extract", CONTAINERS, ids=IDS)
+def test_iterator_holds_a_reference_to_its_container(name, factory, extract):
+    """The keep-alive edge must be observable, not merely probable.
+
+    The other tests in this file provoke undefined behaviour and rely on it
+    manifesting.  This one checks the annotation directly: nb::keep_alive<0, 1>()
+    increments the container's refcount for as long as the iterator lives, so a
+    missing annotation fails here deterministically, with no UB involved.
+    """
+    container = factory()
+
+    before = sys.getrefcount(container)
+    it = iter(container)
+    during = sys.getrefcount(container)
+    assert during == before + 1, (
+        "%s.__iter__ did not retain its container "
+        "(refcount %d -> %d); nb::keep_alive<0, 1>() is missing" % (name, before, during)
+    )
+
+    del it
+    gc.collect()
+    assert sys.getrefcount(container) == before
+
+
 @pytest.mark.parametrize("name,factory,extract", CONTAINERS, ids=IDS)
 def test_iterator_outlives_temporary_container(name, factory, extract):
     """iter() on a temporary must keep that temporary alive."""
-    expected = [extract(x) for x in factory()]
+    expected = _expected(factory, extract)
     assert expected, "%s factory produced an empty container" % name
 
     # The container is a temporary: after this statement the iterator is the
@@ -192,7 +231,7 @@ def test_iterator_outlives_deleted_container(name, factory, extract):
 @pytest.mark.parametrize("name,factory,extract", CONTAINERS, ids=IDS)
 def test_partially_consumed_iterator_survives(name, factory, extract):
     """Dropping the container mid-iteration must not invalidate the rest."""
-    expected = [extract(x) for x in factory()]
+    expected = _expected(factory, extract)
     if len(expected) < 4:
         pytest.skip("%s is too small for a partial-consumption test" % name)
 
