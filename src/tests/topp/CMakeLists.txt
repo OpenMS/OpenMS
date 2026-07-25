@@ -2815,6 +2815,21 @@ set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
 add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
+
+# file+channel level output with peptidoform/charge structure. The input has a peptide
+# split over two peptidoforms and another split over two charge states, and a second file
+# that sees only a single peptide, so the detailed columns are sensitive to peptidoform
+# merging, to 'top:N' counting peptides rather than raw cells, and to an unquantifiable
+# cell being reported as absent instead of as an un-aggregated sum.
+add_test("TOPP_ProteinQuantifier_18" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_18_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_18_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp -top:N 2 -top:aggregate mean)
+add_test("TOPP_ProteinQuantifier_18_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_18_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_18_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18")
+
+# same input under iBAQ: the file+channel level values must be normalized by the number of
+# theoretically observable peptides, just like the sample-level ones
+add_test("TOPP_ProteinQuantifier_19" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_18_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_18_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -method iBAQ)
+add_test("TOPP_ProteinQuantifier_19_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_19_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_19_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
