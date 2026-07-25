@@ -1273,6 +1273,7 @@ namespace OpenMS
       // 'best_charge_and_fraction' is false. That option is currently not honoured here at
       // all (it writes PeptideData::total_abundances but leaves PeptideData::abundances,
       // which we read, untouched), so the two granularities can still disagree for it.
+      // Tracked in issue #9796, together with the two other defects of that option.
       map<tuple<Int, std::string, UInt>, double> abundances_of_peptide;
 
       for (const auto* pep_q_ptr : idx_it->second)
