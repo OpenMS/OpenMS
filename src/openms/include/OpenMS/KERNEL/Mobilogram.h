@@ -16,6 +16,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -585,6 +586,13 @@ namespace OpenMS
 
       @note DataArrays must have the same size as the mobilogram. If not, an exception is thrown.
       @note This method is useful for filtering/reordering mobilograms while properly maintaining DataArrays.
+      @note Indices and data array sizes are fully validated before anything is modified, so a
+            rejected call leaves the mobilogram unchanged.
+      @note Cached ranges are NOT recomputed. A permutation preserves them, but selecting a
+            subset can leave them too wide -- call updateRanges() if you need them exact.
+
+      @exception Exception::Precondition if an index is out of range, or if a non-empty data
+                 array's size differs from the number of peaks.
     */
     Mobilogram& select(const std::vector<Size>& indices);
 

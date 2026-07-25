@@ -630,6 +630,18 @@ START_SECTION((Mobilogram& select(const std::vector<Size>& indices)))
   TEST_EQUAL(m.getIntegerDataArrays()[0][1], 1)
   TEST_STRING_EQUAL(m.getFloatDataArrays()[0].getName(), "f1")
 
+  // duplicate indices must duplicate the values, not leave moved-from holes
+  Mobilogram dup;
+  dup.emplace_back(1.0, 10.0f);
+  dup.emplace_back(2.0, 20.0f);
+  Mobilogram::StringDataArray dup_sda;
+  dup_sda.push_back("a"); dup_sda.push_back("b");
+  dup.getStringDataArrays().push_back(dup_sda);
+  dup.select(std::vector<Size>{0, 0});
+  TEST_EQUAL(dup.size(), 2)
+  TEST_STRING_EQUAL(dup.getStringDataArrays()[0][0], "a")
+  TEST_STRING_EQUAL(dup.getStringDataArrays()[0][1], "a")
+
   // size mismatch between peaks and a data array is an error
   Mobilogram bad;
   bad.emplace_back(1.0, 10.0f);
@@ -638,6 +650,18 @@ START_SECTION((Mobilogram& select(const std::vector<Size>& indices)))
   too_long.push_back(1); too_long.push_back(2); too_long.push_back(3);
   bad.getIntegerDataArrays().push_back(too_long);
   TEST_EXCEPTION(Exception::Precondition, bad.select(std::vector<Size>{0, 1}))
+  // ... and the rejected call must leave the mobilogram untouched
+  TEST_EQUAL(bad.size(), 2)
+  TEST_REAL_SIMILAR(bad[0].getMobility(), 1.0)
+  TEST_REAL_SIMILAR(bad[1].getMobility(), 2.0)
+  TEST_EQUAL(bad.getIntegerDataArrays()[0].size(), 3)
+
+  // out-of-range indices are rejected rather than being undefined behaviour
+  Mobilogram oor;
+  oor.emplace_back(1.0, 10.0f);
+  oor.emplace_back(2.0, 20.0f);
+  TEST_EXCEPTION(Exception::Precondition, oor.select(std::vector<Size>{0, 5}))
+  TEST_EQUAL(oor.size(), 2)
 }
 END_SECTION
 

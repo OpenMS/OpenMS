@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -412,9 +413,15 @@ public:
       @param[in] indices Indices to keep. The order is retained.
       @return Reference to this MSChromatogram
 
-      @note The indices are NOT checked for validity!
       @note DataArrays must have the same size as the chromatogram. If not, an exception is thrown.
       @note This method is useful for filtering chromatograms while properly maintaining DataArrays.
+      @note Indices and data array sizes are fully validated before anything is modified, so a
+            rejected call leaves the chromatogram unchanged.
+      @note Cached ranges are NOT recomputed. A permutation preserves them, but selecting a
+            subset can leave them too wide -- call updateRanges() if you need them exact.
+
+      @exception Exception::Precondition if an index is out of range, or if a non-empty data
+                 array's size differs from the number of peaks.
     */
     MSChromatogram& select(const std::vector<Size>& indices);
 

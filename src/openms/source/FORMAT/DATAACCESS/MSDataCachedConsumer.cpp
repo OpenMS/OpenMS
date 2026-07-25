@@ -47,7 +47,8 @@ namespace OpenMS
     writeSpectrum_(s, ofs_);
     spectra_written_++;
 
-    // Clear all spectral data including all float/int data arrays (but not string arrays)
+    // Clear all spectral data, including all float/int/string data arrays
+    // (clear() drops the data arrays: they are parallel to the peaks)
     if (clearData_)
     {
       s.clear(false);
@@ -64,7 +65,8 @@ namespace OpenMS
     writeChromatogram_(c, ofs_);
     chromatograms_written_++;
 
-    // Clear all chromatogram data including all float/int data arrays (but not string arrays)
+    // Clear all chromatogram data, including all float/int/string data arrays
+    // (clear() drops the data arrays: they are parallel to the peaks)
     if (clearData_)
     {
       c.clear(false);

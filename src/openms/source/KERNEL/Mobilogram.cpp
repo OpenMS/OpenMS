@@ -406,6 +406,32 @@ namespace OpenMS
     const Size snew = indices.size();
     const Size peaks_old = data_.size();
 
+    // Validate everything *before* touching any storage, so a rejected call leaves
+    // the mobilogram exactly as it was instead of half-permuted.
+    for (Size i = 0; i < snew; ++i)
+    {
+      if (indices[i] >= peaks_old)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Index " + StringUtils::toStr(indices[i]) + " is out of range for a mobilogram of size " +
+                                        StringUtils::toStr(peaks_old));
+      }
+    }
+    auto check_sizes = [peaks_old](const auto& arrays, const char* what) {
+      for (Size i = 0; i < arrays.size(); ++i)
+      {
+        if (!arrays[i].empty() && arrays[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
+                                          ") does not match mobilogram size (" + StringUtils::toStr(peaks_old) + ")");
+        }
+      }
+    };
+    check_sizes(float_data_arrays_, "FloatDataArray");
+    check_sizes(string_data_arrays_, "StringDataArray");
+    check_sizes(integer_data_arrays_, "IntegerDataArray");
+
     std::vector<MobilityPeak1D> tmp;
     tmp.reserve(snew);
     for (Size i = 0; i < snew; ++i)
@@ -453,7 +479,9 @@ namespace OpenMS
       mda_tmp_str.reserve(snew);
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
+        // copy, not move: 'indices' may name the same source entry twice, and a
+        // moved-from std::string would yield an empty second copy
+        mda_tmp_str.push_back(string_data_arrays_[i][indices[j]]);
       }
       std::swap(string_data_arrays_[i], mda_tmp_str);
     }

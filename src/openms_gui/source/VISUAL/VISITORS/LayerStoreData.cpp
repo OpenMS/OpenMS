@@ -76,16 +76,21 @@ namespace OpenMS
   // Returns true if filtered chromatogram contains data
   bool filterChrom(const MSChromatogram& in, MSChromatogram& out, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
-    out = in;
-    out.clear(false); // keep metadata
+    // Collect the surviving indices and let select() subset the peaks *and* the
+    // parallel data arrays together; rebuilding by push_back would drop them
+    // (clear() removes the arrays, as they are parallel to the peaks).
+    std::vector<Size> keep;
     auto it_end = in.RTEnd(visible_range.getMaxRT());
     for (auto it = in.RTBegin(visible_range.getMinRT()); it != it_end; ++it)
     {
-      if (layer_filters.passes(in, it - in.begin()))
+      const Size i = it - in.begin();
+      if (layer_filters.passes(in, i))
       {
-        out.push_back(*it);
+        keep.push_back(i);
       }
     }
+    out = in;
+    out.select(keep);
     return !out.empty();
   }
 

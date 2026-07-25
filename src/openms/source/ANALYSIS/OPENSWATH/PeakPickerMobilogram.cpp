@@ -264,20 +264,14 @@ namespace OpenMS
                                size_t left_index,
                                size_t right_index) 
     {
-      // Create a temporary vector to hold the filtered peaks
-      std::vector<MobilityPeak1D> filtered_peaks;
-
+      // Subset via select() so that any data arrays are subset alongside the peaks;
+      // clear()+push_back would drop them (they are parallel to the peaks).
+      std::vector<Size> keep;
+      keep.reserve(right_index - left_index + 1);
       for (size_t i = left_index; i <= right_index; ++i) {
-        const auto& peak = mobilogram[i];
-        // Collect the peaks within the range
-        filtered_peaks.push_back(peak); 
+        keep.push_back(i);
       }
-
-      // Clear existing data and replace with filtered peaks
-      mobilogram.clear();
-      for (const auto& peak : filtered_peaks) {
-        mobilogram.push_back(peak);
-      }
+      mobilogram.select(keep);
     }
 
     void PeakPickerMobilogram::filterPeakIntensities_(std::vector<Mobilogram>& mobilograms,
@@ -285,20 +279,14 @@ namespace OpenMS
                                 size_t right_index) 
     {
       for (auto& mobilogram : mobilograms) {
-        // Create a temporary vector to hold the filtered peaks
-        std::vector<MobilityPeak1D> filtered_peaks;
-
+        // Subset via select() so that any data arrays are subset alongside the peaks;
+        // clear()+push_back would drop them (they are parallel to the peaks).
+        std::vector<Size> keep;
+        keep.reserve(right_index - left_index + 1);
         for (size_t i = left_index; i <= right_index; ++i) {
-          const auto& peak = mobilogram[i];
-          // Collect the peaks within the range
-          filtered_peaks.push_back(peak); 
+          keep.push_back(i);
         }
-
-        // Clear existing data and replace with filtered peaks
-        mobilogram.clear(); 
-        for (const auto& peak : filtered_peaks) {
-          mobilogram.push_back(peak);
-        }
+        mobilogram.select(keep);
       }
     }
 

@@ -410,10 +410,36 @@ START_SECTION(([EXTRA] sorting reorders string and integer data arrays even when
   TEST_EQUAL(c.getIntegerDataArrays()[0][0], 1)
   TEST_EQUAL(c.getIntegerDataArrays()[0][2], 3)
 
+  // --- sortByIntensity with float arrays present must permute them too
+  c = make();
+  MSChromatogram::FloatDataArray fda;
+  fda.push_back(3.5f); fda.push_back(1.5f); fda.push_back(2.5f);
+  c.getFloatDataArrays().push_back(fda);
+  c.sortByIntensity(true); // descending: 30,20,10 -> RT 1,2,3
+  TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][0], 1.5)
+  TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][1], 2.5)
+  TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][2], 3.5)
+
   // --- a mis-sized data array must be rejected rather than silently corrupting
   c = make();
   c.getIntegerDataArrays()[0].push_back(99); // now 4 entries for 3 peaks
   TEST_EXCEPTION(Exception::Precondition, c.sortByPosition())
+  // ... and the rejected sort must leave the chromatogram untouched
+  TEST_EQUAL(c.size(), 3)
+  TEST_REAL_SIMILAR(c[0].getRT(), 3.0)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+
+  // --- out-of-range indices are rejected rather than being undefined behaviour
+  c = make();
+  TEST_EXCEPTION(Exception::Precondition, c.select(std::vector<Size>{0, 7}))
+  TEST_EQUAL(c.size(), 3)
+
+  // --- duplicate indices duplicate the values (no moved-from holes)
+  c = make();
+  c.select(std::vector<Size>{0, 0});
+  TEST_EQUAL(c.size(), 2)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt3")
 }
 END_SECTION
 
