@@ -678,7 +678,7 @@ jobs:
 
   create-website-update:
     name: Create Website Update
-    if: needs.build-and-test.outputs.has_version == 'true'
+    if: github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true'
     runs-on: ubuntu-latest
     permissions: write-all
     needs:
