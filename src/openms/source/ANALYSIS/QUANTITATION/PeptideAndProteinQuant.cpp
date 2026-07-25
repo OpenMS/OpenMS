@@ -1240,6 +1240,18 @@ namespace OpenMS
 
     ProteinData& pd = prot_it->second;
 
+    // Granularity note: a sample is a (file, label) pair of the experimental design, so in a
+    // fractionated experiment ONE sample spans SEVERAL files (all fractions of its fraction
+    // group at that label) and total_abundances aggregates over them. The cells computed here
+    // are per (file, channel), i.e. one sample maps to N cells, and both the peptide selection
+    // and the aggregation below are applied PER FILE. That is deliberate - these are per-file
+    // values - but it means:
+    //   - the cells only decompose the sample value for top_n == 0 with aggregate == "sum";
+    //     top-N/median/mean/weighted_mean do not commute with aggregation across fractions;
+    //   - the "at least top_n peptides" requirement is enforced per file, which is much
+    //     stricter than the sample-level rule for fractionated data: a protein quantified at
+    //     the sample level can have ALL of its cells dropped because no single fraction
+    //     contains top_n peptides.
     // organize detailed abundances by (fraction, filename, channel) combinations
     map<tuple<Int, std::string, UInt>, DoubleList> channel_level_abundances_for_selected_peptides;
     

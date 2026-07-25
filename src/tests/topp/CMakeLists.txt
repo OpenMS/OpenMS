@@ -2830,6 +2830,25 @@ set_tests_properties("TOPP_ProteinQuantifier_18_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_19" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_18_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_18_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -method iBAQ)
 add_test("TOPP_ProteinQuantifier_19_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_19_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_19_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19")
+
+# Fractionated design (one sample spans two fraction files, two channels).
+# 20/21: with 'top:N 0' + 'sum' the file+channel cells decompose the sample level exactly
+#        (300 + 350 = 650 for ch1, 30 + 35 = 65 for ch2).
+add_test("TOPP_ProteinQuantifier_20" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_20_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_20_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_20_output.tmp -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_20_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_20_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_20_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_20_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_20")
+
+add_test("TOPP_ProteinQuantifier_21" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_20_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_20_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_21_output.tmp -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_21_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_21_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_21_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_21_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_21")
+
+# 22: same input at the default 'top:N 3'. The 'at least N peptides' requirement is enforced
+#     per file, so with no fraction holding 3 peptides the protein is quantified at the sample
+#     level while all of its file+channel cells are 0. This is intended (these are per-file
+#     values); before the aggregation fix the cells instead showed un-aggregated raw sums.
+add_test("TOPP_ProteinQuantifier_22" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_20_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_20_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_22_output.tmp)
+add_test("TOPP_ProteinQuantifier_22_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_22_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_22_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_22_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_22")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
