@@ -14,6 +14,8 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
   class ChromatogramPeak;
@@ -216,6 +218,20 @@ public:
     ///Checks if all peaks are sorted with respect to ascending RT
     bool isSorted() const;
 
+    /// Sort by a user-defined property
+    /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
+    /// which given two indices into MSChromatogram (either for peaks or data arrays) returns a weak-ordering.
+    /// (you need to capture the MSChromatogram in the lambda and operate on it, based on the indices)
+    /// @note All data arrays are reordered alongside the peaks.
+    template<class Predicate>
+    void sort(const Predicate& lambda)
+    {
+      std::vector<Size> indices(this->size());
+      std::iota(indices.begin(), indices.end(), 0);
+      std::stable_sort(indices.begin(), indices.end(), lambda);
+      select(indices);
+    }
+
     ///@}
 
     ///@name Searching a peak or peak range
@@ -378,6 +394,13 @@ public:
 
     /**
       @brief Clears all data and meta data
+
+      Will delete (clear) all peaks contained in the chromatogram as well as any
+      associated data arrays (FloatDataArrays, IntegerDataArrays,
+      StringDataArrays) and the ranges by default -- those arrays are parallel to
+      the peaks, so retaining them would leave the chromatogram inconsistent.
+      If @em clear_meta_data is @em true, then also the descriptive meta data
+      (ChromatogramSettings, name) will be deleted.
 
       @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */

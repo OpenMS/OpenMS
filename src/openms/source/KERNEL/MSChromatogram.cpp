@@ -11,6 +11,8 @@
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
+#include <algorithm>
+
 using namespace OpenMS;
 
 std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
@@ -110,132 +112,58 @@ MSChromatogram::IntegerDataArrays &MSChromatogram::getIntegerDataArrays()
   return integer_data_arrays_;
 }
 
-void MSChromatogram::sortByIntensity(bool reverse) {
-  if (float_data_arrays_.empty() && !string_data_arrays_.empty() && !integer_data_arrays_.empty())
+void MSChromatogram::sortByIntensity(bool reverse)
+{
+  // fast path: nothing to keep in sync with the peaks
+  if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
   {
     if (reverse)
     {
-      std::sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
+      std::stable_sort(ContainerType::begin(), ContainerType::end(), [](const auto& left, const auto& right) {
+        PeakType::IntensityLess cmp;
+        return cmp(right, left);
+      });
     }
     else
     {
-      std::sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
+      std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
     }
+    return;
+  }
+
+  // permute peaks and *all* data arrays together
+  if (reverse)
+  {
+    sort([this](const Size i1, const Size i2) {
+      return this->ContainerType::operator[](i2).getIntensity() < this->ContainerType::operator[](i1).getIntensity();
+    });
   }
   else
   {
-    //sort index list
-    std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
-    sorted_indices.reserve(ContainerType::size());
-    for (Size i = 0; i < ContainerType::size(); ++i)
-    {
-      sorted_indices.emplace_back(ContainerType::operator[](i).getIntensity(), i);
-    }
-
-    if (reverse)
-    {
-      std::sort(sorted_indices.begin(), sorted_indices.end(),  [](auto& left, auto& right){return left > right;});
-    }
-    else
-    {
-      std::sort(sorted_indices.begin(), sorted_indices.end());
-    }
-
-    //apply sorting to ContainerType and to meta data arrays
-    ContainerType tmp;
-    for (Size i = 0; i < sorted_indices.size(); ++i)
-    {
-      tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
-    }
-    ContainerType::swap(tmp);
-
-    for (Size i = 0; i < float_data_arrays_.size(); ++i)
-    {
-      std::vector<float> mda_tmp;
-      for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-      {
-        mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-      }
-      mda_tmp.swap(float_data_arrays_[i]);
-    }
-
-    for (Size i = 0; i < string_data_arrays_.size(); ++i)
-    {
-      std::vector<std::string> mda_tmp;
-      for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-      {
-        mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-      }
-      mda_tmp.swap(string_data_arrays_[i]);
-    }
-
-    for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-    {
-      std::vector<Int> mda_tmp;
-      for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-      {
-        mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-      }
-      mda_tmp.swap(integer_data_arrays_[i]);
-    }
+    sort([this](const Size i1, const Size i2) {
+      return this->ContainerType::operator[](i1).getIntensity() < this->ContainerType::operator[](i2).getIntensity();
+    });
   }
 }
 
 void MSChromatogram::sortByPosition()
 {
-  if (float_data_arrays_.empty())
+  if (isSorted())
   {
-    std::sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+    return;
   }
-  else
+
+  // fast path: nothing to keep in sync with the peaks
+  if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
   {
-    //sort index list
-    std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
-    sorted_indices.reserve(ContainerType::size());
-    for (Size i = 0; i < ContainerType::size(); ++i)
-    {
-      sorted_indices.emplace_back(ContainerType::operator[](i).getPosition(), i);
-    }
-    std::sort(sorted_indices.begin(), sorted_indices.end());
-
-    //apply sorting to ContainerType and to metadataarrays
-    ContainerType tmp;
-    for (Size i = 0; i < sorted_indices.size(); ++i)
-    {
-      tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
-    }
-    ContainerType::swap(tmp);
-
-    for (Size i = 0; i < float_data_arrays_.size(); ++i)
-    {
-      std::vector<float> mda_tmp;
-      for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-      {
-        mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-      }
-      std::swap(float_data_arrays_[i], mda_tmp);
-    }
-
-    for (Size i = 0; i < string_data_arrays_.size(); ++i)
-    {
-      std::vector<std::string> mda_tmp;
-      for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-      {
-        mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-      }
-      std::swap(string_data_arrays_[i], mda_tmp);
-    }
-
-    for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-    {
-      std::vector<Int> mda_tmp;
-      for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-      {
-        mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-      }
-      std::swap(integer_data_arrays_[i], mda_tmp);
-    }
+    std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+    return;
   }
+
+  // permute peaks and *all* data arrays together
+  sort([this](const Size i1, const Size i2) {
+    return this->ContainerType::operator[](i1).getPosition() < this->ContainerType::operator[](i2).getPosition();
+  });
 }
 
 bool MSChromatogram::isSorted() const
@@ -392,14 +320,19 @@ void MSChromatogram::clear(bool clear_meta_data)
 {
   ContainerType::clear();
 
+  // The data arrays are parallel to the peaks: keeping them while dropping the peaks
+  // would leave the chromatogram internally inconsistent (and any later sort()/select()
+  // would throw on the size mismatch). They are therefore always cleared, matching
+  // MSSpectrum::clear(). 'clear_meta_data' only governs the descriptive metadata.
+  clearRanges();
+  float_data_arrays_.clear();
+  string_data_arrays_.clear();
+  integer_data_arrays_.clear();
+
   if (clear_meta_data)
   {
-    clearRanges();
     this->ChromatogramSettings::operator=(ChromatogramSettings()); // no "clear" method
     name_.clear();
-    float_data_arrays_.clear();
-    string_data_arrays_.clear();
-    integer_data_arrays_.clear();
   }
 }
 
