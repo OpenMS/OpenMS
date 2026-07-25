@@ -1,0 +1,4 @@
+# Protein abundances computed from file 'ProteinQuantifier_20_input.consensusXML'
+# Parameters (relevant only): method=top, top:N=0, top:aggregate=sum
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance|fileA|ch1"	"abundance|fileA|ch2"	"abundance|fileB|ch1"	"abundance|fileB|ch2"
+"Protein"	1	0.99	3	300.0	30.0	350.0	35.0

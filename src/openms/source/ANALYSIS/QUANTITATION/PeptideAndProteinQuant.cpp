@@ -491,8 +491,7 @@ namespace OpenMS
     const std::map<std::string, std::string> accession_to_leader = mapAccessionToLeader(proteins);
 
     // Reverse index: unmodified peptide -> all pep_quant_ entries (modified peptidoforms)
-    // sharing that unmodified sequence. Built once by a single forward pass over pep_quant_,
-    // so each bucket lists its entries in pep_quant_ (AASequence-sorted) iteration order.
+    // sharing that unmodified sequence. Built once by a single forward pass over pep_quant_.
     // This replaces the previous full rescan of pep_quant_ (with a toUnmodifiedString() per
     // entry) that calculateFileAndChannelLevelProteinAbundances_ performed for every
     // (protein, selected peptide) pair - the dominant O(N_pep^2) cost on large inputs.
@@ -1068,28 +1067,13 @@ namespace OpenMS
         prot_quant_[leader_accession].peptide_psm_counts[peptide][sta.first] += sta.second;
       }
 
-      // transfer detailed abundances from peptide to protein
-      for (auto const& fraction : pep_q.second.abundances)
-      {
-        for (auto const& filename : fraction.second)
-        {
-          for (auto const& charge : filename.second)
-          {
-            for (auto const& channel : charge.second)
-            {
-              prot_quant_[leader_accession].channel_level_abundances[filename.first][channel.first] += channel.second;
-#ifdef DEBUG_PROTEINQUANTIFIER
-              std::cout << "DEBUG: Adding abundance for protein " << leader_accession
-                        << " fraction " << fraction.first
-                        << " filename " << filename.first
-                        << " charge " << charge.first
-                        << " channel " << channel.first
-                        << ": " << channel.second << endl;
-#endif
-            }
-          }
-        }
-      }
+      // NOTE: "channel_level_abundances" is deliberately NOT filled here. It is the
+      // file+channel level counterpart of "total_abundances" and is therefore owned
+      // exclusively by calculateFileAndChannelLevelProteinAbundances_(), just like
+      // "total_abundances" is owned by calculateProteinAbundances_(). Pre-filling it with
+      // a raw sum over all peptides/peptidoforms/charges left that un-aggregated sum in
+      // the output whenever the aggregation step later declined to quantify a cell (too
+      // few peptides for 'top:N'), i.e. exactly where the value should have been absent.
 
       // transfer detailed PSM counts from peptide to protein
       for (auto const& fraction : pep_q.second.psm_counts)
@@ -1256,52 +1240,76 @@ namespace OpenMS
 
     ProteinData& pd = prot_it->second;
 
+    // Granularity note: a sample is a (file, label) pair of the experimental design, so in a
+    // fractionated experiment ONE sample spans SEVERAL files (all fractions of its fraction
+    // group at that label) and total_abundances aggregates over them. The cells computed here
+    // are per (file, channel), i.e. one sample maps to N cells, and both the peptide selection
+    // and the aggregation below are applied PER FILE. That is deliberate - these are per-file
+    // values - but it means:
+    //   - the cells only decompose the sample value for top_n == 0 with aggregate == "sum";
+    //     top-N/median/mean/weighted_mean do not commute with aggregation across fractions;
+    //   - the "at least top_n peptides" requirement is enforced per file, which is much
+    //     stricter than the sample-level rule for fractionated data: a protein quantified at
+    //     the sample level can have ALL of its cells dropped because no single fraction
+    //     contains top_n peptides.
     // organize detailed abundances by (fraction, filename, channel) combinations
     map<tuple<Int, std::string, UInt>, DoubleList> channel_level_abundances_for_selected_peptides;
     
     // collect detailed abundances from selected peptides
     for (const auto& pep : selected_peptides)    // for all selected peptides
     {
-      // Look up the modified peptidoforms sharing this unmodified sequence via the
-      // precomputed index. The bucket lists entries in pep_quant_ iteration order, so the
-      // first match below is identical to the previous full-scan first-match behaviour.
+      // Look up all modified peptidoforms sharing this unmodified sequence via the
+      // precomputed index.
       auto idx_it = unmod_to_entries.find(pep);
       if (idx_it == unmod_to_entries.end()) { continue; }
+
+      // Contribute exactly ONE value per selected peptide and (fraction, file, channel)
+      // cell, summed over all peptidoforms and all charge states. This mirrors what
+      // quantifyPeptides() and transferPeptideDataToProteins_() do for the sample-level
+      // abundances, and it is what makes 'top_n' below count peptides - pushing the raw
+      // cells instead would let peptidoforms and charge states occupy top-N slots and
+      // would inflate the "enough peptides?" check.
+      // NOTE: the sample-level path only sums over charge states when
+      // 'best_charge_and_fraction' is false. That option is currently not honoured here at
+      // all (it writes PeptideData::total_abundances but leaves PeptideData::abundances,
+      // which we read, untouched), so the two granularities can still disagree for it.
+      // Tracked in issue #9796, together with the two other defects of that option.
+      map<tuple<Int, std::string, UInt>, double> abundances_of_peptide;
 
       for (const auto* pep_q_ptr : idx_it->second)
       {
         const auto& pep_q_check = *pep_q_ptr;
         std::string check_accession = getAccession_(pep_q_check.second.accessions, accession_to_leader);
-        if (check_accession == protein_accession) // this peptide belongs to current protein
-        {
-          // collect detailed abundances from this peptide
-          for (auto const& fraction : pep_q_check.second.abundances)
-          {
-            for (auto const& filename : fraction.second)
-            {
-              for (auto const& charge : filename.second)
-              {
-                for (auto const& channel : charge.second)
-                {
-                  auto peptide = make_tuple(fraction.first, filename.first, channel.first);
-                  channel_level_abundances_for_selected_peptides[peptide].push_back(channel.second);
+        if (check_accession != protein_accession) { continue; } // peptidoform of another protein
 
-                  #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
-                  std::cout << "DEBUG: Adding abundance for leader " <<
-                            getAccession_(pep_q_check.second.accessions, accession_to_leader)
-                            << pep
-                            << " fraction " << fraction.first
-                            << " filename " << filename.first
-                            << " charge " << charge.first
-                            << " channel " << channel.first
-                            << ": " << channel.second << endl;
-                  #endif
-                }
+        for (auto const& fraction : pep_q_check.second.abundances)
+        {
+          for (auto const& filename : fraction.second)
+          {
+            for (auto const& charge : filename.second)
+            {
+              for (auto const& channel : charge.second)
+              {
+                abundances_of_peptide[make_tuple(fraction.first, filename.first, channel.first)] += channel.second;
+
+                #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
+                std::cout << "DEBUG: Adding abundance for leader " << check_accession
+                          << pep
+                          << " fraction " << fraction.first
+                          << " filename " << filename.first
+                          << " charge " << charge.first
+                          << " channel " << channel.first
+                          << ": " << channel.second << endl;
+                #endif
               }
             }
           }
-          break; // found the peptide, no need to continue searching
         }
+      }
+
+      for (auto const& [key, abundance] : abundances_of_peptide)
+      {
+        channel_level_abundances_for_selected_peptides[key].push_back(abundance);
       }
     }
     
@@ -1367,9 +1375,20 @@ namespace OpenMS
         {
           std::vector<std::string_view> peptides {};
           digest.digestUnmodified(hit_sequence, peptides);
-          for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
+          const double n_theoretical_peptides = double(peptides.size());
+          ProteinData& pd = prot_quant_[hit_accession];
+          for (auto& total_abundance : pd.total_abundances)
           {
-            total_abundance.second /= double(peptides.size());
+            total_abundance.second /= n_theoretical_peptides;
+          }
+          // the file+channel level abundances are the same quantity at a finer
+          // granularity, so they need the same normalization
+          for (auto& file_entry : pd.channel_level_abundances)
+          {
+            for (auto& channel_entry : file_entry.second)
+            {
+              channel_entry.second /= n_theoretical_peptides;
+            }
           }
         }
       }
