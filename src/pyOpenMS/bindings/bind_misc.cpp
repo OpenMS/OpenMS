@@ -4824,10 +4824,20 @@ MzMLFile().store("filtered.mzML", exp)
 
         .def("transform", [](OpenMS::MzMLFile& self, const std::string& filename, nb::object consumer,
                              bool skip_full_count, bool skip_first_pass) {
-            NanobindMSDataConsumer wrapper(consumer);
+            // parses into a function-local dummy PeakMap that is discarded, so the value is
+            // never read back and need not be restored after each callback
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
             self.transform(filename, &wrapper, skip_full_count, skip_first_pass);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
         "Transform an mzML file using a consumer object (streaming processing)")
+
+        .def("transform", [](OpenMS::MzMLFile& self, const std::string& filename, nb::object consumer,
+                             OpenMS::MSExperiment& exp, bool skip_full_count, bool skip_first_pass) {
+            NanobindMSDataConsumer wrapper(consumer);
+            self.transform(filename, &wrapper, exp, skip_full_count, skip_first_pass);
+        }, "filename"_a, "consumer"_a, "exp"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
+        "Transform an mzML file using a consumer object, also collecting the spectra into `exp`. "
+        "The consumer sees each spectrum before it is appended, so modifications it makes are kept")
         .def("isSemanticallyValid", [](OpenMS::MzMLFile& self, const std::string& filename) { OpenMS::StringList errors; OpenMS::StringList warnings; bool result = self.isSemanticallyValid(filename, errors, warnings); return nb::make_tuple(result, errors, warnings); }, "filename"_a, "Check semantic validity and return (is_valid, errors, warnings)")
         ;
     def_ProgressLogger<OpenMS::MzMLFile>(mzmlfile_class);
@@ -4865,10 +4875,20 @@ MzXMLFile().load("test.mzXML", exp)
 
         .def("transform", [](OpenMS::MzXMLFile& self, const std::string& filename, nb::object consumer,
                              bool skip_full_count) {
-            NanobindMSDataConsumer wrapper(consumer);
+            // parses into a function-local dummy map that is discarded, so the value is
+            // never read back and need not be restored after each callback
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
             self.transform(filename, &wrapper, skip_full_count);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false,
         "Transform an mzXML file using a consumer object (streaming processing)")
+
+        .def("transform", [](OpenMS::MzXMLFile& self, const std::string& filename, nb::object consumer,
+                             OpenMS::MSExperiment& exp, bool skip_full_count) {
+            NanobindMSDataConsumer wrapper(consumer);
+            self.transform(filename, &wrapper, exp, skip_full_count);
+        }, "filename"_a, "consumer"_a, "exp"_a, "skip_full_count"_a = false,
+        "Transform an mzXML file using a consumer object, also collecting the spectra into `exp`. "
+        "The consumer sees each spectrum before it is appended, so modifications it makes are kept")
         ;
     def_ProgressLogger<OpenMS::MzXMLFile>(mzxmlfile_class);
 
