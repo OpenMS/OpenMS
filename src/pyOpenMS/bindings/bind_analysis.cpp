@@ -524,7 +524,8 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def("__copy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); })
         .def("__deepcopy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self, nb::dict) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); }, "memo"_a)
         .def_rw("feature_maps", &OpenMS::FeatureMapping::FeatureMappingInfo::feature_maps)
-        .def_rw("kd_tree", &OpenMS::FeatureMapping::FeatureMappingInfo::kd_tree)
+        // kd_tree is deliberately not exposed: its type is KDTreeFeatureMaps, whose bindings were
+        // removed because they could only ever hand out pointers into a call-local copy of the maps.
         ;
 
     // -----------------------------------------------------------------------

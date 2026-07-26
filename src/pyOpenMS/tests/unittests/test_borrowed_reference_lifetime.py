@@ -114,6 +114,45 @@ def test_peakindex_keeps_the_map_alive_not_the_index(build_map, call):
     assert got is not None
 
 
+@pytest.mark.parametrize(
+    "build_map, call",
+    [
+        (_feature_map, lambda idx, m: idx.getFeature(m)),
+        (_experiment, lambda idx, m: idx.getPeak(m)),
+        (_experiment, lambda idx, m: idx.getSpectrum(m)),
+    ],
+    ids=["getFeature", "getPeak", "getSpectrum"],
+)
+def test_peakindex_rejects_out_of_range_index(build_map, call):
+    """The accessors range-check only via OPENMS_PRECONDITION, which expands to nothing in a
+    release build, so an out-of-range PeakIndex read past the end of the container."""
+    container = build_map()
+    with pytest.raises(IndexError):
+        call(pyopenms.PeakIndex(5, 5), container)
+
+
+@pytest.mark.parametrize(
+    "build_map, call",
+    [
+        (pyopenms.FeatureMap, lambda idx, m: idx.getFeature(m)),
+        (pyopenms.MSExperiment, lambda idx, m: idx.getPeak(m)),
+        (pyopenms.MSExperiment, lambda idx, m: idx.getSpectrum(m)),
+    ],
+    ids=["getFeature", "getPeak", "getSpectrum"],
+)
+def test_peakindex_on_empty_container_raises(build_map, call):
+    with pytest.raises(IndexError):
+        call(pyopenms.PeakIndex(0, 0), build_map())
+
+
+def test_featuremappinginfo_does_not_expose_the_removed_kd_tree_type():
+    """`kd_tree` is a KDTreeFeatureMaps member; leaving it bound after removing that type made
+    reading the attribute raise a confusing TypeError about an unconvertible return value."""
+    fm_info = pyopenms.FeatureMapping_FeatureMappingInfo()
+    assert isinstance(fm_info.feature_maps, list)
+    assert not hasattr(fm_info, "kd_tree")
+
+
 def test_peakindex_feature_survives_map_deletion():
     fm = _feature_map()
     idx = pyopenms.PeakIndex(0, 0)

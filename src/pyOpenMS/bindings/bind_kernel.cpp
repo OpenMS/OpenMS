@@ -2014,9 +2014,20 @@ This struct can be used to store both peak or feature indices
         // These return a reference into `map`, not into `self`, so the keep-alive edge has to
         // target argument 2. rv_policy::reference_internal would tie the result to the PeakIndex
         // and let the map be collected out from under it.
-        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the feature in the given map")
-        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the peak in the given map")
-        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the spectrum in the given map")
+        // The accessors themselves only range-check through OPENMS_PRECONDITION, which expands to
+        // nothing in a release build, so the index has to be validated here.
+        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& {
+            if (self.peak >= map.size()) throw nb::index_error();
+            return self.getFeature(map);
+        }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the feature in the given map")
+        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& {
+            if (self.spectrum >= map.size() || self.peak >= map[self.spectrum].size()) throw nb::index_error();
+            return self.getPeak(map);
+        }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the peak in the given map")
+        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& {
+            if (self.spectrum >= map.size()) throw nb::index_error();
+            return self.getSpectrum(map);
+        }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the spectrum in the given map")
         ;
 
     // -----------------------------------------------------------------------
