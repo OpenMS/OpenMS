@@ -245,7 +245,45 @@ For classes that behave like containers:
 }, "i"_a, "val"_a)
 ```
 
-## Step 7: Build and Test
+## Step 7: Pointers That C++ Keeps
+
+Two checks belong on every binding that passes or returns a raw pointer.
+
+**A returned reference must nurse whatever actually owns it.** `rv_policy::reference_internal`
+always keeps *argument 1* — `self` — alive. That is wrong whenever the referent comes from
+another argument, and the mistake is invisible until the argument is collected:
+
+```cpp
+// PeakIndex::getFeature returns map[peak], i.e. a reference into `map`, not into `self`.
+.def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map)
+        -> const OpenMS::Feature& { return self.getFeature(map); },
+     "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>())
+```
+
+**An argument the C++ side stores must have process lifetime — `keep_alive` is not enough.**
+If the receiver is copyable, a C++ copy duplicates the stored pointer *without* carrying the
+Python-side lifetime edge, so the copy dangles as soon as the original wrapper dies:
+
+```python
+d1.setEnzyme(e)                 # even with keep_alive, the edge lives on d1
+d2 = EnzymaticDigestion(d1)     # copies enzyme_ but not the edge
+del d1, e                       # edge released -> d2.enzyme_ dangles
+```
+
+Copies also escape through `getPrefix()`, `getSubsequence()`, `__copy__` and friends, so the
+holes cannot be plugged one at a time. Use one of these instead:
+
+* **Validate** that the pointer is database-owned, and raise otherwise —
+  `ProteaseDB/RNaseDB::hasEnzyme(ptr)`, `ResidueDB::hasResidue(ptr)`, or an identity check such
+  as `RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode()) == r`.
+* **Intern** it — route through a by-reference overload that copies the object into the owning
+  database and stores the database's copy (what the `ResidueModification` setters do).
+* Reserve `keep_alive<1, N>` for receivers that genuinely cannot be copied from Python.
+
+Remember that nanobind counts `self` as index 1, so the first real argument is 2. When auditing,
+grep `nb::init<` as well as `.def("name", [](...)`: constructors take retained pointers too.
+
+## Step 8: Build and Test
 
 ```bash
 # Rebuild

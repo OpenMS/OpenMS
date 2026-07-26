@@ -26,7 +26,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
@@ -65,7 +64,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
@@ -757,20 +755,6 @@ Useful to update the matrix with user isotope correction values
         ;
 
     // -----------------------------------------------------------------------
-    // KDTreeFeatureNode
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::KDTreeFeatureNode>(m, "KDTreeFeatureNode", 
-        R"doc(
-A node of the kD-tree with pointer to corresponding data and index
-)doc")
-        .def(nb::init<const OpenMS::KDTreeFeatureNode &>())
-        .def("__copy__", [](const OpenMS::KDTreeFeatureNode& self) { return OpenMS::KDTreeFeatureNode(self); })
-        .def("__deepcopy__", [](const OpenMS::KDTreeFeatureNode& self, nb::dict) { return OpenMS::KDTreeFeatureNode(self); }, "memo"_a)
-        .def("__getitem__", [](OpenMS::KDTreeFeatureNode& self, size_t i) { return self[i]; })
-        .def("getIndex", [](const OpenMS::KDTreeFeatureNode& self) { return self.getIndex(); }, "Returns index of corresponding feature in ``data_``")
-        ;
-
-    // -----------------------------------------------------------------------
     // LightCompound
     // -----------------------------------------------------------------------
     nb::class_<OpenSwath::LightCompound>(m, "LightCompound", "OpenMS class LightCompound")
@@ -1191,30 +1175,6 @@ and 0 means no correlation.
         .def("calcMIPrecursorCombinedScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorCombinedScore(); })
         .def("calcSeparateMIContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcSeparateMIContrastScore(); })
         .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> const OpenMS::Matrix<double>& { return self.getMIMatrix(); }, nb::rv_policy::reference_internal, "Returns the MI matrix")
-        ;
-
-    // -----------------------------------------------------------------------
-    // MapAlignmentAlgorithmKD
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MapAlignmentAlgorithmKD>(m, "MapAlignmentAlgorithmKD", 
-        R"doc(
-An efficient reference-free feature map alignment algorithm for unlabeled data
-This algorithm uses a kd-tree to efficiently compute conflict-free connected components (CCC)
-in a compatibility graph on feature data. This graph is comprised of nodes corresponding
-to features and edges connecting features f and f' iff both are within each other's tolerance
-windows (wrt. RT and m/z difference). CCCs are those CCs that do not contain multiple features
-from the same input map, and whose features all have the same charge state
-All CCCs above a user-specified minimum size are considered true sets of corresponding features
-and based on these, LOWESS transformations are computed for each input map such that the average
-deviation from the mean retention time within all CCCs is minimized
-private
-)doc")
-        .def(nb::init<size_t, OpenMS::Param>())
-        .def("__copy__", [](const OpenMS::MapAlignmentAlgorithmKD& self) { return OpenMS::MapAlignmentAlgorithmKD(self); })
-        .def("__deepcopy__", [](const OpenMS::MapAlignmentAlgorithmKD& self, nb::dict) { return OpenMS::MapAlignmentAlgorithmKD(self); }, "memo"_a)
-        .def("addRTFitData", [](OpenMS::MapAlignmentAlgorithmKD& self, const OpenMS::KDTreeFeatureMaps& kd_data) { return self.addRTFitData(kd_data); }, "kd_data"_a, "Compute data points needed for RT transformation in the current ``kd_data``, add to ``fit_data_``")
-        .def("fitLOWESS", [](OpenMS::MapAlignmentAlgorithmKD& self) { return self.fitLOWESS(); }, "Fit LOWESS to ``fit_data_``, store final models in ``transformations_``")
-        .def("transform", [](const OpenMS::MapAlignmentAlgorithmKD& self, OpenMS::KDTreeFeatureMaps& kd_data) { return self.transform(kd_data); }, "kd_data"_a, "Transform RTs for `kd_data`")
         ;
 
     // -----------------------------------------------------------------------
@@ -3209,12 +3169,13 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // IsobaricNormalizer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsobaricNormalizer>(m, "IsobaricNormalizer", "OpenMS class IsobaricNormalizer")
-        .def("__copy__", [](const OpenMS::IsobaricNormalizer& self) { return OpenMS::IsobaricNormalizer(self); })
-        .def("__deepcopy__", [](const OpenMS::IsobaricNormalizer& self, nb::dict) { return OpenMS::IsobaricNormalizer(self); }, "memo"_a)
-        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a)
+        // The quantitation method is stored by reference (IsobaricNormalizer.h:48), so the new
+        // object has to keep it alive. Copying is not exposed: a C++ copy would duplicate the
+        // raw pointer without carrying this keep-alive edge along, and would dangle.
+        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
         .def("normalize", &OpenMS::IsobaricNormalizer::normalize, "consensus_map"_a, "Normalize consensus map")
         ;
 

@@ -75,7 +75,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
@@ -1349,10 +1348,10 @@ impurities using a correction matrix and optionally normalizes the
 intensities for further downstream processing
 DefaultParamHandler
 )doc")
-        .def(nb::init<const OpenMS::IsobaricQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::IsobaricQuantifier &>())
-        .def("__copy__", [](const OpenMS::IsobaricQuantifier& self) { return OpenMS::IsobaricQuantifier(self); })
-        .def("__deepcopy__", [](const OpenMS::IsobaricQuantifier& self, nb::dict) { return OpenMS::IsobaricQuantifier(self); }, "memo"_a)
+        // The quantitation method is stored by reference (IsobaricQuantifier.h:65), so the new
+        // object has to keep it alive. Copying is not exposed: a C++ copy would duplicate the
+        // raw pointer without carrying this keep-alive edge along, and would dangle.
+        .def(nb::init<const OpenMS::IsobaricQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
         .def("quantify", [](OpenMS::IsobaricQuantifier& self, const OpenMS::ConsensusMap& consensus_map_in, OpenMS::ConsensusMap& consensus_map_out) { self.quantify(consensus_map_in, consensus_map_out); }, "consensus_map_in"_a, "consensus_map_out"_a, "Quantifies isobaric labeled peptides/proteins")
         ;
 
@@ -1473,28 +1472,6 @@ IsobaricQuantitationMethod
         .def("__copy__", [](const OpenMS::JavaInfo& self) { return OpenMS::JavaInfo(self); })
         .def("__deepcopy__", [](const OpenMS::JavaInfo& self, nb::dict) { return OpenMS::JavaInfo(self); }, "memo"_a)
         .def_static("canRun", [](const std::string& java_executable, bool verbose_on_error) { return OpenMS::JavaInfo::canRun(java_executable, verbose_on_error); }, "java_executable"_a, "verbose_on_error"_a)
-        ;
-
-    // -----------------------------------------------------------------------
-    // KDTreeFeatureMaps
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::KDTreeFeatureMaps, OpenMS::DefaultParamHandler>(m, "KDTreeFeatureMaps", "OpenMS class KDTreeFeatureMaps")
-        .def(nb::init<>())
-        .def("rt", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.rt(i); }, "i"_a)
-        .def("mz", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.mz(i); }, "i"_a)
-        .def("intensity", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.intensity(i); }, "i"_a)
-        .def("charge", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.charge(i); }, "i"_a)
-        .def("mapIndex", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.mapIndex(i); }, "i"_a)
-        .def("size", [](const OpenMS::KDTreeFeatureMaps& self) { return self.size(); })
-        .def("treeSize", [](const OpenMS::KDTreeFeatureMaps& self) { return self.treeSize(); })
-        .def("numMaps", [](const OpenMS::KDTreeFeatureMaps& self) { return self.numMaps(); })
-        .def("clear", [](OpenMS::KDTreeFeatureMaps& self) { return self.clear(); })
-        .def("optimizeTree", [](OpenMS::KDTreeFeatureMaps& self) { return self.optimizeTree(); })
-        .def("getNeighborhood", [](const OpenMS::KDTreeFeatureMaps& self, size_t index, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map, double max_pairwise_log_fc) { std::vector<size_t> result_indices; self.getNeighborhood(index, result_indices, rt_tol, mz_tol, mz_ppm, include_features_from_same_map, max_pairwise_log_fc); return result_indices; }, "index"_a, "rt_tol"_a, "mz_tol"_a, "mz_ppm"_a, "include_features_from_same_map"_a, "max_pairwise_log_fc"_a, "Fill `result` with indices of all features compatible (wrt. RT, m/z, map index) to the feature with `index`")
-        .def("queryRegion", [](const OpenMS::KDTreeFeatureMaps& self, double rt_low, double rt_high, double mz_low, double mz_high, size_t ignored_map_index) { std::vector<size_t> result_indices; self.queryRegion(rt_low, rt_high, mz_low, mz_high, result_indices, ignored_map_index); return result_indices; }, "rt_low"_a, "rt_high"_a, "mz_low"_a, "mz_high"_a, "ignored_map_index"_a)
-        .def("__len__", [](OpenMS::KDTreeFeatureMaps& self) { return self.size(); })
-        .def("addMaps", [](OpenMS::KDTreeFeatureMaps& self, const std::vector<OpenMS::FeatureMap>& maps) { self.addMaps(maps); }, "maps"_a)
-        .def("applyTransformations", [](OpenMS::KDTreeFeatureMaps& self, const std::vector<OpenMS::TransformationModelLowess*>& trafos) { self.applyTransformations(trafos); }, "trafos"_a, "Apply transformations to RT values")
         ;
 
     // -----------------------------------------------------------------------
@@ -5278,10 +5255,12 @@ XMLFile
     // IsobaricChannelExtractor
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsobaricChannelExtractor, OpenMS::DefaultParamHandler>(m, "IsobaricChannelExtractor", "OpenMS class IsobaricChannelExtractor")
-        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a)
+        // The quantitation method is stored by reference (IsobaricChannelExtractor.h:170), so the
+        // new object has to keep it alive.
+        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
         .def("extractChannels", &OpenMS::IsobaricChannelExtractor::extractChannels, "ms_exp_data"_a, "consensus_map"_a, "Extract isobaric channels")
         ;
 

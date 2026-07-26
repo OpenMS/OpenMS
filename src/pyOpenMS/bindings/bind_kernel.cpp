@@ -2011,9 +2011,12 @@ This struct can be used to store both peak or feature indices
         .def(nb::self != nb::self)
         .def_rw("peak", &OpenMS::PeakIndex::peak)
         .def_rw("spectrum", &OpenMS::PeakIndex::spectrum)
-        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the feature in the given map")
-        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the peak in the given map")
-        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the spectrum in the given map")
+        // These return a reference into `map`, not into `self`, so the keep-alive edge has to
+        // target argument 2. rv_policy::reference_internal would tie the result to the PeakIndex
+        // and let the map be collected out from under it.
+        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the feature in the given map")
+        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the peak in the given map")
+        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>(), "Returns the spectrum in the given map")
         ;
 
     // -----------------------------------------------------------------------
