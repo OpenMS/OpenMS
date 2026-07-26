@@ -48,14 +48,29 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-      - name: Clone Bioconda recipes repository and add our changes (e.g., version with 'dev') on top of it
+      - name: Clone Bioconda recipes and overlay our dev recipes onto current bioconda/master
         run: |
           git clone https://github.com/OpenMS/bioconda-recipes.git bioconda-recipes
           cd bioconda-recipes
-          git checkout -b nightly origin/nightly
           git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
           git fetch bioconda master
-          git rebase bioconda/master
+          # Start from a pristine, current bioconda/master (up-to-date build tooling,
+          # global config and common scripts) and overlay ONLY the two recipe
+          # directories OpenMS maintains. This replaces the previous
+          # `git rebase bioconda/master`, which recurrently hard-failed with a merge
+          # conflict whenever upstream touched recipes/pyopenms/meta.yaml -- e.g. right
+          # after a new pyopenms release landed in master -- because the carried
+          # dev-version commit could no longer be replayed cleanly onto the drifted base.
+          # Overlaying the recipe dirs wholesale keeps the hand-maintained dev recipe as
+          # the source of truth (no fragile patch regeneration) and can never conflict.
+          # --no-overlay makes each dir an EXACT mirror of the nightly version, so any
+          # master-only files in those dirs (e.g. a stale upstream build_failure.*.yaml
+          # for the released version) are removed rather than silently retained.
+          # See OpenMS/OpenMS#9721 (and the earlier recurrences #6989, #6201).
+          git checkout -B nightly bioconda/master
+          git checkout --no-overlay origin/nightly -- recipes/pyopenms recipes/openms-meta
+          echo "=== OpenMS dev recipes overlaid on top of bioconda/master ==="
+          git --no-pager diff --stat bioconda/master -- recipes/pyopenms recipes/openms-meta
 
       - name: Lint and build OpenMS Bioconda packages
         run: |
