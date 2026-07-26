@@ -273,6 +273,12 @@ namespace OpenMS
 
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
+      //
+      // The inner set holds feature indices in ascending order no matter in which order they were
+      // inserted, and the nearest-feature selection further down breaks ties with a strict '<', i.e.
+      // in favour of the lowest feature index. That is what makes it safe for the candidate search
+      // below to visit precursors in m/z order rather than in storage order. Replacing this set with
+      // an insertion-ordered container would make the result depend on the traversal order.
       map<Size, set<Size> > scan_idx_to_feature_idx;
 
       // MS2 scan indices ordered by precursor m/z. The experiment itself is never reordered.
@@ -326,10 +332,11 @@ namespace OpenMS
           }
         }
 
-        // Reported once here instead of once per (spectrum, feature) pair, as the per-pair check did.
-        // Such a feature still takes part in the sweep: its box normalises to a degenerate interval
-        // at the numeric maximum, which no real precursor m/z can reach. That matches what the
-        // exhaustive implementation did, warning wording included.
+        // Reported once here instead of once per (spectrum, feature) pair, as the per-pair check did,
+        // so the message is aggregated and worded differently from the per-feature one overlaps_()
+        // still emits. The matching behaviour is what the exhaustive implementation had: such a
+        // feature is not literally skipped but still takes part in the sweep, its box normalising to
+        // a degenerate interval at the numeric maximum that no real precursor m/z can reach.
         if (features_without_hull != 0)
         {
           OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: " << features_without_hull

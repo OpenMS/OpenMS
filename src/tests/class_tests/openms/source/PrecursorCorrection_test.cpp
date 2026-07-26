@@ -463,6 +463,53 @@ START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &f
     // the non-finite precursor is left untouched
     TEST_TRUE(std::isnan(sweep_exp[3].getPrecursors()[0].getMZ()));
   }
+
+  // Covers the other fallback: a feature that cannot be placed on the sweep axis at all.
+  // DBoundingBox only ever absorbs a coordinate through '<' / '>' comparisons, which a NaN never
+  // satisfies, so a NaN hull point cannot reach the box - an infinite one is the only way to end up
+  // with a non-finite m/z interval. Such a feature is excluded from the sorted sweep and has to be
+  // compared against every precursor instead; if that fallback is dropped, the match below is lost.
+  {
+    vector<DPosition<2> > inf_pts;
+    inf_pts.push_back(DPosition<2>(100.0, 600.0));
+    inf_pts.push_back(DPosition<2>(200.0, std::numeric_limits<double>::infinity()));
+    ConvexHull2D inf_hull;
+    inf_hull.setHullPoints(inf_pts);
+    inf_hull.expandToBoundingBox();
+    vector<ConvexHull2D> inf_hulls;
+    inf_hulls.push_back(inf_hull);
+
+    Feature inf_feature;
+    inf_feature.setRT(150.0);
+    inf_feature.setMZ(600.0);
+    inf_feature.setCharge(2);
+    inf_feature.setConvexHulls(inf_hulls);
+
+    // the m/z interval runs to +inf, so this feature must not be sorted onto the sweep axis
+    TEST_FALSE(std::isfinite(inf_feature.getConvexHull().getBoundingBox().maxPosition()[1]));
+
+    FeatureMap inf_fmap;
+    inf_fmap.push_back(inf_feature);
+
+    Precursor inf_pc;
+    inf_pc.setMZ(600.0020);
+    inf_pc.setCharge(2);
+    vector<Precursor> inf_pcs;
+    inf_pcs.push_back(inf_pc);
+
+    MSSpectrum inf_ms2;
+    inf_ms2.setMSLevel(2);
+    inf_ms2.setRT(150.0);
+    inf_ms2.setPrecursors(inf_pcs);
+
+    MSExperiment inf_exp;
+    inf_exp.addSpectrum(inf_ms2);
+
+    set<Size> inf_corrected = PrecursorCorrection::correctToNearestFeature(inf_fmap, inf_exp, 0.0, 10.0, true);
+
+    TEST_EQUAL(inf_corrected.size(), 1);
+    TEST_REAL_SIMILAR(inf_exp[0].getPrecursors()[0].getMZ(), 600.0);
+  }
 }
 END_SECTION
 
