@@ -254,11 +254,16 @@ always keeps *argument 1* — `self` — alive. That is wrong whenever the refer
 another argument, and the mistake is invisible until the argument is collected:
 
 ```cpp
-// PeakIndex::getFeature returns map[peak], i.e. a reference into `map`, not into `self`.
-.def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map)
-        -> const OpenMS::Feature& { return self.getFeature(map); },
+// `lookup` returns map[i], i.e. a reference into `map` -- argument 2, not `self`.
+// reference_internal here would let the map be collected while the result still points into it.
+.def("lookup", [](const OpenMS::MyIndex& self, const OpenMS::FeatureMap& map)
+        -> const OpenMS::Feature& { return self.lookup(map); },
      "map"_a, nb::rv_policy::reference, nb::keep_alive<0, 2>())
 ```
+
+While you are there, check how the underlying accessor range-checks. `OPENMS_PRECONDITION`
+expands to nothing in a release build, so a bounds check written with it does not exist in
+shipped wheels — validate in the binding instead.
 
 **An argument the C++ side stores must have process lifetime — `keep_alive` is not enough.**
 If the receiver is copyable, a C++ copy duplicates the stored pointer *without* carrying the

@@ -1,13 +1,5 @@
 """Regression tests for borrowed-reference lifetime bugs (issue #9792, part V.4).
 
-Two distinct defects are covered here.
-
-**Wrong keep-alive target.**  ``PeakIndex.getFeature/getPeak/getSpectrum`` return a
-reference *into the map argument*, but were annotated ``rv_policy::reference_internal``,
-which keeps argument 1 -- the ``PeakIndex`` -- alive instead.  The map could therefore be
-collected while the returned wrapper still pointed into it.  The edge has to target
-argument 2.
-
 **Retained raw pointers.**  Several setters hand OpenMS a raw pointer that it stores
 verbatim and keeps using after the call.  ``nb::keep_alive`` cannot make those safe: the
 receivers are copyable, and a C++ copy duplicates the stored pointer *without* carrying
@@ -51,132 +43,6 @@ def _churn(n=20000):
         mods.append(m)
     del junk, mods
     gc.collect()
-
-
-# ---------------------------------------------------------------------------
-# PeakIndex: the keep-alive edge must target the map, not the index
-# ---------------------------------------------------------------------------
-
-
-def _feature_map(n=1):
-    fm = pyopenms.FeatureMap()
-    for i in range(n):
-        f = pyopenms.Feature()
-        f.setRT(11.0 + i)
-        f.setMZ(222.0 + i)
-        f.setIntensity(333.0 + i)
-        fm.push_back(f)
-    return fm
-
-
-def _experiment(n_spec=1, n_peaks=4):
-    exp = pyopenms.MSExperiment()
-    for s in range(n_spec):
-        spec = pyopenms.MSSpectrum()
-        spec.setRT(10.0 + s)
-        for i in range(n_peaks):
-            pk = pyopenms.Peak1D()
-            pk.setMZ(100.0 + i)
-            pk.setIntensity(50.0 + i)
-            spec.push_back(pk)
-        exp.addSpectrum(spec)
-    return exp
-
-
-@pytest.mark.parametrize(
-    "build_map, call",
-    [
-        (_feature_map, lambda idx, m: idx.getFeature(m)),
-        (_experiment, lambda idx, m: idx.getPeak(m)),
-        (_experiment, lambda idx, m: idx.getSpectrum(m)),
-    ],
-    ids=["getFeature", "getPeak", "getSpectrum"],
-)
-def test_peakindex_keeps_the_map_alive_not_the_index(build_map, call):
-    """The returned wrapper must hold a reference to the *map*, not to the PeakIndex.
-
-    This is a deterministic check: nanobind's keep_alive increments the patient's
-    refcount, so a correctly targeted edge is directly observable.
-    """
-    container = build_map()
-    idx = pyopenms.PeakIndex(0, 0)
-
-    rc_map_before = sys.getrefcount(container)
-    rc_idx_before = sys.getrefcount(idx)
-    got = call(idx, container)
-
-    assert sys.getrefcount(container) == rc_map_before + 1, (
-        "returned wrapper does not keep the map alive; it would dangle once the "
-        "map is collected"
-    )
-    # The index is not the owner of the referent and must not be the nurse.
-    assert sys.getrefcount(idx) == rc_idx_before
-    assert got is not None
-
-
-@pytest.mark.parametrize(
-    "build_map, call",
-    [
-        (_feature_map, lambda idx, m: idx.getFeature(m)),
-        (_experiment, lambda idx, m: idx.getPeak(m)),
-        (_experiment, lambda idx, m: idx.getSpectrum(m)),
-    ],
-    ids=["getFeature", "getPeak", "getSpectrum"],
-)
-def test_peakindex_rejects_out_of_range_index(build_map, call):
-    """The accessors range-check only via OPENMS_PRECONDITION, which expands to nothing in a
-    release build, so an out-of-range PeakIndex read past the end of the container."""
-    container = build_map()
-    with pytest.raises(IndexError):
-        call(pyopenms.PeakIndex(5, 5), container)
-
-
-@pytest.mark.parametrize(
-    "build_map, call",
-    [
-        (pyopenms.FeatureMap, lambda idx, m: idx.getFeature(m)),
-        (pyopenms.MSExperiment, lambda idx, m: idx.getPeak(m)),
-        (pyopenms.MSExperiment, lambda idx, m: idx.getSpectrum(m)),
-    ],
-    ids=["getFeature", "getPeak", "getSpectrum"],
-)
-def test_peakindex_on_empty_container_raises(build_map, call):
-    with pytest.raises(IndexError):
-        call(pyopenms.PeakIndex(0, 0), build_map())
-
-
-def test_featuremappinginfo_does_not_expose_the_removed_kd_tree_type():
-    """`kd_tree` is a KDTreeFeatureMaps member; leaving it bound after removing that type made
-    reading the attribute raise a confusing TypeError about an unconvertible return value."""
-    fm_info = pyopenms.FeatureMapping_FeatureMappingInfo()
-    assert isinstance(fm_info.feature_maps, list)
-    assert not hasattr(fm_info, "kd_tree")
-
-
-def test_peakindex_feature_survives_map_deletion():
-    fm = _feature_map()
-    idx = pyopenms.PeakIndex(0, 0)
-    got = idx.getFeature(fm)
-    assert got.getRT() == 11.0
-
-    del fm
-    _churn()
-
-    assert got.getRT() == 11.0
-    assert got.getMZ() == 222.0
-
-
-def test_peakindex_spectrum_survives_experiment_deletion():
-    exp = _experiment()
-    idx = pyopenms.PeakIndex(0, 0)
-    spec = idx.getSpectrum(exp)
-    assert spec.getRT() == 10.0
-
-    del exp
-    _churn()
-
-    assert spec.getRT() == 10.0
-    assert spec.size() == 4
 
 
 # ---------------------------------------------------------------------------
@@ -642,7 +508,7 @@ def test_isobaric_wrapper_has_no_pointer_duplicating_copy(cls):
 
 
 # ---------------------------------------------------------------------------
-# The KDTree bindings were unusable and have been removed
+# Bindings that could not be used correctly have been removed
 # ---------------------------------------------------------------------------
 
 
@@ -657,6 +523,27 @@ def test_unusable_kdtree_bindings_are_gone(name):
     not constructible at all (``KDTreeFeatureNode``).  ``FeatureGroupingAlgorithmKD``
     is the supported entry point and builds the tree internally."""
     assert not hasattr(pyopenms, name)
+
+
+def test_peakindex_binding_is_gone():
+    """``PeakIndex`` was orphaned: its only producer anywhere in OpenMS is
+    ``AreaIterator::getPeakIndex()``, and ``AreaIterator``/``areaBegin``/``areaEnd`` are
+    not wrapped, so no binding could ever hand one out.  Built by hand from indices the
+    caller already has, ``idx.getFeature(fm)`` was just a longer spelling of ``fm[i]``.
+    If area iteration is wrapped later, ``PeakIndex`` should come back with it -- with
+    the keep-alive edge on the *map* argument, not on the index."""
+    assert not hasattr(pyopenms, "PeakIndex")
+
+
+def test_featuremap_indexing_is_the_supported_spelling():
+    fm = pyopenms.FeatureMap()
+    f = pyopenms.Feature()
+    f.setRT(11.0)
+    f.setMZ(222.0)
+    fm.push_back(f)
+    assert fm[0].getRT() == 11.0
+    with pytest.raises(IndexError):
+        fm[5]
 
 
 def test_kd_feature_grouping_still_works():
