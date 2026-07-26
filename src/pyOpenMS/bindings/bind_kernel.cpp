@@ -38,7 +38,6 @@
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -1993,28 +1992,6 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         .value("DIMENSION", OpenMS::Peak2D::DimensionDescription::DIMENSION)
 
         .export_values();
-
-    // -----------------------------------------------------------------------
-    // PeakIndex
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIndex>(m, "PeakIndex", 
-        R"doc(
-Index of a peak or feature
-This struct can be used to store both peak or feature indices
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<size_t>())
-        .def(nb::init<size_t, size_t>())
-        .def("isValid", [](const OpenMS::PeakIndex& self) { return self.isValid(); }, "Returns if the current peak ref is valid")
-        .def("clear", [](OpenMS::PeakIndex& self) { return self.clear(); }, "Invalidates the current index")
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def_rw("peak", &OpenMS::PeakIndex::peak)
-        .def_rw("spectrum", &OpenMS::PeakIndex::spectrum)
-        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the feature in the given map")
-        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the peak in the given map")
-        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the spectrum in the given map")
-        ;
 
     // -----------------------------------------------------------------------
     // PeptideHit
