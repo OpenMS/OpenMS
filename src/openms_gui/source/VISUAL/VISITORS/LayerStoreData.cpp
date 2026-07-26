@@ -91,6 +91,9 @@ namespace OpenMS
     }
     out = in;
     out.select(keep);
+    // 'out = in' copied the cached ranges of the full chromatogram; select() subsets the peaks
+    // but deliberately does not recompute ranges, so refresh them to reflect only what survived.
+    out.updateRanges();
     return !out.empty();
   }
 

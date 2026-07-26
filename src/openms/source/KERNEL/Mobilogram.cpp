@@ -401,6 +401,26 @@ namespace OpenMS
     RangeManager::clearRanges();
   }
 
+  void Mobilogram::checkDataArraySizes_() const
+  {
+    const Size peaks = data_.size();
+    auto check = [peaks](const auto& arrays, const char* what)
+    {
+      for (Size i = 0; i < arrays.size(); ++i)
+      {
+        if (!arrays[i].empty() && arrays[i].size() != peaks)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
+                                          ") does not match mobilogram size (" + StringUtils::toStr(peaks) + ")");
+        }
+      }
+    };
+    check(float_data_arrays_, "FloatDataArray");
+    check(string_data_arrays_, "StringDataArray");
+    check(integer_data_arrays_, "IntegerDataArray");
+  }
+
   Mobilogram& Mobilogram::select(const std::vector<Size>& indices)
   {
     const Size snew = indices.size();
@@ -417,20 +437,7 @@ namespace OpenMS
                                         StringUtils::toStr(peaks_old));
       }
     }
-    auto check_sizes = [peaks_old](const auto& arrays, const char* what) {
-      for (Size i = 0; i < arrays.size(); ++i)
-      {
-        if (!arrays[i].empty() && arrays[i].size() != peaks_old)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
-                                          ") does not match mobilogram size (" + StringUtils::toStr(peaks_old) + ")");
-        }
-      }
-    };
-    check_sizes(float_data_arrays_, "FloatDataArray");
-    check_sizes(string_data_arrays_, "StringDataArray");
-    check_sizes(integer_data_arrays_, "IntegerDataArray");
+    checkDataArraySizes_();
 
     std::vector<MobilityPeak1D> tmp;
     tmp.reserve(snew);
@@ -447,12 +454,6 @@ namespace OpenMS
       {
         continue;
       }
-      if (float_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "FloatDataArray[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(float_data_arrays_[i].size()) +
-                                        ") does not match mobilogram size (" + StringUtils::toStr(peaks_old) + ")");
-      }
       mda_tmp_float.clear();
       mda_tmp_float.reserve(snew);
       for (Size j = 0; j < snew; ++j)
@@ -468,12 +469,6 @@ namespace OpenMS
       if (string_data_arrays_[i].empty())
       {
         continue;
-      }
-      if (string_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "StringDataArray[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(string_data_arrays_[i].size()) +
-                                        ") does not match mobilogram size (" + StringUtils::toStr(peaks_old) + ")");
       }
       mda_tmp_str.clear();
       mda_tmp_str.reserve(snew);
@@ -492,12 +487,6 @@ namespace OpenMS
       if (integer_data_arrays_[i].empty())
       {
         continue;
-      }
-      if (integer_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "IntegerDataArray[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(integer_data_arrays_[i].size()) +
-                                        ") does not match mobilogram size (" + StringUtils::toStr(peaks_old) + ")");
       }
       mda_tmp_int.clear();
       mda_tmp_int.reserve(snew);

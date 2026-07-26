@@ -513,6 +513,54 @@ START_SECTION(([EXTRA] sorting reorders all data arrays alongside the peaks))
   m = make();
   m.getIntegerDataArrays()[0].push_back(99); // now 4 entries for 3 peaks
   TEST_EXCEPTION(Exception::Precondition, m.sortByPosition())
+
+  // --- stable order across *tied* keys: the data arrays must stay aligned with the peaks
+  //     through the tie, and equal keys must keep their original relative order. Four peaks
+  //     with tied mobilities and tied intensities; string/integer arrays carry each peak's
+  //     original identity (A..D / 1..4). The starting order is deliberately unsorted by
+  //     mobility, by ascending intensity and by descending intensity, so none of the three
+  //     sorts can short-circuit -- each really permutes.
+  auto make_ties = []() {
+    Mobilogram m;
+    m.emplace_back(1.0, 10.0f); // A / 1
+    m.emplace_back(2.0, 20.0f); // B / 2
+    m.emplace_back(1.0, 20.0f); // C / 3
+    m.emplace_back(2.0, 10.0f); // D / 4
+
+    Mobilogram::StringDataArray sda;
+    sda.push_back("A"); sda.push_back("B"); sda.push_back("C"); sda.push_back("D");
+    m.getStringDataArrays().push_back(sda);
+
+    Mobilogram::IntegerDataArray ida;
+    ida.push_back(1); ida.push_back(2); ida.push_back(3); ida.push_back(4);
+    m.getIntegerDataArrays().push_back(ida);
+    return m;
+  };
+
+  auto check_order = [](const Mobilogram& m, const std::vector<std::string>& s, const std::vector<Int>& i) {
+    for (Size k = 0; k < s.size(); ++k)
+    {
+      TEST_STRING_EQUAL(m.getStringDataArrays()[0][k], s[k])
+      TEST_EQUAL(m.getIntegerDataArrays()[0][k], i[k])
+    }
+  };
+
+  // sortByPosition: mobility ascending; ties (mob=1: A,C) and (mob=2: B,D) keep original order
+  Mobilogram mt = make_ties();
+  mt.sortByPosition();
+  TEST_REAL_SIMILAR(mt[0].getMobility(), 1.0) TEST_REAL_SIMILAR(mt[1].getMobility(), 1.0)
+  TEST_REAL_SIMILAR(mt[2].getMobility(), 2.0) TEST_REAL_SIMILAR(mt[3].getMobility(), 2.0)
+  check_order(mt, {"A", "C", "B", "D"}, {1, 3, 2, 4});
+
+  // sortByIntensity ascending; ties (I=10: A,D) then (I=20: B,C) keep original order
+  mt = make_ties();
+  mt.sortByIntensity();
+  check_order(mt, {"A", "D", "B", "C"}, {1, 4, 2, 3});
+
+  // sortByIntensity reverse (descending); ties (I=20: B,C) then (I=10: A,D) keep original order
+  mt = make_ties();
+  mt.sortByIntensity(true);
+  check_order(mt, {"B", "C", "A", "D"}, {2, 3, 1, 4});
 }
 END_SECTION
 

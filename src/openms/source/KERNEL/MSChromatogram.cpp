@@ -336,12 +336,29 @@ void MSChromatogram::clear(bool clear_meta_data)
   }
 }
 
+void MSChromatogram::checkDataArraySizes_() const
+{
+  const Size peaks = size();
+  auto check = [peaks](const auto& arrays, const char* what)
+  {
+    for (Size i = 0; i < arrays.size(); ++i)
+    {
+      if (!arrays[i].empty() && arrays[i].size() != peaks)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
+                                        ") does not match chromatogram size (" + StringUtils::toStr(peaks) + ")");
+      }
+    }
+  };
+  check(float_data_arrays_, "FloatDataArray");
+  check(string_data_arrays_, "StringDataArray");
+  check(integer_data_arrays_, "IntegerDataArray");
+}
+
 MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
 {
-  Size snew = indices.size();
-  ContainerType tmp;
-  tmp.reserve(indices.size());
-
+  const Size snew = indices.size();
   const Size peaks_old = size();
 
   // Validate everything *before* touching any storage, so a rejected call leaves
@@ -355,23 +372,10 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
                                       StringUtils::toStr(peaks_old));
     }
   }
-  {
-    auto check_sizes = [peaks_old](const auto& arrays, const char* what) {
-      for (Size i = 0; i < arrays.size(); ++i)
-      {
-        if (!arrays[i].empty() && arrays[i].size() != peaks_old)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
-                                          ") does not match chromatogram size (" + StringUtils::toStr(peaks_old) + ")");
-        }
-      }
-    };
-    check_sizes(float_data_arrays_, "FloatDataArray");
-    check_sizes(string_data_arrays_, "StringDataArray");
-    check_sizes(integer_data_arrays_, "IntegerDataArray");
-  }
+  checkDataArraySizes_();
 
+  ContainerType tmp;
+  tmp.reserve(snew);
   for (Size i = 0; i < snew; ++i)
   {
     tmp.push_back(std::move(ContainerType::operator[](indices[i])));
@@ -385,14 +389,8 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
     {
       continue;
     }
-    if (float_data_arrays_[i].size() != peaks_old)
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                StringUtils::toStr(float_data_arrays_[i].size()) + ") does not match chromatogram size (" + StringUtils::toStr(peaks_old) + ")");
-    }
-
     mda_tmp_float.clear();
-    mda_tmp_float.reserve(float_data_arrays_[i].size());
+    mda_tmp_float.reserve(snew);
     for (Size j = 0; j < snew; ++j)
     {
       mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
@@ -407,14 +405,8 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
     {
       continue;
     }
-    if (string_data_arrays_[i].size() != peaks_old)
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                StringUtils::toStr(string_data_arrays_[i].size()) + ") does not match chromatogram size (" + StringUtils::toStr(peaks_old) + ")");
-    }
-
     mda_tmp_str.clear();
-    mda_tmp_str.reserve(string_data_arrays_[i].size());
+    mda_tmp_str.reserve(snew);
     for (Size j = 0; j < snew; ++j)
     {
       // copy, not move: 'indices' may name the same source entry twice, and a
@@ -431,14 +423,8 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
     {
       continue;
     }
-    if (integer_data_arrays_[i].size() != peaks_old)
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                StringUtils::toStr(integer_data_arrays_[i].size()) + ") does not match chromatogram size (" + StringUtils::toStr(peaks_old) + ")");
-    }
-
     mda_tmp_int.clear();
-    mda_tmp_int.reserve(integer_data_arrays_[i].size());
+    mda_tmp_int.reserve(snew);
     for (Size j = 0; j < snew; ++j)
     {
       mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));

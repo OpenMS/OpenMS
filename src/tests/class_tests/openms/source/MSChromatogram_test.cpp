@@ -440,6 +440,64 @@ START_SECTION(([EXTRA] sorting reorders string and integer data arrays even when
   TEST_EQUAL(c.size(), 2)
   TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
   TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt3")
+
+  // --- stable order across *tied* keys: the data arrays must stay aligned with the peaks
+  //     through the tie, and equal keys must keep their original relative order. Unique keys
+  //     (as above) cannot exercise this. Four peaks with tied RTs and tied intensities; the
+  //     string/integer arrays carry each peak's original identity (A..D / 1..4). The starting
+  //     order is deliberately unsorted by RT, by ascending intensity and by descending
+  //     intensity, so none of the three sorts can short-circuit -- each really permutes.
+  auto make_ties = []() {
+    MSChromatogram c;
+    ChromatogramPeak p;
+    p.setRT(1.0); p.setIntensity(10.0f); c.push_back(p); // A / 1
+    p.setRT(2.0); p.setIntensity(20.0f); c.push_back(p); // B / 2
+    p.setRT(1.0); p.setIntensity(20.0f); c.push_back(p); // C / 3
+    p.setRT(2.0); p.setIntensity(10.0f); c.push_back(p); // D / 4
+
+    MSChromatogram::StringDataArray sda;
+    sda.push_back("A"); sda.push_back("B"); sda.push_back("C"); sda.push_back("D");
+    c.getStringDataArrays().push_back(sda);
+
+    MSChromatogram::IntegerDataArray ida;
+    ida.push_back(1); ida.push_back(2); ida.push_back(3); ida.push_back(4);
+    c.getIntegerDataArrays().push_back(ida);
+    return c;
+  };
+
+  auto check_order = [](const MSChromatogram& c, const std::vector<std::string>& s, const std::vector<Int>& i) {
+    for (Size k = 0; k < s.size(); ++k)
+    {
+      TEST_STRING_EQUAL(c.getStringDataArrays()[0][k], s[k])
+      TEST_EQUAL(c.getIntegerDataArrays()[0][k], i[k])
+    }
+  };
+
+  // sortByPosition: RT ascending; ties (RT=1: A,C) and (RT=2: B,D) keep their original order
+  MSChromatogram ct = make_ties();
+  ct.sortByPosition();
+  TEST_REAL_SIMILAR(ct[0].getRT(), 1.0) TEST_REAL_SIMILAR(ct[1].getRT(), 1.0)
+  TEST_REAL_SIMILAR(ct[2].getRT(), 2.0) TEST_REAL_SIMILAR(ct[3].getRT(), 2.0)
+  check_order(ct, {"A", "C", "B", "D"}, {1, 3, 2, 4});
+
+  // sortByIntensity ascending; ties (I=10: A,D) then (I=20: B,C) keep their original order
+  ct = make_ties();
+  ct.sortByIntensity();
+  check_order(ct, {"A", "D", "B", "C"}, {1, 4, 2, 3});
+
+  // sortByIntensity reverse (descending); ties (I=20: B,C) then (I=10: A,D) keep original order
+  ct = make_ties();
+  ct.sortByIntensity(true);
+  check_order(ct, {"B", "C", "A", "D"}, {2, 3, 1, 4});
+
+  // --- sort(lambda) validates data-array sizes up front, before the predicate runs, so an
+  //     undersized array throws Exception::Precondition instead of being indexed out of bounds
+  //     (the predicate below would read index 2 of a 2-element array).
+  c = make();
+  c.getIntegerDataArrays()[0].pop_back(); // 2 entries for 3 peaks
+  TEST_EXCEPTION(Exception::Precondition,
+                 c.sort([&c](Size i, Size j) { return c.getIntegerDataArrays()[0][i] < c.getIntegerDataArrays()[0][j]; }))
+  TEST_EQUAL(c.size(), 3) // rejected sort leaves the chromatogram untouched
 }
 END_SECTION
 

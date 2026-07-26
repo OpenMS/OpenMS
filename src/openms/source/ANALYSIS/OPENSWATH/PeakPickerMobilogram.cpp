@@ -262,13 +262,23 @@ namespace OpenMS
 
     void PeakPickerMobilogram::filterPeakIntensities_(Mobilogram& mobilogram,
                                size_t left_index,
-                               size_t right_index) 
+                               size_t right_index)
     {
+      // Guard against invalid ranges before building 'keep'. An empty mobilogram makes
+      // findHighestPeak_ return right_index == size()-1 == SIZE_MAX, which would underflow
+      // the reserve below and spin the (i <= right_index) loop indefinitely. Inverted or
+      // out-of-range bounds cannot yield a meaningful subset either, so leave the mobilogram
+      // untouched. (select() validates its indices too, but is reached too late to help here.)
+      if (mobilogram.empty() || right_index >= mobilogram.size() || left_index > right_index)
+      {
+        return;
+      }
       // Subset via select() so that any data arrays are subset alongside the peaks;
       // clear()+push_back would drop them (they are parallel to the peaks).
       std::vector<Size> keep;
       keep.reserve(right_index - left_index + 1);
-      for (size_t i = left_index; i <= right_index; ++i) {
+      for (size_t i = left_index; i <= right_index; ++i)
+      {
         keep.push_back(i);
       }
       mobilogram.select(keep);
@@ -276,14 +286,22 @@ namespace OpenMS
 
     void PeakPickerMobilogram::filterPeakIntensities_(std::vector<Mobilogram>& mobilograms,
                                 size_t left_index,
-                                size_t right_index) 
+                                size_t right_index)
     {
-      for (auto& mobilogram : mobilograms) {
+      for (auto& mobilogram : mobilograms)
+      {
+        // See the single-mobilogram overload: reject empty/inverted/out-of-range bounds before
+        // building 'keep' so a SIZE_MAX right_index cannot underflow the reserve and loop.
+        if (mobilogram.empty() || right_index >= mobilogram.size() || left_index > right_index)
+        {
+          continue;
+        }
         // Subset via select() so that any data arrays are subset alongside the peaks;
         // clear()+push_back would drop them (they are parallel to the peaks).
         std::vector<Size> keep;
         keep.reserve(right_index - left_index + 1);
-        for (size_t i = left_index; i <= right_index; ++i) {
+        for (size_t i = left_index; i <= right_index; ++i)
+        {
           keep.push_back(i);
         }
         mobilogram.select(keep);
