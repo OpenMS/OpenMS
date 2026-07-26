@@ -60,6 +60,13 @@
     "libsvm",
     "libxml2",
     "libzip",
+    "onnxruntime",
+    {
+
+      "name":"openms-thermo-bridge",
+      "platform": "!(linux & arm64)"
+    },
+    "opentims",
     "xerces-c",
     "zlib"
   ],

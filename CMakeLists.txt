@@ -560,6 +560,11 @@ find_package(Doxygen OPTIONAL_COMPONENTS dot)
 if(WITH_ONNX)
   # 1. Tell CMake to look for the package ONLY if the switch is ON
   find_package(ONNXRuntime REQUIRED)
+  if(OPENMS_USE_VCPKG)
+    find_package(onnxruntime CONFIG REQUIRED)
+  else()
+    find_package(ONNXRuntime REQUIRED)
+  endif() 
 endif()
 
 

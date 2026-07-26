@@ -110,11 +110,15 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
 option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 
 if(WITH_ONNX)
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
-
-  # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
-  # This avoids the read-only TYPE property error completely.
-  get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+  if(OPENMS_USE_VCPKG)
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES onnxruntime::onnxruntime)
+    get_target_property(ORT_LIB_PATH onnxruntime::onnxruntime IMPORTED_LOCATION)
+  else() 
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+    # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
+    # This avoids the read-only TYPE property error completely.
+    get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+  endif()
 
   if(ORT_LIB_PATH)
       # Safely install ONNX shared libraries based on the operating system
