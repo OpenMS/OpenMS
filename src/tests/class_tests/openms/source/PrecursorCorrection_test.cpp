@@ -17,6 +17,8 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 ///////////////////////////
@@ -509,6 +511,111 @@ START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &f
 
     TEST_EQUAL(inf_corrected.size(), 1);
     TEST_REAL_SIMILAR(inf_exp[0].getPrecursors()[0].getMZ(), 600.0);
+  }
+
+  // Randomised differential check of the m/z sweep against an exhaustive scan over every
+  // (spectrum, feature) pair. Both sides evaluate the same documented predicate - the convex
+  // hull's bounding box, extended by rt_tolerance in RT and 0.01 Th in m/z - so what is compared
+  // is purely the sweep's candidate pruning, which is what this implementation introduced. The
+  // reference is deliberately the predicate rather than a copy of the previous implementation, so
+  // it does not pin behaviour that is intentionally under discussion elsewhere (e.g. #9802).
+  //
+  // mz_tolerance is in Da and larger than half an isotope spacing, and max_trace is effectively
+  // unbounded, so compatible_() accepts every overlapping pair; correctToNearestFeature() then
+  // returns exactly the spectra that have at least one overlapping feature.
+  //
+  // The m/z values come from a small grid so that exact ties, and precursors landing exactly on a
+  // box edge, occur constantly - that is where the sweep's activate (<=) / retire (<) boundaries
+  // are most fragile. Non-finite inputs are covered by the two dedicated cases above instead.
+  {
+    const double MZ_GRID[] = {499.99, 500.0, 500.005, 500.01, 550.0, 600.0, 699.99, 700.0, 700.01};
+    const Size MZ_N = 9;
+    const double RT_GRID[] = {100.0, 150.0, 200.0, 250.0};
+    const Size RT_N = 4;
+    const double TOL_GRID[] = {0.0, 5.0, -5.0, 25.0};
+    const Size TOL_N = 4;
+
+    // fixed-seed LCG: std::uniform_*_distribution is not required to be portable across libraries
+    UInt64 rng_state = 20260726ULL;
+    auto nextRand = [&rng_state]() -> Size
+    {
+      rng_state = rng_state * 6364136223846793005ULL + 1442695040888963407ULL;
+      return static_cast<Size>(rng_state >> 33);
+    };
+
+    Size mismatches = 0;
+    for (Size iter = 0; iter < 2000; ++iter)
+    {
+      const Size n_feat = nextRand() % 6;
+      const Size n_scan = nextRand() % 6;
+      const double rt_tol = TOL_GRID[nextRand() % TOL_N];
+      const bool believe_charge = (nextRand() % 2) == 0;
+
+      FeatureMap rnd_fmap;
+      for (Size f = 0; f < n_feat; ++f)
+      {
+        const double mz_a = MZ_GRID[nextRand() % MZ_N];
+        const double mz_b = MZ_GRID[nextRand() % MZ_N];
+        const double rt_a = RT_GRID[nextRand() % RT_N];
+        const double rt_b = RT_GRID[nextRand() % RT_N];
+
+        vector<DPosition<2> > pts;
+        pts.push_back(DPosition<2>(std::min(rt_a, rt_b), std::min(mz_a, mz_b)));
+        pts.push_back(DPosition<2>(std::max(rt_a, rt_b), std::max(mz_a, mz_b)));
+        ConvexHull2D hull;
+        hull.setHullPoints(pts);
+        hull.expandToBoundingBox();
+        vector<ConvexHull2D> hulls;
+        hulls.push_back(hull);
+
+        Feature feat;
+        feat.setMZ((mz_a + mz_b) / 2.0);
+        feat.setRT((rt_a + rt_b) / 2.0);
+        feat.setCharge(static_cast<Int>(1 + nextRand() % 3));
+        feat.setConvexHulls(hulls);
+        rnd_fmap.push_back(feat);
+      }
+
+      MSExperiment rnd_exp;
+      for (Size s = 0; s < n_scan; ++s)
+      {
+        Precursor pc;
+        pc.setMZ(MZ_GRID[nextRand() % MZ_N]);
+        pc.setCharge(static_cast<Int>(1 + nextRand() % 3));
+        vector<Precursor> pcs;
+        pcs.push_back(pc);
+
+        MSSpectrum ms2;
+        ms2.setMSLevel(2);
+        ms2.setRT(RT_GRID[nextRand() % RT_N]);
+        ms2.setPrecursors(pcs);
+        rnd_exp.addSpectrum(ms2);
+      }
+
+      // exhaustive reference, computed before the call since the call rewrites the precursors
+      set<Size> expected;
+      for (Size s = 0; s < rnd_exp.size(); ++s)
+      {
+        const double pc_mz = rnd_exp[s].getPrecursors()[0].getMZ();
+        const double rt = rnd_exp[s].getRT();
+        const Int pc_charge = rnd_exp[s].getPrecursors()[0].getCharge();
+        for (Size f = 0; f < rnd_fmap.size(); ++f)
+        {
+          if (believe_charge && rnd_fmap[f].getCharge() != pc_charge) { continue; }
+          DBoundingBox<2> box = rnd_fmap[f].getConvexHull().getBoundingBox();
+          const DPosition<2> extend_rt(rt_tol, 0.01);
+          box.setMin(box.minPosition() - extend_rt);
+          box.setMax(box.maxPosition() + extend_rt);
+          if (box.encloses(DPosition<2>(rt, pc_mz))) { expected.insert(s); break; }
+        }
+      }
+
+      const set<Size> actual = PrecursorCorrection::correctToNearestFeature(
+          rnd_fmap, rnd_exp, rt_tol, 1.0, false, believe_charge, false, false, 1000000, 0);
+
+      if (actual != expected) { ++mismatches; }
+    }
+    TEST_EQUAL(mismatches, 0);
   }
 }
 END_SECTION
