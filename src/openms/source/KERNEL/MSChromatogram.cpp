@@ -114,6 +114,21 @@ MSChromatogram::IntegerDataArrays &MSChromatogram::getIntegerDataArrays()
 
 void MSChromatogram::sortByIntensity(bool reverse)
 {
+  // already-sorted short-circuit, matching sortByPosition() and Mobilogram::sortByIntensity():
+  // a sort that does not permute the peaks does not inspect or touch the data arrays, so an
+  // already-ordered chromatogram is never rejected for a mis-sized array.
+  if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), [](const auto& left, const auto& right) {
+        PeakType::IntensityLess cmp;
+        return cmp(right, left);
+      }))
+  {
+    return;
+  }
+  if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess()))
+  {
+    return;
+  }
+
   // fast path: nothing to keep in sync with the peaks
   if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
   {

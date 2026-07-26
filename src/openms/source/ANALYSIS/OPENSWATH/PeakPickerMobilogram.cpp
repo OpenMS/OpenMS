@@ -11,6 +11,7 @@
 #include <iomanip>    // For std::setw
 #include <vector>
 #include <algorithm>  // For std::min_element and std::max_element
+#include <numeric>    // For std::iota
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -271,16 +272,15 @@ namespace OpenMS
       // untouched. (select() validates its indices too, but is reached too late to help here.)
       if (mobilogram.empty() || right_index >= mobilogram.size() || left_index > right_index)
       {
+        OPENMS_LOG_DEBUG << "[DBG] filterPeakIntensities_: skipping filter for invalid range ["
+                         << left_index << ", " << right_index << "] on mobilogram of size "
+                         << mobilogram.size() << "; leaving it unchanged" << std::endl;
         return;
       }
       // Subset via select() so that any data arrays are subset alongside the peaks;
       // clear()+push_back would drop them (they are parallel to the peaks).
-      std::vector<Size> keep;
-      keep.reserve(right_index - left_index + 1);
-      for (size_t i = left_index; i <= right_index; ++i)
-      {
-        keep.push_back(i);
-      }
+      std::vector<Size> keep(right_index - left_index + 1);
+      std::iota(keep.begin(), keep.end(), left_index);
       mobilogram.select(keep);
     }
 
@@ -294,16 +294,15 @@ namespace OpenMS
         // building 'keep' so a SIZE_MAX right_index cannot underflow the reserve and loop.
         if (mobilogram.empty() || right_index >= mobilogram.size() || left_index > right_index)
         {
+          OPENMS_LOG_DEBUG << "[DBG] filterPeakIntensities_: skipping filter for invalid range ["
+                           << left_index << ", " << right_index << "] on mobilogram of size "
+                           << mobilogram.size() << "; leaving it unchanged" << std::endl;
           continue;
         }
         // Subset via select() so that any data arrays are subset alongside the peaks;
         // clear()+push_back would drop them (they are parallel to the peaks).
-        std::vector<Size> keep;
-        keep.reserve(right_index - left_index + 1);
-        for (size_t i = left_index; i <= right_index; ++i)
-        {
-          keep.push_back(i);
-        }
+        std::vector<Size> keep(right_index - left_index + 1);
+        std::iota(keep.begin(), keep.end(), left_index);
         mobilogram.select(keep);
       }
     }

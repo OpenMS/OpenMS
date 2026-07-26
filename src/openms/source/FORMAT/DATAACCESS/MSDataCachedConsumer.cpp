@@ -52,8 +52,6 @@ namespace OpenMS
     if (clearData_)
     {
       s.clear(false);
-      s.setFloatDataArrays({});
-      s.setIntegerDataArrays({});
     }
     OPENMS_POSTCONDITION( (!clearData_ || s.empty() ), "clearData implies spectrum is empty")
     OPENMS_POSTCONDITION( (!clearData_ || s.getFloatDataArrays().empty() ), "clearData implies spectrum is empty")
@@ -70,8 +68,6 @@ namespace OpenMS
     if (clearData_)
     {
       c.clear(false);
-      c.setFloatDataArrays({});
-      c.setIntegerDataArrays({});
     }
     OPENMS_POSTCONDITION( (!clearData_ || c.empty() ), "clearData implies chromatogram is empty")
     OPENMS_POSTCONDITION( (!clearData_ || c.getFloatDataArrays().empty() ), "clearData implies chromatogram is empty")
