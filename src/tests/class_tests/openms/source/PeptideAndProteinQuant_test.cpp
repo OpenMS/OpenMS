@@ -812,7 +812,9 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
   // isobaric data (contrast the two fractionated sections above).
   //   fileA ch1: PEPTIDEK 100, AAAAAK 200, CCCCCK 300     fileA ch2: 10, 20, 30
   // This section also covers annotateQuantificationsToProteins(), the route by which
-  // channel_level_abundances reaches mzTab/QPX - IsobaricWorkflow's only consumer of it.
+  // channel_level_abundances reaches the QPX pg export (ProteinGroupArrowExport reads float
+  // array 3 / string array 0 / integer array 0). Note mzTab reads only float array 0
+  // ("abundances", sample level) and never sees these values.
   ConsensusMap consensus;
   ExperimentalDesign design;
   make_fractionated_input({"fileA"}, 2,

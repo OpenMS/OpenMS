@@ -1067,8 +1067,10 @@ namespace OpenMS
         prot_quant_[leader_accession].peptide_psm_counts[peptide][sta.first] += sta.second;
       }
 
-      // NOTE: "channel_level_abundances" is deliberately NOT filled here. It is the
-      // file+channel level counterpart of "total_abundances" and is therefore owned
+      // NOTE: "channel_level_abundances" is deliberately NOT filled here. It is the same
+      // quantity as "total_abundances" at a finer granularity (per (file, channel) rather
+      // than per sample - see the note in calculateFileAndChannelLevelProteinAbundances_()
+      // for why that is 1:N and not 1:1 under fractionation) and is therefore owned
       // exclusively by calculateFileAndChannelLevelProteinAbundances_(), just like
       // "total_abundances" is owned by calculateProteinAbundances_(). Pre-filling it with
       // a raw sum over all peptides/peptidoforms/charges left that un-aggregated sum in
