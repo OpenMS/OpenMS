@@ -135,7 +135,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::AASequence& self) { return std::hash<OpenMS::AASequence>{}(self); })
-        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::AASequence& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::AASequence& self, size_t i) -> const OpenMS::Residue & { 
             if (i >= self.size()) throw nb::index_error();
@@ -770,7 +770,7 @@ IsotopePatternGenerator
         .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
-        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D & {
             if (i >= self.size()) throw nb::index_error();
@@ -2036,7 +2036,7 @@ the fixed and variable modifications given to the constructor
         .def("__iter__", [](const OpenMS::NASequence& self) {
             return nb::make_iterator<nb::rv_policy::reference>(nb::type<OpenMS::NASequence>(), "NASequence_iter",
                 self.begin(), self.end());
-        })
+        }, nb::keep_alive<0, 1>())
         .def("get", [](OpenMS::NASequence& self, size_t index) -> const OpenMS::Ribonucleotide* {
             return self.get(index);
         }, "index"_a, nb::rv_policy::reference, "Returns the ribonucleotide at the given index")

@@ -220,10 +220,15 @@ For classes that behave like containers:
 
 ```cpp
 // Iteration
+// nb::keep_alive<0, 1>() is MANDATORY: the iterator object stores raw C++
+// iterators into `self` and holds no reference to it. Without it,
+// `it = iter(make_container())` leaves `it` pointing into freed memory
+// (use-after-free) as soon as the temporary container is collected.
+// rv_policy::reference_internal governs the *elements* only, not the iterator.
 .def("__iter__", [](OpenMS::MyContainer& self) {
     return nb::make_iterator<nb::rv_policy::reference_internal>(
         nb::handle(), "MyContainer_iter", self.begin(), self.end());
-})
+}, nb::keep_alive<0, 1>())
 
 // Length
 .def("__len__", [](const OpenMS::MyContainer& self) { return self.size(); })
