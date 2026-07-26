@@ -17,6 +17,8 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <cmath>
+#include <limits>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -353,6 +355,114 @@ START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &f
   TEST_EQUAL(precursor_after_correction.size(), 1);
   TEST_REAL_SIMILAR(precursor_before_correction[0].getPos(), 611.0035);
   TEST_REAL_SIMILAR(precursor_after_correction[0].getPos(), 610.0000);
+
+  // Matching must use the feature's convex-hull bounding box, not its centroid (issue #4787).
+  // The MS2 below sits on the lower edge of the hull, 9.07 s away from the feature centroid,
+  // while rt_tolerance is 0 - so a centroid-based lookup would find nothing here.
+  // Values mirror the TOPP fixture HighResPrecursorMassCorrector_2538_1091_2.
+  {
+    vector<DPosition<2> > hull_vec;
+    hull_vec.push_back(DPosition<2>(2529.7605, 1091.53929624078));
+    hull_vec.push_back(DPosition<2>(2572.4499, 1091.54503004844));
+    ConvexHull2D wide_hull;
+    wide_hull.setHullPoints(hull_vec);
+    wide_hull.expandToBoundingBox();
+    vector<ConvexHull2D> wide_hulls;
+    wide_hulls.push_back(wide_hull);
+
+    Feature wide_feature;
+    wide_feature.setMZ(1091.54301896188);
+    wide_feature.setRT(2538.83463437242); // centroid, 9.07 s away from the MS2 below
+    wide_feature.setCharge(2);
+    wide_feature.setConvexHulls(wide_hulls);
+
+    FeatureMap wide_fmap;
+    wide_fmap.push_back(wide_feature);
+
+    Precursor edge_precursor;
+    edge_precursor.setMZ(1091.5400);
+    edge_precursor.setCharge(2);
+    vector<Precursor> edge_precursors;
+    edge_precursors.push_back(edge_precursor);
+
+    MSSpectrum edge_ms2;
+    edge_ms2.setMSLevel(2);
+    edge_ms2.setRT(2529.7605); // on the hull edge, nowhere near the centroid
+    edge_ms2.setPrecursors(edge_precursors);
+
+    MSExperiment edge_exp;
+    edge_exp.addSpectrum(edge_ms2);
+
+    // rt_tolerance = 0: only the hull extent can bring this MS2 and this feature together
+    set<Size> corrected = PrecursorCorrection::correctToNearestFeature(wide_fmap, edge_exp, 0.0, 10.0, true);
+
+    TEST_EQUAL(corrected.size(), 1);
+    TEST_REAL_SIMILAR(edge_exp[0].getPrecursors()[0].getMZ(), 1091.54301896188);
+  }
+
+  // Exercises the m/z sweep used to find candidate features (issue #4787). Three features share
+  // one RT range but differ in m/z: two narrow ones at 500 and 700, plus a wide one spanning
+  // 500-700 whose charge (3) does not match the first and last precursor. The MS2 spectra are
+  // stored out of m/z order on purpose.
+  //   - the spectra must be matched independently of their storage order
+  //   - the narrow 500 feature must not still be considered once m/z has moved past it
+  //   - the wide feature must survive being skipped by believe_charge at 500 and still match at 600
+  //   - a non-finite precursor m/z must not disturb any of the above
+  {
+    FeatureMap sweep_fmap;
+    const double f_mz[3]    = {500.0, 700.0, 600.0};
+    const double f_lo[3]    = {499.995, 699.995, 500.0};
+    const double f_hi[3]    = {500.005, 700.005, 700.0};
+    const int    f_charge[3] = {2, 2, 3};
+    for (Size f = 0; f < 3; ++f)
+    {
+      vector<DPosition<2> > pts;
+      pts.push_back(DPosition<2>(100.0, f_lo[f]));
+      pts.push_back(DPosition<2>(200.0, f_hi[f]));
+      ConvexHull2D h;
+      h.setHullPoints(pts);
+      h.expandToBoundingBox();
+      vector<ConvexHull2D> hs;
+      hs.push_back(h);
+
+      Feature feat;
+      feat.setRT(150.0);
+      feat.setMZ(f_mz[f]);
+      feat.setCharge(f_charge[f]);
+      feat.setConvexHulls(hs);
+      sweep_fmap.push_back(feat);
+    }
+
+    // stored order is 700, 500, 600, NaN - i.e. deliberately not ascending in m/z
+    const double pc_mz[4]    = {700.0020, 500.0020, 600.0020, std::numeric_limits<double>::quiet_NaN()};
+    const int    pc_charge[4] = {2, 2, 3, 2};
+    MSExperiment sweep_exp;
+    for (Size s = 0; s < 4; ++s)
+    {
+      Precursor pc;
+      pc.setMZ(pc_mz[s]);
+      pc.setCharge(pc_charge[s]);
+      vector<Precursor> pcs;
+      pcs.push_back(pc);
+
+      MSSpectrum ms2;
+      ms2.setMSLevel(2);
+      ms2.setRT(150.0);
+      ms2.setPrecursors(pcs);
+      sweep_exp.addSpectrum(ms2);
+    }
+
+    set<Size> sweep_corrected = PrecursorCorrection::correctToNearestFeature(
+        sweep_fmap, sweep_exp, 0.0, 10.0, true, /* believe_charge */ true);
+
+    TEST_EQUAL(sweep_corrected.size(), 3);
+    TEST_REAL_SIMILAR(sweep_exp[0].getPrecursors()[0].getMZ(), 700.0); // narrow, charge 2
+    TEST_REAL_SIMILAR(sweep_exp[1].getPrecursors()[0].getMZ(), 500.0); // narrow, charge 2
+    TEST_REAL_SIMILAR(sweep_exp[2].getPrecursors()[0].getMZ(), 600.0); // wide, charge 3
+    TEST_EQUAL(sweep_exp[2].getPrecursors()[0].getCharge(), 3);
+    // the non-finite precursor is left untouched
+    TEST_TRUE(std::isnan(sweep_exp[3].getPrecursors()[0].getMZ()));
+  }
 }
 END_SECTION
 
