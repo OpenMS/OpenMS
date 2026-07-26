@@ -43,9 +43,27 @@ namespace
                   "handing the value to Python relies on a non-throwing move construction");
 
   public:
-    explicit OwningCallbackArg(T& storage)
-      : storage_(storage), obj_(nb::cast(std::move(storage), nb::rv_policy::move))
+    /// @param storage      the caller's value, moved out for the duration of the call.
+    /// @param must_restore whether the value has to be put back afterwards. False only for
+    ///        callers that provably discard it; see NanobindMSDataConsumer.
+    OwningCallbackArg(T& storage, bool must_restore)
+      : storage_(storage), obj_(nb::cast(std::move(storage), nb::rv_policy::move)),
+        must_restore_(must_restore)
     {
+      // nb::cast consults nanobind's instance registry for every policy except `copy`
+      // (nb_type_put: `if (rvp != rv_policy::copy) { ... return the registered object; }`),
+      // so a `move` cast returns an already-registered wrapper -- having moved nothing --
+      // whenever the address is one Python already knows. No caller below can trigger that:
+      // they all pass parser-owned batch storage that is never handed to Python. But if one
+      // ever did, this class would quietly become a no-op and reinstate the very aliasing it
+      // exists to remove, so say so instead. Nothing has moved in that case, which is why it
+      // is safe to throw here: `storage` still holds its value.
+      if (nb::inst_ptr<T>(obj_) == &storage)
+      {
+        throw std::runtime_error(
+          "OwningCallbackArg: value is already registered with nanobind, so the hand-off "
+          "would alias the caller's storage instead of owning a copy");
+      }
     }
 
     OwningCallbackArg(const OwningCallbackArg&) = delete;
@@ -56,9 +74,13 @@ namespace
     /// Call this explicitly once the callback has returned normally. It is allowed to
     /// throw: if the value cannot be put back, the parser must not carry on with
     /// moved-from storage and pass that downstream, so the failure has to propagate.
+    ///
+    /// Does nothing when the caller never looks at the value again. That case is worth
+    /// singling out because putting the value back costs a deep copy of the peak data
+    /// whenever the consumer kept a reference -- straight into storage nobody reads.
     void restore()
     {
-      if (restored_) { return; }
+      if (restored_ || !must_restore_) { return; }
       T& edited = *nb::inst_ptr<T>(obj_); // a bound instance we just created; no conversion
       if (isUniquelyReferenced_())
       {
@@ -101,6 +123,7 @@ namespace
 
     T& storage_;
     nb::object obj_;
+    bool must_restore_;
     bool restored_ = false;
   };
 } // namespace
@@ -111,15 +134,29 @@ namespace
 /// to call back into Python.
 class NanobindMSDataConsumer : public OpenMS::Interfaces::IMSDataConsumer {
     nb::object py_consumer_;
+    bool caller_reads_back_;
 public:
-    explicit NanobindMSDataConsumer(nb::object consumer) : py_consumer_(std::move(consumer)) {}
+    /// @param consumer the Python object to bridge.
+    /// @param caller_reads_back whether the caller still looks at the spectrum or
+    ///        chromatogram once the callback has returned. When it does, the value is put
+    ///        back after every call, which costs a deep copy of the peak data whenever the
+    ///        consumer kept a reference. The streaming overloads
+    ///        MzMLFile/MzXMLFile::transform(filename, consumer) do not: they parse into a
+    ///        function-local `PeakMap dummy` that is destroyed on the spot, and the handler
+    ///        appends to it only when AlwaysAppendData is set (MzMLHandler.cpp:181-190,
+    ///        MzXMLHandler.cpp:1251-1266), so nothing observable can read the value back and
+    ///        the copy would be pure waste -- exactly for the `kept.append(s)` pattern that
+    ///        motivates owning the value in the first place. Defaults to true, so a caller
+    ///        added later is correct before it is fast.
+    explicit NanobindMSDataConsumer(nb::object consumer, bool caller_reads_back = true)
+      : py_consumer_(std::move(consumer)), caller_reads_back_(caller_reads_back) {}
 
     void consumeSpectrum(SpectrumType& s) override {
         nb::gil_scoped_acquire gil;
         try {
             // scoped inside the try: unwinding destroys it before the catch runs, while
             // nb::python_error still owns (and has cleared) the Python error indicator
-            OwningCallbackArg<SpectrumType> arg(s);
+            OwningCallbackArg<SpectrumType> arg(s, caller_reads_back_);
             py_consumer_.attr("consumeSpectrum")(arg.handle());
             arg.restore();
         } catch (nb::python_error& e) {
@@ -133,7 +170,7 @@ public:
         try {
             // scoped inside the try: unwinding destroys it before the catch runs, while
             // nb::python_error still owns (and has cleared) the Python error indicator
-            OwningCallbackArg<ChromatogramType> arg(c);
+            OwningCallbackArg<ChromatogramType> arg(c, caller_reads_back_);
             py_consumer_.attr("consumeChromatogram")(arg.handle());
             arg.restore();
         } catch (nb::python_error& e) {

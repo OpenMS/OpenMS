@@ -30,6 +30,7 @@ valid independent snapshot).  These tests pin down both halves of that.
 
 import gc
 import os
+import sys
 
 import numpy as np
 import pytest
@@ -440,3 +441,166 @@ def test_mzxml_transform_uses_the_same_bridge():
     expected = list(rec.rts)
     _churn()
     assert [s.getRT() for s in rec.spectra] == expected
+
+
+# ---------------------------------------------------------------------------
+# The copy branch: a consumer that both edits *and* retains
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "reader, path",
+    [
+        (pyopenms.MzMLFile, "test2.mzML"),
+        (pyopenms.MzXMLFile, "test2.mzXML"),
+    ],
+    ids=["mzML", "mzXML"],
+)
+def test_consumer_that_edits_and_retains_gets_both(reader, path):
+    """Both halves of ``restore()`` in a single consumer.
+
+    Retaining the spectrum makes it non-unique, so ``restore()`` takes the *copy* branch:
+    Python keeps the object it was handed and the caller's storage receives a copy of it.
+    Every other write-through test uses a non-retaining consumer (the move branch), and
+    every other retain test uses a non-editing consumer, so the intersection -- the branch
+    that has to copy an edit rather than move it -- is otherwise never exercised.
+    """
+
+    class EditAndRetain:
+        def __init__(self):
+            self.kept = []
+
+        def consumeSpectrum(self, s):
+            s.setMSLevel(7)
+            s.setRT(s.getRT() + 1000.0)
+            self.kept.append(s)          # retained -> forces the copy branch
+
+        def consumeChromatogram(self, c):
+            pass
+
+        def setExpectedSize(self, a, b):
+            pass
+
+        def setExperimentalSettings(self, e):
+            pass
+
+    reference = pyopenms.MSExperiment()
+    reader().load(_data(path), reference)
+    assert reference.size() > 0
+
+    rec = EditAndRetain()
+    collected = pyopenms.MSExperiment()
+    reader().transform(_data(path), rec, collected)
+
+    # the edit reached C++ through the copy
+    assert collected.size() == reference.size()
+    for edited, original in zip(collected, reference):
+        assert edited.getMSLevel() == 7, "edit did not survive the copy branch"
+        assert edited.getRT() == pytest.approx(original.getRT() + 1000.0)
+
+    # and what Python kept is still valid, and independent of the map
+    _churn()
+    assert len(rec.kept) == reference.size()
+    assert all(s.getMSLevel() == 7 for s in rec.kept)
+    for s in rec.kept:
+        s.setRT(-12345.0)
+    assert all(s.getRT() != -12345.0 for s in collected), "retained object aliases the map"
+
+
+def test_consumer_edits_to_chromatograms_reach_the_collected_map():
+    """``consumeChromatogram`` uses the same hand-off as ``consumeSpectrum``, so its
+    write-through needs its own coverage -- the spectrum tests cannot catch a regression
+    that only affects chromatograms."""
+
+    class ChromMutator:
+        def __init__(self):
+            self.seen = 0
+
+        def consumeSpectrum(self, s):
+            pass
+
+        def consumeChromatogram(self, c):
+            c.setName("EDITED")
+            self.seen += 1
+
+        def setExpectedSize(self, a, b):
+            pass
+
+        def setExperimentalSettings(self, e):
+            pass
+
+    rec = ChromMutator()
+    collected = pyopenms.MSExperiment()
+    pyopenms.MzMLFile().transform(_data("test.indexed.mzML"), rec, collected)
+    if not rec.seen:
+        pytest.skip("no chromatograms delivered by the test file")
+
+    chroms = collected.getChromatograms()
+    assert len(chroms) == rec.seen
+    assert all(c.getName() == "EDITED" for c in chroms)
+
+
+# ---------------------------------------------------------------------------
+# imzML — the third caller of the bridge
+# ---------------------------------------------------------------------------
+
+
+def _imzml_path():
+    # tests/unittests is a package, so the helper is not importable by bare name unless its
+    # directory is on sys.path; test_ImzMLFile.py uses the same idiom. Without it these
+    # tests would silently skip whenever they run before that file.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from test_data_paths import get_class_test_data_dir
+
+    path = os.path.join(get_class_test_data_dir(), "ImzMLFile_1_Example_Continuous.imzML")
+    if not os.path.isfile(path):
+        pytest.skip("imzML test data not available: %s" % path)
+    return path
+
+
+def test_imzml_retained_spectra_survive_the_load():
+    """``ImzMLFile.load(filename, consumer)`` is the third caller of the bridge and the only
+    one that releases the GIL around the parse, so it is the only path where the callback's
+    ``gil_scoped_acquire`` really acquires rather than being a re-entrant no-op. It also
+    reaches the consumer through an intermediate C++ consumer (``ImzMLInterceptConsumer``),
+    which forwards the very same object.
+    """
+    rec = _Recorder()
+    pyopenms.ImzMLFile().load(_imzml_path(), rec)
+    assert rec.spectra, "no spectra delivered"
+
+    expected_rts, expected_sizes = list(rec.rts), list(rec.sizes)
+    _churn()
+
+    assert [s.getRT() for s in rec.spectra] == expected_rts
+    assert [s.size() for s in rec.spectra] == expected_sizes
+
+
+def test_imzml_retained_peak_data_and_views_stay_valid():
+    """imzML peak data is decoded from the companion .ibd by the intermediate consumer, so
+    the buffer itself is worth checking, not only the scalars."""
+    views = []
+
+    class ViewKeeper(_Recorder):
+        def consumeSpectrum(self, s):
+            super().consumeSpectrum(s)
+            if s.size() and not views:
+                views.append(s.get_peaks_struct())
+
+    rec = ViewKeeper()
+    pyopenms.ImzMLFile().load(_imzml_path(), rec)
+    with_peaks = [s for s in rec.spectra if s.size() > 0]
+    if not with_peaks:
+        pytest.skip("no imzML spectrum with peaks delivered")
+
+    spec = with_peaks[0]
+    mz, intensity = spec.get_peaks()
+    expected = (float(mz[0]), float(intensity[0]), len(mz))
+    view_expected = (float(views[0]["mz"][0]), len(views[0])) if views else None
+
+    _churn()
+
+    mz2, intensity2 = spec.get_peaks()
+    assert (float(mz2[0]), float(intensity2[0]), len(mz2)) == expected
+    if view_expected is not None:
+        assert (float(views[0]["mz"][0]), len(views[0])) == view_expected
