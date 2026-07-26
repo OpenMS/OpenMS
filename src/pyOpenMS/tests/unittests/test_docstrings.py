@@ -129,11 +129,13 @@ def _is_acceptable_error(error, docstring):
         return True
     if "field list" in err:
         return True
-    if 'unknown interpreted text role "py:' in err:
-        return True
     role = _UNKNOWN_ROLE_RE.search(err)
-    if role and role.group(1) in _SPHINX_ROLES:
-        return True
+    if role:
+        role_name = role.group(1)
+        if role_name.startswith("py:"):
+            role_name = role_name[3:]
+        if role_name in _SPHINX_ROLES:
+            return True
     if 'unknown directive type "py:' in err:
         return True
     if 'unknown directive type "deprecated"' in err:
