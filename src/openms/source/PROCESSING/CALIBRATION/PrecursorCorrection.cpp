@@ -332,11 +332,14 @@ namespace OpenMS
           }
         }
 
-        // Reported once here instead of once per (spectrum, feature) pair, as the per-pair check did,
-        // so the message is aggregated and worded differently from the per-feature one overlaps_()
-        // still emits. The matching behaviour is what the exhaustive implementation had: such a
-        // feature is not literally skipped but still takes part in the sweep, its box normalising to
-        // a degenerate interval at the numeric maximum that no real precursor m/z can reach.
+        // Reported once here instead of once per (spectrum, feature) pair, as the exhaustive check
+        // did, so the message is aggregated and worded differently. The count is also taken before
+        // any believe_charge filtering, so this can warn where the old code stayed silent - e.g.
+        // when every hull-less feature mismatches every precursor charge. Matching is unchanged:
+        // such a feature is not literally skipped, it takes part in the sweep with a box normalised
+        // to a degenerate interval at the numeric maximum that no real precursor m/z can reach.
+        // Note this counts features with *no* hull; one empty hull among several is not counted
+        // here and yields a full-numeric-range box that matches everything instead (see #9802).
         if (features_without_hull != 0)
         {
           OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: " << features_without_hull
@@ -550,21 +553,6 @@ namespace OpenMS
         }
       }
       return corrected_precursors;
-    }
-
-    bool PrecursorCorrection::overlaps_(const Feature& feature,
-                                        const double rt,
-                                        const double pc_mz,
-                                        const double rt_tolerance)
-    {
-      if (feature.getConvexHulls().empty())
-      {
-        OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
-      }
-
-      // bounding box extended by the retention time tolerance; correctToNearestFeature()
-      // evaluates the very same region, but pre-computed once per feature
-      return makeFeatureBox(feature, rt_tolerance).contains(rt, pc_mz);
     }
 
     bool PrecursorCorrection::compatible_(const Feature& feature,
