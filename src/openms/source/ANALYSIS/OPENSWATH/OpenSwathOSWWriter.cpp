@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 
 #include <sqlite3.h>
@@ -476,7 +476,7 @@ namespace OpenMS
       }
 
       sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt, makeInsertStatement(table, columns));
+      Internal::SqliteHelper::prepareStatement(db, &stmt, makeInsertStatement(table, columns));
       try
       {
         for (const auto& row : rows)
@@ -954,14 +954,14 @@ namespace OpenMS
     // every parameter, which stores integers as BLOB and breaks
     // "FEATURE.RUN_ID = RUN.ID" joins.
     sqlite3_stmt* stmt = nullptr;
-    SqliteConnector::prepareStatement(conn.getDB(), &stmt,
+    Internal::SqliteHelper::prepareStatement(Internal::SqliteHelper::getNativeHandle(conn), &stmt,
         "INSERT INTO RUN (ID, FILENAME) VALUES (?, ?);");
     int rc = sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(rid));
     if (rc != SQLITE_OK)
     {
       sqlite3_finalize(stmt);
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string("sqlite3_bind_int64 failed: ") + sqlite3_errmsg(conn.getDB()));
+        std::string("sqlite3_bind_int64 failed: ") + sqlite3_errmsg(Internal::SqliteHelper::getNativeHandle(conn)));
     }
 
     rc = sqlite3_bind_text(stmt, 2, input_filename.c_str(),
@@ -970,7 +970,7 @@ namespace OpenMS
     {
       sqlite3_finalize(stmt);
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string("sqlite3_bind_text failed: ") + sqlite3_errmsg(conn.getDB()));
+        std::string("sqlite3_bind_text failed: ") + sqlite3_errmsg(Internal::SqliteHelper::getNativeHandle(conn)));
     }
 
     rc = sqlite3_step(stmt);
@@ -978,7 +978,7 @@ namespace OpenMS
     if (rc != SQLITE_DONE)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string("sqlite3_step failed: ") + sqlite3_errmsg(conn.getDB()));
+        std::string("sqlite3_step failed: ") + sqlite3_errmsg(Internal::SqliteHelper::getNativeHandle(conn)));
     }
     run_id_ = rid;
   }
@@ -1462,11 +1462,11 @@ namespace OpenMS
     conn_->executeStatement("BEGIN TRANSACTION");
     try
     {
-      writeTableRows(conn_->getDB(), "FEATURE", featureColumns(), osw_output.feature_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_MS1", featureMS1Columns(), osw_output.feature_ms1_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_PRECURSOR", featurePrecursorColumns(), osw_output.feature_precursor_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_MS2", featureMS2Columns(), osw_output.feature_ms2_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_TRANSITION", featureTransitionColumns(), osw_output.feature_transition_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE", featureColumns(), osw_output.feature_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_MS1", featureMS1Columns(), osw_output.feature_ms1_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_PRECURSOR", featurePrecursorColumns(), osw_output.feature_precursor_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_MS2", featureMS2Columns(), osw_output.feature_ms2_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_TRANSITION", featureTransitionColumns(), osw_output.feature_transition_rows);
     }
     catch (...)
     {

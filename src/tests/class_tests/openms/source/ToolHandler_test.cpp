@@ -46,6 +46,11 @@ START_SECTION((static ToolListType getTOPPToolList()))
 #else
   TEST_TRUE(list.find("ImageCreator") == list.end())
 #endif
+#ifdef WITH_WNETALIGN
+  TEST_TRUE(list.find("FeatureLinkerWNet") != list.end())
+#else
+  TEST_TRUE(list.find("FeatureLinkerWNet") == list.end())
+#endif
 }
 END_SECTION
 
@@ -56,15 +61,9 @@ START_SECTION((static StringList getTypes(const std::string &toolname)))
 }
 END_SECTION
 
-START_SECTION((static std::string getExternalToolsPath()))
-{
-  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), std::string())
-}
-END_SECTION
-
 START_SECTION((static std::string getInternalToolsPath()))
 {
-  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), std::string())
+  TEST_NOT_EQUAL(ToolHandler::getInternalToolsPath(), std::string())
 }
 END_SECTION
 

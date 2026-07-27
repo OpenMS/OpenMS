@@ -604,6 +604,17 @@ add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
 
+# TOPP_FileConverter_nonascii: read AND write through a non-ASCII (UTF-8) path. This guards against
+# regressions in non-ASCII path handling. The non-ASCII name is materialized into the temp dir at test time (not
+# committed as a fixture filename), so the cell exercises FileConverter's non-ASCII -in/-out path handling
+# on every platform. Output equals the plain FileConverter_1 conversion (same input), so the existing
+# FileConverter_1_output.mzML is reused as the reference; the embedded (non-ASCII) source path is whitelisted.
+add_test("TOPP_FileConverter_nonascii_prepare" ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/FileConverter_1_input.mzData "${TESTS_TEMP_DIR}/FileConverter_äö_in.mzData")
+add_test("TOPP_FileConverter_nonascii" ${TOPP_BIN_PATH}/FileConverter -test -in "${TESTS_TEMP_DIR}/FileConverter_äö_in.mzData" -out "${TESTS_TEMP_DIR}/FileConverter_äö_out.mzML" -out_type mzML)
+add_test("TOPP_FileConverter_nonascii_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 "${TESTS_TEMP_DIR}/FileConverter_äö_out.mzML" -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML)
+set_tests_properties("TOPP_FileConverter_nonascii" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii_prepare")
+set_tests_properties("TOPP_FileConverter_nonascii_out1" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii")
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)
@@ -1438,6 +1449,14 @@ add_test("TOPP_MetaProSIP_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_1_ou
 set_tests_properties("TOPP_MetaProSIP_1_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
 add_test("TOPP_MetaProSIP_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_1_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_1_output_2.csv )
 set_tests_properties("TOPP_MetaProSIP_1_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
+# reject non-positive heat map bin counts: 0 makes the bin vector empty (out-of-bounds write) and
+# negative values wrap to a huge Size when stored as 'n_heatmap_bins' (see createBinnedPeptideRIAData_)
+add_test("TOPP_MetaProSIP_2" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_2_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_2_output_2.tmp.csv -heatmap_bins 0)
+# assert the specific parse-time rejection diagnostic, not just any non-zero exit
+# (PASS_REGULAR_EXPRESSION ignores the exit code; it cannot be combined with WILL_FAIL, which would invert a regex match)
+set_tests_properties("TOPP_MetaProSIP_2" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## bins must be >= 1
+add_test("TOPP_MetaProSIP_3" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_2.tmp.csv -heatmap_bins -1)
+set_tests_properties("TOPP_MetaProSIP_3" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## negative wraps to a huge Size
 
 #------------------------------------------------------------------------------
 # MetaboliteAdductDecharger tests
@@ -4243,6 +4262,17 @@ set_tests_properties("TOPP_Digestor_1_out" PROPERTIES DEPENDS "TOPP_Digestor_1")
 add_test("TOPP_Digestor_2" ${TOPP_BIN_PATH}/Digestor -test -in ${DATA_DIR_TOPP}/Digestor_1_input.fasta -out ${TESTS_TEMP_DIR}/Digestor_2_output.tmp.fasta -min_length 1 -missed_cleavages 0 -replace_ambiguous)
 add_test("TOPP_Digestor_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Digestor_2_output.tmp.fasta -in2 ${DATA_DIR_TOPP}/Digestor_2_output.fasta)
 set_tests_properties("TOPP_Digestor_2_out" PROPERTIES DEPENDS "TOPP_Digestor_2")
+
+
+#------------------------------------------------------------------------------
+# EICExtractor:
+# A negative 'rt_collect' must be rejected during parameter validation instead of being
+# silently wrapped into a huge unsigned scan count (see setMinInt_ in EICExtractor.cpp).
+# We match the offending parameter name in the error output rather than only checking for a
+# non-zero exit code, because the tool would also exit non-zero for unrelated reasons (e.g.
+# missing required inputs) and that would not actually exercise the range restriction.
+add_test("TOPP_EICExtractor_1" ${TOPP_BIN_PATH}/EICExtractor -rt_collect -1)
+set_tests_properties("TOPP_EICExtractor_1" PROPERTIES PASS_REGULAR_EXPRESSION "rt_collect")
 
 
 #------------------------------------------------------------------------------

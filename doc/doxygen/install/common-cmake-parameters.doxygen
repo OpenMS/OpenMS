@@ -45,6 +45,19 @@ The most important CMake variables are:
     not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
   </tr>
   <tr>
+    <th valign="top">BUILD_TOPP_TOOLS=On/Off</td>
+    <td>Build the TOPP command-line applications (src/topp). Set to "Off" to build only
+    the core OpenMS library, e.g. for a standalone SDK consumed by an external application.
+    <code>ENABLE_TOPP_TESTING</code> and <code>ENABLE_PIPELINE_TESTING</code> default to
+    following this flag, and <code>ENABLE_CWL_GENERATION</code> /
+    <code>ENABLE_PREPARE_KNIME_PACKAGE</code> require it to be "On". (Default: On)</td>
+  </tr>
+  <tr>
+    <th valign="top">INSTALL_OPENMS_EXAMPLES=On/Off</td>
+    <td>Install the OpenMS example data alongside the library/tools. Set to "Off" to
+    skip installing example data, e.g. for a minimal standalone SDK install. (Default: On)</td>
+  </tr>
+  <tr>
     <th valign="top">WITH_OPENTIMS=On/Off</td>
     <td>Enables support for reading Bruker TimsTOF <code>.d</code> directories
     directly (without prior conversion to mzML) via the
@@ -141,11 +154,17 @@ The most important CMake variables are:
     <td>Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library
     (fetched automatically via CMake FetchContent from GitHub).
     Requires a .NET runtime to be present at run time so that the managed bridge DLLs can be loaded.
-    Install .NET 8 (or later) from <a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a>,
-    or install the <code>dotnet-runtime-8.0</code> (or newer) package from your distribution's package manager.
+    Install the .NET 8 runtime from <a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a>,
+    or install the <code>dotnet-runtime-8.0</code> package from your distribution's package manager.
     On Windows and macOS the required <code>nethost</code> library is bundled with the .NET SDK/runtime installer.
     On Linux you may need to install the additional <code>libnethost-dev</code> (Debian/Ubuntu) or
     <code>dotnet-runtime-8.0</code> package explicitly.
+    At run time the bridge's <code>nethost</code>/<code>hostfxr</code> locates the installed runtime
+    automatically when .NET sits in a standard location. If you installed .NET to a non-default
+    directory (for example via the <code>dotnet-install.sh</code> script or an xcopy install of the
+    runtime), set the <code>DOTNET_ROOT</code> environment variable to that directory &mdash; the folder
+    that contains the <code>dotnet</code> host and the <code>shared/</code> sub-directory
+    (e.g. <code>export DOTNET_ROOT=/usr/share/dotnet</code>) &mdash; so the runtime can be found.
     Disabled automatically on Linux/aarch64 targets.
     (Default: On on supported platforms)</td>
   </tr>
@@ -160,6 +179,22 @@ The most important CMake variables are:
     <td>Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool).
     When enabled, the three header-only libraries <code>pylmcf</code>, <code>wnet</code>, and
     <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
+  </tr>
+  <tr>
+    <th valign="top">WITH_ONNX=On/Off</td>
+    <td>Enables ONNX Runtime support for machine-learning based inference modules,
+    currently used by the PeptDeep predictors. This option requires an external
+    ONNX Runtime C/C++ installation that can be found by CMake. Usually this can
+    be done by adding the root directory of an ONNX Runtime release package to
+    <code>CMAKE_PREFIX_PATH</code>, for example:
+
+    <code>-DWITH_ONNX=ON -DCMAKE_PREFIX_PATH=/path/to/onnxruntime</code>
+
+    Alternatively, set <code>ONNXRuntime_INCLUDE_DIR</code> and
+    <code>ONNXRuntime_LIBRARY</code> explicitly. When enabled, the PeptDeep ONNX
+    model files are downloaded during configuration and installed under
+    <code>share/OpenMS/models</code>.
+    (Default: Off)</td>
   </tr>
   <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>

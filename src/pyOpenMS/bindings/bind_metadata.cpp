@@ -564,7 +564,7 @@ This class supports direct iteration in Python.
         })
         .def("__iter__", [](OpenMS::PeptideIdentificationList& self) {
             return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::PeptideIdentificationList>(), "PeptideIdentificationList_iter", self.begin(), self.end());
-        })
+        }, nb::keep_alive<0, 1>())
         .def("__setitem__", [](OpenMS::PeptideIdentificationList& self, size_t i, const OpenMS::PeptideIdentification& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;

@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
@@ -72,6 +72,8 @@ option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
+option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
+option(INSTALL_OPENMS_EXAMPLES "Install the OpenMS example data." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
@@ -107,6 +109,9 @@ endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
+endif()
+if(ENABLE_CWL_GENERATION AND NOT BUILD_TOPP_TOOLS)
+    message(FATAL_ERROR "ENABLE_CWL_GENERATION requires BUILD_TOPP_TOOLS to be ON.")
 endif()
 
 if(MSVC)
@@ -353,7 +358,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Enable AddressSanitizer
-#------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
@@ -482,10 +487,10 @@ if(UNIX)
 			# Since we rely on copying instead of "installing" for KNIME packaging
 			# we need to do it during building already.
 			# In this case, make sure that e.g. Qt is in a system path if you want to test it locally.
-			
+
 			# bakes in "@executable_path/../lib" for all targets
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-			
+
 			# makes sure that our libs are built in a way that their install names are:
 			# @rpath/libOpenMS.dylib
 			# such that when executables link to it, they can look it up via rpath above
@@ -495,18 +500,18 @@ if(UNIX)
 			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
 		endif()
   endif()
-  
+
   # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
   # We need to include all link directories that should be specified by the
   # dependency target to our RPATH as well.
   if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
-  
+
   #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
   #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
   #endif()
-  
+
   # our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
   if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
@@ -552,6 +557,11 @@ include(cmake/cmake_findExternalLibs.cmake)
 ## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
+if(WITH_ONNX)
+  # 1. Tell CMake to look for the package ONLY if the switch is ON
+  find_package(ONNXRuntime REQUIRED)
+endif()
+
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
@@ -572,6 +582,9 @@ set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.
  Note, this will build all binaries with install RPATHs already in the build folder, so they may not be relocatable anymore. Only enable if needed.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)
+	if(NOT BUILD_TOPP_TOOLS)
+		message(FATAL_ERROR "ENABLE_PREPARE_KNIME_PACKAGE requires BUILD_TOPP_TOOLS to be ON.")
+	endif()
 	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
 
@@ -621,7 +634,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     endif()
     set(CPACK_GENERATOR "ZIP")
     # For now we use the package nsis script to ensure all dependencies
-    # are met for the portable version. 
+    # are met for the portable version.
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()

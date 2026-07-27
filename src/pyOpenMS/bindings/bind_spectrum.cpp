@@ -153,6 +153,38 @@ Usage:
         .def("setNativeID", [](OpenMS::MSSpectrum& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
         .def("getComment", [](const OpenMS::MSSpectrum& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::MSSpectrum& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
+        // Pythonic snake_case properties over the scalar getters/setters (issue #9760).
+        // Additive: the getX()/setX() methods are unchanged. Only clean, no-arg scalar
+        // get/set pairs are exposed; container accessors (getPrecursors, ...) and
+        // argument-taking accessors (getType(query_data)) stay as methods.
+        .def_prop_rw("rt",
+            [](const OpenMS::MSSpectrum& self) { return self.getRT(); },
+            [](OpenMS::MSSpectrum& self, double v) { self.setRT(v); },
+            "The absolute retention time (in seconds)")
+        .def_prop_rw("ms_level",
+            [](const OpenMS::MSSpectrum& self) { return self.getMSLevel(); },
+            [](OpenMS::MSSpectrum& self, unsigned int v) { self.setMSLevel(v); },
+            "The MS level")
+        .def_prop_rw("drift_time",
+            [](const OpenMS::MSSpectrum& self) { return self.getDriftTime(); },
+            [](OpenMS::MSSpectrum& self, double v) { self.setDriftTime(v); },
+            "The drift time (-1 if not set)")
+        .def_prop_rw("drift_time_unit",
+            [](const OpenMS::MSSpectrum& self) { return self.getDriftTimeUnit(); },
+            [](OpenMS::MSSpectrum& self, OpenMS::DriftTimeUnit v) { self.setDriftTimeUnit(v); },
+            "The ion mobility drift time unit")
+        .def_prop_rw("name",
+            [](const OpenMS::MSSpectrum& self) { return self.getName(); },
+            [](OpenMS::MSSpectrum& self, const std::string& v) { self.setName(v); },
+            "The name of the spectrum")
+        .def_prop_rw("comment",
+            [](const OpenMS::MSSpectrum& self) { return self.getComment(); },
+            [](OpenMS::MSSpectrum& self, const std::string& v) { self.setComment(v); },
+            "The free-text comment")
+        .def_prop_rw("native_id",
+            [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); },
+            [](OpenMS::MSSpectrum& self, const std::string& v) { self.setNativeID(v); },
+            "The native identifier for the spectrum, used by the acquisition software")
         .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::MSSpectrum& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
         .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
@@ -166,7 +198,7 @@ Usage:
         .def("setDataProcessing", [](OpenMS::MSSpectrum& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
         .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
 
-        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSSpectrum>(), "MSSpectrum_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSSpectrum>(), "MSSpectrum_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
 
         .def("getIMData", [](const OpenMS::MSSpectrum& self) {

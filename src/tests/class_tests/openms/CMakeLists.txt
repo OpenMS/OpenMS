@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
 # $Authors: Stephan Aiche $
@@ -221,6 +221,12 @@ if (TARGET ArrowSchemaRegistry_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathResultsExporter_test)
+  target_link_libraries(OpenSwathResultsExporter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 if (TARGET OpenSwathParquetExporter_test)
   target_link_libraries(OpenSwathParquetExporter_test
     ${OPENMS_ARROW_TARGET}
@@ -283,3 +289,25 @@ foreach(i ${TEST_executables})
   list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})
+
+if(WITH_ONNX)
+  # Class tests run from the build-tree test directory and expect models below data/.
+  # Reuse the models downloaded by src/openms/CMakeLists.txt instead of downloading
+  # them again. No .onnx.data sidecars are needed because the exported models are
+  # embedded-weight ONNX files.
+  set(TEST_DATA_DIR "${CMAKE_BINARY_DIR}/src/tests/class_tests/openms/data")
+  file(MAKE_DIRECTORY "${TEST_DATA_DIR}")
+
+  foreach(MODEL IN LISTS OPENMS_PEPTDEEP_MODELS)
+    set(SOURCE_MODEL "${OPENMS_PEPTDEEP_MODEL_DIR}/${MODEL}")
+    set(TEST_MODEL "${TEST_DATA_DIR}/${MODEL}")
+
+    if(NOT EXISTS "${SOURCE_MODEL}")
+      message(FATAL_ERROR
+        "Expected PeptDeep model was not found: ${SOURCE_MODEL}. "
+        "The OpenMS ONNX model download step should have created this file.")
+    endif()
+
+    configure_file("${SOURCE_MODEL}" "${TEST_MODEL}" COPYONLY)
+  endforeach()
+endif()

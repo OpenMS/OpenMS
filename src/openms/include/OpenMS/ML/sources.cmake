@@ -5,6 +5,17 @@ set(directory include/OpenMS/ML)
 set(sources_list_h
 )
 
+if (WITH_ONNX)
+    list(APPEND sources_list_h
+        ONNX/ONNXPredictorBase.h
+        PEPTDEEP/PeptDeepCCSInference.h
+        PEPTDEEP/PeptDeepInput.h
+        PEPTDEEP/PeptDeepMS2Inference.h
+        PEPTDEEP/PeptDeepRTInference.h
+        PEPTDEEP/PeptDeepUtils.h
+    )
+endif()
+
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})

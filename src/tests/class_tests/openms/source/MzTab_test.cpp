@@ -13,6 +13,11 @@
 #include <OpenMS/FORMAT/MzTab.h>
 ///////////////////////////
 
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+
 START_TEST(MzTab, "$Id$")
 
 using namespace OpenMS;
@@ -140,6 +145,48 @@ START_SECTION(static void addMetaInfoToOptionalColumns(const std::set<std::strin
   TEST_EQUAL(opt[0].second.toCellString(), "34.5");
   TEST_EQUAL(opt[1].second.toCellString(), "[0.5, 1.4, -2.0, 0.1]");
   TEST_EQUAL(opt[2].second.toCellString(), "null");
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportIdentificationsToMzTab terminates with export_all_psms on empty-hit PeptideIdentification)
+{
+  // regression: in IDMzTabStream::nextPSMRow the advance condition used
+  // 'current_psm_idx_ == pid->getHits().size()-1', which underflows to SIZE_MAX for an
+  // EMPTY hit list. With export_all_psms=true the caller then looped forever appending
+  // rows (CI hang). The fix advances via 'current_psm_idx_ + 1 >= pid->getHits().size()'.
+  // This test simply COMPLETING proves termination; before the fix it would hang.
+
+  const std::string run_id = "run_0";
+
+  // one protein run with a matching identifier and a primary MS run path
+  ProteinIdentification prot;
+  prot.setIdentifier(run_id);
+  prot.setPrimaryMSRunPath(StringList{"file.mzML"});
+  std::vector<ProteinIdentification> prot_ids{prot};
+
+  // one spectrum-level PeptideIdentification with NO hits, matching the run identifier
+  PeptideIdentification pep;
+  pep.setIdentifier(run_id);
+  pep.setRT(123.4);
+  pep.setMZ(567.8);
+  pep.setHits(std::vector<PeptideHit>{}); // empty hit list triggers the underflow pre-fix
+  PeptideIdentificationList pep_ids;
+  pep_ids.push_back(pep);
+
+  MzTab mztab = MzTab::exportIdentificationsToMzTab(
+      prot_ids,
+      pep_ids,
+      "test.idXML",
+      /* first_run_inference_only */ false,
+      /* export_empty_pep_ids */ false,
+      /* export_all_psms */ true,
+      /* title */ "regression test");
+
+  // The key assertion is that we get here at all (finite, terminating): pre-fix the
+  // caller looped forever appending rows. Post-fix the single empty-hit PeptideIdentification
+  // yields at most one PSM row before the stream advances and finishes (the exact
+  // empty-row count is an implementation detail; termination is what we regress on).
+  TEST_TRUE(mztab.getPSMSectionRows().size() <= 1)
 }
 END_SECTION
 

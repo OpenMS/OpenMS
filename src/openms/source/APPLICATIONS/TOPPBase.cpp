@@ -1830,7 +1830,7 @@ namespace OpenMS
         return true;
       }
     }
-    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Invalid value '") + (std::string)tmp + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
+    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Invalid value '") + tmp.toString() + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
   }
 
   ParamValue const& TOPPBase::getParam_(const std::string& key) const

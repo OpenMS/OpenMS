@@ -84,6 +84,10 @@ set(datastructures_executables_list
   #ToolDescription_test
 )
 
+if(WITH_ONNX)
+  list(APPEND datastructures_executables_list PeptDeepInference_test)
+endif()
+
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
@@ -147,6 +151,7 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  UpdateCheck_test
 )
 
 set(kernel_executables_list
@@ -668,7 +673,7 @@ set(transformations_executables_list
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
-  ExtendedIsotopeModel_test  
+  ExtendedIsotopeModel_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderIdentificationAlgorithm_test
@@ -767,6 +772,7 @@ if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
   list(APPEND swath_executables_list OpenSwathMatrixExporter_test)
   list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
+  list(APPEND swath_executables_list OpenSwathResultsExporter_test)
   list(APPEND swath_executables_list OpenSwathParquetExporter_test)
 endif()
 

@@ -38,7 +38,6 @@
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -1612,7 +1611,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
-        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::Mobilogram& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D& {
             if (i >= self.size()) throw nb::index_error();
@@ -1917,6 +1916,17 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
         .def("setMZ", [](OpenMS::Peak1D& self, double mz) { return self.setMZ(mz); }, "mz"_a, "Sets the m/z (mass-to-charge) value of the peak")
         .def("getPos", [](const OpenMS::Peak1D& self) { return self.getPos(); }, "Returns the position (alias for getMZ)")
         .def("setPos", [](OpenMS::Peak1D& self, double pos) { return self.setPos(pos); }, "pos"_a, "Sets the position (alias for setMZ)")
+        // Pythonic snake_case properties over the scalar getters/setters (issue #9760).
+        // Additive: the getX()/setX() methods above are unchanged. 'pos' is intentionally
+        // omitted because it is an alias of mz (avoid alias pairs; keep the property list reviewable).
+        .def_prop_rw("mz",
+            [](const OpenMS::Peak1D& self) { return self.getMZ(); },
+            [](OpenMS::Peak1D& self, double v) { self.setMZ(v); },
+            "The m/z (mass-to-charge) value of the peak")
+        .def_prop_rw("intensity",
+            [](const OpenMS::Peak1D& self) { return self.getIntensity(); },
+            [](OpenMS::Peak1D& self, float v) { self.setIntensity(v); },
+            "The intensity (height) of the peak")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::Peak1D& self) {
@@ -1982,28 +1992,6 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         .value("DIMENSION", OpenMS::Peak2D::DimensionDescription::DIMENSION)
 
         .export_values();
-
-    // -----------------------------------------------------------------------
-    // PeakIndex
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIndex>(m, "PeakIndex", 
-        R"doc(
-Index of a peak or feature
-This struct can be used to store both peak or feature indices
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<size_t>())
-        .def(nb::init<size_t, size_t>())
-        .def("isValid", [](const OpenMS::PeakIndex& self) { return self.isValid(); }, "Returns if the current peak ref is valid")
-        .def("clear", [](OpenMS::PeakIndex& self) { return self.clear(); }, "Invalidates the current index")
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def_rw("peak", &OpenMS::PeakIndex::peak)
-        .def_rw("spectrum", &OpenMS::PeakIndex::spectrum)
-        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the feature in the given map")
-        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the peak in the given map")
-        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the spectrum in the given map")
-        ;
 
     // -----------------------------------------------------------------------
     // PeptideHit
@@ -3380,7 +3368,7 @@ This class supports direct iteration in Python.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
-        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature & {
             if (i >= self.size()) throw nb::index_error();
@@ -3586,7 +3574,7 @@ Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)
 )doc")
         
-        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature & {
             if (i >= self.size()) throw nb::index_error();

@@ -3835,7 +3835,7 @@ static void scoreXLIons_(
     {
       for (auto & ph : pid.getHits())
       {
-        identified_adducts.insert(ph.getMetaValue("NuXL:NA"));
+        identified_adducts.insert(ph.getMetaValue("NuXL:NA").toString());
       }
     } 
 
