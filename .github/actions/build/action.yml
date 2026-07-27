@@ -165,4 +165,4 @@ runs:
     ############################################################################
     - name: Test
       shell: bash
-      run: ctest --output-on-failure --test-dir build
+      run: ctest --parallel --output-on-failure --test-dir build
