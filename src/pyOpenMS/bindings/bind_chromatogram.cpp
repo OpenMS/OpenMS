@@ -90,7 +90,11 @@ rt, intensities = chromatogram.get_peaks()
         .def("getName", [](const OpenMS::MSChromatogram& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MSChromatogram& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getMZ", [](const OpenMS::MSChromatogram& self) { return self.getMZ(); }, "Returns the mz of the product entry, makes sense especially for MRM scans")
-        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
+        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
+            R"doc(
+Lexicographically sorts the peaks by their intensity.
+Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+)doc")
         .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); },
             R"doc(
 Lexicographically sorts the peaks by their position (RT).
@@ -99,10 +103,17 @@ Sorts the peaks according to ascending RT. Meta data arrays will be sorted accor
         .def("isSorted", [](const OpenMS::MSChromatogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending RT")
         .def("findNearest", [](const OpenMS::MSChromatogram& self, double rt) { return self.findNearest(rt); }, "rt"_a,
             R"doc(
-Lexicographically sorts the peaks by their position
-The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
+Binary search for the peak nearest to a specific RT.
+Returns the index of the peak. The chromatogram must be sorted with respect to RT, otherwise
+the result is undefined. Raises an exception if the chromatogram is empty.
 )doc")
-        .def("clear", [](OpenMS::MSChromatogram& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a)
+        .def("clear", [](OpenMS::MSChromatogram& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a,
+            R"doc(
+Clears all data and meta data.
+Deletes all peaks as well as any associated data arrays (float, integer, string) and the
+ranges. If clear_meta_data is True, the descriptive meta data (ChromatogramSettings, name)
+is deleted as well.
+)doc")
         .def("getNativeID", [](const OpenMS::MSChromatogram& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software.")
         .def("setNativeID", [](OpenMS::MSChromatogram& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
         .def("getComment", [](const OpenMS::MSChromatogram& self) { return self.getComment(); }, "Returns the free-text comment")
