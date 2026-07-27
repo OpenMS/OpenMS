@@ -29,6 +29,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Build OpenMS
         uses: ./.github/actions/build
@@ -235,13 +237,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions
-
-      - name: Prepare for rsync
-        id: ssh
-        uses: ./.github/actions/rsync
-        with:
-          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
-          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          persist-credentials: false
 
       - name: Download the Installer
         uses: actions/download-artifact@v8
@@ -251,32 +247,15 @@ jobs:
           path: ${{ github.workspace }}/downloads
 
       - name: Upload Installer and Mark as Latest
-        if: steps.ssh.outputs.have_key == 'true'
-        shell: bash
-        env:
-          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
-          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          VERSION: ${{ needs.build-and-test.outputs.version }}
-          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
-          SSH: ${{ steps.ssh.outputs.ssh }}
-        run: |
-          rsync \
-            --progress \
-            -avz \
-            -e "$SSH" \
-            "$GITHUB_WORKSPACE"/downloads/* \
-            "$USER@$HOST:/OpenMSInstaller/$VERSION_TYPE/$VERSION"
-
-          # Mark this as the latest release by creating a dead symlink and
-          # syncing that.  On the remote end the link will work.
-          ln -s "$VERSION" latest
-
-          rsync \
-            --progress \
-            -avz \
-            -e "$SSH" \
-            latest \
-            "$USER@$HOST:/OpenMSInstaller/$VERSION_TYPE/"
+        uses: ./.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          src: ${{ github.workspace }}/downloads/*
+          dst: /OpenMSInstaller/${{ needs.build-and-test.outputs.version_type }}/${{ needs.build-and-test.outputs.version }}
+          latest: ${{ needs.build-and-test.outputs.version }}
 
   deploy-docs:
     name: "Deploy Documentation"
@@ -287,13 +266,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions
-
-      - name: Prepare for rsync
-        id: ssh
-        uses: ./.github/actions/rsync
-        with:
-          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
-          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          persist-credentials: false
 
       - name: Download the Documentation
         uses: actions/download-artifact@v8
@@ -301,15 +274,8 @@ jobs:
           name: documentation
           path: ${{ github.workspace }}/downloads
 
-      - name: Upload Documentation and Mark as Latest
-        if: steps.ssh.outputs.have_key == 'true'
+      - name: Unzip the Documentation
         shell: bash
-        env:
-          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
-          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          VERSION: ${{ needs.build-and-test.outputs.version }}
-          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
-          SSH: ${{ steps.ssh.outputs.ssh }}
         run: |
           unzip \
             "$GITHUB_WORKSPACE/downloads/documentation.zip" \
@@ -317,23 +283,16 @@ jobs:
 
           rm "$GITHUB_WORKSPACE/downloads/documentation.zip"
 
-          rsync \
-            --progress \
-            -avz \
-            -e "$SSH" \
-            "$GITHUB_WORKSPACE"/downloads/ \
-            "$USER@$HOST:/Documentation/$VERSION_TYPE/$VERSION"
-
-          # Mark this as the latest release by creating a dead symlink and
-          # syncing that.  On the remote end the link will work.
-          ln -s "$VERSION" latest
-
-          rsync \
-            --progress \
-            -avz \
-            -e "$SSH" \
-            latest \
-            "$USER@$HOST:/Documentation/$VERSION_TYPE/"
+      - name: Upload Documentation and Mark as Latest
+        uses: ./.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          src: ${{ github.workspace }}/downloads/
+          dst: /Documentation/${{ needs.build-and-test.outputs.version_type }}/${{ needs.build-and-test.outputs.version }}
+          latest: ${{ needs.build-and-test.outputs.version }}
 
   deploy-knime:
     name: "Deploy KNIME"
@@ -353,14 +312,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions
+          persist-credentials: false
           path: OpenMS
-
-      - name: Prepare for rsync
-        id: ssh
-        uses: ./OpenMS/.github/actions/rsync
-        with:
-          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
-          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
 
       - uses: actions/checkout@v6
         with:
@@ -510,37 +463,19 @@ jobs:
             "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" \
             clean verify
 
+          chmod -R o+rX "$GITHUB_WORKSPACE/knime/de.openms.update/target/repository"
+
       - name: Upload KNIME Update Site and Mark as Latest
-        if: steps.ssh.outputs.have_key == 'true'
-        shell: bash
-        env:
-          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
-          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          VERSION: ${{ needs.build-and-test.outputs.version }}
-          VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
-          SSH: ${{ steps.ssh.outputs.ssh }}
-        run: |
-          source="$GITHUB_WORKSPACE/knime/de.openms.update/target/repository"
-          chmod -R o+rX "$source"
-
-          rsync \
-            --progress \
-            -avz \
-            --mkpath \
-            -e "$SSH" \
-            "$source"/* \
-            "$USER@$HOST:/knime-plugin/updateSite/$VERSION_TYPE/$VERSION"
-
-          # Mark this as the latest release by creating a dead symlink and
-          # syncing that.  On the remote end the link will work.
-          ln -s "$VERSION" latest
-
-          rsync \
-            --progress \
-            -avz \
-            -e "$SSH" \
-            latest \
-            "$USER@$HOST:/knime-plugin/updateSite/$VERSION_TYPE/"
+        uses: ./OpenMS/.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          src: ${{ github.workspace }}/knime/de.openms.update/target/repository
+          dst: /knime-plugin/updateSite/${{ needs.build-and-test.outputs.version_type }}/${{ needs.build-and-test.outputs.version }}
+          mkpath: true
+          latest: ${{ needs.build-and-test.outputs.version }}
 
   publish-release:
     name: "Publish Release"
@@ -554,6 +489,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           sparse-checkout: |
             .github/workflows/release-announcement.txt
             CHANGELOG
@@ -713,7 +649,7 @@ jobs:
           VERSION: ${{ needs.build-and-test.outputs.version }}
         run:  |
             cp \
-              "$GITHUB_WORKSPACE/release-announcement.txt" \
+              "$GITHUB_WORKSPACE/downloads/release-announcement.txt" \
               "OpenMS-website/content/en/news/release${VERSION}.md"
 
             pushd OpenMS-website || exit 1
