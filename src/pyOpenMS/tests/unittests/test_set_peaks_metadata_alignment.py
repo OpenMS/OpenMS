@@ -10,10 +10,11 @@ therefore used to leave it silently inconsistent::
 Nothing complained at the call.  The corruption surfaced much later -- as an exception from
 a ``sortByPosition()``/``select()`` far from the cause, or as an mzML file written with a
 mis-sized binary data array.  ``set_peaks()`` now applies a ``metadata`` policy: ``error``
-(the default) refuses and leaves the container untouched, ``clear`` drops all three array
-families, and ``keep`` is the old behaviour, opted into explicitly.
+(the default) refuses and leaves the container untouched, ``clear`` drops the arrays that no
+longer fit, and ``keep`` is the old behaviour, opted into explicitly.
 
-Two deliberate design points are pinned down here, because both are easy to "simplify" away:
+Three deliberate design points are pinned down here, because all three are easy to
+"simplify" away:
 
 * **The trigger is a size mismatch, not peak replacement.**  An array that is already the
   right length is kept, with no exception and no kwarg -- see
@@ -25,6 +26,11 @@ Two deliberate design points are pinned down here, because both are easy to "sim
   ``self.size()`` instead would compare the arrays against the count they are still aligned
   with and accept the very case this exists to catch -- see
   ``test_shrink_with_stale_array_raises`` and ``test_grow_with_stale_array_raises``.
+* **The "clear" drop happens after the peaks are written, and only to the stranded arrays.**
+  The incoming intensities may be a zero-copy view into the very array being dropped, so
+  freeing first is a use-after-free (``test_clear_does_not_free_an_aliasing_input_array``);
+  and an array that still fits is a valid annotation, not collateral damage
+  (``test_clear_policy_keeps_arrays_that_still_fit``).
 """
 
 import numpy as np
@@ -120,14 +126,16 @@ def test_grow_with_stale_array_raises(cls, noun, kind):
 
 
 @pytest.mark.parametrize("cls,noun", _CONTAINERS)
+@pytest.mark.parametrize("call", _CALL_FORMS)
 @pytest.mark.parametrize("kind", _ARRAY_KINDS)
-def test_rejected_call_leaves_container_unchanged(cls, noun, kind):
-    """A refused set_peaks() is a strict no-op: peaks, array contents and array name survive."""
+def test_rejected_call_leaves_container_unchanged(cls, noun, call, kind):
+    """A refused set_peaks() is a strict no-op: peaks, array *values* and array name survive."""
     container = _make(cls, 10, kind)
     before_pos, before_int = container.get_peaks()
+    before_data = list(_arrays(container, kind)[0].get_data())
 
     with pytest.raises(RuntimeError):
-        container.set_peaks(*_peaks(3))
+        call(container, *_peaks(3))
 
     after_pos, after_int = container.get_peaks()
     assert container.size() == 10
@@ -135,7 +143,7 @@ def test_rejected_call_leaves_container_unchanged(cls, noun, kind):
     assert np.array_equal(after_int, before_int)
     arrays = _arrays(container, kind)
     assert len(arrays) == 1
-    assert len(arrays[0].get_data()) == 10
+    assert list(arrays[0].get_data()) == before_data
     assert arrays[0].getName() == "Annotation"
 
 
@@ -186,6 +194,19 @@ def test_empty_named_array_is_exempt(cls, noun, kind):
     assert container.size() == 7
     arrays = _arrays(container, kind)
     assert len(arrays) == 1
+    assert len(arrays[0].get_data()) == 0
+    assert arrays[0].getName() == "Annotation"
+
+
+@pytest.mark.parametrize("cls,noun", _CONTAINERS)
+@pytest.mark.parametrize("kind", _ARRAY_KINDS)
+def test_empty_named_array_survives_clear(cls, noun, kind):
+    """An exempt array is exempt under every policy, including the destructive one."""
+    container = _make(cls, 3, kind, n_array=0)
+    container.set_peaks(*_peaks(7), metadata="clear")
+
+    arrays = _arrays(container, kind)
+    assert len(arrays) == 1
     assert arrays[0].getName() == "Annotation"
 
 
@@ -206,16 +227,68 @@ def test_clear_policy_drops_all_three_families(cls, noun, call):
 
 
 @pytest.mark.parametrize("cls,noun", _CONTAINERS)
+@pytest.mark.parametrize("call", _CALL_FORMS)
 @pytest.mark.parametrize("kind", _ARRAY_KINDS)
-def test_keep_policy_reproduces_legacy_behaviour(cls, noun, kind):
+def test_clear_policy_keeps_arrays_that_still_fit(cls, noun, call, kind):
+    """"clear" drops what the new count stranded, not everything.
+
+    The policy is documented as being about arrays the new peak count leaves mis-sized, so an
+    array that still matches is not collateral damage -- it is still a valid annotation.
+    """
+    container = _make(cls, 4, kind)
+    pos, inten = _peaks(4)
+    call(container, pos + 100.0, inten, metadata="clear")
+
+    arrays = _arrays(container, kind)
+    assert len(arrays) == 1
+    assert len(arrays[0].get_data()) == 4
+    assert arrays[0].getName() == "Annotation"
+
+
+@pytest.mark.parametrize("cls,noun", _CONTAINERS)
+def test_clear_policy_drops_only_the_stranded_array(cls, noun):
+    """A mis-sized float array goes; an aligned integer array stays."""
+    container = _make(cls, 6)
+    _attach_array(container, "float", 6)      # aligned with the NEW count below
+    _attach_array(container, "integer", 99)   # stranded
+
+    container.set_peaks(*_peaks(6), metadata="clear")
+
+    assert len(_arrays(container, "float")) == 1
+    assert len(_arrays(container, "integer")) == 0
+
+
+@pytest.mark.parametrize("cls,noun", _CONTAINERS)
+@pytest.mark.parametrize("call", _CALL_FORMS)
+@pytest.mark.parametrize("kind", _ARRAY_KINDS)
+def test_keep_policy_reproduces_legacy_behaviour(cls, noun, call, kind):
     """metadata="keep" is the pre-fix behaviour, available to callers who realign themselves."""
     container = _make(cls, 10, kind)
-    container.set_peaks(*_peaks(2), metadata="keep")
+    call(container, *_peaks(2), metadata="keep")
 
     assert container.size() == 2
     arrays = _arrays(container, kind)
     assert len(arrays) == 1
     assert len(arrays[0].get_data()) == 10
+
+
+@pytest.mark.parametrize("cls,noun", _CONTAINERS)
+def test_clear_does_not_free_an_aliasing_input_array(cls, noun):
+    """The incoming intensities may be a zero-copy view *into* the array "clear" is about to drop.
+
+    ``FloatDataArray.get_data_view()`` is zero-copy and ``getFloatDataArrays()`` hands out the
+    container's own arrays, so dropping them before the peaks are written would leave set_peaks()
+    filling from released memory. The drop therefore happens after the fill.
+    """
+    container = _make(cls, 64, "float", n_array=64)
+    aliased = _arrays(container, "float")[0].get_data_view()[:8]
+    expected = np.array(aliased, dtype=np.float32)   # detached copy of what must be stored
+
+    container.set_peaks(_peaks(8)[0], aliased, metadata="clear")
+
+    assert container.size() == 8
+    assert np.allclose(container.get_peaks()[1], expected)
+    assert len(_arrays(container, "float")) == 0
 
 
 @pytest.mark.parametrize("cls,noun", _CONTAINERS)

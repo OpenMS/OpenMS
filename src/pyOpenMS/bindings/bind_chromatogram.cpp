@@ -217,7 +217,7 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             // after the input check and before resize(), so a rejected call is a strict no-op
-            applyPeakMetadataPolicy(self, n, policy, "chromatogram");
+            checkPeakMetadataAlignment(self, n, policy, "chromatogram");
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -225,6 +225,8 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
+            // after the peaks are written: the incoming arrays may alias the storage this frees
+            dropStrandedPeakMetadata(self, n, policy);
         }, "rt"_a, "intensity"_a, "metadata"_a = "error",
            "Set peaks from rt and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq, const std::string& metadata) {
@@ -238,7 +240,7 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
-            applyPeakMetadataPolicy(self, n, policy, "chromatogram");
+            checkPeakMetadataAlignment(self, n, policy, "chromatogram");
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -246,7 +248,9 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
-        }, "peaks"_a, "metadata"_a = "error",
+            // after the peaks are written: the incoming arrays may alias the storage this frees
+            dropStrandedPeakMetadata(self, n, policy);
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
            "Set peaks from a tuple/list of (rt_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("size", [](const OpenMS::MSChromatogram& self) {

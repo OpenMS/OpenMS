@@ -8,6 +8,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -219,12 +220,12 @@ void def_CVTermList(Class& cls)
 }
 
 /// Trailing paragraph shared by the six set_peaks() docstrings, appended by literal concatenation.
-#define PYOPENMS_SET_PEAKS_METADATA_DOC                                                                       \
-    "\n\nThe binary data arrays are not resized. ``metadata`` decides what happens when the new peak count "   \
-    "would leave a non-empty float, string or integer data array mis-sized: ``error`` (the default) raises "   \
-    "and leaves the container untouched, ``clear`` drops all three array families, and ``keep`` keeps them, "  \
-    "leaving the container internally inconsistent. Arrays that are already the right length are kept in "     \
-    "every case, so replacing peaks with an equally long set never touches them."
+#define PYOPENMS_SET_PEAKS_METADATA_DOC                                                                        \
+    "\n\nThe binary data arrays are not resized. ``metadata`` decides what happens when the new peak count "    \
+    "would leave a non-empty float, string or integer data array mis-sized: ``error`` (the default) raises "    \
+    "and leaves the container untouched, ``clear`` drops the arrays that no longer fit, and ``keep`` keeps "    \
+    "them, leaving the container internally inconsistent. Arrays that are already the right length, and empty " \
+    "ones, are kept in every case, so replacing peaks with an equally long set never touches them."
 
 /// What set_peaks() should do with binary data arrays that the new peak count leaves mis-sized.
 enum class PeakMetadataPolicy
@@ -244,38 +245,38 @@ inline PeakMetadataPolicy parsePeakMetadataPolicy(const std::string& policy)
     throw std::invalid_argument("Invalid metadata policy '" + policy + "'. Must be 'error', 'clear' or 'keep'.");
 }
 
-/// Enforce @p policy on the binary data arrays of @p self for a peak count of @p n.
+/// Is @p array still usable as a per-peak annotation for a peak count of @p n?
+///
+/// An empty array carries no per-peak association and so can never be mis-associated; it is
+/// exempt, matching the `!arrays[i].empty()` guard in MSChromatogram::checkDataArraySizes_().
+template <typename ArrayT>
+inline bool peakMetadataArrayIsAligned(const ArrayT& array, size_t n)
+{
+    return array.empty() || array.size() == n;
+}
+
+/// Reject a set_peaks() that would strand a data array. Only PeakMetadataPolicy::Error throws.
 ///
 /// Call this *before* the peak storage is resized, so that a rejected call leaves the container
 /// exactly as it was. @p n is therefore the new, incoming count -- checking against self.size()
 /// would compare the arrays against the count they are already aligned with and accept everything.
 ///
-/// The predicate is the one MSChromatogram::checkDataArraySizes_() applies, empty-array exemption
-/// included, so this moves the core's own rejection to the call that causes it rather than adding
-/// a stricter rule. That helper cannot be reused directly: it is protected, MSSpectrum does not
-/// have it, and it can only check against the current count.
+/// The predicate is the one MSChromatogram::checkDataArraySizes_() applies, so this moves the
+/// core's own rejection to the call that causes it rather than adding a stricter rule. That helper
+/// cannot be reused directly: it is protected, MSSpectrum does not have it, and it can only check
+/// against the current count.
 ///
 /// Works for any container exposing get{Float,String,Integer}DataArrays(). @p container is the
 /// lowercase noun used in the message ("spectrum", "chromatogram", "mobilogram").
 template <typename Container>
-void applyPeakMetadataPolicy(Container& self, size_t n, PeakMetadataPolicy policy, const char* container)
+void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPolicy policy, const char* container)
 {
-    if (policy == PeakMetadataPolicy::Keep) return;
-
-    if (policy == PeakMetadataPolicy::Clear)
-    {
-        // clear(), not resize(n): fabricating zero-filled annotations for the new peaks would be
-        // worse than dropping the arrays, since nothing marks the values as made up.
-        self.getFloatDataArrays().clear();
-        self.getStringDataArrays().clear();
-        self.getIntegerDataArrays().clear();
-        return;
-    }
+    if (policy != PeakMetadataPolicy::Error) return;
 
     auto check = [n, container](const auto& arrays, const char* what) {
         for (size_t i = 0; i < arrays.size(); ++i)
         {
-            if (!arrays[i].empty() && arrays[i].size() != n)
+            if (!peakMetadataArrayIsAligned(arrays[i], n))
             {
                 throw std::runtime_error(std::string(what) + "[" + std::to_string(i) + "] size (" +
                                          std::to_string(arrays[i].size()) + ") does not match the new " + container +
@@ -288,4 +289,30 @@ void applyPeakMetadataPolicy(Container& self, size_t n, PeakMetadataPolicy polic
     check(self.getFloatDataArrays(), "FloatDataArray");
     check(self.getStringDataArrays(), "StringDataArray");
     check(self.getIntegerDataArrays(), "IntegerDataArray");
+}
+
+/// Drop the data arrays that a peak count of @p n stranded. Only PeakMetadataPolicy::Clear acts.
+///
+/// Call this *after* the peaks have been written, never before. The incoming intensity/position
+/// arrays may alias the very storage this releases -- FloatDataArray.get_data_view() hands out a
+/// zero-copy view into a data array, and getFloatDataArrays() exposes the container's own arrays
+/// by reference -- so releasing it up front would leave the fill loop reading freed memory.
+/// Deferring also means a throwing resize() cannot leave the arrays already dropped.
+///
+/// Arrays that still fit, and empty ones, are kept: they remain valid annotations, and the
+/// docstring promises as much. Dropping rather than resizing to @p n is deliberate, since padding
+/// would fabricate annotations that nothing marks as made up.
+template <typename Container>
+void dropStrandedPeakMetadata(Container& self, size_t n, PeakMetadataPolicy policy)
+{
+    if (policy != PeakMetadataPolicy::Clear) return;
+
+    auto drop = [n](auto& arrays) {
+        arrays.erase(std::remove_if(arrays.begin(), arrays.end(),
+                                    [n](const auto& array) { return !peakMetadataArrayIsAligned(array, n); }),
+                     arrays.end());
+    };
+    drop(self.getFloatDataArrays());
+    drop(self.getStringDataArrays());
+    drop(self.getIntegerDataArrays());
 }

@@ -298,7 +298,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
                 throw std::runtime_error("mz and intensity arrays must have same length");
             }
             // after the input check and before resize(), so a rejected call is a strict no-op
-            applyPeakMetadataPolicy(self, n, policy, "spectrum");
+            checkPeakMetadataAlignment(self, n, policy, "spectrum");
             self.resize(n);
             const double* mz_ptr = static_cast<const double*>(mz_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -306,6 +306,8 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
                 self[i].setMZ(mz_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
+            // after the peaks are written: the incoming arrays may alias the storage this frees
+            dropStrandedPeakMetadata(self, n, policy);
         }, "mz"_a, "intensity"_a, "metadata"_a = "error",
            "Set peaks from mz and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq, const std::string& metadata) {
@@ -319,7 +321,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
             }
-            applyPeakMetadataPolicy(self, n, policy, "spectrum");
+            checkPeakMetadataAlignment(self, n, policy, "spectrum");
             self.resize(n);
             const double* mz_ptr = static_cast<const double*>(mz_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -327,7 +329,9 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
                 self[i].setMZ(mz_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
-        }, "peaks"_a, "metadata"_a = "error",
+            // after the peaks are written: the incoming arrays may alias the storage this frees
+            dropStrandedPeakMetadata(self, n, policy);
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
            "Set peaks from a tuple of (mz_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
