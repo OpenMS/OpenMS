@@ -2384,6 +2384,15 @@ START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(const Matrix<do
         TEST_REAL_SIMILAR(result[1][0].getIntensity(), 2000.0);  // First spectrum intensity
         TEST_REAL_SIMILAR(result[1][1].getIntensity(), 2100.0);  // Third spectrum intensity
         TEST_REAL_SIMILAR(result[1][2].getIntensity(), 2200.0);  // Fourth spectrum intensity
+
+        // Both product and precursor m/z are set to the centre of the m/z range,
+        // so consumers reading either field position the XIC correctly
+        TEST_REAL_SIMILAR(result[0].getProduct().getMZ(), (90.0 + 110.0) / 2.0);
+        TEST_REAL_SIMILAR(result[0].getPrecursor().getMZ(), (90.0 + 110.0) / 2.0);
+        TEST_REAL_SIMILAR(result[0].getMZ(), (90.0 + 110.0) / 2.0);
+        TEST_REAL_SIMILAR(result[1].getProduct().getMZ(), (190.0 + 210.0) / 2.0);
+        TEST_REAL_SIMILAR(result[1].getPrecursor().getMZ(), (190.0 + 210.0) / 2.0);
+        TEST_REAL_SIMILAR(result[1].getMZ(), (190.0 + 210.0) / 2.0);
     }
 
 }
@@ -2570,8 +2579,9 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogra
         TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 4.0);
         TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 1200.0);
 
-        // Check m/z value of the chromatogram
+        // Check m/z value of the chromatogram (product and precursor are both set)
         TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (90.0 + 110.0) / 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0].getPrecursor().getMZ(), (90.0 + 110.0) / 2.0);
 
         // Check Range 2 chromatogram
         TEST_EQUAL(chromatograms[1].size(), 3); // Should cover 3 spectra
@@ -2584,8 +2594,9 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogra
         TEST_REAL_SIMILAR(chromatograms[1][2].getRT(), 4.0);
         TEST_REAL_SIMILAR(chromatograms[1][2].getIntensity(), 2200.0);
 
-        // Check m/z value of the chromatogram
+        // Check m/z value of the chromatogram (product and precursor are both set)
         TEST_REAL_SIMILAR(chromatograms[1].getProduct().getMZ(), (190.0 + 210.0) / 2.0);
+        TEST_REAL_SIMILAR(chromatograms[1].getPrecursor().getMZ(), (190.0 + 210.0) / 2.0);
     }
 
     // Test 2: MS2 spectra
@@ -2603,8 +2614,9 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogra
         TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 2.0);
         TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1500.0);
 
-        // Check m/z value of the chromatogram
+        // Check m/z value of the chromatogram (product and precursor are both set)
         TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (140.0 + 160.0) / 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0].getPrecursor().getMZ(), (140.0 + 160.0) / 2.0);
     }
 
     // Test 3: Custom reduction function (average intensity)
@@ -2638,8 +2650,9 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogra
         TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 4.0);
         TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 2200.0); // Average of [1200, 2200, 3200]
 
-        // Check m/z value of the chromatogram
+        // Check m/z value of the chromatogram (product and precursor are both set)
         TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (90.0 + 310.0) / 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0].getPrecursor().getMZ(), (90.0 + 310.0) / 2.0);
     }
 }
 END_SECTION
