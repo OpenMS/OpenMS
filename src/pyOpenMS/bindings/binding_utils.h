@@ -9,6 +9,7 @@
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
 #include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -227,6 +228,15 @@ void def_CVTermList(Class& cls)
     "them, leaving the container internally inconsistent. Arrays that are already the right length, and empty " \
     "ones, are kept in every case, so replacing peaks with an equally long set never touches them."
 
+/// Trailing paragraph for the two MSSpectrum set_peaks() docstrings, which also accept ion mobility.
+#define PYOPENMS_SET_PEAKS_IM_DOC                                                                                \
+    "\n\n``ion_mobility`` sets the per-peak ion mobility array in the same call, replacing any existing one; "    \
+    "it must have one entry per peak. ``ion_mobility_unit`` names the array through the PSI-MS controlled "       \
+    "vocabulary and may be omitted only when the spectrum already has an ion mobility array to inherit the "      \
+    "unit from. Only ``DriftTimeUnit.MILLISECOND`` (drift time) and ``DriftTimeUnit.VSSC`` (1/K0) have a CV "     \
+    "term for this, so other units are rejected. Because the ion mobility array is replaced rather than "         \
+    "stranded, it is exempt from the ``metadata`` check above."
+
 /// What set_peaks() should do with binary data arrays that the new peak count leaves mis-sized.
 enum class PeakMetadataPolicy
 {
@@ -268,14 +278,22 @@ inline bool peakMetadataArrayIsAligned(const ArrayT& array, size_t n)
 ///
 /// Works for any container exposing get{Float,String,Integer}DataArrays(). @p container is the
 /// lowercase noun used in the message ("spectrum", "chromatogram", "mobilogram").
+///
+/// @p replaced_float_index, when set, names a float array the caller is about to overwrite --
+/// set_peaks(..., ion_mobility=...) replaces the ion mobility array wholesale. Its current length
+/// is therefore irrelevant: you cannot strand an array you are overwriting, and rejecting the call
+/// would leave no way to swap peaks and their ion mobilities in one step.
 template <typename Container>
-void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPolicy policy, const char* container)
+void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPolicy policy, const char* container,
+                                std::optional<size_t> replaced_float_index = std::nullopt)
 {
     if (policy != PeakMetadataPolicy::Error) return;
 
-    auto check = [n, container](const auto& arrays, const char* what) {
+    auto check = [n, container, replaced_float_index](const auto& arrays, const char* what,
+                                                      bool honour_replacement = false) {
         for (size_t i = 0; i < arrays.size(); ++i)
         {
+            if (honour_replacement && replaced_float_index && *replaced_float_index == i) continue;
             if (!peakMetadataArrayIsAligned(arrays[i], n))
             {
                 throw std::runtime_error(std::string(what) + "[" + std::to_string(i) + "] size (" +
@@ -286,7 +304,7 @@ void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPol
             }
         }
     };
-    check(self.getFloatDataArrays(), "FloatDataArray");
+    check(self.getFloatDataArrays(), "FloatDataArray", /* honour_replacement = */ true);
     check(self.getStringDataArrays(), "StringDataArray");
     check(self.getIntegerDataArrays(), "IntegerDataArray");
 }
