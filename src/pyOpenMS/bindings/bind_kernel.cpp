@@ -1701,11 +1701,21 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             "Returns zero-copy structured array with fields 'mobility' (float64) and 'intensity' (float32)."
         )
 
-        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj, const std::string& metadata) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
+            }
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             auto mob_arr = as_numpy_array<double>(mob_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
+            // after the input check and before resize(), so a rejected call is a strict no-op
+            applyPeakMetadataPolicy(self, n, policy, "mobilogram");
             self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -1713,8 +1723,12 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 self[i].setMobility(mob_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
-        }, "mob"_a, "intensity"_a, "Set mobility and intensity from numpy arrays")
-        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq) {
+        }, "mob"_a, "intensity"_a, "metadata"_a = "error",
+           "Set mobility and intensity from numpy arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq, const std::string& metadata) {
+            // parsed above the tuple/list branch so that a bad policy is reported at the same
+            // point as in the other five set_peaks overloads
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             nb::object item0, item1;
             if (nb::isinstance<nb::tuple>(peaks_seq)) {
                 auto tup = nb::cast<nb::tuple>(peaks_seq);
@@ -1729,6 +1743,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = as_numpy_array<float>(item1);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
+            applyPeakMetadataPolicy(self, n, policy, "mobilogram");
             self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -1736,7 +1751,8 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 self[i].setMobility(mob_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
-        }, "peaks"_a, "Set peaks from [mobility_array, intensity_array]")
+        }, "peaks"_a, "metadata"_a = "error",
+           "Set peaks from [mobility_array, intensity_array]" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("getFloatDataArrays", [](const OpenMS::Mobilogram& self) {
             return self.getFloatDataArrays();

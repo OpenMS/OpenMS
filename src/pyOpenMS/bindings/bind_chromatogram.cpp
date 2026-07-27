@@ -201,13 +201,23 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             "Returns zero-copy structured array with fields 'rt' (float64) and 'intensity' (float32)."
         )
     
-        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
+        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj, const std::string& metadata) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
+            }
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             auto rt_arr = as_numpy_array<double>(rt_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
+            // after the input check and before resize(), so a rejected call is a strict no-op
+            applyPeakMetadataPolicy(self, n, policy, "chromatogram");
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -215,8 +225,10 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
-        }, "rt"_a, "intensity"_a, "Set peaks from rt and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq) {
+        }, "rt"_a, "intensity"_a, "metadata"_a = "error",
+           "Set peaks from rt and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq, const std::string& metadata) {
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
             }
@@ -226,6 +238,7 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
+            applyPeakMetadataPolicy(self, n, policy, "chromatogram");
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -233,7 +246,8 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
             }
-        }, "peaks"_a, "Set peaks from a tuple/list of (rt_array, intensity_array)")
+        }, "peaks"_a, "metadata"_a = "error",
+           "Set peaks from a tuple/list of (rt_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("size", [](const OpenMS::MSChromatogram& self) {
             return self.size();

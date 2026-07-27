@@ -8,6 +8,8 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
+#include <stdexcept>
+#include <string>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
@@ -214,4 +216,76 @@ void def_CVTermList(Class& cls)
             return self.empty();
         })
         ;
+}
+
+/// Trailing paragraph shared by the six set_peaks() docstrings, appended by literal concatenation.
+#define PYOPENMS_SET_PEAKS_METADATA_DOC                                                                       \
+    "\n\nThe binary data arrays are not resized. ``metadata`` decides what happens when the new peak count "   \
+    "would leave a non-empty float, string or integer data array mis-sized: ``error`` (the default) raises "   \
+    "and leaves the container untouched, ``clear`` drops all three array families, and ``keep`` keeps them, "  \
+    "leaving the container internally inconsistent. Arrays that are already the right length are kept in "     \
+    "every case, so replacing peaks with an equally long set never touches them."
+
+/// What set_peaks() should do with binary data arrays that the new peak count leaves mis-sized.
+enum class PeakMetadataPolicy
+{
+    Error, ///< refuse the call and leave the container untouched
+    Clear, ///< drop all float/string/integer data arrays
+    Keep   ///< keep them as they are, leaving the container internally inconsistent
+};
+
+/// Translate the Python-facing `metadata=` string into a PeakMetadataPolicy.
+/// @throws std::invalid_argument (ValueError in Python) for any other string.
+inline PeakMetadataPolicy parsePeakMetadataPolicy(const std::string& policy)
+{
+    if (policy == "error") return PeakMetadataPolicy::Error;
+    if (policy == "clear") return PeakMetadataPolicy::Clear;
+    if (policy == "keep") return PeakMetadataPolicy::Keep;
+    throw std::invalid_argument("Invalid metadata policy '" + policy + "'. Must be 'error', 'clear' or 'keep'.");
+}
+
+/// Enforce @p policy on the binary data arrays of @p self for a peak count of @p n.
+///
+/// Call this *before* the peak storage is resized, so that a rejected call leaves the container
+/// exactly as it was. @p n is therefore the new, incoming count -- checking against self.size()
+/// would compare the arrays against the count they are already aligned with and accept everything.
+///
+/// The predicate is the one MSChromatogram::checkDataArraySizes_() applies, empty-array exemption
+/// included, so this moves the core's own rejection to the call that causes it rather than adding
+/// a stricter rule. That helper cannot be reused directly: it is protected, MSSpectrum does not
+/// have it, and it can only check against the current count.
+///
+/// Works for any container exposing get{Float,String,Integer}DataArrays(). @p container is the
+/// lowercase noun used in the message ("spectrum", "chromatogram", "mobilogram").
+template <typename Container>
+void applyPeakMetadataPolicy(Container& self, size_t n, PeakMetadataPolicy policy, const char* container)
+{
+    if (policy == PeakMetadataPolicy::Keep) return;
+
+    if (policy == PeakMetadataPolicy::Clear)
+    {
+        // clear(), not resize(n): fabricating zero-filled annotations for the new peaks would be
+        // worse than dropping the arrays, since nothing marks the values as made up.
+        self.getFloatDataArrays().clear();
+        self.getStringDataArrays().clear();
+        self.getIntegerDataArrays().clear();
+        return;
+    }
+
+    auto check = [n, container](const auto& arrays, const char* what) {
+        for (size_t i = 0; i < arrays.size(); ++i)
+        {
+            if (!arrays[i].empty() && arrays[i].size() != n)
+            {
+                throw std::runtime_error(std::string(what) + "[" + std::to_string(i) + "] size (" +
+                                         std::to_string(arrays[i].size()) + ") does not match the new " + container +
+                                         " size (" + std::to_string(n) +
+                                         "). set_peaks() does not resize binary data arrays; pass metadata='clear' to "
+                                         "drop them or metadata='keep' to keep them and realign them yourself.");
+            }
+        }
+    };
+    check(self.getFloatDataArrays(), "FloatDataArray");
+    check(self.getStringDataArrays(), "StringDataArray");
+    check(self.getIntegerDataArrays(), "IntegerDataArray");
 }
