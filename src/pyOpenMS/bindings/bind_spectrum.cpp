@@ -202,9 +202,16 @@ Usage:
         .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
 
         .def("getIMData", [](const OpenMS::MSSpectrum& self) {
-            auto result = self.getIMData();
-            return nb::make_tuple((int)result.first, (int)result.second);
-        }, "Returns (index, drift_time_unit) for ion mobility data")
+            // the unit is returned as DriftTimeUnit rather than a bare int: casting it away made
+            // the array's own unit the only one not reachable as an enum, which is why callers
+            // reached for the unrelated scalar getDriftTimeUnit() instead
+            const auto [im_index, im_unit] = self.getIMData();
+            return nb::make_tuple(im_index, im_unit);
+        }, R"doc(Returns (index, unit) for the per-peak ion mobility array.
+
+``index`` indexes ``getFloatDataArrays()`` and ``unit`` is a ``DriftTimeUnit`` derived from that
+array's name. Raises if the spectrum has no ion mobility array; use ``containsIMData()`` first.
+)doc")
 
         .def("_get_peaks_view", [](nb::object self_obj) {
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
@@ -401,10 +408,21 @@ Usage:
             self.setStringDataArrays(arrays);
         }, "arrays"_a, "Set the string data arrays")
 
-        .def("get_drift_time_unit", [](const OpenMS::MSSpectrum& self) -> std::optional<OpenMS::DriftTimeUnit> {
+        .def("get_drift_time_array_unit", [](const OpenMS::MSSpectrum& self) -> std::optional<OpenMS::DriftTimeUnit> {
             if (!self.containsIMData()) return std::nullopt;
-            return self.getDriftTimeUnit();
-        }, "Returns drift time unit if ion mobility data exists, else None")
+            return self.getIMData().second;
+        }, R"doc(Returns the unit of the per-peak ion mobility array, or None if there is none.
+
+This belongs to the ``get_drift_time_array()`` family and reports the unit derived from that
+array's name. It is unrelated to ``getDriftTimeUnit()`` / the ``drift_time_unit`` property, which
+report the spectrum-wide scalar for a spectrum acquired at a single drift time; a spectrum may
+carry either or, on some vendor readers, both.
+
+``None`` means there is no ion mobility array at all. ``DriftTimeUnit.NONE`` is different: an
+array was found but its name did not pin down a unit.
+)doc")
+        // The former spelling, get_drift_time_unit(), lives on as a deprecated alias in
+        // addons/deprecated_aliases.py, matching how the _mv -> _view renames are handled.
 
         .def("calculateTIC", [](const OpenMS::MSSpectrum& self) -> double {
             return static_cast<double>(self.calculateTIC());
