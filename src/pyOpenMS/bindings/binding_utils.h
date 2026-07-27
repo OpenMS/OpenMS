@@ -334,3 +334,26 @@ void dropStrandedPeakMetadata(Container& self, size_t n, PeakMetadataPolicy poli
     drop(self.getStringDataArrays());
     drop(self.getIntegerDataArrays());
 }
+
+/// Replace the peaks of @p self with @p n new ones, honouring @p policy for the data arrays.
+///
+/// This exists so the ordering below is written down once instead of once per set_peaks()
+/// overload. Every step is load-bearing and none of them commute:
+///
+///  - the alignment check runs against the *incoming* count and before resize(), so a rejected
+///    call is a strict no-op rather than leaving the peaks already replaced;
+///  - @p fill runs after resize() and is the only container-specific part (m/z, RT or mobility);
+///  - the stranded-array drop runs after @p fill, because the caller's arrays may alias the very
+///    storage it releases -- see dropStrandedPeakMetadata().
+///
+/// Callers are responsible for validating their own inputs first, and for anything that has to
+/// happen after the peaks exist (installing a replacement ion mobility array, for instance).
+template <typename Container, typename Fill>
+void writePeaksWithPolicy(Container& self, size_t n, PeakMetadataPolicy policy, const char* container,
+                          Fill fill, std::optional<size_t> replaced_float_index = std::nullopt)
+{
+    checkPeakMetadataAlignment(self, n, policy, container, replaced_float_index);
+    self.resize(n);
+    fill(self, n);
+    dropStrandedPeakMetadata(self, n, policy);
+}

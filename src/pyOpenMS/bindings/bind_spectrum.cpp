@@ -94,6 +94,42 @@ inline OpenMS::DriftTimeUnit resolveIonMobilityUnit(const OpenMS::MSSpectrum& se
                                 "DriftTimeUnit.MILLISECOND for drift time.");
 }
 
+// Shared body of both set_peaks() overloads, which differ only in how they get hold of the two
+// arrays. Keeping it in one place matters because the order of the steps encodes the fix this
+// binding exists for -- see writePeaksWithPolicy() -- and a change applied to one overload but
+// not the other would silently reinstate the bug in the spelling nobody edited.
+inline void setSpectrumPeaks(OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj,
+                             PeakMetadataPolicy policy, nb::object ion_mobility,
+                             OpenMS::DriftTimeUnit ion_mobility_unit) {
+    const bool with_im = !ion_mobility.is_none();
+    // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
+    // mz is double, intensity is float matching Peak1D storage
+    auto mz_arr = as_numpy_array<double>(mz_obj);
+    auto int_arr = as_numpy_array<float>(int_obj);
+    const size_t n = mz_arr.shape(0);
+    if (int_arr.shape(0) != n) {
+        throw std::runtime_error("mz and intensity arrays must have same length");
+    }
+    // built before anything is modified, so a bad length or unit is a no-op too
+    std::optional<OpenMS::DataArrays::FloatDataArray> im_array;
+    if (with_im) {
+        im_array = makeIonMobilityArray(ion_mobility, n, resolveIonMobilityUnit(self, ion_mobility_unit));
+    }
+
+    const double* mz_ptr = static_cast<const double*>(mz_arr.data());
+    const float* int_ptr = static_cast<const float*>(int_arr.data());
+    writePeaksWithPolicy(self, n, policy, "spectrum",
+                         [mz_ptr, int_ptr](OpenMS::MSSpectrum& spec, size_t count) {
+                             for (size_t i = 0; i < count; ++i) {
+                                 spec[i].setMZ(mz_ptr[i]);
+                                 spec[i].setIntensity(int_ptr[i]);
+                             }
+                         },
+                         replacedIonMobilityIndex(self, with_im));
+
+    if (im_array) installIonMobilityArray(self, std::move(*im_array));
+}
+
 NB_MODULE(_pyopenms_spectrum, m) {
     m.doc() = "pyOpenMS spectrum bindings";
 
@@ -339,65 +375,21 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
                 throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
                                             "Did you mean set_peaks(peaks, metadata=...)?");
             }
-            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
-            const bool with_im = !ion_mobility.is_none();
-            // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
-            // mz is double, intensity is float matching Peak1D storage
-            auto mz_arr = as_numpy_array<double>(mz_obj);
-            auto int_arr = as_numpy_array<float>(int_obj);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
-            }
-            // built before anything is modified, so a bad length or unit is a no-op too
-            std::optional<OpenMS::DataArrays::FloatDataArray> im_array;
-            if (with_im) {
-                im_array = makeIonMobilityArray(ion_mobility, n, resolveIonMobilityUnit(self, ion_mobility_unit));
-            }
-            // after the input checks and before resize(), so a rejected call is a strict no-op
-            checkPeakMetadataAlignment(self, n, policy, "spectrum", replacedIonMobilityIndex(self, with_im));
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-            // after the peaks are written: the incoming arrays may alias the storage this frees
-            dropStrandedPeakMetadata(self, n, policy);
-            if (im_array) installIonMobilityArray(self, std::move(*im_array));
+            setSpectrumPeaks(self, mz_obj, int_obj, parsePeakMetadataPolicy(metadata),
+                             ion_mobility, ion_mobility_unit);
         }, "mz"_a, "intensity"_a, "metadata"_a = "error", "ion_mobility"_a = nb::none(),
            "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
            "Set peaks from mz and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC
            PYOPENMS_SET_PEAKS_IM_DOC)
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq, const std::string& metadata,
                              nb::object ion_mobility, OpenMS::DriftTimeUnit ion_mobility_unit) {
+            // policy parsed before the shape check so that a bad policy is reported at the same
+            // point as in the two-array overload
             const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
-            const bool with_im = !ion_mobility.is_none();
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
-            auto mz_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
-            }
-            std::optional<OpenMS::DataArrays::FloatDataArray> im_array;
-            if (with_im) {
-                im_array = makeIonMobilityArray(ion_mobility, n, resolveIonMobilityUnit(self, ion_mobility_unit));
-            }
-            checkPeakMetadataAlignment(self, n, policy, "spectrum", replacedIonMobilityIndex(self, with_im));
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-            // after the peaks are written: the incoming arrays may alias the storage this frees
-            dropStrandedPeakMetadata(self, n, policy);
-            if (im_array) installIonMobilityArray(self, std::move(*im_array));
+            setSpectrumPeaks(self, peaks_seq[0], peaks_seq[1], policy, ion_mobility, ion_mobility_unit);
         }, "peaks"_a, nb::kw_only(), "metadata"_a = "error", "ion_mobility"_a = nb::none(),
            "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
            "Set peaks from a tuple of (mz_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC

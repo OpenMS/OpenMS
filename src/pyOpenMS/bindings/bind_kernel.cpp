@@ -1714,17 +1714,15 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = as_numpy_array<float>(int_obj);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
-            // after the input check and before resize(), so a rejected call is a strict no-op
-            checkPeakMetadataAlignment(self, n, policy, "mobilogram");
-            self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMobility(mob_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-            // after the peaks are written: the incoming arrays may alias the storage this frees
-            dropStrandedPeakMetadata(self, n, policy);
+            writePeaksWithPolicy(self, n, policy, "mobilogram",
+                                 [mob_ptr, int_ptr](OpenMS::Mobilogram& mob, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         mob[i].setMobility(mob_ptr[i]);
+                                         mob[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
         }, "mob"_a, "intensity"_a, "metadata"_a = "error",
            "Set mobility and intensity from numpy arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq, const std::string& metadata) {
@@ -1745,16 +1743,15 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = as_numpy_array<float>(item1);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
-            checkPeakMetadataAlignment(self, n, policy, "mobilogram");
-            self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMobility(mob_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-            // after the peaks are written: the incoming arrays may alias the storage this frees
-            dropStrandedPeakMetadata(self, n, policy);
+            writePeaksWithPolicy(self, n, policy, "mobilogram",
+                                 [mob_ptr, int_ptr](OpenMS::Mobilogram& mob, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         mob[i].setMobility(mob_ptr[i]);
+                                         mob[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
         }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
            "Set peaks from [mobility_array, intensity_array]" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
