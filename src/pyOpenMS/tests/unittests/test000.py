@@ -3851,7 +3851,10 @@ def testMSSpectrum():
     assert spec.containsIMData()
     assert spec.getIMData()[0] == 1
 
-    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    # Ensure that "set_peaks()" doesnt clear the float data arrays.
+    # The array here is longer than the new peak list, which set_peaks() rejects by default
+    # since it would leave the annotations mis-associated; metadata="keep" is the explicit
+    # opt-in to the original behaviour (see test_set_peaks_metadata_alignment.py).
     spec = pyopenms.MSSpectrum()
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -3859,7 +3862,7 @@ def testMSSpectrum():
     f_da[0].set_data(data)
     f_da[0].setName("Ion Mobility")
     spec.setFloatDataArrays( f_da )
-    spec.set_peaks( [data_mz,data_i] )
+    spec.set_peaks( [data_mz,data_i], metadata="keep" )
     assert spec.containsIMData()
     assert spec.getIMData()[0] == 0
     assert len(spec.getFloatDataArrays()) == 1
@@ -4159,10 +4162,13 @@ def testMSChromatogram():
     assert f.get_data()[0] == 5
     assert f.getName() == "Test Data"
 
-    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    # Ensure that "set_peaks()" doesnt clear the float data arrays.
+    # The array here is longer than the new peak list, which set_peaks() rejects by default
+    # since it would leave the annotations mis-associated; metadata="keep" is the explicit
+    # opt-in to the original behaviour (see test_set_peaks_metadata_alignment.py).
     chrom = pyopenms.MSChromatogram()
     chrom.setFloatDataArrays( f_da )
-    chrom.set_peaks( [data_mz,data_i] )
+    chrom.set_peaks( [data_mz,data_i], metadata="keep" )
     assert len(chrom.getFloatDataArrays()) == 1
 
     f = chrom.getFloatDataArrays()[0]

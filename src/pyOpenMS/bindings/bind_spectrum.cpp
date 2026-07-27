@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
@@ -42,6 +43,91 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
         throw std::runtime_error("Failed to convert input to contiguous numpy array");
     }
     return arr;
+}
+
+// Build the ion mobility float data array for `n` peaks. Nothing is installed here, so an
+// unsupported unit (IMDataConverter::setIMUnit only names MILLISECOND and VSSC in the PSI CV,
+// and throws otherwise) leaves the spectrum untouched.
+inline OpenMS::DataArrays::FloatDataArray makeIonMobilityArray(nb::object values, size_t n,
+                                                               OpenMS::DriftTimeUnit unit) {
+    auto arr = as_numpy_array<float>(values);
+    if (arr.shape(0) != n) {
+        throw std::runtime_error("ion mobility array has " + std::to_string(arr.shape(0)) +
+                                 " entries but the spectrum has " + std::to_string(n) +
+                                 " peaks; the two must be the same length");
+    }
+    OpenMS::DataArrays::FloatDataArray fda;
+    const float* ptr = static_cast<const float*>(arr.data());
+    fda.assign(ptr, ptr + n);
+    // names the array from the PSI-MS CV rather than a hardcoded string, which is what makes the
+    // unit discoverable again through containsIMData()/getIMData()
+    OpenMS::IMDataConverter::setIMUnit(fda, unit);
+    return fda;
+}
+
+// Replace the existing ion mobility array, or append one if there is none. The index is resolved
+// here rather than passed in, because a preceding metadata='clear' may have dropped arrays and
+// shifted it.
+inline void installIonMobilityArray(OpenMS::MSSpectrum& self, OpenMS::DataArrays::FloatDataArray fda) {
+    if (self.containsIMData()) {
+        self.getFloatDataArrays()[self.getIMData().first] = std::move(fda);
+    } else {
+        self.getFloatDataArrays().push_back(std::move(fda));
+    }
+}
+
+// Which float array would set_peaks(..., ion_mobility=...) overwrite? Used to exempt it from the
+// alignment check: its current length cannot strand anything, since it is about to be replaced.
+inline std::optional<size_t> replacedIonMobilityIndex(const OpenMS::MSSpectrum& self, bool replacing) {
+    if (!replacing || !self.containsIMData()) return std::nullopt;
+    return self.getIMData().first;
+}
+
+// Resolve the unit for an incoming ion mobility array: explicit argument wins, otherwise inherit
+// the unit already on the spectrum so that editing peaks in place needs no unit argument.
+inline OpenMS::DriftTimeUnit resolveIonMobilityUnit(const OpenMS::MSSpectrum& self, OpenMS::DriftTimeUnit unit) {
+    if (unit != OpenMS::DriftTimeUnit::NONE) return unit;
+    if (self.containsIMData()) return self.getIMData().second;
+    throw std::invalid_argument("ion_mobility_unit is required: the spectrum has no ion mobility array "
+                                "to inherit the unit from. Pass e.g. "
+                                "ion_mobility_unit=DriftTimeUnit.VSSC for 1/K0 or "
+                                "DriftTimeUnit.MILLISECOND for drift time.");
+}
+
+// Shared body of both set_peaks() overloads, which differ only in how they get hold of the two
+// arrays. Keeping it in one place matters because the order of the steps encodes the fix this
+// binding exists for -- see writePeaksWithPolicy() -- and a change applied to one overload but
+// not the other would silently reinstate the bug in the spelling nobody edited.
+inline void setSpectrumPeaks(OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj,
+                             PeakMetadataPolicy policy, nb::object ion_mobility,
+                             OpenMS::DriftTimeUnit ion_mobility_unit) {
+    const bool with_im = !ion_mobility.is_none();
+    // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
+    // mz is double, intensity is float matching Peak1D storage
+    auto mz_arr = as_numpy_array<double>(mz_obj);
+    auto int_arr = as_numpy_array<float>(int_obj);
+    const size_t n = mz_arr.shape(0);
+    if (int_arr.shape(0) != n) {
+        throw std::runtime_error("mz and intensity arrays must have same length");
+    }
+    // built before anything is modified, so a bad length or unit is a no-op too
+    std::optional<OpenMS::DataArrays::FloatDataArray> im_array;
+    if (with_im) {
+        im_array = makeIonMobilityArray(ion_mobility, n, resolveIonMobilityUnit(self, ion_mobility_unit));
+    }
+
+    const double* mz_ptr = static_cast<const double*>(mz_arr.data());
+    const float* int_ptr = static_cast<const float*>(int_arr.data());
+    writePeaksWithPolicy(self, n, policy, "spectrum",
+                         [mz_ptr, int_ptr](OpenMS::MSSpectrum& spec, size_t count) {
+                             for (size_t i = 0; i < count; ++i) {
+                                 spec[i].setMZ(mz_ptr[i]);
+                                 spec[i].setIntensity(int_ptr[i]);
+                             }
+                         },
+                         replacedIonMobilityIndex(self, with_im));
+
+    if (im_array) installIonMobilityArray(self, std::move(*im_array));
 }
 
 NB_MODULE(_pyopenms_spectrum, m) {
@@ -280,41 +366,34 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             return nb::make_tuple(mz_arr, int_arr);
         }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")
 
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
-            // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
-            // mz is double, intensity is float matching Peak1D storage
-            auto mz_arr = as_numpy_array<double>(mz_obj);
-            auto int_arr = as_numpy_array<float>(int_obj);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj, const std::string& metadata,
+                             nb::object ion_mobility, OpenMS::DriftTimeUnit ion_mobility_unit) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
             }
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq) {
+            setSpectrumPeaks(self, mz_obj, int_obj, parsePeakMetadataPolicy(metadata),
+                             ion_mobility, ion_mobility_unit);
+        }, "mz"_a, "intensity"_a, "metadata"_a = "error", "ion_mobility"_a = nb::none(),
+           "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
+           "Set peaks from mz and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC
+           PYOPENMS_SET_PEAKS_IM_DOC)
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq, const std::string& metadata,
+                             nb::object ion_mobility, OpenMS::DriftTimeUnit ion_mobility_unit) {
+            // policy parsed before the shape check so that a bad policy is reported at the same
+            // point as in the two-array overload
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
-            auto mz_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
-            }
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from a tuple of (mz_array, intensity_array)")
+            setSpectrumPeaks(self, peaks_seq[0], peaks_seq[1], policy, ion_mobility, ion_mobility_unit);
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error", "ion_mobility"_a = nb::none(),
+           "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
+           "Set peaks from a tuple of (mz_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC
+           PYOPENMS_SET_PEAKS_IM_DOC)
 
         .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
             self.push_back(p);
@@ -383,6 +462,25 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
                 data_ptr, {arr.size()}, self_obj
             );
         }, "Returns writable view of drift time array if ion mobility data exists, else None")
+
+        .def("set_drift_time_array", [](OpenMS::MSSpectrum& self, nb::object values, OpenMS::DriftTimeUnit unit) {
+            // build first, install second: a wrong length or an unsupported unit must not leave
+            // the spectrum half-modified
+            auto fda = makeIonMobilityArray(values, self.size(), resolveIonMobilityUnit(self, unit));
+            installIonMobilityArray(self, std::move(fda));
+        }, "values"_a, "unit"_a = OpenMS::DriftTimeUnit::NONE,
+           R"doc(Set the per-peak ion mobility array, replacing any existing one.
+
+``values`` must have one entry per peak. ``unit`` names the array through the PSI-MS controlled
+vocabulary, which is what makes it discoverable again through ``containsIMData()`` and
+``getIMData()``; only ``DriftTimeUnit.MILLISECOND`` (drift time) and ``DriftTimeUnit.VSSC``
+(1/K0) have a CV term for this and anything else is rejected. ``unit`` may be omitted only when
+the spectrum already carries an ion mobility array, whose unit is then reused.
+
+This does not touch ``setDriftTime()``/``setDriftTimeUnit()``, which describe a whole spectrum
+acquired at one drift time rather than a per-peak annotation; a frame carrying an ion mobility
+array leaves those unset, matching what IMDataConverter produces.
+)doc")
 
         .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
             return self.getFloatDataArrays();
