@@ -20,6 +20,8 @@ jobs:
             compiler: xcode
           - os: ubuntu-24.04
             compiler: g++
+          - os: ubuntu-24.04-arm
+            compiler: g++
     runs-on: ${{ matrix.os }}
     outputs:
       has_version: ${{ steps.version.outputs.has_version }}
@@ -31,6 +33,18 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+
+      # Some steps should only run for a single element of the build
+      # matrix.  This step computes which runner that is going to be.
+      - name: Compute Solo Runner
+        id: solo
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]] && [[ "$RUNNER_ARCH" == "X64" ]]; then
+            echo "solo=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "solo=false" >>"$GITHUB_OUTPUT"
+          fi
 
       - name: Build OpenMS
         uses: ./.github/actions/build
@@ -170,7 +184,7 @@ jobs:
       # Zip the documentation first, since there are :: which make the
       # upload action choke.
       - name: Zip Documentation
-        if: runner.os == 'Linux'
+        if: steps.solo.outputs.solo == 'true'
         uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
@@ -179,7 +193,7 @@ jobs:
           filename: 'documentation.zip'
 
       - name: Upload Documentation as artifacts
-        if: runner.os == 'Linux'
+        if: steps.solo.outputs.solo == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: documentation
@@ -187,7 +201,7 @@ jobs:
             ${{ github.workspace }}/build/doc/documentation.zip
 
       - name: Create a tarball of the Source Code
-        if: runner.os == 'Linux'
+        if: steps.solo.outputs.solo == 'true'
         env:
           VERSION: ${{ steps.version.outputs.name }}
         run: |
@@ -203,7 +217,7 @@ jobs:
             -czf "$RUNNER_TEMP/OpenMS-${VERSION}.tar.gz" .
 
       - name: Upload Source Code as an Artifact
-        if: runner.os == 'Linux'
+        if: steps.solo.outputs.solo == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: OpenMS-${{ steps.version.outputs.name }}.tar.gz
