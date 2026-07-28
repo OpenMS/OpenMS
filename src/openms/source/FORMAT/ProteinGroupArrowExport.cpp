@@ -670,6 +670,13 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     }
     else if (run_paths.size() > 1)
     {
+      // TODO(#9817): provisional, not a settled contract. The QPX spec makes
+      // (pg_accessions, run_file_name) the pg primary key and requires both to be non-null, and
+      // quantms silently DROPS rows whose run_file_name is empty - so these groups would vanish
+      // downstream rather than being flagged. qpx's own converters emit a stable non-empty token
+      // ("unknown" / the mzid basename / "combined") instead. Honest-but-dropped vs. lossy-but-
+      // visible is unresolved upstream (bigbio/qpx#51) and is to be decided in #9817. Unreachable
+      // from any TOPP tool today (ProSE, the only caller, always passes a single-path run).
       OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): identification run '" << prot_id.getIdentifier()
                       << "' spans " << run_paths.size() << " MS runs; protein groups have no single "
                       << "origin file, leaving run_file_name empty for its rows." << std::endl;

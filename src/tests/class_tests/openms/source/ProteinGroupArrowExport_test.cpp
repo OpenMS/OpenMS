@@ -91,6 +91,9 @@ START_SECTION(([EXTRA] exportToArrow - a merged run has no single origin file pe
   // A protein group inferred across several runs has no per-row origin file, and the pg table has
   // no place to record more than one. Emit the file's "unknown" convention ("") plus a warning
   // rather than stamping every row with the run's first file.
+  // TODO(#9817): provisional - the QPX spec requires a non-null run_file_name here and quantms
+  // drops empty-valued rows, so this may become a non-empty token instead. See the matching
+  // comment in ProteinGroupArrowExport.cpp; this assertion pins current behaviour, not a contract.
   auto prot_id = makeIdOnlyRun({"/data/runA.mzML", "/data/runB.mzML"});
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
   TEST_NOT_EQUAL(table, nullptr)
