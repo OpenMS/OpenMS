@@ -145,6 +145,10 @@ target_link_libraries(ConsensusMapArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+target_link_libraries(ProteinGroupArrowExport_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(QPXFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
