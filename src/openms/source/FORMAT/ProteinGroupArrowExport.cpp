@@ -217,6 +217,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)anchor_protein_builder.Append(anchor);
 
     // run_file_name
+    // Deliberately no File::stemName() here: the values come from 'file_channel_level_filename',
+    // which PeptideAndProteinQuant already stems (PeptideAndProteinQuant.cpp), and
+    // FileHandler::stripExtension is not idempotent - for an unrecognized extension it strips at
+    // the last dot, so stemming twice would turn a legitimate stem like 'HeLa_1.2ug' into 'HeLa_1'.
     (void)run_file_name_builder.Append(run_file);
 
     // pg_accessions
@@ -652,10 +656,24 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     if (groups.empty()) continue;
     total_groups_found += groups.size();
 
-    // Derive run file name from primary MS run path for this prot_id
+    // Derive run file name from primary MS run path for this prot_id. QPX wants the spectrum file
+    // name without path or extension, so the value is stemmed to match the psm and feature tables.
+    // A merged run has no single origin file - and a protein group inferred across runs has no
+    // per-row origin concept at all - so emit the file's "unknown" convention ("") instead of
+    // stamping every row with the run's first file. Not an error: the pg table cannot express it.
     StringList run_paths;
     prot_id.getPrimaryMSRunPath(run_paths);
-    std::string run_file = run_paths.empty() ? "" : std::string(run_paths[0]);
+    std::string run_file;
+    if (run_paths.size() == 1)
+    {
+      run_file = File::stemName(run_paths[0]);
+    }
+    else if (run_paths.size() > 1)
+    {
+      OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): identification run '" << prot_id.getIdentifier()
+                      << "' spans " << run_paths.size() << " MS runs; protein groups have no single "
+                      << "origin file, leaving run_file_name empty for its rows." << std::endl;
+    }
 
     // Build accession -> ProteinHit lookup scoped to this prot_id
     std::unordered_map<std::string, const ProteinHit*> hit_lookup;
