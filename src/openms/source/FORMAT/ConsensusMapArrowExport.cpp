@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -617,7 +618,11 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === run_file_name ===
-    // Derive from the first FeatureHandle's map index -> column header filename
+    // Derive from the first FeatureHandle's map index -> column header filename.
+    // QPX defines the column as the spectrum file name without path or extension; stemming here is
+    // what makes it join with the psm and pg tables, which derive the same value from other sources.
+    // For isobaric input all channels of one file share the ColumnHeader::filename (the channel
+    // identity lives in ColumnHeader::label), so any of them yields the same stem.
     {
       bool found_run = false;
       for (const auto& fh : cf.getFeatures())
@@ -625,7 +630,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
         auto it = column_headers.find(fh.getMapIndex());
         if (it != column_headers.end())
         {
-          (void)run_file_name_builder.Append(it->second.filename);
+          (void)run_file_name_builder.Append(File::stemName(it->second.filename));
           found_run = true;
           break;
         }

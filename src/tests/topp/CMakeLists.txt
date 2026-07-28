@@ -2815,6 +2815,26 @@ set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
 add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
+
+# QPX Parquet export. Both inputs carry a merged identification run (several files in 'spectra_data'
+# with per-PSM 'id_merge_index'), the label-free one over 3 files and the TMT6 one over 48. As with
+# the other QPX TOPP tests these only assert that the files are produced - there is no QPX Parquet
+# reader in the tree, so the per-PSM run_file_name values are asserted in QPXFile_test instead.
+add_test("TOPP_ProteinQuantifier_18_qpx" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv -out_qpx ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir -top:N 0 -top:aggregate sum)
+add_test(NAME "TOPP_ProteinQuantifier_18_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+add_test(NAME "TOPP_ProteinQuantifier_18_qpx_feature_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.feature.parquet)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+add_test(NAME "TOPP_ProteinQuantifier_18_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.pg.parquet)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+
+add_test("TOPP_ProteinQuantifier_19_qpx" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -out_qpx ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir -top:include_all)
+add_test(NAME "TOPP_ProteinQuantifier_19_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+add_test(NAME "TOPP_ProteinQuantifier_19_qpx_feature_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.feature.parquet)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+add_test(NAME "TOPP_ProteinQuantifier_19_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)

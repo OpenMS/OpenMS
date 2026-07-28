@@ -631,4 +631,67 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
 }
 END_SECTION
 
+START_SECTION([EXTRA] exportToArrow - run_file_name is emitted without path or extension)
+{
+  // QPX defines run_file_name as the spectrum file name without path or extension. The feature,
+  // psm and pg tables each derive it from a different source, so all three must stem it for the
+  // cross-table join (and the Hive partitioning) to work.
+  ConsensusMap cmap = createTestConsensusMap();
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  auto rfn = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(rfn->GetString(0), "sample1") // ColumnHeader::filename is "sample1.mzML"
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportToArrow - isobaric channels of one file share one run_file_name)
+{
+  // For isobaric input every channel of a file gets its own ColumnHeader with the same `filename`;
+  // the channel identity lives in `label`. So whichever channel column the first FeatureHandle
+  // happens to point at, the row must resolve to that file's single stem.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+
+  ConsensusMap::ColumnHeaders headers;
+  const StringList labels = {"tmt6plex_126", "tmt6plex_127", "tmt6plex_128"};
+  for (Size i = 0; i < labels.size(); ++i)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/raw/20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML";
+    ch.label = labels[i];
+    headers[i] = ch;
+  }
+  cmap.setColumnHeaders(headers);
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("PI_0");
+  cmap.setProteinIdentifications({prot_id});
+
+  // Two features anchored at different channel columns (2 and 0)
+  for (UInt64 first_map : {UInt64(2), UInt64(0)})
+  {
+    ConsensusFeature cf;
+    cf.setMZ(500.25);
+    cf.setRT(100.5);
+    cf.setCharge(2);
+    for (UInt64 m : {first_map, UInt64(1)})
+    {
+      BaseFeature bf;
+      bf.setIntensity(1000.0f);
+      bf.setMZ(500.25);
+      bf.setRT(100.5);
+      cf.insert(m, bf);
+    }
+    cmap.push_back(cf);
+  }
+
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+  auto rfn = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(rfn->GetString(0), "20150820_Haura-Pilot-TMT1-bRPLC01-1")
+  TEST_STRING_EQUAL(rfn->GetString(1), "20150820_Haura-Pilot-TMT1-bRPLC01-1")
+}
+END_SECTION
+
 END_TEST
