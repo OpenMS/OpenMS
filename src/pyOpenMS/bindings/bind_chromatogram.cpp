@@ -93,7 +93,9 @@ rt, intensities = chromatogram.get_peaks()
         .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
             R"doc(
 Lexicographically sorts the peaks by their intensity.
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+Sorts the peaks according to ascending intensity (lowest to highest) when reverse is False.
+When reverse is True, sorts by descending intensity (highest to lowest).
+Meta data arrays will be sorted accordingly
 )doc")
         .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); },
             R"doc(
@@ -110,9 +112,8 @@ the result is undefined. Raises an exception if the chromatogram is empty.
         .def("clear", [](OpenMS::MSChromatogram& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a,
             R"doc(
 Clears all data and meta data.
-Deletes all peaks as well as any associated data arrays (float, integer, string) and the
-ranges. If clear_meta_data is True, the descriptive meta data (ChromatogramSettings, name)
-is deleted as well.
+Always deletes all peaks, associated data arrays (float, integer, string), and ranges.
+If clear_meta_data is True, also deletes the descriptive meta data (ChromatogramSettings, name).
 )doc")
         .def("getNativeID", [](const OpenMS::MSChromatogram& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software.")
         .def("setNativeID", [](OpenMS::MSChromatogram& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
