@@ -85,6 +85,7 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include "peak_layout.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -109,17 +110,14 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-NB_MODULE(_pyopenms_kernel, m) {
-    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
-    static_assert(std::is_standard_layout_v<OpenMS::MobilityPeak1D>,
-                  "MobilityPeak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
-    static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
-                  "MobilityPeak1D must be 16 bytes for zero-copy structured array access");
-    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::CoordinateType, double>,
-                  "MobilityPeak1D::CoordinateType must be double (dtype assumes float64 for position)");
-    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::IntensityType, float>,
-                  "MobilityPeak1D::IntensityType must be float (dtype assumes float32 for intensity)");
+// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
+// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+using MobilityPeak1DLayout = pyopenms::PeakLayout<OpenMS::MobilityPeak1D>;
+static_assert(MobilityPeak1DLayout::position_offset == 0 && MobilityPeak1DLayout::intensity_offset == 8,
+    "MobilityPeak1D's structured dtype is documented as mobility (float64) at 0, intensity (float32) at 8");
 
+NB_MODULE(_pyopenms_kernel, m) {
     m.doc() = "pyOpenMS kernel bindings";
 
 
@@ -1679,13 +1677,11 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
                 nb::dict dtype_dict;
-                // Derive dtype from C++ layout (validated by static_asserts at module init)
-                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
-                constexpr size_t int_offset = sizeof(OpenMS::MobilityPeak1D::PositionType);
+                // Offsets are read off the C++ layout, not reconstructed from it
                 dtype_dict["names"] = nb::make_tuple("mobility", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
-                dtype_dict["itemsize"] = sizeof(OpenMS::MobilityPeak1D);
+                dtype_dict["offsets"] = nb::make_tuple(MobilityPeak1DLayout::position_offset, MobilityPeak1DLayout::intensity_offset);
+                dtype_dict["itemsize"] = MobilityPeak1DLayout::itemsize;
                 auto py_dtype = np.attr("dtype")(dtype_dict);
                 if (n == 0) {
                     return np.attr("empty")(0, py_dtype);

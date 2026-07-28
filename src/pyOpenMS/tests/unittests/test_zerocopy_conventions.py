@@ -84,6 +84,54 @@ def test_struct_returns_structured_array():
     assert 'intensity' in arr.dtype.names
 
 
+def test_struct_dtype_matches_cpp_peak_layout():
+    """_struct dtypes must describe the real AoS layout, not a plausible-looking one.
+
+    The dtype overlays Peak1D/ChromatogramPeak/MobilityPeak1D storage directly, so a
+    wrong offset silently reinterprets bytes rather than failing. C++ static_asserts in
+    bindings/peak_layout.h pin the offsets at build time; this pins what reaches Python.
+    """
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks(([100.5, 200.25], [1.0, 2.0]))
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks(([10.5, 20.25], [3.0, 4.0]))
+    mob = pyopenms.Mobilogram()
+    mob.set_peaks(([0.5, 0.75], [5.0, 6.0]))
+
+    for obj, pos_field in [(spec, 'mz'), (chrom, 'rt'), (mob, 'mobility')]:
+        dt = obj.get_peaks_struct().dtype
+        assert dt.names == (pos_field, 'intensity')
+        assert dt.itemsize == 16
+        assert dt.fields[pos_field][1] == 0
+        assert dt.fields['intensity'][1] == 8
+        assert dt.fields[pos_field][0] == np.float64
+        assert dt.fields['intensity'][0] == np.float32
+
+
+def test_struct_view_reads_the_same_values_as_the_scalar_accessors():
+    """End-to-end check that the dtype offsets land on the right members.
+
+    Values are chosen so a swapped or shifted field would not coincidentally match.
+    """
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks(([100.5, 200.25, 300.125], [11.0, 22.0, 33.0]))
+    arr = spec.get_peaks_struct()
+    assert [p.getMZ() for p in spec] == list(arr['mz'])
+    assert [p.getIntensity() for p in spec] == list(arr['intensity'])
+
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks(([10.5, 20.25, 30.125], [44.0, 55.0, 66.0]))
+    arr = chrom.get_peaks_struct()
+    assert [p.getRT() for p in chrom] == list(arr['rt'])
+    assert [p.getIntensity() for p in chrom] == list(arr['intensity'])
+
+    mob = pyopenms.Mobilogram()
+    mob.set_peaks(([0.5, 0.75, 1.25], [77.0, 88.0, 99.0]))
+    arr = mob.get_peaks_struct()
+    assert [p.getMobility() for p in mob] == list(arr['mobility'])
+    assert [p.getIntensity() for p in mob] == list(arr['intensity'])
+
+
 def test_no_public_as_view_methods():
     """No public methods should use _as_view suffix (removed convention)."""
     # get_matrix_as_view is an intentional deprecated alias for get_matrix_view
