@@ -1601,11 +1601,17 @@ mobility, intensities = mobilogram.get_peaks()
         .def("getDriftTimeUnit", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnit(); }, "Returns the ion mobility drift time unit")
         .def("getDriftTimeUnitAsString", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnitAsString(); }, "Returns the ion mobility drift time unit as string")
         .def("setDriftTimeUnit", [](OpenMS::Mobilogram& self, OpenMS::DriftTimeUnit dt) { return self.setDriftTimeUnit(dt); }, "dt"_a, "Sets the ion mobility drift time unit")
-        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
-        .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); }, 
+        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
             R"doc(
 Lexicographically sorts the peaks by their intensity
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+Sorts the peaks according to ascending intensity (lowest to highest) when reverse is False.
+When reverse is True, sorts by descending intensity (highest to lowest).
+Meta data arrays will be sorted accordingly
+)doc")
+        .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); },
+            R"doc(
+Lexicographically sorts the peaks by their position (mobility)
+The mobilogram is sorted with respect to position (mobility). Meta data arrays will be sorted accordingly
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
@@ -1637,7 +1643,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
 
         .def("clear", [](OpenMS::Mobilogram& self) {
             self.clear();
-        }, "Clear all peaks")
+        }, "Clears all data: deletes all peaks, associated data arrays (float, integer, string), and resets the mobility and intensity ranges")
 
         .def("get_peaks", [](const OpenMS::Mobilogram& self) {
             // Single allocation + single capsule to reduce overhead for small arrays
