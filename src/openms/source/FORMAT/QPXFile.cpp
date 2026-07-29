@@ -1514,26 +1514,28 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
 
 namespace
 {
-  /// Build the canonical QPX "psm" file metadata (qpx_version, file_type="psm",
-  /// UUID, creation date, scan_format, creator). Each call mints a fresh uuid and
+  /// Build the canonical QPX "psm" file metadata. Each call mints a fresh uuid and
   /// creation_date, so callers needing one identity per file must build it once.
-  std::shared_ptr<const arrow::KeyValueMetadata> qpxPsmMetadata()
+  /// @param scan_format QPX scan_format token; omitted from the metadata when empty.
+  std::shared_ptr<const arrow::KeyValueMetadata> qpxPsmMetadata(
+    const ParquetWriteConfig& config,
+    const std::string& scan_format)
   {
-    return arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "psm"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
-      {"scan_format", "scan"},
-      {"software_provider", "OpenMS"}
-    });
+    std::map<std::string, std::string> extra;
+    if (!scan_format.empty()) { extra["scan_format"] = scan_format; }
+    return ArrowIOHelpers::qpxFileMetadata("psm_file", config, extra);
   }
 
-  /// Attach the canonical QPX "psm" file metadata to the schema of @p table.
-  std::shared_ptr<arrow::Table> attachQPXPsmMetadata(const std::shared_ptr<arrow::Table>& table)
+  /// Collect the spectrum references of @p pep_ptrs, for scan_format detection.
+  std::vector<std::string> spectrumReferences(const std::vector<const PeptideIdentification*>& pep_ptrs)
   {
-    return table->ReplaceSchemaMetadata(qpxPsmMetadata());
+    std::vector<std::string> refs;
+    refs.reserve(pep_ptrs.size());
+    for (const auto* p : pep_ptrs)
+    {
+      if (p && !p->getSpectrumReference().empty()) { refs.push_back(p->getSpectrumReference()); }
+    }
+    return refs;
   }
 
   /// Translate ParquetWriteConfig::Compression to arrow::Compression::type.
@@ -1583,13 +1585,20 @@ bool QPXFile::exportToParquet(
     OPENMS_LOG_ERROR << "QPXFile: Failed to create Arrow table" << std::endl;
     return false;
   }
-  return exportToParquet(table, filename, config);
+  std::vector<std::string> refs;
+  refs.reserve(peptide_identifications.size());
+  for (const auto& p : peptide_identifications)
+  {
+    if (!p.getSpectrumReference().empty()) { refs.push_back(p.getSpectrumReference()); }
+  }
+  return exportToParquet(table, filename, config, ArrowIOHelpers::qpxScanFormat(refs));
 }
 
 bool QPXFile::exportToParquet(
   const std::shared_ptr<arrow::Table>& table,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const std::string& scan_format)
 {
   if (!table)
   {
@@ -1597,7 +1606,7 @@ bool QPXFile::exportToParquet(
     return false;
   }
 
-  // Guard: the table-taking overload attaches file_type="psm" metadata, so the
+  // Guard: the table-taking overload attaches file_type="psm_file" metadata, so the
   // caller must actually pass a QPXPSMSchema table (not, e.g., the internal
   // PSMSchema produced by exportToArrow).
   auto validation = ArrowSchemaValidation::validate(table, QPXPSMSchema::schema(), ArrowSchemaValidation::Mode::Strict);
@@ -1608,7 +1617,9 @@ bool QPXFile::exportToParquet(
     return false;
   }
 
-  return ArrowIOHelpers::writeTableToParquet(attachQPXPsmMetadata(table), filename, config);
+  auto meta = qpxPsmMetadata(config, scan_format);
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
+  return ArrowIOHelpers::writeTableToParquet(table->ReplaceSchemaMetadata(meta), filename, config);
 }
 
 bool QPXFile::exportToParquetStreaming(
@@ -1648,7 +1659,8 @@ bool QPXFile::exportToParquetStreaming(
 
   // One metadata identity (uuid/creation_date) for the whole file. Reused both for the
   // writer's schema and for each batch table so their schemas are identical.
-  auto meta = qpxPsmMetadata();
+  auto meta = qpxPsmMetadata(config, ArrowIOHelpers::qpxScanFormat(spectrumReferences(peptide_identification_ptrs)));
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
   auto schema_meta = QPXPSMSchema::schema()->WithMetadata(meta);
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);

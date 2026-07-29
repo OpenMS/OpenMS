@@ -13,7 +13,9 @@
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>  // for ParquetWriteConfig
 
 #include <cstdint>
+#include <map>
 #include <memory>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -21,6 +23,7 @@
 namespace arrow
 {
   class Array;
+  class KeyValueMetadata;
   class Table;
 }
 
@@ -75,7 +78,54 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI bool concatenateAndWriteToParquet(
     const std::vector<std::shared_ptr<arrow::Table>>& tables,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
+
+  // ---------------------------------------------------------------------------
+  // QPX file metadata
+  // ---------------------------------------------------------------------------
+
+  /**
+    @brief Build the canonical QPX file-level key-value metadata
+
+    Writes the keys defined by the QPX serialization spec: @c qpx_version,
+    @c file_type, @c creator, @c software_provider, @c creation_date (ISO 8601),
+    @c compression_format and @c uuid, plus any @p extra keys.
+
+    Build this <b>once per output file</b> and reuse the returned object for both the
+    writer schema and every batch — each call mints a fresh @c uuid and
+    @c creation_date, so calling it per batch would produce mismatched schemas.
+
+    @param[in] file_type QPX view token: @c "psm_file", @c "feature_file" or @c "pg_file"
+    @param[in] config Write configuration; supplies @c compression_format
+    @param[in] extra Additional keys, e.g. <tt>{{"scan_format", "scan"}}</tt>
+    @return The metadata, or @c nullptr if @p config selects a compression QPX does not
+            define (LZ4). Callers must treat @c nullptr as a write failure.
+  */
+  OPENMS_DLLAPI std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
+    const std::string& file_type,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::map<std::string, std::string>& extra = {});
+
+  /**
+    @brief Classify a spectrum native ID into a QPX @c scan_format token
+
+    @param[in] native_id A spectrum native ID (e.g. <tt>controllerType=0 ... scan=1234</tt>)
+    @return @c "index" for @c index= IDs, @c "scan" for other recognized native IDs,
+            or @c "" when the convention cannot be determined.
+
+    @see qpxScanFormat(const std::vector<std::string>&)
+  */
+  OPENMS_DLLAPI std::string qpxScanFormat(const std::string& native_id);
+
+  /**
+    @brief Derive a single QPX @c scan_format token for a set of native IDs
+
+    Unrecognized IDs are ignored. Returns @c "" when no ID is recognized, or when the
+    inputs disagree — mixed conventions are reported once via the log rather than
+    guessed at, so an ambiguous export omits @c scan_format instead of mislabeling it.
+  */
+  OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids);
 
   // ---------------------------------------------------------------------------
   // Read helpers

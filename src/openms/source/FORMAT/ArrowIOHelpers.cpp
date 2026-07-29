@@ -10,8 +10,11 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -45,6 +48,82 @@ namespace
     }
     return arrow::Compression::ZSTD;
   }
+
+  /// QPX `compression_format` token for @p c, or "" if QPX does not define one.
+  /// The spec's vocabulary is zstd|snappy|gzip|lzo|none — LZ4 has no token.
+  std::string qpxCompressionName(ParquetWriteConfig::Compression c)
+  {
+    switch (c)
+    {
+      case ParquetWriteConfig::Compression::NONE:   return "none";
+      case ParquetWriteConfig::Compression::SNAPPY: return "snappy";
+      case ParquetWriteConfig::Compression::GZIP:   return "gzip";
+      case ParquetWriteConfig::Compression::ZSTD:   return "zstd";
+      case ParquetWriteConfig::Compression::LZ4:    return "";
+    }
+    return "";
+  }
+}
+
+std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
+  const std::string& file_type,
+  const ParquetWriteConfig& config,
+  const std::map<std::string, std::string>& extra)
+{
+  const std::string compression = qpxCompressionName(config.compression);
+  if (compression.empty())
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: QPX does not define a compression_format token for LZ4; "
+                        "use ZSTD (default), SNAPPY, GZIP or NONE for QPX output." << std::endl;
+    return nullptr;
+  }
+
+  std::vector<std::string> keys{
+    "qpx_version", "file_type", "creator", "software_provider", "creation_date",
+    "compression_format", "uuid"};
+  std::vector<std::string> values{
+    "1.0",
+    file_type,
+    "OpenMS",
+    "OpenMS " + VersionInfo::getVersion(),
+    DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ"),
+    compression,
+    generateUuidV4()};
+
+  for (const auto& [k, v] : extra)
+  {
+    keys.push_back(k);
+    values.push_back(v);
+  }
+
+  return std::make_shared<arrow::KeyValueMetadata>(std::move(keys), std::move(values));
+}
+
+std::string qpxScanFormat(const std::string& native_id)
+{
+  if (StringUtils::hasPrefix(native_id, "index=")) { return "index"; }
+  if (SpectrumNativeIDParser::isNativeID(native_id)) { return "scan"; }
+  return "";
+}
+
+std::string qpxScanFormat(const std::vector<std::string>& native_ids)
+{
+  std::string resolved;
+  for (const auto& id : native_ids)
+  {
+    const std::string fmt = qpxScanFormat(id);
+    if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
+    if (resolved.empty()) { resolved = fmt; }
+    else if (resolved != fmt)
+    {
+      // Two conventions in one export: neither token would describe the whole file, so
+      // omit scan_format rather than assert a wrong one.
+      OPENMS_LOG_WARN << "ArrowIOHelpers: spectrum native IDs mix '" << resolved << "' and '"
+                      << fmt << "' conventions; omitting QPX scan_format." << std::endl;
+      return "";
+    }
+  }
+  return resolved;
 }
 
 bool writeTableToParquet(
@@ -110,7 +189,8 @@ bool writeTableToParquet(
 bool concatenateAndWriteToParquet(
   const std::vector<std::shared_ptr<arrow::Table>>& tables,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const std::shared_ptr<const arrow::KeyValueMetadata>& metadata)
 {
   if (tables.empty()) { return true; }
 
@@ -122,7 +202,11 @@ bool concatenateAndWriteToParquet(
     return false;
   }
 
-  return writeTableToParquet(concat_result.ValueOrDie(), filename, config);
+  auto table = concat_result.ValueOrDie();
+  // The concatenated table inherits the first input's schema metadata, which carries that
+  // input's uuid/creation_date. Stamp one identity for the merged file instead.
+  if (metadata) { table = table->ReplaceSchemaMetadata(metadata); }
+  return writeTableToParquet(table, filename, config);
 }
 
 // ---------------------------------------------------------------------------

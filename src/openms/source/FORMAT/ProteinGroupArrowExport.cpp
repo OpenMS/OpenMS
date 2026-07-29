@@ -346,9 +346,13 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // Iterate protein groups and emit rows
   for (const auto& group : groups)
   {
+    // All three arrays are indexed in lockstep below, so every one of them must exist —
+    // checking only the float/string arrays would dereference IntegerDataArrays()[0] on a
+    // group that carries abundances but no channel array.
     bool has_quant = group.getFloatDataArrays().size() >= 4
                      && !group.getStringDataArrays().empty()
-                     && !group.getStringDataArrays()[0].empty();
+                     && !group.getStringDataArrays()[0].empty()
+                     && !group.getIntegerDataArrays().empty();
 
     if (has_quant)
     {
@@ -470,16 +474,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 namespace
 {
   /// Attach the canonical QPX "pg" file metadata to a table's schema.
-  std::shared_ptr<arrow::Table> attachQPXPgMetadata(const std::shared_ptr<arrow::Table>& table)
+  /// Returns nullptr if QPX does not define a token for the configured compression.
+  std::shared_ptr<arrow::Table> attachQPXPgMetadata(
+    const std::shared_ptr<arrow::Table>& table,
+    const ParquetWriteConfig& config)
   {
-    auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "pg"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
-      {"software_provider", "OpenMS"}
-    });
+    // The pg view has no scan column, so no scan_format key.
+    auto metadata = ArrowIOHelpers::qpxFileMetadata("pg_file", config);
+    if (!metadata) { return nullptr; }
     return table->ReplaceSchemaMetadata(metadata);
   }
 }
@@ -509,7 +511,7 @@ bool ProteinGroupArrowExport::exportToParquet(
     return false;
   }
 
-  // Guard: this overload stamps file_type="pg", so the caller must pass a
+  // Guard: this overload stamps file_type="pg_file", so the caller must pass a
   // QPXPgSchema table.
   auto validation = ArrowSchemaValidation::validate(table, QPXPgSchema::schema(), ArrowSchemaValidation::Mode::Strict);
   if (!validation.valid)
@@ -519,7 +521,9 @@ bool ProteinGroupArrowExport::exportToParquet(
     return false;
   }
 
-  return ArrowIOHelpers::writeTableToParquet(attachQPXPgMetadata(table), filename, config);
+  auto stamped = attachQPXPgMetadata(table, config);
+  if (!stamped) { return false; } // unsupported compression for QPX; already logged
+  return ArrowIOHelpers::writeTableToParquet(stamped, filename, config);
 }
 
 

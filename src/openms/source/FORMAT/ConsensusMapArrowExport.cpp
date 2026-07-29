@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -975,6 +976,35 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   return table;
 }
 
+/// Build the canonical QPX "feature" file metadata for @p cmap. Each call mints a fresh
+/// uuid/creation_date, so build it once per output file and reuse it for the writer schema
+/// and every batch. Returns nullptr when QPX defines no token for the configured compression.
+std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
+  const ConsensusMap& cmap,
+  const ParquetWriteConfig& config)
+{
+  // scan_format describes the `scan` column, which is extracted from the spectrum native
+  // IDs of the features' peptide identifications (and the unassigned ones, which share the
+  // same source runs).
+  std::vector<std::string> refs;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications())
+    {
+      if (!pid.getSpectrumReference().empty()) { refs.push_back(pid.getSpectrumReference()); }
+    }
+  }
+  for (const auto& pid : cmap.getUnassignedPeptideIdentifications())
+  {
+    if (!pid.getSpectrumReference().empty()) { refs.push_back(pid.getSpectrumReference()); }
+  }
+
+  std::map<std::string, std::string> extra;
+  const std::string scan_format = ArrowIOHelpers::qpxScanFormat(refs);
+  if (!scan_format.empty()) { extra["scan_format"] = scan_format; }
+  return ArrowIOHelpers::qpxFileMetadata("feature_file", config, extra);
+}
+
 } // anonymous namespace (feature range builder + shared per-map lookups)
 
 
@@ -995,6 +1025,10 @@ bool ConsensusMapArrowExport::exportToParquet(
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to create Arrow table" << std::endl;
     return false;
   }
+
+  auto meta = qpxFeatureMetadata(cmap, config);
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
+  table = table->ReplaceSchemaMetadata(meta);
 
   // Open output file
   auto result = arrow::io::FileOutputStream::Open(filename);
@@ -1053,9 +1087,15 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   (void)Scores::isKnownScoreType("q-value");
   (void)AASequence::fromString("PEPTIDEK").getMZ(2); // inits AASequence static residue path
 
+  // One metadata identity (uuid/creation_date) for the whole file, reused for the writer
+  // schema and every batch so their schemas are identical.
+  auto meta = qpxFeatureMetadata(cmap, config);
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
+
   // The writer's schema must match each batch table's schema exactly. buildFeatureTableRange()
-  // stamps QPXFeatureSchema::schema() on every batch, so open the writer with the same schema.
-  const auto schema = QPXFeatureSchema::schema();
+  // stamps QPXFeatureSchema::schema() on every batch, so open the writer with the same schema
+  // plus the shared metadata (re-stamped per batch below).
+  const auto schema = QPXFeatureSchema::schema()->WithMetadata(meta);
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
   if (!file_result.ok())
@@ -1129,7 +1169,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
         OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch partition " << t << std::endl;
         return false;
       }
-      auto st = writer->WriteTable(*parts[t], rg);
+      auto st = writer->WriteTable(*parts[t]->ReplaceSchemaMetadata(meta), rg);
       if (!st.ok())
       {
         OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write feature batch to " << filename << ": "

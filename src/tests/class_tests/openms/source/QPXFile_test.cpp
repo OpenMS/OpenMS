@@ -380,19 +380,78 @@ START_SECTION(static bool exportToParquet(...))
 
   auto file_type_idx = metadata->FindKey("file_type");
   TEST_EQUAL(file_type_idx >= 0, true)
-  TEST_EQUAL(metadata->value(file_type_idx), "psm")
+  TEST_EQUAL(metadata->value(file_type_idx), "psm_file")
 
-  auto scan_format_idx = metadata->FindKey("scan_format");
-  TEST_EQUAL(scan_format_idx >= 0, true)
-  TEST_EQUAL(metadata->value(scan_format_idx), "scan")
+  // QPX serialization spec: compression_format must be one of zstd|snappy|gzip|lzo|none
+  auto compression_idx = metadata->FindKey("compression_format");
+  TEST_TRUE(compression_idx >= 0)
+  TEST_EQUAL(metadata->value(compression_idx), "zstd")
 
+  // scan_format is derived from the spectrum native IDs. This fixture sets none, so the
+  // key must be absent rather than asserted as "scan" — the scan column cannot hold scan
+  // numbers when there is no native ID to extract them from.
+  TEST_TRUE(metadata->FindKey("scan_format") < 0)
+
+  // software_provider carries the versioned library ("OpenMS <version>"); creator is the
+  // bare tool/org name.
   auto software_idx = metadata->FindKey("software_provider");
-  TEST_EQUAL(software_idx >= 0, true)
-  TEST_EQUAL(metadata->value(software_idx), "OpenMS")
+  TEST_TRUE(software_idx >= 0)
+  TEST_TRUE(StringUtils::hasPrefix(metadata->value(software_idx), "OpenMS "))
 
   // creation_date and uuid should exist (values are dynamic)
   TEST_EQUAL(metadata->FindKey("creation_date") >= 0, true)
   TEST_EQUAL(metadata->FindKey("uuid") >= 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] QPX scan_format is derived from the spectrum native IDs)
+{
+  // Helper: write PSMs whose spectrum references use `ref_prefix`, read the file back and
+  // return its scan_format metadata value ("" when the key is absent).
+  auto scan_format_for = [](const std::string& ref) -> std::string
+  {
+    vector<ProteinIdentification> protein_ids;
+    PeptideIdentificationList peptide_ids;
+
+    ProteinIdentification protein_id;
+    protein_id.setIdentifier("sf_search");
+    protein_ids.push_back(protein_id);
+
+    PeptideIdentification pid;
+    pid.setIdentifier("sf_search");
+    pid.setScoreType("TestScore");
+    if (!ref.empty()) { pid.setSpectrumReference(ref); }
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDER"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    pid.setHits({hit});
+    peptide_ids.push_back(pid);
+
+    std::string f;
+    NEW_TMP_FILE(f)
+    if (!QPXFile::exportToParquet(protein_ids, peptide_ids, f)) { return "<write failed>"; }
+
+    auto open_res = arrow::io::ReadableFile::Open(f.c_str());
+    if (!open_res.ok()) { return "<read failed>"; }
+    auto reader_res = parquet::arrow::OpenFile(open_res.ValueOrDie(), arrow::default_memory_pool());
+    if (!reader_res.ok()) { return "<read failed>"; }
+    auto reader = std::move(reader_res).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!reader->ReadTable(&t).ok()) { return "<read failed>"; }
+
+    auto md = t->schema()->metadata();
+    if (!md) { return ""; }
+    auto r = md->Get("scan_format");
+    return r.ok() ? r.ValueOrDie() : "";
+  };
+
+  TEST_STRING_EQUAL(scan_format_for("controllerType=0 controllerNumber=1 scan=1234"), "scan")
+  TEST_STRING_EQUAL(scan_format_for("scan=42"), "scan")
+  TEST_STRING_EQUAL(scan_format_for("index=7"), "index")
+  // Unrecognized / absent native IDs yield no evidence, so the key is omitted.
+  TEST_STRING_EQUAL(scan_format_for("some_opaque_identifier"), "")
+  TEST_STRING_EQUAL(scan_format_for(""), "")
 }
 END_SECTION
 
@@ -875,7 +934,7 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
       auto r1 = md->Get("file_type");   if (r1.ok()) { ft = r1.ValueOrDie(); }
       auto r2 = md->Get("qpx_version"); if (r2.ok()) { ver = r2.ValueOrDie(); }
     }
-    TEST_STRING_EQUAL(ft, "psm")
+    TEST_STRING_EQUAL(ft, "psm_file")
     TEST_STRING_EQUAL(ver, "1.0")
   }
 
