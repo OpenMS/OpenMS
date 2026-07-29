@@ -189,6 +189,38 @@ START_SECTION((std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(co
 }
 END_SECTION
 
+START_SECTION((std::string qpxIntensityLabel(const std::string&, const std::string&)))
+{
+  // Label-free: ProteomicsLFQ stamps "label-free" on every header; an unset label is the same.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("label-free", ""), "LFQ")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("", ""), "LFQ")
+
+  // Isobaric: IsobaricChannelExtractor builds the label as "<methodname>_<channelname>".
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt6plex_126", "126"), "TMT126")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_126", "126"), "TMT126")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_127N", "127N"), "TMT127N")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt11plex_131C", "131C"), "TMT131C")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt16plex_134N", "134N"), "TMT134N")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt18plex_135N", "135N"), "TMT135N")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq4plex_114", "114"), "ITRAQ114")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq8plex_121", "121"), "ITRAQ121")
+
+  // TMT10-plex channel 10 is "131" in OpenMS' naming. qpx's own converter map is
+  // 11-plex-indexed and calls the 10th channel "TMT131N"; OpenMS' name is authoritative.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_131", "131"), "TMT131")
+  // ... and 11-plex really does have both 131N and 131C.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt11plex_131N", "131N"), "TMT131N")
+
+  // Multiplex/SILAC headers carry the modification in `label` and annotate no channel;
+  // pass the tool's own label through rather than mislabel it LFQ.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Arg10", ""), "Arg10")
+
+  // A channel whose method cannot be identified must NOT be guessed — it is a join key.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("mystery_126", "126"), "")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("no_separator", "126"), "")
+}
+END_SECTION
+
 START_SECTION((std::string qpxRunFileName(const std::string&)))
 {
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/proj/S1_Frontal_1.mzML"), "S1_Frontal_1")

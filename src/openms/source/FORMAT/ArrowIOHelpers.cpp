@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -104,6 +105,54 @@ std::string qpxScanFormat(const std::string& native_id)
 {
   if (StringUtils::hasPrefix(native_id, "index=")) { return "index"; }
   if (SpectrumNativeIDParser::isNativeID(native_id)) { return "scan"; }
+  return "";
+}
+
+std::string qpxIntensityLabel(const std::string& column_label, const std::string& channel_name)
+{
+  // No channel => not an isobaric map.
+  if (channel_name.empty())
+  {
+    // ProteomicsLFQ stamps "label-free" on every header; an unset label means the same.
+    if (column_label.empty() || column_label == "label-free") { return "LFQ"; }
+    // Multiplex/SILAC headers carry the modification in `label` and annotate no channel
+    // (see ConsensusMap::ColumnHeader::getLabelAsUInt). QPX defines no token for those, so
+    // pass the tool's own label through rather than mislabel it as LFQ.
+    return column_label;
+  }
+
+  // Isobaric: IsobaricChannelExtractor builds the label as "<methodname>_<channelname>".
+  const auto sep = column_label.rfind('_');
+  const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
+  const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
+
+  // Family prefix + OpenMS' own reporter name. OpenMS names are authoritative, so
+  // TMT10-plex channel 10 is "TMT131" (not the 11-plex-indexed "TMT131N").
+  using MT = IsobaricQuantitationMethod::MethodType;
+  switch (method)
+  {
+    case MT::TMT_6PLEX:
+    case MT::TMT_10PLEX:
+    case MT::TMT_11PLEX:
+    case MT::TMT_16PLEX:
+    case MT::TMT_18PLEX:
+    case MT::TMT_32PLEX:
+    case MT::TMT_35PLEX:
+      return "TMT" + channel_name;
+    case MT::ITRAQ_4PLEX:
+    case MT::ITRAQ_8PLEX:
+      // Uppercase, consistent with the TMT prefix. Note qpx's intensities.md example spells
+      // it "iTRAQ114", but no qpx converter actually emits an iTRAQ channel label (its
+      // channel map is TMT-only and the iTRAQ path passes the raw tool value through), so
+      // there is no implementation to match -- only a doc example.
+      return "ITRAQ" + channel_name;
+    default:
+      break;
+  }
+
+  OPENMS_LOG_ERROR << "ArrowIOHelpers: cannot derive a QPX intensity label for channel '"
+                   << channel_name << "' — column header label '" << column_label
+                   << "' does not name a known isobaric quantitation method." << std::endl;
   return "";
 }
 

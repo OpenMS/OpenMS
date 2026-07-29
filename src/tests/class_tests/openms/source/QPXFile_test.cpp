@@ -13,6 +13,9 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -632,6 +635,99 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
   TEST_EQUAL(table->num_columns(), 20)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not channel numbers))
+{
+  // intensities[].label is a join key (i.label = rs.label against run.samples), so it must
+  // carry a canonical channel token. This covers the isobaric path, which has no TOPP test.
+  //
+  // Deliberately does NOT call setExperimentType: IsobaricWorkflow never does either, so the
+  // mapping has to work off the headers' channel_id meta value alone.
+  auto build_map = [](const std::string& method, const std::vector<std::string>& channel_names)
+  {
+    ConsensusMap cmap;
+    for (Size c = 0; c < channel_names.size(); ++c)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = "/data/tmt_run.mzML";
+      h.label = method + "_" + channel_names[c];
+      h.setMetaValue("channel_name", channel_names[c]);
+      h.setMetaValue("channel_id", static_cast<int>(c));   // 0-based; getLabelAsUInt adds 1
+      cmap.getColumnHeaders()[c] = h;
+    }
+
+    ProteinIdentification prot_id;
+    prot_id.setScoreType("q-value");
+    prot_id.setPrimaryMSRunPath({"/data/tmt_run.mzML"});
+    ProteinHit ph;
+    ph.setAccession("PROT_A");
+    prot_id.setHits({ph});
+
+    ProteinIdentification::ProteinGroup group;
+    group.accessions = {"PROT_A"};
+    group.probability = 0.01;
+    // Quant arrays as PeptideAndProteinQuant lays them out: abundances in float[3],
+    // design filenames (already stemmed) in string[0], 1-based channels in int[0].
+    group.getFloatDataArrays().resize(4);
+    group.getStringDataArrays().resize(1);
+    group.getIntegerDataArrays().resize(1);
+    for (Size c = 0; c < channel_names.size(); ++c)
+    {
+      group.getFloatDataArrays()[3].push_back(1000.0f * (c + 1));
+      group.getStringDataArrays()[0].push_back("tmt_run");
+      group.getIntegerDataArrays()[0].push_back(static_cast<int>(c) + 1);
+    }
+    prot_id.insertIndistinguishableProteins(group);
+    cmap.setProteinIdentifications({prot_id});
+    return cmap;
+  };
+
+  auto labels_of = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::vector<std::string> out;
+    auto col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+    auto st = std::static_pointer_cast<arrow::StructArray>(col->values());
+    auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+    for (int64_t i = 0; i < lab->length(); ++i) { out.push_back(lab->GetString(i)); }
+    return out;
+  };
+
+  // TMT 10-plex: channel 10 is "131" in OpenMS' naming (qpx's 11-plex-indexed map says
+  // "TMT131N"); OpenMS' name is authoritative.
+  {
+    auto cmap = build_map("tmt10plex",
+      {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"});
+    auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), 1)
+    auto labels = labels_of(t);
+    TEST_EQUAL(labels.size(), 10)
+    TEST_STRING_EQUAL(labels[0], "TMT126")
+    TEST_STRING_EQUAL(labels[1], "TMT127N")
+    TEST_STRING_EQUAL(labels[9], "TMT131")
+    // run_file_name is the stemmed design filename, matching psm/feature
+    auto run_col = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+    TEST_STRING_EQUAL(run_col->GetString(0), "tmt_run")
+  }
+
+  // iTRAQ 4-plex
+  {
+    auto cmap = build_map("itraq4plex", {"114","115","116","117"});
+    auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+    TEST_NOT_EQUAL(t, nullptr)
+    auto labels = labels_of(t);
+    TEST_EQUAL(labels.size(), 4)
+    TEST_STRING_EQUAL(labels[0], "ITRAQ114")
+    TEST_STRING_EQUAL(labels[3], "ITRAQ117")
+  }
+
+  // An unidentifiable quantitation method must abort rather than emit a guessed join key.
+  {
+    auto cmap = build_map("not_a_method", {"126", "127N"});
+    TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap), nullptr)
+  }
 }
 END_SECTION
 

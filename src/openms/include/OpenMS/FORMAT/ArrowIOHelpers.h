@@ -140,6 +140,30 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI std::string qpxRunFileName(const std::string& ms_run_path);
 
 
+  /**
+    @brief QPX @c intensities[].label for a ConsensusMap column header
+
+    The label is a join key: QPX matches @c intensities[].label against the unnested
+    @c run.samples[].label of @c run.parquet (docs/spec/views.md), so it must be a
+    canonical channel token, not a channel index or a file name.
+
+    Isobaric channels resolve to the reporter name prefixed by the method family, using
+    OpenMS' own channel names — @c "TMT126", @c "TMT131" (TMT10-plex channel 10),
+    @c "ITRAQ114". Label-free maps resolve to @c "LFQ".
+
+    @param[in] column_label ConsensusMap::ColumnHeader::label. IsobaricChannelExtractor
+               writes @c "&lt;methodname&gt;_&lt;channelname&gt;" (e.g. @c "tmt10plex_126");
+               ProteomicsLFQ writes @c "label-free".
+    @param[in] channel_name The header's @c channel_name meta value (e.g. @c "126"); empty
+               when the map is not isobaric.
+    @return The label, or @c "" when @p channel_name names a channel whose quantitation
+            method cannot be identified — writing a guessed token into a join key is worse
+            than writing none, so callers must handle the empty result.
+  */
+  OPENMS_DLLAPI std::string qpxIntensityLabel(
+    const std::string& column_label,
+    const std::string& channel_name);
+
   // ---------------------------------------------------------------------------
   // Read helpers
   // ---------------------------------------------------------------------------

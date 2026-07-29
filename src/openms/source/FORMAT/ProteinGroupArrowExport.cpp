@@ -343,6 +343,43 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)cv_params_builder.Append();
   };
 
+  // Build (run stem, 1-based channel) -> QPX intensity label from the column headers.
+  //
+  // The quant arrays below are keyed by (design filename, channel number), where the channel
+  // numbering is ColumnHeader::getLabelAsUInt()'s (channel_id + 1). Keying the lookup on the
+  // run as well as the channel keeps it correct for maps whose runs use different methods,
+  // rather than assuming one global channel -> label mapping.
+  std::map<std::pair<std::string, UInt>, std::string> channel_labels;
+  for (const auto& [map_index, header] : cmap.getColumnHeaders())
+  {
+    const UInt channel = header.getLabelAsUInt(cmap.getExperimentType());
+    const std::string channel_name = header.metaValueExists("channel_name")
+                                   ? header.getMetaValue("channel_name").toString() : "";
+    const std::string label = ArrowIOHelpers::qpxIntensityLabel(header.label, channel_name);
+    if (label.empty()) { return nullptr; } // unidentifiable channel; already logged
+    channel_labels[{ArrowIOHelpers::qpxRunFileName(header.filename), channel}] = label;
+  }
+
+  // Resolve a (run, channel) to its QPX label. A miss means the ConsensusMap carries quant
+  // arrays that its column headers do not describe (possible for a hand-built or foreign
+  // map): a single channel is label-free by construction, anything else is reported.
+  bool warned_missing_label = false;
+  auto labelFor = [&](const std::string& run, Int channel) -> std::string
+  {
+    auto it = channel_labels.find({run, static_cast<UInt>(channel)});
+    if (it != channel_labels.end()) { return it->second; }
+    if (channel == 1) { return "LFQ"; }
+    if (!warned_missing_label)
+    {
+      warned_missing_label = true;
+      OPENMS_LOG_WARN << "ProteinGroupArrowExport: no column header describes channel "
+                      << channel << " of run '" << run << "'; falling back to the channel "
+                      << "number as intensity label, which will not join against run.parquet."
+                      << std::endl;
+    }
+    return std::to_string(channel);
+  };
+
   // Iterate protein groups and emit rows
   for (const auto& group : groups)
   {
@@ -360,11 +397,11 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       const auto& filenames = group.getStringDataArrays()[0]; // file_channel_level_filename
       const auto& channels = group.getIntegerDataArrays()[0]; // file_channel_level_channel
 
-      // Group by filename: filename -> [(channel_label, intensity)]
+      // Group by filename: filename -> [(QPX channel label, intensity)]
       std::map<std::string, std::vector<std::pair<std::string, float>>> file_intensities;
       for (Size i = 0; i < filenames.size() && i < abundances.size() && i < channels.size(); ++i)
       {
-        file_intensities[filenames[i]].emplace_back(std::to_string(channels[i]), abundances[i]);
+        file_intensities[filenames[i]].emplace_back(labelFor(filenames[i], channels[i]), abundances[i]);
       }
 
       // Emit one row per unique filename
