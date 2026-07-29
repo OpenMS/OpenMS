@@ -127,6 +127,19 @@ namespace ArrowIOHelpers
   */
   OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids);
 
+  /**
+    @brief Reduce an MS run path to the QPX @c run_file_name form
+
+    QPX defines @c run_file_name as the raw data file name *without* extension, and uses it
+    as a primary-key component in the psm, feature and pg views (and to join them against
+    @c run.parquet). The full name with extension belongs in @c run.file_name.
+
+    @param[in] ms_run_path Source path, e.g. <tt>/data/proj/S1_Frontal_1.mzML</tt>
+    @return The stem, e.g. <tt>S1_Frontal_1</tt>; empty input yields an empty result.
+  */
+  OPENMS_DLLAPI std::string qpxRunFileName(const std::string& ms_run_path);
+
+
   // ---------------------------------------------------------------------------
   // Read helpers
   // ---------------------------------------------------------------------------

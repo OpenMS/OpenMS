@@ -189,6 +189,19 @@ START_SECTION((std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(co
 }
 END_SECTION
 
+START_SECTION((std::string qpxRunFileName(const std::string&)))
+{
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/proj/S1_Frontal_1.mzML"), "S1_Frontal_1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("S1_Frontal_1.mzML"), "S1_Frontal_1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/run.raw"), "run")
+  // Bruker .d directories reduce like any other path
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/run.d"), "run")
+  // Already in QPX form -> unchanged
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("BSA1_F1"), "BSA1_F1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName(""), "")
+}
+END_SECTION
+
 START_SECTION((std::string qpxScanFormat(const std::string&)))
 {
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("controllerType=0 controllerNumber=1 scan=1234"), "scan")

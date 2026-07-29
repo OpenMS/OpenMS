@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -104,6 +105,12 @@ std::string qpxScanFormat(const std::string& native_id)
   if (StringUtils::hasPrefix(native_id, "index=")) { return "index"; }
   if (SpectrumNativeIDParser::isNativeID(native_id)) { return "scan"; }
   return "";
+}
+
+std::string qpxRunFileName(const std::string& ms_run_path)
+{
+  if (ms_run_path.empty()) { return ""; }
+  return File::stemName(ms_run_path);
 }
 
 std::string qpxScanFormat(const std::vector<std::string>& native_ids)
