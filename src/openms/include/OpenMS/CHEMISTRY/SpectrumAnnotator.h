@@ -93,7 +93,8 @@ namespace OpenMS
              Unmatched peaks will have empty annotation strings. If false (default), only matched peaks are included.
 
       This method directly fills the PeakAnnotations vector of the PeptideHit with the matched ions.
-      Each matched peak gets a PeakAnnotation containing the annotation string (ion name), charge, m/z and intensity.
+      Each matched peak gets a PeakAnnotation containing the annotation string (ion name), charge,
+      observed m/z, intensity, and theoretical m/z.
       The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching.
       The parameters of SpectrumAlignment define the matching tolerance.
     */
@@ -120,4 +121,3 @@ namespace OpenMS
       static const boost::regex seriesposition_regex_;
   };
 }
-

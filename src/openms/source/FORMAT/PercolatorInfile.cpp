@@ -134,6 +134,7 @@ namespace OpenMS
           peak_temp.charge = StringUtils::toInt32(row[to_idx_a.at("fragment_charge")]); 
           peak_temp.intensity = StringUtils::toDouble(row[to_idx_a.at("fragment_intensity")]); 
           peak_temp.mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_experimental")]); 
+          peak_temp.theoretical_mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_calculated")]);
 
           vector<PeptideHit::PeakAnnotation> temp_anno_vec; 
           temp_anno_vec.push_back(peak_temp); 
@@ -148,6 +149,7 @@ namespace OpenMS
           peak_temp.charge = StringUtils::toInt32(row[to_idx_a.at("fragment_charge")]); 
           peak_temp.intensity = StringUtils::toDouble(row[to_idx_a.at("fragment_intensity")]); 
           peak_temp.mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_experimental")]); 
+          peak_temp.theoretical_mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_calculated")]);
 
           anno_mapping[ StringUtils::toInt32(row[to_idx_a.at("psm_id")]) ].push_back(peak_temp);         
         }

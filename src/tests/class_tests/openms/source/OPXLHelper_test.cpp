@@ -367,6 +367,8 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
   TEST_REAL_SIMILAR(frag_annotations[1].mz, 98.06004)
   TEST_EQUAL(frag_annotations[1].intensity, 1)
   TEST_EQUAL(frag_annotations[1].annotation, "[alpha|ci$b1]")
+  TEST_TRUE(frag_annotations[1].theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*frag_annotations[1].theoretical_mz, theo_spec[alignment[0].first].getMZ())
 
   TEST_EQUAL(frag_annotations[3].charge, 1)
   TEST_REAL_SIMILAR(frag_annotations[3].mz, 324.15539)

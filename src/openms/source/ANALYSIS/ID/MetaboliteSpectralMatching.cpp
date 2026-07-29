@@ -472,6 +472,7 @@ namespace OpenMS
           ann.charge = db_spectrum.getIntegerDataArrays()[0].at(index);
           ann.mz = exp_peak.getMZ();
           ann.intensity = exp_peak.getIntensity();
+          ann.theoretical_mz = db_it->getMZ();
           annotations->push_back(ann);
         }
       }

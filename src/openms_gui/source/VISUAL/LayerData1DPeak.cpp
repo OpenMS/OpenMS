@@ -37,9 +37,16 @@ namespace OpenMS
   {
     auto* context_menu = new QMenu("Peak1D", nullptr);
     context_menu->addAction("Edit", [annot_item, &need_repaint, this]() { // this capture is tricky! Copy 'annot_item' since its a local variable and will be out of scope when the menu is evaluated!
-      annot_item->editText();
-      synchronizePeakAnnotations();
-      need_repaint = true;
+      if (annot_item->editText())
+      {
+        if (auto* peak_item = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(annot_item))
+        {
+          // A changed ion label no longer describes the theoretical ion that supplied this value.
+          peak_item->clearTheoreticalMZ();
+        }
+        synchronizePeakAnnotations();
+        need_repaint = true;
+      }
     });
     context_menu->addAction("Delete", [annot_item, &need_repaint, this]() { // this capture is tricky! Copy 'annot_item' since its a local variable and will be out of scope when the menu is evaluated!
       vector<Annotation1DItem*> as;

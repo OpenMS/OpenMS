@@ -1063,16 +1063,20 @@ namespace OpenMS
     for (const auto& pa : as)
     {
       StringUtils::split_quoted(pa, ",", fields);
-      if (fields.size() != 4)
+      if ((fields.size() != 4) && (fields.size() != 5))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "Invalid fragment annotation. Four comma-separated fields required. std::string is: '" + pa + "'");
+                "Invalid fragment annotation. Four or five comma-separated fields required. std::string is: '" + pa + "'");
       }
       PeptideHit::PeakAnnotation fa;
       fa.mz = StringUtils::toDouble(fields[0]);
       fa.intensity = StringUtils::toDouble(fields[1]);
       fa.charge = StringUtils::toInt32(fields[2]);
       fa.annotation = StringUtils::unquote(fields[3]);
+      if (fields.size() == 5)
+      {
+        fa.theoretical_mz = StringUtils::toDouble(fields[4]);
+      }
       annotations.push_back(fa);
     }
   }

@@ -15,13 +15,18 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/lexical_cast.hpp>
 
+#include <algorithm>
 #include <sys/stat.h>
 #include <cerrno>
+#include <cmath>
 #include <limits>
+#include <optional>
+#include <sstream>
 #include <xercesc/util/XMLString.hpp>
 
 using namespace std;
@@ -47,6 +52,325 @@ namespace OpenMS::Internal
     inline double toDoubleOrZero_(const std::string& s)
     {
       return s.empty() ? 0.0 : StringUtils::toDouble(s);
+    }
+
+    enum class FragmentErrorUnit
+    {
+      MZ,
+      PPM,
+      UNSUPPORTED
+    };
+
+    struct FragmentMeasureRefs
+    {
+      std::optional<std::string> mz;
+      std::optional<std::string> intensity;
+      std::map<std::string, FragmentErrorUnit> errors;
+    };
+
+    FragmentMeasureRefs findFragmentMeasureRefs_(DOMElement* spectrum_identification_item)
+    {
+      FragmentMeasureRefs refs;
+
+      // Measure IDs are arbitrary XML IDs. Resolve them through the CV terms in
+      // the enclosing FragmentationTable rather than relying on OpenMS' IDs.
+      DOMElement* ancestor = dynamic_cast<DOMElement*>(spectrum_identification_item->getParentNode());
+      while (ancestor != nullptr &&
+             !XMLString::equals(ancestor->getTagName(), CONST_XMLCH("SpectrumIdentificationList")))
+      {
+        ancestor = dynamic_cast<DOMElement*>(ancestor->getParentNode());
+      }
+      if (ancestor == nullptr)
+      {
+        refs.mz = "Measure_mz";
+        refs.intensity = "Measure_int";
+        refs.errors["Measure_error"] = FragmentErrorUnit::MZ;
+        return refs;
+      }
+
+      DOMElement* table = ancestor->getFirstElementChild();
+      while (table != nullptr && !XMLString::equals(table->getTagName(), CONST_XMLCH("FragmentationTable")))
+      {
+        table = table->getNextElementSibling();
+      }
+      if (table == nullptr)
+      {
+        refs.mz = "Measure_mz";
+        refs.intensity = "Measure_int";
+        refs.errors["Measure_error"] = FragmentErrorUnit::MZ;
+        return refs;
+      }
+
+      DOMNodeList* measures = table->getElementsByTagName(CONST_XMLCH("Measure"));
+      for (XMLSize_t i = 0; i < measures->getLength(); ++i)
+      {
+        DOMElement* measure = dynamic_cast<DOMElement*>(measures->item(i));
+        const std::string id = StringManager::convert(measure->getAttribute(CONST_XMLCH("id")));
+        DOMNodeList* cv_params = measure->getElementsByTagName(CONST_XMLCH("cvParam"));
+        for (XMLSize_t c = 0; c < cv_params->getLength(); ++c)
+        {
+          DOMElement* cv_param = dynamic_cast<DOMElement*>(cv_params->item(c));
+          const std::string accession = StringManager::convert(cv_param->getAttribute(CONST_XMLCH("accession")));
+          if (accession == "MS:1001225") // product ion m/z
+          {
+            refs.mz = id;
+          }
+          else if (accession == "MS:1001226") // product ion intensity
+          {
+            refs.intensity = id;
+          }
+          else if (accession == "MS:1001227") // product ion m/z error
+          {
+            const std::string unit_accession = StringManager::convert(cv_param->getAttribute(CONST_XMLCH("unitAccession")));
+            if (unit_accession.empty() || unit_accession == "MS:1000040")
+            {
+              refs.errors[id] = FragmentErrorUnit::MZ;
+            }
+            else if (unit_accession == "UO:0000169")
+            {
+              refs.errors[id] = FragmentErrorUnit::PPM;
+            }
+            else
+            {
+              refs.errors[id] = FragmentErrorUnit::UNSUPPORTED;
+            }
+          }
+        }
+      }
+      return refs;
+    }
+
+    std::string getFragmentArrayMeasureRef_(DOMElement* fragment_array)
+    {
+      std::string ref = StringManager::convert(fragment_array->getAttribute(CONST_XMLCH("measure_ref")));
+      if (ref.empty())
+      {
+        // Some older files use the non-schema spelling "Measure_ref".
+        ref = StringManager::convert(fragment_array->getAttribute(CONST_XMLCH("Measure_ref")));
+      }
+      return ref;
+    }
+
+    void splitFragmentArrayValues_(const std::string& value, std::vector<std::string>& values)
+    {
+      values.clear();
+      std::istringstream stream(value);
+      for (std::string token; stream >> token;)
+      {
+        values.push_back(std::move(token));
+      }
+    }
+
+    void validateFragmentArraySize_(const std::vector<std::string>& values,
+                                    Size expected_size,
+                                    const std::string& array_name,
+                                    const std::string& spectrum_identification_item_id)
+    {
+      if (values.size() != expected_size)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "SpectrumIdentificationItem '" + spectrum_identification_item_id + "'",
+                                    "Fragment annotation '" + array_name + "' array contains " +
+                                      StringUtils::toStr(values.size()) + " values, but the IonType index contains " +
+                                      StringUtils::toStr(expected_size) + ".");
+      }
+    }
+
+    std::vector<PeptideHit::PeakAnnotation> parseFragmentAnnotations_(DOMElement* spectrum_identification_item, bool is_ppxl)
+    {
+      std::vector<PeptideHit::PeakAnnotation> annotations;
+      DOMNodeList* fragmentation_elements = spectrum_identification_item->getElementsByTagName(CONST_XMLCH("Fragmentation"));
+      if (fragmentation_elements->getLength() == 0)
+      {
+        return annotations;
+      }
+
+      const FragmentMeasureRefs refs = findFragmentMeasureRefs_(spectrum_identification_item);
+      const std::string sii_id = StringManager::convert(spectrum_identification_item->getAttribute(CONST_XMLCH("id")));
+      DOMElement* fragmentation = dynamic_cast<DOMElement*>(fragmentation_elements->item(0));
+      DOMNodeList* ion_types = fragmentation->getElementsByTagName(CONST_XMLCH("IonType"));
+      for (XMLSize_t i = 0; i < ion_types->getLength(); ++i)
+      {
+        struct FragmentErrorArray
+        {
+          FragmentErrorUnit unit;
+          std::vector<std::string> values;
+        };
+
+        DOMElement* ion_type = dynamic_cast<DOMElement*>(ion_types->item(i));
+        const int ion_charge = StringUtils::toInt32(StringManager::convert(ion_type->getAttribute(CONST_XMLCH("charge"))));
+        std::vector<std::string> indices;
+        std::vector<std::string> positions;
+        std::vector<std::string> intensities;
+        std::vector<FragmentErrorArray> error_arrays;
+        std::vector<std::string> chains;
+        std::vector<std::string> categories;
+        std::string fragment_type;
+        std::string loss;
+        bool mz_array_present = false;
+        bool intensity_array_present = false;
+        bool chain_array_present = false;
+        bool category_array_present = false;
+
+        splitFragmentArrayValues_(StringManager::convert(ion_type->getAttribute(CONST_XMLCH("index"))), indices);
+
+        DOMNodeList* fragment_arrays = ion_type->getElementsByTagName(CONST_XMLCH("FragmentArray"));
+        for (XMLSize_t f = 0; f < fragment_arrays->getLength(); ++f)
+        {
+          DOMElement* fragment_array = dynamic_cast<DOMElement*>(fragment_arrays->item(f));
+          const std::string measure_ref = getFragmentArrayMeasureRef_(fragment_array);
+          if (refs.mz.has_value() && measure_ref == *refs.mz)
+          {
+            mz_array_present = true;
+            splitFragmentArrayValues_(StringManager::convert(fragment_array->getAttribute(CONST_XMLCH("values"))), positions);
+          }
+          else if (refs.intensity.has_value() && measure_ref == *refs.intensity)
+          {
+            intensity_array_present = true;
+            splitFragmentArrayValues_(StringManager::convert(fragment_array->getAttribute(CONST_XMLCH("values"))), intensities);
+          }
+          else if (auto error_ref = refs.errors.find(measure_ref); error_ref != refs.errors.end())
+          {
+            if (error_ref->second == FragmentErrorUnit::UNSUPPORTED)
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "SpectrumIdentificationItem '" + sii_id + "'",
+                                          "Unsupported unit for product ion m/z error Measure '" + measure_ref + "'.");
+            }
+            error_arrays.push_back({error_ref->second, {}});
+            splitFragmentArrayValues_(StringManager::convert(fragment_array->getAttribute(CONST_XMLCH("values"))),
+                                      error_arrays.back().values);
+          }
+        }
+
+        DOMNodeList* user_params = ion_type->getElementsByTagName(CONST_XMLCH("userParam"));
+        for (XMLSize_t u = 0; u < user_params->getLength(); ++u)
+        {
+          DOMElement* user_param = dynamic_cast<DOMElement*>(user_params->item(u));
+          if (XMLString::equals(user_param->getAttribute(CONST_XMLCH("name")), CONST_XMLCH("cross-link_chain")))
+          {
+            chain_array_present = true;
+            splitFragmentArrayValues_(StringManager::convert(user_param->getAttribute(CONST_XMLCH("value"))), chains);
+          }
+          else if (XMLString::equals(user_param->getAttribute(CONST_XMLCH("name")), CONST_XMLCH("cross-link_ioncategory")))
+          {
+            category_array_present = true;
+            splitFragmentArrayValues_(StringManager::convert(user_param->getAttribute(CONST_XMLCH("value"))), categories);
+          }
+        }
+
+        DOMNodeList* cv_params = ion_type->getElementsByTagName(CONST_XMLCH("cvParam"));
+        for (XMLSize_t c = 0; c < cv_params->getLength(); ++c)
+        {
+          DOMElement* cv_param = dynamic_cast<DOMElement*>(cv_params->item(c));
+          const std::string accession = StringManager::convert(cv_param->getAttribute(CONST_XMLCH("accession")));
+          if (accession == "MS:1001229") { fragment_type = "a"; }
+          else if (accession == "MS:1001224") { fragment_type = "b"; }
+          else if (accession == "MS:1001231") { fragment_type = "c"; }
+          else if (accession == "MS:1001228") { fragment_type = "x"; }
+          else if (accession == "MS:1001220") { fragment_type = "y"; }
+          else if (accession == "MS:1001230") { fragment_type = "z"; }
+          else if (accession == "MS:1001234") { fragment_type = "a"; loss = "-H2O"; }
+          else if (accession == "MS:1001222") { fragment_type = "b"; loss = "-H2O"; }
+          else if (accession == "MS:1001515") { fragment_type = "c"; loss = "-H2O"; }
+          else if (accession == "MS:1001519") { fragment_type = "x"; loss = "-H2O"; }
+          else if (accession == "MS:1001223") { fragment_type = "y"; loss = "-H2O"; }
+          else if (accession == "MS:1001517") { fragment_type = "z"; loss = "-H2O"; }
+          else if (accession == "MS:1001235") { fragment_type = "a"; loss = "-NH3"; }
+          else if (accession == "MS:1001232") { fragment_type = "b"; loss = "-NH3"; }
+          else if (accession == "MS:1001516") { fragment_type = "c"; loss = "-NH3"; }
+          else if (accession == "MS:1001520") { fragment_type = "x"; loss = "-NH3"; }
+          else if (accession == "MS:1001233") { fragment_type = "y"; loss = "-NH3"; }
+          else if (accession == "MS:1001518") { fragment_type = "z"; loss = "-NH3"; }
+        }
+
+        // PeakAnnotation cannot represent general mzIdentML ion types such as
+        // internal fragments without losing their two-index structure.
+        if (fragment_type.empty())
+        {
+          continue;
+        }
+
+        if (mz_array_present)
+        {
+          validateFragmentArraySize_(positions, indices.size(), "m/z", sii_id);
+        }
+        if (intensity_array_present)
+        {
+          validateFragmentArraySize_(intensities, indices.size(), "intensity", sii_id);
+        }
+        for (const FragmentErrorArray& error_array : error_arrays)
+        {
+          validateFragmentArraySize_(error_array.values, indices.size(), "m/z error", sii_id);
+        }
+        if (chain_array_present)
+        {
+          validateFragmentArraySize_(chains, indices.size(), "cross-link chain", sii_id);
+        }
+        if (category_array_present)
+        {
+          validateFragmentArraySize_(categories, indices.size(), "cross-link ion category", sii_id);
+        }
+        if (chain_array_present != category_array_present)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "SpectrumIdentificationItem '" + sii_id + "'",
+                                      "Cross-link fragment annotations must provide both chain and ion-category arrays.");
+        }
+
+        // Without an observed m/z the IonType cannot be represented as a
+        // PeakAnnotation. It is nevertheless schema-valid, so skip it after
+        // validating any arrays that were supplied.
+        if (!mz_array_present)
+        {
+          continue;
+        }
+
+        for (Size index = 0; index < indices.size(); ++index)
+        {
+          PeptideHit::PeakAnnotation annotation;
+          annotation.charge = ion_charge;
+          annotation.mz = StringUtils::toDouble(positions[index]);
+          annotation.intensity = intensity_array_present ? StringUtils::toDouble(intensities[index]) : 0.0;
+          const bool has_xl_details = is_ppxl && chain_array_present && category_array_present;
+          annotation.annotation = has_xl_details
+                                    ? "[" + chains[index] + "|" + categories[index] + "$" + fragment_type + indices[index] + loss + "]"
+                                    : "[" + fragment_type + indices[index] + loss + "]";
+          for (const FragmentErrorArray& error_array : error_arrays)
+          {
+            const double error = StringUtils::toDouble(error_array.values[index]);
+            double theoretical_mz = 0.0;
+            if (error_array.unit == FragmentErrorUnit::PPM)
+            {
+              const double scale = 1.0 + error * 1e-6;
+              if (scale == 0.0)
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "SpectrumIdentificationItem '" + sii_id + "'",
+                                            "A fragment m/z error of -1000000 ppm cannot be converted to a theoretical m/z.");
+              }
+              theoretical_mz = annotation.mz / scale;
+            }
+            else
+            {
+              theoretical_mz = annotation.mz - error;
+            }
+
+            const double consistency_tolerance = 1e-6 * std::max(1.0, std::max(std::abs(theoretical_mz),
+                                                                               std::abs(annotation.theoretical_mz.value_or(theoretical_mz))));
+            if (annotation.theoretical_mz.has_value() &&
+                std::abs(*annotation.theoretical_mz - theoretical_mz) > consistency_tolerance)
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "SpectrumIdentificationItem '" + sii_id + "'",
+                                          "Multiple product ion m/z error arrays disagree for fragment index " + indices[index] + ".");
+            }
+            annotation.theoretical_mz = theoretical_mz;
+          }
+          annotations.push_back(std::move(annotation));
+        }
+      }
+      return annotations;
     }
   }
 
@@ -327,6 +651,11 @@ namespace OpenMS::Internal
 //          errBuf << "Error parsing file: " << message << flush;
         OPENMS_LOG_ERROR << "XERCES error traversing DOM: " << message << flush << endl;
         XMLString::release(&message);
+      }
+      catch (...)
+      {
+        xmlDoc->release();
+        throw;
       }
       xmlDoc->release();
       if (xl_ms_search_)
@@ -1557,167 +1886,7 @@ namespace OpenMS::Internal
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
         {
-          DOMNodeList* frag_element_list = cl_sii->getElementsByTagName(CONST_XMLCH("Fragmentation"));
-
-          if (frag_element_list->getLength() > 0)
-          {
-            DOMElement* frag_element = dynamic_cast<xercesc::DOMElement*>(frag_element_list->item(0));
-            DOMNodeList* ion_types = frag_element->getElementsByTagName(CONST_XMLCH("IonType"));
-            const  XMLSize_t ion_type_count = ion_types->getLength();
-            for (XMLSize_t i = 0; i < ion_type_count; ++i)
-            {
-              DOMElement* ion_type_element = dynamic_cast<xercesc::DOMElement*>(ion_types->item(i));
-              int ion_charge = StringUtils::toInt32(StringManager::convert(ion_type_element ->getAttribute(CONST_XMLCH("charge"))));
-              vector<std::string> indices;
-              vector<std::string> positions;
-              vector<std::string> intensities;
-              vector<std::string> chains;
-              vector<std::string> categories;
-              std::string frag_type;
-              std::string loss;
-
-              StringUtils::split(StringManager::convert(ion_type_element ->getAttribute(CONST_XMLCH("index"))), " ", indices);
-
-              DOMNodeList* frag_arrays = ion_type_element ->getElementsByTagName(CONST_XMLCH("FragmentArray"));
-              const XMLSize_t frag_array_count = frag_arrays->getLength();
-              for (XMLSize_t f = 0; f < frag_array_count; ++f)
-              {
-                DOMElement* frag_array_element = dynamic_cast<xercesc::DOMElement*>(frag_arrays->item(f));
-                if ( XMLString::equals(frag_array_element->getAttribute(CONST_XMLCH("measure_ref")), CONST_XMLCH("Measure_mz")))
-                {
-                  StringUtils::split(StringManager::convert(frag_array_element->getAttribute(CONST_XMLCH("values"))), " ", positions);
-                }
-                if ( XMLString::equals(frag_array_element->getAttribute(CONST_XMLCH("measure_ref")), CONST_XMLCH("Measure_int")))
-                {
-                  StringUtils::split(StringManager::convert(frag_array_element->getAttribute(CONST_XMLCH("values"))), " ", intensities);
-                }
-              }
-
-              DOMNodeList* userParams = ion_type_element->getElementsByTagName(CONST_XMLCH("userParam"));
-              const XMLSize_t userParam_count = userParams->getLength();
-              for (XMLSize_t u = 0; u < userParam_count; ++u)
-              {
-                DOMElement* userParam_element = dynamic_cast<xercesc::DOMElement*>(userParams->item(u));
-                if ( XMLString::equals(userParam_element ->getAttribute(CONST_XMLCH("name")), CONST_XMLCH("cross-link_chain")))
-                {
-                  StringUtils::split(StringManager::convert(userParam_element ->getAttribute(CONST_XMLCH("value"))), " ", chains);
-                }
-                if ( XMLString::equals(userParam_element ->getAttribute(CONST_XMLCH("name")), CONST_XMLCH("cross-link_ioncategory")))
-                {
-                  StringUtils::split(StringManager::convert(userParam_element ->getAttribute(CONST_XMLCH("value"))), " ", categories);
-                }
-              }
-
-              DOMNodeList* cvts = ion_type_element->getElementsByTagName(CONST_XMLCH("cvParam"));
-              const XMLSize_t cvt_count = cvts->getLength();
-              for (XMLSize_t cvt = 0; cvt < cvt_count; ++cvt)
-              {
-                DOMElement* cvt_element = dynamic_cast<xercesc::DOMElement*>(cvts->item(cvt));
-
-                // Standard ions
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001229"))) // frag: a ion
-                {
-                  frag_type = "a";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001224"))) // frag: b ion
-                {
-                  frag_type = "b";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001231"))) // frag: c ion
-                {
-                  frag_type = "c";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001228"))) // frag: x ion
-                {
-                  frag_type = "x";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001220"))) // frag: y ion
-                {
-                  frag_type = "y";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001230"))) // frag: z ion
-                {
-                  frag_type = "z";
-                }
-
-                // Ions with H2O losses
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001234"))) // frag: a ion - H2O
-                {
-                  frag_type = "a";
-                  loss = "-H2O";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001222"))) // frag: b ion - H20
-                {
-                  frag_type = "b";
-                  loss = "-H2O";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001515"))) // frag: c ion - H20
-                {
-                  frag_type = "c";
-                  loss = "-H2O";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001519"))) // frag: x ion - H20
-                {
-                  frag_type = "x";
-                  loss = "-H2O";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001223"))) // frag: y ion - H20
-                {
-                  frag_type = "y";
-                  loss = "-H2O";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001517"))) // frag: z ion - H20
-                {
-                  frag_type = "z";
-                  loss = "-H2O";
-                }
-
-                // Ions with NH3 losses
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001235"))) // frag: a ion - NH3
-                {
-                  frag_type = "a";
-                  loss = "-NH3";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001232"))) // frag: b ion - NH3
-                {
-                  frag_type = "b";
-                  loss = "-NH3";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001516"))) // frag: c ion - NH3
-                {
-                  frag_type = "c";
-                  loss = "-NH3";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001520"))) // frag: x ion - NH3
-                {
-                  frag_type = "x";
-                  loss = "-NH3";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001233"))) // frag: y ion - NH3
-                {
-                  frag_type = "y";
-                  loss = "-NH3";
-                }
-                if (XMLString::equals(cvt_element->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1001518"))) // frag: z ion - NH3
-                {
-                  frag_type = "z";
-                  loss = "-NH3";
-                }
-              }
-
-              for (Size s = 0; s < indices.size(); ++s)
-              {
-                std::string annotation= "[" + chains[s] + "|" + categories[s]  + "$" + frag_type + indices[s] + loss + "]";
-
-                PeptideHit::PeakAnnotation frag_anno;
-                frag_anno.charge = ion_charge;
-                frag_anno.mz = positions[s].empty() ? 0.0 : StringUtils::toDouble(positions[s]);
-                frag_anno.intensity = intensities[s].empty() ? 0.0 : StringUtils::toDouble(intensities[s]);
-                frag_anno.annotation = annotation;
-                frag_annotations.push_back(frag_anno);
-              }
-            }
-          }
+          frag_annotations = parseFragmentAnnotations_(cl_sii, true);
         }
       }
 
@@ -2195,6 +2364,7 @@ namespace OpenMS::Internal
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
         spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths for next PSI meeting: why is this not in SpectrumIdentificationResult in the schema? exp. m/z for one spec should not change from one id for it to the next!
         hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
+        hit.setPeakAnnotations(parseFragmentAnnotations_(spectrumIdentificationItemElement, false));
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<std::string, std::string>::iterator, multimap<std::string, std::string>::iterator> pev_its;
@@ -2301,7 +2471,6 @@ namespace OpenMS::Internal
         //        child = child->getNextElementSibling();
         //      }
       }
-      // <Fragmentation> omitted for the time being
     }
 
     void MzIdentMLDOMHandler::parseProteinDetectionListElements_(DOMNodeList* proteinDetectionListElements)

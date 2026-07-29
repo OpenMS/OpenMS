@@ -52,14 +52,15 @@ namespace OpenMS
   };
 
   /**
-    @brief Unit for mass delta values in mzPAF annotations
+    @brief Unit for m/z delta values in mzPAF annotations
 
     @ingroup Chemistry
   */
   enum class MzPAFDeltaUnit
   {
-    DALTON,  ///< Mass delta in Daltons (Da)
-    PPM      ///< Mass delta in parts per million
+    MZ = 0,      ///< Delta in m/z units (Th), the mzPAF default
+    DALTON = MZ, ///< Legacy name for the default m/z unit
+    PPM = 1      ///< Delta in parts per million
   };
 
   /**
@@ -78,17 +79,17 @@ namespace OpenMS
   };
 
   /**
-    @brief Mass delta in an mzPAF annotation
+    @brief M/z delta in an mzPAF annotation
 
-    Represents a mass difference with optional unit (Da or ppm).
-    Example: /0.001 (Da) or /-1.4ppm
+    Represents an m/z difference with an optional ppm unit.
+    Example: /0.001 (m/z units) or /-1.4ppm
 
     @ingroup Chemistry
   */
   struct OPENMS_DLLAPI MzPAFMassDelta
   {
-    double value = 0.0;         ///< Mass delta value
-    MzPAFDeltaUnit unit = MzPAFDeltaUnit::DALTON; ///< Unit (DALTON or PPM)
+    double value = 0.0;         ///< M/z delta value
+    MzPAFDeltaUnit unit = MzPAFDeltaUnit::MZ; ///< Unit (m/z or ppm)
 
     bool operator==(const MzPAFMassDelta& other) const;
     bool operator!=(const MzPAFMassDelta& other) const { return !(*this == other); }
@@ -105,8 +106,8 @@ namespace OpenMS
     - b2-H2O              - b-ion with neutral loss
     - y4^2                - Doubly charged y-ion
     - y2+2i               - Second isotope peak
-    - y4/0.001            - With mass delta in Da
-    - y4/-1.4ppm          - With mass delta in ppm
+    - y4/0.001            - With delta in m/z units
+    - y4/-1.4ppm          - With m/z delta in ppm
     - y4*0.75             - With confidence score
     - IY                  - Immonium ion (tyrosine)
     - m3:6                - Internal fragment (positions 3-6)
@@ -131,7 +132,7 @@ namespace OpenMS
     std::optional<int> isotope_offset;              ///< Isotope offset (+1i, +2i for M+1, M+2)
     std::optional<EmpiricalFormula> adduct;         ///< Adduct ion (+Na, +K, etc.)
     std::optional<int> charge;                      ///< Charge state (^2, ^3)
-    std::optional<MzPAFMassDelta> mass_delta;       ///< Mass delta (/0.001, /-1.4ppm)
+    std::optional<MzPAFMassDelta> mass_delta;       ///< M/z delta (/0.001, /-1.4ppm)
     std::optional<double> confidence;               ///< Confidence score (*0.75)
     std::optional<std::string> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
 
@@ -186,7 +187,7 @@ namespace OpenMS
     INVALID_NUMBER,             ///< Invalid numeric value
     INVALID_FORMULA,            ///< Invalid chemical formula
     INVALID_CHARGE,             ///< Invalid charge specification
-    INVALID_DELTA,              ///< Invalid mass delta specification
+    INVALID_DELTA,              ///< Invalid m/z delta specification
     INVALID_CONFIDENCE,         ///< Invalid confidence score
     EMPTY_INPUT,                ///< Empty input string
     UNEXPECTED_END_OF_INPUT,    ///< Unexpected end of input
@@ -344,6 +345,10 @@ namespace OpenMS
       @param[in] mz The observed m/z value
       @param[in] intensity The peak intensity
       @return A PeptideHit::PeakAnnotation
+
+      @note If @p mzpaf contains a delta, the returned annotation stores the
+            corresponding theoretical m/z so both absolute and ppm errors can
+            be derived without duplicating them.
     */
     static PeptideHit::PeakAnnotation toPeakAnnotation(
       const MzPAFAnnotation& mzpaf, double mz, double intensity);

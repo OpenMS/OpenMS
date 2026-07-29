@@ -1786,6 +1786,8 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
     TEST_EQUAL(ann.mz > 0.0, true)
     TEST_EQUAL(ann.annotation.empty(), false)
     TEST_EQUAL(ann.charge >= 1, true)
+    TEST_TRUE(ann.theoretical_mz.has_value())
+    TEST_REAL_SIMILAR(ann.mz, *ann.theoretical_mz)
   }
 }
 END_SECTION

@@ -496,6 +496,7 @@
 						<IonType charge="1" index="5">
 							<FragmentArray measure_ref="Measure_mz" values="450.284820556640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.393777251243591"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -503,6 +504,7 @@
 						<IonType charge="1" index="1 2 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="147.129928588867188 234.181854248046875 484.207611083984375 555.27435302734375 668.34527587890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.028377335518599 0.069801956415176 0.215591758489609 0.297201305627823 0.243629142642021"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -510,6 +512,7 @@
 						<IonType charge="2" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="595.05352783203125"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -517,6 +520,7 @@
 						<IonType charge="3" index="9 11">
 							<FragmentArray measure_ref="Measure_mz" values="396.987884521484375 449.32391357421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.384458035230637 0.387931138277054"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -580,6 +584,7 @@
 						<IonType charge="1" index="5">
 							<FragmentArray measure_ref="Measure_mz" values="450.284820556640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.393777251243591"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -587,6 +592,7 @@
 						<IonType charge="1" index="1 2 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="147.129928588867188 234.181854248046875 484.207611083984375 555.27435302734375 668.34527587890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.028377335518599 0.069801956415176 0.215591758489609 0.297201305627823 0.243629142642021"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -594,6 +600,7 @@
 						<IonType charge="2" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="595.05352783203125"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -601,6 +608,7 @@
 						<IonType charge="3" index="9 11">
 							<FragmentArray measure_ref="Measure_mz" values="396.987884521484375 449.32391357421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.384458035230637 0.387931138277054"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -666,6 +674,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -673,6 +682,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.242279052734375 329.2745361328125 363.27850341796875 416.20367431640625 464.2950439453125 503.3255615234375 574.2808837890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054167415946722 0.093634158372879 0.147204279899597 0.127343788743019 0.436179101467133 0.366594970226288 0.684320747852326"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -680,6 +690,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.6553955078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -687,6 +698,7 @@
 						<IonType charge="2" index="4 5 7 8 6 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="233.062835693359375 896.30718994140625 901.44561767578125 951.509765625 952.35906982421875 953.13818359375 1002.68341064453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.082053072750568 1.0 0.530827462673187 0.779896795749664 0.845827639102936 0.589936316013336 0.208705112338066"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -694,6 +706,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625 668.63134765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682 0.677057325839996"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -757,6 +770,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -764,6 +778,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.242279052734375 329.2745361328125 363.27850341796875 416.20367431640625 464.2950439453125 503.3255615234375 574.2808837890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054167415946722 0.093634158372879 0.147204279899597 0.127343788743019 0.436179101467133 0.366594970226288 0.684320747852326"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -771,6 +786,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.6553955078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -778,6 +794,7 @@
 						<IonType charge="2" index="4 5 7 8 6 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="233.062835693359375 896.30718994140625 901.44561767578125 951.509765625 952.35906982421875 953.13818359375 1002.68341064453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.082053072750568 1.0 0.530827462673187 0.779896795749664 0.845827639102936 0.589936316013336 0.208705112338066"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -785,6 +802,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625 668.63134765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682 0.677057325839996"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -958,6 +976,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 371.36663818359375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.021556466817856"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -965,6 +984,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.242279052734375 329.2745361328125 363.27850341796875 416.20367431640625 464.2950439453125 503.3255615234375 574.2808837890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054167415946722 0.093634158372879 0.147204279899597 0.127343788743019 0.436179101467133 0.366594970226288 0.684320747852326"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -972,6 +992,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.6553955078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -979,6 +1000,7 @@
 						<IonType charge="2" index="5 7 8 7">
 							<FragmentArray measure_ref="Measure_mz" values="896.30718994140625 901.44561767578125 951.509765625 1002.68341064453125"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0 0.530827462673187 0.779896795749664 0.208705112338066"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -986,6 +1008,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625 668.63134765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682 0.677057325839996"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1049,6 +1072,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 371.36663818359375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.021556466817856"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1056,6 +1080,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.242279052734375 329.2745361328125 363.27850341796875 416.20367431640625 464.2950439453125 503.3255615234375 574.2808837890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054167415946722 0.093634158372879 0.147204279899597 0.127343788743019 0.436179101467133 0.366594970226288 0.684320747852326"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1063,6 +1088,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.6553955078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1070,6 +1096,7 @@
 						<IonType charge="2" index="5 7 8 7">
 							<FragmentArray measure_ref="Measure_mz" values="896.30718994140625 901.44561767578125 951.509765625 1002.68341064453125"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0 0.530827462673187 0.779896795749664 0.208705112338066"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1077,6 +1104,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625 668.63134765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682 0.677057325839996"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1248,6 +1276,7 @@
 						<IonType charge="1" index="2 1">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 1659.6241455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 4.160685930401087e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1255,6 +1284,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 276.242279052734375 503.3255615234375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.054167415946722 0.366594970226288"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1262,6 +1292,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1269,6 +1300,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.44561767578125 951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.530827462673187 0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1276,6 +1308,7 @@
 						<IonType charge="3" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1283,6 +1316,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1346,6 +1380,7 @@
 						<IonType charge="1" index="2 1">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 1659.6241455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 4.160685930401087e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1353,6 +1388,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 276.242279052734375 503.3255615234375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.054167415946722 0.366594970226288"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1360,6 +1396,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1367,6 +1404,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.44561767578125 951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.530827462673187 0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1374,6 +1412,7 @@
 						<IonType charge="3" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1381,6 +1420,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1552,6 +1592,7 @@
 						<IonType charge="1" index="2 1">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 1659.6241455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 4.160685930401087e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1559,6 +1600,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 276.242279052734375 503.3255615234375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.054167415946722 0.366594970226288"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1566,6 +1608,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1573,6 +1616,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.44561767578125 951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.530827462673187 0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1580,6 +1624,7 @@
 						<IonType charge="3" index="7 3">
 							<FragmentArray measure_ref="Measure_mz" values="548.8726806640625 634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.198092252016068 0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1587,6 +1632,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1650,6 +1696,7 @@
 						<IonType charge="1" index="2 1">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 1659.6241455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 4.160685930401087e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1657,6 +1704,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 276.242279052734375 503.3255615234375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.054167415946722 0.366594970226288"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1664,6 +1712,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1671,6 +1720,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.44561767578125 951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.530827462673187 0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1678,6 +1728,7 @@
 						<IonType charge="3" index="7 3">
 							<FragmentArray measure_ref="Measure_mz" values="548.8726806640625 634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.198092252016068 0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1685,6 +1736,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1856,6 +1908,7 @@
 						<IonType charge="1" index="1">
 							<FragmentArray measure_ref="Measure_mz" values="1659.6241455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="4.160685930401087e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1863,6 +1916,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 276.242279052734375 503.3255615234375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.054167415946722 0.366594970226288"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1870,6 +1924,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1877,6 +1932,7 @@
 						<IonType charge="3" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1940,6 +1996,7 @@
 						<IonType charge="1" index="1">
 							<FragmentArray measure_ref="Measure_mz" values="1659.6241455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="4.160685930401087e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1947,6 +2004,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859375 276.242279052734375 503.3255615234375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.102394722402096 0.054167415946722 0.366594970226288"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -1954,6 +2012,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.509765625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.779896795749664"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -1961,6 +2020,7 @@
 						<IonType charge="3" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="634.51025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.953487992286682"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2134,6 +2194,7 @@
 						<IonType charge="1" index="3 2">
 							<FragmentArray measure_ref="Measure_mz" values="258.161224365234375 260.994598388671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.117963738739491 0.091110207140446"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2141,6 +2202,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.1036376953125 329.20684814453125 363.1258544921875 416.2723388671875 464.2607421875 503.17431640625 574.30706787109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054934117943048 0.142659738659859 0.228076443076134 0.185629785060883 0.639200270175934 0.368112057447434 0.279668509960175"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2148,6 +2210,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.239410400390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.076121836900711"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2155,6 +2218,7 @@
 						<IonType charge="3" index="5 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="597.9400634765625 635.64886474609375 668.49041748046875"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0 0.899061441421509 0.310192316770554"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2218,6 +2282,7 @@
 						<IonType charge="1" index="3 2">
 							<FragmentArray measure_ref="Measure_mz" values="258.161224365234375 260.994598388671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.117963738739491 0.091110207140446"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2225,6 +2290,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.1036376953125 329.20684814453125 363.1258544921875 416.2723388671875 464.2607421875 503.17431640625 574.30706787109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054934117943048 0.142659738659859 0.228076443076134 0.185629785060883 0.639200270175934 0.368112057447434 0.279668509960175"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2232,6 +2298,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.239410400390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.076121836900711"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2239,6 +2306,7 @@
 						<IonType charge="3" index="5 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="597.9400634765625 635.64886474609375 668.49041748046875"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0 0.899061441421509 0.310192316770554"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2410,6 +2478,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="276.1036376953125 503.17431640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054934117943048 0.368112057447434"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2417,6 +2486,7 @@
 						<IonType charge="2" index="5 6">
 							<FragmentArray measure_ref="Measure_mz" values="258.161224365234375 315.140380859375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.117963738739491 0.016777919605374"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2480,6 +2550,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="276.1036376953125 503.17431640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054934117943048 0.368112057447434"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2487,6 +2558,7 @@
 						<IonType charge="2" index="5 6">
 							<FragmentArray measure_ref="Measure_mz" values="258.161224365234375 315.140380859375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.117963738739491 0.016777919605374"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2660,6 +2732,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="260.994598388671875 371.0374755859375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.091110207140446 0.089738927781582"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2667,6 +2740,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.1036376953125 329.20684814453125 363.1258544921875 416.2723388671875 464.2607421875 503.17431640625 574.30706787109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054934117943048 0.142659738659859 0.228076443076134 0.185629785060883 0.639200270175934 0.368112057447434 0.279668509960175"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2674,6 +2748,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.239410400390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.076121836900711"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2681,6 +2756,7 @@
 						<IonType charge="3" index="5 6 7 9">
 							<FragmentArray measure_ref="Measure_mz" values="597.9400634765625 635.64886474609375 668.49041748046875 672.17926025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0 0.899061441421509 0.310192316770554 0.047179818153381"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2744,6 +2820,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="260.994598388671875 371.0374755859375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.091110207140446 0.089738927781582"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2751,6 +2828,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.1036376953125 329.20684814453125 363.1258544921875 416.2723388671875 464.2607421875 503.17431640625 574.30706787109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.054934117943048 0.142659738659859 0.228076443076134 0.185629785060883 0.639200270175934 0.368112057447434 0.279668509960175"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2758,6 +2836,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.239410400390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.076121836900711"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2765,6 +2844,7 @@
 						<IonType charge="3" index="5 6 7 9">
 							<FragmentArray measure_ref="Measure_mz" values="597.9400634765625 635.64886474609375 668.49041748046875 672.17926025390625"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0 0.899061441421509 0.310192316770554 0.047179818153381"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -2938,6 +3018,7 @@
 						<IonType charge="1" index="2 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="215.179519653320313 286.1395263671875 401.31121826171875"/>
 							<FragmentArray measure_ref="Measure_int" values="6.979396566748619e-03 1.317013986408711e-03 3.385651623830199e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -2945,6 +3026,7 @@
 						<IonType charge="3" index="15 17 18 19">
 							<FragmentArray measure_ref="Measure_mz" values="686.30413818359375 762.37060546875 800.50848388671875 824.327392578125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.01179329585284 0.067332930862904 0.09602977335453 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3008,6 +3090,7 @@
 						<IonType charge="1" index="2 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="215.179519653320313 286.1395263671875 401.31121826171875"/>
 							<FragmentArray measure_ref="Measure_int" values="6.979396566748619e-03 1.317013986408711e-03 3.385651623830199e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3015,6 +3098,7 @@
 						<IonType charge="3" index="15 17 18 19">
 							<FragmentArray measure_ref="Measure_mz" values="686.30413818359375 762.37060546875 800.50848388671875 824.327392578125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.01179329585284 0.067332930862904 0.09602977335453 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3078,6 +3162,7 @@
 						<IonType charge="1" index="2 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="215.179519653320313 286.1395263671875 401.31121826171875"/>
 							<FragmentArray measure_ref="Measure_int" values="6.979396566748619e-03 1.317013986408711e-03 3.385651623830199e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3085,6 +3170,7 @@
 						<IonType charge="3" index="15 17 18 19">
 							<FragmentArray measure_ref="Measure_mz" values="686.30413818359375 762.37060546875 800.50848388671875 824.327392578125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.01179329585284 0.067332930862904 0.09602977335453 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3148,6 +3234,7 @@
 						<IonType charge="1" index="2 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="215.179519653320313 286.1395263671875 401.31121826171875"/>
 							<FragmentArray measure_ref="Measure_int" values="6.979396566748619e-03 1.317013986408711e-03 3.385651623830199e-03"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3155,6 +3242,7 @@
 						<IonType charge="3" index="15 17 18 19">
 							<FragmentArray measure_ref="Measure_mz" values="686.30413818359375 762.37060546875 800.50848388671875 824.327392578125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.01179329585284 0.067332930862904 0.09602977335453 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3220,6 +3308,7 @@
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="401.253173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.02904936671257"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3227,6 +3316,7 @@
 						<IonType charge="1" index="3 4 4 5 5 6 10 10">
 							<FragmentArray measure_ref="Measure_mz" values="475.27978515625 546.32769775390625 547.2374267578125 645.333740234375 646.36090087890625 758.54339599609375 1308.4915771484375 1309.501708984375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.093249328434467 0.337678521871567 0.105344533920288 0.27415457367897 0.064386695623398 0.191774249076843 0.113692156970501 0.062556564807892"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3234,6 +3324,7 @@
 						<IonType charge="2" index="10 14 15 16 18 18 19 19">
 							<FragmentArray measure_ref="Measure_mz" values="655.0111083984375 979.20245361328125 1028.438232421875 1093.151611328125 1199.9239501953125 1200.8077392578125 1235.42529296875 1236.2547607421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.05859974399209 0.408718585968018 0.190723329782486 0.615916073322296 0.211004048585892 0.312078505754471 0.532333254814148 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3241,6 +3332,7 @@
 						<IonType charge="3" index="17 19">
 							<FragmentArray measure_ref="Measure_mz" values="762.28350830078125 824.16778564453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.21214371919632 0.5530886054039"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3304,6 +3396,7 @@
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="401.253173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.02904936671257"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3311,6 +3404,7 @@
 						<IonType charge="1" index="3 4 4 5 5 6 10 10">
 							<FragmentArray measure_ref="Measure_mz" values="475.27978515625 546.32769775390625 547.2374267578125 645.333740234375 646.36090087890625 758.54339599609375 1308.4915771484375 1309.501708984375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.093249328434467 0.337678521871567 0.105344533920288 0.27415457367897 0.064386695623398 0.191774249076843 0.113692156970501 0.062556564807892"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3318,6 +3412,7 @@
 						<IonType charge="2" index="10 14 15 16 18 18 19 19">
 							<FragmentArray measure_ref="Measure_mz" values="655.0111083984375 979.20245361328125 1028.438232421875 1093.151611328125 1199.9239501953125 1200.8077392578125 1235.42529296875 1236.2547607421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.05859974399209 0.408718585968018 0.190723329782486 0.615916073322296 0.211004048585892 0.312078505754471 0.532333254814148 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3325,6 +3420,7 @@
 						<IonType charge="3" index="17 19">
 							<FragmentArray measure_ref="Measure_mz" values="762.28350830078125 824.16778564453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.21214371919632 0.5530886054039"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3388,6 +3484,7 @@
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="401.253173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.02904936671257"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3395,6 +3492,7 @@
 						<IonType charge="1" index="3 4 4 5 5 6 10 10">
 							<FragmentArray measure_ref="Measure_mz" values="475.27978515625 546.32769775390625 547.2374267578125 645.333740234375 646.36090087890625 758.54339599609375 1308.4915771484375 1309.501708984375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.093249328434467 0.337678521871567 0.105344533920288 0.27415457367897 0.064386695623398 0.191774249076843 0.113692156970501 0.062556564807892"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3402,6 +3500,7 @@
 						<IonType charge="2" index="10 14 15 16 18 18 19 19">
 							<FragmentArray measure_ref="Measure_mz" values="655.0111083984375 979.20245361328125 1028.438232421875 1093.151611328125 1199.9239501953125 1200.8077392578125 1235.42529296875 1236.2547607421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.05859974399209 0.408718585968018 0.190723329782486 0.615916073322296 0.211004048585892 0.312078505754471 0.532333254814148 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3409,6 +3508,7 @@
 						<IonType charge="3" index="17 19">
 							<FragmentArray measure_ref="Measure_mz" values="762.28350830078125 824.16778564453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.21214371919632 0.5530886054039"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3472,6 +3572,7 @@
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="401.253173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.02904936671257"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3479,6 +3580,7 @@
 						<IonType charge="1" index="3 4 4 5 5 6 10 10">
 							<FragmentArray measure_ref="Measure_mz" values="475.27978515625 546.32769775390625 547.2374267578125 645.333740234375 646.36090087890625 758.54339599609375 1308.4915771484375 1309.501708984375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.093249328434467 0.337678521871567 0.105344533920288 0.27415457367897 0.064386695623398 0.191774249076843 0.113692156970501 0.062556564807892"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3486,6 +3588,7 @@
 						<IonType charge="2" index="10 14 15 16 18 18 19 19">
 							<FragmentArray measure_ref="Measure_mz" values="655.0111083984375 979.20245361328125 1028.438232421875 1093.151611328125 1199.9239501953125 1200.8077392578125 1235.42529296875 1236.2547607421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.05859974399209 0.408718585968018 0.190723329782486 0.615916073322296 0.211004048585892 0.312078505754471 0.532333254814148 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci xi xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3493,6 +3596,7 @@
 						<IonType charge="3" index="17 19">
 							<FragmentArray measure_ref="Measure_mz" values="762.28350830078125 824.16778564453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.21214371919632 0.5530886054039"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3558,6 +3662,7 @@
 						<IonType charge="1" index="4 5">
 							<FragmentArray measure_ref="Measure_mz" values="471.207763671875 584.2440185546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.061412189155817 0.203754380345345"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3565,6 +3670,7 @@
 						<IonType charge="1" index="2 3 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="288.286773681640625 435.21832275390625 774.42498779296875 888.39013671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.019649710506201 0.083638317883015 0.361789405345917 0.356793075799942"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3572,6 +3678,7 @@
 						<IonType charge="2" index="8 13 14">
 							<FragmentArray measure_ref="Measure_mz" values="539.70709228515625 839.9815673828125 896.316162109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.122676633298397 0.125570505857468 0.058144234120846"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3579,6 +3686,7 @@
 						<IonType charge="2" index="6 7 10 11 12">
 							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.9464111328125 692.06878662109375 748.57867431640625 812.86700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.215708956122398 0.119465403258801 1.0 0.292433172464371 0.152033895254135"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3642,6 +3750,7 @@
 						<IonType charge="1" index="4 5">
 							<FragmentArray measure_ref="Measure_mz" values="471.207763671875 584.2440185546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.061412189155817 0.203754380345345"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3649,6 +3758,7 @@
 						<IonType charge="1" index="2 3 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="288.286773681640625 435.21832275390625 774.42498779296875 888.39013671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.019649710506201 0.083638317883015 0.361789405345917 0.356793075799942"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3656,6 +3766,7 @@
 						<IonType charge="2" index="8 13 14">
 							<FragmentArray measure_ref="Measure_mz" values="539.70709228515625 839.9815673828125 896.316162109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.122676633298397 0.125570505857468 0.058144234120846"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3663,6 +3774,7 @@
 						<IonType charge="2" index="6 7 10 11 12">
 							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.9464111328125 692.06878662109375 748.57867431640625 812.86700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.215708956122398 0.119465403258801 1.0 0.292433172464371 0.152033895254135"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3726,6 +3838,7 @@
 						<IonType charge="1" index="4 5">
 							<FragmentArray measure_ref="Measure_mz" values="471.207763671875 584.2440185546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.061412189155817 0.203754380345345"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3733,6 +3846,7 @@
 						<IonType charge="1" index="2 3 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="288.286773681640625 435.21832275390625 774.42498779296875 888.39013671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.019649710506201 0.083638317883015 0.361789405345917 0.356793075799942"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3740,6 +3854,7 @@
 						<IonType charge="2" index="8 13 14">
 							<FragmentArray measure_ref="Measure_mz" values="539.70709228515625 839.9815673828125 896.316162109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.122676633298397 0.125570505857468 0.058144234120846"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3747,6 +3862,7 @@
 						<IonType charge="2" index="6 7 10 11 12">
 							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.9464111328125 692.06878662109375 748.57867431640625 812.86700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.215708956122398 0.119465403258801 1.0 0.292433172464371 0.152033895254135"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3810,6 +3926,7 @@
 						<IonType charge="1" index="4 5">
 							<FragmentArray measure_ref="Measure_mz" values="471.207763671875 584.2440185546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.061412189155817 0.203754380345345"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3817,6 +3934,7 @@
 						<IonType charge="1" index="2 3 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="288.286773681640625 435.21832275390625 774.42498779296875 888.39013671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.019649710506201 0.083638317883015 0.361789405345917 0.356793075799942"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3824,6 +3942,7 @@
 						<IonType charge="2" index="8 13 14">
 							<FragmentArray measure_ref="Measure_mz" values="539.70709228515625 839.9815673828125 896.316162109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.122676633298397 0.125570505857468 0.058144234120846"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3831,6 +3950,7 @@
 						<IonType charge="2" index="6 7 10 11 12">
 							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.9464111328125 692.06878662109375 748.57867431640625 812.86700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.215708956122398 0.119465403258801 1.0 0.292433172464371 0.152033895254135"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3896,6 +4016,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3903,6 +4024,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.123779296875 329.17510986328125 363.2259521484375 416.17230224609375 464.2720947265625 503.23358154296875 574.27618408203125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.030728429555893 0.06202358007431 0.079298593103886 0.113435924053192 0.299913018941879 0.284903049468994 0.394180774688721"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3910,6 +4032,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.38238525390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.089526809751987"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3917,6 +4040,7 @@
 						<IonType charge="2" index="5 7 8 6 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="896.23162841796875 901.76580810546875 951.23883056640625 952.323486328125 953.12750244140625 1002.26873779296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.640620291233063 0.843465268611908 1.0 0.521720707416534 0.443184226751328 0.238677591085434"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3924,6 +4048,7 @@
 						<IonType charge="3" index="7">
 							<FragmentArray measure_ref="Measure_mz" values="629.34295654296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.047348257154226"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -3931,6 +4056,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625 668.66949462890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493 0.491430699825287"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -3994,6 +4120,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4001,6 +4128,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.123779296875 329.17510986328125 363.2259521484375 416.17230224609375 464.2720947265625 503.23358154296875 574.27618408203125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.030728429555893 0.06202358007431 0.079298593103886 0.113435924053192 0.299913018941879 0.284903049468994 0.394180774688721"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4008,6 +4136,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.38238525390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.089526809751987"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4015,6 +4144,7 @@
 						<IonType charge="2" index="5 7 8 6 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="896.23162841796875 901.76580810546875 951.23883056640625 952.323486328125 953.12750244140625 1002.26873779296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.640620291233063 0.843465268611908 1.0 0.521720707416534 0.443184226751328 0.238677591085434"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4022,6 +4152,7 @@
 						<IonType charge="3" index="7">
 							<FragmentArray measure_ref="Measure_mz" values="629.34295654296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.047348257154226"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4029,6 +4160,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625 668.66949462890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493 0.491430699825287"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4200,6 +4332,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4207,6 +4340,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625 276.123779296875 503.23358154296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566 0.030728429555893 0.284903049468994"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4214,6 +4348,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4221,6 +4356,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.76580810546875 951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.843465268611908 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4228,6 +4364,7 @@
 						<IonType charge="3" index="9 3">
 							<FragmentArray measure_ref="Measure_mz" values="629.34295654296875 634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.047348257154226 0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4235,6 +4372,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4298,6 +4436,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4305,6 +4444,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625 276.123779296875 503.23358154296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566 0.030728429555893 0.284903049468994"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4312,6 +4452,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4319,6 +4460,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.76580810546875 951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.843465268611908 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4326,6 +4468,7 @@
 						<IonType charge="3" index="9 3">
 							<FragmentArray measure_ref="Measure_mz" values="629.34295654296875 634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.047348257154226 0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4333,6 +4476,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4504,6 +4648,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4511,6 +4656,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625 276.123779296875 503.23358154296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566 0.030728429555893 0.284903049468994"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4518,6 +4664,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4525,6 +4672,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.76580810546875 951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.843465268611908 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4532,6 +4680,7 @@
 						<IonType charge="3" index="7 9 3">
 							<FragmentArray measure_ref="Measure_mz" values="548.84295654296875 629.34295654296875 634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.089450754225254 0.047348257154226 0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4539,6 +4688,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4602,6 +4752,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4609,6 +4760,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625 276.123779296875 503.23358154296875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566 0.030728429555893 0.284903049468994"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4616,6 +4768,7 @@
 						<IonType charge="2" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4623,6 +4776,7 @@
 						<IonType charge="2" index="8 9">
 							<FragmentArray measure_ref="Measure_mz" values="901.76580810546875 951.23883056640625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.843465268611908 1.0"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4630,6 +4784,7 @@
 						<IonType charge="3" index="7 9 3">
 							<FragmentArray measure_ref="Measure_mz" values="548.84295654296875 629.34295654296875 634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.089450754225254 0.047348257154226 0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4637,6 +4792,7 @@
 						<IonType charge="3" index="9">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4810,6 +4966,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4817,6 +4974,7 @@
 						<IonType charge="1" index="3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="329.17510986328125 363.2259521484375 416.17230224609375 464.2720947265625 503.23358154296875 574.27618408203125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.06202358007431 0.079298593103886 0.113435924053192 0.299913018941879 0.284903049468994 0.394180774688721"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4824,6 +4982,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.38238525390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.089526809751987"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4831,6 +4990,7 @@
 						<IonType charge="2" index="5 7">
 							<FragmentArray measure_ref="Measure_mz" values="896.23162841796875 901.76580810546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.640620291233063 0.843465268611908"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4838,6 +4998,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625 668.66949462890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493 0.491430699825287"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4901,6 +5062,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.1656494140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.063553526997566"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4908,6 +5070,7 @@
 						<IonType charge="1" index="3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="329.17510986328125 363.2259521484375 416.17230224609375 464.2720947265625 503.23358154296875 574.27618408203125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.06202358007431 0.079298593103886 0.113435924053192 0.299913018941879 0.284903049468994 0.394180774688721"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4915,6 +5078,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="794.38238525390625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.089526809751987"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -4922,6 +5086,7 @@
 						<IonType charge="2" index="5 7">
 							<FragmentArray measure_ref="Measure_mz" values="896.23162841796875 901.76580810546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.640620291233063 0.843465268611908"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -4929,6 +5094,7 @@
 						<IonType charge="3" index="8 7">
 							<FragmentArray measure_ref="Measure_mz" values="634.60064697265625 668.66949462890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.972340881824493 0.491430699825287"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5102,6 +5268,7 @@
 						<IonType charge="1" index="3 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="258.172271728515625 261.086700439453125 371.22003173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.127446562051773 0.129108503460884 0.127944990992546"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5109,6 +5276,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.0823974609375 329.25048828125 363.302978515625 416.2742919921875 464.2828369140625 503.17828369140625 574.2752685546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113416388630867 0.177601501345634 0.225260227918625 0.250927746295929 0.588942646980286 0.405435562133789 0.43561378121376"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5116,6 +5284,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.215240478515625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.097069784998894"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5123,6 +5292,7 @@
 						<IonType charge="3" index="5 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="597.74212646484375 635.5418701171875 668.47491455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.832211017608643 1.0 0.419826328754425"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5186,6 +5356,7 @@
 						<IonType charge="1" index="3 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="258.172271728515625 261.086700439453125 371.22003173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.127446562051773 0.129108503460884 0.127944990992546"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5193,6 +5364,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.0823974609375 329.25048828125 363.302978515625 416.2742919921875 464.2828369140625 503.17828369140625 574.2752685546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113416388630867 0.177601501345634 0.225260227918625 0.250927746295929 0.588942646980286 0.405435562133789 0.43561378121376"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5200,6 +5372,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.215240478515625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.097069784998894"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5207,6 +5380,7 @@
 						<IonType charge="3" index="5 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="597.74212646484375 635.5418701171875 668.47491455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.832211017608643 1.0 0.419826328754425"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5378,6 +5552,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5385,6 +5560,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 276.0823974609375 503.17828369140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.113416388630867 0.405435562133789"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5392,6 +5568,7 @@
 						<IonType charge="2" index="8">
 							<FragmentArray measure_ref="Measure_mz" values="886.90704345703125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.012021447531879"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5455,6 +5632,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5462,6 +5640,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 276.0823974609375 503.17828369140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.113416388630867 0.405435562133789"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5469,6 +5648,7 @@
 						<IonType charge="2" index="8">
 							<FragmentArray measure_ref="Measure_mz" values="886.90704345703125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.012021447531879"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5640,6 +5820,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5647,6 +5828,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 276.0823974609375 503.17828369140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.113416388630867 0.405435562133789"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5654,6 +5836,7 @@
 						<IonType charge="2" index="8">
 							<FragmentArray measure_ref="Measure_mz" values="886.90704345703125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.012021447531879"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5717,6 +5900,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5724,6 +5908,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 276.0823974609375 503.17828369140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.113416388630867 0.405435562133789"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5731,6 +5916,7 @@
 						<IonType charge="2" index="8">
 							<FragmentArray measure_ref="Measure_mz" values="886.90704345703125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.012021447531879"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5904,6 +6090,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 371.22003173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.127944990992546"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5911,6 +6098,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.0823974609375 329.25048828125 363.302978515625 416.2742919921875 464.2828369140625 503.17828369140625 574.2752685546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113416388630867 0.177601501345634 0.225260227918625 0.250927746295929 0.588942646980286 0.405435562133789 0.43561378121376"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5918,6 +6106,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.215240478515625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.097069784998894"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5925,6 +6114,7 @@
 						<IonType charge="3" index="5 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="597.74212646484375 635.5418701171875 668.47491455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.832211017608643 1.0 0.419826328754425"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -5988,6 +6178,7 @@
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 371.22003173828125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.127944990992546"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -5995,6 +6186,7 @@
 						<IonType charge="1" index="2 3 3 4 4 5 6">
 							<FragmentArray measure_ref="Measure_mz" values="276.0823974609375 329.25048828125 363.302978515625 416.2742919921875 464.2828369140625 503.17828369140625 574.2752685546875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113416388630867 0.177601501345634 0.225260227918625 0.250927746295929 0.588942646980286 0.405435562133789 0.43561378121376"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0 0 0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta alpha beta alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -6002,6 +6194,7 @@
 						<IonType charge="2" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="233.215240478515625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.097069784998894"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -6009,6 +6202,7 @@
 						<IonType charge="3" index="5 6 7">
 							<FragmentArray measure_ref="Measure_mz" values="597.74212646484375 635.5418701171875 668.47491455078125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.832211017608643 1.0 0.419826328754425"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -6180,6 +6374,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -6187,6 +6382,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 276.0823974609375 503.17828369140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.113416388630867 0.405435562133789"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -6194,6 +6390,7 @@
 						<IonType charge="2" index="8">
 							<FragmentArray measure_ref="Measure_mz" values="886.90704345703125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.012021447531879"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -6257,6 +6454,7 @@
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
@@ -6264,6 +6462,7 @@
 						<IonType charge="1" index="2 2 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453125 276.0823974609375 503.17828369140625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.129108503460884 0.113416388630867 0.405435562133789"/>
+							<FragmentArray measure_ref="Measure_error" values="0 0 0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -6271,6 +6470,7 @@
 						<IonType charge="2" index="8">
 							<FragmentArray measure_ref="Measure_mz" values="886.90704345703125"/>
 							<FragmentArray measure_ref="Measure_int" values="0.012021447531879"/>
+							<FragmentArray measure_ref="Measure_error" values="0"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>

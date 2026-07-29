@@ -1040,6 +1040,16 @@ namespace OpenMS
         PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
         QString s(sa[aligned_peak_indices[i].second].c_str());
         QString ion_nr_string = s;
+        const double theoretical_mz = theo_spectrum[aligned_peak_indices[i].second].getMZ();
+        const auto add_aligned_annotation = [&](const QString& text, const QColor& color)
+        {
+          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, text, color);
+          if (auto* peak_item = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(item))
+          {
+            peak_item->setTheoreticalMZ(theoretical_mz);
+          }
+          temporary_annotations_.push_back(item);
+        };
 
         if (s.at(0) == 'y')
         {
@@ -1059,8 +1069,7 @@ namespace OpenMS
             }
           }
           s.append(aa_ss);
-          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkRed);
-          temporary_annotations_.push_back(item);
+          add_aligned_annotation(s, Qt::darkRed);
         }
         else if (s.at(0) == 'b')
         {
@@ -1075,16 +1084,12 @@ namespace OpenMS
           aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
           // append to label
           s.append(aa_ss);
-          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
-          // save label for later removal
-          temporary_annotations_.push_back(item);
+          add_aligned_annotation(s, Qt::darkGreen);
         }
         else
         {
           s.append("\n");
-          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::black);
-          // save label for later removal
-          temporary_annotations_.push_back(item);
+          add_aligned_annotation(s, Qt::black);
         }
       }
 
@@ -1263,7 +1268,8 @@ namespace OpenMS
       auto item = new Annotation1DPeakItem<Peak1D>(
         position,
         toQString(label),
-        color);
+        color,
+        ann.theoretical_mz);
 
       // set peak color
       current_layer2.peak_colors_1d[peak_idx] = peak_color;

@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <algorithm>
+#include <cmath>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -142,6 +143,9 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
     // Verify that mz and intensity are set
     TEST_NOT_EQUAL(pa.mz, -1.0)
     TEST_REAL_SIMILAR(pa.intensity, 1.1f)
+    TEST_TRUE(pa.theoretical_mz.has_value())
+    TEST_TRUE(pa.getMZError().has_value())
+    TEST_TRUE(std::fabs(*pa.getMZError()) <= 0.1)
   }
   
   // Sort both lists for comparison (since order may vary based on spectrum alignment)
@@ -191,10 +195,12 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
     if (pa.annotation.empty())
     {
       unannotated_count++;
+      TEST_FALSE(pa.theoretical_mz.has_value())
     }
     else
     {
       annotated_count++;
+      TEST_TRUE(pa.theoretical_mz.has_value())
     }
     // All peaks should have mz and intensity set
     TEST_NOT_EQUAL(pa.mz, -1.0)
@@ -207,6 +213,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

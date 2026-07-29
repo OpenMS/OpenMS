@@ -18,6 +18,8 @@
 #include <QtGui/QColor>
 #include <QtGui/QFontMetricsF>
 
+#include <optional>
+
 namespace OpenMS
 {
 
@@ -30,8 +32,13 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color) :
-      Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color)
+    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color,
+                         std::optional<double> theoretical_mz = std::nullopt) :
+      Annotation1DItem(text),
+      peak_position_(peak_position),
+      position_(peak_position),
+      color_(color),
+      theoretical_mz_(theoretical_mz)
     {
     }
 
@@ -212,6 +219,24 @@ public:
       return color_;
     }
 
+    /// Set the theoretical m/z associated with the annotation
+    void setTheoreticalMZ(std::optional<double> theoretical_mz)
+    {
+      theoretical_mz_ = theoretical_mz;
+    }
+
+    /// Return the theoretical m/z associated with the annotation, if known
+    const std::optional<double>& getTheoreticalMZ() const
+    {
+      return theoretical_mz_;
+    }
+
+    /// Clear the theoretical m/z after changing the ion assignment
+    void clearTheoreticalMZ()
+    {
+      theoretical_mz_.reset();
+    }
+
     /// Convert the 'text()' to a Peptide::PeakAnnotation
     PeptideHit::PeakAnnotation toPeakAnnotation() const
     {
@@ -279,6 +304,7 @@ public:
       fa.charge = tmp_charge;
       fa.mz = this->getPeakPosition().getMZ();
       fa.intensity = this->getPeakPosition().getIntensity();
+      fa.theoretical_mz = theoretical_mz_;
       if (lines.size() > 1)
       {
         peak_anno.append("\n").append(lines[1]);
@@ -303,5 +329,8 @@ public:
 
     /// The color of the label
     QColor color_;
+
+    /// The theoretical m/z of the assigned ion, if known
+    std::optional<double> theoretical_mz_;
   };
 } // namespace OpenMS

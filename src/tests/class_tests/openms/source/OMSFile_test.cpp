@@ -41,6 +41,17 @@ START_SECTION(void store(const std::string& filename, const IdentificationData& 
   // IdentificationData doesn't allow score types with the same name, but different orientations:
   peptides_in[0].setHigherScoreBetter(true);
 
+  vector<PeptideHit::PeakAnnotation> peak_annotations(3);
+  peak_annotations[0].annotation = "b2_with_theoretical_mz";
+  peak_annotations[0].mz = 200.01;
+  peak_annotations[0].theoretical_mz = 200.0;
+  peak_annotations[1].annotation = "y3_with_zero_theoretical_mz";
+  peak_annotations[1].mz = 300.0;
+  peak_annotations[1].theoretical_mz = 0.0;
+  peak_annotations[2].annotation = "a1_without_theoretical_mz";
+  peak_annotations[2].mz = 100.0;
+  peptides_in[0].getHits()[0].setPeakAnnotations(peak_annotations);
+
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
   // add an adduct (not supported by idXML):
   AdductInfo adduct("Cl-", EmpiricalFormula("Cl"), -1);
@@ -99,6 +110,60 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
   TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
              ids.getObservationMatches().begin()->identified_molecule_var.toString());
   TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");
+
+  bool found_value = false;
+  bool found_zero = false;
+  bool found_missing = false;
+  for (const auto& match : out.getObservationMatches())
+  {
+    for (const auto& pair : match.peak_annotations)
+    {
+      for (const auto& annotation : pair.second)
+      {
+        if (annotation.annotation == "b2_with_theoretical_mz")
+        {
+          found_value = true;
+          TEST_TRUE(annotation.theoretical_mz.has_value())
+          TEST_REAL_SIMILAR(*annotation.theoretical_mz, 200.0)
+        }
+        else if (annotation.annotation == "y3_with_zero_theoretical_mz")
+        {
+          found_zero = true;
+          TEST_TRUE(annotation.theoretical_mz.has_value())
+          TEST_REAL_SIMILAR(*annotation.theoretical_mz, 0.0)
+        }
+        else if (annotation.annotation == "a1_without_theoretical_mz")
+        {
+          found_missing = true;
+          TEST_FALSE(annotation.theoretical_mz.has_value())
+        }
+      }
+    }
+  }
+  TEST_TRUE(found_value)
+  TEST_TRUE(found_zero)
+  TEST_TRUE(found_missing)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] load legacy peak annotations without theoretical m/z))
+{
+  IdentificationData legacy;
+  OMSFile().load(OPENMS_GET_TEST_DATA_PATH("../../../topp/JSONExporter_RNA.oms"), legacy);
+
+  Size annotation_count = 0;
+  for (const auto& match : legacy.getObservationMatches())
+  {
+    for (const auto& pair : match.peak_annotations)
+    {
+      for (const auto& annotation : pair.second)
+      {
+        ++annotation_count;
+        TEST_FALSE(annotation.theoretical_mz.has_value())
+      }
+    }
+  }
+  TEST_EQUAL(annotation_count, 24)
 }
 END_SECTION
 

@@ -110,18 +110,18 @@ START_SECTION(Ion with isotope offset)
 }
 END_SECTION
 
-START_SECTION(Ion with mass delta in Da)
+START_SECTION(Ion with delta in m/z units)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4/0.001");
   TEST_EQUAL(ann.ion_series, MzPAFIonSeries::Y)
   TEST_EQUAL(ann.ordinal.value(), 4)
   TEST_EQUAL(ann.mass_delta.has_value(), true)
   TEST_REAL_SIMILAR(ann.mass_delta.value().value, 0.001)
-  TEST_EQUAL(ann.mass_delta.value().unit, MzPAFDeltaUnit::DALTON)
+  TEST_EQUAL(ann.mass_delta.value().unit, MzPAFDeltaUnit::MZ)
 }
 END_SECTION
 
-START_SECTION(Ion with mass delta in ppm)
+START_SECTION(Ion with m/z delta in ppm)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4/-1.4ppm");
   TEST_EQUAL(ann.ion_series, MzPAFIonSeries::Y)
@@ -315,6 +315,23 @@ START_SECTION(toPeakAnnotation integration)
   TEST_REAL_SIMILAR(pa.mz, 500.123)
   TEST_REAL_SIMILAR(pa.intensity, 1000.0)
   TEST_EQUAL(pa.annotation, "y4^2")
+  TEST_FALSE(pa.theoretical_mz.has_value())
+
+  ann = MzPAF::parse("y4^2/0.002");
+  pa = MzPAF::toPeakAnnotation(ann, 500.0, 1000.0);
+  TEST_TRUE(pa.theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*pa.theoretical_mz, 499.998)
+  TEST_REAL_SIMILAR(*pa.getMZError(), 0.002)
+
+  ann = MzPAF::parse("y4^2/-4ppm");
+  pa = MzPAF::toPeakAnnotation(ann, 500.0, 1000.0);
+  TEST_TRUE(pa.theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*pa.theoretical_mz, 500.0 / (1.0 - 4e-6))
+  TEST_REAL_SIMILAR(*pa.getMZErrorPPM(), -4.0)
+
+  ann = MzPAF::parse("y4^2/-1000000ppm");
+  pa = MzPAF::toPeakAnnotation(ann, 500.0, 1000.0);
+  TEST_FALSE(pa.theoretical_mz.has_value())
 }
 END_SECTION
 

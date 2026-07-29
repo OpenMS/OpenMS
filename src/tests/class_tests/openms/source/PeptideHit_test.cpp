@@ -254,6 +254,7 @@ START_SECTION((void setPeakAnnotations(const vector<PeptideHit::PeakAnnotation> 
   frag_annos[0].charge = 2;
   frag_annos[0].mz = 1234.567;
   frag_annos[0].intensity = 1.0;
+  frag_annos[0].theoretical_mz = 1234.5;
   frag_annos[1].annotation = "second test string";
   frag_annos[1].charge = 1;
   frag_annos[1].mz = 89.10;
@@ -264,8 +265,70 @@ START_SECTION((void setPeakAnnotations(const vector<PeptideHit::PeakAnnotation> 
   TEST_EQUAL(hit.getPeakAnnotations()[0].charge == 2, true)
   TEST_EQUAL(hit.getPeakAnnotations()[0].mz == 1234.567, true)
   TEST_EQUAL(hit.getPeakAnnotations()[0].intensity == 1.0, true)
+  TEST_TRUE(hit.getPeakAnnotations()[0].theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*hit.getPeakAnnotations()[0].theoretical_mz, 1234.5)
   TEST_EQUAL(hit.getPeakAnnotations()[1].annotation == "second test string", true)
   TEST_EQUAL(hit.getPeakAnnotations()[1].mz == 89.1, true)
+  TEST_FALSE(hit.getPeakAnnotations()[1].theoretical_mz.has_value())
+END_SECTION
+
+START_SECTION((std::optional<double> PeakAnnotation::getMZError() const))
+{
+  PeptideHit::PeakAnnotation annotation;
+  annotation.mz = 500.002;
+  TEST_FALSE(annotation.getMZError().has_value())
+
+  annotation.theoretical_mz = 500.0;
+  TEST_TRUE(annotation.getMZError().has_value())
+  TEST_REAL_SIMILAR(*annotation.getMZError(), 0.002)
+
+  annotation.theoretical_mz = 500.004;
+  TEST_REAL_SIMILAR(*annotation.getMZError(), -0.002)
+}
+END_SECTION
+
+START_SECTION((std::optional<double> PeakAnnotation::getMZErrorPPM() const))
+{
+  PeptideHit::PeakAnnotation annotation;
+  annotation.mz = 500.002;
+  TEST_FALSE(annotation.getMZErrorPPM().has_value())
+
+  annotation.theoretical_mz = 500.0;
+  TEST_TRUE(annotation.getMZErrorPPM().has_value())
+  TEST_REAL_SIMILAR(*annotation.getMZErrorPPM(), 4.0)
+
+  annotation.theoretical_mz = 0.0;
+  TEST_FALSE(annotation.getMZErrorPPM().has_value())
+}
+END_SECTION
+
+START_SECTION((PeakAnnotation comparison and hashing include theoretical_mz))
+{
+  PeptideHit::PeakAnnotation unknown;
+  unknown.annotation = "y4";
+  unknown.mz = 500.0;
+
+  PeptideHit::PeakAnnotation exact = unknown;
+  exact.theoretical_mz = 500.0;
+
+  TEST_FALSE(unknown == exact)
+  TEST_TRUE(unknown < exact)
+
+  unordered_set<PeptideHit::PeakAnnotation> annotations;
+  annotations.insert(unknown);
+  annotations.insert(exact);
+  TEST_EQUAL(annotations.size(), 2)
+}
+END_SECTION
+
+START_SECTION((static void PeakAnnotation::writePeakAnnotationsString_(std::string&, std::vector<PeakAnnotation>)))
+{
+  PeptideHit::PeakAnnotation unknown{"b2", 1, 200.0, 50.0};
+  PeptideHit::PeakAnnotation known{"y4", 1, 500.0, 100.0, 499.998};
+  std::string packed;
+  PeptideHit::PeakAnnotation::writePeakAnnotationsString_(packed, {known, unknown});
+  TEST_EQUAL(packed, "200,50,1,\"b2\"|500,100,1,\"y4\",499.998")
+}
 END_SECTION
 
 START_SECTION((void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult)))

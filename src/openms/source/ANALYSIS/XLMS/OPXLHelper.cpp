@@ -684,6 +684,7 @@ namespace OpenMS
       PeptideHit::PeakAnnotation frag_anno;
       frag_anno.mz = experiment_spectrum[matching[k].second].getMZ();
       frag_anno.intensity = experiment_spectrum[matching[k].second].getIntensity();
+      frag_anno.theoretical_mz = theoretical_spectrum[matching[k].first].getMZ();
 
       frag_anno.charge = charges[matching[k].first];
       frag_anno.annotation = names[matching[k].first];
