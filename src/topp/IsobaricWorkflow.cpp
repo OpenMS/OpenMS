@@ -697,8 +697,9 @@ protected:
           }
           else
           {
-            // will leave the cMap with a default initialized consensus feature. Remember to remove it later.
-            // should also never happen
+            // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
+            // pruned before the merge below. Should not normally happen: an identified spectrum is
+            // expected to exist in the mzML.
             OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in mzML file. Skipping." << std::endl;
           }
         }
@@ -722,6 +723,24 @@ protected:
       //IsobaricNormalizer::normalize(cur_cmap);
 
       // TODO cleanup, reset?
+
+      // cur_cmap was pre-sized to one ConsensusFeature per peptide ID (resize above) and only the
+      // features we could actually quantify were filled in - fillConsensusFeature_ always inserts at
+      // least one FeatureHandle per channel. Peptide IDs we could not quantify (an identified MS2 with
+      // no corresponding MS3, an identified spectrum missing from the mzML, or one without a spectrum
+      // reference) leave their slot as a default-constructed feature with zero FeatureHandles
+      // (rt/mz/charge = 0, empty sequence, no map association). Their identifications are preserved in
+      // the unassigned peptide IDs, so drop these empty placeholders here instead of merging them into
+      // the output map.
+      const Size before_prune = cur_cmap.size();
+      cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
+                               [](const ConsensusFeature& cf) { return cf.empty(); }),
+                     cur_cmap.end());
+      if (const Size pruned = before_prune - cur_cmap.size(); pruned > 0)
+      {
+        OPENMS_LOG_INFO << "Removed " << pruned << " unquantified consensus feature(s) without reporter "
+                        << "channels (their peptide identifications are kept in the unassigned IDs)." << std::endl;
+      }
 
       // Always use insert (not move assignment) to preserve column headers registered at line 577.
       // Move assignment would lose column headers if early files have no peptide IDs after filtering.
@@ -776,7 +795,10 @@ protected:
     
     addDataProcessing_(cmap, dp);
 
-    // remove empty features (TODO based on some other filtering settings?)
+    // Drop features that carry no reporter signal (zero total intensity). Structurally empty
+    // (unquantified) features were already removed per input file before merging above; this remaining
+    // filter only affects real, identified features whose reporter channels were all below threshold.
+    // TODO expose this as a proper min-intensity filtering setting.
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
     cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
     cmap.ensureUniqueId();
