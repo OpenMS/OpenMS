@@ -23,6 +23,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
+
+#include <set>
 #include <arrow/type.h>
 #include <arrow/io/file.h>
 #include <parquet/arrow/reader.h>
@@ -201,7 +203,18 @@ START_SECTION(exportToArrow - basic export)
   auto table = ConsensusMapArrowExport::exportToArrow(cmap);
 
   TEST_NOT_EQUAL(table, nullptr)
-  TEST_EQUAL(table->num_rows(), 3)
+  // The QPX feature view is long: one row per (ConsensusFeature, run). The fixture's cf1
+  // spans both runs (handles on maps 0 and 1) while cf2 and cf3 have one handle each,
+  // so 3 consensus features melt into 2 + 1 + 1 = 4 rows.
+  TEST_EQUAL(table->num_rows(), 4)
+  {
+    auto run_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+    std::multiset<std::string> runs;
+    for (int64_t r = 0; r < run_col->length(); ++r) { runs.insert(run_col->GetString(r)); }
+    // stemmed, and cf1 contributes one row to each run
+    TEST_EQUAL(runs.count("sample1"), 3)
+    TEST_EQUAL(runs.count("sample2"), 1)
+  }
 
   // Check schema has expected columns
   auto schema = table->schema();
@@ -253,10 +266,23 @@ START_SECTION(exportToArrow - modifications column)
   ConsensusMap cmap;
   cmap.setExperimentType("label-free");
 
+  // A row in the QPX feature view is keyed on (feature, run), so the feature needs a handle
+  // and a describing column header to produce one at all.
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "mods_run.mzML";
+  cmap.getColumnHeaders()[0] = ch;
+
   ConsensusFeature cf;
   cf.setMZ(500.0);
   cf.setRT(100.0);
   cf.setCharge(2);
+
+  BaseFeature bf;
+  bf.setIntensity(1234.0f);
+  bf.setMZ(500.0);
+  bf.setRT(100.0);
+  bf.setCharge(2);
+  cf.insert(0, bf);
 
   PeptideIdentification pep_id;
   pep_id.setScoreType("score");
@@ -278,6 +304,116 @@ START_SECTION(exportToArrow - modifications column)
   auto schema = table->schema();
   auto mod_field = schema->GetFieldByName("modifications");
   TEST_EQUAL(mod_field->type()->id(), arrow::Type::LIST)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] feature view melts to one row per (feature, run)))
+{
+  // Label-free: each row carries its own run's coordinates and a single "LFQ" intensity,
+  // matching docs/spec/feature.md ("a quantified peptidoform in a specific run file").
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  for (Size m = 0; m < 2; ++m)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/run" + StringUtils::toStr(m + 1) + ".mzML";
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[m] = ch;
+  }
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0);
+  cf.setRT(100.0);
+  cf.setCharge(2);
+  // Per-run coordinates deliberately differ from the consensus centroid.
+  BaseFeature b0; b0.setIntensity(10.0f); b0.setMZ(500.1); b0.setRT(101.0); b0.setCharge(2);
+  BaseFeature b1; b1.setIntensity(20.0f); b1.setMZ(500.2); b1.setRT(102.0); b1.setCharge(2);
+  cf.insert(0, b0);
+  cf.insert(1, b1);
+  cmap.push_back(cf);
+
+  // A feature with no handles has no run and no quantification -> no row.
+  ConsensusFeature orphan;
+  orphan.setMZ(600.0);
+  orphan.setRT(200.0);
+  cmap.push_back(orphan);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 2)   // one per run; the handleless feature is dropped
+
+  auto run_col = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+  auto rt_col  = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("rt")->chunk(0));
+  auto mz_col  = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("observed_mz")->chunk(0));
+  TEST_STRING_EQUAL(run_col->GetString(0), "run1")
+  TEST_STRING_EQUAL(run_col->GetString(1), "run2")
+  // Label-free rows take RT/mz from the run's own handle, not the consensus centroid (100.0/500.0)
+  TEST_REAL_SIMILAR(rt_col->Value(0), 101.0)
+  TEST_REAL_SIMILAR(rt_col->Value(1), 102.0)
+  TEST_REAL_SIMILAR(mz_col->Value(0), 500.1)
+  TEST_REAL_SIMILAR(mz_col->Value(1), 500.2)
+
+  // Exactly one intensity per label-free row, labelled "LFQ" and holding that run's value.
+  auto int_col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+  auto st  = std::static_pointer_cast<arrow::StructArray>(int_col->values());
+  auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+  auto val = std::static_pointer_cast<arrow::FloatArray>(st->field(1));
+  TEST_EQUAL(int_col->value_length(0), 1)
+  TEST_EQUAL(int_col->value_length(1), 1)
+  TEST_STRING_EQUAL(lab->GetString(0), "LFQ")
+  TEST_STRING_EQUAL(lab->GetString(1), "LFQ")
+  TEST_REAL_SIMILAR(val->Value(0), 10.0)
+  TEST_REAL_SIMILAR(val->Value(1), 20.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isobaric feature rows keep consensus coordinates and list all channels))
+{
+  // Isobaric handles are reporter ions: their m/z is the reporter mass and their RT the
+  // quantification scan, so the row must keep the ConsensusFeature's precursor coordinates
+  // and use the handles only for channel intensities.
+  ConsensusMap cmap;
+  const std::vector<std::string> channels = {"126", "127N", "127C"};
+  for (Size c = 0; c < channels.size(); ++c)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/tmt_run.mzML";      // all channels share one run
+    ch.label = "tmt10plex_" + channels[c];
+    ch.setMetaValue("channel_name", channels[c]);
+    ch.setMetaValue("channel_id", static_cast<int>(c));
+    cmap.getColumnHeaders()[c] = ch;
+  }
+
+  ConsensusFeature cf;
+  cf.setMZ(700.5);   // precursor
+  cf.setRT(300.0);
+  cf.setCharge(2);
+  for (Size c = 0; c < channels.size(); ++c)
+  {
+    BaseFeature b;
+    b.setIntensity(100.0f * (c + 1));
+    b.setMZ(126.0 + c);      // reporter mass, must NOT become observed_mz
+    b.setRT(301.0);          // quant scan RT, must NOT become rt
+    cf.insert(c, b);
+  }
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 1)   // one run -> one row, with all channels in it
+
+  auto rt_col = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("rt")->chunk(0));
+  auto mz_col = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("observed_mz")->chunk(0));
+  TEST_REAL_SIMILAR(rt_col->Value(0), 300.0)   // consensus, not 301.0
+  TEST_REAL_SIMILAR(mz_col->Value(0), 700.5)   // precursor, not a reporter mass
+
+  auto int_col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+  auto st  = std::static_pointer_cast<arrow::StructArray>(int_col->values());
+  auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+  TEST_EQUAL(int_col->value_length(0), 3)
+  TEST_STRING_EQUAL(lab->GetString(0), "TMT126")
+  TEST_STRING_EQUAL(lab->GetString(1), "TMT127N")
+  TEST_STRING_EQUAL(lab->GetString(2), "TMT127C")
 }
 END_SECTION
 

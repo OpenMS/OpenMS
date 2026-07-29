@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -314,7 +315,62 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   arrow::ListBuilder pg_positions_builder(arrow::default_memory_pool(), pgp_struct_b);
 
   arrow::Status status;
-  const Size num_features = range_end - range_begin;
+
+  // -- Melt: one output row per (ConsensusFeature, run) --
+  //
+  // QPX's feature view is long -- "a quantified peptidoform in a specific run file"
+  // (docs/spec/feature.md) -- so a ConsensusFeature spanning N runs expands to N rows, each
+  // carrying only that run's intensities. Emitting one wide row per feature instead made
+  // run_file_name an arbitrary pick among the contributing runs and forced every intensity
+  // into a single list distinguishable only by a non-conformant label.
+  //
+  // The coordinate rule differs by acquisition mode:
+  //  - label-free: each FeatureHandle holds that run's own RT / m/z / charge / width, so the
+  //    row takes its quantitative coordinates from the handle.
+  //  - isobaric: the handles are reporter ions -- their m/z is the reporter mass and their RT
+  //    the quantification scan -- while precursor m/z and RT live on the ConsensusFeature.
+  //    Keep the consensus coordinates and use the handles only for channel intensities.
+  const auto& column_headers_for_melt = cmap.getColumnHeaders();
+  const bool is_isobaric = std::any_of(
+    column_headers_for_melt.begin(), column_headers_for_melt.end(),
+    [](const auto& kv) { return kv.second.metaValueExists("channel_name"); });
+
+  struct RowSpec
+  {
+    size_t feat_idx;
+    std::string run;                            ///< stemmed run_file_name
+    std::vector<const FeatureHandle*> handles;  ///< this run's handles, in map-index order
+  };
+
+  std::vector<RowSpec> rows;
+  rows.reserve(range_end - range_begin);
+  Size dropped_handleless = 0;
+  for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
+  {
+    // std::map keeps runs in a deterministic order, so output is stable for any thread count.
+    std::map<std::string, std::vector<const FeatureHandle*>> by_run;
+    for (const auto& fh : cmap[feat_idx].getFeatures())
+    {
+      auto it = column_headers_for_melt.find(fh.getMapIndex());
+      if (it == column_headers_for_melt.end()) { continue; }
+      by_run[ArrowIOHelpers::qpxRunFileName(it->second.filename)].push_back(&fh);
+    }
+    // A feature with no handles has neither quantification nor a run, so the per-run feature
+    // view has nothing to represent -- drop it rather than emit an unkeyed row.
+    if (by_run.empty()) { ++dropped_handleless; continue; }
+    for (auto& [run, handles] : by_run)
+    {
+      rows.push_back(RowSpec{feat_idx, run, std::move(handles)});
+    }
+  }
+  if (dropped_handleless > 0)
+  {
+    OPENMS_LOG_INFO << "ConsensusMapArrowExport: skipped " << dropped_handleless
+                    << " consensus feature(s) with no feature handles (no quantification and "
+                       "no source run to key a QPX feature row on)." << std::endl;
+  }
+
+  const Size num_features = rows.size();
 
   // Reserve capacity for simple column builders
   #define RESERVE_OR_FAIL(builder) \
@@ -386,12 +442,39 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
   { return idx != static_cast<UInt>(-1) && m.metaValueExists(idx); };
 
-  for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
+  bool warned_mixed_scores = false;
+  for (const auto& row : rows)
   {
-    const auto& cf = cmap[feat_idx];
+    const auto& cf = cmap[row.feat_idx];
     const auto& pep_ids = cf.getPeptideIdentifications();
-    bool has_id = !pep_ids.empty() && !pep_ids[0].getHits().empty();
-    const PeptideHit* best_hit = has_id ? &pep_ids[0].getHits()[0] : nullptr;
+
+    // Pick the feature's identity: the best-scoring hit across ALL of its identifications,
+    // not pep_ids[0].getHits()[0]. The positional pick discarded a feature's identity whenever
+    // its *first* identification happened to carry no hits, even if a later one did.
+    //
+    // getBestHit() throws when the identifications disagree on score type, which cannot
+    // happen for our tools (one FDR pass sets them together) but is reachable for a foreign
+    // ConsensusMap. Fall back to the positional pick there rather than failing the export.
+    PeptideHit best_hit_value;
+    Size best_id_index = 0;
+    bool has_id = false;
+    try
+    {
+      has_id = IDFilter::getBestHit(pep_ids.getData(), /*assume_sorted=*/false, best_hit_value, best_id_index);
+    }
+    catch (const Exception::InvalidValue&)
+    {
+      if (!warned_mixed_scores)
+      {
+        warned_mixed_scores = true;
+        OPENMS_LOG_WARN << "ConsensusMapArrowExport: consensus feature carries identifications "
+                           "with different score types; falling back to the first hit instead of "
+                           "the best-scoring one." << std::endl;
+      }
+      has_id = !pep_ids.empty() && !pep_ids[0].getHits().empty();
+      if (has_id) { best_hit_value = pep_ids[0].getHits()[0]; best_id_index = 0; }
+    }
+    const PeptideHit* best_hit = has_id ? &best_hit_value : nullptr;
 
     // === sequence / peptidoform ===
     if (best_hit)
@@ -526,9 +609,12 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       (void)modifications_builder.Append();
     }
 
-    (void)charge_builder.Append(static_cast<int16_t>(cf.getCharge()));
-    (void)observed_mz_builder.Append(static_cast<float>(cf.getMZ()));
-    (void)rt_builder.Append(static_cast<float>(cf.getRT()));
+    // Quantitative coordinates: this run's handle for label-free, the consensus centroid for
+    // isobaric (whose handles carry reporter-ion m/z and the quantification scan's RT).
+    const FeatureHandle* coord = (!is_isobaric && !row.handles.empty()) ? row.handles.front() : nullptr;
+    (void)charge_builder.Append(static_cast<int16_t>(coord ? coord->getCharge() : cf.getCharge()));
+    (void)observed_mz_builder.Append(static_cast<float>(coord ? coord->getMZ() : cf.getMZ()));
+    (void)rt_builder.Append(static_cast<float>(coord ? coord->getRT() : cf.getRT()));
 
     // === PEP ===
     if (has_id)
@@ -619,28 +705,12 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === run_file_name ===
-    // Derive from the first FeatureHandle's map index -> column header filename.
-    // QPX defines the column as the spectrum file name without path or extension; stemming here is
-    // what makes it join with the psm and pg tables, which derive the same value from other sources.
-    // For isobaric input all channels of one file share the ColumnHeader::filename (the channel
-    // identity lives in ColumnHeader::label), so any of them yields the same stem.
-    {
-      bool found_run = false;
-      for (const auto& fh : cf.getFeatures())
-      {
-        auto it = column_headers.find(fh.getMapIndex());
-        if (it != column_headers.end())
-        {
-          (void)run_file_name_builder.Append(File::stemName(it->second.filename));
-          found_run = true;
-          break;
-        }
-      }
-      if (!found_run)
-      {
-        (void)run_file_name_builder.Append("");
-      }
-    }
+    // The run this melted row belongs to, already stemmed. QPX defines the column as the
+    // spectrum file name without path or extension, and joins the psm, feature and pg views
+    // on it, so all three must agree on the same spelling.
+    // For isobaric input all channels of one file share ColumnHeader::filename (the channel
+    // identity lives in ColumnHeader::label), so a run groups all of its channels.
+    (void)run_file_name_builder.Append(row.run);
 
     // === scan (list<int32>) ===
     {
@@ -715,7 +785,22 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     (void)additional_intensities_builder.AppendNull();
 
     // === id_run_file_name ===
-    (void)id_run_file_name_builder.AppendNull();
+    // Spec: "run file containing best PSM". This may legitimately differ from run_file_name
+    // — a match-between-runs feature is quantified in one run but identified in another, and
+    // that divergence is exactly what this column records.
+    // Resolved from the identification that actually holds the best hit, not pep_ids[0] --
+    // a feature's identifications can come from different runs, which is the whole point.
+    if (has_id && best_id_index < pep_ids.size())
+    {
+      const std::string id_run =
+        ArrowIOHelpers::qpxRunFileName(id_lut.run_mapper.getPrimaryMSRunPath(pep_ids[best_id_index]));
+      if (id_run.empty()) { (void)id_run_file_name_builder.AppendNull(); }
+      else                { (void)id_run_file_name_builder.Append(id_run); }
+    }
+    else
+    {
+      (void)id_run_file_name_builder.AppendNull();
+    }
 
     // === Protein accessions (now list<struct>) ===
     // Collect ALL peptide evidences (including repeated accessions with different positions)
@@ -882,18 +967,21 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === intensities: list<struct{label, intensity}> ===
+    // Only this run's handles: one entry for label-free ("LFQ"), one per reporter channel for
+    // isobaric ("TMT126", ...). The label is a join key against run.samples[].label, so it
+    // must be a canonical channel token rather than the source file name.
     (void)intensities_builder.Append();
-    for (const auto& fh : cf.getFeatures())
+    for (const auto* fh : row.handles)
     {
-      auto it = column_headers.find(fh.getMapIndex());
-      if (it != column_headers.end())
-      {
-        (void)intensity_struct_b->Append();
-        (void)intensity_label_b->Append(it->second.filename);
-        (void)intensity_val_b->Append(static_cast<float>(fh.getIntensity()));
-      }
+      auto it = column_headers.find(fh->getMapIndex());
+      if (it == column_headers.end()) { continue; }
+      const std::string channel_name = it->second.metaValueExists("channel_name")
+                                     ? it->second.getMetaValue("channel_name").toString() : "";
+      (void)intensity_struct_b->Append();
+      (void)intensity_label_b->Append(ArrowIOHelpers::qpxIntensityLabel(it->second.label, channel_name));
+      (void)intensity_val_b->Append(static_cast<float>(fh->getIntensity()));
     }
-  } // end feature loop
+  } // end melted row loop
 
   // Finalize all arrays
   #define FINISH_OR_FAIL(builder, arr) \
