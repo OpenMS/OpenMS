@@ -18,6 +18,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
@@ -86,6 +87,10 @@ struct FeatureIdLookups
   std::unordered_map<std::string, double> pg_qvalue;               ///< accession -> protein-group q-value
   std::unordered_map<std::string, std::vector<std::string>> gg_accessions; ///< accession -> gene accessions
   std::unordered_map<std::string, std::vector<std::string>> gg_names;      ///< accession -> gene names
+  /// Resolves a PeptideIdentification to its own source run via id_merge_index, for
+  /// id_run_file_name. Read-only after construction, so it is safe to share across the
+  /// streaming path's OpenMP workers.
+  IdentifierMSRunMapper run_mapper;
 };
 
 /// Build the per-map protein-group q-value and gene-info lookups from the
@@ -93,6 +98,20 @@ struct FeatureIdLookups
 FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
 {
   FeatureIdLookups lut;
+
+  // The mapper's constructor throws when two identifiers share a path list; that guards only
+  // the reverse map, which is never used here, and the forward map is fully populated before
+  // the throw. Degrade to a warning rather than failing an otherwise-exportable map.
+  try
+  {
+    lut.run_mapper.create(cmap.getProteinIdentifications());
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    OPENMS_LOG_WARN << "ConsensusMapArrowExport: ambiguous MS run paths across identification "
+                       "runs (" << e.getMessage() << "); id_run_file_name resolution continues "
+                       "on the identifier -> path mapping." << std::endl;
+  }
   for (const auto& prot_id : cmap.getProteinIdentifications())
   {
     // Gene info from ProteinHit metavalues
@@ -471,10 +490,38 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
                            "with different score types; falling back to the first hit instead of "
                            "the best-scoring one." << std::endl;
       }
-      has_id = !pep_ids.empty() && !pep_ids[0].getHits().empty();
-      if (has_id) { best_hit_value = pep_ids[0].getHits()[0]; best_id_index = 0; }
+      // Fall back to the first identification that actually has a hit -- not blindly to
+      // pep_ids[0], which would reintroduce the empty-first-identification bug this
+      // selection exists to fix.
+      for (Size i = 0; i < pep_ids.size(); ++i)
+      {
+        if (pep_ids[i].getHits().empty()) { continue; }
+        best_hit_value = pep_ids[i].getHits()[0];
+        best_id_index = i;
+        has_id = true;
+        break;
+      }
     }
     const PeptideHit* best_hit = has_id ? &best_hit_value : nullptr;
+
+    // The row's quantitative coordinates, fixed here so that charge, observed_mz,
+    // calculated_mz, mass_error_ppm, rt and the rt bounds are all mutually consistent.
+    // Computing some against the consensus centroid and others against the run's handle
+    // would report a ppm error measured against an m/z the row does not contain.
+    //  - label-free: the run's own FeatureHandle carries that run's RT / m/z / charge / width.
+    //  - isobaric: handles are reporter ions (m/z = reporter mass, RT = quantification scan),
+    //    so precursor coordinates must come from the ConsensusFeature.
+    const FeatureHandle* coord = (!is_isobaric && !row.handles.empty()) ? row.handles.front() : nullptr;
+    const double row_mz     = coord ? coord->getMZ()     : cf.getMZ();
+    const double row_rt     = coord ? coord->getRT()     : cf.getRT();
+    const double row_width  = coord ? coord->getWidth()  : cf.getWidth();
+    const int    row_charge = coord ? coord->getCharge() : cf.getCharge();
+
+    // EVERY identification-level column must come from this one identification. Reading some
+    // columns from pep_ids[0] and others from the winner would emit a row describing one
+    // peptide's sequence next to another's scan number and ion mobility.
+    const PeptideIdentification* best_pid =
+      (has_id && best_id_index < pep_ids.size()) ? &pep_ids[best_id_index] : nullptr;
 
     // === sequence / peptidoform ===
     if (best_hit)
@@ -485,12 +532,12 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       (void)peptidoform_builder.Append(ProForma::toString(pf, ProForma::WriteMode::CANONICAL));
 
       // calculated_mz
-      int charge = cf.getCharge();
+      int charge = row_charge;
       if (charge > 0)
       {
         float calc_mz = static_cast<float>(seq.getMZ(charge));
         (void)calculated_mz_builder.Append(calc_mz);
-        float obs_mz = static_cast<float>(cf.getMZ());
+        float obs_mz = static_cast<float>(row_mz);
         // mass_error_ppm = (observed - calculated) / calculated * 1e6
         if (calc_mz > 0)
         {
@@ -503,7 +550,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       }
       else
       {
-        (void)calculated_mz_builder.Append(static_cast<float>(cf.getMZ()));
+        (void)calculated_mz_builder.Append(static_cast<float>(row_mz));
         (void)mass_error_ppm_builder.AppendNull();
       }
 
@@ -603,7 +650,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     {
       (void)sequence_builder.Append("");
       (void)peptidoform_builder.Append("");
-      (void)calculated_mz_builder.Append(static_cast<float>(cf.getMZ()));
+      (void)calculated_mz_builder.Append(static_cast<float>(row_mz));
       (void)mass_error_ppm_builder.AppendNull();
       // empty modifications list
       (void)modifications_builder.Append();
@@ -611,15 +658,14 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
 
     // Quantitative coordinates: this run's handle for label-free, the consensus centroid for
     // isobaric (whose handles carry reporter-ion m/z and the quantification scan's RT).
-    const FeatureHandle* coord = (!is_isobaric && !row.handles.empty()) ? row.handles.front() : nullptr;
-    (void)charge_builder.Append(static_cast<int16_t>(coord ? coord->getCharge() : cf.getCharge()));
-    (void)observed_mz_builder.Append(static_cast<float>(coord ? coord->getMZ() : cf.getMZ()));
-    (void)rt_builder.Append(static_cast<float>(coord ? coord->getRT() : cf.getRT()));
+    (void)charge_builder.Append(static_cast<int16_t>(row_charge));
+    (void)observed_mz_builder.Append(static_cast<float>(row_mz));
+    (void)rt_builder.Append(static_cast<float>(row_rt));
 
     // === PEP ===
     if (has_id)
     {
-      auto result = idsa.findScoreType(pep_ids[0], IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      auto result = idsa.findScoreType(*best_pid, IDScoreSwitcherAlgorithm::ScoreType::PEP);
       // Resolve the (dynamic) PEP score name to an index once per feature (lock-free use below).
       const UInt idx_pep = result.score_name.empty() ? static_cast<UInt>(-1) : mreg.getIndex(result.score_name);
       if (!result.score_name.empty() && best_hit)
@@ -718,10 +764,10 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       if (!pep_ids.empty())
       {
         // Prefer the dedicated member, fall back to metavalue
-        spec_ref = pep_ids[0].getSpectrumReference();
-        if (spec_ref.empty() && metaHas(pep_ids[0], idx_spectrum_reference))
+        spec_ref = best_pid->getSpectrumReference();
+        if (spec_ref.empty() && metaHas(*best_pid, idx_spectrum_reference))
         {
-          spec_ref = pep_ids[0].getMetaValue(idx_spectrum_reference).toString();
+          spec_ref = best_pid->getMetaValue(idx_spectrum_reference).toString();
         }
       }
 
@@ -740,13 +786,13 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     (void)cv_params_builder.AppendNull();
 
     // === ion_mobility, start/stop ===
-    if (!pep_ids.empty() && metaHas(pep_ids[0], idx_ion_mobility))
+    if (best_pid && metaHas(*best_pid, idx_ion_mobility))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue(idx_ion_mobility))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(best_pid->getMetaValue(idx_ion_mobility))));
     }
-    else if (!pep_ids.empty() && metaHas(pep_ids[0], idx_IM))
+    else if (best_pid && metaHas(*best_pid, idx_IM))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue(idx_IM))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(best_pid->getMetaValue(idx_IM))));
     }
     else
     {
@@ -790,10 +836,10 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // that divergence is exactly what this column records.
     // Resolved from the identification that actually holds the best hit, not pep_ids[0] --
     // a feature's identifications can come from different runs, which is the whole point.
-    if (has_id && best_id_index < pep_ids.size())
+    if (best_pid)
     {
       const std::string id_run =
-        ArrowIOHelpers::qpxRunFileName(id_lut.run_mapper.getPrimaryMSRunPath(pep_ids[best_id_index]));
+        ArrowIOHelpers::qpxRunFileName(id_lut.run_mapper.getPrimaryMSRunPath(*best_pid));
       if (id_run.empty()) { (void)id_run_file_name_builder.AppendNull(); }
       else                { (void)id_run_file_name_builder.Append(id_run); }
     }
@@ -946,9 +992,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     {
       (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_start))));
     }
-    else if (cf.getWidth() > 0)
+    else if (row_width > 0)
     {
-      (void)rt_start_builder.Append(static_cast<float>(cf.getRT() - cf.getWidth() / 2.0));
+      (void)rt_start_builder.Append(static_cast<float>(row_rt - row_width / 2.0));
     }
     else
     {
@@ -959,9 +1005,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     {
       (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_stop))));
     }
-    else if (cf.getWidth() > 0)
+    else if (row_width > 0)
     {
-      (void)rt_stop_builder.Append(static_cast<float>(cf.getRT() + cf.getWidth() / 2.0));
+      (void)rt_stop_builder.Append(static_cast<float>(row_rt + row_width / 2.0));
     }
     else
     {

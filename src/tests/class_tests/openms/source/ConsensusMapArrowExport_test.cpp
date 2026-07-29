@@ -24,6 +24,7 @@
 
 #include <arrow/api.h>
 
+#include <cmath>
 #include <set>
 #include <arrow/type.h>
 #include <arrow/io/file.h>
@@ -364,6 +365,131 @@ START_SECTION(([EXTRA] feature view melts to one row per (feature, run)))
   TEST_STRING_EQUAL(lab->GetString(1), "LFQ")
   TEST_REAL_SIMILAR(val->Value(0), 10.0)
   TEST_REAL_SIMILAR(val->Value(1), 20.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] every identification-level column comes from the winning identification))
+{
+  // A ConsensusFeature can carry several PSMs. If sequence comes from the best-scoring one
+  // while scan/ion-mobility/PEP come from pep_ids[0], a row describes one peptide's identity
+  // next to another peptide's acquisition metadata.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/run1.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+  cf.insert(0, bf);
+
+  // First identification: WORSE score (q-value, lower is better), distinct metadata.
+  PeptideIdentification worse;
+  worse.setScoreType("q-value");
+  worse.setHigherScoreBetter(false);
+  worse.setSpectrumReference("controllerType=0 controllerNumber=1 scan=111");
+  worse.setMetaValue("ion_mobility", 1.11);
+  PeptideHit wh;
+  wh.setSequence(AASequence::fromString("WORSEPEPTIDE"));
+  wh.setCharge(2);
+  wh.setScore(0.50);
+  worse.setHits({wh});
+
+  // Second identification: BETTER score.
+  PeptideIdentification better;
+  better.setScoreType("q-value");
+  better.setHigherScoreBetter(false);
+  better.setSpectrumReference("controllerType=0 controllerNumber=1 scan=222");
+  better.setMetaValue("ion_mobility", 2.22);
+  PeptideHit bh;
+  bh.setSequence(AASequence::fromString("BETTERPEPTIDEK"));
+  bh.setCharge(2);
+  bh.setScore(0.01);
+  better.setHits({bh});
+
+  cf.setPeptideIdentifications({worse, better});
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 1)
+
+  auto seq  = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("sequence")->chunk(0));
+  auto scan = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("scan")->chunk(0));
+  auto im   = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("ion_mobility")->chunk(0));
+
+  // All three must describe the SAME identification -- the better-scoring one.
+  TEST_STRING_EQUAL(seq->GetString(0), "BETTERPEPTIDEK")
+  auto scan_vals = std::static_pointer_cast<arrow::Int32Array>(scan->values());
+  TEST_EQUAL(scan->value_length(0), 1)
+  TEST_EQUAL(scan_vals->Value(scan->value_offset(0)), 222)   // 111 would mean a mixed row
+  TEST_REAL_SIMILAR(im->Value(0), 2.22)                       // 1.11 would mean a mixed row
+}
+END_SECTION
+
+START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
+{
+  // observed_mz, calculated_mz, mass_error_ppm and the rt bounds must all derive from one
+  // source. Computing ppm error against the consensus centroid while reporting the handle's
+  // m/z yields an error measured against a value the row does not contain.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/run1.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ConsensusFeature cf;
+  cf.setMZ(999.0);        // consensus centroid, deliberately far from the handle
+  cf.setRT(500.0);
+  cf.setCharge(2);
+  cf.setWidth(0.0);
+  BaseFeature bf;
+  bf.setIntensity(10.0f);
+  bf.setMZ(738.8628);     // ~ the 2+ m/z of PEPTIDEKPEPTIDER
+  bf.setRT(101.0);
+  bf.setCharge(2);
+  bf.setWidth(10.0);
+  cf.insert(0, bf);
+
+  PeptideIdentification pid;
+  pid.setScoreType("q-value");
+  pid.setHigherScoreBetter(false);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEKPEPTIDER"));
+  hit.setCharge(2);
+  hit.setScore(0.01);
+  pid.setHits({hit});
+  cf.setPeptideIdentifications({pid});
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 1)
+
+  auto obs  = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("observed_mz")->chunk(0));
+  auto calc = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("calculated_mz")->chunk(0));
+  auto ppm  = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("mass_error_ppm")->chunk(0));
+  auto rt   = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("rt")->chunk(0));
+  auto rt0  = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("rt_start")->chunk(0));
+  auto rt1  = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("rt_stop")->chunk(0));
+
+  // Coordinates come from the handle, not the consensus centroid (999.0 / 500.0).
+  TEST_REAL_SIMILAR(obs->Value(0), 738.8628)
+  TEST_REAL_SIMILAR(rt->Value(0), 101.0)
+  // rt bounds derive from the SAME rt and the handle's width (10.0), not the feature's (0.0)
+  TEST_REAL_SIMILAR(rt0->Value(0), 96.0)
+  TEST_REAL_SIMILAR(rt1->Value(0), 106.0)
+  // ppm error must be measured against the m/z the row actually reports ...
+  const double expected_ppm = (obs->Value(0) - calc->Value(0)) / calc->Value(0) * 1e6;
+  TEST_REAL_SIMILAR(ppm->Value(0), expected_ppm)
+  // ... and NOT against the consensus centroid the row does not contain. Stated as a
+  // comparison rather than an absolute bound so the test does not depend on the fixture's
+  // m/z happening to match the peptide's theoretical mass.
+  const double wrong_ppm = (999.0 - calc->Value(0)) / calc->Value(0) * 1e6;
+  TEST_TRUE(std::fabs(ppm->Value(0) - wrong_ppm) > 1.0)
 }
 END_SECTION
 
