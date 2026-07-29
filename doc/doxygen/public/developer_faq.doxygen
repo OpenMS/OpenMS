@@ -98,13 +98,9 @@
 
  @section continuous_integration Continuous integration (CI)
 
- We currently employ Github Actions (GHA), for the majority of our CI. See `<OpenMS>/.github/workflows/openms_ci_matrix_full.yml` for the full CI build script which gets run for every PR.
- 
- We are currently phasing out Travis.
+ We employ Github Actions (GHA) for all of our CI/CD. The main entry points are `<OpenMS>/.github/workflows/test.yml` (the build-and-test matrix that runs for every PR and push) and `<OpenMS>/.github/workflows/release.yml` (the release/nightly-artifact build, which also runs nightly on `develop`). Both delegate their actual build/test/packaging steps to the reusable composite actions in `<OpenMS>/.github/actions/` (`build`, `dependencies`, `version`, `rsync`, `cherry-pick`), so the platform matrices in `test.yml` and `release.yml` stay thin wrappers around a single shared build implementation.
 
- <h2><a class="anchor" id="how_does_travis_work"></a>How does <code>travis</code> work?</h2>
-
- <a href="https://travis-ci.org/"><code>Travis</code></a> is an automated system for continuous integration and each new commit and pull request is automatically run through the <code>travis</code> build system. This is controlled by a <code>.travis.yaml</code> file in the source tree.
+ Other workflows of note: `cherry-pick-to-release.yml` cherry-picks merged PRs into the current release branch, `update_nightly.yml` and `update_version_numbers.yml` handle nightly/version bookkeeping, and `pyopenms-wheels-cibuildwheel.yml` builds the pyOpenMS wheels.
 
 
  @section working_in_ides Working in IDEs
