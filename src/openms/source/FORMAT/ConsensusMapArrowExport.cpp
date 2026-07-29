@@ -869,10 +869,12 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       }
     }
 
-    // anchor_protein
+    // anchor_protein — null, not "", when the feature has no protein mapping. bigbio/qpx#212
+    // made this nullable for de novo workflows: "null when no protein mapping was performed".
+    // An empty string would satisfy the column but is neither an accession nor an absence.
     if (protein_accs.empty())
     {
-      (void)anchor_protein_builder.Append("");
+      (void)anchor_protein_builder.AppendNull();
     }
     else
     {
