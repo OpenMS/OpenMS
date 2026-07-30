@@ -19,18 +19,18 @@ namespace OpenMS {
     constexpr int64_t PEPTDEEP_MOD_ELEMENTS = 109;
 
     /// @brief AlphaPeptDeep's exact 109-element array for modification tensor mapping.
-    /// Elements missing from this list (e.g., isotopes like "13C") are gracefully binned into the final "Other" channel.
+    /// Elements missing from this list are binned into the final "Other" channel ("?").
+    /// Heavy isotopes (2H, 13C, 15N, 18O) map strictly to their dedicated channels.
     const std::vector<std::string> ALPHAPEPTDEEP_MOD_ELEMENTS = {
-        "C", "H", "N", "O", "P", "S", "Br", "Cl", "F", "Fe", "I", "K", "Na", "Zn",
-        "Se", "Mg", "Ca", "Cu", "Mn", "Ni", "Mo", "Ag", "Co", "Au", "V", "Pt",
-        "Ru", "Cd", "Cr", "W", "Pb", "Li", "Rb", "Cs", "Fr", "Be", "Sr", "Ba",
-        "Ra", "Sc", "Y", "Ti", "Zr", "Hf", "Rf", "Nb", "Ta", "Db", "Tc", "Re",
-        "Bh", "Os", "Hs", "Rh", "Ir", "Mt", "Pd", "Ds", "Rg", "Cn", "Nh", "Fl",
-        "Mc", "Lv", "Ts", "Og", "B", "Al", "Ga", "In", "Tl", "Si", "Ge", "Sn",
-        "Uut", "As", "Sb", "Bi", "Uup", "Te", "Po", "At", "Uus", "Rn", "Uuo",
-        "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm",
-        "Yb", "Lu", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es",
-        "Fm", "Md", "No", "Lr"
+    "C", "H", "N", "O", "P", "S", "B", "F", "I", "K", "U", "V", "W", "X", "Y",
+    "Ac", "Ag", "Al", "Am", "Ar", "As", "At", "Au", "Ba", "Be", "Bi", "Bk",
+    "Br", "Ca", "Cd", "Ce", "Cf", "Cl", "Cm", "Co", "Cr", "Cs", "Cu", "Dy",
+    "Er", "Es", "Eu", "Fe", "Fm", "Fr", "Ga", "Gd", "Ge", "He", "Hf", "Hg",
+    "Ho", "In", "Ir", "Kr", "La", "Li", "Lr", "Lu", "Md", "Mg", "Mn", "Mo",
+    "Na", "Nb", "Nd", "Ne", "Ni", "No", "Np", "Os", "Pa", "Pb", "Pd", "Pm",
+    "Po", "Pr", "Pt", "Pu", "Ra", "Rb", "Re", "Rh", "Rn", "Ru", "Sb", "Sc",
+    "Se", "Si", "Sm", "Sn", "Sr", "Ta", "Tb", "Tc", "Te", "Th", "Ti", "Tl",
+    "Tm", "Xe", "Yb", "Zn", "Zr", "2H", "13C", "15N", "18O", "?"
     };
 
     /**

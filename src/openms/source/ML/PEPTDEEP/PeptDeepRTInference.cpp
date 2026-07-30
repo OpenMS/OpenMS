@@ -21,7 +21,11 @@ namespace OpenMS
 {
     PeptDeepRTInference::PeptDeepRTInference(const std::string& model_path, int intra_op_threads, size_t batch_size)
         : model_(model_path, intra_op_threads), batch_size_(batch_size)
-    {}
+    {
+        if (batch_size_ == 0) {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
+        }
+    }
 
     PeptDeepRTInference::~PeptDeepRTInference() = default;
 
@@ -56,7 +60,7 @@ namespace OpenMS
             std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
             for (size_t i = 0; i < peptides.size(); ++i)
             {
-                // FIX: Parse the sequence first so modification strings aren't counted as length
+                //Parse the sequence first so modification strings aren't counted as length
                 indices_by_encoded_length[OpenMS::AASequence::fromString(peptides[i]).size() + 2].push_back(i);
             }
             for (auto& item : indices_by_encoded_length)

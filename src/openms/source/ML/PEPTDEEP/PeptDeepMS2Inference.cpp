@@ -26,7 +26,11 @@ namespace OpenMS {
 
 PeptDeepMS2Inference::PeptDeepMS2Inference(const std::string& model_path, int intra_op_threads, size_t batch_size)
     : model_(model_path, intra_op_threads), batch_size_(batch_size)
-{}
+{
+    if (batch_size_ == 0) {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
+    }
+}
 
 PeptDeepMS2Inference::~PeptDeepMS2Inference() = default;
 
@@ -155,7 +159,11 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();
             auto out_shape = output_tensors.front().GetTensorTypeAndShapeInfo().GetShape();
 
-            int64_t actual_rows = out_shape.size() >= 3 ? out_shape[1] : (out_shape.size() >= 2 ? out_shape[out_shape.size() - 2] : 1);
+            if (out_shape.size() != 3) {
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected MS2 output tensor to have a rank of 3.", std::to_string(out_shape.size()));
+            }
+
+            int64_t actual_rows = out_shape[1];
             int64_t num_ions = out_shape.back();
             int64_t elements_per_batch = actual_rows * num_ions;
 

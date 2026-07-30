@@ -167,18 +167,19 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_h_idx], 2.0f);
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_o_idx], 1.0f);
 
-    STATUS("Testing element beyond CHNOPS and isotope fallback (Channel 108)...");
+    STATUS("Testing isotope tracking to specific channels...");
     // "Label:13C(6)15N(2)" uses isotopes. OpenMS EmpiricalFormula returns "13C" and "15N".
-    // Since these are not in the standard 109 ALPHAPEPTDEEP_MOD_ELEMENTS array,
-    // they correctly fallback to the final 'Other' channel (index 108).
+    // Since these ARE in the standard 109 ALPHAPEPTDEEP_MOD_ELEMENTS array,
+    // they should map to index 105 (13C) and index 106 (15N).
     std::vector<std::string> iso_peptides = {"K(Label:13C(6)15N(2))PEPTIDE"};
     ML::PeptDeepInputBatch iso_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(iso_peptides);
 
     size_t k_mod_pos = 1; // K is at index 1 (N-term padding is 0)
-    size_t iso_other_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 108;
+    size_t iso_13c_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 105;
+    size_t iso_15n_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 106;
 
-    // The modification adds 6 13C and 2 15N = 8 total unknown elements mapped to the Other channel.
-    TEST_REAL_SIMILAR(iso_batch.mod_x[iso_other_idx], 8.0f);
+    TEST_REAL_SIMILAR(iso_batch.mod_x[iso_13c_idx], 6.0f);
+    TEST_REAL_SIMILAR(iso_batch.mod_x[iso_15n_idx], 2.0f);
 
     STATUS("Testing parsed-length grouping logic...");
     std::vector<std::string> length_peptides = {"M(Oxidation)PEPT"};
@@ -383,7 +384,7 @@ START_SECTION(PeptDeepMS2Inference)
 END_SECTION
 
 START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predictions)
-    STATUS("Verifying MS2 fragment intensities against saved Python ONNX Runtime intensity_onnx values...");
+    STATUS("Verifying MS2 fragment intensities against saved Python ONNX Runtime intensity_onnx values using forced chunking (batch_size=2)...");
 
     ifstream spectra_input(ms2_spectra_data);
     ifstream expected_input(ms2_reference_data);
@@ -451,24 +452,26 @@ START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predicti
             expected_intensities[row_id][offset] = intensity;
         }
 
-        PeptDeepMS2Inference ms2_engine(ms2_model);
+        // Initialize engine with a forced batch size of 2 to exercise the batch chunking logic on mixed sequence lengths
+        PeptDeepMS2Inference ms2_engine(ms2_model, 1, 2);
 
         float max_abs_error = 0.0f;
+        auto actual_batched = ms2_engine.predictMS2(peptides, charges, nces, instruments);
+
+        TEST_EQUAL(actual_batched.size(), peptides.size());
+
         for (size_t i = 0; i < peptides.size(); ++i)
         {
-            auto actual = ms2_engine.predictMS2({peptides[i]}, {charges[i]}, {nces[i]}, {instruments[i]});
+            TEST_EQUAL(actual_batched[i].size(), expected_intensities[i].size());
 
-            TEST_EQUAL(actual.size(), 1);
-            TEST_EQUAL(actual[0].size(), expected_intensities[i].size());
-
-            const size_t n = min(actual[0].size(), expected_intensities[i].size());
+            const size_t n = min(actual_batched[i].size(), expected_intensities[i].size());
             for (size_t j = 0; j < n; ++j)
             {
-                max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual[0][j] - expected_intensities[i][j])));
+                max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual_batched[i][j] - expected_intensities[i][j])));
             }
         }
 
-        STATUS("Maximum absolute MS2 intensity error: " << max_abs_error);
+        STATUS("Maximum absolute MS2 intensity error across batched sets: " << max_abs_error);
         TEST_EQUAL(max_abs_error < 1e-4f, true);
     }
 END_SECTION

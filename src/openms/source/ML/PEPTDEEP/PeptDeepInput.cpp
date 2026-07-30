@@ -79,6 +79,14 @@ namespace OpenMS
                   std::string symbol = element_count.first->getSymbol();
                   int count = element_count.second;
 
+                  // Normalize OpenMS isotope format "(13)C" to AlphaPeptDeep format "13C"
+                  if (symbol.front() == '(') {
+                      size_t close_paren = symbol.find(')');
+                      if (close_paren != std::string::npos) {
+                          symbol = symbol.substr(1, close_paren - 1) + symbol.substr(close_paren + 1);
+                      }
+                  }
+
                   auto it = std::find(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), ALPHAPEPTDEEP_MOD_ELEMENTS.end(), symbol);
                   int tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1; // Default to "Other"
 
