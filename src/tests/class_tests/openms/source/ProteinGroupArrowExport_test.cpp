@@ -200,6 +200,51 @@ START_SECTION(([EXTRA] exportToArrow - a single-file run keeps its group without
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exportToArrow - a merged run without groups does not abort the export))
+{
+  // The id_merge_index refusal is scoped to the PSMs the export actually reads. Input that
+  // contributes no protein group must not be able to abort an export it has no say in --
+  // e.g. BayesianProteinInference_test.idXML, which has two spectra_data paths, nine PSMs,
+  // no id_merge_index and no groups.
+  ProteinIdentification empty_groups;
+  empty_groups.setIdentifier("PI_0");
+  empty_groups.setPrimaryMSRunPath({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps{makeMergedPeptide("PROT_A", -1)};
+
+  auto table = ProteinGroupArrowExport::exportToArrow({empty_groups}, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - the merge-index refusal ignores unrelated runs))
+{
+  // Only the PSMs of a run that actually contributes groups are validated. A second,
+  // group-less merged run in the same input must not veto the export of the first.
+  auto usable = makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"});
+  ProteinIdentification unrelated;
+  unrelated.setIdentifier("PI_OTHER");
+  unrelated.setPrimaryMSRunPath({"/data/x.mzML", "/data/y.mzML"});
+
+  PeptideIdentification stray;               // merged run, no id_merge_index, no groups behind it
+  stray.setIdentifier("PI_OTHER");
+  PeptideHit sh;
+  sh.setSequence(AASequence::fromString("STRAYPEPTIDEK"));
+  PeptideEvidence sev;
+  sev.setProteinAccession("PROT_A");
+  sh.setPeptideEvidences({sev});
+  stray.setHits({sh});
+
+  PeptideIdentificationList peps = makePeptides();
+  peps.push_back(stray);
+
+  auto table = ProteinGroupArrowExport::exportToArrow({usable, unrelated}, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  TEST_STRING_EQUAL(runNames(table)[0], "SimpleSearchEngine_1")
+}
+END_SECTION
+
 START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows under one key))
 {
   // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the

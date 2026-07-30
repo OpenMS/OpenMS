@@ -939,15 +939,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): is_decoy Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Resolve each PSM's origin run, so a group can be melted onto the runs where it was actually
-  // identified. Preflight before any builder is touched: a merged run whose PSMs carry no usable
-  // 'id_merge_index' resolves every one of them to the run's FIRST file, which would silently
-  // mislabel a primary-key column -- refuse instead. Same guard the PSM view applies.
+  // identified.
   const IdentifierMSRunMapper mapper =
     buildRunMapper(protein_identifications, "ProteinGroupArrowExport (id-only)");
-  for (size_t i = 0; i < peptide_identifications.size(); ++i)
-  {
-    mapper.validateMergeIndex(peptide_identifications[i], i);
-  }
   {
     // Warn-only, as in the psm and feature views: two paths sharing a stem are a legitimate
     // layout that the spec's representation simply cannot tell apart.
@@ -961,17 +955,19 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   }
 
   // Bucket the PSMs by identification run once, instead of rescanning the whole list per
-  // ProteinIdentification. Keeps the per-prot_id scoping the counts below rely on.
-  std::unordered_map<std::string, std::vector<const PeptideIdentification*>> pep_by_identifier;
-  for (const auto& pep_id : peptide_identifications)
+  // ProteinIdentification. Keeps the per-prot_id scoping the counts below rely on. The original
+  // index travels along so diagnostics can still name the offending PSM.
+  std::unordered_map<std::string, std::vector<std::pair<size_t, const PeptideIdentification*>>> pep_by_identifier;
+  for (size_t i = 0; i < peptide_identifications.size(); ++i)
   {
-    pep_by_identifier[pep_id.getIdentifier()].push_back(&pep_id);
+    pep_by_identifier[peptide_identifications[i].getIdentifier()].emplace_back(i, &peptide_identifications[i]);
   }
 
   // Iterate over all protein identifications; for each, build scoped lookup
   // structures and append one row per (indistinguishable protein group, run).
   Size total_groups_found = 0;
-  Size unattributable_groups = 0;
+  Size groups_without_run_name = 0;   // run carries no spectra_data at all
+  Size groups_without_evidence = 0;   // merged run, but nothing identifies which file
   PrimaryKeyWatch pk_watch;
   for (const auto& prot_id : protein_identifications)
   {
@@ -1000,7 +996,16 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     auto bucket = pep_by_identifier.find(prot_id.getIdentifier());
     if (bucket != pep_by_identifier.end())
     {
-      for (const auto* pep_ptr : bucket->second)
+      // A merged run whose PSMs carry no usable 'id_merge_index' resolves every one of them to
+      // the run's FIRST file, silently mislabelling a primary-key column -- refuse instead, the
+      // same guard the PSM view applies. Scoped to the PSMs this export actually reads: input
+      // that contributes no protein group must not be able to abort an export it has no say in.
+      for (const auto& [psm_index, pep_ptr] : bucket->second)
+      {
+        mapper.validateMergeIndex(*pep_ptr, psm_index);
+      }
+
+      for (const auto& [psm_index, pep_ptr] : bucket->second)
       {
         const auto& pep_id = *pep_ptr;
         if (pep_id.getHits().empty()) continue;
@@ -1041,7 +1046,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       if (runs.empty() && !sole_run.empty()) { runs.insert(sole_run); }
       if (runs.empty())
       {
-        ++unattributable_groups;
+        // Two distinct causes, reported separately below because the remedies differ.
+        if (run_paths.empty()) { ++groups_without_run_name; }
+        else                   { ++groups_without_evidence; }
         continue;
       }
 
@@ -1177,11 +1184,24 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   }
 
   pk_watch.report("ProteinGroupArrowExport (id-only)");
-  if (unattributable_groups > 0)
+  // WARN, not INFO: for a protein-inference result this is typically *every* group, and an empty
+  // output file that was announced at INFO reads as "nothing to export" rather than "your input
+  // could not be keyed".
+  if (groups_without_run_name > 0)
   {
-    OPENMS_LOG_INFO << "ProteinGroupArrowExport (id-only): skipped " << unattributable_groups
-                    << " protein group(s) with no identification evidence in any run and no "
-                       "single-file origin (no run_file_name to key a QPX row on)." << std::endl;
+    OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): skipped " << groups_without_run_name
+                    << " protein group(s) whose identification run carries no MS run path, so no "
+                       "run_file_name can be derived -- and QPX makes it a primary-key component "
+                       "that must not be empty. Protein inference commonly drops the path: set it "
+                       "with ProteinIdentification::setPrimaryMSRunPath() before exporting."
+                    << std::endl;
+  }
+  if (groups_without_evidence > 0)
+  {
+    OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): skipped " << groups_without_evidence
+                    << " protein group(s) in a merged run with no peptide evidence identifying "
+                       "which of its files they came from, so no row can be keyed. Annotate the "
+                       "PSMs with 'id_merge_index', or export the runs separately." << std::endl;
   }
 
   if (total_groups_found == 0)
