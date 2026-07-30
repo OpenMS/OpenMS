@@ -991,6 +991,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
 
     // Peptide evidence for this prot_id, split by origin run: QPX defines the counts per
     // (group, run), so the run dimension has to be carried alongside the accession.
+    // Keyed on the UNMODIFIED sequence, matching the ConsensusMap overload -- peptide_counts
+    // counts sequences, while distinguishing peptidoforms is what feature_counts is for.
     std::unordered_map<std::string, std::map<std::string, std::unordered_set<std::string>>> acc_run_peptides;
     AccessionRuns acc_runs;
     auto bucket = pep_by_identifier.find(prot_id.getIdentifier());
@@ -1013,7 +1015,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         if (run.empty()) continue;
         // Use the best hit (first after assuming sorted by score)
         const auto& best_hit = pep_id.getHits()[0];
-        std::string seq = best_hit.getSequence().toString();
+        std::string seq = best_hit.getSequence().toUnmodifiedString();
         for (const auto& ev : best_hit.getPeptideEvidences())
         {
           const std::string& acc = ev.getProteinAccession();
@@ -1026,7 +1028,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       }
     }
 
-    /// Peptidoforms of @p acc seen in @p run, or nullptr when there are none.
+    /// Unmodified peptide sequences of @p acc seen in @p run, or nullptr when there are none.
     auto peptidesIn = [&acc_run_peptides](const std::string& acc, const std::string& run)
                         -> const std::unordered_set<std::string>*
     {

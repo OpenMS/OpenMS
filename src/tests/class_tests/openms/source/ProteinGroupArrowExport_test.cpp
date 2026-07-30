@@ -200,6 +200,39 @@ START_SECTION(([EXTRA] exportToArrow - a single-file run keeps its group without
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exportToArrow - peptide_counts counts sequences, not peptidoforms))
+{
+  // QPX splits the two: peptide_counts.unique_sequences counts SEQUENCES, while distinguishing
+  // modified forms is what feature_counts.unique_features is for. The ConsensusMap overload
+  // keys on toUnmodifiedString(); this overload must agree, or the same column means two
+  // different things depending on which one produced the file.
+  auto prot_id = makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"});
+
+  PeptideIdentificationList peps;
+  for (const auto& seq : {"PEPTIDEK", "PEPT(Phospho)IDEK"})
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("PI_0");
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT_A");
+    hit.setPeptideEvidences({ev});
+    pid.setHits({hit});
+    peps.push_back(pid);
+  }
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+
+  // Two peptidoforms of one sequence => one unique sequence.
+  auto counts = std::static_pointer_cast<arrow::StructArray>(table->GetColumnByName("peptide_counts")->chunk(0));
+  auto unique = std::static_pointer_cast<arrow::Int32Array>(counts->field(0));
+  TEST_EQUAL(unique->Value(0), 1)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] exportToArrow - a merged run without groups does not abort the export))
 {
   // The id_merge_index refusal is scoped to the PSMs the export actually reads. Input that
