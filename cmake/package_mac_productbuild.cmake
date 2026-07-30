@@ -124,19 +124,6 @@ install(CODE "
         COMPONENT library
         )
 
-## The pyopenms python extension modules (COMPONENT python_modules, see
-## src/pyOpenMS/CMakeLists.txt) are packaged into their own sub-pkg by the
-## productbuild generator and are not covered by the library/Dependencies
-## signing above, so notarization rejects them as unsigned.
-install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/pyopenms/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.pyopenms.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; RESULT_VARIABLE pyopenms_sign_result OUTPUT_VARIABLE pyopenms_sign_out ERROR_VARIABLE pyopenms_sign_out)
-        message('\${pyopenms_sign_out}')
-        if(NOT pyopenms_sign_result EQUAL 0)
-          message(FATAL_ERROR \"Failed to codesign pyopenms component (exit code \${pyopenms_sign_result})\")
-        endif()"
-        COMPONENT python_modules
-        )
-
 ## Sign thirdparty components
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
   install(CODE "
@@ -156,6 +143,17 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transpa
 configure_file(${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/setIcon.sh.in ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/MacOSX/setIcon.sh)
 set(CPACK_POSTFLIGHT_APPLICATIONS_SCRIPT ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/MacOSX/setIcon.sh)
 
+## The pyopenms Python extension modules (COMPONENT python_modules, see
+## src/pyOpenMS/CMakeLists.txt) are not meant to be bundled into the desktop
+## application installer - they are shipped separately as Python wheels (see
+## .github/workflows/pyopenms-wheels-cibuildwheel.yml). productbuild packages
+## every known component into its own sub-pkg by default, and since these were
+## never signed, notarization rejected the whole installer. Exclude them here
+## instead of signing them, so they no longer get packaged at all. This must
+## run after all install(... COMPONENT ...) calls in the project have been
+## processed, so it picks up every real component.
+get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
+list(REMOVE_ITEM CPACK_COMPONENTS_ALL python_modules)
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist
