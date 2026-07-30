@@ -550,7 +550,7 @@ START_SECTION(([EXTRA] identity selection uses one score orientation, independen
 }
 END_SECTION
 
-START_SECTION(([EXTRA] a leading hitless identification does not discard the feature's identity))
+START_SECTION(([EXTRA] a leading hitless identification does not discard the feature identity))
 {
   // The positional pick (pep_ids[0].getHits()[0]) lost a feature's identity whenever its first
   // identification carried no hits, even though a later one did.

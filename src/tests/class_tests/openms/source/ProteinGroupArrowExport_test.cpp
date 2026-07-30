@@ -14,6 +14,8 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -116,5 +118,72 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] features with divergent peptide annotations are excluded from the counts))
+{
+  // The pg view attributes a feature to ONE peptide. A feature whose identifications disagree
+  // on the top peptide has none, so counting it would credit an accession contributed by one
+  // peptide with another peptide's sequence. Uses AnnotationState, so several identifications
+  // agreeing on the same peptide (FEATURE_ID_MULTIPLE_SAME -- the output of
+  // IDConflictResolverAlgorithm::resolve(.., keep_matching=true)) remain acceptable.
+  auto make_pid = [](const std::string& seq)
+  {
+    PeptideIdentification pid;
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT_A");
+    hit.setPeptideEvidences({ev});
+    pid.setHits({hit});
+    return pid;
+  };
+
+  auto build = [&](const PeptideIdentificationList& pids)
+  {
+    ConsensusMap cmap;
+    cmap.setExperimentType("label-free");
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/run1.mzML";
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[0] = ch;
+
+    ProteinIdentification prot;
+    prot.setIdentifier("run");
+    prot.setScoreType("q-value");
+    prot.setPrimaryMSRunPath({"/data/run1.mzML"});
+    ProteinHit ph; ph.setAccession("PROT_A");
+    prot.setHits({ph});
+    ProteinIdentification::ProteinGroup g;
+    g.accessions = {"PROT_A"};
+    g.probability = 0.01;
+    prot.insertIndistinguishableProteins(g);
+    cmap.setProteinIdentifications({prot});
+
+    ConsensusFeature cf;
+    cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+    BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+    cf.insert(0, bf);
+    cf.setPeptideIdentifications(pids);
+    cmap.push_back(cf);
+    return cmap;
+  };
+
+  auto counts_present = [](const ConsensusMap& cmap)
+  {
+    auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+    if (!t || t->num_rows() == 0) { return false; }
+    return !t->GetColumnByName("peptide_counts")->chunk(0)->IsNull(0);
+  };
+
+  // Same peptide twice: unambiguous, counted.
+  TEST_TRUE(counts_present(build({make_pid("PEPTIDEK"), make_pid("PEPTIDEK")})))
+  // Divergent peptides: excluded from the counts rather than counted under one of them.
+  TEST_FALSE(counts_present(build({make_pid("PEPTIDEK"), make_pid("OTHERPEPTIDEK")})))
+}
+END_SECTION
 
 END_TEST

@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <arrow/api.h>
@@ -96,6 +97,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     }
 
     const auto& headers = cmap.getColumnHeaders();
+    Size ambiguous_features = 0;
     for (Size fi = 0; fi < cmap.size(); ++fi)
     {
       const auto& cf = cmap[fi];
@@ -108,6 +110,28 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         if (it != headers.end()) { runs.insert(ArrowIOHelpers::qpxRunFileName(it->second.filename)); }
       }
       if (runs.empty()) { continue; }
+
+      // The pg view attributes a feature to ONE peptide: its sequence, peptidoform and charge
+      // feed peptides[], peptide_counts and feature_counts. A feature whose identifications
+      // DISAGREE on the top peptide has none to attribute, so counting it would credit an
+      // accession contributed by one peptide with another peptide's identity.
+      //
+      // Uses the existing AnnotationState rather than "more than one identification": several
+      // identifications sharing the same top modified sequence (FEATURE_ID_MULTIPLE_SAME) are
+      // unambiguous and are the deliberate output of IDConflictResolverAlgorithm::resolve()
+      // with keep_matching=true, which ProteomicsLFQ uses. Only DIVERGENT is a real conflict --
+      // the same distinction PeptideAndProteinQuant and MzTab already make.
+      //
+      // Skip it, matching what quantification already does -- ProteinQuantifier documents that
+      // "only features/feature groups with unambiguous peptide annotation are used for peptide
+      // quantification" -- so the counts agree with the abundances in the same export. Resolve
+      // upstream with IDConflictResolver, ConsensusID (algorithm "best") or FileFilter
+      // (id:keep_best_score_id). ProteomicsLFQ and IsobaricWorkflow already satisfy this.
+      if (cf.getAnnotationState() == BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT)
+      {
+        ++ambiguous_features;
+        continue;
+      }
 
       for (const auto& pid : cf.getPeptideIdentifications())
       {
@@ -130,6 +154,16 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
           }
         }
       }
+    }
+
+    if (ambiguous_features > 0)
+    {
+      OPENMS_LOG_WARN << "ProteinGroupArrowExport: " << ambiguous_features
+                      << " consensus feature(s) carry more than one peptide identification, so "
+                         "they cannot be attributed to a single peptide and are excluded from the "
+                         "protein group peptide/feature counts. Resolve ID conflicts upstream "
+                         "(IDConflictResolver, ConsensusID 'best', or FileFilter "
+                         "id:keep_best_score_id)." << std::endl;
     }
 
     // Unassigned identifications establish that a group was seen in a run even though nothing
