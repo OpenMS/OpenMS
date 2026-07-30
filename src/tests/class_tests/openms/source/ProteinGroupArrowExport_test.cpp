@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 ///////////////////////////
 
@@ -172,17 +173,21 @@ START_SECTION(([EXTRA] features with divergent peptide annotations are excluded 
     return cmap;
   };
 
-  auto counts_present = [](const ConsensusMap& cmap)
+  // Same peptide twice (FEATURE_ID_MULTIPLE_SAME): unambiguous, exported and counted.
   {
-    auto t = ProteinGroupArrowExport::exportToArrow(cmap);
-    if (!t || t->num_rows() == 0) { return false; }
-    return !t->GetColumnByName("peptide_counts")->chunk(0)->IsNull(0);
-  };
+    auto t = ProteinGroupArrowExport::exportToArrow(build({make_pid("PEPTIDEK"), make_pid("PEPTIDEK")}));
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_TRUE(t->num_rows() > 0)
+    TEST_FALSE(t->GetColumnByName("peptide_counts")->chunk(0)->IsNull(0))
+  }
 
-  // Same peptide twice: unambiguous, counted.
-  TEST_TRUE(counts_present(build({make_pid("PEPTIDEK"), make_pid("PEPTIDEK")})))
-  // Divergent peptides: excluded from the counts rather than counted under one of them.
-  TEST_FALSE(counts_present(build({make_pid("PEPTIDEK"), make_pid("OTHERPEPTIDEK")})))
+  // Divergent peptides cannot be represented by a view that records one peptide per feature,
+  // so the export is refused rather than silently publishing one interpretation.
+  {
+    auto cmap = build({make_pid("PEPTIDEK"), make_pid("OTHERPEPTIDEK")});
+    TEST_EXCEPTION(Exception::IllegalArgument, ProteinGroupArrowExport::exportToArrow(cmap))
+    TEST_EXCEPTION(Exception::IllegalArgument, ConsensusMapArrowExport::exportToArrow(cmap))
+  }
 }
 END_SECTION
 

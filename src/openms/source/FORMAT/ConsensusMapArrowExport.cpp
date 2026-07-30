@@ -1255,8 +1255,29 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
 } // anonymous namespace (feature range builder + shared per-map lookups)
 
 
+void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& cmap)
+{
+  Size divergent = 0;
+  Size first_index = 0;
+  for (Size i = 0; i < cmap.size(); ++i)
+  {
+    if (cmap[i].getAnnotationState() != BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT) { continue; }
+    if (divergent++ == 0) { first_index = i; }
+  }
+  if (divergent == 0) { return; }
+
+  throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+    std::to_string(divergent) + " consensus feature(s), the first at index "
+    + std::to_string(first_index) + ", carry peptide identifications that disagree on the top "
+    "peptide. The QPX feature and protein-group views record one peptide per feature and cannot "
+    "represent this. Resolve the conflicts first (IDConflictResolver, ConsensusID with "
+    "algorithm 'best', or FileFilter with id:keep_best_score_id), or export the unresolved data "
+    "as consensusparquet, which preserves every identification.");
+}
+
 std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
 {
+  requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   const auto id_lut = buildFeatureIdLookups(cmap);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
   // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
@@ -1327,6 +1348,10 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   if (threads < 1) { threads = 1; }
 
   // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
+  // Preflight before the writer is opened and before the OpenMP batch build: a throw from
+  // inside that region would be captured by the worker's catch-all and flattened to a bool.
+  requireUnambiguousIdentities(cmap);
+
   const auto id_lut = buildFeatureIdLookups(cmap);
   if (id_lut.has_unlabelable_channel) { return false; } // already logged
 

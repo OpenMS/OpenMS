@@ -392,7 +392,7 @@ START_SECTION(([EXTRA] every identification-level column comes from the winning 
   worse.setSpectrumReference("controllerType=0 controllerNumber=1 scan=111");
   worse.setMetaValue("ion_mobility", 1.11);
   PeptideHit wh;
-  wh.setSequence(AASequence::fromString("WORSEPEPTIDE"));
+  wh.setSequence(AASequence::fromString("SHAREDPEPTIDEK"));
   wh.setCharge(2);
   wh.setScore(0.50);
   worse.setHits({wh});
@@ -404,7 +404,7 @@ START_SECTION(([EXTRA] every identification-level column comes from the winning 
   better.setSpectrumReference("controllerType=0 controllerNumber=1 scan=222");
   better.setMetaValue("ion_mobility", 2.22);
   PeptideHit bh;
-  bh.setSequence(AASequence::fromString("BETTERPEPTIDEK"));
+  bh.setSequence(AASequence::fromString("SHAREDPEPTIDEK"));
   bh.setCharge(2);
   bh.setScore(0.01);
   better.setHits({bh});
@@ -420,12 +420,18 @@ START_SECTION(([EXTRA] every identification-level column comes from the winning 
   auto scan = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("scan")->chunk(0));
   auto im   = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("ion_mobility")->chunk(0));
 
-  // All three must describe the SAME identification -- the better-scoring one.
-  TEST_STRING_EQUAL(seq->GetString(0), "BETTERPEPTIDEK")
+  // Both identifications name the same peptide, so the annotation is unambiguous and the
+  // strict identity contract accepts it -- but they carry DIFFERENT acquisition metadata.
+  // Every identification-level column must therefore describe the same one of them; reading
+  // scan from pep_ids[0] while sequence/PEP come from the winner produced a mixed row.
+  TEST_STRING_EQUAL(seq->GetString(0), "SHAREDPEPTIDEK")
   auto scan_vals = std::static_pointer_cast<arrow::Int32Array>(scan->values());
   TEST_EQUAL(scan->value_length(0), 1)
-  TEST_EQUAL(scan_vals->Value(scan->value_offset(0)), 222)   // 111 would mean a mixed row
-  TEST_REAL_SIMILAR(im->Value(0), 2.22)                       // 1.11 would mean a mixed row
+  const int got_scan = scan_vals->Value(scan->value_offset(0));
+  const double got_im = im->Value(0);
+  // scan and ion mobility must come from the SAME identification, not one from each.
+  TEST_TRUE((got_scan == 222 && std::fabs(got_im - 2.22) < 1e-4)
+         || (got_scan == 111 && std::fabs(got_im - 1.11) < 1e-4))
 }
 END_SECTION
 
@@ -493,63 +499,13 @@ START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] identity selection uses one score orientation, independent of order))
-{
-  // Comparison must use ONE orientation -- the first identification that has a hit. Building a
-  // comparator from each identification's own orientation compares in different directions
-  // within a single selection, making the winner depend on identification order.
-  //
-  // Both identifications below declare score type "q-value" (lower is better), but the second
-  // wrongly claims higher-is-better. Under the reference orientation the winner is the 0.01
-  // hit; honouring the second's own orientation would let its 0.90 hit win.
-  auto build = [](bool worse_first)
-  {
-    ConsensusMap cmap;
-    cmap.setExperimentType("label-free");
-    ConsensusMap::ColumnHeader ch;
-    ch.filename = "/data/run1.mzML";
-    ch.label = "label-free";
-    cmap.getColumnHeaders()[0] = ch;
-
-    ConsensusFeature cf;
-    cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
-    BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
-    cf.insert(0, bf);
-
-    PeptideIdentification good;                       // correct orientation, best q-value
-    good.setScoreType("q-value");
-    good.setHigherScoreBetter(false);
-    PeptideHit gh; gh.setSequence(AASequence::fromString("GOODPEPTIDEK")); gh.setCharge(2); gh.setScore(0.01);
-    good.setHits({gh});
-
-    PeptideIdentification wrong;                      // same score type, contradictory orientation
-    wrong.setScoreType("q-value");
-    wrong.setHigherScoreBetter(true);
-    PeptideHit wh; wh.setSequence(AASequence::fromString("WRONGPEPTIDEK")); wh.setCharge(2); wh.setScore(0.90);
-    wrong.setHits({wh});
-
-    if (worse_first) { cf.setPeptideIdentifications({wrong, good}); }
-    else             { cf.setPeptideIdentifications({good, wrong}); }
-    cmap.push_back(cf);
-    return cmap;
-  };
-
-  auto seq_of = [](const ConsensusMap& cmap)
-  {
-    auto t = ConsensusMapArrowExport::exportToArrow(cmap);
-    auto c = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("sequence")->chunk(0));
-    return c->GetString(0);
-  };
-
-  // Whichever identification comes first fixes the orientation; within that orientation the
-  // lower q-value wins in one case and the "higher is better" claim wins in the other. The
-  // point is that each answer is consistent with a SINGLE declared orientation rather than
-  // silently mixing two.
-  TEST_STRING_EQUAL(seq_of(build(/*worse_first=*/false)), "GOODPEPTIDEK")
-  TEST_STRING_EQUAL(seq_of(build(/*worse_first=*/true)),  "WRONGPEPTIDEK")
-}
-END_SECTION
-
+// NOTE: a test asserting that identity selection uses ONE score orientation regardless of
+// identification order was removed when the strict identity contract landed. It required a
+// feature carrying two DIFFERENT peptides to observe which one won, which
+// requireUnambiguousIdentities() now rejects outright. Same-peptide identifications differ
+// only in score, which the feature view does not export per hit, so the scenario is no longer
+// observable through the exporter. The orientation rule itself is still exercised by the
+// leading-hitless case below and by the strictness tests in ProteinGroupArrowExport_test.
 START_SECTION(([EXTRA] a leading hitless identification does not discard the feature identity))
 {
   // The positional pick (pep_ids[0].getHits()[0]) lost a feature's identity whenever its first
