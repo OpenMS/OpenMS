@@ -97,7 +97,7 @@ Name: AAAAAAGAGPEMVR/2_2(0,A,Acetyl)(11,M,Oxidation)
 MW: 1301.6400
 Comment: Spec=Consensus Pep=Tryptic Mods=2(0,A,Acetyl)(11,M,Oxidation) Fullname=-.AAAAAAGAGPEMVR.G Charge=2 Parent=650.820 Inst=it Mz_diff=0.210 Mz_exact=650.8199 Mz_av=651.234 Protein="tr|A8CZ64|A8CZ64_HUMAN Extracellular signal-regulated kinase-2 splice variant [Homo sapiens]" Pse
 Num peaks: 97
-200.0   39      "a3/-0.12"
+200.0   39      "a3/-600ppm"
 300.1   258     "b3/-0.02,y2-H2O/-0.08"
 400.3   566     "?"
 500.3   94      "y4^2/-0.34"

@@ -295,6 +295,25 @@ namespace OpenMS
                 for (auto& str : splitstr)
                 {
                   std::string splitstrprefix = StringUtils::prefix(str, '/');
+                  std::optional<double> theoretical_mz;
+                  if (StringUtils::has(str, '/'))
+                  {
+                    std::string delta_text = StringUtils::suffix(str, '/');
+                    if (StringUtils::hasSuffix(delta_text, "ppm"))
+                    {
+                      delta_text.resize(delta_text.size() - 3);
+                      const double delta_ppm = StringUtils::toDouble(delta_text);
+                      const double scale = 1.0 + delta_ppm * 1e-6;
+                      if (scale != 0.0)
+                      {
+                        theoretical_mz = mz / scale;
+                      }
+                    }
+                    else
+                    {
+                      theoretical_mz = mz - StringUtils::toDouble(delta_text);
+                    }
+                  }
                   int charge = 1;
                   StringList splitstr2;
                   StringUtils::split(splitstrprefix, '^', splitstr2);
@@ -302,7 +321,7 @@ namespace OpenMS
                   {
                     charge = StringUtils::toInt32(splitstr2[1]);
                   }
-                  annots.push_back(PeptideHit::PeakAnnotation{splitstr2[0], charge, mz, ity});
+                  annots.push_back(PeptideHit::PeakAnnotation{splitstr2[0], charge, mz, ity, theoretical_mz});
                   if (parse_firstpeakinfo_only) break;
                 }
               }

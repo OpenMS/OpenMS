@@ -270,7 +270,61 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[20].annotation, "[alpha|xi$b9]")
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].charge, 3)
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
+  TEST_FALSE(peptide_ids[0].getHits()[0].getPeakAnnotations()[0].theoretical_mz.has_value())
 
+END_SECTION
+
+START_SECTION(([EXTRA] fragment theoretical m/z round-trip))
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  IdXMLFile id_xml_file;
+  id_xml_file.load(OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML"), protein_ids, peptide_ids);
+
+  auto annotations = peptide_ids[0].getHits()[0].getPeakAnnotations();
+  annotations[0].annotation = "b2,with comma";
+  annotations[0].theoretical_mz = 123.456;
+  annotations[1].annotation = "y3_zero";
+  annotations[1].theoretical_mz = 0.0;
+  annotations[2].annotation = "a1_missing";
+  annotations[2].theoretical_mz.reset();
+  peptide_ids[0].getHits()[0].setPeakAnnotations(annotations);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  id_xml_file.store(filename, protein_ids, peptide_ids);
+
+  vector<ProteinIdentification> protein_ids_out;
+  PeptideIdentificationList peptide_ids_out;
+  id_xml_file.load(filename, protein_ids_out, peptide_ids_out);
+
+  const auto& annotations_out = peptide_ids_out[0].getHits()[0].getPeakAnnotations();
+  TEST_EQUAL(annotations_out.size(), annotations.size())
+  bool found_value = false;
+  bool found_zero = false;
+  bool found_missing = false;
+  for (const auto& annotation : annotations_out)
+  {
+    if (annotation.annotation == "b2,with comma")
+    {
+      found_value = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, 123.456)
+    }
+    else if (annotation.annotation == "y3_zero")
+    {
+      found_zero = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, 0.0)
+    }
+    else if (annotation.annotation == "a1_missing")
+    {
+      found_missing = true;
+      TEST_FALSE(annotation.theoretical_mz.has_value())
+    }
+  }
+  TEST_TRUE(found_value)
+  TEST_TRUE(found_zero)
+  TEST_TRUE(found_missing)
 END_SECTION
 
 START_SECTION([EXTRA] Compressed file writing - gzip round-trip)

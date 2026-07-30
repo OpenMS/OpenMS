@@ -166,9 +166,117 @@ START_SECTION(void store(std::string filename, const std::vector<ProteinIdentifi
   PeptideIdentificationList peptide_ids, peptide_ids2;
   std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
+
+  // Exercise regular (non-XL) fragment annotation persistence. The two known
+  // errors and one unknown error share an IonType, requiring separate parallel
+  // error-array groups in mzIdentML without inventing a sentinel value.
+  vector<PeptideHit::PeakAnnotation> fragment_annotations(3);
+  fragment_annotations[0].annotation = "[y3]";
+  fragment_annotations[0].charge = 1;
+  fragment_annotations[0].mz = 500.125;
+  fragment_annotations[0].intensity = 1234.0;
+  fragment_annotations[0].theoretical_mz = 500.1;
+  fragment_annotations[1].annotation = "[y4]";
+  fragment_annotations[1].charge = 1;
+  fragment_annotations[1].mz = 600.2;
+  fragment_annotations[1].intensity = 2345.0;
+  fragment_annotations[2].annotation = "[y5]";
+  fragment_annotations[2].charge = 1;
+  fragment_annotations[2].mz = 700.3;
+  fragment_annotations[2].intensity = 3456.0;
+  fragment_annotations[2].theoretical_mz = 700.3;
+  peptide_ids2[0].getHits()[0].setPeakAnnotations(fragment_annotations);
+
   std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
+
+  // Parallel FragmentArrays must stay aligned with IonType::index. Corrupt the
+  // generated two-value error array and verify that loading fails explicitly.
+  TextFile malformed_file(filename);
+  bool error_array_corrupted = false;
+  for (auto& line : malformed_file)
+  {
+    if (line.find("<FragmentArray measure_ref=\"Measure_error\"") == std::string::npos)
+    {
+      continue;
+    }
+    const Size values_attribute = line.find("values=\"");
+    if (values_attribute == std::string::npos)
+    {
+      continue;
+    }
+    const Size values_begin = values_attribute + 8;
+    const Size separator = line.find(' ', values_begin);
+    if (separator != std::string::npos)
+    {
+      const Size values_end = line.find('"', separator);
+      if (values_end != std::string::npos)
+      {
+        line.erase(separator, values_end - separator);
+        error_array_corrupted = true;
+        break;
+      }
+    }
+  }
+  TEST_TRUE(error_array_corrupted)
+  std::string malformed_filename;
+  NEW_TMP_FILE(malformed_filename)
+  malformed_file.store(malformed_filename);
+  vector<ProteinIdentification> malformed_protein_ids;
+  PeptideIdentificationList malformed_peptide_ids;
+  TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(malformed_filename, malformed_protein_ids, malformed_peptide_ids))
+
+  // Measure IDs are arbitrary. Also exercise ppm input and the legacy
+  // capitalized Measure_ref spelling used by existing mzIdentML files.
+  TextFile ppm_file(filename);
+  bool ppm_measure_changed = false;
+  bool ppm_values_changed = false;
+  for (auto& line : ppm_file)
+  {
+    if (line.find("<Measure id=\"Measure_error\"") != std::string::npos)
+    {
+      StringUtils::substitute(line, "Measure_error", "custom_error_ppm");
+      ppm_measure_changed = true;
+    }
+    else if (line.find("accession=\"MS:1001227\"") != std::string::npos)
+    {
+      StringUtils::substitute(line, "unitAccession=\"MS:1000040\"", "unitAccession=\"UO:0000169\"");
+      StringUtils::substitute(line, "unitCvRef=\"PSI-MS\"", "unitCvRef=\"UO\"");
+      StringUtils::substitute(line, "unitName=\"m/z\"", "unitName=\"parts per million\"");
+    }
+    else if (line.find("<FragmentArray measure_ref=\"Measure_error\"") != std::string::npos)
+    {
+      StringUtils::substitute(line, "measure_ref=\"Measure_error\"", "Measure_ref=\"custom_error_ppm\"");
+      const Size values_attribute = line.find("values=\"");
+      ABORT_IF(values_attribute == std::string::npos)
+      const Size values_begin = values_attribute + 8;
+      const Size values_end = line.find('"', values_begin);
+      ABORT_IF(values_end == std::string::npos)
+      const double y3_error_ppm = (500.125 - 500.1) / 500.1 * 1e6;
+      line.replace(values_begin, values_end - values_begin, StringUtils::toStr(y3_error_ppm) + " 0");
+      ppm_values_changed = true;
+    }
+  }
+  TEST_TRUE(ppm_measure_changed)
+  TEST_TRUE(ppm_values_changed)
+  std::string ppm_filename;
+  NEW_TMP_FILE(ppm_filename)
+  ppm_file.store(ppm_filename);
+  vector<ProteinIdentification> ppm_protein_ids;
+  PeptideIdentificationList ppm_peptide_ids;
+  MzIdentMLFile().load(ppm_filename, ppm_protein_ids, ppm_peptide_ids);
+  bool found_ppm_y3 = false;
+  for (const auto& annotation : ppm_peptide_ids[0].getHits()[0].getPeakAnnotations())
+  {
+    if (annotation.annotation == "[y3]")
+    {
+      found_ppm_y3 = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, 500.1)
+    }
+  }
+  TEST_TRUE(found_ppm_y3)
 
   MzIdentMLFile().load(filename, protein_ids, peptide_ids);
   TEST_EQUAL(protein_ids.size(),protein_ids2.size())
@@ -224,6 +332,33 @@ START_SECTION(void store(std::string filename, const std::vector<ProteinIdentifi
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),peptide_ids2[0].getHits()[0].getScore())
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),peptide_ids2[0].getHits()[0].getSequence())
   TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),peptide_ids2[0].getHits()[0].getCharge())
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations().size(), 3)
+  bool found_y3 = false;
+  bool found_y4 = false;
+  bool found_y5 = false;
+  for (const auto& annotation : peptide_ids[0].getHits()[0].getPeakAnnotations())
+  {
+    if (annotation.annotation == "[y3]")
+    {
+      found_y3 = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, 500.1)
+    }
+    else if (annotation.annotation == "[y4]")
+    {
+      found_y4 = true;
+      TEST_FALSE(annotation.theoretical_mz.has_value())
+    }
+    else if (annotation.annotation == "[y5]")
+    {
+      found_y5 = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, 700.3)
+    }
+  }
+  TEST_TRUE(found_y3)
+  TEST_TRUE(found_y4)
+  TEST_TRUE(found_y5)
   for (size_t i = 0; i < peptide_ids[0].getHits()[0].getPeptideEvidences().size(); ++i){
     //AA before/after tested by peptide evidences vector equality check - not working if the order of proteins is pertubated
     //TEST_EQUAL(peptide_ids[0].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[0].getHits()[0].getPeptideEvidences()[i],true)
@@ -428,6 +563,33 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE), "SAVIKTSTR")
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(), "FIVKASSGPR")
 
+  auto& xl_fragment_annotations = peptide_ids[1].getHits()[0].getPeakAnnotations();
+  ABORT_IF(xl_fragment_annotations.size() < 9)
+  bool set_alpha_ci_b2 = false;
+  bool set_alpha_xi_b4 = false;
+  bool set_alpha_xi_y8 = false;
+  for (auto& annotation : xl_fragment_annotations)
+  {
+    if (annotation.annotation == "[alpha|ci$b2]")
+    {
+      annotation.theoretical_mz = annotation.mz - 0.0125;
+      set_alpha_ci_b2 = true;
+    }
+    else if (annotation.annotation == "[alpha|xi$b4]")
+    {
+      annotation.theoretical_mz = annotation.mz + 0.025;
+      set_alpha_xi_b4 = true;
+    }
+    else if (annotation.annotation == "[alpha|xi$y8]" && annotation.charge == 3)
+    {
+      annotation.theoretical_mz = 0.0;
+      set_alpha_xi_y8 = true;
+    }
+  }
+  TEST_TRUE(set_alpha_ci_b2)
+  TEST_TRUE(set_alpha_xi_b4)
+  TEST_TRUE(set_alpha_xi_y8)
+
   // Reading and writing
   std::string filename;
   NEW_TMP_FILE(filename)
@@ -479,7 +641,35 @@ precursor_residual_peak_count")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].charge, 1)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[1].annotation, "[beta|ci$y2]")
+  TEST_FALSE(peptide_ids2[1].getHits()[0].getPeakAnnotations()[1].theoretical_mz.has_value())
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[8].annotation, "[alpha|xi$b4]")
+  bool found_alpha_ci_b2 = false;
+  bool found_alpha_xi_b4 = false;
+  bool found_alpha_xi_y8 = false;
+  for (const auto& annotation : peptide_ids2[1].getHits()[0].getPeakAnnotations())
+  {
+    if (annotation.annotation == "[alpha|ci$b2]")
+    {
+      found_alpha_ci_b2 = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, annotation.mz - 0.0125)
+    }
+    else if (annotation.annotation == "[alpha|xi$b4]")
+    {
+      found_alpha_xi_b4 = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, annotation.mz + 0.025)
+    }
+    else if (annotation.annotation == "[alpha|xi$y8]" && annotation.charge == 3)
+    {
+      found_alpha_xi_y8 = true;
+      TEST_TRUE(annotation.theoretical_mz.has_value())
+      TEST_REAL_SIMILAR(*annotation.theoretical_mz, 0.0)
+    }
+  }
+  TEST_TRUE(found_alpha_ci_b2)
+  TEST_TRUE(found_alpha_xi_b4)
+  TEST_TRUE(found_alpha_xi_y8)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE), "mono-link")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 5)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), "-")

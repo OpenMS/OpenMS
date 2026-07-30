@@ -349,6 +349,35 @@ START_SECTION((static double computeHyperScore(double, bool, const MSSpectrum&, 
 }
 END_SECTION
 
+START_SECTION((static double computeHyperScore(double, bool, const MSSpectrum&, const MSSpectrum&, std::vector<PeptideHit::PeakAnnotation>&, double)))
+{
+  MSSpectrum exp_spec;
+  exp_spec.push_back(Peak1D(100.01, 100.0));
+  exp_spec.push_back(Peak1D(200.01, 200.0));
+  exp_spec.push_back(Peak1D(300.01, 300.0));
+
+  MSSpectrum db_spec;
+  db_spec.push_back(Peak1D(100.0, 999.0));
+  db_spec.push_back(Peak1D(200.0, 999.0));
+  db_spec.push_back(Peak1D(300.0, 999.0));
+  db_spec.setStringDataArrays({MSSpectrum::StringDataArray{"a", "b", "c"}});
+  db_spec.setIntegerDataArrays({MSSpectrum::IntegerDataArray{1, 1, 1}});
+
+  vector<PeptideHit::PeakAnnotation> annotations;
+  const double score = MetaboliteSpectralMatching::computeHyperScore(
+    0.5, false, exp_spec, db_spec, annotations, 0.0);
+
+  TEST_TRUE(score > 0.0)
+  TEST_EQUAL(annotations.size(), 3)
+  for (Size i = 0; i < annotations.size(); ++i)
+  {
+    TEST_TRUE(annotations[i].theoretical_mz.has_value())
+    TEST_REAL_SIMILAR(*annotations[i].theoretical_mz, db_spec[i].getMZ())
+    TEST_REAL_SIMILAR(*annotations[i].getMZError(), 0.01)
+  }
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
-  constexpr int version_number = 5; // increase this whenever the DB schema changes!
+  constexpr int version_number = 6; // increase this whenever the DB schema changes!
 
   void raiseDBError_(const std::string& error, int line, const char* function,
                      const std::string& context, const std::string& query)
@@ -1065,6 +1065,7 @@ namespace OpenMS::Internal
         "peak_charge INTEGER, "                                         \
         "peak_mz REAL, "                                                \
         "peak_intensity REAL, "                                         \
+        "peak_theoretical_mz REAL, "                                    \
         "FOREIGN KEY (parent_id) REFERENCES ID_ObservationMatch (id), " \
         "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
 
@@ -1075,7 +1076,8 @@ namespace OpenMS::Internal
         ":peak_annotation, "                                        \
         ":peak_charge, "                                            \
         ":peak_mz, "                                                \
-        ":peak_intensity)");
+        ":peak_intensity, "                                         \
+        ":peak_theoretical_mz)");
 
       for (const ID::ObservationMatch& match : id_data.getObservationMatches())
       {
@@ -1097,6 +1099,14 @@ namespace OpenMS::Internal
             query2.bind(":peak_charge", peak_ann.charge);
             query2.bind(":peak_mz", peak_ann.mz);
             query2.bind(":peak_intensity", peak_ann.intensity);
+            if (peak_ann.theoretical_mz)
+            {
+              query2.bind(":peak_theoretical_mz", *peak_ann.theoretical_mz);
+            }
+            else
+            {
+              query2.bind(":peak_theoretical_mz");
+            }
             execWithExceptionAndReset(query2, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }

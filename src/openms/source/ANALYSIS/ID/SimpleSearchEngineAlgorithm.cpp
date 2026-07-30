@@ -448,6 +448,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
                 PeptideHit::PeakAnnotation pa;
                 pa.mz = spec[exp_idx].getMZ();
                 pa.intensity = spec[exp_idx].getIntensity();
+                pa.theoretical_mz = theoretical_spec[theo_idx].getMZ();
                 pa.annotation = ion_names[theo_idx];
                 pa.charge = ion_charges[theo_idx];
                 peak_annotations.push_back(pa);
@@ -953,4 +954,3 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
   }
 
 } // namespace OpenMS
-

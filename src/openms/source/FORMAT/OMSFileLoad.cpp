@@ -678,6 +678,14 @@ namespace OpenMS::Internal
       ann.charge = query.getColumn("peak_charge").getInt();
       ann.mz = query.getColumn("peak_mz").getDouble();
       ann.intensity = query.getColumn("peak_intensity").getDouble();
+      if (version_number_ >= 6)
+      {
+        const auto theoretical_mz = query.getColumn("peak_theoretical_mz");
+        if (!theoretical_mz.isNull())
+        {
+          ann.theoretical_mz = theoretical_mz.getDouble();
+        }
+      }
       match.peak_annotations[processing_step_opt].push_back(ann);
     }
     query.reset(); // get ready for new executeStep()

@@ -84,15 +84,23 @@ START_SECTION(void load(const std::string &filename, std::vector< PeptideIdentif
   TEST_STRING_EQUAL(exp[6].getNativeID(), "index=6")
   TEST_STRING_EQUAL(ids[5].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAGAGPEM(Oxidation)VR")
   TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[0].annotation, "a3")
+  TEST_TRUE(ids[5].getHits()[0].getPeakAnnotations()[0].theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*ids[5].getHits()[0].getPeakAnnotations()[0].theoretical_mz, 200.0 / (1.0 - 600e-6))
+  TEST_REAL_SIMILAR(*ids[5].getHits()[0].getPeakAnnotations()[0].getMZErrorPPM(), -600.0)
   TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[1].annotation, "b3")
   TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[1].charge, 1)
+  TEST_TRUE(ids[5].getHits()[0].getPeakAnnotations()[1].theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*ids[5].getHits()[0].getPeakAnnotations()[1].theoretical_mz, 300.12)
   // next only with parse_firstonly = false
   //TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "y2-H2O")
   //TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 1)
   TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "?")
   TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 0)
+  TEST_FALSE(ids[5].getHits()[0].getPeakAnnotations()[2].theoretical_mz.has_value())
   TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].annotation, "y4")
   TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].charge, 2)
+  TEST_TRUE(ids[5].getHits()[0].getPeakAnnotations()[3].theoretical_mz.has_value())
+  TEST_REAL_SIMILAR(*ids[5].getHits()[0].getPeakAnnotations()[3].theoretical_mz, 500.64)
   TEST_STRING_EQUAL(ids[6].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAVGPGAGGAGSAVPGGAGPC(Carbamidomethyl)ATVSVFPGAR")
 
 

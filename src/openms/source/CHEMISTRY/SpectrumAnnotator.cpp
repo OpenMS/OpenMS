@@ -444,6 +444,7 @@ namespace OpenMS
         if (it != spec_idx_to_theo_idx.end())
         {
           Size theo_idx = it->second;
+          pa.theoretical_mz = theoretical_spec[theo_idx].getMZ();
           if (ion_names != nullptr && theo_idx < ion_names->size())
           {
             pa.annotation = (*ion_names)[theo_idx];
@@ -466,6 +467,7 @@ namespace OpenMS
         PeptideHit::PeakAnnotation pa;
         pa.mz = spec_copy[match.second].getMZ();
         pa.intensity = spec_copy[match.second].getIntensity();
+        pa.theoretical_mz = theoretical_spec[match.first].getMZ();
 
         if (ion_names != nullptr && match.first < ion_names->size())
         {

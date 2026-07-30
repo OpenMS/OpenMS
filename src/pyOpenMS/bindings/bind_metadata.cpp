@@ -506,6 +506,12 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
         .def_rw("charge", &OpenMS::PeptideHit::PeakAnnotation::charge)
         .def_rw("mz", &OpenMS::PeptideHit::PeakAnnotation::mz)
         .def_rw("intensity", &OpenMS::PeptideHit::PeakAnnotation::intensity)
+        .def_rw("theoretical_mz", &OpenMS::PeptideHit::PeakAnnotation::theoretical_mz,
+                "The theoretical fragment m/z, or None if no theoretical ion is assigned")
+        .def("getMZError", [](const OpenMS::PeptideHit::PeakAnnotation& self) { return self.getMZError(); },
+             "Return the signed observed-minus-theoretical m/z error in Th, or None")
+        .def("getMZErrorPPM", [](const OpenMS::PeptideHit::PeakAnnotation& self) { return self.getMZErrorPPM(); },
+             "Return the signed observed-minus-theoretical m/z error in ppm, or None")
         ;
 
     // -----------------------------------------------------------------------

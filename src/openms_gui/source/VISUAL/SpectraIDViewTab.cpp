@@ -472,7 +472,7 @@ namespace OpenMS
         if (fragment_window_ == nullptr)
         {
           fragment_window_ = new QTableWidget();
-          fragment_window_->resize(320, 500);
+          fragment_window_->resize(700, 500);
 
           fragment_window_->verticalHeader()->setHidden(true);// hide vertical column
 
@@ -480,7 +480,10 @@ namespace OpenMS
           header_labels << "m/z"
                         << "name"
                         << "intensity"
-                        << "charge";
+                        << "charge"
+                        << "theoretical m/z"
+                        << "error (Th)"
+                        << "error (ppm)";
           fragment_window_->setColumnCount(header_labels.size());
           fragment_window_->setHorizontalHeaderLabels(header_labels);
 
@@ -509,6 +512,24 @@ namespace OpenMS
           item = fragment_window_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, pa.charge);
           fragment_window_->setItem(fragment_window_->rowCount() - 1, 3, item);
+          item = fragment_window_->itemPrototype()->clone();
+          if (pa.theoretical_mz)
+          {
+            item->setData(Qt::DisplayRole, *pa.theoretical_mz);
+          }
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 4, item);
+          item = fragment_window_->itemPrototype()->clone();
+          if (const auto mz_error = pa.getMZError())
+          {
+            item->setData(Qt::DisplayRole, *mz_error);
+          }
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 5, item);
+          item = fragment_window_->itemPrototype()->clone();
+          if (const auto mz_error_ppm = pa.getMZErrorPPM())
+          {
+            item->setData(Qt::DisplayRole, *mz_error_ppm);
+          }
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 6, item);
         }
 
         fragment_window_->resizeColumnsToContents();
@@ -873,10 +894,15 @@ namespace OpenMS
               QString annotation;
               for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
               {
+                const auto mz_error = pa.getMZError();
+                const auto mz_error_ppm = pa.getMZErrorPPM();
                 annotation += toQString(StringUtils::toStr(pa.mz)) + "|" +
                   toQString(StringUtils::toStr(pa.intensity)) + "|" +
                   toQString(StringUtils::toStr(pa.charge)) + "|" +
-                  toQString(pa.annotation) + ";";
+                  toQString(pa.annotation) + "|" +
+                  (pa.theoretical_mz ? toQString(StringUtils::toStr(*pa.theoretical_mz)) : QString()) + "|" +
+                  (mz_error ? toQString(StringUtils::toStr(*mz_error)) : QString()) + "|" +
+                  (mz_error_ppm ? toQString(StringUtils::toStr(*mz_error_ppm)) : QString()) + ";";
               }
               QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color, Qt::blue);
               item->setData(Qt::UserRole, annotation);
@@ -916,7 +942,12 @@ namespace OpenMS
                                              << "rank"
                                              << "#ID"
                                              << "#PH");
-    if (has_peak_annotations) table_widget_->setHeaderExportName(Clmn::PEAK_ANNOTATIONS, "PeakAnnotations(mz|intensity|charge|annotation");
+    if (has_peak_annotations)
+    {
+      table_widget_->setHeaderExportName(
+        Clmn::PEAK_ANNOTATIONS,
+        "PeakAnnotations(mz|intensity|charge|annotation|theoretical_mz|mz_error|mz_error_ppm)");
+    }
 
     table_widget_->setSortingEnabled(true);
     table_widget_->sortByColumn(Clmn::SPEC_INDEX, Qt::AscendingOrder);

@@ -1205,7 +1205,21 @@ namespace OpenMS::Internal
 
     void MzIdentMLHandler::writeFragmentAnnotations_(std::string& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
-      std::map<UInt,std::map<std::string,std::vector<StringList> > > annotation_map;
+      struct FragmentGroup
+      {
+        StringList indices;
+        StringList mzs;
+        StringList intensities;
+        StringList errors;
+        StringList chains;
+        StringList categories;
+      };
+
+      // mzIdentML FragmentArrays are parallel arrays. Keep annotations with and
+      // without a known theoretical m/z in separate IonTypes so an omitted
+      // error is never confused with a real error of zero.
+      using FragmentGroupKey = std::pair<std::string, bool>; // ion type, has error
+      std::map<UInt, std::map<FragmentGroupKey, FragmentGroup>> annotation_map;
       for (const PeptideHit::PeakAnnotation& pep : annotations)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
@@ -1239,25 +1253,21 @@ namespace OpenMS::Internal
           lt += " - "+loss;
         }
         auto& charge_map = annotation_map[pep.charge];
-        auto& lt_vec = charge_map[lt];
-        if (lt_vec.empty())
+        const bool has_error = pep.theoretical_mz.has_value();
+        auto& group = charge_map[{lt, has_error}];
+        group.indices.push_back(ionseries_index);
+        group.mzs.emplace_back(StringUtils::toStr(pep.mz));
+        group.intensities.emplace_back(StringUtils::toStr(pep.intensity));
+        if (has_error)
         {
-          lt_vec.resize(3);
-          if (is_ppxl)
-          {
-            lt_vec.push_back(StringList());
-            lt_vec.push_back(StringList());
-          }
+          group.errors.emplace_back(StringUtils::toStr(pep.mz - *pep.theoretical_mz));
         }
-        lt_vec[0].push_back(ionseries_index);
-        lt_vec[1].emplace_back(StringUtils::toStr(pep.mz));
-        lt_vec[2].emplace_back(StringUtils::toStr(pep.intensity));
         if (is_ppxl)
         {
           std::string ab = ListUtils::contains<std::string>(extra ,std::string("alpha")) ? std::string("alpha"):std::string("beta");
           std::string cx = ListUtils::contains<std::string>(extra ,std::string("ci")) ? std::string("ci"):std::string("xi");
-          lt_vec[3].push_back(ab);
-          lt_vec[4].push_back(cx);
+          group.chains.push_back(ab);
+          group.categories.push_back(cx);
         }
       }
 
@@ -1268,26 +1278,31 @@ namespace OpenMS::Internal
       }
       //double map: charge + ion type; collect in StringList: index + annotations; write:
       s +=std::string(indent, '\t') + "<Fragmentation>\n";
-      for (std::map<UInt,std::map<std::string,std::vector<StringList> > >::iterator i=annotation_map.begin();
-           i!=annotation_map.end(); ++i)
+      for (auto i = annotation_map.begin(); i != annotation_map.end(); ++i)
       {
-        for (std::map<std::string,std::vector<StringList> >::iterator j=i->second.begin();
-             j!= i->second.end(); ++j)
+        for (auto j = i->second.begin(); j != i->second.end(); ++j)
         {
+          const auto& [ion_type, has_error] = j->first;
+          const FragmentGroup& group = j->second;
           s +=std::string(indent+1, '\t') + "<IonType charge=\"" + StringUtils::toStr(i->first) +"\""
-                    + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
+                    + " index=\"" + ListUtils::concatenate(group.indices, " ") + "\">\n";
           s +=std::string(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_mz\""
-                    + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
+                    + " values=\"" + ListUtils::concatenate(group.mzs, " ") + "\"/>\n";
           s +=std::string(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_int\""
-                    + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
+                    + " values=\"" + ListUtils::concatenate(group.intensities, " ") + "\"/>\n";
+          if (has_error)
+          {
+            s +=std::string(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_error\""
+                      + " values=\"" + ListUtils::concatenate(group.errors, " ") + "\"/>\n";
+          }
           if (is_ppxl)
           {
               s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
-                        + " value=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(group.chains, " ") + "\"/>\n";
               s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
-                        + " value=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(group.categories, " ") + "\"/>\n";
           }
-          s +=std::string(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
+          s +=std::string(indent+2, '\t') + cv_.getTermByName(ion_type).toXMLString("PSI-MS") + "\n";
           s +=std::string(indent+1, '\t') + "</IonType>\n";
         }
       }

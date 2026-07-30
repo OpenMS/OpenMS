@@ -681,7 +681,9 @@ protected:
       setMinInt_("id:add_protein_hit_metavalues", -1);
       setMaxInt_("id:add_protein_hit_metavalues", 100);
 
-      registerStringOption_("id:annotations", "<method>", "none", "Format of peak annotations.", false);
+      registerStringOption_("id:annotations", "<method>", "none",
+                            "Format of peak annotations. The default compact records contain m/z, intensity, "
+                            "charge, annotation, and an optional theoretical m/z.", false);
       setValidStrings_("id:annotations", ListUtils::create<std::string>("none,default"));
       registerFlag_("id:add_usi", "Add a column with Universal Spectrum Identifiers (USI) for exported peptide identifications. Set 'id:usi_dataset_id' to generate complete USIs.", false);
       registerStringOption_("id:usi_dataset_id", "<dataset>", "", "ProteomeXchange dataset identifier for USI generation (e.g., 'PXD000561'). Needed for complete USIs when 'id:add_usi' is set.", false);

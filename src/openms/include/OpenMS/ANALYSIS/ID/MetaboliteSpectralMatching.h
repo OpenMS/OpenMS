@@ -261,7 +261,7 @@ namespace OpenMS
       @param[in]  fragment_mass_tolerance_unit_ppm If @c true, @p fragment_mass_error is in ppm; otherwise Th.
       @param[in]  exp_spectrum                  Experimental MS2 spectrum (sorted by m/z).
       @param[in]  db_spectrum                   DB MS2 spectrum (sorted by m/z).
-      @param[out] annotations                   Per-matched-peak annotations (annotation string, charge, m/z, intensity); appended to.
+      @param[out] annotations                   Per-matched-peak annotations (annotation string, charge, observed/theoretical m/z, intensity); appended to.
       @param[in]  mz_lower_bound                Minimum m/z to consider; peaks below this are ignored.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
     */
@@ -316,4 +316,3 @@ namespace OpenMS
   };
 
 }
-

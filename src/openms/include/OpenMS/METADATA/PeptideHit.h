@@ -9,8 +9,9 @@
 #pragma once
 
 #include <iosfwd>
-#include <vector>
 #include <functional>
+#include <optional>
+#include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -66,8 +67,10 @@ public:
       The mz and intensity values contain the same information as a spectrum
       would have about the peaks, and can be used to map the additional
       information to the correct peak or reconstruct the annotated spectrum.
-      Additionally the charge of the peak and an arbitrary string annotation
-      can be stored.
+      The optional theoretical m/z identifies the predicted fragment position;
+      together with the observed m/z it defines both the absolute and ppm m/z
+      errors. Additionally the charge of the peak and an arbitrary string
+      annotation can be stored.
 
       The string annotation can be e.g. a fragment type like "y3".
       This information can be used e.g. to label peaks in TOPPView.
@@ -89,11 +92,41 @@ public:
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;
+    /// Theoretical m/z of the annotated fragment; unset if it is unknown
+    std::optional<double> theoretical_mz;
+
+    /**
+      @brief Return the signed fragment m/z error in Th.
+
+      The error is defined as observed minus theoretical m/z.
+
+      @return Signed m/z error, or @c std::nullopt if the theoretical m/z is unknown
+    */
+    std::optional<double> getMZError() const;
+
+    /**
+      @brief Return the signed fragment m/z error in parts per million.
+
+      The error is defined as observed minus theoretical m/z and normalized by
+      the theoretical m/z.
+
+      @return Signed m/z error in ppm, or @c std::nullopt if the theoretical m/z is unknown or zero
+    */
+    std::optional<double> getMZErrorPPM() const;
 
     bool operator<(const PeptideHit::PeakAnnotation& other) const;
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const;
 
+    /**
+      @brief Serialize peak annotations into the compact OpenMS text representation.
+
+      Each record contains @c mz,intensity,charge,"annotation" and appends the
+      theoretical m/z as a fifth field when it is available.
+
+      @param[out] annotation_string Serialized annotations
+      @param[in] annotations Peak annotations to serialize
+    */
     static void writePeakAnnotationsString_(std::string& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
 
   };
@@ -385,7 +418,7 @@ namespace std
    * @brief Hash function for OpenMS::PeptideHit::PeakAnnotation.
    *
    * Computes a hash by combining annotation (via fnv1a_hash_string),
-   * charge, mz, and intensity fields using hash_combine.
+   * charge, mz, intensity, and theoretical m/z fields using hash_combine.
    *
    * @note Hash is consistent with operator==.
    */
@@ -398,6 +431,11 @@ namespace std
       OpenMS::hash_combine(seed, OpenMS::hash_int(pa.charge));
       OpenMS::hash_combine(seed, OpenMS::hash_float(pa.mz));
       OpenMS::hash_combine(seed, OpenMS::hash_float(pa.intensity));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pa.theoretical_mz.has_value()));
+      if (pa.theoretical_mz.has_value())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(*pa.theoretical_mz));
+      }
       return seed;
     }
   };

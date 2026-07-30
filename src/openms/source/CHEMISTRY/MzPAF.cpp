@@ -35,7 +35,7 @@ namespace OpenMS
       case MzPAFErrorCode::INVALID_NUMBER: return "Invalid number";
       case MzPAFErrorCode::INVALID_FORMULA: return "Invalid formula";
       case MzPAFErrorCode::INVALID_CHARGE: return "Invalid charge";
-      case MzPAFErrorCode::INVALID_DELTA: return "Invalid mass delta";
+      case MzPAFErrorCode::INVALID_DELTA: return "Invalid m/z delta";
       case MzPAFErrorCode::INVALID_CONFIDENCE: return "Invalid confidence";
       case MzPAFErrorCode::EMPTY_INPUT: return "Empty input";
       case MzPAFErrorCode::UNEXPECTED_END_OF_INPUT: return "Unexpected end of input";
@@ -720,7 +720,7 @@ namespace OpenMS
         advance_();
 
         MzPAFMassDelta delta;
-        delta.unit = MzPAFDeltaUnit::DALTON;
+        delta.unit = MzPAFDeltaUnit::MZ;
 
         double sign = 1.0;
         if (current_.type == TokenType::MINUS)
@@ -738,7 +738,7 @@ namespace OpenMS
           error_(MzPAFErrorCode::INVALID_DELTA, "Expected number after '/'");
         }
 
-        delta.value = sign * parseDouble_(current_.text, MzPAFErrorCode::INVALID_DELTA, "Invalid mass delta value");
+        delta.value = sign * parseDouble_(current_.text, MzPAFErrorCode::INVALID_DELTA, "Invalid m/z delta value");
         advance_();
 
         if (current_.type == TokenType::IDENTIFIER)
@@ -970,7 +970,7 @@ namespace OpenMS
       oss << "^" << ann.charge.value();
     }
 
-    // Mass delta
+    // M/z delta
     if (ann.mass_delta.has_value())
     {
       oss << "/" << ann.mass_delta.value().value;
@@ -1021,6 +1021,22 @@ namespace OpenMS
     pa.charge = mzpaf.charge.value_or(1);
     pa.mz = mz;
     pa.intensity = intensity;
+    if (mzpaf.mass_delta.has_value())
+    {
+      const MzPAFMassDelta& delta = *mzpaf.mass_delta;
+      if (delta.unit == MzPAFDeltaUnit::PPM)
+      {
+        const double scale = 1.0 + delta.value * 1e-6;
+        if (scale != 0.0)
+        {
+          pa.theoretical_mz = mz / scale;
+        }
+      }
+      else
+      {
+        pa.theoretical_mz = mz - delta.value;
+      }
+    }
     return pa;
   }
 

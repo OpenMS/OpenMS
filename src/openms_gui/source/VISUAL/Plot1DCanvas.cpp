@@ -346,7 +346,14 @@ namespace OpenMS
           // edit via double-click
           if (e->type() == QEvent::MouseButtonDblClick)
           {
-            item->editText();
+            if (item->editText())
+            {
+              if (auto* peak_item = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(item))
+              {
+                // A changed ion label invalidates the previously assigned theoretical peak.
+                peak_item->clearTheoreticalMZ();
+              }
+            }
           }
           else if (!item->isSelected())
           {

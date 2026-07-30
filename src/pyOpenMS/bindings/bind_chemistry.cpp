@@ -1156,7 +1156,7 @@ Examples:
     // -----------------------------------------------------------------------
     // MzPAFMassDelta
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MzPAFMassDelta>(m, "MzPAFMassDelta", "Mass delta in an mzPAF annotation (e.g., /0.001, /-1.4ppm)")
+    nb::class_<OpenMS::MzPAFMassDelta>(m, "MzPAFMassDelta", "M/z delta in an mzPAF annotation (e.g., /0.001, /-1.4ppm)")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MzPAFMassDelta &>())
         .def("__copy__", [](const OpenMS::MzPAFMassDelta& self) { return OpenMS::MzPAFMassDelta(self); })
@@ -1216,7 +1216,8 @@ Examples:
     // -----------------------------------------------------------------------
     // MzPAFDeltaUnit
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::MzPAFDeltaUnit>(m, "MzPAFDeltaUnit", "Unit for mass delta values in mzPAF annotations", nb::is_arithmetic())
+    nb::enum_<OpenMS::MzPAFDeltaUnit>(m, "MzPAFDeltaUnit", "Unit for m/z delta values in mzPAF annotations", nb::is_arithmetic())
+        .value("MZ", OpenMS::MzPAFDeltaUnit::MZ)
         .value("DALTON", OpenMS::MzPAFDeltaUnit::DALTON)
         .value("PPM", OpenMS::MzPAFDeltaUnit::PPM)
 

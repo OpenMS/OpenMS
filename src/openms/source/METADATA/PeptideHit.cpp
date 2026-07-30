@@ -427,16 +427,35 @@ namespace OpenMS
   }
 
   // PeakAnnotation method implementations
+  std::optional<double> PeptideHit::PeakAnnotation::getMZError() const
+  {
+    if (!theoretical_mz.has_value())
+    {
+      return std::nullopt;
+    }
+    return mz - *theoretical_mz;
+  }
+
+  std::optional<double> PeptideHit::PeakAnnotation::getMZErrorPPM() const
+  {
+    if (!theoretical_mz.has_value() || *theoretical_mz == 0.0)
+    {
+      return std::nullopt;
+    }
+    return (mz - *theoretical_mz) / *theoretical_mz * 1e6;
+  }
+
   bool PeptideHit::PeakAnnotation::operator<(const PeptideHit::PeakAnnotation& other) const
   {
     // sensible to sort first by m/z and charge
-    return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
+    return std::tie(mz, charge, annotation, intensity, theoretical_mz) <
+           std::tie(other.mz, other.charge, other.annotation, other.intensity, other.theoretical_mz);
   }
 
   bool PeptideHit::PeakAnnotation::operator==(const PeptideHit::PeakAnnotation& other) const
   {
-    if (charge != other.charge || mz != other.mz ||
-        intensity != other.intensity || annotation != other.annotation) return false;
+    if (charge != other.charge || mz != other.mz || intensity != other.intensity ||
+        annotation != other.annotation || theoretical_mz != other.theoretical_mz) return false;
     return true;
   }
 
@@ -450,8 +469,16 @@ namespace OpenMS
     std::string val;
     for (auto& a : annotations)
     {
-      { std::string ann = std::string(a.annotation); StringUtils::quote(ann);
-        annotation_string += StringUtils::toStr(a.mz) + "," + StringUtils::toStr(a.intensity) + "," + StringUtils::toStr(a.charge) + "," + ann; }
+      {
+        std::string ann = std::string(a.annotation);
+        StringUtils::quote(ann);
+        annotation_string += StringUtils::toStr(a.mz) + "," + StringUtils::toStr(a.intensity) + "," +
+                             StringUtils::toStr(a.charge) + "," + ann;
+        if (a.theoretical_mz.has_value())
+        {
+          annotation_string += "," + StringUtils::toStr(*a.theoretical_mz);
+        }
+      }
       if (&a != &annotations.back()) { annotation_string += "|"; }
     }
   }
