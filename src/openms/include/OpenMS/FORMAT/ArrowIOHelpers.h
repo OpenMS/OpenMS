@@ -143,6 +143,23 @@ namespace ArrowIOHelpers
   */
   OPENMS_DLLAPI std::string qpxRunFileName(const std::string& ms_run_path);
 
+  /**
+    @brief Warn once per export about source files that collapse onto one @c run_file_name
+
+    QPX defines the column as the file name without path or extension, so two distinct paths
+    sharing a stem (@c /a/run1.mzML and @c /b/run1.mzML) become indistinguishable as a join
+    and partition key. Same-named files in different directories are a legitimate layout and
+    the origin is known -- only the spec's representation cannot express it -- so this warns
+    rather than failing, matching the policy the PSM exporter already applies.
+
+    @param[in] context Caller name for the log line
+    @param[in] ms_run_paths Source paths participating in one QPX collection
+    @return true if every distinct path yields a distinct run name
+  */
+  OPENMS_DLLAPI bool qpxWarnOnRunNameCollisions(
+    const std::string& context,
+    const std::vector<std::string>& ms_run_paths);
+
 
   /**
     @brief QPX @c intensities[].label for a ConsensusMap column header

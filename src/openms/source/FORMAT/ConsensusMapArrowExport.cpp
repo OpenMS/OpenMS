@@ -138,6 +138,17 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
   // accept either. (The sibling pg exporter reaches the same conclusion via
   // ColumnHeader::getLabelAsUInt(getExperimentType()).)
   lut.is_isobaric = (cmap.getExperimentType() != "label-free");
+
+  // Same policy as the PSM exporter: two source paths sharing a stem are indistinguishable
+  // as a join key, but same-named files in different directories are a legitimate layout, so
+  // warn rather than fail. Rows stay separate -- grouping keys on the source path, not the
+  // stem -- so this reports an ambiguous key, never a merged one.
+  {
+    std::vector<std::string> header_paths;
+    header_paths.reserve(cmap.getColumnHeaders().size());
+    for (const auto& [map_index, header] : cmap.getColumnHeaders()) { header_paths.push_back(header.filename); }
+    (void)ArrowIOHelpers::qpxWarnOnRunNameCollisions("ConsensusMapArrowExport", header_paths);
+  }
   for (const auto& [map_index, header] : cmap.getColumnHeaders())
   {
     const std::string channel_name = header.metaValueExists("channel_name")

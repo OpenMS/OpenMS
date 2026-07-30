@@ -16,7 +16,10 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <set>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -148,6 +151,29 @@ std::string qpxRunFileName(const std::string& ms_run_path)
 {
   // File::stemName() already maps "" -> "".
   return File::stemName(ms_run_path);
+}
+
+bool qpxWarnOnRunNameCollisions(const std::string& context,
+                                const std::vector<std::string>& ms_run_paths)
+{
+  std::map<std::string, std::set<std::string>> stem_to_paths;
+  for (const auto& path : ms_run_paths)
+  {
+    if (path.empty()) { continue; }
+    stem_to_paths[qpxRunFileName(path)].insert(path);
+  }
+
+  bool unique = true;
+  for (const auto& [stem, paths] : stem_to_paths)
+  {
+    if (paths.size() < 2) { continue; }
+    unique = false;
+    OPENMS_LOG_WARN << context << ": several MS runs share the run_file_name '" << stem
+                    << "' after stripping path and extension: "
+                    << ListUtils::concatenate(StringList(paths.begin(), paths.end()), ", ")
+                    << ". They cannot be told apart in the exported QPX tables." << std::endl;
+  }
+  return unique;
 }
 
 std::string qpxScanFormat(const std::vector<std::string>& native_ids)

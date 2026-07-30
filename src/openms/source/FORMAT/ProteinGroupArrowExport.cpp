@@ -78,6 +78,11 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   std::unordered_map<std::string, std::set<std::string>> acc_runs;
 
   {
+    // Same warn-only policy as the PSM and feature exporters.
+    std::vector<std::string> header_paths;
+    for (const auto& [map_index, header] : cmap.getColumnHeaders()) { header_paths.push_back(header.filename); }
+    (void)ArrowIOHelpers::qpxWarnOnRunNameCollisions("ProteinGroupArrowExport", header_paths);
+
     IdentifierMSRunMapper run_mapper;
     try
     {

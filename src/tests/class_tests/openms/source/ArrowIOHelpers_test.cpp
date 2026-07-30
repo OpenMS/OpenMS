@@ -189,6 +189,21 @@ START_SECTION((std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(co
 }
 END_SECTION
 
+START_SECTION((bool qpxWarnOnRunNameCollisions(const std::string&, const std::vector<std::string>&)))
+{
+  // Warn-only, matching the PSM exporter: same-named files in different directories are a
+  // legitimate layout, so an ambiguous key is reported rather than refused.
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/a/run1.mzML", "/a/run2.mzML"}))
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/a/run1.mzML", "/a/run1.mzML"}))  // one run, twice
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {}))
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"", "/a/run1.mzML"}))
+
+  // Distinct paths collapsing onto one run_file_name: reported (false), not fatal.
+  TEST_FALSE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/frac_a/run1.mzML", "/frac_b/run1.mzML"}))
+  TEST_FALSE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/a/run1.mzML", "/a/run1.raw"}))
+}
+END_SECTION
+
 START_SECTION((std::string qpxIntensityLabel(const std::string&, const std::string&)))
 {
   // Label-free: ProteomicsLFQ stamps "label-free" on every header; an unset label is the same.
