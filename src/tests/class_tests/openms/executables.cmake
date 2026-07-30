@@ -756,6 +756,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFilter_test
     MRMFeatureQC_test
     OpenSwathExport_test
+    OpenSwathLibraryPreparation_test
     OpenSwathPercolatorScoring_test
     PeptidoformInference_test
     SpectrumHelpers_test
