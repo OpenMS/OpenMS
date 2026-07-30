@@ -2135,6 +2135,8 @@ if(NOT DISABLE_OPENSWATH)
   # deliberately avoid alignment-dependent options.
   set(OPENSWATH_SHARED_INFERENCE_OSW ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/PyProphet_inference_test.osw)
   set(OPENSWATH_SHARED_PERCOLATOR_OSWPQ ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/OpenSwathWorkflow_tworuns_1_17.output.oswpq)
+  set(OPENDIA_INPUT_MZML ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML)
+  set(OPENDIA_TARGET_LIBRARY ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv)
 
   add_test("TOPP_OpenSwathInfer_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw)
   add_test("TOPP_OpenSwathInfer_1" ${TOPP_BIN_PATH}/OpenSwathInfer -test -in ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw
@@ -2210,6 +2212,18 @@ if(NOT DISABLE_OPENSWATH)
     -out ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_output.oswpq
     -level ms2)
   set_tests_properties("TOPP_OpenSwathPercolatorScoring_2" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_2_prepare")
+
+  add_test("TOPP_OpenDIA_prepared_missing_decoys_failure"
+    bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${OPENDIA_TARGET_LIBRARY} -workflow:library_mode prepared -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_out -TargetedDataExtraction:enable_ipf false -TargetedDataExtraction:readOptions workingInMemory -TargetedDataExtraction:ion_mobility_window 0.1 -TargetedDataExtraction:use_ms1_ion_mobility false -TargetedDataExtraction:Calibration:auto_irt:enabled false -TargetedDataExtraction:Calibration:windows:estimate_rt false -TargetedDataExtraction:Calibration:windows:estimate_mz false -TargetedDataExtraction:Calibration:windows:estimate_im false -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true -TargetedDataExtraction:pasef > ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"does not contain decoy transitions\" ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log && test -d ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates")
+
+  add_test("TOPP_OpenDIA_help"
+    ${TOPP_BIN_PATH}/OpenDIA --help)
+
+  add_test("TOPP_OpenDIA_empirical_fallback_failure"
+    bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${OPENDIA_TARGET_LIBRARY} -workflow:library_mode empirical -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_empirical_fallback_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_empirical_fallback_out -PeptideQueryParameters:DecoyGenerator:min_decoy_fraction 0.0 -TargetedDataExtraction:enable_ipf false -TargetedDataExtraction:readOptions workingInMemory -TargetedDataExtraction:ion_mobility_window 0.1 -TargetedDataExtraction:use_ms1_ion_mobility false -TargetedDataExtraction:Calibration:auto_irt:enabled false -TargetedDataExtraction:Calibration:windows:estimate_rt false -TargetedDataExtraction:Calibration:windows:estimate_mz false -TargetedDataExtraction:Calibration:windows:estimate_im false -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true -TargetedDataExtraction:pasef > ${TESTS_TEMP_DIR}/OpenDIA_empirical_fallback.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"falling back to direct decoy generation\" ${TESTS_TEMP_DIR}/OpenDIA_empirical_fallback.log && grep -q \"does not contain decoy transitions\" ${TESTS_TEMP_DIR}/OpenDIA_empirical_fallback.log && test -d ${TESTS_TEMP_DIR}/OpenDIA_empirical_fallback_intermediates")
+
+  add_test("TOPP_OpenDIA_ipf_precondition_failure"
+    bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${OPENDIA_TARGET_LIBRARY} -workflow:library_mode empirical -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_ipf_failure_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_ipf_failure_out -Inference:peptidoform:run true > ${TESTS_TEMP_DIR}/OpenDIA_ipf_failure.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"Peptidoform inference was requested\" ${TESTS_TEMP_DIR}/OpenDIA_ipf_failure.log && test -d ${TESTS_TEMP_DIR}/OpenDIA_ipf_failure_intermediates")
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------
