@@ -122,54 +122,20 @@ namespace // anonymous
     }
   }
 
-  /// Throw if @p pep_id belongs to a merged run (more than one 'spectra_data' entry) but carries
-  /// no usable 'id_merge_index'. Without it the origin file cannot be resolved and every PSM of the
-  /// run would silently be labelled with the run's first file. Mirrors the MzTab exporter, which
-  /// refuses the same input (MzTab.cpp). Runs with 0 or 1 path are exempt - unmerged input is
-  /// unaffected. @p psm_index only feeds the error message.
-  void validateMergeIndex(const IdentifierMSRunMapper& mapper, const PeptideIdentification& pep_id, size_t psm_index)
-  {
-    const StringList& paths = mapper.getMSRunPaths(pep_id.getIdentifier());
-    if (paths.size() < 2) { return; }
-
-    const std::string key = std::string(Constants::UserParam::ID_MERGE_INDEX);
-    const std::string where = "PSM #" + StringUtils::toStr(psm_index) + " of identification run '"
-                            + pep_id.getIdentifier() + "' (" + StringUtils::toStr(paths.size())
-                            + " files in the run)";
-
-    if (!pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Multiple files in a run, but no '" + key + "' in PeptideIdentification found: " + where + ".");
-    }
-
-    const DataValue& dv = pep_id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-    if (dv.valueType() != DataValue::INT_VALUE)
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "'" + key + "' is not an integer: " + where + ".");
-    }
-
-    const long long merge_index = static_cast<long long>(dv);
-    if (merge_index < 0 || static_cast<size_t>(merge_index) >= paths.size())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "'" + key + "' = " + StringUtils::toStr(merge_index) + " is out of range: " + where + ".");
-    }
-  }
-
-  /// @copydoc validateMergeIndex
+  /// Refuse PSMs of a merged run that carry no usable 'id_merge_index'.
+  /// @see IdentifierMSRunMapper::validateMergeIndex, which holds the check itself so the pg
+  ///      exporter can apply the same refusal.
   void validateMergeIndices(const IdentifierMSRunMapper& mapper, const PeptideIdentificationList& pep_ids)
   {
-    for (size_t i = 0; i < pep_ids.size(); ++i) { validateMergeIndex(mapper, pep_ids[i], i); }
+    for (size_t i = 0; i < pep_ids.size(); ++i) { mapper.validateMergeIndex(pep_ids[i], i); }
   }
 
-  /// @copydoc validateMergeIndex
+  /// @copydoc validateMergeIndices
   void validateMergeIndices(const IdentifierMSRunMapper& mapper, const std::vector<const PeptideIdentification*>& pep_ptrs)
   {
     for (size_t i = 0; i < pep_ptrs.size(); ++i)
     {
-      if (pep_ptrs[i] != nullptr) { validateMergeIndex(mapper, *pep_ptrs[i], i); }
+      if (pep_ptrs[i] != nullptr) { mapper.validateMergeIndex(*pep_ptrs[i], i); }
     }
   }
 

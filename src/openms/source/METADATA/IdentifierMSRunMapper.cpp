@@ -94,6 +94,39 @@ namespace OpenMS
     return std::string();
   }
 
+  void IdentifierMSRunMapper::validateMergeIndex(const PeptideIdentification& pep_id, size_t psm_index) const
+  {
+    const StringList& paths = getMSRunPaths(pep_id.getIdentifier());
+    if (paths.size() < 2) { return; }
+
+    const std::string key = std::string(Constants::UserParam::ID_MERGE_INDEX);
+    const std::string where = "PSM #" + StringUtils::toStr(psm_index) + " of identification run '"
+                            + pep_id.getIdentifier() + "' (" + StringUtils::toStr(paths.size())
+                            + " files in the run)";
+
+    if (!pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Multiple files in a run, but no '" + key + "' in PeptideIdentification found: " + where + ".");
+    }
+
+    const DataValue& dv = pep_id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+    if (dv.valueType() != DataValue::INT_VALUE)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'" + key + "' is not an integer: " + where + ".");
+    }
+
+    // long long, not Size: DataValue's unsigned conversion throws its own ConversionError on a
+    // negative value, which would escape as an undiagnosed exception instead of the message above.
+    const long long merge_index = static_cast<long long>(dv);
+    if (merge_index < 0 || static_cast<size_t>(merge_index) >= paths.size())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'" + key + "' = " + StringUtils::toStr(merge_index) + " is out of range: " + where + ".");
+    }
+  }
+
   bool IdentifierMSRunMapper::hasIdentifier(const std::string& identifier) const
   {
     return identifier_to_msrunpath_.contains(identifier);
