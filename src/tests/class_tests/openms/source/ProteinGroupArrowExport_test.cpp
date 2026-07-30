@@ -15,6 +15,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -69,6 +70,35 @@ namespace
     pep_id.setHits({hit});
     return PeptideIdentificationList{pep_id};
   }
+
+  /// One PSM for @p accession, attributed to file @p merge_index of a merged run.
+  /// Pass merge_index < 0 to omit the metavalue entirely (an unattributable PSM).
+  PeptideIdentification makeMergedPeptide(const std::string& accession, int merge_index,
+                                          const std::string& sequence = "PEPTIDEK")
+  {
+    PeptideIdentification pep_id;
+    pep_id.setIdentifier("PI_0");
+    if (merge_index >= 0)
+    {
+      pep_id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, merge_index);
+    }
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    PeptideEvidence ev;
+    ev.setProteinAccession(accession);
+    hit.setPeptideEvidences({ev});
+    pep_id.setHits({hit});
+    return pep_id;
+  }
+
+  /// The run_file_name values of a table, in row order.
+  std::vector<std::string> runNames(const std::shared_ptr<arrow::Table>& table)
+  {
+    std::vector<std::string> out;
+    auto col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+    for (int64_t i = 0; i < col->length(); ++i) { out.push_back(col->GetString(i)); }
+    return out;
+  }
 }
 
 START_TEST(ProteinGroupArrowExport, "$Id$")
@@ -89,31 +119,105 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const std::vec
 }
 END_SECTION
 
-START_SECTION(([EXTRA] exportToArrow - a merged run has no single origin file per protein group))
+START_SECTION(([EXTRA] exportToArrow - a merged run melts onto every run with evidence))
 {
-  // A protein group inferred across several runs has no per-row origin file, and the pg table has
-  // no place to record more than one. Emit the file's "unknown" convention ("") plus a warning
-  // rather than stamping every row with the run's first file.
-  // TODO(#9817): provisional - the QPX spec requires a non-null run_file_name here and quantms
-  // drops empty-valued rows, so this may become a non-empty token instead. See the matching
-  // comment in ProteinGroupArrowExport.cpp; this assertion pins current behaviour, not a contract.
+  // A group in a merged run is emitted once per run in which one of its members was identified.
+  // The previous behaviour -- one row with an empty run_file_name -- put an empty value in a QPX
+  // primary-key component, which quantms silently drops.
   auto prot_id = makeIdOnlyRun({"/data/runA.mzML", "/data/runB.mzML"});
-  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
+  PeptideIdentificationList peps{makeMergedPeptide("PROT_A", 0), makeMergedPeptide("PROT_B", 1)};
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, peps);
   TEST_NOT_EQUAL(table, nullptr)
-  TEST_EQUAL(table->num_rows(), 1)
-  auto rfn = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
-  TEST_STRING_EQUAL(rfn->GetString(0), "")
+  TEST_EQUAL(table->num_rows(), 2)
+
+  const auto names = runNames(table);
+  const std::set<std::string> runs(names.begin(), names.end());
+  TEST_TRUE(runs == std::set<std::string>({"runA", "runB"}))
+  TEST_TRUE(runs.count("") == 0)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] exportToArrow - a run without spectra_data yields an empty run_file_name))
+START_SECTION(([EXTRA] exportToArrow - a merged run emits only the runs that have evidence))
 {
+  // Melting must not fan out across every file in the run: a group identified in one of two
+  // files gets one row, not two, or the table asserts an observation that was never made.
+  auto prot_id = makeIdOnlyRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps{makeMergedPeptide("PROT_A", 0)};
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  TEST_STRING_EQUAL(runNames(table)[0], "runA")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - a merged run without id_merge_index is refused))
+{
+  // Without the index every PSM of the run resolves to its FIRST file, so the run_file_name key
+  // would be wrong rather than missing. The psm view refuses the same input.
+  auto prot_id = makeIdOnlyRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps{makeMergedPeptide("PROT_A", -1)};
+
+  TEST_EXCEPTION(Exception::MissingInformation,
+                 ProteinGroupArrowExport::exportToArrow({prot_id}, peps))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - a merged run with no evidence anywhere emits no row))
+{
+  // Nothing can key the row: several possible origins and no evidence to choose between them.
+  // Skipping is the only option that does not put an empty value in the primary key.
+  auto prot_id = makeIdOnlyRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps{makeMergedPeptide("PROT_UNRELATED", 0)};
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - a run without spectra_data emits no row))
+{
+  // No path to stem and no id_merge_index target, so the single-file escape hatch does not
+  // apply either. Previously this emitted a row with an empty run_file_name.
   auto prot_id = makeIdOnlyRun({});
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
   TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - a single-file run keeps its group without peptide evidence))
+{
+  // The escape hatch that makes the melt non-regressive: one possible origin means no primary-key
+  // ambiguity, so a group whose members carry no peptide evidence is still emitted.
+  auto prot_id = makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"});
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, PeptideIdentificationList{});
+  TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
-  auto rfn = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
-  TEST_STRING_EQUAL(rfn->GetString(0), "")
+  TEST_STRING_EQUAL(runNames(table)[0], "SimpleSearchEngine_1")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows under one key))
+{
+  // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the
+  // (anchor_protein, run_file_name) primary key. Both are kept -- dropping one loses data and
+  // there is no rule for merging two group probabilities -- and the export warns.
+  auto prot_a = makeIdOnlyRun({"/a/run.mzML"});
+  auto prot_b = makeIdOnlyRun({"/b/run.mzML"});
+  prot_b.setIdentifier("PI_1");
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_a, prot_b}, makePeptides());
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  const auto names = runNames(table);
+  TEST_STRING_EQUAL(names[0], "run")
+  TEST_STRING_EQUAL(names[1], "run")
+  auto anchors = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("anchor_protein")->chunk(0));
+  TEST_STRING_EQUAL(anchors->GetString(0), anchors->GetString(1))
 }
 END_SECTION
 
