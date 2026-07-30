@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <exception>
+#include <functional>
 #include <limits>
 #include <map>
 #include <unordered_map>
@@ -215,28 +216,36 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
 /// first non-empty identification), not the winner -- while the QPX feature view needs the
 /// winner's parent to resolve id_run_file_name. Exposing that would mean new public API in a
 /// widely-included header for a single caller, and it could not replace the existing
-/// per-identification helpers (MapAlignmentAlgorithmIdentification::getBestScoringHit works
-/// within one identification and returns a pointer; MzTab aggregates scores with different
-/// tie-breaking). Score comparison itself is not duplicated -- it delegates to
+/// per-identification helpers (MapAlignmentAlgorithmIdentification::getBestScoringHit is
+/// protected, works within one identification and returns a pointer; MzTab aggregates scores
+/// with different tie-breaking). Score comparison itself is not duplicated -- it delegates to
 /// PeptideIdentification::getScoreComparator, the same primitive those helpers use.
 ///
-/// Scores from identifications with different score types are not comparable. Rather than
-/// compare them anyway, fall back to the first identification that has a hit and report it
-/// through @p mixed_score_types so the caller can warn once per export.
+/// Comparison uses ONE orientation, taken from the first identification that has a hit. Using
+/// each identification's own orientation would compare in different directions within a single
+/// selection and make the winner depend on identification order.
+///
+/// Identifications that disagree on score type or orientation are a pipeline defect, not a
+/// case to recover from: scores of different types are not comparable, harmonizing them is an
+/// explicit step (IDScoreSwitcher / IDScoreSwitcherAlgorithm, which ProteomicsLFQ, Epifany and
+/// FalseDiscoveryRate all run), and IDFilter::getBestHit throws outright on the same condition.
+/// This warns via @p inconsistent_scores and proceeds with the reference orientation rather
+/// than inventing a recovery, which would only turn a broken input into an arbitrary answer.
 ///
 /// @param[in] pep_ids The feature's peptide identifications
 /// @param[out] best_id_index Index into @p pep_ids of the identification holding the winner
-/// @param[out] mixed_score_types Set when the identifications disagree on score type
+/// @param[out] inconsistent_scores Set when the identifications disagree on score type or orientation
 /// @return Pointer to the winning hit, or nullptr when no identification has one
 const PeptideHit* selectFeatureIdentity(
   const PeptideIdentificationList& pep_ids,
   Size& best_id_index,
-  bool& mixed_score_types)
+  bool& inconsistent_scores)
 {
   const PeptideHit* best_hit = nullptr;
   const PeptideIdentification* ref_id = nullptr;   // fixes the score type and orientation
+  std::function<bool(const PeptideHit&, const PeptideHit&)> better;
   best_id_index = 0;
-  mixed_score_types = false;
+  inconsistent_scores = false;
 
   for (Size i = 0; i < pep_ids.size(); ++i)
   {
@@ -246,14 +255,14 @@ const PeptideHit* selectFeatureIdentity(
     if (ref_id == nullptr)
     {
       ref_id = &pid;
+      better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
     }
-    else if (ref_id->getScoreType() != pid.getScoreType())
+    else if (ref_id->getScoreType() != pid.getScoreType()
+          || ref_id->isHigherScoreBetter() != pid.isHigherScoreBetter())
     {
-      mixed_score_types = true;
-      break;                                        // keep the first hit found; see below
+      inconsistent_scores = true;                  // reported once per export by the caller
     }
 
-    const auto better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
     for (const auto& hit : pid.getHits())
     {
       if (best_hit == nullptr || better(hit, *best_hit))
@@ -589,15 +598,17 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // pep_ids[0].getHits()[0]. The positional pick discarded a feature's identity whenever its
     // *first* identification happened to carry no hits, even if a later one did.
     Size best_id_index = 0;
-    bool mixed_score_types = false;
-    const PeptideHit* best_hit = selectFeatureIdentity(pep_ids, best_id_index, mixed_score_types);
+    bool inconsistent_scores = false;
+    const PeptideHit* best_hit = selectFeatureIdentity(pep_ids, best_id_index, inconsistent_scores);
     const bool has_id = (best_hit != nullptr);
-    if (mixed_score_types && !warned_mixed_scores)
+    if (inconsistent_scores && !warned_mixed_scores)
     {
       warned_mixed_scores = true;
-      OPENMS_LOG_WARN << "ConsensusMapArrowExport: consensus feature carries identifications with "
-                         "different score types, whose scores are not comparable; using the first "
-                         "hit found instead of the best-scoring one." << std::endl;
+      OPENMS_LOG_WARN << "ConsensusMapArrowExport: consensus feature carries identifications that "
+                         "disagree on score type or orientation, so their scores are not "
+                         "comparable. Harmonize them upstream (e.g. IDScoreSwitcher); the best "
+                         "hit was selected using the first identification's orientation."
+                      << std::endl;
     }
 
     // The row's quantitative coordinates, fixed here so that charge, observed_mz,

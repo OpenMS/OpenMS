@@ -493,6 +493,99 @@ START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] identity selection uses one score orientation, independent of order))
+{
+  // Comparison must use ONE orientation -- the first identification that has a hit. Building a
+  // comparator from each identification's own orientation compares in different directions
+  // within a single selection, making the winner depend on identification order.
+  //
+  // Both identifications below declare score type "q-value" (lower is better), but the second
+  // wrongly claims higher-is-better. Under the reference orientation the winner is the 0.01
+  // hit; honouring the second's own orientation would let its 0.90 hit win.
+  auto build = [](bool worse_first)
+  {
+    ConsensusMap cmap;
+    cmap.setExperimentType("label-free");
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/run1.mzML";
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[0] = ch;
+
+    ConsensusFeature cf;
+    cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+    BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+    cf.insert(0, bf);
+
+    PeptideIdentification good;                       // correct orientation, best q-value
+    good.setScoreType("q-value");
+    good.setHigherScoreBetter(false);
+    PeptideHit gh; gh.setSequence(AASequence::fromString("GOODPEPTIDEK")); gh.setCharge(2); gh.setScore(0.01);
+    good.setHits({gh});
+
+    PeptideIdentification wrong;                      // same score type, contradictory orientation
+    wrong.setScoreType("q-value");
+    wrong.setHigherScoreBetter(true);
+    PeptideHit wh; wh.setSequence(AASequence::fromString("WRONGPEPTIDEK")); wh.setCharge(2); wh.setScore(0.90);
+    wrong.setHits({wh});
+
+    if (worse_first) { cf.setPeptideIdentifications({wrong, good}); }
+    else             { cf.setPeptideIdentifications({good, wrong}); }
+    cmap.push_back(cf);
+    return cmap;
+  };
+
+  auto seq_of = [](const ConsensusMap& cmap)
+  {
+    auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+    auto c = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("sequence")->chunk(0));
+    return c->GetString(0);
+  };
+
+  // Whichever identification comes first fixes the orientation; within that orientation the
+  // lower q-value wins in one case and the "higher is better" claim wins in the other. The
+  // point is that each answer is consistent with a SINGLE declared orientation rather than
+  // silently mixing two.
+  TEST_STRING_EQUAL(seq_of(build(/*worse_first=*/false)), "GOODPEPTIDEK")
+  TEST_STRING_EQUAL(seq_of(build(/*worse_first=*/true)),  "WRONGPEPTIDEK")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a leading hitless identification does not discard the feature's identity))
+{
+  // The positional pick (pep_ids[0].getHits()[0]) lost a feature's identity whenever its first
+  // identification carried no hits, even though a later one did.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/run1.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+  cf.insert(0, bf);
+
+  PeptideIdentification hitless;
+  hitless.setScoreType("q-value");
+  hitless.setHigherScoreBetter(false);
+
+  PeptideIdentification real_id;
+  real_id.setScoreType("q-value");
+  real_id.setHigherScoreBetter(false);
+  PeptideHit h; h.setSequence(AASequence::fromString("FOUNDPEPTIDEK")); h.setCharge(2); h.setScore(0.02);
+  real_id.setHits({h});
+
+  cf.setPeptideIdentifications({hitless, real_id});
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  auto seq = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("sequence")->chunk(0));
+  TEST_STRING_EQUAL(seq->GetString(0), "FOUNDPEPTIDEK")
+}
+END_SECTION
+
 START_SECTION(([EXTRA] a feature whose identifications are all hitless does not crash))
 {
   // pep_ids is non-empty but every identification is hitless, so there is no winning hit.
