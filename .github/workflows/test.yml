@@ -1,0 +1,37 @@
+name: "Build and Test"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - nightly
+      - release/*
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            compiler: cl.exe
+          - os: macos-15
+            compiler: xcode
+          - os: ubuntu-24.04
+            compiler: g++
+          - os: ubuntu-24.04-arm
+            compiler: g++
+          - os: ubuntu-24.04
+            compiler: clang++
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build OpenMS
+        uses: ./.github/actions/build
+        with:
+          compiler: ${{ matrix.compiler }}

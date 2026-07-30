@@ -673,8 +673,13 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       // TODO(#9817): provisional, not a settled contract. The QPX spec makes
       // (pg_accessions, run_file_name) the pg primary key and requires both to be non-null, and
       // quantms silently DROPS rows whose run_file_name is empty - so these groups would vanish
-      // downstream rather than being flagged. qpx's own converters emit a stable non-empty token
-      // ("unknown" / the mzid basename / "combined") instead. Honest-but-dropped vs. lossy-but-
+      // downstream rather than being flagged. qpx has no cross-run encoding at all: pg.md mandates
+      // one row per group PER RUN, and its four quantitative converters melt wide->long on per-run
+      // intensity columns. Only its identification-only converter (mzIdentML) does the opposite,
+      // emitting one global row per group labelled with the source file's basename - so upstream is
+      // self-inconsistent on exactly the shape we produce here. Melting is available to us too: the
+      // peptide loop below already matches peptides to this run, and each one's origin file is
+      // recoverable via Constants::UserParam::ID_MERGE_INDEX. Honest-but-dropped vs. lossy-but-
       // visible is unresolved upstream (bigbio/qpx#51) and is to be decided in #9817. Unreachable
       // from any TOPP tool today (ProSE, the only caller, always passes a single-path run).
       OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): identification run '" << prot_id.getIdentifier()
