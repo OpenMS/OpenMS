@@ -52,7 +52,8 @@ using namespace std;
 
 @brief High-level DIA workflow front-end that prepares peptide query parameters, performs targeted extraction, rescoring, inference, and export in one invocation.
 
-Two library modes:
+Three library modes:
+- @c auto: probe the input library for decoy transitions and automatically choose between the prepared and empirical paths
 - @c prepared: accept an already prepared peptide query parameter library (`tsv`, `pqp`, `oswpq`, or `TraML`) and normalize it to an internal `prepared_library.pqp`
 - @c empirical: accept an empirical transition library, run assay preparation
   and decoy generation, normalize the result to `prepared_library.pqp`, then continue
@@ -89,6 +90,7 @@ protected:
 
   enum class LibraryMode
   {
+    AUTO,
     PREPARED,
     EMPIRICAL
   };
@@ -262,8 +264,8 @@ protected:
     registerOutputDir_("out_dir", "<dir>", ".", "Directory for final exported OpenDIA outputs.", false, false);
 
     registerTOPPSubsection_("workflow", "Workflow options.");
-    registerStringOption_("workflow:library_mode", "<choice>", "prepared", "How to enter the workflow: use an already prepared library or run empirical assay/decoy preparation first.", false);
-    setValidStrings_("workflow:library_mode", {"prepared", "empirical"});
+    registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared-library normalization, or force empirical assay/decoy preparation.", false);
+    setValidStrings_("workflow:library_mode", {"auto", "prepared", "empirical"});
     registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp, extracted.osw, rescored.osw, and inferred.osw after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
     registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure.", false, false);
@@ -679,7 +681,16 @@ protected:
 
   LibraryMode getLibraryMode_() const
   {
-    return getStringOption_("workflow:library_mode") == "empirical" ? LibraryMode::EMPIRICAL : LibraryMode::PREPARED;
+    const std::string mode = getStringOption_("workflow:library_mode");
+    if (mode == "empirical")
+    {
+      return LibraryMode::EMPIRICAL;
+    }
+    if (mode == "prepared")
+    {
+      return LibraryMode::PREPARED;
+    }
+    return LibraryMode::AUTO;
   }
 
   OpenSwathLibraryPreparation::AssayGeneratorParameters getAssayGeneratorParameters_() const
@@ -1665,12 +1676,42 @@ protected:
       const Param reader_parameters = getParam_().copy("TargetedDataExtraction:Library:", true);
       OpenSwathLibraryPreparation::LibraryStats library_stats;
 
-      if (getLibraryMode_() == LibraryMode::PREPARED)
+      const LibraryMode requested_library_mode = getLibraryMode_();
+      LibraryMode resolved_library_mode = requested_library_mode;
+      bool prepared_library_ready = false;
+
+      if (requested_library_mode == LibraryMode::AUTO)
       {
+        OPENMS_LOG_INFO << "Auto-detecting OpenDIA library mode from input decoy coverage.\n";
         library_stats = library_preparation.normalizeLibraryToPQP(input_library, tr_type, prepared_library_pqp, reader_parameters);
+        if (library_stats.hasDecoys())
+        {
+          resolved_library_mode = LibraryMode::PREPARED;
+          prepared_library_ready = true;
+          OPENMS_LOG_INFO << "Auto-detected prepared library input because decoy transitions are already present.\n";
+        }
+        else
+        {
+          resolved_library_mode = LibraryMode::EMPIRICAL;
+          OPENMS_LOG_INFO << "Auto-detected empirical library input because no decoy transitions were found. Running peptide query preparation.\n";
+          if (File::exists(prepared_library_pqp) && !File::remove(prepared_library_pqp))
+          {
+            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prepared_library_pqp);
+          }
+        }
+      }
+
+      if (resolved_library_mode == LibraryMode::PREPARED)
+      {
+        if (!prepared_library_ready)
+        {
+          OPENMS_LOG_INFO << "Using prepared library mode.\n";
+          library_stats = library_preparation.normalizeLibraryToPQP(input_library, tr_type, prepared_library_pqp, reader_parameters);
+        }
       }
       else
       {
+        OPENMS_LOG_INFO << "Using empirical library mode: running peptide query preparation.\n";
         const auto assay_parameters = getAssayGeneratorParameters_();
         const auto decoy_parameters = getDecoyGeneratorParameters_();
         if (isPeptidoformInferenceRequested_() && !assay_parameters.enable_ipf)
