@@ -73,6 +73,10 @@ namespace ArrowIOHelpers
     @param[in] tables Vector of Arrow tables to concatenate (must share schema)
     @param[in] filename Output file path
     @param[in] config Parquet writer configuration
+    @param[in] metadata Schema key-value metadata for the merged file. Concatenation
+               otherwise inherits the first input's metadata, i.e. that table's identity;
+               pass a fresh one (see qpxFileMetadata()) so the merged file is its own.
+               @c nullptr keeps whatever the concatenation produced.
     @return true on success (or if @p tables is empty), false on error
   */
   OPENMS_DLLAPI bool concatenateAndWriteToParquet(

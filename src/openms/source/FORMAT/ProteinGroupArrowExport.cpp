@@ -309,8 +309,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // Helper lambda to emit one row for a protein group + run file
   auto emitRow = [&](const ProteinIdentification::ProteinGroup& group,
                      const std::string& run_file,
-                     const std::vector<std::pair<std::string, float>>& channel_intensities,
-                     int distinct_peptides_for_run)
+                     const std::vector<std::pair<std::string, float>>& channel_intensities)
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
 
@@ -559,8 +558,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       // Emit one row per unique filename
       for (const auto& [filename, channel_int] : file_intensities)
       {
-        // We don't have per-run distinct_peptides directly - use -1 to indicate unknown
-        emitRow(group, filename, channel_int, -1);
+        emitRow(group, filename, channel_int);
       }
     }
     else
@@ -576,7 +574,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         ++unattributable_groups;
         continue;
       }
-      for (const auto& run : runs) { emitRow(group, run, {}, -1); }
+      for (const auto& run : runs) { emitRow(group, run, {}); }
     }
   }
   if (unattributable_groups > 0)
