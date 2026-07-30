@@ -124,6 +124,15 @@ install(CODE "
         COMPONENT library
         )
 
+## The pyopenms Python extension modules (component python_modules, see src/pyOpenMS/CMakeLists.txt)
+## are their own CPack component/pkg and are otherwise never signed, which fails notarization
+## ("not signed with a valid Developer ID certificate" / "signature does not include a secure timestamp").
+install(CODE "
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/pyopenms/ -type f -name \"*.so\" -execdir codesign --force --options runtime --timestamp -i de.openms.pyopenms.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE pyopenms_sign_out ERROR_VARIABLE pyopenms_sign_out)
+        message('\${pyopenms_sign_out}')"
+        COMPONENT python_modules
+        )
+
 ## Sign thirdparty components
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
   install(CODE "
