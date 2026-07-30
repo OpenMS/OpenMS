@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -22,6 +23,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -727,6 +729,134 @@ START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not ch
     auto cmap = build_map("not_a_method", {"126", "127N"});
     TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap), nullptr)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the three QPX views join on run_file_name))
+{
+  // The point of the QPX views is that they join: docs/spec/views.md matches psm, feature
+  // and pg on run_file_name. Nothing else in the suite checks that the three exporters --
+  // which derive the value from three different sources (per-PSM id_merge_index, column
+  // headers, and the quant/evidence arrays) -- agree on one spelling.
+  //
+  // Note this asserts the join key, not the join to run.parquet: OpenMS does not write
+  // run.parquet (the qpx converter generates it from SDRF), so intensities[].label can only
+  // be checked for canonical shape, not for actually matching run.samples[].label.
+  const std::vector<std::string> paths = {"/data/frac_a/RUN_ONE.mzML", "/data/frac_b/RUN_TWO.mzML"};
+
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = paths[m];
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[m] = ch;
+  }
+
+  // One merged identification run holding both paths, as ProteomicsLFQ produces.
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath(StringList(paths.begin(), paths.end()));
+  ProteinHit ph;
+  ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  ProteinIdentification::ProteinGroup grp;
+  grp.accessions = {"PROT_A"};
+  grp.probability = 0.01;
+  // Quantify the group, as PeptideAndProteinQuant does: abundances in float[3], the design's
+  // (already stemmed) file names in string[0], 1-based channels in int[0]. Note pg therefore
+  // derives its run names from a DIFFERENT source than psm (id_merge_index) and feature
+  // (column headers) -- the point of this test is that all three still agree.
+  grp.getFloatDataArrays().resize(4);
+  grp.getStringDataArrays().resize(1);
+  grp.getIntegerDataArrays().resize(1);
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    grp.getFloatDataArrays()[3].push_back(100.0f * (m + 1));
+    grp.getStringDataArrays()[0].push_back(File::stemName(paths[m]));
+    grp.getIntegerDataArrays()[0].push_back(1);   // single channel => label-free
+  }
+  prot.insertIndistinguishableProteins(grp);
+  cmap.setProteinIdentifications({prot});
+
+  // One feature per run, each identified by a PSM naming its own run via id_merge_index.
+  PeptideIdentificationList all_pep_ids;
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("merged");
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
+    pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + StringUtils::toStr(10 + m));
+    pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(m));
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT_A");
+    hit.setPeptideEvidences({ev});
+    pid.setHits({hit});
+
+    ConsensusFeature cf;
+    cf.setMZ(500.0); cf.setRT(100.0 + m); cf.setCharge(2);
+    BaseFeature bf; bf.setIntensity(100.0f * (m + 1)); bf.setMZ(500.0); bf.setRT(100.0 + m); bf.setCharge(2);
+    cf.insert(m, bf);
+    cf.setPeptideIdentifications({pid});
+    cmap.push_back(cf);
+    all_pep_ids.push_back(pid);
+  }
+
+  auto run_names = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto col = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+    for (int64_t r = 0; r < col->length(); ++r) { out.insert(col->GetString(r)); }
+    return out;
+  };
+
+  auto psm_t  = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pep_ids, false);
+  auto feat_t = ConsensusMapArrowExport::exportToArrow(cmap);
+  auto pg_t   = ProteinGroupArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(psm_t, nullptr)
+  TEST_NOT_EQUAL(feat_t, nullptr)
+  TEST_NOT_EQUAL(pg_t, nullptr)
+
+  const std::set<std::string> expected = {"RUN_ONE", "RUN_TWO"};
+  const auto psm_runs  = run_names(psm_t);
+  const auto feat_runs = run_names(feat_t);
+  const auto pg_runs   = run_names(pg_t);
+
+  // Stemmed: no directory, no extension. Same-basename files in different directories are
+  // deliberately avoided here -- that collision is #9818's warn-and-continue case.
+  TEST_TRUE(psm_runs == expected)
+  TEST_TRUE(feat_runs == expected)
+  TEST_TRUE(pg_runs == expected)
+
+  // ... and therefore identical across the three views, which is what makes them joinable.
+  TEST_TRUE(psm_runs == feat_runs)
+  TEST_TRUE(feat_runs == pg_runs)
+
+  // No view may carry an empty key: run_file_name is a primary-key component in all three,
+  // and an empty string satisfies the non-nullable column while violating the spec.
+  for (const auto& s : {psm_runs, feat_runs, pg_runs}) { TEST_TRUE(s.count("") == 0) }
+
+  // The other documented join key must be a canonical channel token, not a path or a number.
+  auto labels_of = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+    auto st  = std::static_pointer_cast<arrow::StructArray>(col->values());
+    auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+    for (int64_t i = 0; i < lab->length(); ++i) { out.insert(lab->GetString(i)); }
+    return out;
+  };
+  const std::set<std::string> lfq = {"LFQ"};
+  TEST_TRUE(labels_of(feat_t) == lfq)
+  TEST_TRUE(labels_of(pg_t) == lfq)
 }
 END_SECTION
 

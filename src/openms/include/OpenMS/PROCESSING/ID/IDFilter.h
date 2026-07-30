@@ -678,39 +678,11 @@ namespace OpenMS
     template<class IdentificationType>
     static bool getBestHit(const std::vector<IdentificationType>& identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit)
     {
-      Size unused_index = 0;
-      return getBestHit(identifications, assume_sorted, best_hit, unused_index);
-    }
-
-    /**
-       @brief Finds the best-scoring hit, and reports which identification it came from.
-
-       Same semantics as the three-argument getBestHit(); the extra output identifies the
-       owning identification, which callers need when the identifications in @p
-       identifications differ in provenance (e.g. one per MS run, so that only the winner's
-       parent names the run the best hit was seen in).
-
-       @param[in] identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
-       @param[in] assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
-       @param[out] best_hit Contains the best hit if successful
-       @param[out] best_id_index Index into @p identifications of the identification holding @p best_hit
-
-       @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
-
-       @return true if a hit was present, false otherwise
-    */
-    template<class IdentificationType>
-    static bool getBestHit(const std::vector<IdentificationType>& identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit, Size& best_id_index)
-    {
       if (identifications.empty())
         return false;
 
-      // NOTE: best_id_it is the *reference* identification -- it fixes the score type and
-      // orientation used for comparison, and stays at the first non-empty entry. It is NOT
-      // the owner of the winning hit, which is tracked separately in winner_index.
       typename std::vector<IdentificationType>::const_iterator best_id_it = identifications.end();
       typename std::vector<typename IdentificationType::HitType>::const_iterator best_hit_it;
-      Size winner_index = 0;
 
       for (typename std::vector<IdentificationType>::const_iterator id_it = identifications.begin(); id_it != identifications.end(); ++id_it)
       {
@@ -721,7 +693,6 @@ namespace OpenMS
         {
           best_id_it = id_it;
           best_hit_it = id_it->getHits().begin();
-          winner_index = static_cast<Size>(std::distance(identifications.begin(), id_it));
         }
         else if (best_id_it->getScoreType() != id_it->getScoreType())
         {
@@ -734,7 +705,6 @@ namespace OpenMS
           if ((higher_better && (hit_it->getScore() > best_hit_it->getScore())) || (!higher_better && (hit_it->getScore() < best_hit_it->getScore())))
           {
             best_hit_it = hit_it;
-            winner_index = static_cast<Size>(std::distance(identifications.begin(), id_it));
           }
           if (assume_sorted)
             break; // only consider the first hit
@@ -747,7 +717,6 @@ namespace OpenMS
       }
 
       best_hit = *best_hit_it;
-      best_id_index = winner_index;
       return true;
     }
 

@@ -126,28 +126,16 @@ std::string qpxIntensityLabel(const std::string& column_label, const std::string
   const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
   const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
 
-  // Family prefix + OpenMS' own reporter name. OpenMS names are authoritative, so
-  // TMT10-plex channel 10 is "TMT131" (not the 11-plex-indexed "TMT131N").
-  using MT = IsobaricQuantitationMethod::MethodType;
-  switch (method)
+  // Family prefix + OpenMS' own reporter name, so TMT10-plex channel 10 is "TMT131"
+  // (qpx's own converter map is 11-plex-indexed and says "TMT131N"; sdrf-pipelines agrees
+  // with OpenMS). methodTypeFromName() has already validated the method against
+  // METHOD_REGISTRY, so the family follows from its canonical identifier ("tmt6plex",
+  // "itraq4plex", ...) rather than from a switch that would silently drop a join key for
+  // any method added later.
+  if (method != IsobaricQuantitationMethod::MethodType::UNKNOWN)
   {
-    case MT::TMT_6PLEX:
-    case MT::TMT_10PLEX:
-    case MT::TMT_11PLEX:
-    case MT::TMT_16PLEX:
-    case MT::TMT_18PLEX:
-    case MT::TMT_32PLEX:
-    case MT::TMT_35PLEX:
-      return "TMT" + channel_name;
-    case MT::ITRAQ_4PLEX:
-    case MT::ITRAQ_8PLEX:
-      // Uppercase, consistent with the TMT prefix. Note qpx's intensities.md example spells
-      // it "iTRAQ114", but no qpx converter actually emits an iTRAQ channel label (its
-      // channel map is TMT-only and the iTRAQ path passes the raw tool value through), so
-      // there is no implementation to match -- only a doc example.
-      return "ITRAQ" + channel_name;
-    default:
-      break;
+    if (StringUtils::hasPrefix(method_name, "tmt"))   { return "TMT" + channel_name; }
+    if (StringUtils::hasPrefix(method_name, "itraq")) { return "ITRAQ" + channel_name; }
   }
 
   OPENMS_LOG_ERROR << "ArrowIOHelpers: cannot derive a QPX intensity label for channel '"
@@ -158,7 +146,7 @@ std::string qpxIntensityLabel(const std::string& column_label, const std::string
 
 std::string qpxRunFileName(const std::string& ms_run_path)
 {
-  if (ms_run_path.empty()) { return ""; }
+  // File::stemName() already maps "" -> "".
   return File::stemName(ms_run_path);
 }
 

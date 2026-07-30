@@ -12,7 +12,6 @@
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
-#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -91,6 +90,25 @@ struct FeatureIdLookups
   /// id_run_file_name. Read-only after construction, so it is safe to share across the
   /// streaming path's OpenMP workers.
   IdentifierMSRunMapper run_mapper;
+
+  /// Per column header (map index): the QPX run name and intensity label.
+  /// Both are expensive to derive and depend only on the header, of which there are at most
+  /// a few dozen -- while the export loop touches them once per FeatureHandle per row.
+  /// File::stemName() scans the 73-entry file-type table, and reading the header's
+  /// channel_name by string takes the MetaInfoRegistry omp-critical lock, which would
+  /// serialize the parallel batch build (see the note on pre-resolved metavalue indices).
+  struct RunColumnInfo
+  {
+    std::string run_name;   ///< stemmed run_file_name
+    std::string label;      ///< QPX intensities[].label
+  };
+  std::unordered_map<UInt64, RunColumnInfo> run_columns;
+
+  /// Whether the map is isobaric, deciding where a row's coordinates come from.
+  bool is_isobaric = false;
+  /// Set when a column header names a channel QPX cannot label; the export must not proceed,
+  /// since the label is a join key.
+  bool has_unlabelable_channel = false;
 };
 
 /// Build the per-map protein-group q-value and gene-info lookups from the
@@ -112,6 +130,34 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
                        "runs (" << e.getMessage() << "); id_run_file_name resolution continues "
                        "on the identifier -> path mapping." << std::endl;
   }
+  // A map is isobaric if it says so OR if its headers carry channel annotations. Neither
+  // signal alone is reliable: IsobaricWorkflow annotates channels without ever calling
+  // setExperimentType, while other producers declare a labelled experiment type without
+  // writing channel_name. Getting this wrong writes reporter-ion m/z into observed_mz, so
+  // accept either. (The sibling pg exporter reaches the same conclusion via
+  // ColumnHeader::getLabelAsUInt(getExperimentType()).)
+  lut.is_isobaric = (cmap.getExperimentType() != "label-free");
+  for (const auto& [map_index, header] : cmap.getColumnHeaders())
+  {
+    const std::string channel_name = header.metaValueExists("channel_name")
+                                   ? header.getMetaValue("channel_name").toString() : "";
+    if (!channel_name.empty()) { lut.is_isobaric = true; }
+
+    std::string label = ArrowIOHelpers::qpxIntensityLabel(header.label, channel_name);
+    if (label.empty())
+    {
+      // qpxIntensityLabel() documents that callers must handle this: the channel's method
+      // could not be identified, so any token written here would be a guessed join key.
+      lut.has_unlabelable_channel = true;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: column header '" << header.label
+                       << "' names channel '" << channel_name << "' whose quantitation method "
+                          "cannot be identified, so no QPX intensity label can be derived for it."
+                       << std::endl;
+    }
+    lut.run_columns[map_index] = FeatureIdLookups::RunColumnInfo{
+      ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
+  }
+
   for (const auto& prot_id : cmap.getProteinIdentifications())
   {
     // Gene info from ProteinHit metavalues
@@ -147,6 +193,65 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
     }
   }
   return lut;
+}
+
+/// Select the identity of a consensus feature: the best-scoring hit across ALL of its
+/// peptide identifications, together with the index of the identification holding it.
+///
+/// Deliberately local rather than an IDFilter addition. IDFilter::getBestHit() reports only
+/// the hit, and its internal "best" iterator is the score-type *reference* (pinned to the
+/// first non-empty identification), not the winner -- while the QPX feature view needs the
+/// winner's parent to resolve id_run_file_name. Exposing that would mean new public API in a
+/// widely-included header for a single caller, and it could not replace the existing
+/// per-identification helpers (MapAlignmentAlgorithmIdentification::getBestScoringHit works
+/// within one identification and returns a pointer; MzTab aggregates scores with different
+/// tie-breaking). Score comparison itself is not duplicated -- it delegates to
+/// PeptideIdentification::getScoreComparator, the same primitive those helpers use.
+///
+/// Scores from identifications with different score types are not comparable. Rather than
+/// compare them anyway, fall back to the first identification that has a hit and report it
+/// through @p mixed_score_types so the caller can warn once per export.
+///
+/// @param[in] pep_ids The feature's peptide identifications
+/// @param[out] best_id_index Index into @p pep_ids of the identification holding the winner
+/// @param[out] mixed_score_types Set when the identifications disagree on score type
+/// @return Pointer to the winning hit, or nullptr when no identification has one
+const PeptideHit* selectFeatureIdentity(
+  const PeptideIdentificationList& pep_ids,
+  Size& best_id_index,
+  bool& mixed_score_types)
+{
+  const PeptideHit* best_hit = nullptr;
+  const PeptideIdentification* ref_id = nullptr;   // fixes the score type and orientation
+  best_id_index = 0;
+  mixed_score_types = false;
+
+  for (Size i = 0; i < pep_ids.size(); ++i)
+  {
+    const auto& pid = pep_ids[i];
+    if (pid.getHits().empty()) { continue; }       // hitless ids must not veto later ones
+
+    if (ref_id == nullptr)
+    {
+      ref_id = &pid;
+    }
+    else if (ref_id->getScoreType() != pid.getScoreType())
+    {
+      mixed_score_types = true;
+      break;                                        // keep the first hit found; see below
+    }
+
+    const auto better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
+    for (const auto& hit : pid.getHits())
+    {
+      if (best_hit == nullptr || better(hit, *best_hit))
+      {
+        best_hit = &hit;
+        best_id_index = i;
+      }
+    }
+  }
+  return best_hit;
 }
 
 /// Build Parquet WriterProperties from the OpenMS config (shared by the one-shot
@@ -349,10 +454,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   //  - isobaric: the handles are reporter ions -- their m/z is the reporter mass and their RT
   //    the quantification scan -- while precursor m/z and RT live on the ConsensusFeature.
   //    Keep the consensus coordinates and use the handles only for channel intensities.
-  const auto& column_headers_for_melt = cmap.getColumnHeaders();
-  const bool is_isobaric = std::any_of(
-    column_headers_for_melt.begin(), column_headers_for_melt.end(),
-    [](const auto& kv) { return kv.second.metaValueExists("channel_name"); });
+  const bool is_isobaric = id_lut.is_isobaric;
 
   struct RowSpec
   {
@@ -370,9 +472,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     std::map<std::string, std::vector<const FeatureHandle*>> by_run;
     for (const auto& fh : cmap[feat_idx].getFeatures())
     {
-      auto it = column_headers_for_melt.find(fh.getMapIndex());
-      if (it == column_headers_for_melt.end()) { continue; }
-      by_run[ArrowIOHelpers::qpxRunFileName(it->second.filename)].push_back(&fh);
+      auto it = id_lut.run_columns.find(fh.getMapIndex());
+      if (it == id_lut.run_columns.end()) { continue; }
+      by_run[it->second.run_name].push_back(&fh);
     }
     // A feature with no handles has neither quantification nor a run, so the per-run feature
     // view has nothing to represent -- drop it rather than emit an unkeyed row.
@@ -420,8 +522,6 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
 
   #undef RESERVE_OR_FAIL
 
-  // Build column header lookup
-  const auto& column_headers = cmap.getColumnHeaders();
 
   // Per-map protein-group q-value and gene-info lookups (prebuilt once, shared across batches)
   const auto& pg_qvalue_lookup = id_lut.pg_qvalue;
@@ -467,42 +567,20 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     const auto& cf = cmap[row.feat_idx];
     const auto& pep_ids = cf.getPeptideIdentifications();
 
-    // Pick the feature's identity: the best-scoring hit across ALL of its identifications,
-    // not pep_ids[0].getHits()[0]. The positional pick discarded a feature's identity whenever
-    // its *first* identification happened to carry no hits, even if a later one did.
-    //
-    // getBestHit() throws when the identifications disagree on score type, which cannot
-    // happen for our tools (one FDR pass sets them together) but is reachable for a foreign
-    // ConsensusMap. Fall back to the positional pick there rather than failing the export.
-    PeptideHit best_hit_value;
+    // The feature's identity: the best-scoring hit across ALL of its identifications, not
+    // pep_ids[0].getHits()[0]. The positional pick discarded a feature's identity whenever its
+    // *first* identification happened to carry no hits, even if a later one did.
     Size best_id_index = 0;
-    bool has_id = false;
-    try
+    bool mixed_score_types = false;
+    const PeptideHit* best_hit = selectFeatureIdentity(pep_ids, best_id_index, mixed_score_types);
+    const bool has_id = (best_hit != nullptr);
+    if (mixed_score_types && !warned_mixed_scores)
     {
-      has_id = IDFilter::getBestHit(pep_ids.getData(), /*assume_sorted=*/false, best_hit_value, best_id_index);
+      warned_mixed_scores = true;
+      OPENMS_LOG_WARN << "ConsensusMapArrowExport: consensus feature carries identifications with "
+                         "different score types, whose scores are not comparable; using the first "
+                         "hit found instead of the best-scoring one." << std::endl;
     }
-    catch (const Exception::InvalidValue&)
-    {
-      if (!warned_mixed_scores)
-      {
-        warned_mixed_scores = true;
-        OPENMS_LOG_WARN << "ConsensusMapArrowExport: consensus feature carries identifications "
-                           "with different score types; falling back to the first hit instead of "
-                           "the best-scoring one." << std::endl;
-      }
-      // Fall back to the first identification that actually has a hit -- not blindly to
-      // pep_ids[0], which would reintroduce the empty-first-identification bug this
-      // selection exists to fix.
-      for (Size i = 0; i < pep_ids.size(); ++i)
-      {
-        if (pep_ids[i].getHits().empty()) { continue; }
-        best_hit_value = pep_ids[i].getHits()[0];
-        best_id_index = i;
-        has_id = true;
-        break;
-      }
-    }
-    const PeptideHit* best_hit = has_id ? &best_hit_value : nullptr;
 
     // The row's quantitative coordinates, fixed here so that charge, observed_mz,
     // calculated_mz, mass_error_ppm, rt and the rt bounds are all mutually consistent.
@@ -1021,12 +1099,10 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     (void)intensities_builder.Append();
     for (const auto* fh : row.handles)
     {
-      auto it = column_headers.find(fh->getMapIndex());
-      if (it == column_headers.end()) { continue; }
-      const std::string channel_name = it->second.metaValueExists("channel_name")
-                                     ? it->second.getMetaValue("channel_name").toString() : "";
+      auto it = id_lut.run_columns.find(fh->getMapIndex());
+      if (it == id_lut.run_columns.end()) { continue; }
       (void)intensity_struct_b->Append();
-      (void)intensity_label_b->Append(ArrowIOHelpers::qpxIntensityLabel(it->second.label, channel_name));
+      (void)intensity_label_b->Append(it->second.label);
       (void)intensity_val_b->Append(static_cast<float>(fh->getIntensity()));
     }
   } // end melted row loop
@@ -1146,7 +1222,11 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
 
 std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
 {
-  return buildFeatureTableRange(cmap, buildFeatureIdLookups(cmap), 0, cmap.size());
+  const auto id_lut = buildFeatureIdLookups(cmap);
+  // A channel QPX cannot name would be written into intensities[].label, a documented join
+  // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
+  if (id_lut.has_unlabelable_channel) { return nullptr; }
+  return buildFeatureTableRange(cmap, id_lut, 0, cmap.size());
 }
 
 
@@ -1213,6 +1293,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
 
   // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
   const auto id_lut = buildFeatureIdLookups(cmap);
+  if (id_lut.has_unlabelable_channel) { return false; } // already logged
 
   // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
   // cannot race across the OpenMP workers below. Runs once, serially. (ProForma and the
