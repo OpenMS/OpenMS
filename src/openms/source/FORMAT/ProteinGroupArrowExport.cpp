@@ -40,19 +40,39 @@ namespace // anonymous
   /// accession -> runs in which that accession has identification evidence.
   using AccessionRuns = std::unordered_map<std::string, std::set<std::string>>;
 
-  /// Build the identifier -> spectra_data mapping, downgrading an ambiguous reverse mapping to a
-  /// warning. IdentifierMSRunMapper::create() throws when two identifiers share a path list, but
-  /// it populates the forward map -- the only direction used here -- completely before that, so
-  /// the salvage is sound. Same idiom as QPXFile's buildRunMapper().
+  /// Build the identifier -> spectra_data mapping used to resolve each PSM's origin run.
+  ///
+  /// Refuses duplicate identifiers: IdentifierMSRunMapper keys the forward map on the identifier
+  /// and overwrites silently (IdentifierMSRunMapper.cpp), so two runs sharing one would leave
+  /// only the last one's paths -- and every PSM of the first would then resolve to a file it
+  /// never came from, stamping a foreign run_file_name on its protein groups. Nothing downstream
+  /// could detect that, so it has to be rejected here.
+  ///
+  /// A duplicate *path list* is different: create() throws for it, but populates the forward map
+  /// -- the only direction used here -- completely first, so that one is downgraded to a warning.
+  /// Deliberately narrow: any other exception means the forward map itself is incomplete, and
+  /// silently continuing on it would turn malformed metadata into a plausible-looking export.
   IdentifierMSRunMapper buildRunMapper(const std::vector<ProteinIdentification>& prot_ids,
                                        const std::string& context)
   {
+    std::set<std::string> seen;
+    for (const auto& prot_id : prot_ids)
+    {
+      if (!seen.insert(prot_id.getIdentifier()).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          context + ": several identification runs share the identifier '" + prot_id.getIdentifier()
+          + "'. Their MS run paths cannot be told apart, so protein groups would be attributed to "
+            "the wrong run file.", prot_id.getIdentifier());
+      }
+    }
+
     IdentifierMSRunMapper mapper;
     try
     {
       mapper.create(prot_ids);
     }
-    catch (const Exception::BaseException& e)
+    catch (const Exception::InvalidValue& e)
     {
       OPENMS_LOG_WARN << context << ": ambiguous MS run paths (" << e.getMessage()
                       << "); run attribution continues on the identifier -> path mapping."
@@ -754,6 +774,16 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     arr_add_scores, arr_cv_params,
   });
 
+  // Appends discard their arrow::Status throughout this file, so a failed one (e.g. under memory
+  // pressure) leaves that column shorter than the rest while every Finish() still succeeds
+  // independently. Validate() catches the resulting length mismatch, so the contract of returning
+  // nullptr on failure holds instead of handing back a malformed table.
+  if (auto valid = table->Validate(); !valid.ok())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: built an inconsistent table: "
+                     << valid.ToString() << std::endl;
+    return nullptr;
+  }
   return table;
 }
 
@@ -968,6 +998,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   Size total_groups_found = 0;
   Size groups_without_run_name = 0;   // run carries no spectra_data at all
   Size groups_without_evidence = 0;   // merged run, but nothing identifies which file
+  Size unresolved_psms = 0;           // PSM in a run with files, but resolving to none of them
   PrimaryKeyWatch pk_watch;
   for (const auto& prot_id : protein_identifications)
   {
@@ -1012,7 +1043,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         const auto& pep_id = *pep_ptr;
         if (pep_id.getHits().empty()) continue;
         const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pep_id));
-        if (run.empty()) continue;
+        if (run.empty())
+        {
+          // The run has files but this PSM resolves to none of them -- e.g. an 'id_merge_index'
+          // left over from a merge that was later subset. Its evidence is dropped, which would
+          // otherwise surface only as a silently zero peptide_count.
+          if (!run_paths.empty()) { ++unresolved_psms; }
+          continue;
+        }
         // Use the best hit (first after assuming sorted by score)
         const auto& best_hit = pep_id.getHits()[0];
         std::string seq = best_hit.getSequence().toUnmodifiedString();
@@ -1198,6 +1236,13 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
                        "with ProteinIdentification::setPrimaryMSRunPath() before exporting."
                     << std::endl;
   }
+  if (unresolved_psms > 0)
+  {
+    OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): ignored " << unresolved_psms
+                    << " PSM(s) that could not be resolved to any file of their identification "
+                       "run, so they contribute to no peptide count. A stale 'id_merge_index' "
+                       "left over from a merge is the usual cause." << std::endl;
+  }
   if (groups_without_evidence > 0)
   {
     OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): skipped " << groups_without_evidence
@@ -1274,6 +1319,16 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     arr_add_scores, arr_cv_params,
   });
 
+  // Appends discard their arrow::Status throughout this file, so a failed one (e.g. under memory
+  // pressure) leaves that column shorter than the rest while every Finish() still succeeds
+  // independently. Validate() catches the resulting length mismatch, so the contract of returning
+  // nullptr on failure holds instead of handing back a malformed table.
+  if (auto valid = table->Validate(); !valid.ok())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: built an inconsistent table: "
+                     << valid.ToString() << std::endl;
+    return nullptr;
+  }
   return table;
 }
 
