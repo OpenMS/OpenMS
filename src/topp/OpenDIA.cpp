@@ -14,12 +14,15 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathGeneInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
@@ -31,6 +34,10 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -41,6 +48,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -59,9 +67,9 @@ Three library modes:
   and decoy generation, normalize the result to `prepared_library.pqp`, then continue
 
 The downstream run then executes:
-1. extraction/scoring to a working `workflow.osw`
-2. in-process Percolator rescoring in the same working OSW
-3. peptide/protein/gene/peptidoform inference in the same working OSW
+1. extraction/scoring to a working `workflow.osw` or `workflow.oswpq`
+2. in-process Percolator rescoring in the same working container
+3. peptide/protein/gene/peptidoform inference in the same working workflow
 4. final result and matrix export to `out_dir`
 
 By default intermediate files are removed after success. Use
@@ -95,6 +103,12 @@ protected:
     EMPIRICAL
   };
 
+  enum class WorkflowFormat
+  {
+    OSW,
+    OSWPQ
+  };
+
   struct InferenceTask
   {
     InferenceLevel level = InferenceLevel::Peptidoform;
@@ -119,6 +133,15 @@ protected:
     std::string path;
     std::unique_ptr<File::TempDir> temp_dir;
     bool remove_on_success = false;
+  };
+
+  struct OSWPQWorkspace
+  {
+    std::string output_path;
+    std::string base_dir;
+    bool archive_input = false;
+    bool dirty = false;
+    std::unique_ptr<File::TempDir> temp_dir;
   };
 
   static bool toBool_(const std::string& value)
@@ -248,7 +271,9 @@ protected:
     registerTOPPSubsection_("workflow", "Workflow options.");
     registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared-library normalization, or force empirical assay/decoy preparation.", false);
     setValidStrings_("workflow:library_mode", {"auto", "prepared", "empirical"});
-    registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw after success.", false);
+    registerStringOption_("workflow:working_format", "<choice>", "osw", "Internal workflow container used after extraction/scoring.", false);
+    setValidStrings_("workflow:working_format", {"osw", "oswpq"});
+    registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw or workflow.oswpq after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
     registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure.", false, false);
   }
@@ -675,6 +700,11 @@ protected:
     return LibraryMode::AUTO;
   }
 
+  WorkflowFormat getWorkflowFormat_() const
+  {
+    return getStringOption_("workflow:working_format") == "oswpq" ? WorkflowFormat::OSWPQ : WorkflowFormat::OSW;
+  }
+
   OpenSwathLibraryPreparation::AssayGeneratorParameters getAssayGeneratorParameters_() const
   {
     OpenSwathLibraryPreparation::AssayGeneratorParameters parameters;
@@ -1056,9 +1086,822 @@ protected:
     return toBool_(getStringOption_("Inference:peptidoform:run"));
   }
 
-  ExitCodes runExtractionToOSW_(const std::string& prepared_library_pqp,
-                                const std::string& extracted_osw,
-                                const bool enable_uis_scoring)
+  static bool parquetValuePresent_(const std::shared_ptr<arrow::Array>& array, const int64_t row)
+  {
+    return array != nullptr && !array->IsNull(row);
+  }
+
+  static OpenSwathOSWWriter::OSWValue parquetInt64Value_(const std::shared_ptr<arrow::Array>& array, const int64_t row)
+  {
+    return parquetValuePresent_(array, row) ?
+      OpenSwathOSWWriter::OSWValue(ParquetFile::getInt64(array, row, 0, false)) :
+      OpenSwathOSWWriter::OSWValue::null();
+  }
+
+  static OpenSwathOSWWriter::OSWValue parquetDoubleValue_(const std::shared_ptr<arrow::Array>& array, const int64_t row)
+  {
+    return parquetValuePresent_(array, row) ?
+      OpenSwathOSWWriter::OSWValue(ParquetFile::getDouble(array, row, 0.0, false)) :
+      OpenSwathOSWWriter::OSWValue::null();
+  }
+
+  static std::optional<double> parquetOptionalDouble_(const std::shared_ptr<arrow::Array>& array, const int64_t row)
+  {
+    if (!parquetValuePresent_(array, row))
+    {
+      return std::nullopt;
+    }
+    return ParquetFile::getDouble(array, row, 0.0, false);
+  }
+
+  static std::optional<Int64> parquetOptionalInt64_(const std::shared_ptr<arrow::Array>& array, const int64_t row)
+  {
+    if (!parquetValuePresent_(array, row))
+    {
+      return std::nullopt;
+    }
+    return ParquetFile::getInt64(array, row, 0, false);
+  }
+
+  static std::shared_ptr<arrow::Array> getOptionalParquetColumn_(
+    const std::unordered_map<std::string, std::shared_ptr<arrow::Array>>& columns,
+    const std::string& name)
+  {
+    const auto it = columns.find(name);
+    return it != columns.end() ? it->second : nullptr;
+  }
+
+  static void replaceParquetColumns_(const std::string& file_path,
+                                     const std::unordered_set<std::string>& columns_to_replace,
+                                     const std::vector<std::shared_ptr<arrow::Field>>& extra_fields,
+                                     const std::vector<std::shared_ptr<arrow::Array>>& extra_arrays)
+  {
+    auto table = ParquetFile::readTable(file_path);
+    std::vector<std::shared_ptr<arrow::Field>> fields;
+    std::vector<std::shared_ptr<arrow::Array>> arrays;
+    fields.reserve(table->num_columns() + static_cast<int>(extra_fields.size()));
+    arrays.reserve(table->num_columns() + static_cast<int>(extra_arrays.size()));
+
+    for (int i = 0; i < table->num_columns(); ++i)
+    {
+      const auto field = table->field(i);
+      if (columns_to_replace.contains(field->name()))
+      {
+        continue;
+      }
+      fields.push_back(field);
+      arrays.push_back(table->column(i)->chunk(0));
+    }
+
+    for (Size i = 0; i < extra_fields.size(); ++i)
+    {
+      fields.push_back(extra_fields[i]);
+      arrays.push_back(extra_arrays[i]);
+    }
+
+    ParquetFile::writeTable(arrow::Table::Make(arrow::schema(fields), arrays), file_path);
+  }
+
+  static void removeExistingPath_(const std::string& path)
+  {
+    if (!File::exists(path))
+    {
+      return;
+    }
+    if (File::isDirectory(path))
+    {
+      File::removeDirRecursively(path);
+      return;
+    }
+    if (!File::remove(path))
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
+    }
+  }
+
+  static void sqliteCheckResult_(const int rc, sqlite3* db, const int expected, const char* action)
+  {
+    if (rc == expected)
+    {
+      return;
+    }
+    throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        std::string(action) + " failed: " + sqlite3_errmsg(db));
+  }
+
+  static void sqlitePrepareStatement_(sqlite3* db, sqlite3_stmt** stmt, const std::string& statement)
+  {
+    sqliteCheckResult_(sqlite3_prepare_v2(db, statement.c_str(), -1, stmt, nullptr),
+                       db, SQLITE_OK, "sqlite3_prepare_v2");
+  }
+
+  static const std::array<const char*, 17>& featureMS1ParquetFields_()
+  {
+    static const std::array<const char*, 17> fields =
+    {{
+      "ms1_area_intensity",
+      "ms1_apex_intensity",
+      "ms1_exp_im",
+      "ms1_delta_im",
+      "var_ms1_massdev_score",
+      "var_ms1_im_ms1_delta_score",
+      "var_ms1_mi_score",
+      "var_ms1_mi_contrast_score",
+      "var_ms1_mi_combined_score",
+      "var_ms1_isotope_correlation_score",
+      "var_ms1_isotope_overlap_score",
+      "var_ms1_xcorr_coelution",
+      "var_ms1_xcorr_coelution_contrast",
+      "var_ms1_xcorr_coelution_combined",
+      "var_ms1_xcorr_shape",
+      "var_ms1_xcorr_shape_contrast",
+      "var_ms1_xcorr_shape_combined"
+    }};
+    return fields;
+  }
+
+  static const std::array<const char*, 37>& featureMS2ParquetFields_()
+  {
+    static const std::array<const char*, 37> fields =
+    {{
+      "ms2_area_intensity",
+      "ms2_total_area_intensity",
+      "ms2_apex_intensity",
+      "ms2_exp_im",
+      "ms2_exp_im_leftwidth",
+      "ms2_exp_im_rightwidth",
+      "ms2_delta_im",
+      "ms2_total_mi",
+      "var_ms2_bseries_score",
+      "var_ms2_dotprod_score",
+      "var_ms2_intensity_score",
+      "var_ms2_isotope_correlation_score",
+      "var_ms2_isotope_overlap_score",
+      "var_ms2_library_corr",
+      "var_ms2_library_dotprod",
+      "var_ms2_library_manhattan",
+      "var_ms2_library_rmsd",
+      "var_ms2_library_rootmeansquare",
+      "var_ms2_library_sangle",
+      "var_ms2_log_sn_score",
+      "var_ms2_manhattan_score",
+      "var_ms2_massdev_score",
+      "var_ms2_massdev_score_weighted",
+      "var_ms2_mi_score",
+      "var_ms2_mi_weighted_score",
+      "var_ms2_mi_ratio_score",
+      "var_ms2_norm_rt_score",
+      "var_ms2_xcorr_coelution",
+      "var_ms2_xcorr_coelution_weighted",
+      "var_ms2_xcorr_shape",
+      "var_ms2_xcorr_shape_weighted",
+      "var_ms2_yseries_score",
+      "var_ms2_elution_model_fit_score",
+      "var_ms2_im_xcorr_shape",
+      "var_ms2_im_xcorr_coelution",
+      "var_ms2_im_delta_score",
+      "var_ms2_im_log_intensity"
+    }};
+    return fields;
+  }
+
+  static const std::array<const char*, 41>& featureTransitionParquetFields_()
+  {
+    static const std::array<const char*, 41> fields =
+    {{
+      "area_intensity",
+      "total_area_intensity",
+      "apex_rt",
+      "apex_intensity",
+      "rt_fwhm",
+      "masserror_ppm",
+      "total_mi",
+      "var_intensity_score",
+      "var_intensity_ratio_score",
+      "var_log_intensity",
+      "var_xcorr_coelution",
+      "var_xcorr_shape",
+      "var_log_sn_score",
+      "var_massdev_score",
+      "var_mi_score",
+      "var_mi_ratio_score",
+      "var_isotope_correlation_score",
+      "var_isotope_overlap_score",
+      "exp_im",
+      "exp_im_leftwidth",
+      "exp_im_rightwidth",
+      "delta_im",
+      "var_im_delta_score",
+      "var_im_log_intensity",
+      "var_im_xcorr_coelution_contrast",
+      "var_im_xcorr_shape_contrast",
+      "var_im_xcorr_coelution_combined",
+      "var_im_xcorr_shape_combined",
+      "start_position_at_5",
+      "end_position_at_5",
+      "start_position_at_10",
+      "end_position_at_10",
+      "start_position_at_50",
+      "end_position_at_50",
+      "total_width",
+      "tailing_factor",
+      "asymmetry_factor",
+      "slope_of_baseline",
+      "baseline_delta_2_height",
+      "points_across_baseline",
+      "points_across_half_height"
+    }};
+    return fields;
+  }
+
+  OSWPQWorkspace prepareOSWPQWorkspace_(const std::string& workflow_oswpq) const
+  {
+    OSWPQWorkspace workspace;
+    workspace.output_path = workflow_oswpq;
+    workspace.archive_input = !File::isDirectory(workflow_oswpq);
+    if (workspace.archive_input)
+    {
+      workspace.base_dir = ZipArchiveFile::unzipDirectory(workflow_oswpq, workspace.temp_dir);
+    }
+    else
+    {
+      workspace.base_dir = workflow_oswpq;
+    }
+    return workspace;
+  }
+
+  void commitOSWPQWorkspace_(OSWPQWorkspace& workspace) const
+  {
+    if (!workspace.dirty)
+    {
+      return;
+    }
+    if (workspace.archive_input)
+    {
+      removeExistingPath_(workspace.output_path);
+      ZipArchiveFile::zipDirectory(workspace.base_dir, workspace.output_path);
+      ZipArchiveFile::writeSidecarIndex(workspace.output_path);
+    }
+    workspace.dirty = false;
+  }
+
+  struct FeatureScoreInsertRow_
+  {
+    Int64 feature_id = -1;
+    double score = 0.0;
+    Int32 rank = 0;
+    std::optional<double> pvalue;
+    double qvalue = 1.0;
+    double pep = 1.0;
+  };
+
+  struct TransitionScoreInsertRow_
+  {
+    Int64 feature_id = -1;
+    Int64 transition_id = -1;
+    double score = 0.0;
+    Int32 rank = 0;
+    std::optional<double> pvalue;
+    double qvalue = 1.0;
+    double pep = 1.0;
+  };
+
+  static void writeFeatureScoreTable_(const std::string& osw_path,
+                                      const std::string& table_name,
+                                      const std::vector<FeatureScoreInsertRow_>& rows)
+  {
+    if (rows.empty())
+    {
+      return;
+    }
+
+    SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READWRITE);
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
+    sqlite3_stmt* stmt = nullptr;
+    conn.executeStatement("DROP TABLE IF EXISTS " + table_name + ";");
+    conn.executeStatement(
+      "CREATE TABLE " + table_name + " ("
+      "FEATURE_ID INTEGER NOT NULL, "
+      "SCORE REAL NOT NULL, "
+      "RANK INTEGER NOT NULL, "
+      "PVALUE REAL, "
+      "QVALUE REAL NOT NULL, "
+      "PEP REAL NOT NULL);");
+    conn.executeStatement("BEGIN IMMEDIATE TRANSACTION;");
+    try
+    {
+      if (table_name == "SCORE_MS2")
+      {
+        conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_ms2_feature_id ON SCORE_MS2 (FEATURE_ID);");
+      }
+      else if (table_name == "SCORE_MS1")
+      {
+        conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_ms1_feature_id ON SCORE_MS1 (FEATURE_ID);");
+      }
+
+      sqlitePrepareStatement_(db, &stmt,
+        "INSERT INTO " + table_name + " (FEATURE_ID, SCORE, RANK, PVALUE, QVALUE, PEP) VALUES (?, ?, ?, ?, ?, ?);");
+
+      for (const auto& row : rows)
+      {
+        sqliteCheckResult_(sqlite3_bind_int64(stmt, 1, row.feature_id), db, SQLITE_OK, "sqlite3_bind_int64");
+        sqliteCheckResult_(sqlite3_bind_double(stmt, 2, row.score), db, SQLITE_OK, "sqlite3_bind_double");
+        sqliteCheckResult_(sqlite3_bind_int(stmt, 3, row.rank), db, SQLITE_OK, "sqlite3_bind_int");
+        if (row.pvalue.has_value())
+        {
+          sqliteCheckResult_(sqlite3_bind_double(stmt, 4, *row.pvalue), db, SQLITE_OK, "sqlite3_bind_double");
+        }
+        else
+        {
+          sqliteCheckResult_(sqlite3_bind_null(stmt, 4), db, SQLITE_OK, "sqlite3_bind_null");
+        }
+        sqliteCheckResult_(sqlite3_bind_double(stmt, 5, row.qvalue), db, SQLITE_OK, "sqlite3_bind_double");
+        sqliteCheckResult_(sqlite3_bind_double(stmt, 6, row.pep), db, SQLITE_OK, "sqlite3_bind_double");
+        sqliteCheckResult_(sqlite3_step(stmt), db, SQLITE_DONE, "sqlite3_step");
+        sqliteCheckResult_(sqlite3_reset(stmt), db, SQLITE_OK, "sqlite3_reset");
+        sqliteCheckResult_(sqlite3_clear_bindings(stmt), db, SQLITE_OK, "sqlite3_clear_bindings");
+      }
+
+      sqlite3_finalize(stmt);
+      stmt = nullptr;
+      conn.executeStatement("COMMIT;");
+    }
+    catch (...)
+    {
+      if (stmt != nullptr)
+      {
+        sqlite3_finalize(stmt);
+      }
+      try
+      {
+        conn.executeStatement("ROLLBACK;");
+      }
+      catch (...)
+      {
+      }
+      throw;
+    }
+  }
+
+  static void writeTransitionScoreTable_(const std::string& osw_path,
+                                         const std::vector<TransitionScoreInsertRow_>& rows)
+  {
+    if (rows.empty())
+    {
+      return;
+    }
+
+    SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READWRITE);
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
+    sqlite3_stmt* stmt = nullptr;
+    conn.executeStatement("DROP TABLE IF EXISTS SCORE_TRANSITION;");
+    conn.executeStatement(
+      "CREATE TABLE SCORE_TRANSITION ("
+      "FEATURE_ID INTEGER NOT NULL, "
+      "TRANSITION_ID INTEGER NOT NULL, "
+      "SCORE REAL NOT NULL, "
+      "RANK INTEGER NOT NULL, "
+      "PVALUE REAL, "
+      "QVALUE REAL NOT NULL, "
+      "PEP REAL NOT NULL);");
+    conn.executeStatement("BEGIN IMMEDIATE TRANSACTION;");
+    try
+    {
+      conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_transition_feature_id ON SCORE_TRANSITION (FEATURE_ID);");
+      conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_transition_transition_id ON SCORE_TRANSITION (TRANSITION_ID);");
+      sqlitePrepareStatement_(db, &stmt,
+        "INSERT INTO SCORE_TRANSITION (FEATURE_ID, TRANSITION_ID, SCORE, RANK, PVALUE, QVALUE, PEP) VALUES (?, ?, ?, ?, ?, ?, ?);");
+
+      for (const auto& row : rows)
+      {
+        sqliteCheckResult_(sqlite3_bind_int64(stmt, 1, row.feature_id), db, SQLITE_OK, "sqlite3_bind_int64");
+        sqliteCheckResult_(sqlite3_bind_int64(stmt, 2, row.transition_id), db, SQLITE_OK, "sqlite3_bind_int64");
+        sqliteCheckResult_(sqlite3_bind_double(stmt, 3, row.score), db, SQLITE_OK, "sqlite3_bind_double");
+        sqliteCheckResult_(sqlite3_bind_int(stmt, 4, row.rank), db, SQLITE_OK, "sqlite3_bind_int");
+        if (row.pvalue.has_value())
+        {
+          sqliteCheckResult_(sqlite3_bind_double(stmt, 5, *row.pvalue), db, SQLITE_OK, "sqlite3_bind_double");
+        }
+        else
+        {
+          sqliteCheckResult_(sqlite3_bind_null(stmt, 5), db, SQLITE_OK, "sqlite3_bind_null");
+        }
+        sqliteCheckResult_(sqlite3_bind_double(stmt, 6, row.qvalue), db, SQLITE_OK, "sqlite3_bind_double");
+        sqliteCheckResult_(sqlite3_bind_double(stmt, 7, row.pep), db, SQLITE_OK, "sqlite3_bind_double");
+        sqliteCheckResult_(sqlite3_step(stmt), db, SQLITE_DONE, "sqlite3_step");
+        sqliteCheckResult_(sqlite3_reset(stmt), db, SQLITE_OK, "sqlite3_reset");
+        sqliteCheckResult_(sqlite3_clear_bindings(stmt), db, SQLITE_OK, "sqlite3_clear_bindings");
+      }
+
+      sqlite3_finalize(stmt);
+      stmt = nullptr;
+      conn.executeStatement("COMMIT;");
+    }
+    catch (...)
+    {
+      if (stmt != nullptr)
+      {
+        sqlite3_finalize(stmt);
+      }
+      try
+      {
+        conn.executeStatement("ROLLBACK;");
+      }
+      catch (...)
+      {
+      }
+      throw;
+    }
+  }
+
+  void buildOSWPQSQLiteBridge_(const OSWPQWorkspace& workspace,
+                               const std::string& bridge_osw,
+                               const Param& reader_parameters,
+                               const bool enable_uis_scoring)
+  {
+    if (File::exists(bridge_osw) && !File::remove(bridge_osw))
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bridge_osw);
+    }
+
+    OpenSwath::LightTargetedExperiment bridge_library = loadTransitionList(FileTypes::OSWPQ, workspace.base_dir, reader_parameters);
+    TransitionPQPFile().convertLightTargetedExperimentToPQP(bridge_osw.c_str(), bridge_library);
+
+    OpenSwathOSWWriter osw_writer(bridge_osw, enable_uis_scoring);
+    osw_writer.writeHeader();
+
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_array = ParquetFile::getColumn(runs_table, "run_id");
+    const auto filename_array = ParquetFile::getOptionalColumn(runs_table, "filename");
+
+    std::vector<FeatureScoreInsertRow_> ms1_scores;
+    std::vector<FeatureScoreInsertRow_> ms2_scores;
+    std::vector<TransitionScoreInsertRow_> transition_scores;
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
+      osw_writer.addRun(run_id, ParquetFile::getString(filename_array, run_row));
+
+      const std::string run_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id);
+      const std::string features_path = run_path + "/features.parquet";
+      auto features_table = ParquetFile::readTable(features_path);
+      const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
+      const auto feature_run_id_col = ParquetFile::getColumn(features_table, "run_id");
+      const auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
+      std::unordered_map<std::string, std::shared_ptr<arrow::Array>> feature_columns;
+      const auto add_feature_column = [&](const std::string& name)
+      {
+        feature_columns.emplace(name, ParquetFile::getOptionalColumn(features_table, name));
+      };
+      for (const auto& name : std::array<std::string, 8>{
+             "exp_rt", "exp_im", "norm_rt", "delta_rt", "left_width", "right_width", "exp_im_leftwidth", "exp_im_rightwidth"})
+      {
+        add_feature_column(name);
+      }
+      for (const auto& name : featureMS1ParquetFields_()) add_feature_column(name);
+      for (const auto& name : featureMS2ParquetFields_()) add_feature_column(name);
+      for (const auto& name : std::array<std::string, 10>{
+             "score_ms1_score", "score_ms1_peak_group_rank", "score_ms1_pvalue", "score_ms1_qvalue", "score_ms1_pep",
+             "score_ms2_score", "score_ms2_peak_group_rank", "score_ms2_pvalue", "score_ms2_qvalue", "score_ms2_pep"})
+      {
+        add_feature_column(name);
+      }
+
+      OpenSwathOSWWriter::OSWData osw_rows;
+      const std::string feature_precursor_path = run_path + "/feature_precursor.parquet";
+      const std::string feature_transition_path = run_path + "/feature_transition.parquet";
+      Size feature_transition_row_count = 0;
+      if (File::exists(feature_transition_path))
+      {
+        feature_transition_row_count = static_cast<Size>(ParquetFile::readTable(feature_transition_path)->num_rows());
+      }
+      osw_rows.reserve(static_cast<Size>(features_table->num_rows()), feature_transition_row_count);
+
+      for (int64_t row = 0; row < features_table->num_rows(); ++row)
+      {
+        OpenSwathOSWWriter::FeatureRow feature_row{};
+        feature_row[0] = parquetInt64Value_(feature_id_col, row);
+        feature_row[1] = parquetInt64Value_(feature_run_id_col, row);
+        feature_row[2] = parquetInt64Value_(precursor_id_col, row);
+        feature_row[3] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "exp_rt"), row);
+        feature_row[4] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "exp_im"), row);
+        feature_row[5] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "norm_rt"), row);
+        feature_row[6] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "delta_rt"), row);
+        feature_row[7] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "left_width"), row);
+        feature_row[8] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "right_width"), row);
+        feature_row[9] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "exp_im_leftwidth"), row);
+        feature_row[10] = parquetDoubleValue_(getOptionalParquetColumn_(feature_columns, "exp_im_rightwidth"), row);
+        osw_rows.feature_rows.push_back(std::move(feature_row));
+
+        OpenSwathOSWWriter::FeatureMS1Row feature_ms1_row{};
+        feature_ms1_row[0] = parquetInt64Value_(feature_id_col, row);
+        for (Size column = 0; column < featureMS1ParquetFields_().size(); ++column)
+        {
+          feature_ms1_row[column + 1] = parquetDoubleValue_(
+            getOptionalParquetColumn_(feature_columns, featureMS1ParquetFields_()[column]), row);
+        }
+        osw_rows.feature_ms1_rows.push_back(std::move(feature_ms1_row));
+
+        OpenSwathOSWWriter::FeatureMS2Row feature_ms2_row{};
+        feature_ms2_row[0] = parquetInt64Value_(feature_id_col, row);
+        for (Size column = 0; column < featureMS2ParquetFields_().size(); ++column)
+        {
+          feature_ms2_row[column + 1] = parquetDoubleValue_(
+            getOptionalParquetColumn_(feature_columns, featureMS2ParquetFields_()[column]), row);
+        }
+        osw_rows.feature_ms2_rows.push_back(std::move(feature_ms2_row));
+
+        const auto score_ms1_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_score"), row);
+        const auto score_ms1_rank = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "score_ms1_peak_group_rank"), row);
+        const auto score_ms1_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_qvalue"), row);
+        const auto score_ms1_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_pep"), row);
+        if (score_ms1_score.has_value() && score_ms1_rank.has_value() && score_ms1_qvalue.has_value() && score_ms1_pep.has_value())
+        {
+          ms1_scores.push_back({
+            ParquetFile::getInt64(feature_id_col, row, 0, false),
+            *score_ms1_score,
+            static_cast<Int32>(*score_ms1_rank),
+            parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_pvalue"), row),
+            *score_ms1_qvalue,
+            *score_ms1_pep
+          });
+        }
+
+        const auto score_ms2_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_score"), row);
+        const auto score_ms2_rank = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "score_ms2_peak_group_rank"), row);
+        const auto score_ms2_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_qvalue"), row);
+        const auto score_ms2_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_pep"), row);
+        if (score_ms2_score.has_value() && score_ms2_rank.has_value() && score_ms2_qvalue.has_value() && score_ms2_pep.has_value())
+        {
+          ms2_scores.push_back({
+            ParquetFile::getInt64(feature_id_col, row, 0, false),
+            *score_ms2_score,
+            static_cast<Int32>(*score_ms2_rank),
+            parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_pvalue"), row),
+            *score_ms2_qvalue,
+            *score_ms2_pep
+          });
+        }
+      }
+
+      if (File::exists(feature_precursor_path))
+      {
+        auto feature_precursor_table = ParquetFile::readTable(feature_precursor_path);
+        const auto fp_feature_id_col = ParquetFile::getColumn(feature_precursor_table, "feature_id");
+        const auto fp_isotope_col = ParquetFile::getOptionalColumn(feature_precursor_table, "precursor_isotope");
+        const auto fp_area_col = ParquetFile::getOptionalColumn(feature_precursor_table, "precursor_area_intensity");
+        const auto fp_apex_col = ParquetFile::getOptionalColumn(feature_precursor_table, "precursor_apex_intensity");
+        for (int64_t row = 0; row < feature_precursor_table->num_rows(); ++row)
+        {
+          OpenSwathOSWWriter::FeaturePrecursorRow feature_precursor_row{};
+          feature_precursor_row[0] = parquetInt64Value_(fp_feature_id_col, row);
+          feature_precursor_row[1] = parquetInt64Value_(fp_isotope_col, row);
+          feature_precursor_row[2] = parquetDoubleValue_(fp_area_col, row);
+          feature_precursor_row[3] = parquetDoubleValue_(fp_apex_col, row);
+          osw_rows.feature_precursor_rows.push_back(std::move(feature_precursor_row));
+        }
+      }
+
+      if (File::exists(feature_transition_path))
+      {
+        auto feature_transition_table = ParquetFile::readTable(feature_transition_path);
+        const auto ft_feature_id_col = ParquetFile::getColumn(feature_transition_table, "feature_id");
+        const auto ft_transition_id_col = ParquetFile::getColumn(feature_transition_table, "transition_id");
+        std::unordered_map<std::string, std::shared_ptr<arrow::Array>> ft_columns;
+        const auto add_ft_column = [&](const std::string& name)
+        {
+          ft_columns.emplace(name, ParquetFile::getOptionalColumn(feature_transition_table, name));
+        };
+        for (const auto& name : featureTransitionParquetFields_()) add_ft_column(name);
+        for (const auto& name : std::array<std::string, 5>{
+               "score_transition_score", "score_transition_rank", "score_transition_pvalue", "score_transition_qvalue", "score_transition_pep"})
+        {
+          add_ft_column(name);
+        }
+
+        for (int64_t row = 0; row < feature_transition_table->num_rows(); ++row)
+        {
+          OpenSwathOSWWriter::FeatureTransitionRow feature_transition_row{};
+          feature_transition_row[0] = parquetInt64Value_(ft_feature_id_col, row);
+          feature_transition_row[1] = parquetInt64Value_(ft_transition_id_col, row);
+          for (Size column = 0; column < featureTransitionParquetFields_().size(); ++column)
+          {
+            feature_transition_row[column + 2] = parquetDoubleValue_(
+              getOptionalParquetColumn_(ft_columns, featureTransitionParquetFields_()[column]), row);
+          }
+          osw_rows.feature_transition_rows.push_back(std::move(feature_transition_row));
+
+          const auto transition_score = parquetOptionalDouble_(getOptionalParquetColumn_(ft_columns, "score_transition_score"), row);
+          const auto transition_rank = parquetOptionalInt64_(getOptionalParquetColumn_(ft_columns, "score_transition_rank"), row);
+          const auto transition_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(ft_columns, "score_transition_qvalue"), row);
+          const auto transition_pep = parquetOptionalDouble_(getOptionalParquetColumn_(ft_columns, "score_transition_pep"), row);
+          if (transition_score.has_value() && transition_rank.has_value() && transition_qvalue.has_value() && transition_pep.has_value())
+          {
+            transition_scores.push_back({
+              ParquetFile::getInt64(ft_feature_id_col, row, 0, false),
+              ParquetFile::getInt64(ft_transition_id_col, row, 0, false),
+              *transition_score,
+              static_cast<Int32>(*transition_rank),
+              parquetOptionalDouble_(getOptionalParquetColumn_(ft_columns, "score_transition_pvalue"), row),
+              *transition_qvalue,
+              *transition_pep
+            });
+          }
+        }
+      }
+
+      osw_writer.writeRows(osw_rows);
+    }
+
+    writeFeatureScoreTable_(bridge_osw, "SCORE_MS1", ms1_scores);
+    writeFeatureScoreTable_(bridge_osw, "SCORE_MS2", ms2_scores);
+    writeTransitionScoreTable_(bridge_osw, transition_scores);
+  }
+
+  void syncInferenceScoresToOSWPQ_(const std::string& bridge_osw, OSWPQWorkspace& workspace)
+  {
+    const auto tasks = getInferenceTasks_();
+    if (tasks.empty())
+    {
+      return;
+    }
+
+    OSWFile osw(bridge_osw);
+    OpenSwathParquetExportConfig config;
+    config.include_transition_data = false;
+    config.filters.exclude_decoys = false;
+    const auto feature_table = osw.readOpenSwathFeatureScoreTable(config);
+    std::unordered_map<Int64, std::unordered_map<Int64, const OpenSwathFeatureScoreRow*>> row_by_run_feature;
+    for (const auto& row : feature_table.rows)
+    {
+      row_by_run_feature[row.run_id][row.feature_id] = &row;
+    }
+
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_array = ParquetFile::getColumn(runs_table, "run_id");
+    const std::unordered_set<std::string> replace_columns =
+    {
+      "ipf_peptide_id",
+      "score_ipf_precursor_peakgroup_pep",
+      "score_ipf_pep",
+      "score_ipf_qvalue",
+      "score_peptide_global_score",
+      "score_peptide_global_pvalue",
+      "score_peptide_global_qvalue",
+      "score_peptide_global_pep",
+      "score_peptide_experiment_wide_score",
+      "score_peptide_experiment_wide_pvalue",
+      "score_peptide_experiment_wide_qvalue",
+      "score_peptide_experiment_wide_pep",
+      "score_peptide_run_specific_score",
+      "score_peptide_run_specific_pvalue",
+      "score_peptide_run_specific_qvalue",
+      "score_peptide_run_specific_pep",
+      "score_protein_global_score",
+      "score_protein_global_pvalue",
+      "score_protein_global_qvalue",
+      "score_protein_global_pep",
+      "score_protein_experiment_wide_score",
+      "score_protein_experiment_wide_pvalue",
+      "score_protein_experiment_wide_qvalue",
+      "score_protein_experiment_wide_pep",
+      "score_protein_run_specific_score",
+      "score_protein_run_specific_pvalue",
+      "score_protein_run_specific_qvalue",
+      "score_protein_run_specific_pep",
+      "score_gene_global_score",
+      "score_gene_global_pvalue",
+      "score_gene_global_qvalue",
+      "score_gene_global_pep",
+      "score_gene_experiment_wide_score",
+      "score_gene_experiment_wide_pvalue",
+      "score_gene_experiment_wide_qvalue",
+      "score_gene_experiment_wide_pep",
+      "score_gene_run_specific_score",
+      "score_gene_run_specific_pvalue",
+      "score_gene_run_specific_qvalue",
+      "score_gene_run_specific_pep"
+    };
+
+    using OptionalDoubleMember = std::optional<double> OpenSwathFeatureScoreRow::*;
+    static const std::array<std::pair<const char*, OptionalDoubleMember>, 39> score_members =
+    {{
+      {"score_ipf_precursor_peakgroup_pep", &OpenSwathFeatureScoreRow::score_ipf_precursor_peakgroup_pep},
+      {"score_ipf_pep", &OpenSwathFeatureScoreRow::score_ipf_pep},
+      {"score_ipf_qvalue", &OpenSwathFeatureScoreRow::score_ipf_qvalue},
+      {"score_peptide_global_score", &OpenSwathFeatureScoreRow::score_peptide_global_score},
+      {"score_peptide_global_pvalue", &OpenSwathFeatureScoreRow::score_peptide_global_pvalue},
+      {"score_peptide_global_qvalue", &OpenSwathFeatureScoreRow::score_peptide_global_qvalue},
+      {"score_peptide_global_pep", &OpenSwathFeatureScoreRow::score_peptide_global_pep},
+      {"score_peptide_experiment_wide_score", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_score},
+      {"score_peptide_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pvalue},
+      {"score_peptide_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_qvalue},
+      {"score_peptide_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pep},
+      {"score_peptide_run_specific_score", &OpenSwathFeatureScoreRow::score_peptide_run_specific_score},
+      {"score_peptide_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_peptide_run_specific_pvalue},
+      {"score_peptide_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_peptide_run_specific_qvalue},
+      {"score_peptide_run_specific_pep", &OpenSwathFeatureScoreRow::score_peptide_run_specific_pep},
+      {"score_protein_global_score", &OpenSwathFeatureScoreRow::score_protein_global_score},
+      {"score_protein_global_pvalue", &OpenSwathFeatureScoreRow::score_protein_global_pvalue},
+      {"score_protein_global_qvalue", &OpenSwathFeatureScoreRow::score_protein_global_qvalue},
+      {"score_protein_global_pep", &OpenSwathFeatureScoreRow::score_protein_global_pep},
+      {"score_protein_experiment_wide_score", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_score},
+      {"score_protein_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pvalue},
+      {"score_protein_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_qvalue},
+      {"score_protein_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pep},
+      {"score_protein_run_specific_score", &OpenSwathFeatureScoreRow::score_protein_run_specific_score},
+      {"score_protein_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_protein_run_specific_pvalue},
+      {"score_protein_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_protein_run_specific_qvalue},
+      {"score_protein_run_specific_pep", &OpenSwathFeatureScoreRow::score_protein_run_specific_pep},
+      {"score_gene_global_score", &OpenSwathFeatureScoreRow::score_gene_global_score},
+      {"score_gene_global_pvalue", &OpenSwathFeatureScoreRow::score_gene_global_pvalue},
+      {"score_gene_global_qvalue", &OpenSwathFeatureScoreRow::score_gene_global_qvalue},
+      {"score_gene_global_pep", &OpenSwathFeatureScoreRow::score_gene_global_pep},
+      {"score_gene_experiment_wide_score", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_score},
+      {"score_gene_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pvalue},
+      {"score_gene_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_qvalue},
+      {"score_gene_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pep},
+      {"score_gene_run_specific_score", &OpenSwathFeatureScoreRow::score_gene_run_specific_score},
+      {"score_gene_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_gene_run_specific_pvalue},
+      {"score_gene_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_gene_run_specific_qvalue},
+      {"score_gene_run_specific_pep", &OpenSwathFeatureScoreRow::score_gene_run_specific_pep}
+    }};
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
+      const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
+      auto features_table = ParquetFile::readTable(features_path);
+      const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
+
+      arrow::Int64Builder ipf_peptide_id_builder;
+      std::vector<std::unique_ptr<arrow::DoubleBuilder>> double_builders;
+      double_builders.reserve(score_members.size());
+      for (Size i = 0; i < score_members.size(); ++i)
+      {
+        double_builders.push_back(std::make_unique<arrow::DoubleBuilder>());
+      }
+
+      for (int64_t row = 0; row < features_table->num_rows(); ++row)
+      {
+        const Int64 feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
+        const auto run_it = row_by_run_feature.find(run_id);
+        const OpenSwathFeatureScoreRow* score_row = nullptr;
+        if (run_it != row_by_run_feature.end())
+        {
+          const auto feature_it = run_it->second.find(feature_id);
+          if (feature_it != run_it->second.end())
+          {
+            score_row = feature_it->second;
+          }
+        }
+
+        if (score_row != nullptr && score_row->ipf_peptide_id.has_value())
+        {
+          ParquetFile::appendOrThrow(ipf_peptide_id_builder.Append(*score_row->ipf_peptide_id), "ipf_peptide_id");
+        }
+        else
+        {
+          ParquetFile::appendOrThrow(ipf_peptide_id_builder.AppendNull(), "ipf_peptide_id");
+        }
+
+        for (Size column = 0; column < score_members.size(); ++column)
+        {
+          const auto member_value = (score_row != nullptr) ? score_row->*(score_members[column].second) : std::optional<double>{};
+          if (member_value.has_value())
+          {
+            ParquetFile::appendOrThrow(double_builders[column]->Append(*member_value), score_members[column].first);
+          }
+          else
+          {
+            ParquetFile::appendOrThrow(double_builders[column]->AppendNull(), score_members[column].first);
+          }
+        }
+      }
+
+      std::vector<std::shared_ptr<arrow::Field>> extra_fields;
+      std::vector<std::shared_ptr<arrow::Array>> extra_arrays;
+      extra_fields.reserve(score_members.size() + 1);
+      extra_arrays.reserve(score_members.size() + 1);
+      extra_fields.push_back(arrow::field("ipf_peptide_id", arrow::int64(), true));
+      extra_arrays.push_back(ParquetFile::finishArray(ipf_peptide_id_builder, "ipf_peptide_id"));
+      for (Size column = 0; column < score_members.size(); ++column)
+      {
+        extra_fields.push_back(arrow::field(score_members[column].first, arrow::float64(), true));
+        extra_arrays.push_back(ParquetFile::finishArray(*double_builders[column], score_members[column].first));
+      }
+
+      replaceParquetColumns_(features_path, replace_columns, extra_fields, extra_arrays);
+    }
+
+    workspace.dirty = true;
+  }
+
+  ExitCodes runExtractionToWorkflow_(const std::string& prepared_library_pqp,
+                                     const std::string& workflow_output,
+                                     const WorkflowFormat workflow_format,
+                                     const bool enable_uis_scoring)
   {
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
 
@@ -1245,13 +2088,17 @@ protected:
     mrm_map_param.setValue("error_on_unmapped", tmp_mrm_map_param.getValue("error_on_unmapped"));
 
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(FileTypes::PQP, prepared_library_pqp, tsv_reader_param);
-    if (File::exists(extracted_osw) && !File::remove(extracted_osw))
+    if (workflow_format == WorkflowFormat::OSW)
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, extracted_osw);
+      removeExistingPath_(workflow_output);
+      if (!File::copy(prepared_library_pqp, workflow_output))
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, workflow_output);
+      }
     }
-    if (!File::copy(prepared_library_pqp, extracted_osw))
+    else
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, extracted_osw);
+      removeExistingPath_(workflow_output);
     }
 
     std::unordered_set<std::string> priority_peptides;
@@ -1281,8 +2128,15 @@ protected:
     }
 
     const bool user_pasef = pasef;
-    OpenSwathOSWWriter oswwriter(extracted_osw, enable_uis_scoring);
-    oswwriter.writeHeader();
+    const bool write_osw = workflow_format == WorkflowFormat::OSW;
+    const bool write_parquet = workflow_format == WorkflowFormat::OSWPQ;
+    OpenSwathOSWWriter oswwriter(write_osw ? workflow_output : "", enable_uis_scoring);
+    OpenSwathOSWParquetWriter parquet_writer;
+    parquet_writer.setPreserveExisting(true);
+    if (write_osw)
+    {
+      oswwriter.writeHeader();
+    }
 
     Size run_index = 0;
     for (const auto& current_run_files : run_groups)
@@ -1468,10 +2322,11 @@ protected:
       oswwriter.setRunId(cur_run);
 
       FeatureMap run_feature_file;
+      const bool store_features_in_feature_file = write_parquet;
       OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run,
-                           transition_exp, run_feature_file, false, oswwriter, chromatogramConsumer,
+                           transition_exp, run_feature_file, store_features_in_feature_file, oswwriter, chromatogramConsumer,
                            batchSize, ms1_isotopes, load_into_memory, mrm_map_param,
                            mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
 
@@ -1481,6 +2336,10 @@ protected:
         mobilogramConsumer->finalize();
       }
       delete chromatogramConsumer;
+      if (write_parquet)
+      {
+        parquet_writer.write(workflow_output, transition_exp, run_feature_file, cur_run, current_run_files[0], enable_uis_scoring);
+      }
       ++run_index;
     }
 
@@ -1648,7 +2507,11 @@ protected:
     {
       File::makeDir(out_dir);
       const std::string prepared_library_pqp = working_dir.path + "/prepared_library.pqp";
-      const std::string workflow_osw = working_dir.path + "/workflow.osw";
+      const WorkflowFormat workflow_format = getWorkflowFormat_();
+      const std::string workflow_output = workflow_format == WorkflowFormat::OSWPQ ?
+        working_dir.path + "/workflow.oswpq" :
+        working_dir.path + "/workflow.osw";
+      const std::string workflow_bridge_osw = working_dir.path + "/workflow_bridge.osw";
 
       OpenSwathLibraryPreparation library_preparation;
       library_preparation.setLogType(log_type_);
@@ -1720,7 +2583,7 @@ protected:
         enable_uis_scoring = true;
       }
 
-      const ExitCodes extraction_result = runExtractionToOSW_(prepared_library_pqp, workflow_osw, enable_uis_scoring);
+      const ExitCodes extraction_result = runExtractionToWorkflow_(prepared_library_pqp, workflow_output, workflow_format, enable_uis_scoring);
       if (extraction_result != EXECUTION_OK)
       {
         return extraction_result;
@@ -1745,11 +2608,43 @@ protected:
 
       for (const auto level : rescoring_levels)
       {
-        rescoring.score(workflow_osw, level);
+        rescoring.score(workflow_output, level);
       }
 
-      runInference_(workflow_osw);
-      runExports_(workflow_osw, input_files, out_dir);
+      if (workflow_format == WorkflowFormat::OSW)
+      {
+        runInference_(workflow_output);
+        runExports_(workflow_output, input_files, out_dir);
+      }
+      else
+      {
+        OSWPQWorkspace workflow_workspace = prepareOSWPQWorkspace_(workflow_output);
+        try
+        {
+          buildOSWPQSQLiteBridge_(workflow_workspace, workflow_bridge_osw, reader_parameters, enable_uis_scoring);
+          runInference_(workflow_bridge_osw);
+          syncInferenceScoresToOSWPQ_(workflow_bridge_osw, workflow_workspace);
+          runExports_(workflow_bridge_osw, input_files, out_dir);
+          if (toBool_(getStringOption_("workflow:keep_intermediate_files")))
+          {
+            commitOSWPQWorkspace_(workflow_workspace);
+          }
+          removeExistingPath_(workflow_bridge_osw);
+        }
+        catch (...)
+        {
+          try
+          {
+            commitOSWPQWorkspace_(workflow_workspace);
+          }
+          catch (const Exception::BaseException& commit_error)
+          {
+            OPENMS_LOG_WARN << "Failed to preserve updated workflow.oswpq after an error: "
+                            << commit_error.what() << std::endl;
+          }
+          throw;
+        }
+      }
 
       cleanupWorkingDirectory_(working_dir);
       return EXECUTION_OK;
