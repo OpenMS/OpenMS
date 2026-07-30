@@ -59,9 +59,9 @@ Three library modes:
   and decoy generation, normalize the result to `prepared_library.pqp`, then continue
 
 The downstream run then executes:
-1. extraction/scoring to `extracted.osw`
-2. in-process Percolator rescoring to `rescored.osw`
-3. peptide/protein/gene/peptidoform inference to `inferred.osw`
+1. extraction/scoring to a working `workflow.osw`
+2. in-process Percolator rescoring in the same working OSW
+3. peptide/protein/gene/peptidoform inference in the same working OSW
 4. final result and matrix export to `out_dir`
 
 By default intermediate files are removed after success. Use
@@ -225,24 +225,6 @@ protected:
     return run_id.value_or(std::numeric_limits<Int64>::min());
   }
 
-  static std::string prepareWorkingOutput_(const std::string& input_file, const std::string& output_file)
-  {
-    if (output_file.empty() || output_file == input_file)
-    {
-      return input_file;
-    }
-
-    if (File::exists(output_file) && !File::remove(output_file))
-    {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file);
-    }
-    if (!File::copy(input_file, output_file))
-    {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file);
-    }
-    return output_file;
-  }
-
   void registerWorkflowOptions_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input DIA files separated by blank.");
@@ -266,7 +248,7 @@ protected:
     registerTOPPSubsection_("workflow", "Workflow options.");
     registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared-library normalization, or force empirical assay/decoy preparation.", false);
     setValidStrings_("workflow:library_mode", {"auto", "prepared", "empirical"});
-    registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp, extracted.osw, rescored.osw, and inferred.osw after success.", false);
+    registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
     registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure.", false, false);
   }
@@ -1505,16 +1487,15 @@ protected:
     return EXECUTION_OK;
   }
 
-  void runInference_(const std::string& input_osw, const std::string& output_osw)
+  void runInference_(const std::string& workflow_osw)
   {
     const auto tasks = getInferenceTasks_();
-    const std::string working_file = prepareWorkingOutput_(input_osw, output_osw);
     if (tasks.empty())
     {
       return;
     }
 
-    OSWFile osw(working_file);
+    OSWFile osw(workflow_osw);
     const PeptidoformInferenceConfig peptidoform_config = getPeptidoformConfig_();
     const ErrorEstimationConfig error_config = getErrorConfig_();
     const bool has_run_specific_task = std::any_of(tasks.begin(), tasks.end(),
@@ -1539,7 +1520,7 @@ protected:
         if (transition_rows.empty())
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Peptidoform inference was requested but no IPF transition evidence is available in the rescored OSW.");
+                                        "Peptidoform inference was requested but no IPF transition evidence is available in the workflow OSW.");
         }
 
         OpenSwathPeptidoformInference inference;
@@ -1667,9 +1648,7 @@ protected:
     {
       File::makeDir(out_dir);
       const std::string prepared_library_pqp = working_dir.path + "/prepared_library.pqp";
-      const std::string extracted_osw = working_dir.path + "/extracted.osw";
-      const std::string rescored_osw = working_dir.path + "/rescored.osw";
-      const std::string inferred_osw = working_dir.path + "/inferred.osw";
+      const std::string workflow_osw = working_dir.path + "/workflow.osw";
 
       OpenSwathLibraryPreparation library_preparation;
       library_preparation.setLogType(log_type_);
@@ -1741,7 +1720,7 @@ protected:
         enable_uis_scoring = true;
       }
 
-      const ExitCodes extraction_result = runExtractionToOSW_(prepared_library_pqp, extracted_osw, enable_uis_scoring);
+      const ExitCodes extraction_result = runExtractionToOSW_(prepared_library_pqp, workflow_osw, enable_uis_scoring);
       if (extraction_result != EXECUTION_OK)
       {
         return extraction_result;
@@ -1764,15 +1743,13 @@ protected:
         rescoring_levels.push_back(RescoreLevel::TRANSITION);
       }
 
-      bool first_pass = true;
       for (const auto level : rescoring_levels)
       {
-        rescoring.score(first_pass ? extracted_osw : rescored_osw, level, first_pass ? rescored_osw : "");
-        first_pass = false;
+        rescoring.score(workflow_osw, level);
       }
 
-      runInference_(rescored_osw, inferred_osw);
-      runExports_(inferred_osw, input_files, out_dir);
+      runInference_(workflow_osw);
+      runExports_(workflow_osw, input_files, out_dir);
 
       cleanupWorkingDirectory_(working_dir);
       return EXECUTION_OK;
