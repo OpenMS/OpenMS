@@ -127,9 +127,26 @@ install(CODE "
 ## The pyopenms Python extension modules (component python_modules, see src/pyOpenMS/CMakeLists.txt)
 ## are their own CPack component/pkg and are otherwise never signed, which fails notarization
 ## ("not signed with a valid Developer ID certificate" / "signature does not include a secure timestamp").
+## Fail the packaging step outright if there is nothing to sign, or if signing itself fails, so an
+## unsigned/unnotarizable pyopenms component can never silently make it into a shipped package.
+## Note: codesign each file directly (rather than via 'find -execdir codesign ...') since find's own
+## exit status does not reflect the exit status of the commands it invokes via -exec/-execdir.
 install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/pyopenms/ -type f -name \"*.so\" -execdir codesign --force --options runtime --timestamp -i de.openms.pyopenms.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE pyopenms_sign_out ERROR_VARIABLE pyopenms_sign_out)
-        message('\${pyopenms_sign_out}')"
+        file(GLOB_RECURSE pyopenms_so_files \"\${CMAKE_INSTALL_PREFIX}/pyopenms/*.so\")
+        list(LENGTH pyopenms_so_files pyopenms_so_count)
+        if(pyopenms_so_count EQUAL 0)
+          message(FATAL_ERROR \"No pyopenms *.so modules found to sign under \${CMAKE_INSTALL_PREFIX}/pyopenms/\")
+        endif()
+        foreach(pyopenms_so_file IN LISTS pyopenms_so_files)
+          get_filename_component(pyopenms_so_name \"\${pyopenms_so_file}\" NAME)
+          execute_process(
+            COMMAND codesign --force --options runtime --timestamp -i de.openms.pyopenms.\${pyopenms_so_name} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" \${pyopenms_so_file}
+            OUTPUT_VARIABLE pyopenms_sign_out ERROR_VARIABLE pyopenms_sign_out RESULT_VARIABLE pyopenms_sign_result)
+          message('\${pyopenms_sign_out}')
+          if(NOT pyopenms_sign_result EQUAL 0)
+            message(FATAL_ERROR \"Signing pyopenms module \${pyopenms_so_file} failed (exit code \${pyopenms_sign_result}): \${pyopenms_sign_out}\")
+          endif()
+        endforeach()"
         COMPONENT python_modules
         )
 
