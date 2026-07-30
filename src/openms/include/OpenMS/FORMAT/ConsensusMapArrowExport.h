@@ -50,6 +50,8 @@ public:
     @param[in] cmap The ConsensusMap to export
     @return Shared pointer to Arrow Table, or nullptr on error
   */
+  static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap);
+
   /**
     @brief Verify that every feature can be attributed to a single peptide
 
@@ -74,8 +76,6 @@ public:
     @throw Exception::IllegalArgument if any feature has divergent peptide annotations
   */
   static void requireUnambiguousIdentities(const ConsensusMap& cmap);
-
-  static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap);
 
   /**
     @brief Export ConsensusMap to Parquet file
