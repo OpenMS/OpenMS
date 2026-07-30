@@ -99,7 +99,8 @@ struct FeatureIdLookups
   /// serialize the parallel batch build (see the note on pre-resolved metavalue indices).
   struct RunColumnInfo
   {
-    std::string run_name;   ///< stemmed run_file_name
+    std::string source;     ///< ColumnHeader::filename, the run's identity
+    std::string run_name;   ///< stemmed run_file_name, the emitted value
     std::string label;      ///< QPX intensities[].label
   };
   std::unordered_map<UInt64, RunColumnInfo> run_columns;
@@ -155,7 +156,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
                        << std::endl;
     }
     lut.run_columns[map_index] = FeatureIdLookups::RunColumnInfo{
-      ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
+      header.filename, ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
   }
 
   for (const auto& prot_id : cmap.getProteinIdentifications())
@@ -468,20 +469,26 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   Size dropped_handleless = 0;
   for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
   {
-    // std::map keeps runs in a deterministic order, so output is stable for any thread count.
-    std::map<std::string, std::vector<const FeatureHandle*>> by_run;
+    // Group by the run's SOURCE path, not by its stemmed name. Two runs whose paths differ
+    // only in directory (/a/run1.mzML, /b/run1.mzML) share a stem; grouping on the stem
+    // would silently merge them into one row carrying both runs' intensities -- strictly
+    // worse than the ambiguous-but-separate rows #9818 warns about. Channels of one isobaric
+    // run share ColumnHeader::filename, so they still group together, which is the point.
+    // std::map keeps the order deterministic, so output is stable for any thread count.
+    std::map<std::string, std::vector<const FeatureHandle*>> by_source;
     for (const auto& fh : cmap[feat_idx].getFeatures())
     {
       auto it = id_lut.run_columns.find(fh.getMapIndex());
       if (it == id_lut.run_columns.end()) { continue; }
-      by_run[it->second.run_name].push_back(&fh);
+      by_source[it->second.source].push_back(&fh);
     }
-    // A feature with no handles has neither quantification nor a run, so the per-run feature
-    // view has nothing to represent -- drop it rather than emit an unkeyed row.
-    if (by_run.empty()) { ++dropped_handleless; continue; }
-    for (auto& [run, handles] : by_run)
+    if (by_source.empty()) { ++dropped_handleless; continue; }
+    for (auto& [source, handles] : by_source)
     {
-      rows.push_back(RowSpec{feat_idx, run, std::move(handles)});
+      // The emitted key is the stem; the grouping key was the full path.
+      rows.push_back(RowSpec{feat_idx,
+                             id_lut.run_columns.at(handles.front()->getMapIndex()).run_name,
+                             std::move(handles)});
     }
   }
   if (dropped_handleless > 0)
@@ -839,7 +846,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // === scan (list<int32>) ===
     {
       std::string spec_ref;
-      if (!pep_ids.empty())
+      if (best_pid)   // NOT !pep_ids.empty(): all of them may be hitless
       {
         // Prefer the dedicated member, fall back to metavalue
         spec_ref = best_pid->getSpectrumReference();
@@ -1066,6 +1073,12 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === rt_start / rt_stop ===
+    // NOTE: the explicit rt_start/rt_stop metavalues are authored on the ConsensusFeature,
+    // so a melted per-run row inherits the consensus window even when it reports the run
+    // handle's RT. Where the two RTs diverge that window does not bracket the row's own RT.
+    // Left as-is deliberately: overriding an authored value is a semantic change beyond this
+    // PR, and existing coverage pins the current behaviour. The width fallback below does use
+    // the row's own coordinates.
     if (metaHas(cf, idx_rt_start))
     {
       (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_start))));

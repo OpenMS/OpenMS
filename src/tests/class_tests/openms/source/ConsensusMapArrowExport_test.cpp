@@ -493,6 +493,72 @@ START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] a feature whose identifications are all hitless does not crash))
+{
+  // pep_ids is non-empty but every identification is hitless, so there is no winning hit.
+  // Guarding the scan column on !pep_ids.empty() instead of on the selected identification
+  // dereferenced a null pointer here.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/run1.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+  cf.insert(0, bf);
+
+  PeptideIdentification empty_pid;                 // no hits at all
+  empty_pid.setScoreType("q-value");
+  empty_pid.setHigherScoreBetter(false);
+  PeptideIdentification another_empty_pid;
+  another_empty_pid.setScoreType("q-value");
+  another_empty_pid.setHigherScoreBetter(false);
+  cf.setPeptideIdentifications({empty_pid, another_empty_pid});
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 1)   // quantified, just unidentified
+  auto seq = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("sequence")->chunk(0));
+  TEST_STRING_EQUAL(seq->GetString(0), "")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] two runs sharing a stem stay separate rows))
+{
+  // Fractionated layouts repeat basenames across directories. Grouping melted rows by the
+  // stemmed name merged them into one row carrying both runs' intensities -- worse than the
+  // ambiguous-but-separate rows the psm exporter warns about.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  for (Size m = 0; m < 2; ++m)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = (m == 0) ? "/frac_a/run1.mzML" : "/frac_b/run1.mzML";  // same stem!
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[m] = ch;
+  }
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature b0; b0.setIntensity(10.0f); b0.setMZ(500.0); b0.setRT(100.0); b0.setCharge(2);
+  BaseFeature b1; b1.setIntensity(20.0f); b1.setMZ(500.0); b1.setRT(100.0); b1.setCharge(2);
+  cf.insert(0, b0);
+  cf.insert(1, b1);
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 2)   // one per source run, not one merged row
+  auto ints = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+  TEST_EQUAL(ints->value_length(0), 1)   // 2 would mean the runs were fused
+  TEST_EQUAL(ints->value_length(1), 1)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] isobaric feature rows keep consensus coordinates and list all channels))
 {
   // Isobaric handles are reporter ions: their m/z is the reporter mass and their RT the
