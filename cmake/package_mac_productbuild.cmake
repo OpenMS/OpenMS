@@ -129,8 +129,11 @@ install(CODE "
 ## productbuild generator and are not covered by the library/Dependencies
 ## signing above, so notarization rejects them as unsigned.
 install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/pyopenms/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.pyopenms.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE pyopenms_sign_out ERROR_VARIABLE pyopenms_sign_out)
-        message('\${pyopenms_sign_out}')"
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/pyopenms/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.pyopenms.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; RESULT_VARIABLE pyopenms_sign_result OUTPUT_VARIABLE pyopenms_sign_out ERROR_VARIABLE pyopenms_sign_out)
+        message('\${pyopenms_sign_out}')
+        if(NOT pyopenms_sign_result EQUAL 0)
+          message(FATAL_ERROR \"Failed to codesign pyopenms component (exit code \${pyopenms_sign_result})\")
+        endif()"
         COMPONENT python_modules
         )
 
