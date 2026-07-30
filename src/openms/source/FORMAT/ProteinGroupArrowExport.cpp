@@ -10,17 +10,21 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -37,6 +41,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     return nullptr;
   }
 
+  // Same contract as the feature view: the pg view records one peptide per feature, so a
+  // feature whose identifications disagree cannot be counted. Preflight, single-threaded.
+  ConsensusMapArrowExport::requireUnambiguousIdentities(cmap);
+
   const auto& prot_id = cmap.getProteinIdentifications()[0];
   const auto& groups = prot_id.getIndistinguishableProteins();
 
@@ -52,6 +60,110 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   {
     hit_lookup[hit.getAccession()] = &hit;
   }
+
+  // -- Per-accession, per-run evidence index --
+  //
+  // Serves two purposes:
+  //  * the run set for a group that has no quantification, so it can be melted onto the runs
+  //    where it was actually identified instead of onto an empty run_file_name (a QPX
+  //    primary-key component that MUST NOT be null) or onto every run in the experiment;
+  //  * the peptide/feature counts, which QPX defines per (group, run).
+  //
+  // The pg table is written after FDR filtering, so whatever PSMs survive in the map already
+  // are the filtered set -- no extra score threshold is applied here.
+  struct FeatureInfo
+  {
+    std::string sequence;
+    std::string peptidoform;   ///< unmodified sequence + charge is not enough; see below
+    int charge = 0;
+  };
+  std::vector<FeatureInfo> feature_info(cmap.size());
+  // accession -> run -> contributing consensus feature indices
+  std::unordered_map<std::string, std::map<std::string, std::set<Size>>> acc_run_features;
+  // accession -> runs with identification evidence (features OR unassigned IDs)
+  std::unordered_map<std::string, std::set<std::string>> acc_runs;
+
+  {
+    // Same warn-only policy as the PSM and feature exporters.
+    std::vector<std::string> header_paths;
+    for (const auto& [map_index, header] : cmap.getColumnHeaders()) { header_paths.push_back(header.filename); }
+    (void)ArrowIOHelpers::qpxWarnOnRunNameCollisions("ProteinGroupArrowExport", header_paths);
+
+    IdentifierMSRunMapper run_mapper;
+    try
+    {
+      run_mapper.create(cmap.getProteinIdentifications());
+    }
+    catch (const Exception::InvalidValue& e)
+    {
+      OPENMS_LOG_WARN << "ProteinGroupArrowExport: ambiguous MS run paths (" << e.getMessage()
+                      << "); run attribution continues on the identifier -> path mapping."
+                      << std::endl;
+    }
+
+    const auto& headers = cmap.getColumnHeaders();
+    for (Size fi = 0; fi < cmap.size(); ++fi)
+    {
+      const auto& cf = cmap[fi];
+
+      // The runs this feature was quantified in.
+      std::set<std::string> runs;
+      for (const auto& fh : cf.getFeatures())
+      {
+        auto it = headers.find(fh.getMapIndex());
+        if (it != headers.end()) { runs.insert(ArrowIOHelpers::qpxRunFileName(it->second.filename)); }
+      }
+      if (runs.empty()) { continue; }
+
+      for (const auto& pid : cf.getPeptideIdentifications())
+      {
+        if (pid.getHits().empty()) { continue; }
+        const auto& hit = pid.getHits()[0];
+        if (feature_info[fi].sequence.empty())
+        {
+          feature_info[fi].sequence = hit.getSequence().toUnmodifiedString();
+          feature_info[fi].peptidoform = hit.getSequence().toString();
+          feature_info[fi].charge = hit.getCharge();
+        }
+        for (const auto& ev : hit.getPeptideEvidences())
+        {
+          const std::string& acc = ev.getProteinAccession();
+          if (acc.empty()) { continue; }
+          for (const auto& run : runs)
+          {
+            acc_run_features[acc][run].insert(fi);
+            acc_runs[acc].insert(run);
+          }
+        }
+      }
+    }
+
+    // Unassigned identifications establish that a group was seen in a run even though nothing
+    // was quantified there -- exactly the rows the melt exists to emit. They contribute no
+    // feature, so they do not affect the counts.
+    for (const auto& pid : cmap.getUnassignedPeptideIdentifications())
+    {
+      if (pid.getHits().empty()) { continue; }
+      const std::string run = ArrowIOHelpers::qpxRunFileName(run_mapper.getPrimaryMSRunPath(pid));
+      if (run.empty()) { continue; }
+      for (const auto& ev : pid.getHits()[0].getPeptideEvidences())
+      {
+        if (!ev.getProteinAccession().empty()) { acc_runs[ev.getProteinAccession()].insert(run); }
+      }
+    }
+  }
+
+  /// Runs where any member of @p group has identification evidence.
+  auto evidenceRuns = [&](const ProteinIdentification::ProteinGroup& group)
+  {
+    std::set<std::string> runs;
+    for (const auto& acc : group.accessions)
+    {
+      auto it = acc_runs.find(acc);
+      if (it != acc_runs.end()) { runs.insert(it->second.begin(), it->second.end()); }
+    }
+    return runs;
+  };
 
   // Estimate number of rows: one per group per unique run file (or 1 if no quant data)
   Size estimated_rows = 0;
@@ -208,8 +320,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // Helper lambda to emit one row for a protein group + run file
   auto emitRow = [&](const ProteinIdentification::ProteinGroup& group,
                      const std::string& run_file,
-                     const std::vector<std::pair<std::string, float>>& channel_intensities,
-                     int distinct_peptides_for_run)
+                     const std::vector<std::pair<std::string, float>>& channel_intensities)
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
 
@@ -298,23 +409,73 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     // contaminant - not tracked
     (void)contaminant_builder.AppendNull();
 
-    // peptides - empty for now
-    (void)peptides_builder.Append();
-
-    // peptide_counts
-    if (distinct_peptides_for_run >= 0)
+    // peptides / peptide_counts / feature_counts, all per (group, run).
+    //
+    // Semantics follow quantms (our interop target): "unique" means deduplicated, not
+    // proteotypic. DIA-NN's converter reads the same fields as proteotypic counts, so these
+    // numbers are only comparable within quantms-derived collections. See
+    // qpx/converters/quantms/pg_adapter.py.
     {
-      (void)peptide_counts_builder.Append();
-      (void)pc_unique_b->Append(distinct_peptides_for_run);
-      (void)pc_total_b->Append(0);
-    }
-    else
-    {
-      (void)peptide_counts_builder.AppendNull();
-    }
+      // The group's contributing consensus features in this run, unioned over its members so
+      // a feature shared by two members is counted once.
+      std::set<Size> group_features;
+      for (const auto& acc : group.accessions)
+      {
+        auto ait = acc_run_features.find(acc);
+        if (ait == acc_run_features.end()) { continue; }
+        auto rit = ait->second.find(run_file);
+        if (rit == ait->second.end()) { continue; }
+        group_features.insert(rit->second.begin(), rit->second.end());
+      }
 
-    // feature_counts - not available
-    (void)feature_counts_builder.AppendNull();
+      // peptides: one {protein_name, peptide_count} per group member, counting that member's
+      // distinct peptide sequences in this run.
+      (void)peptides_builder.Append();
+      for (const auto& acc : group.accessions)
+      {
+        std::set<std::string> seqs;
+        auto ait = acc_run_features.find(acc);
+        if (ait != acc_run_features.end())
+        {
+          auto rit = ait->second.find(run_file);
+          if (rit != ait->second.end())
+          {
+            for (Size fi : rit->second)
+            {
+              if (!feature_info[fi].sequence.empty()) { seqs.insert(feature_info[fi].sequence); }
+            }
+          }
+        }
+        (void)pep_struct_b->Append();
+        (void)pep_name_b->Append(acc);
+        (void)pep_count_b->Append(static_cast<int>(seqs.size()));
+      }
+
+      if (group_features.empty())
+      {
+        // Identification-only row: nothing was quantified in this run, so there is nothing to
+        // count. Null is the honest answer, distinct from a genuine zero.
+        (void)peptide_counts_builder.AppendNull();
+        (void)feature_counts_builder.AppendNull();
+      }
+      else
+      {
+        std::set<std::string> unique_sequences;
+        std::set<std::pair<std::string, int>> unique_features;
+        for (Size fi : group_features)
+        {
+          if (!feature_info[fi].sequence.empty()) { unique_sequences.insert(feature_info[fi].sequence); }
+          unique_features.emplace(feature_info[fi].peptidoform, feature_info[fi].charge);
+        }
+        (void)peptide_counts_builder.Append();
+        (void)pc_unique_b->Append(static_cast<int>(unique_sequences.size()));
+        (void)pc_total_b->Append(static_cast<int>(group_features.size()));
+
+        (void)feature_counts_builder.Append();
+        (void)fc_unique_b->Append(static_cast<int>(unique_features.size()));
+        (void)fc_total_b->Append(static_cast<int>(group_features.size()));
+      }
+    }
 
     // sequence_coverage
     if (anchor_it != hit_lookup.end() && anchor_it->second->getCoverage() != ProteinHit::COVERAGE_UNKNOWN)
@@ -343,12 +504,54 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)cv_params_builder.Append();
   };
 
+  // Build (run stem, 1-based channel) -> QPX intensity label from the column headers.
+  //
+  // The quant arrays below are keyed by (design filename, channel number), where the channel
+  // numbering is ColumnHeader::getLabelAsUInt()'s (channel_id + 1). Keying the lookup on the
+  // run as well as the channel keeps it correct for maps whose runs use different methods,
+  // rather than assuming one global channel -> label mapping.
+  std::map<std::pair<std::string, UInt>, std::string> channel_labels;
+  for (const auto& [map_index, header] : cmap.getColumnHeaders())
+  {
+    const UInt channel = header.getLabelAsUInt(cmap.getExperimentType());
+    const std::string channel_name = header.metaValueExists("channel_name")
+                                   ? header.getMetaValue("channel_name").toString() : "";
+    const std::string label = ArrowIOHelpers::qpxIntensityLabel(header.label, channel_name);
+    if (label.empty()) { return nullptr; } // unidentifiable channel; already logged
+    channel_labels[{ArrowIOHelpers::qpxRunFileName(header.filename), channel}] = label;
+  }
+
+  // Resolve a (run, channel) to its QPX label. A miss means the ConsensusMap carries quant
+  // arrays that its column headers do not describe (possible for a hand-built or foreign
+  // map): a single channel is label-free by construction, anything else is reported.
+  bool warned_missing_label = false;
+  auto labelFor = [&](const std::string& run, Int channel) -> std::string
+  {
+    auto it = channel_labels.find({run, static_cast<UInt>(channel)});
+    if (it != channel_labels.end()) { return it->second; }
+    if (channel == 1) { return "LFQ"; }
+    if (!warned_missing_label)
+    {
+      warned_missing_label = true;
+      OPENMS_LOG_WARN << "ProteinGroupArrowExport: no column header describes channel "
+                      << channel << " of run '" << run << "'; falling back to the channel "
+                      << "number as intensity label, which will not join against run.parquet."
+                      << std::endl;
+    }
+    return std::to_string(channel);
+  };
+
   // Iterate protein groups and emit rows
+  Size unattributable_groups = 0;
   for (const auto& group : groups)
   {
+    // All three arrays are indexed in lockstep below, so every one of them must exist —
+    // checking only the float/string arrays would dereference IntegerDataArrays()[0] on a
+    // group that carries abundances but no channel array.
     bool has_quant = group.getFloatDataArrays().size() >= 4
                      && !group.getStringDataArrays().empty()
-                     && !group.getStringDataArrays()[0].empty();
+                     && !group.getStringDataArrays()[0].empty()
+                     && !group.getIntegerDataArrays().empty();
 
     if (has_quant)
     {
@@ -356,25 +559,40 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       const auto& filenames = group.getStringDataArrays()[0]; // file_channel_level_filename
       const auto& channels = group.getIntegerDataArrays()[0]; // file_channel_level_channel
 
-      // Group by filename: filename -> [(channel_label, intensity)]
+      // Group by filename: filename -> [(QPX channel label, intensity)]
       std::map<std::string, std::vector<std::pair<std::string, float>>> file_intensities;
       for (Size i = 0; i < filenames.size() && i < abundances.size() && i < channels.size(); ++i)
       {
-        file_intensities[filenames[i]].emplace_back(std::to_string(channels[i]), abundances[i]);
+        file_intensities[filenames[i]].emplace_back(labelFor(filenames[i], channels[i]), abundances[i]);
       }
 
       // Emit one row per unique filename
       for (const auto& [filename, channel_int] : file_intensities)
       {
-        // We don't have per-run distinct_peptides directly - use -1 to indicate unknown
-        emitRow(group, filename, channel_int, -1);
+        emitRow(group, filename, channel_int);
       }
     }
     else
     {
-      // Unquantified group: single row with empty run_file_name
-      emitRow(group, "", {}, -1);
+      // Unquantified group. run_file_name is a QPX primary-key component that MUST NOT be
+      // null, and quantms silently drops rows that violate that, so an empty-run row is not
+      // an option. Melt onto the runs where the group actually has identification evidence,
+      // with null intensities (distinct from a measured 0.0). Fanning out across every run in
+      // the experiment instead would assert observations that were never made.
+      const auto runs = evidenceRuns(group);
+      if (runs.empty())
+      {
+        ++unattributable_groups;
+        continue;
+      }
+      for (const auto& run : runs) { emitRow(group, run, {}); }
     }
+  }
+  if (unattributable_groups > 0)
+  {
+    OPENMS_LOG_INFO << "ProteinGroupArrowExport: skipped " << unattributable_groups
+                    << " protein group(s) with neither quantification nor identification "
+                       "evidence in any run (no run_file_name to key a QPX row on)." << std::endl;
   }
 
   // Finalize all arrays
@@ -470,16 +688,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 namespace
 {
   /// Attach the canonical QPX "pg" file metadata to a table's schema.
-  std::shared_ptr<arrow::Table> attachQPXPgMetadata(const std::shared_ptr<arrow::Table>& table)
+  /// Returns nullptr if QPX does not define a token for the configured compression.
+  std::shared_ptr<arrow::Table> attachQPXPgMetadata(
+    const std::shared_ptr<arrow::Table>& table,
+    const ParquetWriteConfig& config)
   {
-    auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "pg"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
-      {"software_provider", "OpenMS"}
-    });
+    // The pg view has no scan column, so no scan_format key.
+    auto metadata = ArrowIOHelpers::qpxFileMetadata("pg_file", config);
+    if (!metadata) { return nullptr; }
     return table->ReplaceSchemaMetadata(metadata);
   }
 }
@@ -509,7 +725,7 @@ bool ProteinGroupArrowExport::exportToParquet(
     return false;
   }
 
-  // Guard: this overload stamps file_type="pg", so the caller must pass a
+  // Guard: this overload stamps file_type="pg_file", so the caller must pass a
   // QPXPgSchema table.
   auto validation = ArrowSchemaValidation::validate(table, QPXPgSchema::schema(), ArrowSchemaValidation::Mode::Strict);
   if (!validation.valid)
@@ -519,7 +735,9 @@ bool ProteinGroupArrowExport::exportToParquet(
     return false;
   }
 
-  return ArrowIOHelpers::writeTableToParquet(attachQPXPgMetadata(table), filename, config);
+  auto stamped = attachQPXPgMetadata(table, config);
+  if (!stamped) { return false; } // unsupported compression for QPX; already logged
+  return ArrowIOHelpers::writeTableToParquet(stamped, filename, config);
 }
 
 

@@ -656,7 +656,9 @@ namespace OpenMS
       arrow::field(INTENSITIES, intensitiesType()),
       arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
       arrow::field(PG_ACCESSIONS, pgAccessionsType()),
-      arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
+      // nullable since bigbio/qpx#212 (de novo workflows): "Representative protein; null when
+      // no protein mapping was performed". Still `required: true` -- the column must exist.
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8()),
       arrow::field(UNIQUE, arrow::boolean()),
       arrow::field(PG_GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_POSITIONS, pgPositionsType()),
