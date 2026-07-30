@@ -29,6 +29,7 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathExportConfig.h
   OpenSwathExportData.h
+  OpenSwathLibraryPreparation.h
   OpenSwathMatrixExporter.h
   OpenSwathParquetExporter.h
   OpenSwathInferenceConfig.h
