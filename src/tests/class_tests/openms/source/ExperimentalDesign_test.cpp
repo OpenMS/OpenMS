@@ -725,4 +725,59 @@ START_SECTION((Size annotateColumnHeaders(ConsensusMap& cmap) const))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] annotateColumnHeaders - a design inferred from the map does not throw))
+{
+  // fromConsensusMap() builds sample ROWS but no "Sample" COLUMN, so getSampleName() throws
+  // std::out_of_range on its column lookup. That is the design every caller gets when no
+  // design file is supplied, so annotating with it must work: the sample name is optional
+  // decoration, while fraction and fraction_group are what callers group on.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  for (UInt64 ch = 0; ch < 2; ++ch)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = "/data/run1.mzML";
+    h.label = "tmt10plex_12" + std::to_string(ch + 6);
+    h.setMetaValue("channel_id", static_cast<int>(ch));
+    cmap.getColumnHeaders()[ch] = h;
+  }
+
+  ExperimentalDesign inferred = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(inferred.annotateColumnHeaders(cmap), 0)
+  TEST_TRUE(cmap.getColumnHeaders().at(0).metaValueExists("fraction_group"))
+  TEST_TRUE(cmap.getColumnHeaders().at(1).metaValueExists("fraction"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] annotateColumnHeaders - headers that collapse onto one design row are refused))
+{
+  // ColumnHeader::getLabelAsUInt() returns 1 for any header with no 'channel_id' -- what the
+  // Multiplex tools emit, carrying the channel in 'label' instead. Two such headers of one file
+  // both resolve to label 1, so neither can be attributed to that design row. Annotating either
+  // would stamp one channel's sample onto the other; they must be reported instead.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  for (UInt64 i = 0; i < 2; ++i)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = "/data/run1.mzML";
+    h.label = (i == 0) ? "light" : "heavy";   // no channel_id on purpose
+    cmap.getColumnHeaders()[i] = h;
+  }
+
+  const std::string design_path = File::getTemporaryFile();
+  {
+    std::ofstream os(design_path.c_str());
+    os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";
+    os << "1\t1\trun1.mzML\t1\t1\n";
+    os << "1\t1\trun1.mzML\t2\t2\n";
+  }
+  ExperimentalDesign design = ExperimentalDesignFile::load(design_path, false);
+
+  TEST_EQUAL(design.annotateColumnHeaders(cmap), 2)   // both refused, neither guessed at
+  TEST_FALSE(cmap.getColumnHeaders().at(0).metaValueExists("sample_name"))
+  TEST_FALSE(cmap.getColumnHeaders().at(1).metaValueExists("sample_name"))
+}
+END_SECTION
+
 END_TEST
