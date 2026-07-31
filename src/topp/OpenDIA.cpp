@@ -22,7 +22,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
@@ -1164,18 +1163,34 @@ protected:
 
   static void removeExistingPath_(const std::string& path)
   {
-    if (!File::exists(path))
+    auto remove_file = [&](const std::string& file_path)
     {
-      return;
-    }
-    if (File::isDirectory(path))
+      if (!File::exists(file_path))
+      {
+        return;
+      }
+      if (File::isDirectory(file_path))
+      {
+        File::removeDirRecursively(file_path);
+        return;
+      }
+      if (!File::remove(file_path))
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_path);
+      }
+    };
+
+    if (File::exists(path) && File::isDirectory(path))
     {
       File::removeDirRecursively(path);
       return;
     }
-    if (!File::remove(path))
+
+    remove_file(path);
+
+    for (const char* suffix : {"-journal", "-wal", "-shm"})
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
+      remove_file(path + suffix);
     }
   }
 
@@ -1338,6 +1353,7 @@ protected:
     }
     if (workspace.archive_input)
     {
+      OPENMS_LOG_INFO << "Repacking workflow.oswpq archive." << std::endl;
       removeExistingPath_(workspace.output_path);
       ZipArchiveFile::zipDirectory(workspace.base_dir, workspace.output_path);
       ZipArchiveFile::writeSidecarIndex(workspace.output_path);
@@ -1516,16 +1532,15 @@ protected:
 
   void buildOSWPQSQLiteBridge_(const OSWPQWorkspace& workspace,
                                const std::string& bridge_osw,
-                               const Param& reader_parameters,
+                               const std::string& prepared_library_pqp,
                                const bool enable_uis_scoring)
   {
-    if (File::exists(bridge_osw) && !File::remove(bridge_osw))
+    OPENMS_LOG_INFO << "Building temporary SQLite bridge for OSWPQ inference and export." << std::endl;
+    removeExistingPath_(bridge_osw);
+    if (!File::copy(prepared_library_pqp, bridge_osw))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bridge_osw);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prepared_library_pqp);
     }
-
-    OpenSwath::LightTargetedExperiment bridge_library = loadTransitionList(FileTypes::OSWPQ, workspace.base_dir, reader_parameters);
-    TransitionPQPFile().convertLightTargetedExperimentToPQP(bridge_osw.c_str(), bridge_library);
 
     OpenSwathOSWWriter osw_writer(bridge_osw, enable_uis_scoring);
     osw_writer.writeHeader();
@@ -1727,6 +1742,7 @@ protected:
       return;
     }
 
+    OPENMS_LOG_INFO << "Syncing inference scores back to workflow.oswpq." << std::endl;
     OSWFile osw(bridge_osw);
     OpenSwathParquetExportConfig config;
     config.include_transition_data = false;
@@ -2621,7 +2637,7 @@ protected:
         OSWPQWorkspace workflow_workspace = prepareOSWPQWorkspace_(workflow_output);
         try
         {
-          buildOSWPQSQLiteBridge_(workflow_workspace, workflow_bridge_osw, reader_parameters, enable_uis_scoring);
+          buildOSWPQSQLiteBridge_(workflow_workspace, workflow_bridge_osw, prepared_library_pqp, enable_uis_scoring);
           runInference_(workflow_bridge_osw);
           syncInferenceScoresToOSWPQ_(workflow_bridge_osw, workflow_workspace);
           runExports_(workflow_bridge_osw, input_files, out_dir);
