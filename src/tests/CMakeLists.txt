@@ -26,6 +26,7 @@ if(DEFINED BUILD_TOPP_TOOLS
   message(FATAL_ERROR
     "ENABLE_TOPP_TESTING and ENABLE_PIPELINE_TESTING require BUILD_TOPP_TOOLS to be ON.")
 endif()
+option(ENABLE_BENCHMARK_TESTING "Enables benchmark tests for large datasets (Issue #8788). Requires downloading large external datasets; meant to run on a schedule (e.g. nightly), not on every PR." OFF)
 
 #------------------------------------------------------------------------------
 # we only test if we have no package target
@@ -45,7 +46,11 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
     if(ENABLE_PIPELINE_TESTING)
       add_subdirectory(toppas)
     endif()
+    # benchmark tests for large datasets (Issue #8788) - opt-in, downloads large external data
+    if(ENABLE_BENCHMARK_TESTING)
+      add_subdirectory(benchmarking)
+    endif()
   endif(ENABLE_STYLE_TESTING)
-elseif( ENABLE_STYLE_TESTING OR ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING)
+elseif( ENABLE_STYLE_TESTING OR ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING OR ENABLE_BENCHMARK_TESTING)
   message(WARNING "PACKAGE_TYPE specified along with enabled testing. Tests are only enabled when PACKAGE_TYPE is none. Ignoring tests.")
 endif("${PACKAGE_TYPE}" STREQUAL "none")
