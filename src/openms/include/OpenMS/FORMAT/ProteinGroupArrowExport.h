@@ -81,9 +81,21 @@ public:
     QPX pg fields (pg_accessions, anchor_protein, run_file_name, is_decoy, peptides)
     and sets quantification columns (intensities, additional_intensities) to null.
 
+    Like the ConsensusMap overload, this emits <b>one row per protein group per run</b>: the
+    runs are those in which a member accession has peptide evidence, resolved per PSM through
+    IdentifierMSRunMapper. A group in a single-file run is keyed on that file even without
+    evidence; a group in a merged run with no evidence anywhere is skipped with a diagnostic,
+    since @c run_file_name is a QPX primary-key component that must not be empty.
+
+    @c peptides and @c peptide_counts are scoped to the emitted run, so the same group in two
+    runs reports the peptides seen in each.
+
     @param[in] protein_identifications Protein identifications with protein groups
     @param[in] peptide_identifications Peptide identifications (for peptide-per-protein counts)
-    @return Shared pointer to Arrow Table (empty table if no groups, never nullptr)
+    @return Shared pointer to Arrow Table (empty table if no groups), or nullptr if an Arrow
+            builder fails
+    @throw Exception::MissingInformation if a PSM belongs to a merged run but carries no usable
+           @c id_merge_index, so its origin file -- and with it the row's key -- is undetermined
   */
   static std::shared_ptr<arrow::Table> exportToArrow(
     const std::vector<ProteinIdentification>& protein_identifications,
