@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
@@ -1068,6 +1069,54 @@ START_SECTION([EXTRA] exportToArrow - isobaric channels of one file share one ru
   auto rfn = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
   TEST_STRING_EQUAL(rfn->GetString(0), "20150820_Haura-Pilot-TMT1-bRPLC01-1")
   TEST_STRING_EQUAL(rfn->GetString(1), "20150820_Haura-Pilot-TMT1-bRPLC01-1")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resolved to file 0))
+{
+  // id_run_file_name is resolved through IdentifierMSRunMapper, which falls back to the run's
+  // FIRST file when the index is missing -- so the column would name a run the best PSM did not
+  // come from. The psm and pg views refuse this; the feature view must too, and it matters that
+  // it does: ProteomicsLFQ writes the feature view FIRST and pg third, so accepting here and
+  // refusing there leaves a wrong feature.parquet on disk beside a half-written collection.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/runA.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath({"/data/runA.mzML", "/data/runB.mzML"}); // merged run
+  cmap.setProteinIdentifications({prot});
+
+  PeptideIdentification pid;                 // no id_merge_index: origin undetermined
+  pid.setIdentifier("merged");
+  pid.setScoreType("q-value");
+  pid.setHigherScoreBetter(false);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  pid.setHits({hit});
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+  cf.insert(0, bf);
+  cf.setPeptideIdentifications({pid});
+  cmap.push_back(cf);
+
+  TEST_EXCEPTION(Exception::MissingInformation, ConsensusMapArrowExport::exportToArrow(cmap))
+
+  // With the index present the same input exports and names the right run.
+  cmap[0].getPeptideIdentifications()[0].setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(idrun->GetString(0), "runB")
 }
 END_SECTION
 

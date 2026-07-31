@@ -1252,6 +1252,29 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
   return ArrowIOHelpers::qpxFileMetadata("feature_file", config, extra);
 }
 
+/// Refuse a merged run whose PSMs cannot be attributed to one of its files.
+///
+/// The feature view resolves id_run_file_name through IdentifierMSRunMapper, which falls back to
+/// the run's FIRST file when 'id_merge_index' is missing -- so the column would name a run the
+/// best PSM did not come from, silently. The psm and pg views already refuse this input; matching
+/// them matters beyond consistency, because ProteomicsLFQ and ProteinQuantifier write the feature
+/// view FIRST and pg third. Accepting here and refusing there leaves a wrong feature.parquet on
+/// disk next to a half-written collection; refusing here fails before anything is written.
+///
+/// Must run as a preflight -- single-threaded, before any OpenMP region and before the output
+/// file is opened -- for the same reason as requireUnambiguousIdentities().
+void requireResolvableIdRuns(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
+{
+  size_t psm_index = 0;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications())
+    {
+      mapper.validateMergeIndex(pid, psm_index++);
+    }
+  }
+}
+
 } // anonymous namespace (feature range builder + shared per-map lookups)
 
 
@@ -1279,6 +1302,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   const auto id_lut = buildFeatureIdLookups(cmap);
+  requireResolvableIdRuns(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
   // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
   if (id_lut.has_unlabelable_channel) { return nullptr; }
@@ -1353,6 +1377,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   requireUnambiguousIdentities(cmap);
 
   const auto id_lut = buildFeatureIdLookups(cmap);
+  requireResolvableIdRuns(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
   if (id_lut.has_unlabelable_channel) { return false; } // already logged
 
   // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
