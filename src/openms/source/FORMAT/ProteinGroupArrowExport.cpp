@@ -448,22 +448,19 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       }
     }
 
-    // gg_accessions, gg_names (keep lists symmetric so they can be zipped)
+    // gg_accessions, gg_names (gene groups -- one entry per group member, keep parallel to
+    // pg_accessions so consumers can zip positionally; empty string when the meta value is
+    // missing). Appending only for annotated members would shorten these lists relative to
+    // pg_accessions and shift every later gene onto the wrong protein.
     (void)gg_accessions_builder.Append();
     (void)gg_names_builder.Append();
     for (const auto& acc : group.accessions)
     {
       auto it = hit_lookup.find(acc);
-      if (it != hit_lookup.end())
-      {
-        bool has_ga = it->second->metaValueExists("gene_accession");
-        bool has_gn = it->second->metaValueExists("gene_name");
-        if (has_ga || has_gn)
-        {
-          (void)gg_acc_vb->Append(has_ga ? it->second->getMetaValue("gene_accession").toString() : "");
-          (void)gg_names_vb->Append(has_gn ? it->second->getMetaValue("gene_name").toString() : "");
-        }
-      }
+      bool has_ga = (it != hit_lookup.end()) && it->second->metaValueExists("gene_accession");
+      bool has_gn = (it != hit_lookup.end()) && it->second->metaValueExists("gene_name");
+      (void)gg_acc_vb->Append(has_ga ? it->second->getMetaValue("gene_accession").toString() : "");
+      (void)gg_names_vb->Append(has_gn ? it->second->getMetaValue("gene_name").toString() : "");
     }
 
     // gg_qvalue - not available
@@ -523,6 +520,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       // peptides: one {protein_name, peptide_count} per group member, counting that member's
       // distinct peptide sequences in this run.
       (void)peptides_builder.Append();
+      int total_sequences = 0;   // sum of the per-member counts, i.e. what peptides[] adds up to
       for (const auto& acc : group.accessions)
       {
         std::set<std::string> seqs;
@@ -541,6 +539,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         (void)pep_struct_b->Append();
         (void)pep_name_b->Append(acc);
         (void)pep_count_b->Append(static_cast<int>(seqs.size()));
+        total_sequences += static_cast<int>(seqs.size());
       }
 
       if (group_features.empty())
@@ -559,9 +558,15 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
           if (!feature_info[fi].sequence.empty()) { unique_sequences.insert(feature_info[fi].sequence); }
           unique_features.emplace(feature_info[fi].peptidoform, feature_info[fi].charge);
         }
+        // peptide_counts counts SEQUENCES: unique across the group, total as the sum of the
+        // per-member counts emitted in peptides[] above (so the two agree, and shared peptides
+        // are counted once per member). Distinguishing peptidoform and charge is what
+        // feature_counts is for -- using group_features.size() here made total_sequences a
+        // feature count, identical to total_features and contradicting peptides[] in the
+        // same row.
         (void)peptide_counts_builder.Append();
         (void)pc_unique_b->Append(static_cast<int>(unique_sequences.size()));
-        (void)pc_total_b->Append(static_cast<int>(group_features.size()));
+        (void)pc_total_b->Append(total_sequences);
 
         (void)feature_counts_builder.Append();
         (void)fc_unique_b->Append(static_cast<int>(unique_features.size()));

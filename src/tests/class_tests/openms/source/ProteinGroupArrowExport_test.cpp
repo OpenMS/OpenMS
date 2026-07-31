@@ -373,4 +373,129 @@ START_SECTION(([EXTRA] features with divergent peptide annotations are excluded 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] ConsensusMap overload - gene lists stay parallel to pg_accessions))
+{
+  // gg_accessions/gg_names must have one entry per group member, like pg_accessions and
+  // pg_names, so consumers can zip them positionally. Appending only for members that carry a
+  // gene metavalue shortens the lists and shifts every later gene onto the wrong protein --
+  // which is what a partially gene-annotated FASTA produces.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/run1.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run");
+  prot.setScoreType("q-value");
+  prot.setPrimaryMSRunPath({"/data/run1.mzML"});
+  ProteinHit pa; pa.setAccession("PROT_A");                       // no gene annotation
+  ProteinHit pb; pb.setAccession("PROT_B");
+  pb.setMetaValue("gene_name", "GENE_OF_B");
+  prot.setHits({pa, pb});
+  ProteinIdentification::ProteinGroup g;
+  g.accessions = {"PROT_A", "PROT_B"};
+  g.probability = 0.01;
+  prot.insertIndistinguishableProteins(g);
+  cmap.setProteinIdentifications({prot});
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run");
+  pid.setScoreType("q-value");
+  pid.setHigherScoreBetter(false);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  PeptideEvidence ev; ev.setProteinAccession("PROT_A");
+  hit.setPeptideEvidences({ev});
+  pid.setHits({hit});
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+  cf.insert(0, bf);
+  cf.setPeptideIdentifications({pid});
+  cmap.push_back(cf);
+
+  auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 1)
+
+  auto pg_acc = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("pg_accessions")->chunk(0));
+  auto gg_acc = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("gg_accessions")->chunk(0));
+  auto gg_nam = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("gg_names")->chunk(0));
+  TEST_EQUAL(gg_acc->value_length(0), pg_acc->value_length(0))
+  TEST_EQUAL(gg_nam->value_length(0), pg_acc->value_length(0))
+
+  // The gene belongs to PROT_B, which is member 1 -- not member 0.
+  auto names = std::static_pointer_cast<arrow::StringArray>(gg_nam->values());
+  const int64_t off = gg_nam->value_offset(0);
+  TEST_STRING_EQUAL(names->GetString(off), "")
+  TEST_STRING_EQUAL(names->GetString(off + 1), "GENE_OF_B")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ConsensusMap overload - total_sequences counts sequences, not features))
+{
+  // peptide_counts.total_sequences must agree with what peptides[] sums to. Using the feature
+  // count made it identical to feature_counts.total_features and contradicted peptides[] in the
+  // same row -- invisible while every fixture had exactly one feature per sequence.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/run1.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run");
+  prot.setScoreType("q-value");
+  prot.setPrimaryMSRunPath({"/data/run1.mzML"});
+  ProteinHit ph; ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  ProteinIdentification::ProteinGroup g;
+  g.accessions = {"PROT_A"};
+  g.probability = 0.01;
+  prot.insertIndistinguishableProteins(g);
+  cmap.setProteinIdentifications({prot});
+
+  // One sequence, two charge states => two consensus features, one peptide.
+  for (int z : {2, 3})
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("run");
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setCharge(z);
+    PeptideEvidence ev; ev.setProteinAccession("PROT_A");
+    hit.setPeptideEvidences({ev});
+    pid.setHits({hit});
+
+    ConsensusFeature cf;
+    cf.setMZ(500.0); cf.setRT(100.0 + z); cf.setCharge(z);
+    BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0 + z); bf.setCharge(z);
+    cf.insert(0, bf);
+    cf.setPeptideIdentifications({pid});
+    cmap.push_back(cf);
+  }
+
+  auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 1)
+
+  auto pc = std::static_pointer_cast<arrow::StructArray>(t->GetColumnByName("peptide_counts")->chunk(0));
+  auto fc = std::static_pointer_cast<arrow::StructArray>(t->GetColumnByName("feature_counts")->chunk(0));
+  auto pc_unique = std::static_pointer_cast<arrow::Int32Array>(pc->field(0));
+  auto pc_total  = std::static_pointer_cast<arrow::Int32Array>(pc->field(1));
+  auto fc_total  = std::static_pointer_cast<arrow::Int32Array>(fc->field(1));
+
+  TEST_EQUAL(pc_unique->Value(0), 1)   // one distinct sequence
+  TEST_EQUAL(pc_total->Value(0), 1)    // peptides[] sums to 1, so total_sequences must be 1
+  TEST_EQUAL(fc_total->Value(0), 2)    // two features: that is what feature_counts is for
+}
+END_SECTION
+
 END_TEST
