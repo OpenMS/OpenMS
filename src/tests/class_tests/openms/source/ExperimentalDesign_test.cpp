@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <fstream>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -665,4 +666,63 @@ START_SECTION((isValid_()))
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((Size annotateColumnHeaders(ConsensusMap& cmap) const))
+{
+  // The inverse of fromConsensusMap(). Two fraction files of one quantification unit must come
+  // out sharing a fraction_group and differing by fraction -- that shared group is the only
+  // thing distinguishing "two fractions of one sample" from "two independent runs", and a
+  // consumer reading only the map has no other way to tell.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  for (UInt64 file = 0; file < 2; ++file)
+  {
+    for (UInt64 ch = 0; ch < 2; ++ch)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = "/data/run" + std::to_string(file + 1) + ".mzML";
+      h.label = "tmt10plex_12" + std::to_string(ch + 6);
+      h.setMetaValue("channel_id", static_cast<int>(ch));   // getLabelAsUInt() -> channel_id + 1
+      cmap.getColumnHeaders()[file * 2 + ch] = h;
+    }
+  }
+
+  // Both files in fraction group 1, as fractions 1 and 2; one sample per channel.
+  const std::string design_path = File::getTemporaryFile();
+  {
+    std::ofstream os(design_path.c_str());
+    os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";
+    os << "1\t1\trun1.mzML\t1\t1\n";
+    os << "1\t1\trun1.mzML\t2\t2\n";
+    os << "1\t2\trun2.mzML\t1\t1\n";
+    os << "1\t2\trun2.mzML\t2\t2\n";
+  }
+  ExperimentalDesign design = ExperimentalDesignFile::load(design_path, false);
+
+  TEST_EQUAL(design.annotateColumnHeaders(cmap), 0)   // every header matched
+
+  const auto& headers = cmap.getColumnHeaders();
+  for (const auto& [mi, h] : headers)
+  {
+    TEST_TRUE(h.metaValueExists("fraction_group"))
+    TEST_TRUE(h.metaValueExists("fraction"))
+    TEST_EQUAL(static_cast<int>(h.getMetaValue("fraction_group")), 1)  // shared across both files
+  }
+  // ... and the fraction distinguishes the two files, channel by channel.
+  TEST_EQUAL(static_cast<int>(headers.at(0).getMetaValue("fraction")), 1)  // run1, ch1
+  TEST_EQUAL(static_cast<int>(headers.at(1).getMetaValue("fraction")), 1)  // run1, ch2
+  TEST_EQUAL(static_cast<int>(headers.at(2).getMetaValue("fraction")), 2)  // run2, ch1
+  TEST_EQUAL(static_cast<int>(headers.at(3).getMetaValue("fraction")), 2)  // run2, ch2
+
+  // A header the design does not describe is counted, not silently skipped: silent
+  // non-annotation is the failure mode this return value exists to expose.
+  ConsensusMap::ColumnHeader stray;
+  stray.filename = "/data/not_in_design.mzML";
+  stray.label = "tmt10plex_126";
+  stray.setMetaValue("channel_id", 0);
+  cmap.getColumnHeaders()[99] = stray;
+  TEST_EQUAL(design.annotateColumnHeaders(cmap), 1)
+  TEST_FALSE(cmap.getColumnHeaders().at(99).metaValueExists("fraction_group"))
+}
+END_SECTION
+
 END_TEST

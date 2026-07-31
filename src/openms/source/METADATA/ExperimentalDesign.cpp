@@ -48,6 +48,31 @@ namespace OpenMS
       isValid_();
     }
 
+    Size ExperimentalDesign::annotateColumnHeaders(ConsensusMap& cmap) const
+    {
+      const auto& pl2fg = getPathLabelToFractionGroupMapping(true);
+      const auto& pl2f = getPathLabelToFractionMapping(true);
+      const auto& pl2s = getPathLabelToSampleMapping(true);
+
+      Size unannotated = 0;
+      for (auto& [map_index, header] : cmap.getColumnHeaders())
+      {
+        // The design is keyed on (file, label); a column header carries the file and, for a
+        // multiplexed map, the 1-based channel that getLabelAsUInt() returns.
+        const std::pair<std::string, unsigned> key(File::basename(header.filename),
+                                                   header.getLabelAsUInt(cmap.getExperimentType()));
+        auto fg = pl2fg.find(key);
+        if (fg == pl2fg.end()) { ++unannotated; continue; }
+
+        header.setMetaValue("fraction_group", fg->second);
+        auto fr = pl2f.find(key);
+        if (fr != pl2f.end()) { header.setMetaValue("fraction", fr->second); }
+        auto sa = pl2s.find(key);
+        if (sa != pl2s.end()) { header.setMetaValue("sample_name", getSampleSection().getSampleName(sa->second)); }
+      }
+      return unannotated;
+    }
+
     ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
     {
       ExperimentalDesign experimental_design;
