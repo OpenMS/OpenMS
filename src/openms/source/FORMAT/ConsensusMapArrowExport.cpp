@@ -119,6 +119,25 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
 {
   FeatureIdLookups lut;
 
+  // Deliberately OUTSIDE the try below: that catch exists to tolerate a duplicate PATH LIST,
+  // for which the forward map is still complete. A duplicate IDENTIFIER is the opposite -- the
+  // forward map assigns with operator[], so only the last run's paths survive and a feature of
+  // the first would be stamped with a file it never came from, silently, since a single row
+  // gives nothing away. The pg exporter refuses the same input.
+  {
+    std::set<std::string> seen_identifiers;
+    for (const auto& prot_id : cmap.getProteinIdentifications())
+    {
+      if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ConsensusMapArrowExport: several identification runs share the identifier '"
+          + prot_id.getIdentifier() + "'. Their MS run paths cannot be told apart, so a feature "
+          "would be attributed to the wrong run file.", prot_id.getIdentifier());
+      }
+    }
+  }
+
   // The mapper's constructor throws when two identifiers share a path list; that guards only
   // the reverse map, which is never used here, and the forward map is fully populated before
   // the throw. Degrade to a warning rather than failing an otherwise-exportable map.
@@ -1252,6 +1271,32 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
   return ArrowIOHelpers::qpxFileMetadata("feature_file", config, extra);
 }
 
+/// Refuse a merged run whose PSMs cannot be attributed to one of its files.
+///
+/// The feature view resolves id_run_file_name through IdentifierMSRunMapper, which falls back to
+/// the run's FIRST file when 'id_merge_index' is missing -- so the column would name a run the
+/// best PSM did not come from, silently. The psm and pg views already refuse this input; matching
+/// them matters beyond consistency, because ProteomicsLFQ and ProteinQuantifier write the feature
+/// view FIRST and pg third. Accepting here and refusing there leaves a wrong feature.parquet on
+/// disk next to a half-written collection; refusing here fails before anything is written.
+///
+/// Must run as a preflight -- single-threaded, before any OpenMP region and before the output
+/// file is opened -- for the same reason as requireUnambiguousIdentities().
+void requireResolvableIdRuns(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
+{
+  for (Size i = 0; i < cmap.size(); ++i)
+  {
+    // Only the identification the row actually uses. Validating every attached one refused a
+    // feature whose winning hit resolves perfectly, because a sibling identification -- hitless,
+    // or simply not selected -- lacked an index that is never asked for.
+    const auto& pep_ids = cmap[i].getPeptideIdentifications();
+    Size best_id_index = 0;
+    bool inconsistent_scores = false;
+    if (selectFeatureIdentity(pep_ids, best_id_index, inconsistent_scores) == nullptr) { continue; }
+    mapper.validateMergeIndex(pep_ids[best_id_index], i);
+  }
+}
+
 } // anonymous namespace (feature range builder + shared per-map lookups)
 
 
@@ -1279,6 +1324,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   const auto id_lut = buildFeatureIdLookups(cmap);
+  requireResolvableIdRuns(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
   // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
   if (id_lut.has_unlabelable_channel) { return nullptr; }
@@ -1353,6 +1399,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   requireUnambiguousIdentities(cmap);
 
   const auto id_lut = buildFeatureIdLookups(cmap);
+  requireResolvableIdRuns(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
   if (id_lut.has_unlabelable_channel) { return false; } // already logged
 
   // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
