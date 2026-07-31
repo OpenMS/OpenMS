@@ -1120,4 +1120,76 @@ START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resol
 }
 END_SECTION
 
+START_SECTION(([EXTRA] only the selected identification must be resolvable))
+{
+  // The row draws every identification-derived value from the winning hit, so a sibling
+  // identification that carries no hit cannot affect the output and must not be able to refuse
+  // the export. Validating every attached identification rejected input that exports correctly.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/runA.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath({"/data/runA.mzML", "/data/runB.mzML"});
+  cmap.setProteinIdentifications({prot});
+
+  PeptideIdentification hitless;              // no hits, no id_merge_index: never selected
+  hitless.setIdentifier("merged");
+  hitless.setScoreType("q-value");
+  hitless.setHigherScoreBetter(false);
+
+  PeptideIdentification winner;               // carries the hit, and a usable index
+  winner.setIdentifier("merged");
+  winner.setScoreType("q-value");
+  winner.setHigherScoreBetter(false);
+  winner.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  winner.setHits({hit});
+
+  ConsensusFeature cf;
+  cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
+  BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
+  cf.insert(0, bf);
+  cf.setPeptideIdentifications({hitless, winner});
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+  auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(idrun->GetString(0), "runB")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] duplicate identification-run identifiers are refused))
+{
+  // IdentifierMSRunMapper assigns its forward map with operator[], so two runs sharing an
+  // identifier leave only the last one's paths -- and a feature of the first would then be
+  // stamped with a file it never came from, with one row and no warning to give it away.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/runA.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification a;
+  a.setIdentifier("dup");
+  a.setPrimaryMSRunPath({"/data/runA.mzML"});
+  ProteinIdentification b;
+  b.setIdentifier("dup");                     // same identifier, different file
+  b.setPrimaryMSRunPath({"/data/runB.mzML"});
+  cmap.setProteinIdentifications({a, b});
+
+  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::exportToArrow(cmap))
+}
+END_SECTION
+
 END_TEST

@@ -119,6 +119,25 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
 {
   FeatureIdLookups lut;
 
+  // Deliberately OUTSIDE the try below: that catch exists to tolerate a duplicate PATH LIST,
+  // for which the forward map is still complete. A duplicate IDENTIFIER is the opposite -- the
+  // forward map assigns with operator[], so only the last run's paths survive and a feature of
+  // the first would be stamped with a file it never came from, silently, since a single row
+  // gives nothing away. The pg exporter refuses the same input.
+  {
+    std::set<std::string> seen_identifiers;
+    for (const auto& prot_id : cmap.getProteinIdentifications())
+    {
+      if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ConsensusMapArrowExport: several identification runs share the identifier '"
+          + prot_id.getIdentifier() + "'. Their MS run paths cannot be told apart, so a feature "
+          "would be attributed to the wrong run file.", prot_id.getIdentifier());
+      }
+    }
+  }
+
   // The mapper's constructor throws when two identifiers share a path list; that guards only
   // the reverse map, which is never used here, and the forward map is fully populated before
   // the throw. Degrade to a warning rather than failing an otherwise-exportable map.
@@ -1265,13 +1284,16 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
 /// file is opened -- for the same reason as requireUnambiguousIdentities().
 void requireResolvableIdRuns(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
 {
-  size_t psm_index = 0;
-  for (const auto& cf : cmap)
+  for (Size i = 0; i < cmap.size(); ++i)
   {
-    for (const auto& pid : cf.getPeptideIdentifications())
-    {
-      mapper.validateMergeIndex(pid, psm_index++);
-    }
+    // Only the identification the row actually uses. Validating every attached one refused a
+    // feature whose winning hit resolves perfectly, because a sibling identification -- hitless,
+    // or simply not selected -- lacked an index that is never asked for.
+    const auto& pep_ids = cmap[i].getPeptideIdentifications();
+    Size best_id_index = 0;
+    bool inconsistent_scores = false;
+    if (selectFeatureIdentity(pep_ids, best_id_index, inconsistent_scores) == nullptr) { continue; }
+    mapper.validateMergeIndex(pep_ids[best_id_index], i);
   }
 }
 
