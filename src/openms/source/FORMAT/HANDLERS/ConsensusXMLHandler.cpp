@@ -964,17 +964,29 @@ namespace OpenMS::Internal
         return suffix;
       }
 
-      /// True if @p array carries no information worth writing out
+      /**
+        @brief True if @p array carries no information worth writing out.
+
+        Skipping an array also discards its LENGTH, so this may only skip arrays whose length can be
+        reconstructed on load. That holds for "psm_count" and "distinct_peptides": both are as long as
+        "abundances", and PeptideAndProteinQuant resizes them to the sample count but never fills them
+        (PeptideData::psm_counts is never written anywhere), so they are all-zero in every run today.
+        Writing them would only add columns of zeros, and the check is on the values, so they start
+        being written by themselves once the counts are populated upstream.
+
+        Every other array is written whenever it is non-empty - including an all-zero "abundances",
+        whose length anchors the two above. Skipping that one by value would hand back a zero-length
+        "abundances" for a protein quantified as zero everywhere, which MzTab::getQuantStudyVariables_
+        turns into "no quantities in this file at all" and ProteinGroupArrowExport turns into a
+        silently omitted row.
+      */
       template <typename ArrayT>
       static bool isRedundant(const ArrayT& array)
       {
         if (array.empty() || array.getName().empty()) { return true; }
         if constexpr (std::is_arithmetic_v<typename ArrayT::value_type>)
         {
-          // PeptideAndProteinQuant resizes "psm_count" and "distinct_peptides" to the sample count but
-          // never fills them (PeptideData::psm_counts is never written), so they are all-zero in every
-          // run today. Writing them would add columns of zeros; skipping is also self-correcting - once
-          // the counts are populated upstream they start being written without a change here.
+          if (array.getName() != "psm_count" && array.getName() != "distinct_peptides") { return false; }
           return std::all_of(array.begin(), array.end(), [](auto v) { return v == 0; });
         }
         return false;
@@ -982,7 +994,7 @@ namespace OpenMS::Internal
 
       /// Writes one typed list metavalue per non-redundant data array of @p group. No-op for groups without any.
       static void addQuantMetaValues(MetaInfoInterface& meta, const ProteinIdentification::ProteinGroup& group,
-                                     const std::string& group_key, const std::string& accession_refs)
+                                     const std::string& group_key)
       {
         bool wrote_any = false;
 
@@ -1008,7 +1020,16 @@ namespace OpenMS::Internal
         // The group index is part of the key, so a tool that filters or renumbers groups without
         // knowing about these params leaves them pointing at the wrong group. Recording the members
         // they were computed for lets the reader notice and discard them instead of mis-attributing.
-        if (wrote_any) { meta.setMetaValue(group_key + refSuffix(), accession_refs); }
+        //
+        // This records ACCESSIONS, not the "PH_<n>" references the group itself is stored with: those
+        // are positional indices into the protein hit list, reassigned on every store. Dropping a
+        // leading protein hit together with its group shifts the PH_ numbers and the group indices by
+        // the same amount, so a PH_-based guard still matches and the check silently passes on exactly
+        // the renumbering it exists to catch. Accessions are stable under both.
+        if (wrote_any)
+        {
+          meta.setMetaValue(group_key + refSuffix(), StringList(group.accessions.begin(), group.accessions.end()));
+        }
       }
 
       /**
@@ -1018,12 +1039,13 @@ namespace OpenMS::Internal
                 (they are removed in that case, and @p group is left without data arrays).
       */
       static bool getQuantMetaValues(MetaInfoInterface& meta, ProteinIdentification::ProteinGroup& group,
-                                     const std::string& group_key, const std::string& expected_refs)
+                                     const std::string& group_key)
       {
         const std::string ref_key = group_key + refSuffix();
         if (!meta.metaValueExists(ref_key)) { return true; } // no quantities for this group
 
-        const bool matches = StringUtils::toStr(meta.getMetaValue(ref_key)) == expected_refs;
+        const StringList stored_accessions = meta.getMetaValue(ref_key).toStringList();
+        const bool matches = stored_accessions == group.accessions;
         meta.removeMetaValue(ref_key);
         if (!matches)
         {
@@ -1167,7 +1189,7 @@ namespace OpenMS::Internal
       // Quantitative annotations (abundances, per-file/channel values, ...) live in the group's data
       // arrays. Groups that carry none - the normal case outside ProteomicsLFQ/IsobaricWorkflow -
       // produce no additional output here, so such files are written exactly as before.
-      ProteinGroupQuant::addQuantMetaValues(meta, groups[g], name, accessions);
+      ProteinGroupQuant::addQuantMetaValues(meta, groups[g], name);
     }
   }
 
@@ -1197,8 +1219,7 @@ namespace OpenMS::Internal
 
       // Restore the quantitative data arrays, if this group has any. Consumes (and removes) the
       // corresponding metavalues so they do not linger as stray UserParams on the ProteinIdentification.
-      const std::string refs = ListUtils::concatenate(StringList(values.begin() + 1, values.end()), ",");
-      if (!ProteinGroupQuant::getQuantMetaValues(*last_meta_, g, current_meta, refs))
+      if (!ProteinGroupQuant::getQuantMetaValues(*last_meta_, g, current_meta))
       {
         warning(LOAD, std::string("Quantitative annotation of protein group '") + current_meta
                         + "' does not belong to that group and was discarded. The file was most likely "

@@ -355,6 +355,135 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
 }
 END_SECTION
 
+START_SECTION([EXTRA] Quantities whose owner no longer matches the group are discarded)
+{
+  // Each quantified group records which proteins its quantities were computed for, so that a tool
+  // which filters or renumbers groups without knowing about the quantity params cannot cause them to
+  // be silently adopted by a different protein.
+  //
+  // The recorded value must be ACCESSIONS. The obvious alternative - the "PH_<n>" references the group
+  // itself is stored with - does not work: those are positional indices into the protein hit list,
+  // reassigned on every store, so dropping a leading hit shifts the PH_ numbers and the group indices
+  // by the same amount and a stale entry still compares equal.
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  TEST_EQUAL(prot.getHits().size(), 2)
+  const std::string quantified_accession = prot.getHits()[0].getAccession();
+
+  ProteinIdentification::ProteinGroup g;
+  g.accessions.push_back(quantified_accession);
+  g.probability = 0.9;
+  g.getFloatDataArrays().resize(1);
+  g.getFloatDataArrays()[0].setName("abundances");
+  g.getFloatDataArrays()[0].assign({11.0f, 22.0f});
+  prot.insertIndistinguishableProteins(g);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+
+  // the ownership record holds the accession, not a positional PH_ reference
+  TextFile stored;
+  stored.load(tmp_filename);
+  std::string guard_line;
+  for (const std::string& line : stored)
+  {
+    if (StringUtils::hasSubstring(line, "_quantified_proteins")) { guard_line = line; }
+  }
+  TEST_EQUAL(guard_line.empty(), false)
+  TEST_EQUAL(StringUtils::hasSubstring(guard_line, quantified_accession), true)
+  TEST_EQUAL(StringUtils::hasSubstring(guard_line, "PH_"), false)
+
+  // rewrite it to name a different protein, as a renumbering would effectively do
+  TextFile rewritten;
+  for (const std::string& line : stored)
+  {
+    std::string out = line;
+    if (StringUtils::hasSubstring(out, "_quantified_proteins"))
+    {
+      StringUtils::substitute(out, quantified_accession, "SOME_OTHER_PROTEIN");
+    }
+    rewritten.addLine(out);
+  }
+  std::string tampered;
+  NEW_TMP_FILE(tampered);
+  rewritten.store(tampered);
+
+  ConsensusMap loaded;
+  f.load(tampered, loaded);
+  const auto& groups = loaded.getProteinIdentifications()[0].getIndistinguishableProteins();
+  TEST_EQUAL(groups.size(), 1)
+  TEST_EQUAL(groups[0].accessions[0], quantified_accession)
+
+  // the quantities belong to a different protein now, so they must be dropped, not handed over
+  bool has_abundances = false;
+  for (const auto& fda : groups[0].getFloatDataArrays())
+  {
+    if (fda.getName() == "abundances" && !fda.empty()) { has_abundances = true; }
+  }
+  TEST_EQUAL(has_abundances, false)
+
+  // and nothing of the discarded block may linger as a stray UserParam
+  std::vector<std::string> keys;
+  loaded.getProteinIdentifications()[0].getKeys(keys);
+  for (const std::string& key : keys)
+  {
+    TEST_EQUAL(StringUtils::hasSubstring(key, "indistinguishable_proteins_0_"), false)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] All-zero abundances keep their length across a round-trip)
+{
+  // A protein quantified as zero in every sample must not come back with a zero-LENGTH "abundances"
+  // array: MzTab::getQuantStudyVariables_ reads its size and would report no quantities for the whole
+  // file, and ProteinGroupArrowExport would silently omit the group's row.
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  ProteinIdentification::ProteinGroup group;
+  for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
+  group.probability = 0.5;
+  group.getFloatDataArrays().resize(4);
+  group.getStringDataArrays().resize(2);
+  group.getIntegerDataArrays().resize(2);
+  group.getFloatDataArrays()[0].setName("abundances");
+  group.getFloatDataArrays()[0].assign(3, 0.0f); // quantified everywhere as zero
+  group.getFloatDataArrays()[1].setName("psm_count");
+  group.getFloatDataArrays()[1].resize(3);
+  group.getFloatDataArrays()[2].setName("distinct_peptides");
+  group.getFloatDataArrays()[2].resize(3);
+  group.getFloatDataArrays()[3].setName("file_channel_level_abundance");
+  group.getFloatDataArrays()[3].assign(3, 0.0f);
+  group.getStringDataArrays()[0].setName("file_channel_level_filename");
+  group.getStringDataArrays()[0].assign({"fA", "fB", "fC"});
+  group.getStringDataArrays()[1].setName("file_level_filename");
+  group.getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  group.getIntegerDataArrays()[0].assign({1, 1, 1});
+  group.getIntegerDataArrays()[1].setName("file_level_psm_count");
+  prot.insertIndistinguishableProteins(group);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+  ConsensusMap loaded;
+  f.load(tmp_filename, loaded);
+
+  const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins().back();
+  TEST_EQUAL(rt.getFloatDataArrays()[0].getName(), "abundances")
+  TEST_EQUAL(rt.getFloatDataArrays()[0].size(), 3)
+  TEST_EQUAL(rt.getFloatDataArrays()[1].size(), 3)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 3)
+  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 3)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][0], 0.0)
+}
+END_SECTION
+
 START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
 {
   // Groups that carry no data arrays - everything outside ProteomicsLFQ/IsobaricWorkflow - must not
