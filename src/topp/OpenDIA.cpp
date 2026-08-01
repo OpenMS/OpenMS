@@ -114,6 +114,14 @@ protected:
     std::optional<InferenceContext> context;
   };
 
+  using OptionalDoubleMember = std::optional<double> OpenSwathFeatureScoreRow::*;
+
+  struct InferenceScoreColumn
+  {
+    const char* name = "";
+    OptionalDoubleMember member = nullptr;
+  };
+
   enum class ExportTaskType
   {
     FeatureParquet,
@@ -219,6 +227,112 @@ protected:
     {
       tasks.push_back({level, context});
     }
+  }
+
+  static std::pair<bool, std::vector<InferenceScoreColumn>> getInferenceScoreColumns_(const std::vector<InferenceTask>& tasks)
+  {
+    bool include_ipf_peptide_id = false;
+    std::vector<InferenceScoreColumn> columns;
+
+    const auto append_column = [&](const char* name, OptionalDoubleMember member)
+    {
+      const auto duplicate = std::find_if(columns.begin(), columns.end(),
+        [&](const auto& column)
+        {
+          return std::string_view(column.name) == name;
+        });
+      if (duplicate == columns.end())
+      {
+        columns.push_back({name, member});
+      }
+    };
+
+    for (const auto& task : tasks)
+    {
+      switch (task.level)
+      {
+        case InferenceLevel::Peptidoform:
+          include_ipf_peptide_id = true;
+          append_column("score_ipf_precursor_peakgroup_pep", &OpenSwathFeatureScoreRow::score_ipf_precursor_peakgroup_pep);
+          append_column("score_ipf_pep", &OpenSwathFeatureScoreRow::score_ipf_pep);
+          append_column("score_ipf_qvalue", &OpenSwathFeatureScoreRow::score_ipf_qvalue);
+          break;
+
+        case InferenceLevel::Peptide:
+          if (task.context == InferenceContext::Global)
+          {
+            append_column("score_peptide_global_score", &OpenSwathFeatureScoreRow::score_peptide_global_score);
+            append_column("score_peptide_global_pvalue", &OpenSwathFeatureScoreRow::score_peptide_global_pvalue);
+            append_column("score_peptide_global_qvalue", &OpenSwathFeatureScoreRow::score_peptide_global_qvalue);
+            append_column("score_peptide_global_pep", &OpenSwathFeatureScoreRow::score_peptide_global_pep);
+          }
+          else if (task.context == InferenceContext::ExperimentWide)
+          {
+            append_column("score_peptide_experiment_wide_score", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_score);
+            append_column("score_peptide_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pvalue);
+            append_column("score_peptide_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_qvalue);
+            append_column("score_peptide_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pep);
+          }
+          else if (task.context == InferenceContext::RunSpecific)
+          {
+            append_column("score_peptide_run_specific_score", &OpenSwathFeatureScoreRow::score_peptide_run_specific_score);
+            append_column("score_peptide_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_peptide_run_specific_pvalue);
+            append_column("score_peptide_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_peptide_run_specific_qvalue);
+            append_column("score_peptide_run_specific_pep", &OpenSwathFeatureScoreRow::score_peptide_run_specific_pep);
+          }
+          break;
+
+        case InferenceLevel::Protein:
+          if (task.context == InferenceContext::Global)
+          {
+            append_column("score_protein_global_score", &OpenSwathFeatureScoreRow::score_protein_global_score);
+            append_column("score_protein_global_pvalue", &OpenSwathFeatureScoreRow::score_protein_global_pvalue);
+            append_column("score_protein_global_qvalue", &OpenSwathFeatureScoreRow::score_protein_global_qvalue);
+            append_column("score_protein_global_pep", &OpenSwathFeatureScoreRow::score_protein_global_pep);
+          }
+          else if (task.context == InferenceContext::ExperimentWide)
+          {
+            append_column("score_protein_experiment_wide_score", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_score);
+            append_column("score_protein_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pvalue);
+            append_column("score_protein_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_qvalue);
+            append_column("score_protein_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pep);
+          }
+          else if (task.context == InferenceContext::RunSpecific)
+          {
+            append_column("score_protein_run_specific_score", &OpenSwathFeatureScoreRow::score_protein_run_specific_score);
+            append_column("score_protein_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_protein_run_specific_pvalue);
+            append_column("score_protein_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_protein_run_specific_qvalue);
+            append_column("score_protein_run_specific_pep", &OpenSwathFeatureScoreRow::score_protein_run_specific_pep);
+          }
+          break;
+
+        case InferenceLevel::Gene:
+          if (task.context == InferenceContext::Global)
+          {
+            append_column("score_gene_global_score", &OpenSwathFeatureScoreRow::score_gene_global_score);
+            append_column("score_gene_global_pvalue", &OpenSwathFeatureScoreRow::score_gene_global_pvalue);
+            append_column("score_gene_global_qvalue", &OpenSwathFeatureScoreRow::score_gene_global_qvalue);
+            append_column("score_gene_global_pep", &OpenSwathFeatureScoreRow::score_gene_global_pep);
+          }
+          else if (task.context == InferenceContext::ExperimentWide)
+          {
+            append_column("score_gene_experiment_wide_score", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_score);
+            append_column("score_gene_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pvalue);
+            append_column("score_gene_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_qvalue);
+            append_column("score_gene_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pep);
+          }
+          else if (task.context == InferenceContext::RunSpecific)
+          {
+            append_column("score_gene_run_specific_score", &OpenSwathFeatureScoreRow::score_gene_run_specific_score);
+            append_column("score_gene_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_gene_run_specific_pvalue);
+            append_column("score_gene_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_gene_run_specific_qvalue);
+            append_column("score_gene_run_specific_pep", &OpenSwathFeatureScoreRow::score_gene_run_specific_pep);
+          }
+          break;
+      }
+    }
+
+    return {include_ipf_peptide_id, columns};
   }
 
   static std::string inferenceTaskLabel_(const InferenceTask& task)
@@ -1194,6 +1308,38 @@ protected:
     }
   }
 
+  static void checkpointSQLiteDatabase_(const std::string& sqlite_path, const std::string& label)
+  {
+    const std::string wal_path = sqlite_path + "-wal";
+    const UInt64 wal_size_before = File::exists(wal_path) ? File::fileSize(wal_path) : 0;
+    OPENMS_LOG_INFO << "Checkpointing " << label;
+    if (wal_size_before > 0)
+    {
+      OPENMS_LOG_INFO << " (WAL " << (wal_size_before / (1024 * 1024)) << " MiB)";
+    }
+    OPENMS_LOG_INFO << "." << std::endl;
+
+    try
+    {
+      SqliteConnector conn(sqlite_path, SqliteConnector::SqlOpenMode::READWRITE);
+      conn.executeStatement("PRAGMA wal_checkpoint(TRUNCATE);");
+      conn.executeStatement("PRAGMA journal_mode=DELETE;");
+    }
+    catch (const Exception::BaseException& e)
+    {
+      OPENMS_LOG_WARN << "Failed to checkpoint " << label << ": " << e.getMessage() << std::endl;
+      return;
+    }
+
+    const UInt64 wal_size_after = File::exists(wal_path) ? File::fileSize(wal_path) : 0;
+    OPENMS_LOG_INFO << "Finished checkpointing " << label;
+    if (wal_size_after > 0)
+    {
+      OPENMS_LOG_INFO << " (remaining WAL " << (wal_size_after / (1024 * 1024)) << " MiB)";
+    }
+    OPENMS_LOG_INFO << "." << std::endl;
+  }
+
   static void sqliteCheckResult_(const int rc, sqlite3* db, const int expected, const char* action)
   {
     if (rc == expected)
@@ -1208,6 +1354,56 @@ protected:
   {
     sqliteCheckResult_(sqlite3_prepare_v2(db, statement.c_str(), -1, stmt, nullptr),
                        db, SQLITE_OK, "sqlite3_prepare_v2");
+  }
+
+  static std::string inferenceContextValue_(const InferenceContext context)
+  {
+    switch (context)
+    {
+      case InferenceContext::Global:
+        return "global";
+      case InferenceContext::ExperimentWide:
+        return "experiment-wide";
+      case InferenceContext::RunSpecific:
+        return "run-specific";
+    }
+    return "global";
+  }
+
+  template <typename RowHandler>
+  static Size readRunInferenceRows_(sqlite3* db,
+                                    const std::string& statement,
+                                    const Int64 run_id,
+                                    std::unordered_map<Int64, OpenSwathFeatureScoreRow>& row_by_feature,
+                                    RowHandler&& row_handler)
+  {
+    sqlite3_stmt* stmt = nullptr;
+    sqlitePrepareStatement_(db, &stmt, statement);
+    Size row_count = 0;
+    int step_result = SQLITE_DONE;
+    try
+    {
+      while ((step_result = sqlite3_step(stmt)) == SQLITE_ROW)
+      {
+        const Int64 feature_id = sqlite3_column_int64(stmt, 0);
+        auto& score_row = row_by_feature[feature_id];
+        score_row.run_id = run_id;
+        score_row.feature_id = feature_id;
+        row_handler(stmt, score_row);
+        ++row_count;
+      }
+      sqliteCheckResult_(step_result, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(stmt);
+      return row_count;
+    }
+    catch (...)
+    {
+      if (stmt != nullptr)
+      {
+        sqlite3_finalize(stmt);
+      }
+      throw;
+    }
   }
 
   static const std::array<const char*, 17>& featureMS1ParquetFields_()
@@ -1357,6 +1553,7 @@ protected:
       removeExistingPath_(workspace.output_path);
       ZipArchiveFile::zipDirectory(workspace.base_dir, workspace.output_path);
       ZipArchiveFile::writeSidecarIndex(workspace.output_path);
+      OPENMS_LOG_INFO << "Finished repacking workflow.oswpq archive." << std::endl;
     }
     workspace.dirty = false;
   }
@@ -1742,114 +1939,263 @@ protected:
       return;
     }
 
-    OPENMS_LOG_INFO << "Syncing inference scores back to workflow.oswpq." << std::endl;
-    OSWFile osw(bridge_osw);
-    OpenSwathParquetExportConfig config;
-    config.include_transition_data = false;
-    config.filters.exclude_decoys = false;
-    const auto feature_table = osw.readOpenSwathFeatureScoreTable(config);
-    std::unordered_map<Int64, std::unordered_map<Int64, const OpenSwathFeatureScoreRow*>> row_by_run_feature;
-    for (const auto& row : feature_table.rows)
+    const auto [include_ipf_peptide_id, score_members] = getInferenceScoreColumns_(tasks);
+    if (!include_ipf_peptide_id && score_members.empty())
     {
-      row_by_run_feature[row.run_id][row.feature_id] = &row;
+      return;
     }
 
     auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
     const auto run_id_array = ParquetFile::getColumn(runs_table, "run_id");
-    const std::unordered_set<std::string> replace_columns =
+    std::unordered_set<std::string> replace_columns;
+    replace_columns.reserve(score_members.size() + 1);
+    if (include_ipf_peptide_id)
     {
-      "ipf_peptide_id",
-      "score_ipf_precursor_peakgroup_pep",
-      "score_ipf_pep",
-      "score_ipf_qvalue",
-      "score_peptide_global_score",
-      "score_peptide_global_pvalue",
-      "score_peptide_global_qvalue",
-      "score_peptide_global_pep",
-      "score_peptide_experiment_wide_score",
-      "score_peptide_experiment_wide_pvalue",
-      "score_peptide_experiment_wide_qvalue",
-      "score_peptide_experiment_wide_pep",
-      "score_peptide_run_specific_score",
-      "score_peptide_run_specific_pvalue",
-      "score_peptide_run_specific_qvalue",
-      "score_peptide_run_specific_pep",
-      "score_protein_global_score",
-      "score_protein_global_pvalue",
-      "score_protein_global_qvalue",
-      "score_protein_global_pep",
-      "score_protein_experiment_wide_score",
-      "score_protein_experiment_wide_pvalue",
-      "score_protein_experiment_wide_qvalue",
-      "score_protein_experiment_wide_pep",
-      "score_protein_run_specific_score",
-      "score_protein_run_specific_pvalue",
-      "score_protein_run_specific_qvalue",
-      "score_protein_run_specific_pep",
-      "score_gene_global_score",
-      "score_gene_global_pvalue",
-      "score_gene_global_qvalue",
-      "score_gene_global_pep",
-      "score_gene_experiment_wide_score",
-      "score_gene_experiment_wide_pvalue",
-      "score_gene_experiment_wide_qvalue",
-      "score_gene_experiment_wide_pep",
-      "score_gene_run_specific_score",
-      "score_gene_run_specific_pvalue",
-      "score_gene_run_specific_qvalue",
-      "score_gene_run_specific_pep"
-    };
+      replace_columns.insert("ipf_peptide_id");
+    }
+    for (const auto& score_member : score_members)
+    {
+      replace_columns.insert(score_member.name);
+    }
 
-    using OptionalDoubleMember = std::optional<double> OpenSwathFeatureScoreRow::*;
-    static const std::array<std::pair<const char*, OptionalDoubleMember>, 39> score_members =
-    {{
-      {"score_ipf_precursor_peakgroup_pep", &OpenSwathFeatureScoreRow::score_ipf_precursor_peakgroup_pep},
-      {"score_ipf_pep", &OpenSwathFeatureScoreRow::score_ipf_pep},
-      {"score_ipf_qvalue", &OpenSwathFeatureScoreRow::score_ipf_qvalue},
-      {"score_peptide_global_score", &OpenSwathFeatureScoreRow::score_peptide_global_score},
-      {"score_peptide_global_pvalue", &OpenSwathFeatureScoreRow::score_peptide_global_pvalue},
-      {"score_peptide_global_qvalue", &OpenSwathFeatureScoreRow::score_peptide_global_qvalue},
-      {"score_peptide_global_pep", &OpenSwathFeatureScoreRow::score_peptide_global_pep},
-      {"score_peptide_experiment_wide_score", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_score},
-      {"score_peptide_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pvalue},
-      {"score_peptide_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_qvalue},
-      {"score_peptide_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pep},
-      {"score_peptide_run_specific_score", &OpenSwathFeatureScoreRow::score_peptide_run_specific_score},
-      {"score_peptide_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_peptide_run_specific_pvalue},
-      {"score_peptide_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_peptide_run_specific_qvalue},
-      {"score_peptide_run_specific_pep", &OpenSwathFeatureScoreRow::score_peptide_run_specific_pep},
-      {"score_protein_global_score", &OpenSwathFeatureScoreRow::score_protein_global_score},
-      {"score_protein_global_pvalue", &OpenSwathFeatureScoreRow::score_protein_global_pvalue},
-      {"score_protein_global_qvalue", &OpenSwathFeatureScoreRow::score_protein_global_qvalue},
-      {"score_protein_global_pep", &OpenSwathFeatureScoreRow::score_protein_global_pep},
-      {"score_protein_experiment_wide_score", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_score},
-      {"score_protein_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pvalue},
-      {"score_protein_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_qvalue},
-      {"score_protein_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pep},
-      {"score_protein_run_specific_score", &OpenSwathFeatureScoreRow::score_protein_run_specific_score},
-      {"score_protein_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_protein_run_specific_pvalue},
-      {"score_protein_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_protein_run_specific_qvalue},
-      {"score_protein_run_specific_pep", &OpenSwathFeatureScoreRow::score_protein_run_specific_pep},
-      {"score_gene_global_score", &OpenSwathFeatureScoreRow::score_gene_global_score},
-      {"score_gene_global_pvalue", &OpenSwathFeatureScoreRow::score_gene_global_pvalue},
-      {"score_gene_global_qvalue", &OpenSwathFeatureScoreRow::score_gene_global_qvalue},
-      {"score_gene_global_pep", &OpenSwathFeatureScoreRow::score_gene_global_pep},
-      {"score_gene_experiment_wide_score", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_score},
-      {"score_gene_experiment_wide_pvalue", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pvalue},
-      {"score_gene_experiment_wide_qvalue", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_qvalue},
-      {"score_gene_experiment_wide_pep", &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pep},
-      {"score_gene_run_specific_score", &OpenSwathFeatureScoreRow::score_gene_run_specific_score},
-      {"score_gene_run_specific_pvalue", &OpenSwathFeatureScoreRow::score_gene_run_specific_pvalue},
-      {"score_gene_run_specific_qvalue", &OpenSwathFeatureScoreRow::score_gene_run_specific_qvalue},
-      {"score_gene_run_specific_pep", &OpenSwathFeatureScoreRow::score_gene_run_specific_pep}
-    }};
+    SqliteConnector conn(bridge_osw, SqliteConnector::SqlOpenMode::READ_ONLY);
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
+    ProgressLogger bridge_read_progress;
+    bridge_read_progress.setLogType(ProgressLogger::CMD);
+    const auto query_steps = std::max<int64_t>(1, runs_table->num_rows() * static_cast<int64_t>(tasks.size()));
+    bridge_read_progress.startProgress(0, query_steps, "reading feature scores from temporary SQLite bridge for OSWPQ sync");
+    int64_t completed_query_steps = 0;
+
+    ProgressLogger progress_logger;
+    progress_logger.setLogType(ProgressLogger::CMD);
+    progress_logger.startProgress(0, runs_table->num_rows(), "syncing inference scores back to workflow.oswpq");
 
     for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
     {
       const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
+      std::unordered_map<Int64, OpenSwathFeatureScoreRow> row_by_feature;
+      OPENMS_LOG_INFO << "Reading inference scores from the temporary SQLite bridge for run_id="
+                      << run_id << "." << std::endl;
+
+      for (const auto& task : tasks)
+      {
+        const std::string run_filter = " FEATURE.RUN_ID = " + StringUtils::toStr(run_id) + " ";
+        Size loaded_rows = 0;
+        if (task.level == InferenceLevel::Peptidoform)
+        {
+          const std::string statement =
+            "SELECT FEATURE.ID, SCORE_IPF_BEST.PEPTIDE_ID, SCORE_IPF_BEST.PRECURSOR_PEAKGROUP_PEP, SCORE_IPF_BEST.PEP, SCORE_IPF_BEST.QVALUE "
+            "FROM FEATURE "
+            "INNER JOIN ("
+            "  SELECT FEATURE_ID, PEPTIDE_ID, PRECURSOR_PEAKGROUP_PEP, PEP, QVALUE "
+            "  FROM ("
+            "    SELECT FEATURE_ID, PEPTIDE_ID, PRECURSOR_PEAKGROUP_PEP, PEP, QVALUE, "
+            "           ROW_NUMBER() OVER (PARTITION BY FEATURE_ID ORDER BY PEP, PEPTIDE_ID) AS RN "
+            "    FROM SCORE_IPF"
+            "  ) "
+            "  WHERE RN = 1"
+            ") AS SCORE_IPF_BEST ON SCORE_IPF_BEST.FEATURE_ID = FEATURE.ID "
+            "WHERE " + run_filter +
+            "ORDER BY FEATURE.ID;";
+          loaded_rows = readRunInferenceRows_(db, statement, run_id, row_by_feature,
+            [&](sqlite3_stmt* stmt, OpenSwathFeatureScoreRow& row)
+            {
+              if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) row.ipf_peptide_id = sqlite3_column_int64(stmt, 1);
+              if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) row.score_ipf_precursor_peakgroup_pep = sqlite3_column_double(stmt, 2);
+              if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) row.score_ipf_pep = sqlite3_column_double(stmt, 3);
+              if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) row.score_ipf_qvalue = sqlite3_column_double(stmt, 4);
+            });
+        }
+        else if (task.level == InferenceLevel::Peptide && task.context.has_value())
+        {
+          const std::string context = inferenceContextValue_(*task.context);
+          std::string statement =
+            "SELECT FEATURE.ID, SCORE_PEPTIDE.SCORE, SCORE_PEPTIDE.PVALUE, SCORE_PEPTIDE.QVALUE, SCORE_PEPTIDE.PEP "
+            "FROM FEATURE "
+            "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON FEATURE.PRECURSOR_ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
+            "INNER JOIN SCORE_PEPTIDE ON SCORE_PEPTIDE.PEPTIDE_ID = PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID ";
+          if (*task.context == InferenceContext::Global)
+          {
+            statement += "AND SCORE_PEPTIDE.CONTEXT = '" + context + "' ";
+          }
+          else
+          {
+            statement += "AND SCORE_PEPTIDE.RUN_ID = FEATURE.RUN_ID "
+                         "AND SCORE_PEPTIDE.CONTEXT = '" + context + "' ";
+          }
+          statement += "WHERE " + run_filter + "ORDER BY FEATURE.ID;";
+          loaded_rows = readRunInferenceRows_(db, statement, run_id, row_by_feature,
+            [&](sqlite3_stmt* stmt, OpenSwathFeatureScoreRow& row)
+            {
+              OptionalDoubleMember score_member = nullptr;
+              OptionalDoubleMember pvalue_member = nullptr;
+              OptionalDoubleMember qvalue_member = nullptr;
+              OptionalDoubleMember pep_member = nullptr;
+              switch (*task.context)
+              {
+                case InferenceContext::Global:
+                  score_member = &OpenSwathFeatureScoreRow::score_peptide_global_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_peptide_global_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_peptide_global_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_peptide_global_pep;
+                  break;
+                case InferenceContext::ExperimentWide:
+                  score_member = &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pep;
+                  break;
+                case InferenceContext::RunSpecific:
+                  score_member = &OpenSwathFeatureScoreRow::score_peptide_run_specific_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_peptide_run_specific_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_peptide_run_specific_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_peptide_run_specific_pep;
+                  break;
+              }
+              if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) row.*score_member = sqlite3_column_double(stmt, 1);
+              if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) row.*pvalue_member = sqlite3_column_double(stmt, 2);
+              if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) row.*qvalue_member = sqlite3_column_double(stmt, 3);
+              if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) row.*pep_member = sqlite3_column_double(stmt, 4);
+            });
+        }
+        else if (task.level == InferenceLevel::Protein && task.context.has_value())
+        {
+          const std::string context = inferenceContextValue_(*task.context);
+          std::string statement =
+            "WITH UNIQUE_PEPTIDE_PROTEIN_MAPPING AS ("
+            "  SELECT PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID AS PEPTIDE_ID, PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "
+            "  FROM ("
+            "    SELECT PEPTIDE_ID, COUNT(*) AS NUM_PROTEINS "
+            "    FROM PEPTIDE_PROTEIN_MAPPING "
+            "    GROUP BY PEPTIDE_ID"
+            "  ) AS PROTEINS_PER_PEPTIDE "
+            "  INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEINS_PER_PEPTIDE.PEPTIDE_ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
+            "  WHERE NUM_PROTEINS = 1"
+            ") "
+            "SELECT FEATURE.ID, SCORE_PROTEIN.SCORE, SCORE_PROTEIN.PVALUE, SCORE_PROTEIN.QVALUE, SCORE_PROTEIN.PEP "
+            "FROM FEATURE "
+            "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON FEATURE.PRECURSOR_ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
+            "INNER JOIN UNIQUE_PEPTIDE_PROTEIN_MAPPING ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = UNIQUE_PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
+            "INNER JOIN SCORE_PROTEIN ON SCORE_PROTEIN.PROTEIN_ID = UNIQUE_PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID ";
+          if (*task.context == InferenceContext::Global)
+          {
+            statement += "AND SCORE_PROTEIN.CONTEXT = '" + context + "' ";
+          }
+          else
+          {
+            statement += "AND SCORE_PROTEIN.RUN_ID = FEATURE.RUN_ID "
+                         "AND SCORE_PROTEIN.CONTEXT = '" + context + "' ";
+          }
+          statement += "WHERE " + run_filter + "ORDER BY FEATURE.ID;";
+          loaded_rows = readRunInferenceRows_(db, statement, run_id, row_by_feature,
+            [&](sqlite3_stmt* stmt, OpenSwathFeatureScoreRow& row)
+            {
+              OptionalDoubleMember score_member = nullptr;
+              OptionalDoubleMember pvalue_member = nullptr;
+              OptionalDoubleMember qvalue_member = nullptr;
+              OptionalDoubleMember pep_member = nullptr;
+              switch (*task.context)
+              {
+                case InferenceContext::Global:
+                  score_member = &OpenSwathFeatureScoreRow::score_protein_global_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_protein_global_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_protein_global_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_protein_global_pep;
+                  break;
+                case InferenceContext::ExperimentWide:
+                  score_member = &OpenSwathFeatureScoreRow::score_protein_experiment_wide_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_protein_experiment_wide_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pep;
+                  break;
+                case InferenceContext::RunSpecific:
+                  score_member = &OpenSwathFeatureScoreRow::score_protein_run_specific_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_protein_run_specific_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_protein_run_specific_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_protein_run_specific_pep;
+                  break;
+              }
+              if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) row.*score_member = sqlite3_column_double(stmt, 1);
+              if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) row.*pvalue_member = sqlite3_column_double(stmt, 2);
+              if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) row.*qvalue_member = sqlite3_column_double(stmt, 3);
+              if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) row.*pep_member = sqlite3_column_double(stmt, 4);
+            });
+        }
+        else if (task.level == InferenceLevel::Gene && task.context.has_value())
+        {
+          const std::string context = inferenceContextValue_(*task.context);
+          std::string statement =
+            "WITH UNIQUE_PEPTIDE_GENE_MAPPING AS ("
+            "  SELECT PEPTIDE_GENE_MAPPING.PEPTIDE_ID AS PEPTIDE_ID, PEPTIDE_GENE_MAPPING.GENE_ID "
+            "  FROM ("
+            "    SELECT PEPTIDE_ID, COUNT(*) AS NUM_GENES "
+            "    FROM PEPTIDE_GENE_MAPPING "
+            "    GROUP BY PEPTIDE_ID"
+            "  ) AS GENES_PER_PEPTIDE "
+            "  INNER JOIN PEPTIDE_GENE_MAPPING ON GENES_PER_PEPTIDE.PEPTIDE_ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
+            "  WHERE NUM_GENES = 1"
+            ") "
+            "SELECT FEATURE.ID, SCORE_GENE.SCORE, SCORE_GENE.PVALUE, SCORE_GENE.QVALUE, SCORE_GENE.PEP "
+            "FROM FEATURE "
+            "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON FEATURE.PRECURSOR_ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
+            "INNER JOIN UNIQUE_PEPTIDE_GENE_MAPPING ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = UNIQUE_PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
+            "INNER JOIN SCORE_GENE ON SCORE_GENE.GENE_ID = UNIQUE_PEPTIDE_GENE_MAPPING.GENE_ID ";
+          if (*task.context == InferenceContext::Global)
+          {
+            statement += "AND SCORE_GENE.CONTEXT = '" + context + "' ";
+          }
+          else
+          {
+            statement += "AND SCORE_GENE.RUN_ID = FEATURE.RUN_ID "
+                         "AND SCORE_GENE.CONTEXT = '" + context + "' ";
+          }
+          statement += "WHERE " + run_filter + "ORDER BY FEATURE.ID;";
+          loaded_rows = readRunInferenceRows_(db, statement, run_id, row_by_feature,
+            [&](sqlite3_stmt* stmt, OpenSwathFeatureScoreRow& row)
+            {
+              OptionalDoubleMember score_member = nullptr;
+              OptionalDoubleMember pvalue_member = nullptr;
+              OptionalDoubleMember qvalue_member = nullptr;
+              OptionalDoubleMember pep_member = nullptr;
+              switch (*task.context)
+              {
+                case InferenceContext::Global:
+                  score_member = &OpenSwathFeatureScoreRow::score_gene_global_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_gene_global_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_gene_global_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_gene_global_pep;
+                  break;
+                case InferenceContext::ExperimentWide:
+                  score_member = &OpenSwathFeatureScoreRow::score_gene_experiment_wide_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_gene_experiment_wide_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pep;
+                  break;
+                case InferenceContext::RunSpecific:
+                  score_member = &OpenSwathFeatureScoreRow::score_gene_run_specific_score;
+                  pvalue_member = &OpenSwathFeatureScoreRow::score_gene_run_specific_pvalue;
+                  qvalue_member = &OpenSwathFeatureScoreRow::score_gene_run_specific_qvalue;
+                  pep_member = &OpenSwathFeatureScoreRow::score_gene_run_specific_pep;
+                  break;
+              }
+              if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) row.*score_member = sqlite3_column_double(stmt, 1);
+              if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) row.*pvalue_member = sqlite3_column_double(stmt, 2);
+              if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) row.*qvalue_member = sqlite3_column_double(stmt, 3);
+              if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) row.*pep_member = sqlite3_column_double(stmt, 4);
+            });
+        }
+
+        ++completed_query_steps;
+        bridge_read_progress.setProgress(completed_query_steps);
+        OPENMS_LOG_INFO << "Loaded " << loaded_rows << " feature-score rows for "
+                        << inferenceTaskLabel_(task) << " sync in run_id=" << run_id << "." << std::endl;
+      }
+
       const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
       auto features_table = ParquetFile::readTable(features_path);
       const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
+      OPENMS_LOG_INFO << "Updating OSWPQ feature parquet for run_id=" << run_id
+                      << " (" << features_table->num_rows() << " rows)." << std::endl;
 
       arrow::Int64Builder ipf_peptide_id_builder;
       std::vector<std::unique_ptr<arrow::DoubleBuilder>> double_builders;
@@ -1862,55 +2208,58 @@ protected:
       for (int64_t row = 0; row < features_table->num_rows(); ++row)
       {
         const Int64 feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
-        const auto run_it = row_by_run_feature.find(run_id);
         const OpenSwathFeatureScoreRow* score_row = nullptr;
-        if (run_it != row_by_run_feature.end())
+        const auto feature_it = row_by_feature.find(feature_id);
+        if (feature_it != row_by_feature.end())
         {
-          const auto feature_it = run_it->second.find(feature_id);
-          if (feature_it != run_it->second.end())
-          {
-            score_row = feature_it->second;
-          }
+          score_row = &feature_it->second;
         }
 
-        if (score_row != nullptr && score_row->ipf_peptide_id.has_value())
+        if (include_ipf_peptide_id && score_row != nullptr && score_row->ipf_peptide_id.has_value())
         {
           ParquetFile::appendOrThrow(ipf_peptide_id_builder.Append(*score_row->ipf_peptide_id), "ipf_peptide_id");
         }
-        else
+        else if (include_ipf_peptide_id)
         {
           ParquetFile::appendOrThrow(ipf_peptide_id_builder.AppendNull(), "ipf_peptide_id");
         }
 
         for (Size column = 0; column < score_members.size(); ++column)
         {
-          const auto member_value = (score_row != nullptr) ? score_row->*(score_members[column].second) : std::optional<double>{};
+          const auto member_value = (score_row != nullptr) ? score_row->*(score_members[column].member) : std::optional<double>{};
           if (member_value.has_value())
           {
-            ParquetFile::appendOrThrow(double_builders[column]->Append(*member_value), score_members[column].first);
+            ParquetFile::appendOrThrow(double_builders[column]->Append(*member_value), score_members[column].name);
           }
           else
           {
-            ParquetFile::appendOrThrow(double_builders[column]->AppendNull(), score_members[column].first);
+            ParquetFile::appendOrThrow(double_builders[column]->AppendNull(), score_members[column].name);
           }
         }
       }
 
       std::vector<std::shared_ptr<arrow::Field>> extra_fields;
       std::vector<std::shared_ptr<arrow::Array>> extra_arrays;
-      extra_fields.reserve(score_members.size() + 1);
-      extra_arrays.reserve(score_members.size() + 1);
-      extra_fields.push_back(arrow::field("ipf_peptide_id", arrow::int64(), true));
-      extra_arrays.push_back(ParquetFile::finishArray(ipf_peptide_id_builder, "ipf_peptide_id"));
+      extra_fields.reserve(score_members.size() + (include_ipf_peptide_id ? 1 : 0));
+      extra_arrays.reserve(score_members.size() + (include_ipf_peptide_id ? 1 : 0));
+      if (include_ipf_peptide_id)
+      {
+        extra_fields.push_back(arrow::field("ipf_peptide_id", arrow::int64(), true));
+        extra_arrays.push_back(ParquetFile::finishArray(ipf_peptide_id_builder, "ipf_peptide_id"));
+      }
       for (Size column = 0; column < score_members.size(); ++column)
       {
-        extra_fields.push_back(arrow::field(score_members[column].first, arrow::float64(), true));
-        extra_arrays.push_back(ParquetFile::finishArray(*double_builders[column], score_members[column].first));
+        extra_fields.push_back(arrow::field(score_members[column].name, arrow::float64(), true));
+        extra_arrays.push_back(ParquetFile::finishArray(*double_builders[column], score_members[column].name));
       }
 
       replaceParquetColumns_(features_path, replace_columns, extra_fields, extra_arrays);
+      progress_logger.setProgress(run_row + 1);
     }
 
+    bridge_read_progress.endProgress();
+    progress_logger.endProgress();
+    OPENMS_LOG_INFO << "Finished syncing inference scores back to workflow.oswpq." << std::endl;
     workspace.dirty = true;
   }
 
@@ -2635,14 +2984,17 @@ protected:
       else
       {
         OSWPQWorkspace workflow_workspace = prepareOSWPQWorkspace_(workflow_output);
+        const bool keep_intermediate_files = toBool_(getStringOption_("workflow:keep_intermediate_files"));
         try
         {
           buildOSWPQSQLiteBridge_(workflow_workspace, workflow_bridge_osw, prepared_library_pqp, enable_uis_scoring);
           runInference_(workflow_bridge_osw);
-          syncInferenceScoresToOSWPQ_(workflow_bridge_osw, workflow_workspace);
+          checkpointSQLiteDatabase_(workflow_bridge_osw, "temporary SQLite bridge before export");
           runExports_(workflow_bridge_osw, input_files, out_dir);
-          if (toBool_(getStringOption_("workflow:keep_intermediate_files")))
+          OPENMS_LOG_INFO << "Finished exports from temporary SQLite bridge." << std::endl;
+          if (keep_intermediate_files)
           {
+            syncInferenceScoresToOSWPQ_(workflow_bridge_osw, workflow_workspace);
             commitOSWPQWorkspace_(workflow_workspace);
           }
           removeExistingPath_(workflow_bridge_osw);
