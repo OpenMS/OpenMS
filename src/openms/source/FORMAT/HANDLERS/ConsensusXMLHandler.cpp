@@ -1033,48 +1033,93 @@ namespace OpenMS::Internal
       }
 
       /**
-        @brief Restores the data arrays of @p group and removes the metavalues that were consumed.
+        @brief Moves every metavalue this encoding owns out of @p meta, in a single pass.
 
-        @return false if quantities were present but belong to a different set of proteins than @p group
-                (they are removed in that case, and @p group is left without data arrays).
+        The caller then works on the returned map. Reading and erasing the entries directly on @p meta
+        once per group is quadratic in the group count: MetaInfoInterface is backed by a flat_map, so
+        every erase memmoves the tail and every key enumeration allocates one std::string per metavalue.
+
+        Owned means the base entry "GROUPNAME_INDEX" and its quantity entries "GROUPNAME_INDEX_NAME";
+        anything else on the ProteinIdentification is left untouched.
       */
-      static bool getQuantMetaValues(MetaInfoInterface& meta, ProteinIdentification::ProteinGroup& group,
-                                     const std::string& group_key)
+      static std::map<std::string, DataValue> extractGroupMetaValues(MetaInfoInterface& meta, const std::string& group_name)
       {
-        const std::string ref_key = group_key + refSuffix();
-        if (!meta.metaValueExists(ref_key)) { return true; } // no quantities for this group
-
-        const StringList stored_accessions = meta.getMetaValue(ref_key).toStringList();
-        const bool matches = stored_accessions == group.accessions;
-        meta.removeMetaValue(ref_key);
-        if (!matches)
-        {
-          removeQuantMetaValues(meta, group_key, /*exact_group=*/true);
-          return false;
-        }
-
-        // collect everything stored under this group, keyed by array name
-        const std::string prefix = group_key + "_";
         std::vector<std::string> keys;
         meta.getKeys(keys);
 
+        std::map<std::string, DataValue> owned;
+        std::vector<std::pair<std::string, DataValue>> kept;
+        kept.reserve(keys.size());
+        for (const std::string& key : keys)
+        {
+          if (isGroupKey(key, group_name)) { owned.emplace(key, meta.getMetaValue(key)); }
+          else { kept.emplace_back(key, meta.getMetaValue(key)); }
+        }
+        if (owned.empty()) { return owned; } // nothing to do - do not disturb the metavalues at all
+
+        // Rebuilding beats erasing one by one. Order is restored exactly: the flat_map is sorted by
+        // MetaInfoRegistry index, which is a property of the name and does not change on re-insert.
+        meta.clearMetaInfo();
+        for (auto& [key, value] : kept) { meta.setMetaValue(key, std::move(value)); }
+        return owned;
+      }
+
+      /// True if @p key is the base entry or a quantity entry of some group of @p group_name
+      static bool isGroupKey(const std::string& key, const std::string& group_name)
+      {
+        const std::string prefix = group_name + "_";
+        if (key.compare(0, prefix.size(), prefix) != 0) { return false; }
+        const std::string rest = key.substr(prefix.size());
+        const auto sep = rest.find('_');
+        const auto digits_end = (sep == std::string::npos) ? rest.size() : sep;
+        if (digits_end == 0) { return false; }
+        return std::all_of(rest.begin(), rest.begin() + digits_end, [](unsigned char c) { return std::isdigit(c); });
+      }
+
+      /**
+        @brief Restores the data arrays of @p group from @p owned, consuming the entries it uses.
+
+        @return false if quantities were present but belong to a different set of proteins than @p group
+                (they are dropped in that case, and @p group is left without data arrays).
+      */
+      static bool getQuantMetaValues(std::map<std::string, DataValue>& owned, ProteinIdentification::ProteinGroup& group,
+                                     const std::string& group_key)
+      {
+        const std::string prefix = group_key + "_";
+        // the entries of this group are a contiguous run in the ordered map
+        auto first = owned.lower_bound(prefix);
+        auto last = first;
+        while (last != owned.end() && last->first.compare(0, prefix.size(), prefix) == 0) { ++last; }
+
+        auto ref_it = owned.find(group_key + refSuffix());
+        if (ref_it == owned.end())
+        {
+          owned.erase(owned.find(group_key)); // consume the base entry, nothing else to restore
+          return true;
+        }
+
+        const bool matches = ref_it->second.toStringList() == group.accessions;
         std::map<std::string, DoubleList> floats;
         std::map<std::string, IntList> integers;
         std::map<std::string, StringList> strings;
-        for (const std::string& key : keys)
+        if (matches)
         {
-          if (key.compare(0, prefix.size(), prefix) != 0) { continue; }
-          const std::string array_name = key.substr(prefix.size());
-          const DataValue& value = meta.getMetaValue(key);
-          switch (value.valueType())
+          for (auto it = first; it != last; ++it)
           {
-            case DataValue::DOUBLE_LIST: floats[array_name] = value.toDoubleList(); break;
-            case DataValue::INT_LIST: integers[array_name] = value.toIntList(); break;
-            case DataValue::STRING_LIST: strings[array_name] = value.toStringList(); break;
-            default: continue; // not ours - leave it alone
+            if (it == ref_it) { continue; } // the ownership record, not a data array
+            const std::string array_name = it->first.substr(prefix.size());
+            switch (it->second.valueType())
+            {
+              case DataValue::DOUBLE_LIST: floats[array_name] = it->second.toDoubleList(); break;
+              case DataValue::INT_LIST: integers[array_name] = it->second.toIntList(); break;
+              case DataValue::STRING_LIST: strings[array_name] = it->second.toStringList(); break;
+              default: break; // the reference entry itself, or something we did not write
+            }
           }
-          meta.removeMetaValue(key);
         }
+        owned.erase(first, last);
+        owned.erase(owned.find(group_key));
+        if (!matches) { return false; }
 
         if (floats.empty() && integers.empty() && strings.empty()) { return true; }
 
@@ -1199,14 +1244,21 @@ namespace OpenMS::Internal
     groups.clear();
     if (last_meta_ == nullptr) { return; } // IdentificationRun without any ProteinIdentification
 
+    // Take every metavalue belonging to this group name out of the ProteinIdentification in ONE pass,
+    // and work on the copy below. Reading and erasing them per group instead is quadratic in the group
+    // count: the backing store is a flat_map, so each erase memmoves the tail, and enumerating the keys
+    // materialises one std::string per metavalue every time. With ~8 metavalues per quantified group
+    // that took 6.4 s to load 4000 groups, against 70 ms for the same groups without quantities.
+    std::map<std::string, DataValue> owned = ProteinGroupQuant::extractGroupMetaValues(*last_meta_, group_name);
+
     Size g_id = 0;
     std::string current_meta = group_name + "_" + StringUtils::toStr(g_id);
     StringList values;
-    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
-    {
+    for (auto base_it = owned.find(current_meta); base_it != owned.end(); base_it = owned.find(current_meta))
+    { // assumes groups have incremental g_IDs
       // convert to proper ProteinGroup
       ProteinIdentification::ProteinGroup g;
-      StringUtils::split(StringUtils::toStr(last_meta_->getMetaValue(current_meta)), ',', values);
+      StringUtils::split(StringUtils::toStr(base_it->second), ',', values);
       if (values.size() < 2)
       {
         fatalError(LOAD,std::string("Invalid UserParam for ProteinGroups (not enough values)'"));
@@ -1217,9 +1269,8 @@ namespace OpenMS::Internal
         g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
       }
 
-      // Restore the quantitative data arrays, if this group has any. Consumes (and removes) the
-      // corresponding metavalues so they do not linger as stray UserParams on the ProteinIdentification.
-      if (!ProteinGroupQuant::getQuantMetaValues(*last_meta_, g, current_meta))
+      // Restore the quantitative data arrays, if this group has any.
+      if (!ProteinGroupQuant::getQuantMetaValues(owned, g, current_meta))
       {
         warning(LOAD, std::string("Quantitative annotation of protein group '") + current_meta
                         + "' does not belong to that group and was discarded. The file was most likely "
@@ -1227,13 +1278,11 @@ namespace OpenMS::Internal
       }
 
       groups.push_back(std::move(g));
-      last_meta_->removeMetaValue(current_meta);
       current_meta = group_name + "_" + StringUtils::toStr(++g_id);
     }
-
-    // Groups whose base entry is gone, but whose quantities survived a renumbering elsewhere, would
-    // otherwise be silently re-attached to the wrong group on the next store.
-    ProteinGroupQuant::removeQuantMetaValues(*last_meta_, group_name);
+    // Anything left in `owned` belonged to a group whose base entry is gone - quantities that survived
+    // a renumbering elsewhere. They are simply not written back, so they cannot be re-attached to the
+    // wrong group on the next store.
   }
 
 } // namespace OpenMS
