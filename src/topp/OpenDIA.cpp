@@ -32,6 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -149,6 +150,106 @@ protected:
     bool archive_input = false;
     bool dirty = false;
     std::unique_ptr<File::TempDir> temp_dir;
+  };
+
+  struct PreparedLibraryPrecursor_
+  {
+    Int64 precursor_id = -1;
+    std::string traml_id;
+    std::string group_label;
+    double precursor_mz = 0.0;
+    Int32 charge = 0;
+    std::optional<double> library_intensity;
+    std::optional<double> library_rt;
+    std::optional<double> library_drift_time;
+    bool decoy = false;
+  };
+
+  struct PreparedLibraryPeptide_
+  {
+    Int64 peptide_id = -1;
+    std::string unmodified_sequence;
+    std::string modified_sequence;
+    bool decoy = false;
+  };
+
+  struct PreparedLibraryProtein_
+  {
+    Int64 protein_id = -1;
+    std::string accession;
+    bool decoy = false;
+  };
+
+  struct PreparedLibraryGene_
+  {
+    Int64 gene_id = -1;
+    std::string name;
+    std::optional<bool> decoy;
+  };
+
+  struct PreparedLibraryTransition_
+  {
+    Int64 transition_id = -1;
+    std::vector<Int64> precursor_ids;
+    std::string traml_id;
+    double product_mz = 0.0;
+    Int32 charge = 0;
+    std::string type;
+    Int32 ordinal = 0;
+    std::string annotation;
+    bool detecting = false;
+    std::optional<double> library_intensity;
+    bool decoy = false;
+    std::vector<Int64> peptide_ids;
+  };
+
+  struct PreparedLibraryLookup_
+  {
+    std::unordered_map<Int64, PreparedLibraryPrecursor_> precursors;
+    std::unordered_map<Int64, PreparedLibraryPeptide_> peptides;
+    std::unordered_map<Int64, PreparedLibraryProtein_> proteins;
+    std::unordered_map<Int64, PreparedLibraryGene_> genes;
+    std::unordered_map<Int64, std::vector<Int64>> precursor_to_peptides;
+    std::unordered_map<Int64, std::vector<Int64>> peptide_to_proteins;
+    std::unordered_map<Int64, std::vector<Int64>> peptide_to_genes;
+    std::unordered_map<Int64, std::string> protein_names_by_peptide;
+    std::unordered_map<Int64, std::string> gene_names_by_peptide;
+    std::unordered_map<Int64, Int64> unique_protein_by_peptide;
+    std::unordered_map<Int64, Int64> unique_gene_by_peptide;
+    std::unordered_map<Int64, PreparedLibraryTransition_> transitions;
+  };
+
+  struct LevelContextResultMaps_
+  {
+    std::unordered_map<Int64, LevelContextResultRow> global;
+    std::map<std::pair<Int64, Int64>, LevelContextResultRow> experiment_wide;
+    std::map<std::pair<Int64, Int64>, LevelContextResultRow> run_specific;
+  };
+
+  struct FeatureTransitionObservation_
+  {
+    std::optional<Int64> run_id;
+    std::optional<Int64> feature_id;
+    std::vector<std::optional<double>> values;
+    std::optional<double> score;
+    std::optional<Int32> rank;
+    std::optional<double> pvalue;
+    std::optional<double> qvalue;
+    std::optional<double> pep;
+  };
+
+  struct TransitionAggregation_
+  {
+    std::vector<std::string> areas;
+    std::vector<std::string> apices;
+    std::vector<std::string> annotations;
+  };
+
+  struct ExportQValueMaps_
+  {
+    std::unordered_map<Int64, double> global;
+    std::map<std::pair<Int64, Int64>, double> experiment_wide;
+    std::map<std::pair<Int64, Int64>, double> run_specific;
   };
 
   static bool toBool_(const std::string& value)
@@ -1370,6 +1471,737 @@ protected:
     return "global";
   }
 
+
+  static std::string entityIdColumnName_(const InferenceLevel level)
+  {
+    switch (level)
+    {
+      case InferenceLevel::Peptide: return "peptide_id";
+      case InferenceLevel::Protein: return "protein_id";
+      case InferenceLevel::Gene: return "gene_id";
+      case InferenceLevel::Peptidoform: break;
+    }
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Direct OSWPQ level-context helpers do not support peptidoform inference.");
+  }
+
+  static std::string inferenceParquetPath_(const OSWPQWorkspace& workspace, const InferenceLevel level)
+  {
+    return workspace.base_dir + "/inference/score_" + toString(level) + ".parquet";
+  }
+
+  static std::vector<std::string> sqliteTableColumns_(SqliteConnector& conn, const std::string& table_name)
+  {
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
+    sqlite3_stmt* stmt = nullptr;
+    sqlitePrepareStatement_(db, &stmt, "PRAGMA table_info('" + table_name + "');");
+    std::vector<std::string> columns;
+    int step_result = SQLITE_DONE;
+    while ((step_result = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+      const auto* text = sqlite3_column_text(stmt, 1);
+      columns.emplace_back(text != nullptr ? reinterpret_cast<const char*>(text) : "");
+    }
+    sqliteCheckResult_(step_result, db, SQLITE_DONE, "sqlite3_step");
+    sqlite3_finalize(stmt);
+    return columns;
+  }
+
+  static bool sqliteTableHasColumn_(SqliteConnector& conn, const std::string& table_name, const std::string& column_name)
+  {
+    const auto columns = sqliteTableColumns_(conn, table_name);
+    return std::find(columns.begin(), columns.end(), column_name) != columns.end();
+  }
+
+  static std::string parquetGeneNameSelect_(SqliteConnector& conn)
+  {
+    if (!conn.tableExists("GENE"))
+    {
+      return "NULL";
+    }
+    if (sqliteTableHasColumn_(conn, "GENE", "GENE_NAME"))
+    {
+      return "GENE.GENE_NAME";
+    }
+    return "CAST(GENE.ID AS TEXT)";
+  }
+
+  static std::string parquetGeneDecoySelect_(SqliteConnector& conn)
+  {
+    if (!conn.tableExists("GENE"))
+    {
+      return "NULL";
+    }
+    if (sqliteTableHasColumn_(conn, "GENE", "DECOY"))
+    {
+      return "GENE.DECOY";
+    }
+    return "NULL";
+  }
+
+  static std::string parquetTransitionAnnotationSelect_(SqliteConnector& conn)
+  {
+    const std::string fallback_annotation =
+      "TRANSITION.TYPE || CAST(TRANSITION.ORDINAL AS TEXT) || '^' || CAST(TRANSITION.CHARGE AS TEXT)";
+    if (sqliteTableHasColumn_(conn, "TRANSITION", "ANNOTATION"))
+    {
+      return "COALESCE(TRANSITION.ANNOTATION, " + fallback_annotation + ")";
+    }
+    return fallback_annotation;
+  }
+
+  static bool betterLevelContextResult_(const LevelContextResultRow& candidate, const LevelContextResultRow& current)
+  {
+    if (candidate.pep != current.pep)
+    {
+      return candidate.pep < current.pep;
+    }
+    if (candidate.qvalue != current.qvalue)
+    {
+      return candidate.qvalue < current.qvalue;
+    }
+    if (candidate.score != current.score)
+    {
+      return candidate.score > current.score;
+    }
+    return candidate.entity_id < current.entity_id;
+  }
+
+  static void appendUniqueEntity_(std::vector<Int64>& entities, const Int64 entity_id)
+  {
+    if (std::find(entities.begin(), entities.end(), entity_id) == entities.end())
+    {
+      entities.push_back(entity_id);
+    }
+  }
+
+  static std::string joinStrings_(const std::vector<std::string>& values)
+  {
+    std::string joined;
+    for (Size i = 0; i < values.size(); ++i)
+    {
+      if (i != 0)
+      {
+        joined += ";";
+      }
+      joined += values[i];
+    }
+    return joined;
+  }
+
+  PreparedLibraryLookup_ loadPreparedLibraryLookup_(const std::string& prepared_library_pqp,
+                                                    const bool load_transition_metadata) const
+  {
+    PreparedLibraryLookup_ lookup;
+    SqliteConnector conn(prepared_library_pqp, SqliteConnector::SqlOpenMode::READ_ONLY);
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
+    const auto text_at = [](sqlite3_stmt* stmt, const int column) -> std::string
+    {
+      const auto* text = sqlite3_column_text(stmt, column);
+      return text != nullptr ? reinterpret_cast<const char*>(text) : "";
+    };
+
+    {
+      const bool has_library_drift_time = sqliteTableHasColumn_(conn, "PRECURSOR", "LIBRARY_DRIFT_TIME");
+      sqlite3_stmt* stmt = nullptr;
+      sqlitePrepareStatement_(db, &stmt,
+        "SELECT ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, "
+        + std::string(has_library_drift_time ? "LIBRARY_DRIFT_TIME" : "NULL") +
+        ", DECOY FROM PRECURSOR;");
+      int step_result = SQLITE_DONE;
+      while ((step_result = sqlite3_step(stmt)) == SQLITE_ROW)
+      {
+        PreparedLibraryPrecursor_ precursor;
+        precursor.precursor_id = sqlite3_column_int64(stmt, 0);
+        precursor.traml_id = text_at(stmt, 1);
+        precursor.group_label = text_at(stmt, 2);
+        precursor.precursor_mz = sqlite3_column_double(stmt, 3);
+        precursor.charge = static_cast<Int32>(sqlite3_column_int(stmt, 4));
+        if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.library_intensity = sqlite3_column_double(stmt, 5);
+        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.library_rt = sqlite3_column_double(stmt, 6);
+        if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) precursor.library_drift_time = sqlite3_column_double(stmt, 7);
+        precursor.decoy = sqlite3_column_int(stmt, 8) != 0;
+        lookup.precursors[precursor.precursor_id] = std::move(precursor);
+      }
+      sqliteCheckResult_(step_result, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(stmt);
+    }
+
+    {
+      sqlite3_stmt* stmt = nullptr;
+      sqlitePrepareStatement_(db, &stmt,
+        "SELECT ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY FROM PEPTIDE;");
+      int step_result = SQLITE_DONE;
+      while ((step_result = sqlite3_step(stmt)) == SQLITE_ROW)
+      {
+        PreparedLibraryPeptide_ peptide;
+        peptide.peptide_id = sqlite3_column_int64(stmt, 0);
+        peptide.unmodified_sequence = text_at(stmt, 1);
+        peptide.modified_sequence = text_at(stmt, 2);
+        peptide.decoy = sqlite3_column_int(stmt, 3) != 0;
+        lookup.peptides[peptide.peptide_id] = std::move(peptide);
+      }
+      sqliteCheckResult_(step_result, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(stmt);
+    }
+
+    {
+      sqlite3_stmt* stmt = nullptr;
+      sqlitePrepareStatement_(db, &stmt,
+        "SELECT PRECURSOR_ID, PEPTIDE_ID FROM PRECURSOR_PEPTIDE_MAPPING ORDER BY PRECURSOR_ID, PEPTIDE_ID;");
+      int step_result = SQLITE_DONE;
+      while ((step_result = sqlite3_step(stmt)) == SQLITE_ROW)
+      {
+        lookup.precursor_to_peptides[sqlite3_column_int64(stmt, 0)].push_back(sqlite3_column_int64(stmt, 1));
+      }
+      sqliteCheckResult_(step_result, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(stmt);
+    }
+
+    if (conn.tableExists("PROTEIN") && conn.tableExists("PEPTIDE_PROTEIN_MAPPING"))
+    {
+      sqlite3_stmt* protein_stmt = nullptr;
+      sqlitePrepareStatement_(db, &protein_stmt,
+        "SELECT ID, PROTEIN_ACCESSION, DECOY FROM PROTEIN;");
+      int protein_step = SQLITE_DONE;
+      while ((protein_step = sqlite3_step(protein_stmt)) == SQLITE_ROW)
+      {
+        PreparedLibraryProtein_ protein;
+        protein.protein_id = sqlite3_column_int64(protein_stmt, 0);
+        protein.accession = text_at(protein_stmt, 1);
+        protein.decoy = sqlite3_column_int(protein_stmt, 2) != 0;
+        lookup.proteins[protein.protein_id] = std::move(protein);
+      }
+      sqliteCheckResult_(protein_step, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(protein_stmt);
+
+      sqlite3_stmt* mapping_stmt = nullptr;
+      sqlitePrepareStatement_(db, &mapping_stmt,
+        "SELECT PEPTIDE_ID, PROTEIN_ID FROM PEPTIDE_PROTEIN_MAPPING ORDER BY PEPTIDE_ID, PROTEIN_ID;");
+      int mapping_step = SQLITE_DONE;
+      while ((mapping_step = sqlite3_step(mapping_stmt)) == SQLITE_ROW)
+      {
+        lookup.peptide_to_proteins[sqlite3_column_int64(mapping_stmt, 0)].push_back(sqlite3_column_int64(mapping_stmt, 1));
+      }
+      sqliteCheckResult_(mapping_step, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(mapping_stmt);
+    }
+
+    if (conn.tableExists("GENE") && conn.tableExists("PEPTIDE_GENE_MAPPING"))
+    {
+      sqlite3_stmt* gene_stmt = nullptr;
+      sqlitePrepareStatement_(db, &gene_stmt,
+        "SELECT ID, " + parquetGeneNameSelect_(conn) + ", " + parquetGeneDecoySelect_(conn) + " FROM GENE;");
+      int gene_step = SQLITE_DONE;
+      while ((gene_step = sqlite3_step(gene_stmt)) == SQLITE_ROW)
+      {
+        PreparedLibraryGene_ gene;
+        gene.gene_id = sqlite3_column_int64(gene_stmt, 0);
+        gene.name = text_at(gene_stmt, 1);
+        if (sqlite3_column_type(gene_stmt, 2) != SQLITE_NULL) gene.decoy = sqlite3_column_int(gene_stmt, 2) != 0;
+        lookup.genes[gene.gene_id] = std::move(gene);
+      }
+      sqliteCheckResult_(gene_step, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(gene_stmt);
+
+      sqlite3_stmt* mapping_stmt = nullptr;
+      sqlitePrepareStatement_(db, &mapping_stmt,
+        "SELECT PEPTIDE_ID, GENE_ID FROM PEPTIDE_GENE_MAPPING ORDER BY PEPTIDE_ID, GENE_ID;");
+      int mapping_step = SQLITE_DONE;
+      while ((mapping_step = sqlite3_step(mapping_stmt)) == SQLITE_ROW)
+      {
+        lookup.peptide_to_genes[sqlite3_column_int64(mapping_stmt, 0)].push_back(sqlite3_column_int64(mapping_stmt, 1));
+      }
+      sqliteCheckResult_(mapping_step, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(mapping_stmt);
+    }
+
+    if (load_transition_metadata && conn.tableExists("TRANSITION") && conn.tableExists("TRANSITION_PRECURSOR_MAPPING"))
+    {
+      sqlite3_stmt* transition_stmt = nullptr;
+      sqlitePrepareStatement_(db, &transition_stmt,
+        "SELECT TRANSITION.ID, TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID, TRANSITION.TRAML_ID, "
+        "TRANSITION.PRODUCT_MZ, TRANSITION.CHARGE, TRANSITION.TYPE, TRANSITION.ORDINAL, "
+        + parquetTransitionAnnotationSelect_(conn) +
+        ", TRANSITION.DETECTING, TRANSITION.LIBRARY_INTENSITY, TRANSITION.DECOY "
+        "FROM TRANSITION "
+        "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON TRANSITION.ID = TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID;");
+      int transition_step = SQLITE_DONE;
+      while ((transition_step = sqlite3_step(transition_stmt)) == SQLITE_ROW)
+      {
+        const Int64 transition_id = sqlite3_column_int64(transition_stmt, 0);
+        auto& transition = lookup.transitions[transition_id];
+        transition.transition_id = transition_id;
+        const Int64 precursor_id = sqlite3_column_int64(transition_stmt, 1);
+        if (std::find(transition.precursor_ids.begin(), transition.precursor_ids.end(), precursor_id) == transition.precursor_ids.end())
+        {
+          transition.precursor_ids.push_back(precursor_id);
+        }
+        transition.traml_id = text_at(transition_stmt, 2);
+        transition.product_mz = sqlite3_column_double(transition_stmt, 3);
+        transition.charge = static_cast<Int32>(sqlite3_column_int(transition_stmt, 4));
+        transition.type = text_at(transition_stmt, 5);
+        transition.ordinal = static_cast<Int32>(sqlite3_column_int(transition_stmt, 6));
+        transition.annotation = text_at(transition_stmt, 7);
+        transition.detecting = sqlite3_column_int(transition_stmt, 8) != 0;
+        if (sqlite3_column_type(transition_stmt, 9) != SQLITE_NULL) transition.library_intensity = sqlite3_column_double(transition_stmt, 9);
+        transition.decoy = sqlite3_column_int(transition_stmt, 10) != 0;
+      }
+      sqliteCheckResult_(transition_step, db, SQLITE_DONE, "sqlite3_step");
+      sqlite3_finalize(transition_stmt);
+
+      if (conn.tableExists("TRANSITION_PEPTIDE_MAPPING"))
+      {
+        sqlite3_stmt* peptide_mapping_stmt = nullptr;
+        sqlitePrepareStatement_(db, &peptide_mapping_stmt,
+          "SELECT TRANSITION_ID, PEPTIDE_ID FROM TRANSITION_PEPTIDE_MAPPING ORDER BY TRANSITION_ID, PEPTIDE_ID;");
+        int peptide_mapping_step = SQLITE_DONE;
+        while ((peptide_mapping_step = sqlite3_step(peptide_mapping_stmt)) == SQLITE_ROW)
+        {
+          const Int64 transition_id = sqlite3_column_int64(peptide_mapping_stmt, 0);
+          const Int64 peptide_id = sqlite3_column_int64(peptide_mapping_stmt, 1);
+          lookup.transitions[transition_id].peptide_ids.push_back(peptide_id);
+        }
+        sqliteCheckResult_(peptide_mapping_step, db, SQLITE_DONE, "sqlite3_step");
+        sqlite3_finalize(peptide_mapping_stmt);
+      }
+    }
+
+    for (const auto& [peptide_id, protein_ids] : lookup.peptide_to_proteins)
+    {
+      std::vector<std::string> names;
+      names.reserve(protein_ids.size());
+      for (const Int64 protein_id : protein_ids)
+      {
+        const auto protein_it = lookup.proteins.find(protein_id);
+        if (protein_it != lookup.proteins.end())
+        {
+          names.push_back(protein_it->second.accession);
+        }
+      }
+      lookup.protein_names_by_peptide[peptide_id] = joinStrings_(names);
+      if (protein_ids.size() == 1)
+      {
+        lookup.unique_protein_by_peptide[peptide_id] = protein_ids.front();
+      }
+    }
+
+    for (const auto& [peptide_id, gene_ids] : lookup.peptide_to_genes)
+    {
+      std::vector<std::string> names;
+      names.reserve(gene_ids.size());
+      for (const Int64 gene_id : gene_ids)
+      {
+        const auto gene_it = lookup.genes.find(gene_id);
+        if (gene_it != lookup.genes.end())
+        {
+          names.push_back(gene_it->second.name);
+        }
+      }
+      lookup.gene_names_by_peptide[peptide_id] = joinStrings_(names);
+      if (gene_ids.size() == 1)
+      {
+        lookup.unique_gene_by_peptide[peptide_id] = gene_ids.front();
+      }
+    }
+
+    return lookup;
+  }
+
+  void augmentLookupFromOSWPQLibrary_(const OSWPQWorkspace& workspace,
+                                      PreparedLibraryLookup_& lookup,
+                                      const bool load_transition_metadata) const
+  {
+    const std::string precursors_path = workspace.base_dir + "/library/precursors.parquet";
+    if (!File::exists(precursors_path))
+    {
+      return;
+    }
+
+    Int64 next_peptide_id = 1;
+    for (const auto& [peptide_id, peptide] : lookup.peptides)
+    {
+      next_peptide_id = std::max(next_peptide_id, peptide_id + 1);
+    }
+    Int64 next_protein_id = 1;
+    std::unordered_map<std::string, Int64> protein_ids_by_accession;
+    protein_ids_by_accession.reserve(lookup.proteins.size());
+    for (const auto& [protein_id, protein] : lookup.proteins)
+    {
+      next_protein_id = std::max(next_protein_id, protein_id + 1);
+      protein_ids_by_accession[protein.accession] = protein_id;
+    }
+
+    auto precursors_table = ParquetFile::readTable(precursors_path);
+    const auto precursor_id_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::PRECURSOR_ID);
+    const auto precursor_mz_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::PRECURSOR_MZ);
+    const auto charge_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::CHARGE);
+    const auto library_rt_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::LIBRARY_RT);
+    const auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::LIBRARY_DRIFT_TIME);
+    const auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::TRAML_ID);
+    const auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::DECOY);
+    const auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::MODIFIED_SEQUENCE);
+    const auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::UNMODIFIED_SEQUENCE);
+    const auto protein_accessions_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::PROTEIN_ACCESSIONS);
+
+    for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
+    {
+      const Int64 precursor_id = ParquetFile::getInt64(precursor_id_col, row, 0, false);
+      if (!lookup.precursors.contains(precursor_id))
+      {
+        PreparedLibraryPrecursor_ precursor;
+        precursor.precursor_id = precursor_id;
+        precursor.traml_id = ParquetFile::getString(traml_id_col, row);
+        precursor.group_label = precursor.traml_id;
+        precursor.precursor_mz = ParquetFile::getDouble(precursor_mz_col, row, 0.0, false);
+        precursor.charge = static_cast<Int32>(ParquetFile::getInt64(charge_col, row, 0, false));
+        precursor.library_rt = ParquetFile::getDouble(library_rt_col, row, 0.0, true);
+        if (drift_time_col != nullptr && !drift_time_col->IsNull(row))
+        {
+          precursor.library_drift_time = ParquetFile::getDouble(drift_time_col, row, 0.0, false);
+        }
+        precursor.decoy = ParquetFile::getBool(decoy_col, row, false, true);
+        lookup.precursors[precursor_id] = std::move(precursor);
+      }
+
+      auto& peptide_ids = lookup.precursor_to_peptides[precursor_id];
+      if (peptide_ids.empty())
+      {
+        PreparedLibraryPeptide_ peptide;
+        peptide.peptide_id = next_peptide_id++;
+        peptide.modified_sequence = ParquetFile::getString(modified_sequence_col, row);
+        peptide.unmodified_sequence = ParquetFile::getString(unmodified_sequence_col, row);
+        if (peptide.unmodified_sequence.empty())
+        {
+          peptide.unmodified_sequence = peptide.modified_sequence;
+        }
+        peptide.decoy = lookup.precursors.at(precursor_id).decoy;
+        peptide_ids.push_back(peptide.peptide_id);
+        lookup.peptides[peptide.peptide_id] = std::move(peptide);
+
+        const std::vector<std::string> protein_accessions = ParquetFile::getStringList(protein_accessions_col, row);
+        auto& mapped_proteins = lookup.peptide_to_proteins[peptide_ids.front()];
+        mapped_proteins.reserve(protein_accessions.size());
+        for (const auto& accession : protein_accessions)
+        {
+          if (accession.empty())
+          {
+            continue;
+          }
+          Int64 protein_id = -1;
+          const auto protein_id_it = protein_ids_by_accession.find(accession);
+          if (protein_id_it != protein_ids_by_accession.end())
+          {
+            protein_id = protein_id_it->second;
+          }
+          else
+          {
+            protein_id = next_protein_id++;
+            protein_ids_by_accession[accession] = protein_id;
+            lookup.proteins[protein_id] = {protein_id, accession, lookup.precursors.at(precursor_id).decoy};
+          }
+          mapped_proteins.push_back(protein_id);
+        }
+        lookup.protein_names_by_peptide[peptide_ids.front()] = joinStrings_(protein_accessions);
+        if (mapped_proteins.size() == 1)
+        {
+          lookup.unique_protein_by_peptide[peptide_ids.front()] = mapped_proteins.front();
+        }
+      }
+    }
+
+    if (!load_transition_metadata)
+    {
+      return;
+    }
+
+    const std::string transitions_path = workspace.base_dir + "/library/transitions.parquet";
+    if (!File::exists(transitions_path))
+    {
+      return;
+    }
+
+    auto transitions_table = ParquetFile::readTable(transitions_path);
+    const auto transition_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TRANSITION_ID);
+    const auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRECURSOR_ID);
+    const auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::TRAML_ID);
+    const auto product_mz_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRODUCT_MZ);
+    const auto transition_charge_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::CHARGE);
+    const auto transition_type_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TYPE);
+    const auto transition_annotation_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::ANNOTATION);
+    const auto transition_ordinal_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::ORDINAL);
+    const auto transition_detecting_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DETECTING);
+    const auto transition_intensity_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::LIBRARY_INTENSITY);
+    const auto transition_decoy_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DECOY);
+
+    for (int64_t row = 0; row < transitions_table->num_rows(); ++row)
+    {
+      const Int64 transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
+      const Int64 precursor_id = ParquetFile::getInt64(transition_precursor_id_col, row, 0, false);
+      auto& transition = lookup.transitions[transition_id];
+      transition.transition_id = transition_id;
+      if (std::find(transition.precursor_ids.begin(), transition.precursor_ids.end(), precursor_id) == transition.precursor_ids.end())
+      {
+        transition.precursor_ids.push_back(precursor_id);
+      }
+      transition.traml_id = ParquetFile::getString(transition_traml_id_col, row);
+      transition.product_mz = ParquetFile::getDouble(product_mz_col, row, 0.0, false);
+      transition.charge = static_cast<Int32>(ParquetFile::getInt64(transition_charge_col, row, 0, false));
+      transition.type = ParquetFile::getString(transition_type_col, row);
+      transition.ordinal = static_cast<Int32>(ParquetFile::getInt64(transition_ordinal_col, row, 0, false));
+      transition.annotation = ParquetFile::getString(transition_annotation_col, row);
+      transition.detecting = ParquetFile::getBool(transition_detecting_col, row, true, true);
+      transition.library_intensity = ParquetFile::getDouble(transition_intensity_col, row, 0.0, true);
+      transition.decoy = ParquetFile::getBool(transition_decoy_col, row, false, true);
+
+      const auto peptide_mapping_it = lookup.precursor_to_peptides.find(precursor_id);
+      if (peptide_mapping_it != lookup.precursor_to_peptides.end())
+      {
+        for (const Int64 peptide_id : peptide_mapping_it->second)
+        {
+          if (std::find(transition.peptide_ids.begin(), transition.peptide_ids.end(), peptide_id) == transition.peptide_ids.end())
+          {
+            transition.peptide_ids.push_back(peptide_id);
+          }
+        }
+      }
+    }
+  }
+
+  static std::vector<Int64> mappedEntitiesForFeature_(const PreparedLibraryLookup_& lookup,
+                                                      const InferenceLevel level,
+                                                      const Int64 precursor_id)
+  {
+    std::vector<Int64> entities;
+    const auto peptide_it = lookup.precursor_to_peptides.find(precursor_id);
+    if (peptide_it == lookup.precursor_to_peptides.end())
+    {
+      return entities;
+    }
+
+    for (const Int64 peptide_id : peptide_it->second)
+    {
+      if (level == InferenceLevel::Peptide)
+      {
+        appendUniqueEntity_(entities, peptide_id);
+        continue;
+      }
+      if (level == InferenceLevel::Protein)
+      {
+        const auto protein_it = lookup.unique_protein_by_peptide.find(peptide_id);
+        if (protein_it != lookup.unique_protein_by_peptide.end())
+        {
+          appendUniqueEntity_(entities, protein_it->second);
+        }
+        continue;
+      }
+      if (level == InferenceLevel::Gene)
+      {
+        const auto gene_it = lookup.unique_gene_by_peptide.find(peptide_id);
+        if (gene_it != lookup.unique_gene_by_peptide.end())
+        {
+          appendUniqueEntity_(entities, gene_it->second);
+        }
+      }
+    }
+    return entities;
+  }
+
+  static std::optional<LevelContextResultRow> selectBestLevelContextResult_(const std::vector<Int64>& entity_ids,
+                                                                            const Int64 run_id,
+                                                                            const LevelContextResultMaps_& maps,
+                                                                            const InferenceContext context)
+  {
+    std::optional<LevelContextResultRow> best;
+    for (const Int64 entity_id : entity_ids)
+    {
+      std::optional<LevelContextResultRow> candidate;
+      if (context == InferenceContext::Global)
+      {
+        const auto it = maps.global.find(entity_id);
+        if (it != maps.global.end()) candidate = it->second;
+      }
+      else if (context == InferenceContext::ExperimentWide)
+      {
+        const auto it = maps.experiment_wide.find({run_id, entity_id});
+        if (it != maps.experiment_wide.end()) candidate = it->second;
+      }
+      else
+      {
+        const auto it = maps.run_specific.find({run_id, entity_id});
+        if (it != maps.run_specific.end()) candidate = it->second;
+      }
+
+      if (!candidate.has_value())
+      {
+        continue;
+      }
+      if (!best.has_value() || betterLevelContextResult_(*candidate, *best))
+      {
+        best = candidate;
+      }
+    }
+    return best;
+  }
+
+  static LevelContextResultMaps_ buildLevelContextResultMaps_(const std::vector<LevelContextResultRow>& results)
+  {
+    LevelContextResultMaps_ maps;
+    for (const auto& row : results)
+    {
+      switch (row.context)
+      {
+        case InferenceContext::Global:
+          maps.global[row.entity_id] = row;
+          break;
+        case InferenceContext::ExperimentWide:
+          if (row.run_id.has_value())
+          {
+            maps.experiment_wide[{*row.run_id, row.entity_id}] = row;
+          }
+          break;
+        case InferenceContext::RunSpecific:
+          if (row.run_id.has_value())
+          {
+            maps.run_specific[{*row.run_id, row.entity_id}] = row;
+          }
+          break;
+      }
+    }
+    return maps;
+  }
+
+  static void writeLevelContextResultsParquet_(const OSWPQWorkspace& workspace,
+                                               const InferenceLevel level,
+                                               const std::vector<LevelContextResultRow>& results)
+  {
+    const std::string inference_dir = workspace.base_dir + "/inference";
+    File::makeDir(inference_dir);
+
+    arrow::StringBuilder context_builder;
+    arrow::Int64Builder run_id_builder;
+    arrow::Int64Builder entity_id_builder;
+    arrow::DoubleBuilder score_builder;
+    arrow::DoubleBuilder pvalue_builder;
+    arrow::DoubleBuilder qvalue_builder;
+    arrow::DoubleBuilder pep_builder;
+
+    for (const auto& row : results)
+    {
+      ParquetFile::appendOrThrow(context_builder.Append(inferenceContextValue_(row.context)), "context");
+      if (row.run_id.has_value())
+      {
+        ParquetFile::appendOrThrow(run_id_builder.Append(*row.run_id), "run_id");
+      }
+      else
+      {
+        ParquetFile::appendOrThrow(run_id_builder.AppendNull(), "run_id");
+      }
+      ParquetFile::appendOrThrow(entity_id_builder.Append(row.entity_id), entityIdColumnName_(level));
+      ParquetFile::appendOrThrow(score_builder.Append(row.score), "score");
+      ParquetFile::appendOrThrow(pvalue_builder.Append(row.pvalue), "pvalue");
+      ParquetFile::appendOrThrow(qvalue_builder.Append(row.qvalue), "qvalue");
+      ParquetFile::appendOrThrow(pep_builder.Append(row.pep), "pep");
+    }
+
+    std::vector<std::shared_ptr<arrow::Field>> fields =
+    {
+      arrow::field("context", arrow::utf8(), false),
+      arrow::field("run_id", arrow::int64(), true),
+      arrow::field(entityIdColumnName_(level), arrow::int64(), false),
+      arrow::field("score", arrow::float64(), false),
+      arrow::field("pvalue", arrow::float64(), false),
+      arrow::field("qvalue", arrow::float64(), false),
+      arrow::field("pep", arrow::float64(), false)
+    };
+    std::vector<std::shared_ptr<arrow::Array>> arrays =
+    {
+      ParquetFile::finishArray(context_builder, "context"),
+      ParquetFile::finishArray(run_id_builder, "run_id"),
+      ParquetFile::finishArray(entity_id_builder, entityIdColumnName_(level)),
+      ParquetFile::finishArray(score_builder, "score"),
+      ParquetFile::finishArray(pvalue_builder, "pvalue"),
+      ParquetFile::finishArray(qvalue_builder, "qvalue"),
+      ParquetFile::finishArray(pep_builder, "pep")
+    };
+
+    ParquetFile::writeTable(arrow::Table::Make(arrow::schema(fields), arrays), inferenceParquetPath_(workspace, level));
+  }
+
+  static std::vector<LevelContextResultRow> readLevelContextResultsParquet_(const OSWPQWorkspace& workspace,
+                                                                            const InferenceLevel level)
+  {
+    const std::string file_path = inferenceParquetPath_(workspace, level);
+    if (!File::exists(file_path))
+    {
+      return {};
+    }
+
+    auto table = ParquetFile::readTable(file_path);
+    const auto context_col = ParquetFile::getColumn(table, "context");
+    const auto run_id_col = ParquetFile::getOptionalColumn(table, "run_id");
+    const auto entity_id_col = ParquetFile::getColumn(table, entityIdColumnName_(level));
+    const auto score_col = ParquetFile::getColumn(table, "score");
+    const auto pvalue_col = ParquetFile::getColumn(table, "pvalue");
+    const auto qvalue_col = ParquetFile::getColumn(table, "qvalue");
+    const auto pep_col = ParquetFile::getColumn(table, "pep");
+
+    std::vector<LevelContextResultRow> rows;
+    rows.reserve(static_cast<Size>(table->num_rows()));
+    for (int64_t row = 0; row < table->num_rows(); ++row)
+    {
+      LevelContextResultRow result;
+      const std::string context = ParquetFile::getString(context_col, row);
+      if (context == "global")
+      {
+        result.context = InferenceContext::Global;
+      }
+      else if (context == "experiment-wide")
+      {
+        result.context = InferenceContext::ExperimentWide;
+      }
+      else
+      {
+        result.context = InferenceContext::RunSpecific;
+      }
+      if (run_id_col != nullptr && !run_id_col->IsNull(row))
+      {
+        result.run_id = ParquetFile::getInt64(run_id_col, row, 0, false);
+      }
+      result.entity_id = ParquetFile::getInt64(entity_id_col, row, 0, false);
+      result.score = ParquetFile::getDouble(score_col, row, 0.0, false);
+      result.pvalue = ParquetFile::getDouble(pvalue_col, row, 1.0, false);
+      result.qvalue = ParquetFile::getDouble(qvalue_col, row, 1.0, false);
+      result.pep = ParquetFile::getDouble(pep_col, row, 1.0, false);
+      rows.push_back(std::move(result));
+    }
+    return rows;
+  }
+
+  static std::map<Int64, std::string> readOSWPQRunBasenames_(const OSWPQWorkspace& workspace)
+  {
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+    const auto filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
+    std::map<Int64, std::string> basenames;
+    for (int64_t row = 0; row < runs_table->num_rows(); ++row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, row, 0, false);
+      std::string filename = (filename_col != nullptr && !filename_col->IsNull(row)) ? ParquetFile::getString(filename_col, row) : "";
+      std::string basename = File::stemName(filename);
+      if (basename.empty())
+      {
+        basename = File::basename(filename);
+      }
+      if (basename.empty())
+      {
+        basename = "RUN_ID " + StringUtils::toStr(run_id);
+      }
+      basenames[run_id] = basename;
+    }
+    return basenames;
+  }
+
   template <typename RowHandler>
   static Size readRunInferenceRows_(sqlite3* db,
                                     const std::string& statement,
@@ -2263,6 +3095,1158 @@ protected:
     workspace.dirty = true;
   }
 
+  std::vector<LevelContextInputRow> buildOSWPQLevelContextInputRows_(const OSWPQWorkspace& workspace,
+                                                                     const PreparedLibraryLookup_& lookup,
+                                                                     const InferenceLevel level,
+                                                                     const InferenceContext context) const
+  {
+    if (level == InferenceLevel::Peptidoform)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Direct OSWPQ level-context inference does not support peptidoform rows.");
+    }
+
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+    std::map<std::pair<Int64, Int64>, LevelContextInputRow> best_rows;
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
+      const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
+      auto features_table = ParquetFile::readTable(features_path);
+      const auto precursor_id_array = ParquetFile::getColumn(features_table, "precursor_id");
+      const auto score_ms2_array = ParquetFile::getOptionalColumn(features_table, "score_ms2_score");
+      if (score_ms2_array == nullptr)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Level-context inference on OSWPQ requires score_ms2_score in features.parquet.");
+      }
+
+      for (int64_t row = 0; row < features_table->num_rows(); ++row)
+      {
+        if (score_ms2_array->IsNull(row))
+        {
+          continue;
+        }
+
+        const Int64 precursor_id = ParquetFile::getInt64(precursor_id_array, row, 0, false);
+        const auto precursor_it = lookup.precursors.find(precursor_id);
+        if (precursor_it == lookup.precursors.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Missing prepared-library precursor metadata for precursor_id=" + StringUtils::toStr(precursor_id));
+        }
+
+        const double score = ParquetFile::getDouble(score_ms2_array, row, 0.0, false);
+        const auto entity_ids = mappedEntitiesForFeature_(lookup, level, precursor_id);
+        for (const Int64 entity_id : entity_ids)
+        {
+          const Int64 run_key = context == InferenceContext::Global ? std::numeric_limits<Int64>::min() : run_id;
+          const auto key = std::make_pair(run_key, entity_id);
+          LevelContextInputRow candidate;
+          if (context != InferenceContext::Global)
+          {
+            candidate.run_id = run_id;
+          }
+          candidate.group_id = context == InferenceContext::Global ?
+            StringUtils::toStr(entity_id) :
+            StringUtils::toStr(run_id) + "_" + StringUtils::toStr(entity_id);
+          candidate.entity_id = entity_id;
+          candidate.decoy = precursor_it->second.decoy;
+          candidate.score = score;
+          candidate.context = context;
+
+          const auto existing = best_rows.find(key);
+          if (existing == best_rows.end() || candidate.score > existing->second.score)
+          {
+            best_rows[key] = std::move(candidate);
+          }
+        }
+      }
+    }
+
+    std::vector<LevelContextInputRow> rows;
+    rows.reserve(best_rows.size());
+    for (auto& [key, row] : best_rows)
+    {
+      rows.push_back(std::move(row));
+    }
+
+    OPENMS_LOG_INFO << "Read " << rows.size() << " best-score rows for "
+                    << toString(level) << " inference in '" << toString(context)
+                    << "' context." << std::endl;
+    return rows;
+  }
+
+  void applyLevelContextResultsToOSWPQ_(OSWPQWorkspace& workspace,
+                                        const PreparedLibraryLookup_& lookup,
+                                        const std::map<InferenceLevel, std::vector<LevelContextResultRow>>& results_by_level) const
+  {
+    const auto tasks = getInferenceTasks_();
+    if (tasks.empty())
+    {
+      return;
+    }
+
+    const auto [include_ipf_peptide_id, score_members] = getInferenceScoreColumns_(tasks);
+    if (include_ipf_peptide_id)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Direct OSWPQ score sync currently supports peptide, protein, and gene inference only.");
+    }
+    if (score_members.empty())
+    {
+      return;
+    }
+
+    std::map<InferenceLevel, LevelContextResultMaps_> result_maps;
+    for (const auto& [level, results] : results_by_level)
+    {
+      result_maps[level] = buildLevelContextResultMaps_(results);
+    }
+
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_array = ParquetFile::getColumn(runs_table, "run_id");
+
+    std::unordered_set<std::string> replace_columns;
+    replace_columns.reserve(score_members.size());
+    for (const auto& score_member : score_members)
+    {
+      replace_columns.insert(score_member.name);
+    }
+
+    ProgressLogger progress_logger;
+    progress_logger.setLogType(ProgressLogger::CMD);
+    progress_logger.startProgress(0, runs_table->num_rows(), "syncing level-context scores back to workflow.oswpq");
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
+      const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
+      auto features_table = ParquetFile::readTable(features_path);
+      const auto precursor_id_array = ParquetFile::getColumn(features_table, "precursor_id");
+
+      std::vector<std::unique_ptr<arrow::DoubleBuilder>> double_builders;
+      double_builders.reserve(score_members.size());
+      for (Size i = 0; i < score_members.size(); ++i)
+      {
+        double_builders.push_back(std::make_unique<arrow::DoubleBuilder>());
+      }
+
+      for (int64_t row = 0; row < features_table->num_rows(); ++row)
+      {
+        const Int64 precursor_id = ParquetFile::getInt64(precursor_id_array, row, 0, false);
+        OpenSwathFeatureScoreRow score_row;
+
+        const auto assign_level = [&](const InferenceLevel level,
+                                      const InferenceContext context,
+                                      OptionalDoubleMember score_member,
+                                      OptionalDoubleMember pvalue_member,
+                                      OptionalDoubleMember qvalue_member,
+                                      OptionalDoubleMember pep_member)
+        {
+          const auto level_it = result_maps.find(level);
+          if (level_it == result_maps.end())
+          {
+            return;
+          }
+          const auto entity_ids = mappedEntitiesForFeature_(lookup, level, precursor_id);
+          const auto best_result = selectBestLevelContextResult_(entity_ids, run_id, level_it->second, context);
+          if (!best_result.has_value())
+          {
+            return;
+          }
+          score_row.*score_member = best_result->score;
+          score_row.*pvalue_member = best_result->pvalue;
+          score_row.*qvalue_member = best_result->qvalue;
+          score_row.*pep_member = best_result->pep;
+        };
+
+        assign_level(InferenceLevel::Peptide, InferenceContext::Global,
+                     &OpenSwathFeatureScoreRow::score_peptide_global_score,
+                     &OpenSwathFeatureScoreRow::score_peptide_global_pvalue,
+                     &OpenSwathFeatureScoreRow::score_peptide_global_qvalue,
+                     &OpenSwathFeatureScoreRow::score_peptide_global_pep);
+        assign_level(InferenceLevel::Peptide, InferenceContext::ExperimentWide,
+                     &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_score,
+                     &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pvalue,
+                     &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_qvalue,
+                     &OpenSwathFeatureScoreRow::score_peptide_experiment_wide_pep);
+        assign_level(InferenceLevel::Peptide, InferenceContext::RunSpecific,
+                     &OpenSwathFeatureScoreRow::score_peptide_run_specific_score,
+                     &OpenSwathFeatureScoreRow::score_peptide_run_specific_pvalue,
+                     &OpenSwathFeatureScoreRow::score_peptide_run_specific_qvalue,
+                     &OpenSwathFeatureScoreRow::score_peptide_run_specific_pep);
+
+        assign_level(InferenceLevel::Protein, InferenceContext::Global,
+                     &OpenSwathFeatureScoreRow::score_protein_global_score,
+                     &OpenSwathFeatureScoreRow::score_protein_global_pvalue,
+                     &OpenSwathFeatureScoreRow::score_protein_global_qvalue,
+                     &OpenSwathFeatureScoreRow::score_protein_global_pep);
+        assign_level(InferenceLevel::Protein, InferenceContext::ExperimentWide,
+                     &OpenSwathFeatureScoreRow::score_protein_experiment_wide_score,
+                     &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pvalue,
+                     &OpenSwathFeatureScoreRow::score_protein_experiment_wide_qvalue,
+                     &OpenSwathFeatureScoreRow::score_protein_experiment_wide_pep);
+        assign_level(InferenceLevel::Protein, InferenceContext::RunSpecific,
+                     &OpenSwathFeatureScoreRow::score_protein_run_specific_score,
+                     &OpenSwathFeatureScoreRow::score_protein_run_specific_pvalue,
+                     &OpenSwathFeatureScoreRow::score_protein_run_specific_qvalue,
+                     &OpenSwathFeatureScoreRow::score_protein_run_specific_pep);
+
+        assign_level(InferenceLevel::Gene, InferenceContext::Global,
+                     &OpenSwathFeatureScoreRow::score_gene_global_score,
+                     &OpenSwathFeatureScoreRow::score_gene_global_pvalue,
+                     &OpenSwathFeatureScoreRow::score_gene_global_qvalue,
+                     &OpenSwathFeatureScoreRow::score_gene_global_pep);
+        assign_level(InferenceLevel::Gene, InferenceContext::ExperimentWide,
+                     &OpenSwathFeatureScoreRow::score_gene_experiment_wide_score,
+                     &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pvalue,
+                     &OpenSwathFeatureScoreRow::score_gene_experiment_wide_qvalue,
+                     &OpenSwathFeatureScoreRow::score_gene_experiment_wide_pep);
+        assign_level(InferenceLevel::Gene, InferenceContext::RunSpecific,
+                     &OpenSwathFeatureScoreRow::score_gene_run_specific_score,
+                     &OpenSwathFeatureScoreRow::score_gene_run_specific_pvalue,
+                     &OpenSwathFeatureScoreRow::score_gene_run_specific_qvalue,
+                     &OpenSwathFeatureScoreRow::score_gene_run_specific_pep);
+
+        for (Size column = 0; column < score_members.size(); ++column)
+        {
+          const auto value = score_row.*(score_members[column].member);
+          if (value.has_value())
+          {
+            ParquetFile::appendOrThrow(double_builders[column]->Append(*value), score_members[column].name);
+          }
+          else
+          {
+            ParquetFile::appendOrThrow(double_builders[column]->AppendNull(), score_members[column].name);
+          }
+        }
+      }
+
+      std::vector<std::shared_ptr<arrow::Field>> extra_fields;
+      std::vector<std::shared_ptr<arrow::Array>> extra_arrays;
+      extra_fields.reserve(score_members.size());
+      extra_arrays.reserve(score_members.size());
+      for (Size column = 0; column < score_members.size(); ++column)
+      {
+        extra_fields.push_back(arrow::field(score_members[column].name, arrow::float64(), true));
+        extra_arrays.push_back(ParquetFile::finishArray(*double_builders[column], score_members[column].name));
+      }
+
+      replaceParquetColumns_(features_path, replace_columns, extra_fields, extra_arrays);
+      progress_logger.setProgress(run_row + 1);
+    }
+
+    progress_logger.endProgress();
+    workspace.dirty = true;
+  }
+
+  void runInferenceOSWPQ_(OSWPQWorkspace& workspace, const PreparedLibraryLookup_& lookup)
+  {
+    const auto tasks = getInferenceTasks_();
+    if (tasks.empty())
+    {
+      return;
+    }
+
+    if (std::any_of(tasks.begin(), tasks.end(),
+                    [](const auto& task) { return task.level == InferenceLevel::Peptidoform; }))
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Direct OSWPQ inference currently supports peptide, protein, and gene inference only. Use workflow:working_format osw for peptidoform/IPF inference.");
+    }
+
+    const ErrorEstimationConfig error_config = getErrorConfig_();
+    const bool has_run_specific_task = std::any_of(tasks.begin(), tasks.end(),
+      [](const auto& task)
+      {
+        return task.context.has_value() && *task.context == InferenceContext::RunSpecific;
+      });
+    const std::map<Int64, std::string> run_basenames = has_run_specific_task ? readOSWPQRunBasenames_(workspace) : std::map<Int64, std::string>{};
+
+    std::map<InferenceLevel, std::vector<LevelContextResultRow>> results_by_level;
+    for (const auto& task : tasks)
+    {
+      ProgressLogger progress_logger;
+      progress_logger.setLogType(ProgressLogger::CMD);
+      progress_logger.startProgress(0, 1, inferenceTaskLabel_(task));
+
+      LevelContextInferenceConfig config;
+      config.level = task.level;
+      config.context = *task.context;
+      config.error = error_config;
+      const auto input_rows = buildOSWPQLevelContextInputRows_(workspace, lookup, task.level, config.context);
+
+      std::vector<LevelContextResultRow> results;
+      if (task.level == InferenceLevel::Peptide)
+      {
+        OpenSwathPeptideInference inference;
+        results = inference.infer(input_rows, config);
+      }
+      else if (task.level == InferenceLevel::Protein)
+      {
+        OpenSwathProteinInference inference;
+        results = inference.infer(input_rows, config);
+      }
+      else
+      {
+        OpenSwathGeneInference inference;
+        results = inference.infer(input_rows, config);
+      }
+
+      auto& level_results = results_by_level[task.level];
+      level_results.insert(level_results.end(), results.begin(), results.end());
+      logLevelContextSummary_(input_rows, results, task.level, config.context, run_basenames);
+      progress_logger.endProgress();
+    }
+
+    for (const auto& [level, results] : results_by_level)
+    {
+      writeLevelContextResultsParquet_(workspace, level, results);
+    }
+    applyLevelContextResultsToOSWPQ_(workspace, lookup, results_by_level);
+    workspace.dirty = true;
+  }
+
+  static ExportQValueMaps_ buildPeptideQValueMaps_(const std::vector<LevelContextResultRow>& results)
+  {
+    ExportQValueMaps_ maps;
+    for (const auto& row : results)
+    {
+      switch (row.context)
+      {
+        case InferenceContext::Global:
+          maps.global[row.entity_id] = row.qvalue;
+          break;
+        case InferenceContext::ExperimentWide:
+          if (row.run_id.has_value()) maps.experiment_wide[{*row.run_id, row.entity_id}] = row.qvalue;
+          break;
+        case InferenceContext::RunSpecific:
+          if (row.run_id.has_value()) maps.run_specific[{*row.run_id, row.entity_id}] = row.qvalue;
+          break;
+      }
+    }
+    return maps;
+  }
+
+  static ExportQValueMaps_ buildAggregatedEntityQValueMaps_(const std::vector<LevelContextResultRow>& results,
+                                                            const std::unordered_map<Int64, std::vector<Int64>>& peptide_to_entities)
+  {
+    std::unordered_map<Int64, std::vector<Int64>> entity_to_peptides;
+    for (const auto& [peptide_id, entity_ids] : peptide_to_entities)
+    {
+      for (const Int64 entity_id : entity_ids)
+      {
+        entity_to_peptides[entity_id].push_back(peptide_id);
+      }
+    }
+
+    ExportQValueMaps_ maps;
+    auto update_min = [](auto& target, const auto& key, const double qvalue)
+    {
+      const auto existing = target.find(key);
+      if (existing == target.end() || qvalue < existing->second)
+      {
+        target[key] = qvalue;
+      }
+    };
+
+    for (const auto& row : results)
+    {
+      const auto peptide_it = entity_to_peptides.find(row.entity_id);
+      if (peptide_it == entity_to_peptides.end())
+      {
+        continue;
+      }
+      for (const Int64 peptide_id : peptide_it->second)
+      {
+        switch (row.context)
+        {
+          case InferenceContext::Global:
+            update_min(maps.global, peptide_id, row.qvalue);
+            break;
+          case InferenceContext::ExperimentWide:
+            if (row.run_id.has_value()) update_min(maps.experiment_wide, std::make_pair(*row.run_id, peptide_id), row.qvalue);
+            break;
+          case InferenceContext::RunSpecific:
+            if (row.run_id.has_value()) update_min(maps.run_specific, std::make_pair(*row.run_id, peptide_id), row.qvalue);
+            break;
+        }
+      }
+    }
+    return maps;
+  }
+
+  std::unordered_map<Int64, TransitionAggregation_> buildTransitionAggregations_(const OSWPQWorkspace& workspace,
+                                                                                  const PreparedLibraryLookup_& lookup,
+                                                                                  const double max_transition_pep) const
+  {
+    std::unordered_map<Int64, TransitionAggregation_> aggregations;
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
+      const std::string feature_transition_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/feature_transition.parquet";
+      if (!File::exists(feature_transition_path))
+      {
+        continue;
+      }
+
+      auto table = ParquetFile::readTable(feature_transition_path);
+      const auto feature_id_col = ParquetFile::getColumn(table, "feature_id");
+      const auto transition_id_col = ParquetFile::getColumn(table, "transition_id");
+      const auto area_col = ParquetFile::getOptionalColumn(table, "area_intensity");
+      const auto apex_col = ParquetFile::getOptionalColumn(table, "apex_intensity");
+      const auto pep_col = ParquetFile::getOptionalColumn(table, "score_transition_pep");
+      const bool filter_by_transition_pep = pep_col != nullptr;
+
+      for (int64_t row = 0; row < table->num_rows(); ++row)
+      {
+        if (filter_by_transition_pep)
+        {
+          if (pep_col->IsNull(row))
+          {
+            continue;
+          }
+          if (ParquetFile::getDouble(pep_col, row, 1.0, false) >= max_transition_pep)
+          {
+            continue;
+          }
+        }
+
+        const Int64 transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
+        const auto transition_it = lookup.transitions.find(transition_id);
+        if (transition_it == lookup.transitions.end() || transition_it->second.decoy)
+        {
+          continue;
+        }
+
+        const Int64 feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
+        auto& aggregation = aggregations[feature_id];
+        aggregation.areas.push_back(StringUtils::toStr(ParquetFile::getDouble(area_col, row, 0.0, true)));
+        aggregation.apices.push_back(StringUtils::toStr(ParquetFile::getDouble(apex_col, row, 0.0, true)));
+        aggregation.annotations.push_back(
+          StringUtils::toStr(transition_id) + "_" + transition_it->second.type +
+          StringUtils::toStr(transition_it->second.ordinal) + "_" + StringUtils::toStr(transition_it->second.charge));
+      }
+    }
+
+    return aggregations;
+  }
+
+  OpenSwathFeatureScoreTable readOSWPQFeatureScoreTable_(const OSWPQWorkspace& workspace,
+                                                         const PreparedLibraryLookup_& lookup,
+                                                         const OpenSwathParquetExportConfig& config) const
+  {
+    OpenSwathFeatureScoreTable table;
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+    const auto filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
+    bool discovered_dynamic_columns = false;
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
+      const std::string filename = (filename_col != nullptr && !filename_col->IsNull(run_row)) ? ParquetFile::getString(filename_col, run_row) : "";
+      const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
+      auto features_table = ParquetFile::readTable(features_path);
+      const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
+      const auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
+
+      std::unordered_map<std::string, std::shared_ptr<arrow::Array>> feature_columns;
+      const auto add_feature_column = [&](const std::string& name)
+      {
+        feature_columns.emplace(name, ParquetFile::getOptionalColumn(features_table, name));
+      };
+      for (const auto& name : std::array<std::string, 27>{
+             "exp_rt", "exp_im", "norm_rt", "delta_rt", "left_width", "right_width", "exp_im_leftwidth", "exp_im_rightwidth",
+             "score_ms1_score", "score_ms1_peak_group_rank", "score_ms1_pvalue", "score_ms1_qvalue", "score_ms1_pep",
+             "score_ms2_score", "score_ms2_peak_group_rank", "score_ms2_pvalue", "score_ms2_qvalue", "score_ms2_pep",
+             "ipf_peptide_id", "score_ipf_precursor_peakgroup_pep", "score_ipf_pep", "score_ipf_qvalue",
+             "score_peptide_global_score", "score_peptide_global_pvalue", "score_peptide_global_qvalue", "score_peptide_global_pep",
+             "score_peptide_experiment_wide_score"})
+      {
+        add_feature_column(name);
+      }
+      for (const auto& name : std::array<std::string, 20>{
+             "score_peptide_experiment_wide_pvalue", "score_peptide_experiment_wide_qvalue", "score_peptide_experiment_wide_pep",
+             "score_peptide_run_specific_score", "score_peptide_run_specific_pvalue", "score_peptide_run_specific_qvalue", "score_peptide_run_specific_pep",
+             "score_protein_global_score", "score_protein_global_pvalue", "score_protein_global_qvalue", "score_protein_global_pep",
+             "score_protein_experiment_wide_score", "score_protein_experiment_wide_pvalue", "score_protein_experiment_wide_qvalue", "score_protein_experiment_wide_pep",
+             "score_protein_run_specific_score", "score_protein_run_specific_pvalue", "score_protein_run_specific_qvalue", "score_protein_run_specific_pep",
+             "score_gene_global_score"})
+      {
+        add_feature_column(name);
+      }
+      for (const auto& name : std::array<std::string, 11>{
+             "score_gene_global_pvalue", "score_gene_global_qvalue", "score_gene_global_pep",
+             "score_gene_experiment_wide_score", "score_gene_experiment_wide_pvalue", "score_gene_experiment_wide_qvalue", "score_gene_experiment_wide_pep",
+             "score_gene_run_specific_score", "score_gene_run_specific_pvalue", "score_gene_run_specific_qvalue", "score_gene_run_specific_pep"})
+      {
+        add_feature_column(name);
+      }
+
+      if (!discovered_dynamic_columns)
+      {
+        for (const auto& name : featureMS1ParquetFields_())
+        {
+          if (ParquetFile::getOptionalColumn(features_table, name) != nullptr)
+          {
+            table.feature_ms1_column_names.emplace_back(name);
+          }
+        }
+        for (const auto& name : featureMS2ParquetFields_())
+        {
+          if (ParquetFile::getOptionalColumn(features_table, name) != nullptr)
+          {
+            table.feature_ms2_column_names.emplace_back(name);
+          }
+        }
+        discovered_dynamic_columns = true;
+      }
+
+      for (int64_t row = 0; row < features_table->num_rows(); ++row)
+      {
+        const Int64 precursor_id = ParquetFile::getInt64(precursor_id_col, row, 0, false);
+        const auto precursor_it = lookup.precursors.find(precursor_id);
+        if (precursor_it == lookup.precursors.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Missing prepared-library precursor metadata for precursor_id=" + StringUtils::toStr(precursor_id));
+        }
+        if (config.filters.exclude_decoys && precursor_it->second.decoy)
+        {
+          continue;
+        }
+
+        const auto peptide_mapping_it = lookup.precursor_to_peptides.find(precursor_id);
+        if (peptide_mapping_it == lookup.precursor_to_peptides.end())
+        {
+          continue;
+        }
+
+        for (const Int64 peptide_id : peptide_mapping_it->second)
+        {
+          const auto peptide_it = lookup.peptides.find(peptide_id);
+          if (peptide_it == lookup.peptides.end())
+          {
+            continue;
+          }
+
+          std::vector<std::optional<Int64>> protein_ids{std::nullopt};
+          const auto protein_mapping_it = lookup.peptide_to_proteins.find(peptide_id);
+          if (protein_mapping_it != lookup.peptide_to_proteins.end() && !protein_mapping_it->second.empty())
+          {
+            protein_ids.clear();
+            protein_ids.reserve(protein_mapping_it->second.size());
+            for (const Int64 protein_id : protein_mapping_it->second)
+            {
+              protein_ids.push_back(protein_id);
+            }
+          }
+
+          std::vector<std::optional<Int64>> gene_ids{std::nullopt};
+          const auto gene_mapping_it = lookup.peptide_to_genes.find(peptide_id);
+          if (gene_mapping_it != lookup.peptide_to_genes.end() && !gene_mapping_it->second.empty())
+          {
+            gene_ids.clear();
+            gene_ids.reserve(gene_mapping_it->second.size());
+            for (const Int64 gene_id : gene_mapping_it->second)
+            {
+              gene_ids.push_back(gene_id);
+            }
+          }
+
+          for (const auto protein_id : protein_ids)
+          {
+            for (const auto gene_id : gene_ids)
+            {
+              OpenSwathFeatureScoreRow score_row;
+              score_row.protein_id = protein_id.value_or(-1);
+              score_row.peptide_id = peptide_id;
+              score_row.ipf_peptide_id = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "ipf_peptide_id"), row);
+              score_row.precursor_id = precursor_id;
+              score_row.unmodified_sequence = peptide_it->second.unmodified_sequence;
+              score_row.modified_sequence = peptide_it->second.modified_sequence;
+              score_row.precursor_traml_id = precursor_it->second.traml_id;
+              score_row.precursor_group_label = precursor_it->second.group_label;
+              score_row.precursor_mz = precursor_it->second.precursor_mz;
+              score_row.precursor_charge = precursor_it->second.charge;
+              score_row.precursor_library_intensity = precursor_it->second.library_intensity;
+              score_row.precursor_library_rt = precursor_it->second.library_rt;
+              score_row.precursor_library_drift_time = precursor_it->second.library_drift_time;
+              score_row.peptide_decoy = peptide_it->second.decoy;
+              score_row.precursor_decoy = precursor_it->second.decoy;
+              score_row.run_id = run_id;
+              score_row.filename = filename;
+              score_row.feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
+              score_row.exp_rt = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "exp_rt"), row, 0.0, true);
+              score_row.exp_im = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "exp_im"), row);
+              score_row.norm_rt = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "norm_rt"), row, 0.0, true);
+              score_row.delta_rt = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "delta_rt"), row, 0.0, true);
+              score_row.left_width = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "left_width"), row, 0.0, true);
+              score_row.right_width = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "right_width"), row, 0.0, true);
+              score_row.im_left_width = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "exp_im_leftwidth"), row);
+              score_row.im_right_width = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "exp_im_rightwidth"), row);
+
+              for (const auto& name : table.feature_ms1_column_names)
+              {
+                score_row.feature_ms1_values.push_back(ParquetFile::getDouble(ParquetFile::getOptionalColumn(features_table, name), row, 0.0, true));
+              }
+              for (const auto& name : table.feature_ms2_column_names)
+              {
+                score_row.feature_ms2_values.push_back(ParquetFile::getDouble(ParquetFile::getOptionalColumn(features_table, name), row, 0.0, true));
+              }
+
+              score_row.score_ms1_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_score"), row);
+              const auto score_ms1_rank = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "score_ms1_peak_group_rank"), row);
+              if (score_ms1_rank.has_value()) score_row.score_ms1_rank = static_cast<Int32>(*score_ms1_rank);
+              score_row.score_ms1_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_pvalue"), row);
+              score_row.score_ms1_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_qvalue"), row);
+              score_row.score_ms1_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_pep"), row);
+              score_row.score_ms2_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_score"), row);
+              const auto score_ms2_rank = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "score_ms2_peak_group_rank"), row);
+              if (score_ms2_rank.has_value()) score_row.score_ms2_peak_group_rank = static_cast<Int32>(*score_ms2_rank);
+              score_row.score_ms2_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_pvalue"), row);
+              score_row.score_ms2_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_qvalue"), row);
+              score_row.score_ms2_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_pep"), row);
+              score_row.score_ipf_precursor_peakgroup_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ipf_precursor_peakgroup_pep"), row);
+              score_row.score_ipf_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ipf_pep"), row);
+              score_row.score_ipf_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ipf_qvalue"), row);
+              score_row.score_peptide_global_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_score"), row);
+              score_row.score_peptide_global_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_pvalue"), row);
+              score_row.score_peptide_global_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_qvalue"), row);
+              score_row.score_peptide_global_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_pep"), row);
+              score_row.score_peptide_experiment_wide_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_score"), row);
+              score_row.score_peptide_experiment_wide_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_pvalue"), row);
+              score_row.score_peptide_experiment_wide_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_qvalue"), row);
+              score_row.score_peptide_experiment_wide_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_pep"), row);
+              score_row.score_peptide_run_specific_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_score"), row);
+              score_row.score_peptide_run_specific_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_pvalue"), row);
+              score_row.score_peptide_run_specific_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_qvalue"), row);
+              score_row.score_peptide_run_specific_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_pep"), row);
+              score_row.score_protein_global_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_score"), row);
+              score_row.score_protein_global_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_pvalue"), row);
+              score_row.score_protein_global_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_qvalue"), row);
+              score_row.score_protein_global_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_pep"), row);
+              score_row.score_protein_experiment_wide_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_score"), row);
+              score_row.score_protein_experiment_wide_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_pvalue"), row);
+              score_row.score_protein_experiment_wide_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_qvalue"), row);
+              score_row.score_protein_experiment_wide_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_pep"), row);
+              score_row.score_protein_run_specific_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_score"), row);
+              score_row.score_protein_run_specific_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_pvalue"), row);
+              score_row.score_protein_run_specific_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_qvalue"), row);
+              score_row.score_protein_run_specific_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_pep"), row);
+              score_row.score_gene_global_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_score"), row);
+              score_row.score_gene_global_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_pvalue"), row);
+              score_row.score_gene_global_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_qvalue"), row);
+              score_row.score_gene_global_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_pep"), row);
+              score_row.score_gene_experiment_wide_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_score"), row);
+              score_row.score_gene_experiment_wide_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_pvalue"), row);
+              score_row.score_gene_experiment_wide_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_qvalue"), row);
+              score_row.score_gene_experiment_wide_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_pep"), row);
+              score_row.score_gene_run_specific_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_score"), row);
+              score_row.score_gene_run_specific_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_pvalue"), row);
+              score_row.score_gene_run_specific_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_qvalue"), row);
+              score_row.score_gene_run_specific_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_pep"), row);
+
+              if (protein_id.has_value())
+              {
+                const auto protein_it = lookup.proteins.find(*protein_id);
+                if (protein_it != lookup.proteins.end())
+                {
+                  score_row.protein_accession = protein_it->second.accession;
+                  score_row.protein_decoy = protein_it->second.decoy;
+                }
+              }
+              if (gene_id.has_value())
+              {
+                const auto gene_it = lookup.genes.find(*gene_id);
+                if (gene_it != lookup.genes.end())
+                {
+                  score_row.gene_id = *gene_id;
+                  score_row.gene_name = gene_it->second.name;
+                  score_row.gene_decoy = gene_it->second.decoy;
+                }
+              }
+
+              table.rows.push_back(std::move(score_row));
+            }
+          }
+        }
+      }
+    }
+
+    std::stable_sort(table.rows.begin(), table.rows.end(),
+      [](const OpenSwathFeatureScoreRow& lhs, const OpenSwathFeatureScoreRow& rhs)
+      {
+        if (lhs.precursor_id != rhs.precursor_id) return lhs.precursor_id < rhs.precursor_id;
+        if (lhs.feature_id != rhs.feature_id) return lhs.feature_id < rhs.feature_id;
+        if (lhs.peptide_id != rhs.peptide_id) return lhs.peptide_id < rhs.peptide_id;
+        if (lhs.protein_id != rhs.protein_id) return lhs.protein_id < rhs.protein_id;
+        return lhs.gene_id.value_or(-1) < rhs.gene_id.value_or(-1);
+      });
+
+    OPENMS_LOG_INFO << "Read " << table.rows.size() << " precursor feature score rows." << std::endl;
+    return table;
+  }
+
+  OpenSwathTransitionScoreTable readOSWPQTransitionScoreTable_(const OSWPQWorkspace& workspace,
+                                                               const PreparedLibraryLookup_& lookup,
+                                                               const OpenSwathParquetExportConfig& config) const
+  {
+    OpenSwathTransitionScoreTable table;
+    if (!config.include_transition_data)
+    {
+      return table;
+    }
+
+    std::unordered_map<Int64, std::vector<FeatureTransitionObservation_>> observations_by_transition;
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+    bool discovered_dynamic_columns = false;
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
+      const std::string feature_transition_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/feature_transition.parquet";
+      if (!File::exists(feature_transition_path))
+      {
+        continue;
+      }
+
+      auto feature_transition_table = ParquetFile::readTable(feature_transition_path);
+      if (!discovered_dynamic_columns)
+      {
+        for (const auto& name : featureTransitionParquetFields_())
+        {
+          if (ParquetFile::getOptionalColumn(feature_transition_table, name) != nullptr)
+          {
+            table.feature_transition_column_names.emplace_back(name);
+          }
+        }
+        discovered_dynamic_columns = true;
+      }
+
+      const auto feature_id_col = ParquetFile::getColumn(feature_transition_table, "feature_id");
+      const auto transition_id_col = ParquetFile::getColumn(feature_transition_table, "transition_id");
+      std::unordered_map<std::string, std::shared_ptr<arrow::Array>> transition_columns;
+      const auto add_transition_column = [&](const std::string& name)
+      {
+        transition_columns.emplace(name, ParquetFile::getOptionalColumn(feature_transition_table, name));
+      };
+      for (const auto& name : table.feature_transition_column_names)
+      {
+        add_transition_column(name);
+      }
+      for (const auto& name : std::array<std::string, 5>{
+             "score_transition_score", "score_transition_rank", "score_transition_pvalue", "score_transition_qvalue", "score_transition_pep"})
+      {
+        add_transition_column(name);
+      }
+
+      for (int64_t row = 0; row < feature_transition_table->num_rows(); ++row)
+      {
+        FeatureTransitionObservation_ observation;
+        observation.run_id = run_id;
+        observation.feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
+        observation.values.reserve(table.feature_transition_column_names.size());
+        for (const auto& name : table.feature_transition_column_names)
+        {
+          const auto column = getOptionalParquetColumn_(transition_columns, name);
+          if (column != nullptr && !column->IsNull(row))
+          {
+            observation.values.push_back(ParquetFile::getDouble(column, row, 0.0, false));
+          }
+          else
+          {
+            observation.values.push_back(std::nullopt);
+          }
+        }
+        observation.score = parquetOptionalDouble_(getOptionalParquetColumn_(transition_columns, "score_transition_score"), row);
+        const auto rank = parquetOptionalInt64_(getOptionalParquetColumn_(transition_columns, "score_transition_rank"), row);
+        if (rank.has_value()) observation.rank = static_cast<Int32>(*rank);
+        observation.pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(transition_columns, "score_transition_pvalue"), row);
+        observation.qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(transition_columns, "score_transition_qvalue"), row);
+        observation.pep = parquetOptionalDouble_(getOptionalParquetColumn_(transition_columns, "score_transition_pep"), row);
+        const Int64 transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
+        observations_by_transition[transition_id].push_back(std::move(observation));
+      }
+    }
+
+    for (const auto& [transition_id, transition] : lookup.transitions)
+    {
+      if (config.filters.exclude_decoys && transition.decoy)
+      {
+        continue;
+      }
+
+      std::vector<std::optional<Int64>> peptide_ids{std::nullopt};
+      if (!transition.peptide_ids.empty())
+      {
+        peptide_ids.clear();
+        peptide_ids.reserve(transition.peptide_ids.size());
+        for (const Int64 peptide_id : transition.peptide_ids)
+        {
+          peptide_ids.push_back(peptide_id);
+        }
+      }
+
+      std::vector<Int64> precursor_ids = transition.precursor_ids;
+      if (precursor_ids.empty())
+      {
+        precursor_ids.push_back(-1);
+      }
+
+      std::vector<FeatureTransitionObservation_> empty_observations(1);
+      const auto obs_it = observations_by_transition.find(transition_id);
+      const auto& observations = obs_it != observations_by_transition.end() ? obs_it->second : empty_observations;
+
+      for (const Int64 precursor_id : precursor_ids)
+      {
+        for (const auto peptide_id : peptide_ids)
+        {
+          for (const auto& observation : observations)
+          {
+            OpenSwathTransitionScoreRow score_row;
+            score_row.run_id = observation.run_id;
+            score_row.ipf_peptide_id = peptide_id;
+            score_row.precursor_id = precursor_id;
+            score_row.transition_id = transition_id;
+            score_row.transition_traml_id = transition.traml_id;
+            score_row.product_mz = transition.product_mz;
+            score_row.transition_charge = transition.charge;
+            score_row.transition_type = transition.type;
+            score_row.transition_ordinal = transition.ordinal;
+            score_row.annotation = transition.annotation;
+            score_row.transition_detecting = transition.detecting;
+            score_row.transition_library_intensity = transition.library_intensity;
+            score_row.transition_decoy = transition.decoy;
+            score_row.feature_id = observation.feature_id;
+            score_row.feature_transition_values = observation.values;
+            score_row.score_transition_score = observation.score;
+            score_row.score_transition_rank = observation.rank;
+            score_row.score_transition_pvalue = observation.pvalue;
+            score_row.score_transition_qvalue = observation.qvalue;
+            score_row.score_transition_pep = observation.pep;
+            table.rows.push_back(std::move(score_row));
+          }
+        }
+      }
+    }
+
+    std::stable_sort(table.rows.begin(), table.rows.end(),
+      [](const OpenSwathTransitionScoreRow& lhs, const OpenSwathTransitionScoreRow& rhs)
+      {
+        if (lhs.precursor_id != rhs.precursor_id) return lhs.precursor_id < rhs.precursor_id;
+        if (lhs.transition_id != rhs.transition_id) return lhs.transition_id < rhs.transition_id;
+        return lhs.feature_id.value_or(std::numeric_limits<Int64>::max()) < rhs.feature_id.value_or(std::numeric_limits<Int64>::max());
+      });
+
+    OPENMS_LOG_INFO << "Read " << table.rows.size() << " transition score rows." << std::endl;
+    return table;
+  }
+
+  static bool oswpqHasIPFColumns_(const OSWPQWorkspace& workspace)
+  {
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
+      auto feature_table = ParquetFile::readTable(workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet");
+      if (ParquetFile::getOptionalColumn(feature_table, "score_ipf_qvalue") != nullptr ||
+          ParquetFile::getOptionalColumn(feature_table, "score_ipf_pep") != nullptr)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  std::vector<OpenSwathExportRow> readOSWPQExportRows_(const OSWPQWorkspace& workspace,
+                                                       const PreparedLibraryLookup_& lookup,
+                                                       const OpenSwathExportFilterConfig& config) const
+  {
+    if (config.use_alignment)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Direct OSWPQ export does not support alignment recovery because no alignment parquet tables are written yet.");
+    }
+    if (config.ipf_mode != OpenSwathIPFExportMode::Disable && oswpqHasIPFColumns_(workspace))
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Direct OSWPQ export currently supports standard OpenSWATH-style exports only. Use Export:*:ipf disable or workflow:working_format osw for IPF-aware export.");
+    }
+
+    const auto peptide_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Peptide);
+    const auto protein_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Protein);
+    const auto gene_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Gene);
+    const ExportQValueMaps_ peptide_qvalues = buildPeptideQValueMaps_(peptide_results);
+    const ExportQValueMaps_ protein_qvalues = buildAggregatedEntityQValueMaps_(protein_results, lookup.peptide_to_proteins);
+    const ExportQValueMaps_ gene_qvalues = buildAggregatedEntityQValueMaps_(gene_results, lookup.peptide_to_genes);
+    const auto transition_aggregations = config.transition_quantification ?
+      buildTransitionAggregations_(workspace, lookup, config.max_transition_pep) :
+      std::unordered_map<Int64, TransitionAggregation_>{};
+
+    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+    const auto filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
+    std::vector<OpenSwathExportRow> rows;
+
+    for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+    {
+      const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
+      const std::string filename = (filename_col != nullptr && !filename_col->IsNull(run_row)) ? ParquetFile::getString(filename_col, run_row) : "";
+      const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
+      auto features_table = ParquetFile::readTable(features_path);
+      const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
+      const auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
+      const auto exp_rt_col = ParquetFile::getOptionalColumn(features_table, "exp_rt");
+      const auto norm_rt_col = ParquetFile::getOptionalColumn(features_table, "norm_rt");
+      const auto delta_rt_col = ParquetFile::getOptionalColumn(features_table, "delta_rt");
+      const auto left_width_col = ParquetFile::getOptionalColumn(features_table, "left_width");
+      const auto right_width_col = ParquetFile::getOptionalColumn(features_table, "right_width");
+      const auto exp_im_col = ParquetFile::getOptionalColumn(features_table, "exp_im");
+      const auto exp_im_left_col = ParquetFile::getOptionalColumn(features_table, "exp_im_leftwidth");
+      const auto exp_im_right_col = ParquetFile::getOptionalColumn(features_table, "exp_im_rightwidth");
+      const auto ms2_area_col = ParquetFile::getOptionalColumn(features_table, "ms2_area_intensity");
+      const auto ms1_area_col = ParquetFile::getOptionalColumn(features_table, "ms1_area_intensity");
+      const auto ms1_apex_col = ParquetFile::getOptionalColumn(features_table, "ms1_apex_intensity");
+      const auto score_ms1_pep_col = ParquetFile::getOptionalColumn(features_table, "score_ms1_pep");
+      const auto score_ms2_score_col = ParquetFile::getOptionalColumn(features_table, "score_ms2_score");
+      const auto score_ms2_qvalue_col = ParquetFile::getOptionalColumn(features_table, "score_ms2_qvalue");
+      const auto score_ms2_pep_col = ParquetFile::getOptionalColumn(features_table, "score_ms2_pep");
+      const auto score_ms2_rank_col = ParquetFile::getOptionalColumn(features_table, "score_ms2_peak_group_rank");
+      if (score_ms2_qvalue_col == nullptr || score_ms2_score_col == nullptr)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Direct OSWPQ export requires score_ms2_score and score_ms2_qvalue in features.parquet.");
+      }
+
+      for (int64_t row = 0; row < features_table->num_rows(); ++row)
+      {
+        if (score_ms2_qvalue_col->IsNull(row))
+        {
+          continue;
+        }
+        const double ms2_qvalue = ParquetFile::getDouble(score_ms2_qvalue_col, row, 1.0, false);
+        if (!(ms2_qvalue < config.max_rs_peakgroup_qvalue))
+        {
+          continue;
+        }
+
+        const Int64 precursor_id = ParquetFile::getInt64(precursor_id_col, row, 0, false);
+        const auto precursor_it = lookup.precursors.find(precursor_id);
+        if (precursor_it == lookup.precursors.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Missing prepared-library precursor metadata for precursor_id=" + StringUtils::toStr(precursor_id));
+        }
+        const auto peptide_mapping_it = lookup.precursor_to_peptides.find(precursor_id);
+        if (peptide_mapping_it == lookup.precursor_to_peptides.end())
+        {
+          continue;
+        }
+
+        for (const Int64 peptide_id : peptide_mapping_it->second)
+        {
+          const auto peptide_it = lookup.peptides.find(peptide_id);
+          if (peptide_it == lookup.peptides.end())
+          {
+            continue;
+          }
+
+          OpenSwathExportRow export_row;
+          export_row.run_id = run_id;
+          export_row.filename = filename;
+          export_row.run_name = File::stemName(filename);
+          if (export_row.run_name.empty())
+          {
+            export_row.run_name = File::basename(filename);
+          }
+          if (export_row.run_name.empty())
+          {
+            export_row.run_name = "RUN_ID " + StringUtils::toStr(run_id);
+          }
+
+          export_row.feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
+          export_row.peptide_id = peptide_id;
+          export_row.precursor_id = precursor_id;
+          export_row.transition_group_id = StringUtils::toStr(precursor_id);
+          export_row.decoy = precursor_it->second.decoy;
+          export_row.sequence = peptide_it->second.unmodified_sequence;
+          export_row.full_peptide_name = peptide_it->second.modified_sequence;
+          export_row.protein_name = lookup.protein_names_by_peptide.count(peptide_id) ? lookup.protein_names_by_peptide.at(peptide_id) : "";
+          export_row.gene_name = lookup.gene_names_by_peptide.count(peptide_id) ? lookup.gene_names_by_peptide.at(peptide_id) : "";
+          export_row.charge = precursor_it->second.charge;
+          export_row.mz = precursor_it->second.precursor_mz;
+          export_row.rt = ParquetFile::getDouble(exp_rt_col, row, 0.0, true);
+          export_row.assay_rt = export_row.rt - ParquetFile::getDouble(delta_rt_col, row, 0.0, true);
+          export_row.delta_rt = ParquetFile::getDouble(delta_rt_col, row, 0.0, true);
+          export_row.irt = ParquetFile::getDouble(norm_rt_col, row, 0.0, true);
+          export_row.assay_irt = precursor_it->second.library_rt.value_or(std::numeric_limits<double>::quiet_NaN());
+          export_row.delta_irt = export_row.irt - export_row.assay_irt;
+          export_row.intensity = ParquetFile::getDouble(ms2_area_col, row, 0.0, true);
+          export_row.aggr_prec_peak_area = parquetOptionalDouble_(ms1_area_col, row);
+          export_row.aggr_prec_peak_apex = parquetOptionalDouble_(ms1_apex_col, row);
+          export_row.left_width = ParquetFile::getDouble(left_width_col, row, 0.0, true);
+          export_row.right_width = ParquetFile::getDouble(right_width_col, row, 0.0, true);
+          export_row.exp_im = parquetOptionalDouble_(exp_im_col, row);
+          export_row.im_left_width = parquetOptionalDouble_(exp_im_left_col, row);
+          export_row.im_right_width = parquetOptionalDouble_(exp_im_right_col, row);
+          export_row.ms1_pep = parquetOptionalDouble_(score_ms1_pep_col, row);
+          export_row.ms2_pep = parquetOptionalDouble_(score_ms2_pep_col, row);
+          export_row.peak_group_rank = static_cast<Int32>(parquetOptionalInt64_(score_ms2_rank_col, row).value_or(0));
+          export_row.d_score = ParquetFile::getDouble(score_ms2_score_col, row, 0.0, false);
+          export_row.m_score = ms2_qvalue;
+          export_row.pep = parquetOptionalDouble_(score_ms2_pep_col, row);
+
+          const auto peptide_global_it = peptide_qvalues.global.find(peptide_id);
+          if (peptide_global_it != peptide_qvalues.global.end()) export_row.peptide_global_qvalue = peptide_global_it->second;
+          const auto peptide_experiment_it = peptide_qvalues.experiment_wide.find({run_id, peptide_id});
+          if (peptide_experiment_it != peptide_qvalues.experiment_wide.end()) export_row.peptide_experiment_wide_qvalue = peptide_experiment_it->second;
+          const auto peptide_run_it = peptide_qvalues.run_specific.find({run_id, peptide_id});
+          if (peptide_run_it != peptide_qvalues.run_specific.end()) export_row.peptide_run_specific_qvalue = peptide_run_it->second;
+
+          const auto protein_global_it = protein_qvalues.global.find(peptide_id);
+          if (protein_global_it != protein_qvalues.global.end()) export_row.protein_global_qvalue = protein_global_it->second;
+          const auto protein_experiment_it = protein_qvalues.experiment_wide.find({run_id, peptide_id});
+          if (protein_experiment_it != protein_qvalues.experiment_wide.end()) export_row.protein_experiment_wide_qvalue = protein_experiment_it->second;
+          const auto protein_run_it = protein_qvalues.run_specific.find({run_id, peptide_id});
+          if (protein_run_it != protein_qvalues.run_specific.end()) export_row.protein_run_specific_qvalue = protein_run_it->second;
+
+          const auto gene_global_it = gene_qvalues.global.find(peptide_id);
+          if (gene_global_it != gene_qvalues.global.end()) export_row.gene_global_qvalue = gene_global_it->second;
+          const auto gene_experiment_it = gene_qvalues.experiment_wide.find({run_id, peptide_id});
+          if (gene_experiment_it != gene_qvalues.experiment_wide.end()) export_row.gene_experiment_wide_qvalue = gene_experiment_it->second;
+          const auto gene_run_it = gene_qvalues.run_specific.find({run_id, peptide_id});
+          if (gene_run_it != gene_qvalues.run_specific.end()) export_row.gene_run_specific_qvalue = gene_run_it->second;
+
+          const auto transition_it = transition_aggregations.find(export_row.feature_id);
+          if (transition_it != transition_aggregations.end())
+          {
+            export_row.aggr_peak_area = joinStrings_(transition_it->second.areas);
+            export_row.aggr_peak_apex = joinStrings_(transition_it->second.apices);
+            export_row.aggr_fragment_annotation = joinStrings_(transition_it->second.annotations);
+          }
+
+          rows.push_back(std::move(export_row));
+        }
+      }
+    }
+
+    if (config.exclude_decoys)
+    {
+      rows.erase(std::remove_if(rows.begin(), rows.end(), [](const auto& row) { return row.decoy; }), rows.end());
+    }
+    if (config.peptide)
+    {
+      rows.erase(std::remove_if(rows.begin(), rows.end(),
+                                [&](const auto& row)
+                                {
+                                  return !row.peptide_global_qvalue.has_value() ||
+                                         *row.peptide_global_qvalue >= config.max_global_peptide_qvalue;
+                                }),
+                 rows.end());
+    }
+    if (config.protein)
+    {
+      rows.erase(std::remove_if(rows.begin(), rows.end(),
+                                [&](const auto& row)
+                                {
+                                  return !row.protein_global_qvalue.has_value() ||
+                                         *row.protein_global_qvalue >= config.max_global_protein_qvalue;
+                                }),
+                 rows.end());
+    }
+    if (config.gene)
+    {
+      rows.erase(std::remove_if(rows.begin(), rows.end(),
+                                [&](const auto& row)
+                                {
+                                  return !row.gene_global_qvalue.has_value() ||
+                                         *row.gene_global_qvalue >= config.max_global_gene_qvalue;
+                                }),
+                 rows.end());
+    }
+
+    std::stable_sort(rows.begin(), rows.end(),
+      [](const OpenSwathExportRow& lhs, const OpenSwathExportRow& rhs)
+      {
+        if (lhs.precursor_id != rhs.precursor_id) return lhs.precursor_id < rhs.precursor_id;
+        if (lhs.feature_id != rhs.feature_id) return lhs.feature_id < rhs.feature_id;
+        return lhs.peptide_id < rhs.peptide_id;
+      });
+
+    OPENMS_LOG_INFO << "Read " << rows.size() << " filtered export rows." << std::endl;
+    return rows;
+  }
+
+  void runExportsOSWPQ_(const OSWPQWorkspace& workspace,
+                        const PreparedLibraryLookup_& lookup,
+                        const StringList& input_files,
+                        const std::string& out_dir) const
+  {
+    const auto tasks = getExportTasks_();
+    if (tasks.empty())
+    {
+      return;
+    }
+
+    File::makeDir(out_dir);
+    const std::string base_path = makeExportBasePath_(input_files, out_dir);
+    std::optional<std::vector<OpenSwathExportRow>> matrix_rows_cache;
+
+    for (const auto& task : tasks)
+    {
+      ProgressLogger progress_logger;
+      progress_logger.setLogType(ProgressLogger::CMD);
+      progress_logger.startProgress(0, 1, exportTaskLabel_(task));
+
+      if (task.type == ExportTaskType::Results)
+      {
+        const auto results_config = getResultsConfig_();
+        const auto rows = readOSWPQExportRows_(workspace, lookup, results_config.filters);
+        const std::string suffix = results_config.format == OpenSwathExportFileFormat::Parquet ? ".results.parquet" : ".results.tsv";
+        OpenSwathResultsExporter::write(base_path + suffix, rows, results_config);
+      }
+      else if (task.type == ExportTaskType::FeatureParquet)
+      {
+        const auto parquet_config = getParquetConfig_();
+        const auto feature_table = readOSWPQFeatureScoreTable_(workspace, lookup, parquet_config);
+        const std::string feature_out = base_path + ".precursor.feature.scores.parquet";
+        OpenSwathParquetExporter::writeFeatureScores(feature_out, feature_table);
+        if (parquet_config.include_transition_data)
+        {
+          const auto transition_table = readOSWPQTransitionScoreTable_(workspace, lookup, parquet_config);
+          if (!transition_table.rows.empty())
+          {
+            const std::string transition_out = base_path + ".transition.feature.scores.parquet";
+            OpenSwathParquetExporter::writeTransitionScores(transition_out, transition_table);
+          }
+        }
+      }
+      else if (task.type == ExportTaskType::Matrix)
+      {
+        const auto matrix_config = getMatrixConfig_(*task.matrix_level);
+        if (!matrix_rows_cache.has_value())
+        {
+          matrix_rows_cache = readOSWPQExportRows_(workspace, lookup, matrix_config.filters);
+        }
+        const auto matrix = OpenSwathMatrixExporter::buildMatrix(*matrix_rows_cache, matrix_config);
+        const std::string suffix = matrix_config.format == OpenSwathExportFileFormat::Parquet ? ".matrix.parquet" : ".matrix.tsv";
+        OpenSwathMatrixExporter::writeMatrix(base_path + "." + toString(*task.matrix_level) + suffix, matrix, matrix_config);
+      }
+
+      progress_logger.endProgress();
+    }
+  }
+
   ExitCodes runExtractionToWorkflow_(const std::string& prepared_library_pqp,
                                      const std::string& workflow_output,
                                      const WorkflowFormat workflow_format,
@@ -2876,7 +4860,6 @@ protected:
       const std::string workflow_output = workflow_format == WorkflowFormat::OSWPQ ?
         working_dir.path + "/workflow.oswpq" :
         working_dir.path + "/workflow.osw";
-      const std::string workflow_bridge_osw = working_dir.path + "/workflow_bridge.osw";
 
       OpenSwathLibraryPreparation library_preparation;
       library_preparation.setLogType(log_type_);
@@ -2984,20 +4967,32 @@ protected:
       else
       {
         OSWPQWorkspace workflow_workspace = prepareOSWPQWorkspace_(workflow_output);
-        const bool keep_intermediate_files = toBool_(getStringOption_("workflow:keep_intermediate_files"));
+        const auto export_tasks = getExportTasks_();
+        const bool needs_transition_metadata =
+          std::any_of(export_tasks.begin(), export_tasks.end(),
+            [&](const auto& task)
+            {
+              if (task.type == ExportTaskType::FeatureParquet)
+              {
+                return true;
+              }
+              if (task.type == ExportTaskType::Results)
+              {
+                return getResultsConfig_().filters.transition_quantification;
+              }
+              if (task.type == ExportTaskType::Matrix)
+              {
+                return getMatrixConfig_(*task.matrix_level).filters.transition_quantification;
+              }
+              return false;
+            });
+        PreparedLibraryLookup_ prepared_library_lookup = loadPreparedLibraryLookup_(prepared_library_pqp, needs_transition_metadata);
+        augmentLookupFromOSWPQLibrary_(workflow_workspace, prepared_library_lookup, needs_transition_metadata);
         try
         {
-          buildOSWPQSQLiteBridge_(workflow_workspace, workflow_bridge_osw, prepared_library_pqp, enable_uis_scoring);
-          runInference_(workflow_bridge_osw);
-          checkpointSQLiteDatabase_(workflow_bridge_osw, "temporary SQLite bridge before export");
-          runExports_(workflow_bridge_osw, input_files, out_dir);
-          OPENMS_LOG_INFO << "Finished exports from temporary SQLite bridge." << std::endl;
-          if (keep_intermediate_files)
-          {
-            syncInferenceScoresToOSWPQ_(workflow_bridge_osw, workflow_workspace);
-            commitOSWPQWorkspace_(workflow_workspace);
-          }
-          removeExistingPath_(workflow_bridge_osw);
+          runInferenceOSWPQ_(workflow_workspace, prepared_library_lookup);
+          runExportsOSWPQ_(workflow_workspace, prepared_library_lookup, input_files, out_dir);
+          commitOSWPQWorkspace_(workflow_workspace);
         }
         catch (...)
         {
