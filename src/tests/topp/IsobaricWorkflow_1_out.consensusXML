@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_4835329514588776807" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="IsobaricWorkflow" version="version_string" />
+		<processingAction name="Quantitation" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="1:5" enzyme="trypsin/p" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.6.0-pre-claude-protein-quantities-xml-export-iaag7w-2026-07-31"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
+				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="PROTA" score="0.333333333333333" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+				<UserParam type="float" name="Posterior Probability_score" value="0.99"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROTB" score="0.333333333333333" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+				<UserParam type="float" name="Posterior Probability_score" value="0.97"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[TMTTenPlexMethod_test.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.333333333333333,PH_0"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_0_abundances" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0_quantified_proteins" value="PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.333333333333333,PH_1"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_abundances" value="[8650.75, 7452.32861328125, 4292.02294921875, 6278.6962890625, 9257.294921875, 6562.1044921875, 5371.19189453125, 4838.69970703125, 7885.1943359375, 5965.33154296875]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[8650.75, 7452.32861328125, 4292.02294921875, 6278.6962890625, 9257.294921875, 6562.1044921875, 5371.19189453125, 4838.69970703125, 7885.1943359375, 5965.33154296875]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_1_file_channel_level_filename" value="[TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test]"/>
+			<UserParam type="string" name="indistinguishable_proteins_1_quantified_proteins" value="PH_1"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="10">
+		<map id="0" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_126" size="0">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127725999999996"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="1"/>
+		</map>
+		<map id="1" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_127N" size="0">
+			<UserParam type="string" name="channel_name" value="127N"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124761000000007"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="2"/>
+		</map>
+		<map id="2" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_127C" size="0">
+			<UserParam type="string" name="channel_name" value="127C"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.131080999999995"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="3"/>
+		</map>
+		<map id="3" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_128N" size="0">
+			<UserParam type="string" name="channel_name" value="128N"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.128116000000006"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="4"/>
+		</map>
+		<map id="4" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_128C" size="0">
+			<UserParam type="string" name="channel_name" value="128C"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134435999999994"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="5"/>
+		</map>
+		<map id="5" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_129N" size="0">
+			<UserParam type="string" name="channel_name" value="129N"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131471000000005"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="6"/>
+		</map>
+		<map id="6" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_129C" size="0">
+			<UserParam type="string" name="channel_name" value="129C"/>
+			<UserParam type="int" name="channel_id" value="6"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.137789999999995"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="7"/>
+		</map>
+		<map id="7" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_130N" size="0">
+			<UserParam type="string" name="channel_name" value="130N"/>
+			<UserParam type="int" name="channel_id" value="7"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.134825000000006"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="8"/>
+		</map>
+		<map id="8" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_130C" size="0">
+			<UserParam type="string" name="channel_name" value="130C"/>
+			<UserParam type="int" name="channel_id" value="8"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141144999999995"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="9"/>
+		</map>
+		<map id="9" name="TMTTenPlexMethod_test.mzML" label="tmt10plex_131" size="0">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="9"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138180000000006"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="sample_name" value="10"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.0" charge="2">
+			<centroid rt="4881.494759999999587" mz="436.70350000000002" it="9.891816e04"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="4881.494759999999587" mz="126.127725999999996" it="1.1835926e04"/>
+				<element map="1" id="1" rt="4881.494759999999587" mz="127.124761000000007" it="1.2324112e04"/>
+				<element map="2" id="2" rt="4881.494759999999587" mz="127.131080999999995" it="9583.523438"/>
+				<element map="3" id="3" rt="4881.494759999999587" mz="128.128116000000006" it="8719.399414"/>
+				<element map="4" id="4" rt="4881.494759999999587" mz="128.134435999999994" it="1.0744706e04"/>
+				<element map="5" id="5" rt="4881.494759999999587" mz="129.131471000000005" it="8983.49707"/>
+				<element map="6" id="6" rt="4881.494759999999587" mz="129.137789999999995" it="6531.520508"/>
+				<element map="7" id="7" rt="4881.494759999999587" mz="130.134825000000006" it="9318.28125"/>
+				<element map="8" id="8" rt="4881.494759999999587" mz="130.141144999999995" it="8690.838867"/>
+				<element map="9" id="9" rt="4881.494759999999587" mz="131.138180000000006" it="1.2186352e04"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
+				<PeptideHit score="0.2" sequence="ELEFANTK" charge="2" aa_before="[" aa_after="I" start="0" end="7" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="0.01"/>
+				</PeptideHit>
+				<UserParam type="int" name="id_merge_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="quant_precursor_purity" value="1.0"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24221"/>
+			<UserParam type="float" name="precursor_intensity" value="3.4732815625e05"/>
+		</consensusElement>
+		<consensusElement id="e_0" quality="0.0" charge="2">
+			<centroid rt="4880.568540000000212" mz="768.950003899738022" it="1.6297831e05"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="4880.568540000000212" mz="126.127725999999996" it="1.9852014e04"/>
+				<element map="1" id="1" rt="4880.568540000000212" mz="127.124761000000007" it="1.8333996e04"/>
+				<element map="2" id="2" rt="4880.568540000000212" mz="127.131080999999995" it="1.4886836e04"/>
+				<element map="3" id="3" rt="4880.568540000000212" mz="128.128116000000006" it="1.418482e04"/>
+				<element map="4" id="4" rt="4880.568540000000212" mz="128.134435999999994" it="1.1086604e04"/>
+				<element map="5" id="5" rt="4880.568540000000212" mz="129.131471000000005" it="1.6250631e04"/>
+				<element map="6" id="6" rt="4880.568540000000212" mz="129.137789999999995" it="1.7849115e04"/>
+				<element map="7" id="7" rt="4880.568540000000212" mz="130.134825000000006" it="1.7002799e04"/>
+				<element map="8" id="8" rt="4880.568540000000212" mz="130.141144999999995" it="1.9334299e04"/>
+				<element map="9" id="9" rt="4880.568540000000212" mz="131.138180000000006" it="1.4197196e04"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="768.950003899738" RT="4880.56854" spectrum_reference="controllerType=0 controllerNumber=1 scan=24217" >
+				<PeptideHit score="0.2" sequence="IMTELLERK" charge="2" aa_before="K" aa_after="M" start="8" end="16" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="0.02"/>
+				</PeptideHit>
+				<UserParam type="int" name="id_merge_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="quant_precursor_purity" value="1.0"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24217"/>
+			<UserParam type="float" name="precursor_intensity" value="2.6571885e06"/>
+		</consensusElement>
+		<consensusElement id="e_0" quality="0.0" charge="2">
+			<centroid rt="4880.800140000000283" mz="544.812999999999988" it="9455.597656"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="4880.800140000000283" mz="126.127725999999996" it="0.0"/>
+				<element map="1" id="1" rt="4880.800140000000283" mz="127.124761000000007" it="3090.578125"/>
+				<element map="2" id="2" rt="4880.800140000000283" mz="127.131080999999995" it="0.0"/>
+				<element map="3" id="3" rt="4880.800140000000283" mz="128.128116000000006" it="2050.120605"/>
+				<element map="4" id="4" rt="4880.800140000000283" mz="128.134435999999994" it="2126.512695"/>
+				<element map="5" id="5" rt="4880.800140000000283" mz="129.131471000000005" it="0.0"/>
+				<element map="6" id="6" rt="4880.800140000000283" mz="129.137789999999995" it="0.0"/>
+				<element map="7" id="7" rt="4880.800140000000283" mz="130.134825000000006" it="2188.385986"/>
+				<element map="8" id="8" rt="4880.800140000000283" mz="130.141144999999995" it="0.0"/>
+				<element map="9" id="9" rt="4880.800140000000283" mz="131.138180000000006" it="0.0"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="544.813" RT="4880.80014" spectrum_reference="controllerType=0 controllerNumber=1 scan=24218" >
+				<PeptideHit score="0.2" sequence="MYFINGERK" charge="2" aa_before="K" aa_after="[" start="17" end="25" protein_refs="PH_1">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="0.03"/>
+				</PeptideHit>
+				<UserParam type="int" name="id_merge_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="quant_precursor_purity" value="1.0"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24218"/>
+			<UserParam type="float" name="precursor_intensity" value="2.60765953125e05"/>
+		</consensusElement>
+		<consensusElement id="e_0" quality="0.0" charge="2">
+			<centroid rt="4881.031619999999748" mz="489.278535890616979" it="1.2365164e05"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="4881.031619999999748" mz="126.127725999999996" it="1.73015e04"/>
+				<element map="1" id="1" rt="4881.031619999999748" mz="127.124761000000007" it="1.1814079e04"/>
+				<element map="2" id="2" rt="4881.031619999999748" mz="127.131080999999995" it="8584.045898"/>
+				<element map="3" id="3" rt="4881.031619999999748" mz="128.128116000000006" it="1.0507272e04"/>
+				<element map="4" id="4" rt="4881.031619999999748" mz="128.134435999999994" it="1.6388078e04"/>
+				<element map="5" id="5" rt="4881.031619999999748" mz="129.131471000000005" it="1.3124209e04"/>
+				<element map="6" id="6" rt="4881.031619999999748" mz="129.137789999999995" it="1.0742384e04"/>
+				<element map="7" id="7" rt="4881.031619999999748" mz="130.134825000000006" it="7489.013184"/>
+				<element map="8" id="8" rt="4881.031619999999748" mz="130.141144999999995" it="1.5770389e04"/>
+				<element map="9" id="9" rt="4881.031619999999748" mz="131.138180000000006" it="1.1930663e04"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="489.278535890617" RT="4881.03162" spectrum_reference="controllerType=0 controllerNumber=1 scan=24219" >
+				<PeptideHit score="0.2" sequence="GIRAFFERK" charge="2" aa_before="K" aa_after="M" start="0" end="8" protein_refs="PH_1">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="0.04"/>
+				</PeptideHit>
+				<UserParam type="int" name="id_merge_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="quant_precursor_purity" value="1.0"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24219"/>
+			<UserParam type="float" name="precursor_intensity" value="5.108075625e05"/>
+		</consensusElement>
+		<consensusElement id="e_0" quality="0.0" charge="2">
+			<centroid rt="4881.263160000000425" mz="479.744303406725976" it="3563.425781"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="4881.263160000000425" mz="126.127725999999996" it="4.309975e-13"/>
+				<element map="1" id="1" rt="4881.263160000000425" mz="127.124761000000007" it="0.0"/>
+				<element map="2" id="2" rt="4881.263160000000425" mz="127.131080999999995" it="0.0"/>
+				<element map="3" id="3" rt="4881.263160000000425" mz="128.128116000000006" it="0.0"/>
+				<element map="4" id="4" rt="4881.263160000000425" mz="128.134435999999994" it="0.0"/>
+				<element map="5" id="5" rt="4881.263160000000425" mz="129.131471000000005" it="1656.802734"/>
+				<element map="6" id="6" rt="4881.263160000000425" mz="129.137789999999995" it="0.0"/>
+				<element map="7" id="7" rt="4881.263160000000425" mz="130.134825000000006" it="0.0"/>
+				<element map="8" id="8" rt="4881.263160000000425" mz="130.141144999999995" it="1906.623047"/>
+				<element map="9" id="9" rt="4881.263160000000425" mz="131.138180000000006" it="0.0"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="479.744303406726" RT="4881.26316" spectrum_reference="controllerType=0 controllerNumber=1 scan=24220" >
+				<UserParam type="int" name="id_merge_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="quant_precursor_purity" value="1.0"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24220"/>
+			<UserParam type="float" name="precursor_intensity" value="4.4369828125e05"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

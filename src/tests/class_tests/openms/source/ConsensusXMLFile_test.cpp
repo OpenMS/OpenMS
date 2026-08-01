@@ -16,10 +16,12 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -259,6 +261,134 @@ START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
   // Verify round-trip integrity
   TEST_EQUAL(map_bz2.size(), map.size())
   TEST_EQUAL(map_bz2.getColumnHeaders().size(), map.getColumnHeaders().size())
+END_SECTION
+
+START_SECTION([EXTRA] Protein group quantities round-trip)
+{
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // attach quantities the way PeptideAndProteinQuant::annotateQuantificationsToProteins() does
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  ProteinIdentification::ProteinGroup group;
+  for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
+  TEST_NOT_EQUAL(group.accessions.size(), 0)
+  group.probability = 0.75;
+
+  group.getFloatDataArrays().resize(4);
+  group.getStringDataArrays().resize(2);
+  group.getIntegerDataArrays().resize(2);
+  group.getFloatDataArrays()[0].setName("abundances");
+  group.getFloatDataArrays()[0].assign({1.5f, 2.5f});
+  group.getFloatDataArrays()[1].setName("psm_count");
+  group.getFloatDataArrays()[1].resize(2); // all zero, as produced today
+  group.getFloatDataArrays()[2].setName("distinct_peptides");
+  group.getFloatDataArrays()[2].resize(2); // all zero, as produced today
+  group.getFloatDataArrays()[3].setName("file_channel_level_abundance");
+  group.getFloatDataArrays()[3].assign({10.0f, 20.0f, 30.0f, 40.0f});
+  group.getStringDataArrays()[0].setName("file_channel_level_filename");
+  group.getStringDataArrays()[0].assign({"fileA", "fileA", "fileB", "fileB"});
+  group.getStringDataArrays()[1].setName("file_level_filename");
+  group.getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  group.getIntegerDataArrays()[0].assign({1, 2, 1, 2});
+  group.getIntegerDataArrays()[1].setName("file_level_psm_count");
+
+  prot.insertIndistinguishableProteins(group);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+
+  ConsensusMap loaded;
+  f.load(tmp_filename, loaded);
+
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
+  const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
+
+  // the positional layout consumers rely on (MzTab, ProteinGroupArrowExport) is restored
+  TEST_EQUAL(rt.getFloatDataArrays().size(), 4)
+  TEST_EQUAL(rt.getStringDataArrays().size(), 2)
+  TEST_EQUAL(rt.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(rt.getFloatDataArrays()[0].getName(), "abundances")
+  TEST_EQUAL(rt.getFloatDataArrays()[3].getName(), "file_channel_level_abundance")
+  TEST_EQUAL(rt.getStringDataArrays()[0].getName(), "file_channel_level_filename")
+  TEST_EQUAL(rt.getIntegerDataArrays()[0].getName(), "file_channel_level_channel")
+
+  TEST_EQUAL(rt.getFloatDataArrays()[0].size(), 2)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][0], 1.5)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][1], 2.5)
+  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 4)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][0], 10.0)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][3], 40.0)
+  TEST_EQUAL(rt.getStringDataArrays()[0].size(), 4)
+  TEST_EQUAL(rt.getStringDataArrays()[0][0], "fileA")
+  TEST_EQUAL(rt.getStringDataArrays()[0][3], "fileB")
+  TEST_EQUAL(rt.getIntegerDataArrays()[0].size(), 4)
+  TEST_EQUAL(rt.getIntegerDataArrays()[0][0], 1)
+  TEST_EQUAL(rt.getIntegerDataArrays()[0][3], 2)
+
+  // all-zero arrays are not written, but keep their in-memory shape
+  TEST_EQUAL(rt.getFloatDataArrays()[1].size(), 2)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[1][0], 0.0)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 2)
+
+  // no leftovers of the encoding on the ProteinIdentification
+  std::vector<std::string> keys;
+  loaded.getProteinIdentifications()[0].getKeys(keys);
+  for (const std::string& key : keys)
+  {
+    TEST_EQUAL(StringUtils::hasSubstring(key, "_abundances"), false)
+    TEST_EQUAL(StringUtils::hasSubstring(key, "_quantified_proteins"), false)
+  }
+
+  // and the file is still schema-valid
+  TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true)
+
+  // storing again must be stable
+  std::string tmp_filename2;
+  NEW_TMP_FILE(tmp_filename2);
+  f.store(tmp_filename2, loaded);
+  ConsensusMap loaded2;
+  f.load(tmp_filename2, loaded2);
+  TEST_EQUAL(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
+{
+  // Groups that carry no data arrays - everything outside ProteomicsLFQ/IsobaricWorkflow - must not
+  // gain any output, otherwise every reference file with protein groups would change.
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  ProteinIdentification::ProteinGroup group;
+  for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
+  group.probability = 0.5;
+  prot.insertIndistinguishableProteins(group);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+
+  // nothing beyond the plain "indistinguishable_proteins_0" entry may be emitted for this group
+  // (the fixture carries unrelated list-typed UserParams, so only the group prefix can be checked)
+  TextFile stored;
+  stored.load(tmp_filename);
+  Size quant_lines = 0;
+  for (const std::string& line : stored)
+  {
+    if (StringUtils::hasSubstring(line, "indistinguishable_proteins_0_")) { ++quant_lines; }
+  }
+  TEST_EQUAL(quant_lines, 0)
+
+  ConsensusMap loaded;
+  f.load(tmp_filename, loaded);
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0].getFloatDataArrays().empty(), true)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

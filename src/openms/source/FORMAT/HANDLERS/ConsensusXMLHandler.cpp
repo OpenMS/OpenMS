@@ -12,11 +12,15 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+#include <cctype>
 #include <map>
 #include <fstream>
+#include <type_traits>
 
 using namespace std;
 
@@ -908,11 +912,232 @@ namespace OpenMS::Internal
     os << indent << "</" << tag_name << ">\n";
   }
 
+  namespace
+  {
+    /**
+      @brief Encoding of ProteinIdentification::ProteinGroup data arrays as UserParam metavalues.
+
+      Protein groups themselves have long been flattened into a single string metavalue per group,
+      named "GROUPNAME_INDEX" and holding "probability,PH_0,PH_1,...". Their data arrays - which is
+      where PeptideAndProteinQuant stores protein abundances - had no representation at all and were
+      dropped on store. This adds one typed list metavalue per data array, named after the group entry
+      it belongs to, e.g.
+
+      @code
+      <UserParam type="string"    name="indistinguishable_proteins_0"            value="0.98,PH_0,PH_1"/>
+      <UserParam type="floatList" name="indistinguishable_proteins_0_abundances" value="[1.2,3.4]"/>
+      @endcode
+
+      UserParam is already unbounded inside @p ProteinIdentificationType and @p intList / @p floatList /
+      @p stringList are already valid UserParam types, so no schema change is needed and older readers
+      still load the file.
+    */
+    struct ProteinGroupQuant
+    {
+      /**
+        The producer (PeptideAndProteinQuant::annotateQuantificationsToProteins) always lays the arrays
+        out in this fixed order, and consumers index them positionally rather than by name - MzTab reads
+        @p getFloatDataArrays()[0], ProteinGroupArrowExport reads @p [3] / string @p [0] / integer @p [0].
+        Restoring the same layout keeps a round-tripped map behaving like a freshly quantified one even
+        though not every array reaches the file.
+      */
+      static const StringList& canonicalFloatNames()
+      {
+        static const StringList names {"abundances", "psm_count", "distinct_peptides", "file_channel_level_abundance"};
+        return names;
+      }
+      static const StringList& canonicalStringNames()
+      {
+        static const StringList names {"file_channel_level_filename", "file_level_filename"};
+        return names;
+      }
+      static const StringList& canonicalIntegerNames()
+      {
+        static const StringList names {"file_channel_level_channel", "file_level_psm_count"};
+        return names;
+      }
+
+      /// Suffix of the metavalue recording which protein hits the quantities belong to (see addQuantMetaValues())
+      static const std::string& refSuffix()
+      {
+        static const std::string suffix {"_quantified_proteins"};
+        return suffix;
+      }
+
+      /// True if @p array carries no information worth writing out
+      template <typename ArrayT>
+      static bool isRedundant(const ArrayT& array)
+      {
+        if (array.empty() || array.getName().empty()) { return true; }
+        if constexpr (std::is_arithmetic_v<typename ArrayT::value_type>)
+        {
+          // PeptideAndProteinQuant resizes "psm_count" and "distinct_peptides" to the sample count but
+          // never fills them (PeptideData::psm_counts is never written), so they are all-zero in every
+          // run today. Writing them would add columns of zeros; skipping is also self-correcting - once
+          // the counts are populated upstream they start being written without a change here.
+          return std::all_of(array.begin(), array.end(), [](auto v) { return v == 0; });
+        }
+        return false;
+      }
+
+      /// Writes one typed list metavalue per non-redundant data array of @p group. No-op for groups without any.
+      static void addQuantMetaValues(MetaInfoInterface& meta, const ProteinIdentification::ProteinGroup& group,
+                                     const std::string& group_key, const std::string& accession_refs)
+      {
+        bool wrote_any = false;
+
+        for (const auto& fda : group.getFloatDataArrays())
+        {
+          if (isRedundant(fda)) { continue; }
+          meta.setMetaValue(group_key + "_" + fda.getName(), DoubleList(fda.begin(), fda.end()));
+          wrote_any = true;
+        }
+        for (const auto& ida : group.getIntegerDataArrays())
+        {
+          if (isRedundant(ida)) { continue; }
+          meta.setMetaValue(group_key + "_" + ida.getName(), IntList(ida.begin(), ida.end()));
+          wrote_any = true;
+        }
+        for (const auto& sda : group.getStringDataArrays())
+        {
+          if (isRedundant(sda)) { continue; }
+          meta.setMetaValue(group_key + "_" + sda.getName(), StringList(sda.begin(), sda.end()));
+          wrote_any = true;
+        }
+
+        // The group index is part of the key, so a tool that filters or renumbers groups without
+        // knowing about these params leaves them pointing at the wrong group. Recording the members
+        // they were computed for lets the reader notice and discard them instead of mis-attributing.
+        if (wrote_any) { meta.setMetaValue(group_key + refSuffix(), accession_refs); }
+      }
+
+      /**
+        @brief Restores the data arrays of @p group and removes the metavalues that were consumed.
+
+        @return false if quantities were present but belong to a different set of proteins than @p group
+                (they are removed in that case, and @p group is left without data arrays).
+      */
+      static bool getQuantMetaValues(MetaInfoInterface& meta, ProteinIdentification::ProteinGroup& group,
+                                     const std::string& group_key, const std::string& expected_refs)
+      {
+        const std::string ref_key = group_key + refSuffix();
+        if (!meta.metaValueExists(ref_key)) { return true; } // no quantities for this group
+
+        const bool matches = StringUtils::toStr(meta.getMetaValue(ref_key)) == expected_refs;
+        meta.removeMetaValue(ref_key);
+        if (!matches)
+        {
+          removeQuantMetaValues(meta, group_key, /*exact_group=*/true);
+          return false;
+        }
+
+        // collect everything stored under this group, keyed by array name
+        const std::string prefix = group_key + "_";
+        std::vector<std::string> keys;
+        meta.getKeys(keys);
+
+        std::map<std::string, DoubleList> floats;
+        std::map<std::string, IntList> integers;
+        std::map<std::string, StringList> strings;
+        for (const std::string& key : keys)
+        {
+          if (key.compare(0, prefix.size(), prefix) != 0) { continue; }
+          const std::string array_name = key.substr(prefix.size());
+          const DataValue& value = meta.getMetaValue(key);
+          switch (value.valueType())
+          {
+            case DataValue::DOUBLE_LIST: floats[array_name] = value.toDoubleList(); break;
+            case DataValue::INT_LIST: integers[array_name] = value.toIntList(); break;
+            case DataValue::STRING_LIST: strings[array_name] = value.toStringList(); break;
+            default: continue; // not ours - leave it alone
+          }
+          meta.removeMetaValue(key);
+        }
+
+        if (floats.empty() && integers.empty() && strings.empty()) { return true; }
+
+        fillCanonical(group.getFloatDataArrays(), canonicalFloatNames(), floats);
+        fillCanonical(group.getIntegerDataArrays(), canonicalIntegerNames(), integers);
+        fillCanonical(group.getStringDataArrays(), canonicalStringNames(), strings);
+
+        // "psm_count" and "distinct_peptides" are zero-filled by the producer and therefore never
+        // written; give them the length they had in memory so the shape survives the round trip.
+        const Size n_samples = group.getFloatDataArrays()[0].size();
+        for (Size i = 1; i <= 2; ++i)
+        {
+          if (group.getFloatDataArrays()[i].empty()) { group.getFloatDataArrays()[i].resize(n_samples, 0.0f); }
+        }
+        return true;
+      }
+
+      /// Places each parsed array into its canonical slot, appending any array with an unknown name
+      template <typename ArraysT, typename ValuesT>
+      static void fillCanonical(ArraysT& arrays, const StringList& canonical_names, const std::map<std::string, ValuesT>& parsed)
+      {
+        using ArrayT = typename ArraysT::value_type;
+        arrays.clear();
+        arrays.resize(canonical_names.size());
+        for (Size i = 0; i < canonical_names.size(); ++i)
+        {
+          arrays[i].setName(canonical_names[i]);
+          if (auto it = parsed.find(canonical_names[i]); it != parsed.end())
+          {
+            arrays[i].assign(it->second.begin(), it->second.end());
+          }
+        }
+        for (const auto& [name, values] : parsed)
+        {
+          if (ListUtils::contains(canonical_names, name)) { continue; }
+          ArrayT extra;
+          extra.setName(name);
+          extra.assign(values.begin(), values.end());
+          arrays.push_back(std::move(extra));
+        }
+      }
+
+      /**
+        @brief Removes quantity metavalues so they cannot be re-attached to the wrong group.
+
+        With @p exact_group, only those of the single group entry @p key are removed; otherwise @p key is
+        treated as a group name and the entries of all its groups are removed. The base
+        "GROUPNAME_INDEX" entries are never touched.
+      */
+      static void removeQuantMetaValues(MetaInfoInterface& meta, const std::string& key, bool exact_group = false)
+      {
+        std::vector<std::string> meta_keys;
+        meta.getKeys(meta_keys);
+        for (const std::string& meta_key : meta_keys)
+        {
+          if (isQuantKey(meta_key, key, exact_group)) { meta.removeMetaValue(meta_key); }
+        }
+      }
+
+      /// True if @p meta_key is a quantity entry of group entry (@p exact_group) resp. group name @p key
+      static bool isQuantKey(const std::string& meta_key, const std::string& key, bool exact_group)
+      {
+        const std::string prefix = key + "_";
+        if (meta_key.compare(0, prefix.size(), prefix) != 0) { return false; }
+        if (exact_group) { return true; }
+        // "<group_name>_<index>_<array name>": require the index, so base entries are kept
+        const std::string rest = meta_key.substr(prefix.size());
+        const auto sep = rest.find('_');
+        if (sep == std::string::npos || sep == 0) { return false; }
+        return std::all_of(rest.begin(), rest.begin() + sep, [](unsigned char c) { return std::isdigit(c); });
+      }
+    };
+  } // namespace
+
   void ConsensusXMLHandler::addProteinGroups_(
       MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
       const std::string& group_name, const std::unordered_map<string, UInt>& accession_to_id, const std::string& runid,
       XMLHandler::ActionMode mode)
   {
+    // A map that was loaded from a file written by a version that does not know the quantity params
+    // carries them along as ordinary metavalues, with indices that no longer match if the groups were
+    // filtered or renumbered in between. Drop them all; everything written below is regenerated from
+    // the in-memory data arrays.
+    ProteinGroupQuant::removeQuantMetaValues(meta, group_name);
+
     for (Size g = 0; g < groups.size(); ++g)
     {
       std::string name = group_name + "_" + StringUtils::toStr(g);
@@ -938,6 +1163,11 @@ namespace OpenMS::Internal
       }
       std::string value =StringUtils::toStr(groups[g].probability) + "," + accessions;
       meta.setMetaValue(name, value);
+
+      // Quantitative annotations (abundances, per-file/channel values, ...) live in the group's data
+      // arrays. Groups that carry none - the normal case outside ProteomicsLFQ/IsobaricWorkflow -
+      // produce no additional output here, so such files are written exactly as before.
+      ProteinGroupQuant::addQuantMetaValues(meta, groups[g], name, accessions);
     }
   }
 
@@ -945,6 +1175,8 @@ namespace OpenMS::Internal
   groups, const std::string& group_name)
   {
     groups.clear();
+    if (last_meta_ == nullptr) { return; } // IdentificationRun without any ProteinIdentification
+
     Size g_id = 0;
     std::string current_meta = group_name + "_" + StringUtils::toStr(g_id);
     StringList values;
@@ -962,10 +1194,25 @@ namespace OpenMS::Internal
       {
         g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
       }
+
+      // Restore the quantitative data arrays, if this group has any. Consumes (and removes) the
+      // corresponding metavalues so they do not linger as stray UserParams on the ProteinIdentification.
+      const std::string refs = ListUtils::concatenate(StringList(values.begin() + 1, values.end()), ",");
+      if (!ProteinGroupQuant::getQuantMetaValues(*last_meta_, g, current_meta, refs))
+      {
+        warning(LOAD, std::string("Quantitative annotation of protein group '") + current_meta
+                        + "' does not belong to that group and was discarded. The file was most likely "
+                          "modified by a tool that renumbered protein groups without updating them.");
+      }
+
       groups.push_back(std::move(g));
       last_meta_->removeMetaValue(current_meta);
       current_meta = group_name + "_" + StringUtils::toStr(++g_id);
     }
+
+    // Groups whose base entry is gone, but whose quantities survived a renumbering elsewhere, would
+    // otherwise be silently re-attached to the wrong group on the next store.
+    ProteinGroupQuant::removeQuantMetaValues(*last_meta_, group_name);
   }
 
 } // namespace OpenMS
