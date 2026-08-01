@@ -102,6 +102,8 @@ More information below the parameter specification.
 
 <B>Output format</B>
 
+If @p out_qpx is set (consensusXML input only), QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet) are written in addition to any @p out / @p peptide_out / @p mztab output; the run aborts before writing a partial QPX collection if any of the three files cannot be exported.
+
 The output files produced by this tool have a table format, with columns as described below:
 
 <b>Protein output</b> (one protein/set of indistinguishable proteins per line):

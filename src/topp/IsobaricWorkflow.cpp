@@ -133,6 +133,16 @@ using namespace std;
   ...
   </pre>
 
+  @b Experimental @b design: @n
+  If @p exp_design is given, the fraction/sample structure it describes is resolved and annotated onto the
+  output consensus map's column headers via ExperimentalDesign::annotateColumnHeaders() (in addition to the
+  four channel meta values IsobaricChannelExtractor always sets), so that two fractions of one sample can be
+  told apart from two independent runs. If @p exp_design is omitted, the design is inferred as unfractionated
+  from the consensus map itself. A warning is logged if any column header cannot be matched to a design row.
+
+  If @p out_qpx is set, QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)
+  are written in addition to the regular output.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IsobaricWorkflow.cli
   <B>INI file documentation of this tool:</B>

@@ -23,11 +23,13 @@ namespace OpenMS
   public:
     /// Write precursor / feature score rows to Parquet.
     /// Empty tables are allowed as long as the schema metadata is available.
+    /// @throws Exception::InvalidValue if an Arrow builder append/finish call or the file write fails
     static void writeFeatureScores(const std::string& filename,
                                    const OpenSwathFeatureScoreTable& table);
 
     /// Write optional transition score rows to Parquet.
     /// Empty tables are allowed as long as the schema metadata is available.
+    /// @throws Exception::InvalidValue if an Arrow builder append/finish call or the file write fails
     static void writeTransitionScores(const std::string& filename,
                                       const OpenSwathTransitionScoreTable& table);
   };

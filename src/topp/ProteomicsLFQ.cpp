@@ -138,6 +138,7 @@ Output:
   - mzTab file with analysis results
   - MSstats file with analysis results for statistical downstream analysis in MSstats
   - ConsensusXML file for visualization and further processing in OpenMS
+  - QPX Parquet files (quantms.feature/psm/pg.parquet) if @p out_qpx is set
 
 
 Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
