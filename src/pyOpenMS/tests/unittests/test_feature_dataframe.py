@@ -338,7 +338,7 @@ class TestFeatureQPX:
         assert "file_metadata" in result
         assert "features" in result
         assert result["file_metadata"]["file_type"] == "feature"
-        assert result["file_metadata"]["qpx_version"] == "1.0"
+        assert result["file_metadata"]["qpx_version"] == "1.1"
         assert len(result["features"]) == 3
 
     def test_custom_metadata(self):

@@ -27,6 +27,7 @@ namespace arrow
 
 namespace OpenMS
 {
+  class ExperimentalDesign;
   class ProteinIdentification;
 }
 
@@ -53,8 +54,40 @@ public:
   /**
     @brief Export protein group data to Apache Arrow Table
 
-    Exports indistinguishable protein groups following the QPX pg schema.
-    One row is emitted per protein group per run file.
+    Exports indistinguishable protein groups following the QPX pg schema. One row is emitted per
+    protein group per <b>quantification unit</b>, and @c grouped_runs lists that unit's raw files.
+
+    A quantification unit is a connected component of the (run, sample) incidence — runs join as
+    soon as they share one sample — and it must be <b>rectangular</b>: every (label, sample) cell
+    the unit publishes has to exist in every one of its runs, which is what makes the spec's
+    "(any file in grouped_runs, label) -> run.samples[]" resolvable. Designs that are ragged or
+    that disagree about a label are refused rather than given an overstated key. QPX 1.1 (bigbio/qpx#220) keys this view on that set
+    rather than on a single file, because a protein group's abundance is not separable per file:
+    PeptideAndProteinQuant sums a peptide's abundances over every fraction, file, charge and
+    channel of a sample, so the per-file cells are not summands of the sample value. Each row
+    therefore carries the <b>sample-level</b> abundance (the group's @c abundances float data
+    array), one @c intensities entry per label the unit's runs carry.
+
+    Groups without quantification are melted onto the units in which a member accession has
+    peptide evidence, with null @c intensities.
+
+    @param[in] cmap The ConsensusMap with annotated protein group quantification
+    @param[in] design The experimental design that was used to quantify @p cmap. It defines both
+               the run grouping and the sample index space of the groups' abundance arrays, so passing a different design silently mislabels the intensities; the
+               sample count is checked against the array length as a partial guard.
+    @return Shared pointer to Arrow Table, or nullptr on error
+  */
+  static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
+                                                     const ExperimentalDesign& design);
+
+  /**
+    @brief Export protein group data to Apache Arrow Table, deriving the design from @p cmap
+
+    Convenience overload for callers that do not hold the design used for quantification. It
+    reconstructs one with ExperimentalDesign::fromConsensusMap(), which recovers the fraction
+    grouping from the column headers. Prefer the overload taking an explicit design whenever the
+    caller has one — a reconstructed design only reproduces the original sample numbering when
+    quantification was itself driven by a reconstructed design.
 
     @param[in] cmap The ConsensusMap with annotated protein group quantification
     @return Shared pointer to Arrow Table, or nullptr on error
@@ -63,6 +96,21 @@ public:
 
   /**
     @brief Export protein group data to Parquet file
+
+    @param[in] cmap The ConsensusMap with annotated protein group quantification
+    @param[in] design The experimental design used to quantify @p cmap (see exportToArrow)
+    @param[in] filename Output file path
+    @param[in] config Parquet writing options
+    @return true on success, false on error
+  */
+  static bool exportToParquet(
+    const ConsensusMap& cmap,
+    const ExperimentalDesign& design,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Export protein group data to Parquet file, deriving the design from @p cmap
 
     @param[in] cmap The ConsensusMap with annotated protein group quantification
     @param[in] filename Output file path
@@ -78,14 +126,18 @@ public:
     @brief Export protein group data to Arrow table from identification data (no quantification)
 
     For search-engine output where no ConsensusMap is available. Populates required
-    QPX pg fields (pg_accessions, anchor_protein, run_file_name, is_decoy, peptides)
+    QPX pg fields (pg_accessions, anchor_protein, grouped_runs, is_decoy, peptides)
     and sets quantification columns (intensities, additional_intensities) to null.
 
-    Like the ConsensusMap overload, this emits <b>one row per protein group per run</b>: the
-    runs are those in which a member accession has peptide evidence, resolved per PSM through
-    IdentifierMSRunMapper. A group in a single-file run is keyed on that file even without
-    evidence; a group in a merged run with no evidence anywhere is skipped with a diagnostic,
-    since @c run_file_name is a QPX primary-key component that must not be empty.
+    This emits <b>one row per protein group per run</b>: the runs are those in which a member
+    accession has peptide evidence, resolved per PSM through IdentifierMSRunMapper. A group in a
+    single-file run is keyed on that file even without evidence; a group in a merged run with no
+    evidence anywhere is skipped with a diagnostic, since @c grouped_runs is a QPX primary-key
+    component that must not be empty.
+
+    Identification input carries no experimental design, so there is nothing to aggregate and
+    every @c grouped_runs list has exactly one element — the single-element form the QPX 1.1
+    schema documents for unfractionated input.
 
     @c peptides and @c peptide_counts are scoped to the emitted run, so the same group in two
     runs reports the peptides seen in each.
@@ -120,7 +172,7 @@ public:
     @brief Write a pre-built QPX protein group Arrow table to a Parquet file
 
     The table is expected to follow QPXPgSchema (e.g., from exportToArrow).
-    Attaches QPX file metadata (qpx_version, file_type="pg", UUID, creation_date)
+    Attaches QPX file metadata (qpx_version, file_type="pg_file", UUID, creation_date)
     before writing. Use this overload when the caller already has the table built
     (e.g., for merged output) to avoid rebuilding it.
 

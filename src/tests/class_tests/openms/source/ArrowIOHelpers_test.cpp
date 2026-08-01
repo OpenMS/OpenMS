@@ -155,7 +155,7 @@ START_SECTION((std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(co
     return r.ok() ? r.ValueOrDie() : std::string();
   };
 
-  TEST_STRING_EQUAL(value_of("qpx_version"), "1.0")
+  TEST_STRING_EQUAL(value_of("qpx_version"), "1.1")
   TEST_STRING_EQUAL(value_of("file_type"), "pg_file")
   TEST_STRING_EQUAL(value_of("creator"), "OpenMS")
   TEST_STRING_EQUAL(value_of("compression_format"), "zstd")

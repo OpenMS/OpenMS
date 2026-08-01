@@ -7,8 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/ProteinGroupArrowExport_impl.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -25,6 +27,8 @@
 #include <arrow/api.h>
 #include <arrow/builder.h>
 
+#include <algorithm>
+#include <functional>
 #include <map>
 #include <set>
 #include <string>
@@ -34,6 +38,8 @@
 
 namespace OpenMS
 {
+
+using namespace OpenMS::Internal;
 
 namespace // anonymous
 {
@@ -45,7 +51,7 @@ namespace // anonymous
   /// Refuses duplicate identifiers: IdentifierMSRunMapper keys the forward map on the identifier
   /// and overwrites silently (IdentifierMSRunMapper.cpp), so two runs sharing one would leave
   /// only the last one's paths -- and every PSM of the first would then resolve to a file it
-  /// never came from, stamping a foreign run_file_name on its protein groups. Nothing downstream
+  /// never came from, stamping a foreign run name on its protein groups. Nothing downstream
   /// could detect that, so it has to be rejected here.
   ///
   /// A duplicate *path list* is different: create() throws for it, but populates the forward map
@@ -116,7 +122,7 @@ namespace // anonymous
     return runs;
   }
 
-  /// Track emitted (anchor_protein, run_file_name) pairs -- the QPX pg primary key -- and report
+  /// Track emitted (anchor_protein, grouped_runs) pairs -- the QPX pg primary key -- and report
   /// duplicates once per export.
   ///
   /// Two ProteinIdentifications whose paths share a stem, a repeated accession group, or two
@@ -129,11 +135,14 @@ namespace // anonymous
   class PrimaryKeyWatch
   {
   public:
-    void add(const std::string& anchor, const std::string& run)
+    void add(const std::string& anchor, const std::vector<std::string>& runs)
     {
-      if (!seen_.emplace(anchor, run).second && examples_.size() < 3)
+      // The run list is emitted in a fixed order per unit, so concatenating is enough to
+      // recognise a repeat -- two rows that name the same files always name them alike.
+      const std::string key = ListUtils::concatenate(StringList(runs.begin(), runs.end()), "+");
+      if (!seen_.emplace(anchor, key).second && examples_.size() < 3)
       {
-        examples_.push_back(anchor + " / " + run);
+        examples_.push_back(anchor + " / " + key);
       }
       ++emitted_;
     }
@@ -143,7 +152,7 @@ namespace // anonymous
       const size_t duplicates = emitted_ - seen_.size();
       if (duplicates == 0) { return; }
       OPENMS_LOG_WARN << context << ": " << duplicates << " of " << emitted_
-                      << " rows repeat an (anchor_protein, run_file_name) primary key, e.g. "
+                      << " rows repeat an (anchor_protein, grouped_runs) primary key, e.g. "
                       << ListUtils::concatenate(StringList(examples_.begin(), examples_.end()), "; ")
                       << ". The rows are kept, but consumers keying on the pair will see collisions."
                       << std::endl;
@@ -154,9 +163,16 @@ namespace // anonymous
     std::vector<std::string> examples_;
     size_t emitted_ = 0;
   };
+
 } // anonymous namespace
 
 std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& cmap)
+{
+  return exportToArrow(cmap, ExperimentalDesign::fromConsensusMap(cmap));
+}
+
+std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& cmap,
+                                                                    const ExperimentalDesign& design)
 {
   if (cmap.getProteinIdentifications().empty())
   {
@@ -188,7 +204,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   //
   // Serves two purposes:
   //  * the run set for a group that has no quantification, so it can be melted onto the runs
-  //    where it was actually identified instead of onto an empty run_file_name (a QPX
+  //    where it was actually identified instead of onto an empty grouped_runs (a QPX
   //    primary-key component that MUST NOT be null) or onto every run in the experiment;
   //  * the peptide/feature counts, which QPX defines per (group, run).
   //
@@ -255,26 +271,89 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     indexEvidenceRuns(run_mapper, cmap.getUnassignedPeptideIdentifications(), acc_runs);
   }
 
-  // Estimate number of rows: one per group per unique run file (or 1 if no quant data)
-  Size estimated_rows = 0;
-  for (const auto& group : groups)
+  // -- Quantification units --
+  //
+  // QPX 1.1 emits one row per (group, quantification unit); a unit is the set of run files the
+  // design aggregates into one sample. A design that maps one (run, label) onto several samples
+  // has no such unit and would silently pick one of the samples, so it is refused rather than
+  // guessed at.
+  // (run, label) cells the map actually has a column header for. Cell-level, not run-level: a
+  // design channel with no header would otherwise enter the unit and be given an invented
+  // intensity label by labelFor() below -- a documented join key that resolves to nothing.
+  std::set<std::pair<std::string, unsigned>> header_cells;
+  for (const auto& [map_index, header] : cmap.getColumnHeaders())
   {
-    if (group.getFloatDataArrays().size() >= 4 && !group.getStringDataArrays().empty())
-    {
-      // Count unique filenames
-      const auto& filenames = group.getStringDataArrays()[0];
-      std::unordered_set<std::string> unique_files;
-      for (const auto& fn : filenames) { unique_files.insert(fn); }
-      estimated_rows += std::max(unique_files.size(), (size_t)1);
-    }
-    else
-    {
-      estimated_rows += 1;
-    }
+    (void)map_index;
+    header_cells.emplace(ArrowIOHelpers::qpxRunFileName(header.filename),
+                         header.getLabelAsUInt(cmap.getExperimentType()));
   }
 
+  QuantificationUnits units(design, header_cells);
+  if (units.inconsistent())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: the experimental design assigns several samples "
+                        "to one (run file, label) combination, so a run does not belong to a "
+                        "single QPX quantification unit and grouped_runs cannot be keyed."
+                     << std::endl;
+    return nullptr;
+  }
+  if (!units.missingCell().empty())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.missingCell()
+                     << ". The experimental design and the data disagree about the channel "
+                        "layout -- an isobaric method with fewer channels than the design lists "
+                        "is the usual cause. Writing that cell would put an invented "
+                        "intensities[].label in the row, which joins to nothing." << std::endl;
+    return nullptr;
+  }
+  if (!units.ambiguousLabel().empty())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.ambiguousLabel()
+                     << ". A pg row carries one intensity per label, so a label that means two "
+                        "different samples within one quantification unit cannot be written. A "
+                        "common reference channel shared across plexes is the usual cause: the "
+                        "shared sample joins the plexes into one unit, and the remaining channels "
+                        "then disagree about what each label means. In a design converted from "
+                        "SDRF the Sample column comes from 'source name' (sdrf-pipelines), so "
+                        "giving the reference a distinct source name per plex keeps the plexes "
+                        "apart." << std::endl;
+    return nullptr;
+  }
+  if (!units.raggedUnit().empty())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.raggedUnit()
+                     << ". grouped_runs names the files aggregated into the row's quantities, and "
+                        "QPX resolves a sample from ANY of them, so a run that has no row for a "
+                        "label must not appear beside that label's sample. A design with a missing "
+                        "row is the usual cause: it bridges runs whose remaining samples were seen "
+                        "in fewer files." << std::endl;
+    return nullptr;
+  }
+  if (!units.duplicatedSample().empty())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.duplicatedSample()
+                     << ". A sample carries ONE aggregated quantity, so writing it into both "
+                        "cells would publish the same number twice as if two measurements had "
+                        "been made, and a consumer adding the cells up would double-count it."
+                     << std::endl;
+    return nullptr;
+  }
+  if (!units.droppedRuns().empty())
+  {
+    OPENMS_LOG_INFO << "ProteinGroupArrowExport: " << units.droppedRuns().size()
+                    << " file(s) of the experimental design have no column header in this map and "
+                       "are left out of grouped_runs, e.g. '" << *units.droppedRuns().begin()
+                    << "'. They contributed no quantification." << std::endl;
+  }
+
+  // Estimate number of rows: one per group per quantification unit (or per evidence run when the
+  // group carries no quantification, which is bounded by the number of units in practice).
+  const Size estimated_rows = groups.size() * std::max<Size>(units.units().size(), 1);
+
   // -- Simple column builders --
-  arrow::StringBuilder anchor_protein_builder, run_file_name_builder;
+  arrow::StringBuilder anchor_protein_builder;
+  auto grouped_runs_vb = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder grouped_runs_builder(arrow::default_memory_pool(), grouped_runs_vb);
   arrow::DoubleBuilder global_qvalue_builder, pg_qvalue_builder, gg_qvalue_builder;
   arrow::FloatBuilder sequence_coverage_builder, molecular_weight_builder;
   arrow::BooleanBuilder is_decoy_builder, contaminant_builder;
@@ -390,8 +469,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   arrow::Status status;
   status = anchor_protein_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: anchor_protein Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = run_file_name_builder.Reserve(estimated_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: run_file_name Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = grouped_runs_builder.Reserve(estimated_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: grouped_runs Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = global_qvalue_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: global_qvalue Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = pg_qvalue_builder.Reserve(estimated_rows);
@@ -407,24 +486,24 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   status = contaminant_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: contaminant Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Helper lambda to emit one row for a protein group + run file
+  // Helper lambda to emit one row for a protein group + quantification unit
   PrimaryKeyWatch pk_watch;
   auto emitRow = [&](const ProteinIdentification::ProteinGroup& group,
-                     const std::string& run_file,
+                     const std::vector<std::string>& runs,
                      const std::vector<std::pair<std::string, float>>& channel_intensities)
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
-    pk_watch.add(anchor, run_file);
+    pk_watch.add(anchor, runs);
 
     // anchor_protein
     (void)anchor_protein_builder.Append(anchor);
 
-    // run_file_name
-    // Deliberately no File::stemName() here: the values come from 'file_channel_level_filename',
-    // which PeptideAndProteinQuant already stems (PeptideAndProteinQuant.cpp), and
+    // grouped_runs -- the raw files aggregated into this quantity.
+    // Deliberately no File::stemName() here: the values are already QPX run names, and
     // FileHandler::stripExtension is not idempotent - for an unrecognized extension it strips at
     // the last dot, so stemming twice would turn a legitimate stem like 'HeLa_1.2ug' into 'HeLa_1'.
-    (void)run_file_name_builder.Append(run_file);
+    (void)grouped_runs_builder.Append();
+    for (const auto& run : runs) { (void)grouped_runs_vb->Append(run); }
 
     // pg_accessions
     (void)pg_accessions_builder.Append();
@@ -472,13 +551,23 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     // pg_qvalue - not per-run in OpenMS
     (void)pg_qvalue_builder.AppendNull();
 
-    // intensities
-    (void)intensities_builder.Append();
-    for (const auto& [label, intensity] : channel_intensities)
+    // intensities -- null, not an empty list, for a row the group was only identified in. An
+    // empty list reads as "quantified across zero channels"; null is the same "no quantification"
+    // the identification-only overload writes, so one column does not mean two things depending
+    // on which overload produced the file.
+    if (channel_intensities.empty())
     {
-      (void)int_struct_b->Append();
-      (void)int_label_b->Append(label);
-      (void)int_value_b->Append(intensity);
+      (void)intensities_builder.AppendNull();
+    }
+    else
+    {
+      (void)intensities_builder.Append();
+      for (const auto& [label, intensity] : channel_intensities)
+      {
+        (void)int_struct_b->Append();
+        (void)int_label_b->Append(label);
+        (void)int_value_b->Append(intensity);
+      }
     }
 
     // additional_intensities - empty for now
@@ -498,43 +587,56 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     // contaminant - not tracked
     (void)contaminant_builder.AppendNull();
 
-    // peptides / peptide_counts / feature_counts, all per (group, run).
+    // peptides / peptide_counts / feature_counts, all per (group, quantification unit) -- the
+    // same unit the row's intensity describes, so the counts and the quantity cover one set of
+    // runs rather than two.
     //
     // Semantics follow quantms (our interop target): "unique" means deduplicated, not
     // proteotypic. DIA-NN's converter reads the same fields as proteotypic counts, so these
     // numbers are only comparable within quantms-derived collections. See
     // qpx/converters/quantms/pg_adapter.py.
     {
-      // The group's contributing consensus features in this run, unioned over its members so
-      // a feature shared by two members is counted once.
-      std::set<Size> group_features;
-      for (const auto& acc : group.accessions)
+      /// The (run, consensus feature) pairs @p acc contributes across the unit's runs.
+      ///
+      /// Keyed on the pair, not the feature alone, because that is the grain of the feature
+      /// view: ConsensusMapArrowExport melts one ConsensusFeature into one row per run it was
+      /// quantified in, so a feature spanning two fractions of this unit IS two feature rows.
+      /// Counting bare feature indices here would make feature_counts.total_features disagree
+      /// with the number of feature.parquet rows the same (group, unit) has.
+      auto featuresOf = [&](const std::string& acc)
       {
+        std::set<std::pair<std::string, Size>> features;
         auto ait = acc_run_features.find(acc);
-        if (ait == acc_run_features.end()) { continue; }
-        auto rit = ait->second.find(run_file);
-        if (rit == ait->second.end()) { continue; }
-        group_features.insert(rit->second.begin(), rit->second.end());
-      }
+        if (ait == acc_run_features.end()) { return features; }
+        for (const auto& run : runs)
+        {
+          auto rit = ait->second.find(run);
+          if (rit == ait->second.end()) { continue; }
+          for (Size fi : rit->second) { features.emplace(run, fi); }
+        }
+        return features;
+      };
+
+      // The group's contributing feature rows in this unit, unioned over its members so a
+      // feature shared by two members is counted once.
+      std::set<std::pair<std::string, Size>> group_features;
 
       // peptides: one {protein_name, peptide_count} per group member, counting that member's
-      // distinct peptide sequences in this run.
+      // distinct peptide sequences in this unit.
       (void)peptides_builder.Append();
       int total_sequences = 0;   // sum of the per-member counts, i.e. what peptides[] adds up to
       for (const auto& acc : group.accessions)
       {
+        const auto member_features = featuresOf(acc);
+        group_features.insert(member_features.begin(), member_features.end());
+
+        // Sequences deduplicate across the unit's runs: one peptide seen in two fractions is one
+        // peptide. That is the difference between peptide_counts and feature_counts.
         std::set<std::string> seqs;
-        auto ait = acc_run_features.find(acc);
-        if (ait != acc_run_features.end())
+        for (const auto& [run, fi] : member_features)
         {
-          auto rit = ait->second.find(run_file);
-          if (rit != ait->second.end())
-          {
-            for (Size fi : rit->second)
-            {
-              if (!feature_info[fi].sequence.empty()) { seqs.insert(feature_info[fi].sequence); }
-            }
-          }
+          (void)run;
+          if (!feature_info[fi].sequence.empty()) { seqs.insert(feature_info[fi].sequence); }
         }
         (void)pep_struct_b->Append();
         (void)pep_name_b->Append(acc);
@@ -544,7 +646,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
       if (group_features.empty())
       {
-        // Identification-only row: nothing was quantified in this run, so there is nothing to
+        // Identification-only row: nothing was quantified in this unit, so there is nothing to
         // count. Null is the honest answer, distinct from a genuine zero.
         (void)peptide_counts_builder.AppendNull();
         (void)feature_counts_builder.AppendNull();
@@ -553,8 +655,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       {
         std::set<std::string> unique_sequences;
         std::set<std::pair<std::string, int>> unique_features;
-        for (Size fi : group_features)
+        for (const auto& [run, fi] : group_features)
         {
+          (void)run;
           if (!feature_info[fi].sequence.empty()) { unique_sequences.insert(feature_info[fi].sequence); }
           unique_features.emplace(feature_info[fi].peptidoform, feature_info[fi].charge);
         }
@@ -563,7 +666,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         // are counted once per member). Distinguishing peptidoform and charge is what
         // feature_counts is for -- using group_features.size() here made total_sequences a
         // feature count, identical to total_features and contradicting peptides[] in the
-        // same row.
+        // same row. unique_features stays per peptidoform+charge, so it does NOT grow when a
+        // feature spans two runs of the unit; only total_features does.
         (void)peptide_counts_builder.Append();
         (void)pc_unique_b->Append(static_cast<int>(unique_sequences.size()));
         (void)pc_total_b->Append(total_sequences);
@@ -603,10 +707,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   // Build (run stem, 1-based channel) -> QPX intensity label from the column headers.
   //
-  // The quant arrays below are keyed by (design filename, channel number), where the channel
-  // numbering is ColumnHeader::getLabelAsUInt()'s (channel_id + 1). Keying the lookup on the
-  // run as well as the channel keeps it correct for maps whose runs use different methods,
-  // rather than assuming one global channel -> label mapping.
+  // A design label and a ColumnHeader channel are the same number: ColumnHeader::getLabelAsUInt()
+  // returns channel_id + 1 and PeptideAndProteinQuant looks its abundances up under that same
+  // 1-based number. Keying the lookup on the run as well as the channel keeps it correct for maps
+  // whose runs use different methods, rather than assuming one global channel -> label mapping.
   std::map<std::pair<std::string, UInt>, std::string> channel_labels;
   for (const auto& [map_index, header] : cmap.getColumnHeaders())
   {
@@ -618,71 +722,119 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     channel_labels[{ArrowIOHelpers::qpxRunFileName(header.filename), channel}] = label;
   }
 
-  // Resolve a (run, channel) to its QPX label. A miss means the ConsensusMap carries quant
-  // arrays that its column headers do not describe (possible for a hand-built or foreign
-  // map): a single channel is label-free by construction, anything else is reported.
-  bool warned_missing_label = false;
+  // Resolve a (run, channel) to its QPX label. This cannot miss: channel_labels above and the
+  // header_cells that gate a design row into a unit are built from the same column headers under
+  // the same key, {qpxRunFileName(filename), getLabelAsUInt(experimentType)}, so every channel a
+  // unit carries has an entry here.
+  //
+  // It used to invent one -- "LFQ" for channel 1, silently, or the bare channel number, warned
+  // once per export so every further channel was silent. intensities[].label is a documented
+  // join key against run.samples[].label, so an invented token resolves to nothing: a TMT10-
+  // shaped design against a 6-plex map wrote a pg view carrying "7".."10" and exited 0. The
+  // feature view refuses an unnameable channel (ConsensusMapArrowExport), and so does this one
+  // now. Keeping the branch as a refusal rather than deleting it makes the coupling between the
+  // two key sets a checked invariant instead of a comment: they live in separate places and
+  // nothing but this check would notice if one drifted.
   auto labelFor = [&](const std::string& run, Int channel) -> std::string
   {
     auto it = channel_labels.find({run, static_cast<UInt>(channel)});
     if (it != channel_labels.end()) { return it->second; }
-    if (channel == 1) { return "LFQ"; }
-    if (!warned_missing_label)
-    {
-      warned_missing_label = true;
-      OPENMS_LOG_WARN << "ProteinGroupArrowExport: no column header describes channel "
-                      << channel << " of run '" << run << "'; falling back to the channel "
-                      << "number as intensity label, which will not join against run.parquet."
-                      << std::endl;
-    }
-    return std::to_string(channel);
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: no column header describes channel " << channel
+                     << " of run '" << run << "', so its intensities[].label cannot be named and "
+                        "would not join against run.parquet." << std::endl;
+    return "";
   };
+  if (!units.resolveLabels(labelFor, "ProteinGroupArrowExport")) { return nullptr; }
 
   // Iterate protein groups and emit rows
   Size unattributable_groups = 0;
   for (const auto& group : groups)
   {
-    // All three arrays are indexed in lockstep below, so every one of them must exist —
-    // checking only the float/string arrays would dereference IntegerDataArrays()[0] on a
-    // group that carries abundances but no channel array.
-    bool has_quant = group.getFloatDataArrays().size() >= 4
-                     && !group.getStringDataArrays().empty()
-                     && !group.getStringDataArrays()[0].empty()
-                     && !group.getIntegerDataArrays().empty();
-
-    if (has_quant)
+    // Quantified means: the group carries the sample-level abundance array, and it is indexed by
+    // the sample space of the design we were handed. A length mismatch is the one way to notice
+    // that the caller passed a design other than the one used to quantify -- the samples would
+    // otherwise be read under a foreign numbering, silently attaching one sample's quantity to
+    // another's runs.
+    const auto* abundances = sampleAbundances(group);
+    if (abundances != nullptr && abundances->size() != design.getNumberOfSamples())
     {
-      const auto& abundances = group.getFloatDataArrays()[3]; // file_channel_level_abundance
-      const auto& filenames = group.getStringDataArrays()[0]; // file_channel_level_filename
-      const auto& channels = group.getIntegerDataArrays()[0]; // file_channel_level_channel
+      OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                       << (group.accessions.empty() ? "" : group.accessions[0]) << "' carries "
+                       << abundances->size() << " sample abundances but the experimental design "
+                       << "describes " << design.getNumberOfSamples() << " samples. The design "
+                       << "does not belong to this quantification, so the intensities cannot be "
+                       << "attributed to their runs." << std::endl;
+      return nullptr;
+    }
 
-      // Group by filename: filename -> [(QPX channel label, intensity)]
-      std::map<std::string, std::vector<std::pair<std::string, float>>> file_intensities;
-      for (Size i = 0; i < filenames.size() && i < abundances.size() && i < channels.size(); ++i)
+    if (abundances != nullptr && !units.empty())
+    {
+      // One row per quantification unit, carrying the SAMPLE-level quantity. Summing the
+      // per-file cells instead would not reproduce it: PeptideAndProteinQuant sums a peptide
+      // over every run of the sample before aggregating, so the cells are not summands.
+      for (const auto& unit : units.units())
       {
-        file_intensities[filenames[i]].emplace_back(labelFor(filenames[i], channels[i]), abundances[i]);
-      }
-
-      // Emit one row per unique filename
-      for (const auto& [filename, channel_int] : file_intensities)
-      {
-        emitRow(group, filename, channel_int);
+        std::vector<std::pair<std::string, float>> channel_intensities;
+        channel_intensities.reserve(unit.channels.size());
+        for (const auto& channel : unit.channels)
+        {
+          if (channel.sample >= abundances->size())
+          {
+            // The size check above only compares counts; a design whose MS section names a
+            // sample its sample section does not contain slips past it. Dropping the channel
+            // would silently lose an intensity, so say so and stop.
+            OPENMS_LOG_ERROR << "ProteinGroupArrowExport: the experimental design maps label "
+                             << channel.label << " of run '" << unit.runs.front() << "' to sample "
+                             << channel.sample << ", which its sample section does not describe ("
+                             << abundances->size() << " samples). The intensity cannot be read."
+                             << std::endl;
+            return nullptr;
+          }
+          channel_intensities.emplace_back(channel.qpx_label, (*abundances)[channel.sample]);
+        }
+        emitRow(group, unit.runs, channel_intensities);
       }
     }
     else
     {
-      // Unquantified group. run_file_name is a QPX primary-key component that MUST NOT be
-      // null, and quantms silently drops rows that violate that, so an empty-run row is not
-      // an option. Melt onto the runs where the group actually has identification evidence,
-      // with null intensities (distinct from a measured 0.0). Fanning out across every run in
-      // the experiment instead would assert observations that were never made.
-      const auto runs = evidenceRuns(acc_runs, group);
-      if (runs.empty())
+      // A group that HAS sample abundances but no unit to attribute them to would be written
+      // here with null intensities -- which does not mean "not quantified yet", it positively
+      // asserts that the group was not quantified in these runs, and is indistinguishable from
+      // the genuinely unquantified rows this same branch emits. Refuse, on the same reasoning as
+      // the sample-index check above: dropping an intensity silently is worse than not writing.
+      if (abundances != nullptr)
+      {
+        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                         << (group.accessions.empty() ? "" : group.accessions[0])
+                         << "' carries sample abundances, but the experimental design yields no "
+                            "quantification unit for them -- it lists no MS files this map has a "
+                            "column header for. Writing the row without intensities would assert "
+                            "that the group was not quantified, which is false." << std::endl;
+        return nullptr;
+      }
+
+      // No quantification for this group. grouped_runs is a QPX primary-key component that MUST
+      // NOT be empty, and quantms silently drops rows that violate that, so a run-less row is
+      // not an option. Melt onto the units where the group actually has identification evidence,
+      // with null intensities. Fanning out across every unit in the experiment instead would
+      // assert observations that were never made.
+
+      // Evidence is per run; the row is per unit, so the runs of one unit collapse into a single
+      // row rather than repeating the group once per fraction. A run the design does not list is
+      // its own unit, which is also what an unfractionated design would have produced for it.
+      std::set<std::vector<std::string>> evidence_units;   // ordered, so the rows are stable
+      for (const auto& run : evidenceRuns(acc_runs, group))
+      {
+        const size_t index = units.indexOf(run);
+        evidence_units.insert(index < units.units().size() ? units.units()[index].runs
+                                                           : std::vector<std::string>{run});
+      }
+      if (evidence_units.empty())
       {
         ++unattributable_groups;
         continue;
       }
-      for (const auto& run : runs) { emitRow(group, run, {}); }
+      for (const auto& runs : evidence_units) { emitRow(group, runs, {}); }
     }
   }
   pk_watch.report("ProteinGroupArrowExport");
@@ -690,12 +842,12 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   {
     OPENMS_LOG_INFO << "ProteinGroupArrowExport: skipped " << unattributable_groups
                     << " protein group(s) with neither quantification nor identification "
-                       "evidence in any run (no run_file_name to key a QPX row on)." << std::endl;
+                       "evidence in any run (no grouped_runs to key a QPX row on)." << std::endl;
   }
 
   // Finalize all arrays
   std::shared_ptr<arrow::Array> arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names;
-  std::shared_ptr<arrow::Array> arr_gg_qval, arr_anchor, arr_run_file;
+  std::shared_ptr<arrow::Array> arr_gg_qval, arr_anchor, arr_grouped_runs;
   std::shared_ptr<arrow::Array> arr_global_qval, arr_pg_qval;
   std::shared_ptr<arrow::Array> arr_intensities, arr_add_intensities;
   std::shared_ptr<arrow::Array> arr_is_decoy, arr_contaminant;
@@ -715,8 +867,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: gg_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = anchor_protein_builder.Finish(&arr_anchor);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: anchor_protein Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = run_file_name_builder.Finish(&arr_run_file);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: run_file_name Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = grouped_runs_builder.Finish(&arr_grouped_runs);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: grouped_runs Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = global_qvalue_builder.Finish(&arr_global_qval);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: global_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = pg_qvalue_builder.Finish(&arr_pg_qval);
@@ -744,33 +896,13 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   status = cv_params_builder.Finish(&arr_cv_params);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: cv_params Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema matching quantms pg spec field order
-  auto schema = arrow::schema({
-    arrow::field("pg_accessions", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("pg_names", arrow::list(arrow::utf8())),
-    arrow::field("gg_accessions", arrow::list(arrow::utf8())),
-    arrow::field("gg_names", arrow::list(arrow::utf8())),
-    arrow::field("gg_qvalue", arrow::float64()),
-    arrow::field("anchor_protein", arrow::utf8(), /*nullable=*/false),
-    arrow::field("run_file_name", arrow::utf8(), /*nullable=*/false),
-    arrow::field("global_qvalue", arrow::float64()),
-    arrow::field("pg_qvalue", arrow::float64()),
-    arrow::field("intensities", intensities_builder.type()),
-    arrow::field("additional_intensities", additional_intensities_builder.type()),
-    arrow::field("is_decoy", arrow::boolean(), /*nullable=*/false),
-    arrow::field("contaminant", arrow::boolean()),
-    arrow::field("peptides", peptides_builder.type(), /*nullable=*/false),
-    arrow::field("peptide_counts", pep_counts_type),
-    arrow::field("feature_counts", feat_counts_type),
-    arrow::field("sequence_coverage", arrow::float32()),
-    arrow::field("molecular_weight", arrow::float32()),
-    arrow::field("additional_scores", additional_scores_builder.type()),
-    arrow::field("cv_params", cv_params_builder.type()),
-  });
-
-  auto table = arrow::Table::Make(schema, {
+  // One schema definition for both overloads: this one used to restate QPXPgSchema field by
+  // field, which is what let the two drift apart. exportToParquet() validates against the
+  // registry anyway, and Table::Make + Validate() below catches any type the builders emit that
+  // the registry does not declare.
+  auto table = arrow::Table::Make(QPXPgSchema::schema(), {
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
-    arr_gg_qval, arr_anchor, arr_run_file,
+    arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,
     arr_intensities, arr_add_intensities,
     arr_is_decoy, arr_contaminant,
@@ -813,7 +945,16 @@ bool ProteinGroupArrowExport::exportToParquet(
   const std::string& filename,
   const ParquetWriteConfig& config)
 {
-  auto table = exportToArrow(cmap);
+  return exportToParquet(cmap, ExperimentalDesign::fromConsensusMap(cmap), filename, config);
+}
+
+bool ProteinGroupArrowExport::exportToParquet(
+  const ConsensusMap& cmap,
+  const ExperimentalDesign& design,
+  const std::string& filename,
+  const ParquetWriteConfig& config)
+{
+  auto table = exportToArrow(cmap, design);
   if (!table)
   {
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: Failed to create Arrow table" << std::endl;
@@ -869,7 +1010,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   }
 
   // -- Simple column builders --
-  arrow::StringBuilder anchor_protein_builder, run_file_name_builder;
+  //
+  // Identification input carries no experimental design, so nothing aggregates several runs into
+  // one quantity: every grouped_runs list holds exactly the one run that keyed the row -- the
+  // single-element form the QPX 1.1 schema documents for unfractionated input.
+  arrow::StringBuilder anchor_protein_builder;
+  auto grouped_runs_vb = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder grouped_runs_builder(arrow::default_memory_pool(), grouped_runs_vb,
+                                          QPXPgSchema::groupedRunsType());
   arrow::DoubleBuilder global_qvalue_builder, pg_qvalue_builder, gg_qvalue_builder;
   arrow::FloatBuilder sequence_coverage_builder, molecular_weight_builder;
   arrow::BooleanBuilder is_decoy_builder, contaminant_builder;
@@ -966,8 +1114,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   arrow::Status status;
   status = anchor_protein_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): anchor_protein Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = run_file_name_builder.Reserve(estimated_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): run_file_name Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = grouped_runs_builder.Reserve(estimated_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): grouped_runs Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = global_qvalue_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): global_qvalue Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = is_decoy_builder.Reserve(estimated_rows);
@@ -1084,7 +1232,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     // Iterate protein groups for this prot_id and emit one row per run with evidence
     for (const auto& group : groups)
     {
-      // run_file_name is a QPX primary-key component that MUST NOT be null, and quantms
+      // grouped_runs is a QPX primary-key component that MUST NOT be null, and quantms
       // silently drops rows that violate that -- so a group that cannot be attributed to any
       // run is skipped with a diagnostic rather than emitted with an empty key.
       std::set<std::string> runs = evidenceRuns(acc_runs, group);
@@ -1100,13 +1248,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       for (const auto& run_file : runs)
       {
         const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
-        pk_watch.add(anchor, run_file);
+        pk_watch.add(anchor, {run_file});
 
         // anchor_protein
         (void)anchor_protein_builder.Append(anchor);
 
-        // run_file_name
-        (void)run_file_name_builder.Append(run_file);
+        // grouped_runs
+        (void)grouped_runs_builder.Append();
+        (void)grouped_runs_vb->Append(run_file);
 
         // pg_accessions
         (void)pg_accessions_builder.Append();
@@ -1236,7 +1385,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   {
     OPENMS_LOG_WARN << "ProteinGroupArrowExport (id-only): skipped " << groups_without_run_name
                     << " protein group(s) whose identification run carries no MS run path, so no "
-                       "run_file_name can be derived -- and QPX makes it a primary-key component "
+                       "grouped_runs can be derived -- and QPX makes it a primary-key component "
                        "that must not be empty. Protein inference commonly drops the path: set it "
                        "with ProteinIdentification::setPrimaryMSRunPath() before exporting."
                     << std::endl;
@@ -1264,7 +1413,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
 
   // Finalize all arrays
   std::shared_ptr<arrow::Array> arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names;
-  std::shared_ptr<arrow::Array> arr_gg_qval, arr_anchor, arr_run_file;
+  std::shared_ptr<arrow::Array> arr_gg_qval, arr_anchor, arr_grouped_runs;
   std::shared_ptr<arrow::Array> arr_global_qval, arr_pg_qval;
   std::shared_ptr<arrow::Array> arr_intensities, arr_add_intensities;
   std::shared_ptr<arrow::Array> arr_is_decoy, arr_contaminant;
@@ -1284,8 +1433,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): gg_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = anchor_protein_builder.Finish(&arr_anchor);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): anchor_protein Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = run_file_name_builder.Finish(&arr_run_file);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): run_file_name Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = grouped_runs_builder.Finish(&arr_grouped_runs);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): grouped_runs Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = global_qvalue_builder.Finish(&arr_global_qval);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): global_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = pg_qvalue_builder.Finish(&arr_pg_qval);
@@ -1315,7 +1464,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
 
   auto table = arrow::Table::Make(target_schema, {
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
-    arr_gg_qval, arr_anchor, arr_run_file,
+    arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,
     arr_intensities, arr_add_intensities,
     arr_is_decoy, arr_contaminant,

@@ -153,6 +153,25 @@ public:
     int n_threads = 1);
 
   /**
+    @brief Refuse PSMs of a merged run that carry no usable @c id_merge_index
+
+    Without the index every PSM of a merged identification run resolves to the run's FIRST
+    file, so @c run_file_name -- a QPX primary-key component -- would be wrong rather than
+    missing.
+
+    @note Preflight: call before the output file is opened. The streaming build runs inside an
+          OpenMP region whose exception firewall would flatten a throw into a logged
+          @c return @c false, leaving a truncated .parquet behind.
+
+    @param[in] protein_identifications Identification runs supplying @c spectra_data
+    @param[in] peptide_identifications The PSMs about to be exported
+    @throw Exception::MissingInformation if a PSM of a merged run has no usable index
+  */
+  static void requireResolvableMergeIndices(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications);
+
+  /**
     @brief Import PSMs from a PSMSchema Arrow table.
 
     Reads `PSMSchema`-conformant rows and appends `PeptideIdentification`s

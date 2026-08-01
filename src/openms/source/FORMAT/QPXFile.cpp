@@ -142,6 +142,13 @@ namespace // anonymous
 } // anonymous namespace
 
 
+void QPXFile::requireResolvableMergeIndices(
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const PeptideIdentificationList& peptide_identifications)
+{
+  validateMergeIndices(buildRunMapper(protein_identifications), peptide_identifications);
+}
+
 std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,

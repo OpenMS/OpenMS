@@ -495,6 +495,14 @@ namespace OpenMS
 
   // -- QPXPgSchema (quantms Parquet eXchange format, protein group table) --
 
+  std::shared_ptr<arrow::DataType> QPXPgSchema::groupedRunsType()
+  {
+    // list<utf8> with the default (nullable) element field, matching pg_accessions and what
+    // arrow::ListBuilder over a StringBuilder produces -- a non-nullable element field would
+    // build a type the builders never emit and fail Table::Validate().
+    return arrow::list(arrow::utf8());
+  }
+
   std::shared_ptr<arrow::DataType> QPXPgSchema::intensitiesType()
   {
     return arrow::list(arrow::struct_({
@@ -558,7 +566,7 @@ namespace OpenMS
       arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
       arrow::field(GG_QVALUE, arrow::float64()),
       arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
-      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(GROUPED_RUNS, groupedRunsType(), /*nullable=*/false),
       arrow::field(GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_QVALUE, arrow::float64()),
       arrow::field(INTENSITIES, intensitiesType()),

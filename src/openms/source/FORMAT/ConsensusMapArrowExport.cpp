@@ -1278,11 +1278,14 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
 /// best PSM did not come from, silently. The psm and pg views already refuse this input; matching
 /// them matters beyond consistency, because ProteomicsLFQ and ProteinQuantifier write the feature
 /// view FIRST and pg third. Accepting here and refusing there leaves a wrong feature.parquet on
-/// disk next to a half-written collection; refusing here fails before anything is written.
+/// disk next to a half-written collection; refusing here fails before this view is written.
+/// Note the pg ConsensusMap overload does NOT check merge indices -- only the psm view does --
+/// so this is not redundant with it. QPXCollectionExport::requireExportable() is what makes the
+/// whole collection fail before the FIRST file.
 ///
 /// Must run as a preflight -- single-threaded, before any OpenMP region and before the output
 /// file is opened -- for the same reason as requireUnambiguousIdentities().
-void requireResolvableIdRuns(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
+void requireResolvableIdRunsWith(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
 {
   for (Size i = 0; i < cmap.size(); ++i)
   {
@@ -1320,11 +1323,21 @@ void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& c
     "as consensusparquet, which preserves every identification.");
 }
 
+void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& cmap)
+{
+  // Builds its own mapper so the check is usable without the rest of buildFeatureIdLookups().
+  // The in-exporter paths pass the lookup's mapper instead, to avoid building it twice.
+  IdentifierMSRunMapper mapper;
+  try { mapper.create(cmap.getProteinIdentifications()); }
+  catch (const Exception::InvalidValue&) { /* duplicate path lists; forward map is complete */ }
+  requireResolvableIdRunsWith(cmap, mapper);
+}
+
 std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   const auto id_lut = buildFeatureIdLookups(cmap);
-  requireResolvableIdRuns(cmap, id_lut.run_mapper);
+  requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
   // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
   if (id_lut.has_unlabelable_channel) { return nullptr; }
@@ -1399,7 +1412,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   requireUnambiguousIdentities(cmap);
 
   const auto id_lut = buildFeatureIdLookups(cmap);
-  requireResolvableIdRuns(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
+  requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
   if (id_lut.has_unlabelable_channel) { return false; } // already logged
 
   // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch

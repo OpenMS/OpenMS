@@ -44,6 +44,7 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXCollectionExport.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -329,7 +330,19 @@ protected:
     if (calc_id_purity || !has_ms3)
     {
       double ms1_purity = -1.;
-      if (!interpolate_precursor_purity)
+      // An MS2 with no preceding MS1 has no survey scan to measure isolation purity against --
+      // an acquisition that starts mid-cycle, or an mzML filtered down to a spectrum subset.
+      // MSExperiment::getPrecursorSpectrum() reports that as -1, which is NOT a spectrum index:
+      // passing it on reached MSSpectrum::MZBegin() on a spectrum before the start of the
+      // experiment and segfaulted inside PrecursorPurity. -1.0 is the value this function
+      // already returns for "purity unavailable", and fillConsensusFeature_() only writes the
+      // metavalue when it is > 0, so the feature is quantified without a purity annotation
+      // instead of the tool dying.
+      if (ms1_spec_idx < 0)
+      {
+        ms1_purity = -1.;
+      }
+      else if (!interpolate_precursor_purity)
       {
         ms1_purity = PrecursorPurity::computeSingleScanPrecursorPurities(id_spec_idx, ms1_spec_idx, exp, max_precursor_isotope_deviation)[0];
       }
@@ -973,6 +986,14 @@ protected:
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
 
+        // Validate the whole collection before the first write. This tool streams millions of
+        // feature and PSM rows before the pg view is even reached, so a design-level refusal
+        // there would otherwise land after two very large files are already on disk.
+        if (!QPXCollectionExport::requireExportable(cmap, design))
+        {
+          return CANNOT_WRITE_OUTPUT_FILE; // already logged
+        }
+
         // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
@@ -1020,7 +1041,10 @@ protected:
         }
 
         // Protein group export
-        if (!ProteinGroupArrowExport::exportToParquet(cmap, out_qpx + "/quantms.pg.parquet"))
+        // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
+        // files aggregated into one quantity, and the design is what defines that grouping and
+        // the sample numbering the protein abundances are stored under.
+        if (!ProteinGroupArrowExport::exportToParquet(cmap, design, out_qpx + "/quantms.pg.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
