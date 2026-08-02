@@ -365,9 +365,12 @@ namespace OpenMS
     // 'min_reporter_intensity' - as 0.0, so a zero means "not detected". Counting those would give a
     // channel in which more than half the peptides went undetected a median of exactly 0, and the
     // division below then scaled every positive abundance in it to infinity (and the zeros to NaN,
-    // since 0 * inf is NaN). Excluding them instead normalizes
-    // such a channel on the data it does have, which is what MSstatsTMT, isobar, scp and DEqMS do
-    // (zeros to NA, median with na.rm=TRUE).
+    // since 0 * inf is NaN). Excluding them instead normalizes such a channel on the data it does
+    // have. Keeping zeros out of the statistic is the convention elsewhere: MSstatsTMT turns them
+    // into NA before taking median(log2Intensity, na.rm = TRUE), isobar nulls sub-1 values after
+    // impurity correction, and scp calls zeroIsNA() first, "to avoid artefacts in downstream steps".
+    // Note this is about the zeros, not about log versus linear space - isobar and scp both divide
+    // in linear space, as here, and are safe purely because no zero ever reaches the median.
     map<UInt64, DoubleList> abundances; // positive peptide abundances by sample
     set<UInt64> samples; // every sample seen, including ones without a single positive abundance
     for (auto & pq : pep_quant_)
