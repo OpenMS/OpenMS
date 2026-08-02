@@ -60,7 +60,6 @@
     "libsvm",
     "libxml2",
     "libzip",
-    "onnxruntime",
     {
 
       "name":"openms-thermo-bridge",
@@ -79,6 +78,30 @@
           "features": [
             "cpp"
           ]
+        }
+      ]
+    },
+    "eol-bspline": {
+      "description": "eol-bspline for builds configured with -DUSE_EXTERNAL_EOLBSPLINE=ON.",
+      "dependencies": [
+        {
+          "name": "eol-bspline"
+        }
+      ]
+    },
+    "isospec": {
+      "description": "IsoSpec for builds configured with -DUSE_EXTERNAL_ISOSPEC=ON.",
+      "dependencies": [
+        {
+          "name": "isospec"
+        }
+      ]
+    },
+    "onnxruntime": {
+      "description": "ONNX runtime library for builds configured with -DWITH_ONNX=ON.",
+      "dependencies": [
+        {
+          "name": "onnxruntime"
         }
       ]
     },
