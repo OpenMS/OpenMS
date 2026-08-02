@@ -1,0 +1,16 @@
+{
+    "name":"eol-bspline",
+    "version":"2.2.0",
+    "description":"NCAR/EOL BSpline C++ library.",
+    "homepage":"https://github.com/NCAR/bspline",
+    "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

@@ -106,14 +106,16 @@
             "hidden": true,
             "cacheVariables": {
                 "WITH_GUI": "OFF",
-                "WITH_THERMO_RAW": "ON",
                 "WITH_THERMORAWFILEPARSER_TEST": "ON",
                 "ENABLE_TUTORIALS": "OFF",
                 "WITH_ONNX": "ON",
-                "WITH_OPENTIMS": "ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
-                "WITH_WNETALIGN": "ON",
-                "USE_EXTERNAL_JSON": "ON"
+                "WITH_WNETALIGN": "OFF",
+                "USE_EXTERNAL_JSON": "OFF",
+                "USE_EXTERNAL_SQLITECPP": "OFF",
+                "USE_EXTERNAL_ISOSPEC":"OFF",
+                "USE_EXTERNAL_EOLBSPLINE":"OFF",
+                "WITH_HDF5": "OFF"
             }
         },
         {
