@@ -65,6 +65,7 @@ namespace OpenMS
       Int64 feature_id = -1;
       Int64 run_id = -1;
       Int64 precursor_id = -1;
+      double exp_rt = 0.0;
       std::optional<Int64> transition_id;
       bool decoy = false;
       int cv_group_key = 0;
@@ -322,6 +323,41 @@ namespace OpenMS
       prepared.rows = std::move(filtered_rows);
       prepared.transition_level = transition_level;
       prepared.input.feature_names = kept_names;
+
+      std::stable_sort(prepared.rows.begin(), prepared.rows.end(),
+                       [](const ScoreRow& lhs, const ScoreRow& rhs)
+                       {
+                         if (lhs.run_id != rhs.run_id) return lhs.run_id < rhs.run_id;
+                         if (lhs.precursor_id != rhs.precursor_id) return lhs.precursor_id < rhs.precursor_id;
+                         if (lhs.exp_rt != rhs.exp_rt) return lhs.exp_rt < rhs.exp_rt;
+                         if (lhs.feature_id != rhs.feature_id) return lhs.feature_id < rhs.feature_id;
+                         return lhs.transition_id.value_or(-1) < rhs.transition_id.value_or(-1);
+                       });
+
+      if (transition_level)
+      {
+        for (Size i = 0; i < prepared.rows.size(); ++i)
+        {
+          prepared.rows[i].cv_group_key = static_cast<int>(i);
+        }
+      }
+      else
+      {
+        int current_group = -1;
+        Int64 current_run = std::numeric_limits<Int64>::min();
+        Int64 current_precursor = std::numeric_limits<Int64>::min();
+        for (auto& row : prepared.rows)
+        {
+          if (row.run_id != current_run || row.precursor_id != current_precursor)
+          {
+            current_run = row.run_id;
+            current_precursor = row.precursor_id;
+            ++current_group;
+          }
+          row.cv_group_key = current_group;
+        }
+      }
+
       prepared.input.features.reserve(prepared.rows.size());
       prepared.input.is_decoy.reserve(prepared.rows.size());
       prepared.input.cv_group_keys.reserve(prepared.rows.size());
@@ -470,7 +506,7 @@ namespace OpenMS
         }
 
         String select_sql =
-          "SELECT FEATURE.ID AS FEATURE_ID, FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, PRECURSOR.DECOY";
+          "SELECT FEATURE.ID AS FEATURE_ID, FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, PRECURSOR.DECOY";
         for (const auto& c : ms2_cols)
         {
           select_sql += ", FEATURE_MS2." + c;
@@ -507,6 +543,7 @@ namespace OpenMS
           row.feature_id = Sql::extractInt64(stmt, col++);
           row.run_id = Sql::extractInt64(stmt, col++);
           row.precursor_id = Sql::extractInt64(stmt, col++);
+          row.exp_rt = Sql::extractDouble(stmt, col++);
           row.decoy = Sql::extractInt(stmt, col++) != 0;
           row.feature_values.reserve(feature_names.size());
           for (Size i = 0; i < ms2_cols.size(); ++i, ++col)
@@ -556,7 +593,7 @@ namespace OpenMS
         std::numeric_limits<Size>::max();
 
       String select_sql =
-        "SELECT FEATURE.RUN_ID, FEATURE.ID AS FEATURE_ID, FEATURE.PRECURSOR_ID, "
+        "SELECT FEATURE.RUN_ID, FEATURE.ID AS FEATURE_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, "
         "       FEATURE_TRANSITION.TRANSITION_ID, TRANSITION.DECOY, "
         "       SCORE_MS2.RANK, SCORE_MS2.PEP";
       for (const auto& c : transition_cols)
@@ -587,6 +624,7 @@ namespace OpenMS
         row.run_id = Sql::extractInt64(stmt, col++);
         row.feature_id = Sql::extractInt64(stmt, col++);
         row.precursor_id = Sql::extractInt64(stmt, col++);
+        row.exp_rt = Sql::extractDouble(stmt, col++);
         row.transition_id = Sql::extractInt64(stmt, col++);
         row.decoy = Sql::extractInt(stmt, col++) != 0;
         (void)Sql::extractInt(stmt, col++);
@@ -695,6 +733,7 @@ namespace OpenMS
           row.feature_id = result.feature_id[i];
           row.run_id = result.run_id[i];
           row.precursor_id = result.precursor_id[i];
+          row.exp_rt = result.exp_rt[i];
           row.decoy = result.decoy[i];
           row.feature_values.reserve(selected_cols.size());
           for (const Size col_idx : selected_cols)
@@ -759,6 +798,7 @@ namespace OpenMS
           row.feature_id = result.feature_id[i];
           row.run_id = result.run_id[i];
           row.precursor_id = result.precursor_id[i];
+          row.exp_rt = result.exp_rt[i];
           row.decoy = result.decoy[i];
           row.feature_values.reserve(feature_names.size());
           for (const Size col_idx : ms2_selected)
@@ -884,6 +924,7 @@ namespace OpenMS
         out.feature_id = transition_result.feature_id[row_idx];
         out.run_id = transition_result.run_id[row_idx];
         out.precursor_id = precursor_id;
+        out.exp_rt = transition_result.exp_rt[row_idx];
         out.transition_id = transition_result.transition_id[row_idx];
         out.decoy = transition_result.decoy[row_idx];
         out.cv_group_key = next_group_key++;
