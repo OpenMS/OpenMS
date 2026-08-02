@@ -57,7 +57,7 @@ namespace OpenMS
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
-    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal.");
+    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that the median of each sample matches the overall median.\nAbundances of zero count as 'not detected' and are left out of the medians; a sample without any positive abundance takes no part in the normalization.");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
@@ -364,7 +364,8 @@ namespace OpenMS
     // IsobaricChannelExtractor stores a reporter it could not find - or one below
     // 'min_reporter_intensity' - as 0.0, so a zero means "not detected". Counting those would give a
     // channel in which more than half the peptides went undetected a median of exactly 0, and the
-    // division below then scaled every abundance in it to infinity. Excluding them instead normalizes
+    // division below then scaled every positive abundance in it to infinity (and the zeros to NaN,
+    // since 0 * inf is NaN). Excluding them instead normalizes
     // such a channel on the data it does have, which is what MSstatsTMT, isobar, scp and DEqMS do
     // (zeros to NA, median with na.rm=TRUE).
     map<UInt64, DoubleList> abundances; // positive peptide abundances by sample
@@ -377,7 +378,13 @@ namespace OpenMS
         if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
       }
     }
-    if (abundances.size() <= 1) { return; } // fewer than two samples carry any signal
+    if (abundances.size() <= 1)
+    { // no reference to scale to - say so, rather than returning as if normalization had happened
+      OPENMS_LOG_WARN << "Warning: fewer than two samples contain a peptide with a positive abundance, "
+                      << "so there is nothing to normalize against. Abundances are left unchanged."
+                      << endl;
+      return;
+    }
 
     /////////////////////////////////////////////////////
     // compute scale factors on the sample level:
@@ -403,9 +410,21 @@ namespace OpenMS
       auto med_it = medians.find(sample);
       if (med_it == medians.end()) // not a single positive abundance in this sample
       {
-        OPENMS_LOG_WARN << "Warning: sample " << sample << " has no peptide with a positive abundance "
-                        << "(for isobaric data: no reporter ion was detected in that channel). It is "
-                        << "excluded from the normalization reference and left un-normalized." << endl;
+        // Name the (file, channel) pairs behind the sample: the sample id is a design-internal index
+        // that does not appear in any input the user wrote.
+        std::string where;
+        for (const auto& lookup : sample_id_lookup_)
+        {
+          if (lookup.second != sample) { continue; }
+          if (!where.empty()) { where += ", "; }
+          where += "'" + lookup.first.first + "' channel " + StringUtils::toStr(lookup.first.second);
+        }
+        OPENMS_LOG_WARN << "Warning: sample " << sample
+                        << (where.empty() ? "" : " (" + where + ")")
+                        << " has no peptide with a positive abundance - for isobaric data, no reporter "
+                        << "ion was detected for it in any quantified peptide. It does not take part in "
+                        << "the normalization: it defines no reference and its values are left as they "
+                        << "are (they are all zero)." << endl;
         continue; // no factor at all - see scaleFactorFor below
       }
       // a median over strictly positive values is itself positive, so this cannot divide by zero
