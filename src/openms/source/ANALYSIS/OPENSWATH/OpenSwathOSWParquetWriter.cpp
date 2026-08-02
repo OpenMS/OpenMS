@@ -23,7 +23,9 @@
 #include <cmath>
 #include <future>
 #include <limits>
+#include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <filesystem>
@@ -39,113 +41,6 @@ namespace OpenMS
   namespace
   {
     using OpenMS::Size;
-
-    void appendOptionalFloat_(arrow::DoubleBuilder& builder, bool has_value, double value, const char* column)
-    {
-      if (!has_value || !std::isfinite(value))
-      {
-        ParquetFile::appendOrThrow(builder.AppendNull(), column);
-      }
-      else
-      {
-        ParquetFile::appendOrThrow(builder.Append(value), column);
-      }
-    }
-
-    void appendOptionalInt_(arrow::Int64Builder& builder, bool has_value, int64_t value, const char* column)
-    {
-      if (!has_value)
-      {
-        ParquetFile::appendOrThrow(builder.AppendNull(), column);
-      }
-      else
-      {
-        ParquetFile::appendOrThrow(builder.Append(value), column);
-      }
-    }
-
-    bool extractMetaDouble_(const Feature& feature, const std::string& key, double& value)
-    {
-      if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = feature.getMetaValue(key);
-      if (meta.isEmpty()) return false;
-      try
-      {
-        value = StringUtils::toDouble(meta.toString());
-        return true;
-      }
-      catch (Exception::ConversionError&)
-      {
-        return false;
-      }
-    }
-
-    void appendFeatureScore_(arrow::DoubleBuilder& builder,
-                             const Feature& feature,
-                             const std::string& key,
-                             const char* column,
-                             double fallback_value = std::numeric_limits<double>::quiet_NaN(),
-                             bool use_fallback = false)
-    {
-      double value = 0.0;
-      if (extractMetaDouble_(feature, key, value))
-      {
-        appendOptionalFloat_(builder, true, value, column);
-      }
-      else if (use_fallback && std::isfinite(fallback_value))
-      {
-        appendOptionalFloat_(builder, true, fallback_value, column);
-      }
-      else
-      {
-        ParquetFile::appendOrThrow(builder.AppendNull(), column);
-      }
-    }
-
-    bool extractMetaDouble_(const BaseFeature& feature, const std::string& key, double& value)
-    {
-      if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = feature.getMetaValue(key);
-      if (meta.isEmpty()) return false;
-      try
-      {
-        value = StringUtils::toDouble(meta.toString());
-        return true;
-      }
-      catch (Exception::ConversionError&)
-      {
-        return false;
-      }
-    }
-
-    std::vector<std::string> getSeparateScore_(const Feature& feature, const std::string& score_name)
-    {
-      std::vector<std::string> separated_scores;
-
-      if (!feature.getMetaValue(score_name).isEmpty())
-      {
-        if (feature.getMetaValue(score_name).valueType() == DataValue::STRING_LIST)
-        {
-          separated_scores = feature.getMetaValue(score_name).toStringList();
-        }
-        else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
-        {
-          std::vector<int> int_scores = feature.getMetaValue(score_name).toIntList();
-          for (int score : int_scores) separated_scores.emplace_back(StringUtils::toStr(score));
-        }
-        else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
-        {
-          std::vector<double> double_scores = feature.getMetaValue(score_name).toDoubleList();
-          for (double score : double_scores) separated_scores.emplace_back(StringUtils::toStr(score));
-        }
-        else
-        {
-          separated_scores.push_back(feature.getMetaValue(score_name).toString());
-        }
-      }
-
-      return separated_scores;
-    }
 
     bool parseOptionalInt64_(const std::string& text, int64_t& value)
     {
@@ -173,20 +68,242 @@ namespace OpenMS
       }
     }
 
-    void appendOptionalFloatFromList_(arrow::DoubleBuilder& builder,
-                                      const std::vector<std::string>& values,
-                                      Size index,
-                                      const char* column)
+    std::string oswValueToDebugString_(const OpenSwathOSWWriter::OSWValue& value)
     {
-      double value = 0.0;
-      if (index < values.size() && parseOptionalDouble_(values[index], value))
+      switch (value.type)
       {
-        appendOptionalFloat_(builder, true, value, column);
+        case OpenSwathOSWWriter::OSWValue::Type::Null:
+          return "NULL";
+        case OpenSwathOSWWriter::OSWValue::Type::Int64:
+          return StringUtils::toStr(value.asInt());
+        case OpenSwathOSWWriter::OSWValue::Type::Double:
+          return StringUtils::toStr(value.asDouble());
+        case OpenSwathOSWWriter::OSWValue::Type::Text:
+          return value.asText();
       }
-      else
+      return "NULL";
+    }
+
+    bool oswValueToInt64_(const OpenSwathOSWWriter::OSWValue& value, int64_t& result)
+    {
+      if (value.isNull())
+      {
+        return false;
+      }
+
+      switch (value.type)
+      {
+        case OpenSwathOSWWriter::OSWValue::Type::Int64:
+          result = value.asInt();
+          return true;
+        case OpenSwathOSWWriter::OSWValue::Type::Double:
+        {
+          const double double_value = value.asDouble();
+          if (!std::isfinite(double_value))
+          {
+            return false;
+          }
+          const double rounded = std::round(double_value);
+          if (std::fabs(double_value - rounded) > 1e-9)
+          {
+            return false;
+          }
+          if (rounded < static_cast<double>(std::numeric_limits<int64_t>::min()) ||
+              rounded > static_cast<double>(std::numeric_limits<int64_t>::max()))
+          {
+            return false;
+          }
+          result = static_cast<int64_t>(rounded);
+          return true;
+        }
+        case OpenSwathOSWWriter::OSWValue::Type::Text:
+          return parseOptionalInt64_(value.asText(), result);
+        case OpenSwathOSWWriter::OSWValue::Type::Null:
+          return false;
+      }
+
+      return false;
+    }
+
+    bool oswValueToDouble_(const OpenSwathOSWWriter::OSWValue& value, double& result)
+    {
+      if (value.isNull())
+      {
+        return false;
+      }
+
+      switch (value.type)
+      {
+        case OpenSwathOSWWriter::OSWValue::Type::Int64:
+          result = static_cast<double>(value.asInt());
+          return true;
+        case OpenSwathOSWWriter::OSWValue::Type::Double:
+          result = value.asDouble();
+          return std::isfinite(result);
+        case OpenSwathOSWWriter::OSWValue::Type::Text:
+          return parseOptionalDouble_(value.asText(), result) && std::isfinite(result);
+        case OpenSwathOSWWriter::OSWValue::Type::Null:
+          return false;
+      }
+
+      return false;
+    }
+
+    int64_t requireOSWInt64_(const OpenSwathOSWWriter::OSWValue& value, const char* column)
+    {
+      int64_t result = 0;
+      if (oswValueToInt64_(value, result))
+      {
+        return result;
+      }
+
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Expected integer OSW value for column '" + std::string(column) + "'",
+                                    oswValueToDebugString_(value));
+    }
+
+    void appendOSWInt64_(arrow::Int64Builder& builder,
+                         const OpenSwathOSWWriter::OSWValue& value,
+                         const char* column)
+    {
+      if (value.isNull())
       {
         ParquetFile::appendOrThrow(builder.AppendNull(), column);
+        return;
       }
+
+      int64_t int_value = 0;
+      if (!oswValueToInt64_(value, int_value))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Expected integer OSW value for parquet column '" + std::string(column) + "'",
+                                      oswValueToDebugString_(value));
+      }
+      ParquetFile::appendOrThrow(builder.Append(int_value), column);
+    }
+
+    void appendOSWInt32_(arrow::Int32Builder& builder,
+                         const OpenSwathOSWWriter::OSWValue& value,
+                         const char* column)
+    {
+      if (value.isNull())
+      {
+        ParquetFile::appendOrThrow(builder.AppendNull(), column);
+        return;
+      }
+
+      int64_t int_value = 0;
+      if (!oswValueToInt64_(value, int_value) ||
+          int_value < std::numeric_limits<int32_t>::min() ||
+          int_value > std::numeric_limits<int32_t>::max())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Expected 32-bit integer OSW value for parquet column '" + std::string(column) + "'",
+                                      oswValueToDebugString_(value));
+      }
+      ParquetFile::appendOrThrow(builder.Append(static_cast<int32_t>(int_value)), column);
+    }
+
+    void appendOSWDouble_(arrow::DoubleBuilder& builder,
+                          const OpenSwathOSWWriter::OSWValue& value,
+                          const char* column)
+    {
+      if (value.isNull())
+      {
+        ParquetFile::appendOrThrow(builder.AppendNull(), column);
+        return;
+      }
+
+      double double_value = 0.0;
+      if (!oswValueToDouble_(value, double_value))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Expected floating-point OSW value for parquet column '" + std::string(column) + "'",
+                                      oswValueToDebugString_(value));
+      }
+      ParquetFile::appendOrThrow(builder.Append(double_value), column);
+    }
+
+    int64_t resolvePrecursorId_(const OpenSwathOSWWriter::OSWValue& value,
+                                const std::unordered_map<std::string, int64_t>& compound_to_precursor,
+                                const std::unordered_set<int64_t>& valid_precursor_ids)
+    {
+      int64_t precursor_id = 0;
+      if (oswValueToInt64_(value, precursor_id) && valid_precursor_ids.contains(precursor_id))
+      {
+        return precursor_id;
+      }
+
+      const std::string precursor_ref = oswValueToDebugString_(value);
+      auto precursor_it = compound_to_precursor.find(precursor_ref);
+      if (precursor_it != compound_to_precursor.end())
+      {
+        return precursor_it->second;
+      }
+
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "OSW feature row references unknown precursor",
+                                    precursor_ref);
+    }
+
+    int64_t resolveTransitionId_(const OpenSwathOSWWriter::OSWValue& value,
+                                 const std::unordered_map<std::string, int64_t>& transition_to_id,
+                                 int64_t next_transition_id)
+    {
+      int64_t transition_id = 0;
+      if (oswValueToInt64_(value, transition_id))
+      {
+        if (transition_id > 0 && transition_id < next_transition_id)
+        {
+          return transition_id;
+        }
+      }
+
+      const std::string transition_ref = oswValueToDebugString_(value);
+      auto transition_it = transition_to_id.find(transition_ref);
+      if (transition_it != transition_to_id.end())
+      {
+        return transition_it->second;
+      }
+
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "OSW transition row references unknown transition",
+                                    transition_ref);
+    }
+
+    OpenSwathOSWWriter::OSWData canonicalRowsFromFeatureMap_(const FeatureMap& feature_map,
+                                                             UInt64 run_id,
+                                                             bool enable_uis_scoring)
+    {
+      OpenSwathOSWWriter row_writer("", enable_uis_scoring);
+      row_writer.setRunId(run_id);
+
+      OpenSwathOSWWriter::OSWData osw_output;
+      Size transition_row_estimate = 0;
+      for (const auto& feature : feature_map)
+      {
+        transition_row_estimate += feature.getSubordinates().size();
+      }
+      osw_output.reserve(feature_map.size(), transition_row_estimate);
+
+      std::map<std::string, FeatureMap> grouped_features;
+      for (const auto& feature : feature_map)
+      {
+        if (!feature.metaValueExists("PeptideRef"))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Feature missing PeptideRef meta value required for canonical OSW row generation.");
+        }
+        const std::string peptide_ref = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
+        grouped_features[peptide_ref].push_back(feature);
+      }
+
+      for (const auto& grouped_entry : grouped_features)
+      {
+        row_writer.prepareRowsInto(osw_output, OpenSwath::LightCompound(), nullptr, grouped_entry.second, grouped_entry.first);
+      }
+
+      return osw_output;
     }
 
     struct RunEntry
@@ -306,6 +423,17 @@ namespace OpenMS
                                         UInt64 run_id,
                                         const std::string& input_filename,
                                         bool enable_uis_scoring) const
+  {
+    const auto osw_output = canonicalRowsFromFeatureMap_(feature_map, run_id, enable_uis_scoring);
+    write(output_path, assay_library, osw_output, run_id, input_filename, enable_uis_scoring);
+  }
+
+  void OpenSwathOSWParquetWriter::write(const std::string& output_path,
+                                        const OpenSwath::LightTargetedExperiment& assay_library,
+                                        const OpenSwathOSWWriter::OSWData& osw_output,
+                                        UInt64 run_id,
+                                        const std::string& input_filename,
+                                        bool /*enable_uis_scoring*/) const
   {
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
@@ -584,474 +712,207 @@ namespace OpenMS
     arrow::DoubleBuilder fp_apex_builder;
 
     // Reserve Arrow builders where possible to avoid repeated reallocations.
-    // Feature-level builders: reserve by number of features
-    const int64_t n_features = static_cast<int64_t>(feature_map.size());
+    const int64_t n_features = static_cast<int64_t>(osw_output.feature_rows.size());
     ParquetFile::appendOrThrow(feature_id_builder.Reserve(n_features), "feature_id (reserve)");
     ParquetFile::appendOrThrow(feature_run_id_builder.Reserve(n_features), "run_id (reserve)");
     ParquetFile::appendOrThrow(precursor_id_builder.Reserve(n_features), "precursor_id (reserve)");
     ParquetFile::appendOrThrow(exp_rt_builder.Reserve(n_features), "exp_rt (reserve)");
 
-    // Feature-Transition builders: reserve conservatively (features * 2)
-    const int64_t approx_ft = std::max<int64_t>(1, n_features * 2);
+    const int64_t approx_ft = std::max<int64_t>(1, static_cast<int64_t>(osw_output.feature_transition_rows.size()));
     ParquetFile::appendOrThrow(ft_feature_id_builder.Reserve(approx_ft), "ft.feature_id (reserve)");
     ParquetFile::appendOrThrow(ft_run_id_builder.Reserve(approx_ft), "ft.run_id (reserve)");
+    ParquetFile::appendOrThrow(ft_transition_id_builder.Reserve(approx_ft), "ft.transition_id (reserve)");
 
-    // Iterate features and populate builders
-    for (Size idx = 0; idx < feature_map.size(); ++idx)
+    const int64_t approx_fp = std::max<int64_t>(1, static_cast<int64_t>(osw_output.feature_precursor_rows.size()));
+    ParquetFile::appendOrThrow(fp_feature_id_builder.Reserve(approx_fp), "fp.feature_id (reserve)");
+    ParquetFile::appendOrThrow(fp_run_id_builder.Reserve(approx_fp), "fp.run_id (reserve)");
+
+    std::unordered_map<int64_t, const OpenSwathOSWWriter::FeatureMS1Row*> feature_to_ms1;
+    feature_to_ms1.reserve(osw_output.feature_ms1_rows.size());
+    for (const auto& ms1_row : osw_output.feature_ms1_rows)
     {
-      const Feature& feature = feature_map[idx];
-      const int64_t feature_id = Internal::SqliteHelper::clearSignBit(feature.getUniqueId());
-      if (!feature.metaValueExists("PeptideRef"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Feature missing PeptideRef meta value");
-      }
-      const std::string peptide_ref = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
-      auto precursor_it = compound_to_precursor.find(peptide_ref);
-      if (precursor_it == compound_to_precursor.end())
+      feature_to_ms1[requireOSWInt64_(ms1_row[0], "FEATURE_MS1.FEATURE_ID")] = &ms1_row;
+    }
+
+    std::unordered_map<int64_t, const OpenSwathOSWWriter::FeatureMS2Row*> feature_to_ms2;
+    feature_to_ms2.reserve(osw_output.feature_ms2_rows.size());
+    for (const auto& ms2_row : osw_output.feature_ms2_rows)
+    {
+      feature_to_ms2[requireOSWInt64_(ms2_row[0], "FEATURE_MS2.FEATURE_ID")] = &ms2_row;
+    }
+
+    const std::vector<arrow::DoubleBuilder*> feature_numeric_builders = {
+      &exp_rt_builder, &exp_im_builder, &norm_rt_builder, &delta_rt_builder,
+      &left_width_builder, &right_width_builder, &exp_im_left_builder, &exp_im_right_builder
+    };
+    const std::vector<const char*> feature_numeric_names = {
+      "exp_rt", "exp_im", "norm_rt", "delta_rt",
+      "left_width", "right_width", "exp_im_leftwidth", "exp_im_rightwidth"
+    };
+
+    const std::vector<arrow::DoubleBuilder*> ms1_builders = {
+      &ms1_area_builder, &ms1_apex_builder, &ms1_exp_im_builder, &ms1_delta_im_builder,
+      &var_ms1_massdev_builder, &var_ms1_im_ms1_delta_builder, &var_ms1_mi_builder,
+      &var_ms1_mi_contrast_builder, &var_ms1_mi_combined_builder, &var_ms1_iso_corr_builder,
+      &var_ms1_iso_overlap_builder, &var_ms1_xcorr_coelution_builder,
+      &var_ms1_xcorr_coelution_contrast_builder, &var_ms1_xcorr_coelution_combined_builder,
+      &var_ms1_xcorr_shape_builder, &var_ms1_xcorr_shape_contrast_builder,
+      &var_ms1_xcorr_shape_combined_builder
+    };
+    const std::vector<const char*> ms1_names = {
+      "ms1_area_intensity", "ms1_apex_intensity", "ms1_exp_im", "ms1_delta_im",
+      "var_ms1_massdev_score", "var_ms1_im_ms1_delta_score", "var_ms1_mi_score",
+      "var_ms1_mi_contrast_score", "var_ms1_mi_combined_score", "var_ms1_isotope_correlation_score",
+      "var_ms1_isotope_overlap_score", "var_ms1_xcorr_coelution",
+      "var_ms1_xcorr_coelution_contrast", "var_ms1_xcorr_coelution_combined",
+      "var_ms1_xcorr_shape", "var_ms1_xcorr_shape_contrast", "var_ms1_xcorr_shape_combined"
+    };
+
+    const std::vector<arrow::DoubleBuilder*> ms2_builders = {
+      &ms2_area_builder, &ms2_total_area_builder, &ms2_apex_builder, &ms2_exp_im_builder,
+      &ms2_exp_im_left_builder, &ms2_exp_im_right_builder, &ms2_delta_im_builder,
+      &ms2_total_mi_builder, &var_ms2_bseries_builder, &var_ms2_dotprod_builder,
+      &var_ms2_intensity_builder, &var_ms2_iso_corr_builder, &var_ms2_iso_overlap_builder,
+      &var_ms2_library_corr_builder, &var_ms2_library_dotprod_builder, &var_ms2_library_manhattan_builder,
+      &var_ms2_library_rmsd_builder, &var_ms2_library_rootmeansquare_builder, &var_ms2_library_sangle_builder,
+      &var_ms2_log_sn_builder, &var_ms2_manhattan_builder, &var_ms2_massdev_builder,
+      &var_ms2_massdev_weighted_builder, &var_ms2_mi_builder, &var_ms2_mi_weighted_builder,
+      &var_ms2_mi_ratio_builder, &var_ms2_norm_rt_builder, &var_ms2_xcorr_coelution_builder,
+      &var_ms2_xcorr_coelution_weighted_builder, &var_ms2_xcorr_shape_builder,
+      &var_ms2_xcorr_shape_weighted_builder, &var_ms2_yseries_builder,
+      &var_ms2_elution_model_fit_builder, &var_ms2_im_xcorr_shape_builder,
+      &var_ms2_im_xcorr_coelution_builder, &var_ms2_im_delta_builder,
+      &var_ms2_im_log_intensity_builder
+    };
+    const std::vector<const char*> ms2_names = {
+      "ms2_area_intensity", "ms2_total_area_intensity", "ms2_apex_intensity", "ms2_exp_im",
+      "ms2_exp_im_leftwidth", "ms2_exp_im_rightwidth", "ms2_delta_im", "ms2_total_mi",
+      "var_ms2_bseries_score", "var_ms2_dotprod_score", "var_ms2_intensity_score",
+      "var_ms2_isotope_correlation_score", "var_ms2_isotope_overlap_score", "var_ms2_library_corr",
+      "var_ms2_library_dotprod", "var_ms2_library_manhattan", "var_ms2_library_rmsd",
+      "var_ms2_library_rootmeansquare", "var_ms2_library_sangle", "var_ms2_log_sn_score",
+      "var_ms2_manhattan_score", "var_ms2_massdev_score", "var_ms2_massdev_score_weighted",
+      "var_ms2_mi_score", "var_ms2_mi_weighted_score", "var_ms2_mi_ratio_score",
+      "var_ms2_norm_rt_score", "var_ms2_xcorr_coelution", "var_ms2_xcorr_coelution_weighted",
+      "var_ms2_xcorr_shape", "var_ms2_xcorr_shape_weighted", "var_ms2_yseries_score",
+      "var_ms2_elution_model_fit_score", "var_ms2_im_xcorr_shape", "var_ms2_im_xcorr_coelution",
+      "var_ms2_im_delta_score", "var_ms2_im_log_intensity"
+    };
+
+    const std::vector<arrow::DoubleBuilder*> transition_numeric_builders = {
+      &ft_area_builder, &ft_total_area_builder, &ft_apex_int_builder, &ft_apex_rt_builder,
+      &ft_rt_fwhm_builder, &ft_masserror_builder, &ft_total_mi_builder, &ft_var_intensity_builder,
+      &ft_var_intensity_ratio_builder, &ft_var_log_intensity_builder, &ft_var_xcorr_coelution_builder,
+      &ft_var_xcorr_shape_builder, &ft_var_log_sn_builder, &ft_var_massdev_builder,
+      &ft_var_mi_builder, &ft_var_mi_ratio_builder, &ft_var_isotope_corr_builder,
+      &ft_var_isotope_overlap_builder, &ft_exp_im_builder, &ft_exp_im_left_builder,
+      &ft_exp_im_right_builder, &ft_delta_im_builder, &ft_var_im_delta_builder,
+      &ft_var_im_log_intensity_builder, &ft_var_im_xcorr_coelution_contrast_builder,
+      &ft_var_im_xcorr_shape_contrast_builder, &ft_var_im_xcorr_coelution_combined_builder,
+      &ft_var_im_xcorr_shape_combined_builder, &ft_start_position_at_5_builder,
+      &ft_end_position_at_5_builder, &ft_start_position_at_10_builder, &ft_end_position_at_10_builder,
+      &ft_start_position_at_50_builder, &ft_end_position_at_50_builder, &ft_total_width_builder,
+      &ft_tailing_factor_builder, &ft_asymmetry_factor_builder, &ft_slope_of_baseline_builder,
+      &ft_baseline_delta_2_height_builder, &ft_points_across_baseline_builder,
+      &ft_points_across_half_height_builder
+    };
+    const std::vector<const char*> transition_numeric_names = {
+      "area_intensity", "total_area_intensity", "apex_intensity", "apex_rt",
+      "rt_fwhm", "masserror_ppm", "total_mi", "var_intensity_score",
+      "var_intensity_ratio_score", "var_log_intensity", "var_xcorr_coelution",
+      "var_xcorr_shape", "var_log_sn_score", "var_massdev_score",
+      "var_mi_score", "var_mi_ratio_score", "var_isotope_correlation_score",
+      "var_isotope_overlap_score", "exp_im", "exp_im_leftwidth",
+      "exp_im_rightwidth", "delta_im", "var_im_delta_score",
+      "var_im_log_intensity", "var_im_xcorr_coelution_contrast",
+      "var_im_xcorr_shape_contrast", "var_im_xcorr_coelution_combined",
+      "var_im_xcorr_shape_combined", "start_position_at_5",
+      "end_position_at_5", "start_position_at_10", "end_position_at_10",
+      "start_position_at_50", "end_position_at_50", "total_width",
+      "tailing_factor", "asymmetry_factor", "slope_of_baseline",
+      "baseline_delta_2_height", "points_across_baseline",
+      "points_across_half_height"
+    };
+
+    for (const auto& feature_row : osw_output.feature_rows)
+    {
+      const int64_t feature_id = requireOSWInt64_(feature_row[0], "FEATURE.ID");
+      const int64_t feature_run_id = requireOSWInt64_(feature_row[1], "FEATURE.RUN_ID");
+      if (feature_run_id != static_cast<int64_t>(run_id_clean))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Feature references unknown peptide", peptide_ref);
+                                      "Canonical OSW feature row belongs to a different run than the requested parquet partition.",
+                                      StringUtils::toStr(feature_run_id));
       }
+      const int64_t precursor_id = resolvePrecursorId_(feature_row[2], compound_to_precursor, used_precursor_ids);
 
       ParquetFile::appendOrThrow(feature_id_builder.Append(feature_id), "feature_id");
-      ParquetFile::appendOrThrow(feature_run_id_builder.Append(run_id_clean), "run_id");
-      ParquetFile::appendOrThrow(precursor_id_builder.Append(precursor_it->second), "precursor_id");
-      appendOptionalFloat_(exp_rt_builder, true, feature.getRT(), "exp_rt");
+      ParquetFile::appendOrThrow(feature_run_id_builder.Append(feature_run_id), "run_id");
+      ParquetFile::appendOrThrow(precursor_id_builder.Append(precursor_id), "precursor_id");
 
-      double value = 0.0;
-      appendFeatureScore_(exp_im_builder, feature, "im_drift", "exp_im");
-      appendFeatureScore_(norm_rt_builder, feature, "norm_RT", "norm_rt", -1.0, true);
-      appendFeatureScore_(delta_rt_builder, feature, "delta_rt", "delta_rt", -1.0, true);
-      appendFeatureScore_(left_width_builder, feature, "leftWidth", "left_width");
-      appendFeatureScore_(right_width_builder, feature, "rightWidth", "right_width");
-      appendFeatureScore_(exp_im_left_builder, feature, "im_drift_left", "exp_im_leftwidth");
-      appendFeatureScore_(exp_im_right_builder, feature, "im_drift_right", "exp_im_rightwidth");
-
-      const bool has_ms1 = feature.metaValueExists("var_ms1_ppm_diff");
-      if (has_ms1)
+      for (Size i = 0; i < feature_numeric_builders.size(); ++i)
       {
-        appendOptionalFloat_(ms1_area_builder, extractMetaDouble_(feature, "ms1_area_intensity", value), value, "ms1_area_intensity");
-        appendOptionalFloat_(ms1_apex_builder, extractMetaDouble_(feature, "ms1_apex_intensity", value), value, "ms1_apex_intensity");
-        appendOptionalFloat_(ms1_exp_im_builder, extractMetaDouble_(feature, "im_ms1_drift", value), value, "ms1_exp_im");
-        appendOptionalFloat_(ms1_delta_im_builder, extractMetaDouble_(feature, "im_ms1_delta", value), value, "ms1_delta_im");
-        appendOptionalFloat_(var_ms1_massdev_builder, extractMetaDouble_(feature, "var_ms1_ppm_diff", value), value, "var_ms1_massdev_score");
-        appendOptionalFloat_(var_ms1_im_ms1_delta_builder, extractMetaDouble_(feature, "var_im_ms1_delta_score", value), value, "var_ms1_im_ms1_delta_score");
-        appendOptionalFloat_(var_ms1_mi_builder, extractMetaDouble_(feature, "var_ms1_mi_score", value), value, "var_ms1_mi_score");
-        appendOptionalFloat_(var_ms1_mi_contrast_builder, extractMetaDouble_(feature, "var_ms1_mi_contrast_score", value), value, "var_ms1_mi_contrast_score");
-        appendOptionalFloat_(var_ms1_mi_combined_builder, extractMetaDouble_(feature, "var_ms1_mi_combined_score", value), value, "var_ms1_mi_combined_score");
-        appendOptionalFloat_(var_ms1_iso_corr_builder, extractMetaDouble_(feature, "var_ms1_isotope_correlation", value), value, "var_ms1_isotope_correlation_score");
-        appendOptionalFloat_(var_ms1_iso_overlap_builder, extractMetaDouble_(feature, "var_ms1_isotope_overlap", value), value, "var_ms1_isotope_overlap_score");
-        appendOptionalFloat_(var_ms1_xcorr_coelution_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution", value), value, "var_ms1_xcorr_coelution");
-        appendOptionalFloat_(var_ms1_xcorr_coelution_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_contrast", value), value, "var_ms1_xcorr_coelution_contrast");
-        appendOptionalFloat_(var_ms1_xcorr_coelution_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_combined", value), value, "var_ms1_xcorr_coelution_combined");
-        appendOptionalFloat_(var_ms1_xcorr_shape_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape", value), value, "var_ms1_xcorr_shape");
-        appendOptionalFloat_(var_ms1_xcorr_shape_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_contrast", value), value, "var_ms1_xcorr_shape_contrast");
-        appendOptionalFloat_(var_ms1_xcorr_shape_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_combined", value), value, "var_ms1_xcorr_shape_combined");
+        appendOSWDouble_(*feature_numeric_builders[i], feature_row[i + 3], feature_numeric_names[i]);
+      }
+
+      auto ms1_it = feature_to_ms1.find(feature_id);
+      if (ms1_it != feature_to_ms1.end())
+      {
+        const auto& ms1_row = *ms1_it->second;
+        for (Size i = 0; i < ms1_builders.size(); ++i)
+        {
+          appendOSWDouble_(*ms1_builders[i], ms1_row[i + 1], ms1_names[i]);
+        }
       }
       else
       {
-        ParquetFile::appendOrThrow(ms1_area_builder.AppendNull(), "ms1_area_intensity");
-        ParquetFile::appendOrThrow(ms1_apex_builder.AppendNull(), "ms1_apex_intensity");
-        ParquetFile::appendOrThrow(ms1_exp_im_builder.AppendNull(), "ms1_exp_im");
-        ParquetFile::appendOrThrow(ms1_delta_im_builder.AppendNull(), "ms1_delta_im");
-        ParquetFile::appendOrThrow(var_ms1_massdev_builder.AppendNull(), "var_ms1_massdev_score");
-        ParquetFile::appendOrThrow(var_ms1_im_ms1_delta_builder.AppendNull(), "var_ms1_im_ms1_delta_score");
-        ParquetFile::appendOrThrow(var_ms1_mi_builder.AppendNull(), "var_ms1_mi_score");
-        ParquetFile::appendOrThrow(var_ms1_mi_contrast_builder.AppendNull(), "var_ms1_mi_contrast_score");
-        ParquetFile::appendOrThrow(var_ms1_mi_combined_builder.AppendNull(), "var_ms1_mi_combined_score");
-        ParquetFile::appendOrThrow(var_ms1_iso_corr_builder.AppendNull(), "var_ms1_isotope_correlation_score");
-        ParquetFile::appendOrThrow(var_ms1_iso_overlap_builder.AppendNull(), "var_ms1_isotope_overlap_score");
-        ParquetFile::appendOrThrow(var_ms1_xcorr_coelution_builder.AppendNull(), "var_ms1_xcorr_coelution");
-        ParquetFile::appendOrThrow(var_ms1_xcorr_coelution_contrast_builder.AppendNull(), "var_ms1_xcorr_coelution_contrast");
-        ParquetFile::appendOrThrow(var_ms1_xcorr_coelution_combined_builder.AppendNull(), "var_ms1_xcorr_coelution_combined");
-        ParquetFile::appendOrThrow(var_ms1_xcorr_shape_builder.AppendNull(), "var_ms1_xcorr_shape");
-        ParquetFile::appendOrThrow(var_ms1_xcorr_shape_contrast_builder.AppendNull(), "var_ms1_xcorr_shape_contrast");
-        ParquetFile::appendOrThrow(var_ms1_xcorr_shape_combined_builder.AppendNull(), "var_ms1_xcorr_shape_combined");
+        for (Size i = 0; i < ms1_builders.size(); ++i)
+        {
+          ParquetFile::appendOrThrow(ms1_builders[i]->AppendNull(), ms1_names[i]);
+        }
       }
 
-      appendOptionalFloat_(ms2_area_builder, true, feature.getIntensity(), "ms2_area_intensity");
-      appendOptionalFloat_(ms2_total_area_builder, extractMetaDouble_(feature, "total_xic", value), value, "ms2_total_area_intensity");
-      appendOptionalFloat_(ms2_apex_builder, extractMetaDouble_(feature, "peak_apices_sum", value), value, "ms2_apex_intensity");
-      appendOptionalFloat_(ms2_exp_im_builder, extractMetaDouble_(feature, "im_drift", value), value, "ms2_exp_im");
-      appendOptionalFloat_(ms2_exp_im_left_builder, extractMetaDouble_(feature, "im_drift_left", value), value, "ms2_exp_im_leftwidth");
-      appendOptionalFloat_(ms2_exp_im_right_builder, extractMetaDouble_(feature, "im_drift_right", value), value, "ms2_exp_im_rightwidth");
-      appendOptionalFloat_(ms2_delta_im_builder, extractMetaDouble_(feature, "im_delta", value), value, "ms2_delta_im");
-      appendOptionalFloat_(ms2_total_mi_builder, extractMetaDouble_(feature, "total_mi", value), value, "ms2_total_mi");
-      appendOptionalFloat_(var_ms2_bseries_builder, extractMetaDouble_(feature, "var_bseries_score", value), value, "var_ms2_bseries_score");
-      appendOptionalFloat_(var_ms2_dotprod_builder, extractMetaDouble_(feature, "var_dotprod_score", value), value, "var_ms2_dotprod_score");
-      appendOptionalFloat_(var_ms2_intensity_builder, extractMetaDouble_(feature, "var_intensity_score", value), value, "var_ms2_intensity_score");
-      appendOptionalFloat_(var_ms2_iso_corr_builder, extractMetaDouble_(feature, "var_isotope_correlation_score", value), value, "var_ms2_isotope_correlation_score");
-      appendOptionalFloat_(var_ms2_iso_overlap_builder, extractMetaDouble_(feature, "var_isotope_overlap_score", value), value, "var_ms2_isotope_overlap_score");
-      appendOptionalFloat_(var_ms2_library_corr_builder, extractMetaDouble_(feature, "var_library_corr", value), value, "var_ms2_library_corr");
-      appendOptionalFloat_(var_ms2_library_dotprod_builder, extractMetaDouble_(feature, "var_library_dotprod", value), value, "var_ms2_library_dotprod");
-      appendOptionalFloat_(var_ms2_library_manhattan_builder, extractMetaDouble_(feature, "var_library_manhattan", value), value, "var_ms2_library_manhattan");
-      appendOptionalFloat_(var_ms2_library_rmsd_builder, extractMetaDouble_(feature, "var_library_rmsd", value), value, "var_ms2_library_rmsd");
-      appendOptionalFloat_(var_ms2_library_rootmeansquare_builder, extractMetaDouble_(feature, "var_library_rootmeansquare", value), value, "var_ms2_library_rootmeansquare");
-      appendOptionalFloat_(var_ms2_library_sangle_builder, extractMetaDouble_(feature, "var_library_sangle", value), value, "var_ms2_library_sangle");
-      appendOptionalFloat_(var_ms2_log_sn_builder, extractMetaDouble_(feature, "var_log_sn_score", value), value, "var_ms2_log_sn_score");
-      appendOptionalFloat_(var_ms2_manhattan_builder, extractMetaDouble_(feature, "var_manhatt_score", value), value, "var_ms2_manhattan_score");
-      appendOptionalFloat_(var_ms2_massdev_builder, extractMetaDouble_(feature, "var_massdev_score", value), value, "var_ms2_massdev_score");
-      appendOptionalFloat_(var_ms2_massdev_weighted_builder, extractMetaDouble_(feature, "var_massdev_score_weighted", value), value, "var_ms2_massdev_score_weighted");
-      appendOptionalFloat_(var_ms2_mi_builder, extractMetaDouble_(feature, "var_mi_score", value), value, "var_ms2_mi_score");
-      appendOptionalFloat_(var_ms2_mi_weighted_builder, extractMetaDouble_(feature, "var_mi_weighted_score", value), value, "var_ms2_mi_weighted_score");
-      appendOptionalFloat_(var_ms2_mi_ratio_builder, extractMetaDouble_(feature, "var_mi_ratio_score", value), value, "var_ms2_mi_ratio_score");
-      appendOptionalFloat_(var_ms2_norm_rt_builder, extractMetaDouble_(feature, "var_norm_rt_score", value), value, "var_ms2_norm_rt_score");
-      appendOptionalFloat_(var_ms2_xcorr_coelution_builder, extractMetaDouble_(feature, "var_xcorr_coelution", value), value, "var_ms2_xcorr_coelution");
-      appendOptionalFloat_(var_ms2_xcorr_coelution_weighted_builder, extractMetaDouble_(feature, "var_xcorr_coelution_weighted", value), value, "var_ms2_xcorr_coelution_weighted");
-      appendOptionalFloat_(var_ms2_xcorr_shape_builder, extractMetaDouble_(feature, "var_xcorr_shape", value), value, "var_ms2_xcorr_shape");
-      appendOptionalFloat_(var_ms2_xcorr_shape_weighted_builder, extractMetaDouble_(feature, "var_xcorr_shape_weighted", value), value, "var_ms2_xcorr_shape_weighted");
-      appendOptionalFloat_(var_ms2_yseries_builder, extractMetaDouble_(feature, "var_yseries_score", value), value, "var_ms2_yseries_score");
-      appendOptionalFloat_(var_ms2_elution_model_fit_builder, extractMetaDouble_(feature, "var_elution_model_fit_score", value), value, "var_ms2_elution_model_fit_score");
-      appendOptionalFloat_(var_ms2_im_xcorr_shape_builder, extractMetaDouble_(feature, "var_im_xcorr_shape", value), value, "var_ms2_im_xcorr_shape");
-      appendOptionalFloat_(var_ms2_im_xcorr_coelution_builder, extractMetaDouble_(feature, "var_im_xcorr_coelution", value), value, "var_ms2_im_xcorr_coelution");
-      appendOptionalFloat_(var_ms2_im_delta_builder, extractMetaDouble_(feature, "var_im_delta_score", value), value, "var_ms2_im_delta_score");
-      appendOptionalFloat_(var_ms2_im_log_intensity_builder, extractMetaDouble_(feature, "im_log_intensity", value), value, "var_ms2_im_log_intensity");
-
-      auto masserror_ppm = getSeparateScore_(feature, "masserror_ppm");
-      const auto& subordinates = feature.getSubordinates();
-      // Use an MS2-only counter when indexing per-MS2 lists (like
-      // masserror_ppm). Several separate-score lists only contain entries
-      // for MS2 subordinates; using the raw subordinate index `i` can lead
-      // to misalignment when MS1 entries are present.
-      int64_t ms2_index = 0;
-      for (Size i = 0; i < subordinates.size(); ++i)
+      auto ms2_it = feature_to_ms2.find(feature_id);
+      if (ms2_it != feature_to_ms2.end())
       {
-        const auto& sub_it = subordinates[i];
-        if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
+        const auto& ms2_row = *ms2_it->second;
+        for (Size i = 0; i < ms2_builders.size(); ++i)
         {
-          if (!sub_it.metaValueExists("native_id"))
-          {
-            continue;
-          }
-          const std::string native_id = StringUtils::toStr(sub_it.getMetaValue("native_id"));
-          int64_t transition_id_value = 0;
-          // Prefer explicit name lookup in the library mapping. Only use the
-          // numeric fallback when the native_id is numeric and the id falls
-          // inside the valid id domain (1..transition_id-1). This prevents
-          // accidental acceptance of arbitrary numeric strings that are not
-          // actually present in the library table.
-          auto it = transition_to_id.find(native_id);
-          if (it != transition_to_id.end())
-          {
-            transition_id_value = it->second;
-          }
-          else if (parseOptionalInt64_(native_id, transition_id_value))
-          {
-            // numeric fallback is only valid if present in library id domain
-            if (transition_id_value <= 0 || transition_id_value >= transition_id)
-            {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Transition references unknown numeric id", native_id);
-            }
-          }
-          else
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Transition references unknown id", native_id);
-          }
-
-          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
-          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
-          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(transition_id_value), "transition_id");
-          appendOptionalFloat_(ft_area_builder, true, sub_it.getIntensity(), "area_intensity");
-          appendOptionalFloat_(ft_total_area_builder, extractMetaDouble_(sub_it, "total_xic", value), value, "total_area_intensity");
-          appendOptionalFloat_(ft_apex_int_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
-          appendOptionalFloat_(ft_apex_rt_builder, extractMetaDouble_(sub_it, "peak_apex_position", value), value, "apex_rt");
-          appendOptionalFloat_(ft_rt_fwhm_builder, extractMetaDouble_(sub_it, "width_at_50", value), value, "rt_fwhm");
-          appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, static_cast<Size>(ms2_index), "masserror_ppm");
-          ++ms2_index;
-          appendOptionalFloat_(ft_total_mi_builder, extractMetaDouble_(sub_it, "total_mi", value), value, "total_mi");
-          ParquetFile::appendOrThrow(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
-          ParquetFile::appendOrThrow(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
-          ParquetFile::appendOrThrow(ft_var_log_intensity_builder.AppendNull(), "var_log_intensity");
-          ParquetFile::appendOrThrow(ft_var_xcorr_coelution_builder.AppendNull(), "var_xcorr_coelution");
-          ParquetFile::appendOrThrow(ft_var_xcorr_shape_builder.AppendNull(), "var_xcorr_shape");
-          ParquetFile::appendOrThrow(ft_var_log_sn_builder.AppendNull(), "var_log_sn_score");
-          ParquetFile::appendOrThrow(ft_var_massdev_builder.AppendNull(), "var_massdev_score");
-          ParquetFile::appendOrThrow(ft_var_mi_builder.AppendNull(), "var_mi_score");
-          ParquetFile::appendOrThrow(ft_var_mi_ratio_builder.AppendNull(), "var_mi_ratio_score");
-          ParquetFile::appendOrThrow(ft_var_isotope_corr_builder.AppendNull(), "var_isotope_correlation_score");
-          ParquetFile::appendOrThrow(ft_var_isotope_overlap_builder.AppendNull(), "var_isotope_overlap_score");
-          ParquetFile::appendOrThrow(ft_exp_im_builder.AppendNull(), "exp_im");
-          ParquetFile::appendOrThrow(ft_exp_im_left_builder.AppendNull(), "exp_im_leftwidth");
-          ParquetFile::appendOrThrow(ft_exp_im_right_builder.AppendNull(), "exp_im_rightwidth");
-          ParquetFile::appendOrThrow(ft_delta_im_builder.AppendNull(), "delta_im");
-          ParquetFile::appendOrThrow(ft_var_im_delta_builder.AppendNull(), "var_im_delta_score");
-          ParquetFile::appendOrThrow(ft_var_im_log_intensity_builder.AppendNull(), "var_im_log_intensity");
-          ParquetFile::appendOrThrow(ft_var_im_xcorr_coelution_contrast_builder.AppendNull(), "var_im_xcorr_coelution_contrast");
-          ParquetFile::appendOrThrow(ft_var_im_xcorr_shape_contrast_builder.AppendNull(), "var_im_xcorr_shape_contrast");
-          ParquetFile::appendOrThrow(ft_var_im_xcorr_coelution_combined_builder.AppendNull(), "var_im_xcorr_coelution_combined");
-          ParquetFile::appendOrThrow(ft_var_im_xcorr_shape_combined_builder.AppendNull(), "var_im_xcorr_shape_combined");
-
-          const bool has_peak_shape = sub_it.metaValueExists("start_position_at_5");
-          appendOptionalFloat_(ft_start_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_5", value), value, "start_position_at_5");
-          appendOptionalFloat_(ft_end_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_5", value), value, "end_position_at_5");
-          appendOptionalFloat_(ft_start_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_10", value), value, "start_position_at_10");
-          appendOptionalFloat_(ft_end_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_10", value), value, "end_position_at_10");
-          appendOptionalFloat_(ft_start_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_50", value), value, "start_position_at_50");
-          appendOptionalFloat_(ft_end_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_50", value), value, "end_position_at_50");
-          appendOptionalFloat_(ft_total_width_builder, has_peak_shape && extractMetaDouble_(sub_it, "total_width", value), value, "total_width");
-          appendOptionalFloat_(ft_tailing_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "tailing_factor", value), value, "tailing_factor");
-          appendOptionalFloat_(ft_asymmetry_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "asymmetry_factor", value), value, "asymmetry_factor");
-          appendOptionalFloat_(ft_slope_of_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "slope_of_baseline", value), value, "slope_of_baseline");
-          appendOptionalFloat_(ft_baseline_delta_2_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "baseline_delta_2_height", value), value, "baseline_delta_2_height");
-          appendOptionalFloat_(ft_points_across_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_baseline", value), value, "points_across_baseline");
-          appendOptionalFloat_(ft_points_across_half_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_half_height", value), value, "points_across_half_height");
-        }
-        else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
-        {
-          std::vector<std::string> precursor_id;
-          StringUtils::split(StringUtils::toStr(sub_it.getMetaValue("native_id")), "Precursor_i", precursor_id);
-          if (precursor_id.size() < 2)
-          {
-            continue;
-          }
-          int64_t isotope_value = 0;
-          if (!parseOptionalInt64_(precursor_id[1], isotope_value))
-          {
-            continue;
-          }
-          ParquetFile::appendOrThrow(fp_feature_id_builder.Append(feature_id), "feature_id");
-          ParquetFile::appendOrThrow(fp_run_id_builder.Append(run_id_clean), "run_id");
-          ParquetFile::appendOrThrow(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "precursor_isotope");
-          appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "precursor_area_intensity");
-          appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "precursor_apex_intensity");
+          appendOSWDouble_(*ms2_builders[i], ms2_row[i + 1], ms2_names[i]);
         }
       }
-
-      if (enable_uis_scoring)
+      else
       {
-        auto id_target_transition_names = getSeparateScore_(feature, "id_target_transition_names");
-        auto id_target_area_intensity = getSeparateScore_(feature, "id_target_area_intensity");
-        auto id_target_total_area_intensity = getSeparateScore_(feature, "id_target_total_area_intensity");
-        auto id_target_apex_intensity = getSeparateScore_(feature, "id_target_apex_intensity");
-        auto id_target_peak_apex_position = getSeparateScore_(feature, "id_target_peak_apex_position");
-        auto id_target_peak_fwhm = getSeparateScore_(feature, "id_target_width_at_50");
-        auto id_target_total_mi = getSeparateScore_(feature, "id_target_total_mi");
-        auto id_target_intensity_score = getSeparateScore_(feature, "id_target_intensity_score");
-        auto id_target_intensity_ratio_score = getSeparateScore_(feature, "id_target_intensity_ratio_score");
-        auto id_target_log_intensity = getSeparateScore_(feature, "id_target_ind_log_intensity");
-        auto id_target_xcorr_coelution = getSeparateScore_(feature, "id_target_ind_xcorr_coelution");
-        auto id_target_xcorr_shape = getSeparateScore_(feature, "id_target_ind_xcorr_shape");
-        auto id_target_log_sn_score = getSeparateScore_(feature, "id_target_ind_log_sn_score");
-        auto id_target_massdev_score = getSeparateScore_(feature, "id_target_ind_massdev_score");
-        auto id_target_mi_score = getSeparateScore_(feature, "id_target_ind_mi_score");
-        auto id_target_mi_ratio_score = getSeparateScore_(feature, "id_target_ind_mi_ratio_score");
-        auto id_target_isotope_correlation = getSeparateScore_(feature, "id_target_ind_isotope_correlation");
-        auto id_target_isotope_overlap = getSeparateScore_(feature, "id_target_ind_isotope_overlap");
-        auto id_target_im_drift = getSeparateScore_(feature, "id_target_ind_im_drift");
-        auto id_target_im_drift_left = getSeparateScore_(feature, "id_target_ind_im_drift_left");
-        auto id_target_im_drift_right = getSeparateScore_(feature, "id_target_ind_im_drift_right");
-        auto id_target_im_delta = getSeparateScore_(feature, "id_target_ind_im_delta");
-        auto id_target_im_delta_score = getSeparateScore_(feature, "id_target_ind_im_delta_score");
-        auto id_target_im_log_intensity = getSeparateScore_(feature, "id_target_ind_im_log_intensity");
-        auto id_target_im_contrast_coelution = getSeparateScore_(feature, "id_target_ind_im_contrast_coelution");
-        auto id_target_im_contrast_shape = getSeparateScore_(feature, "id_target_ind_im_contrast_shape");
-        auto id_target_im_sum_contrast_coelution = getSeparateScore_(feature, "id_target_ind_im_sum_contrast_coelution");
-        auto id_target_im_sum_contrast_shape = getSeparateScore_(feature, "id_target_ind_im_sum_contrast_shape");
-
-        auto id_target_ind_start_position_at_5 = getSeparateScore_(feature, "id_target_ind_start_position_at_5");
-        const bool enable_target_peak_shape = !id_target_ind_start_position_at_5.empty() && id_target_ind_start_position_at_5[0] != "0";
-        auto id_target_ind_end_position_at_5 = getSeparateScore_(feature, "id_target_ind_end_position_at_5");
-        auto id_target_ind_start_position_at_10 = getSeparateScore_(feature, "id_target_ind_start_position_at_10");
-        auto id_target_ind_end_position_at_10 = getSeparateScore_(feature, "id_target_ind_end_position_at_10");
-        auto id_target_ind_start_position_at_50 = getSeparateScore_(feature, "id_target_ind_start_position_at_50");
-        auto id_target_ind_end_position_at_50 = getSeparateScore_(feature, "id_target_ind_end_position_at_50");
-        auto id_target_ind_total_width = getSeparateScore_(feature, "id_target_ind_total_width");
-        auto id_target_ind_tailing_factor = getSeparateScore_(feature, "id_target_ind_tailing_factor");
-        auto id_target_ind_asymmetry_factor = getSeparateScore_(feature, "id_target_ind_asymmetry_factor");
-        auto id_target_ind_slope_of_baseline = getSeparateScore_(feature, "id_target_ind_slope_of_baseline");
-        auto id_target_ind_baseline_delta_2_height = getSeparateScore_(feature, "id_target_ind_baseline_delta_2_height");
-        auto id_target_ind_points_across_baseline = getSeparateScore_(feature, "id_target_ind_points_across_baseline");
-        auto id_target_ind_points_across_half_height = getSeparateScore_(feature, "id_target_ind_points_across_half_height");
-
-        for (Size i = 0; i < id_target_transition_names.size(); ++i)
+        for (Size i = 0; i < ms2_builders.size(); ++i)
         {
-          const std::string& transition_name = id_target_transition_names[i];
-          auto it = transition_to_id.find(transition_name);
-          if (it == transition_to_id.end()) continue;
-
-          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
-          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
-          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(it->second), "transition_id");
-          appendOptionalFloatFromList_(ft_area_builder, id_target_area_intensity, i, "area_intensity");
-          appendOptionalFloatFromList_(ft_total_area_builder, id_target_total_area_intensity, i, "total_area_intensity");
-          appendOptionalFloatFromList_(ft_apex_int_builder, id_target_apex_intensity, i, "apex_intensity");
-          appendOptionalFloatFromList_(ft_apex_rt_builder, id_target_peak_apex_position, i, "apex_rt");
-          appendOptionalFloatFromList_(ft_rt_fwhm_builder, id_target_peak_fwhm, i, "rt_fwhm");
-          appendOptionalFloatFromList_(ft_masserror_builder, id_target_massdev_score, i, "masserror_ppm");
-          appendOptionalFloatFromList_(ft_total_mi_builder, id_target_total_mi, i, "total_mi");
-          appendOptionalFloatFromList_(ft_var_intensity_builder, id_target_intensity_score, i, "var_intensity_score");
-          appendOptionalFloatFromList_(ft_var_intensity_ratio_builder, id_target_intensity_ratio_score, i, "var_intensity_ratio_score");
-          appendOptionalFloatFromList_(ft_var_log_intensity_builder, id_target_log_intensity, i, "var_log_intensity");
-          appendOptionalFloatFromList_(ft_var_xcorr_coelution_builder, id_target_xcorr_coelution, i, "var_xcorr_coelution");
-          appendOptionalFloatFromList_(ft_var_xcorr_shape_builder, id_target_xcorr_shape, i, "var_xcorr_shape");
-          appendOptionalFloatFromList_(ft_var_log_sn_builder, id_target_log_sn_score, i, "var_log_sn_score");
-          appendOptionalFloatFromList_(ft_var_massdev_builder, id_target_massdev_score, i, "var_massdev_score");
-          appendOptionalFloatFromList_(ft_var_mi_builder, id_target_mi_score, i, "var_mi_score");
-          appendOptionalFloatFromList_(ft_var_mi_ratio_builder, id_target_mi_ratio_score, i, "var_mi_ratio_score");
-          appendOptionalFloatFromList_(ft_var_isotope_corr_builder, id_target_isotope_correlation, i, "var_isotope_correlation_score");
-          appendOptionalFloatFromList_(ft_var_isotope_overlap_builder, id_target_isotope_overlap, i, "var_isotope_overlap_score");
-          appendOptionalFloatFromList_(ft_exp_im_builder, id_target_im_drift, i, "exp_im");
-          appendOptionalFloatFromList_(ft_exp_im_left_builder, id_target_im_drift_left, i, "exp_im_leftwidth");
-          appendOptionalFloatFromList_(ft_exp_im_right_builder, id_target_im_drift_right, i, "exp_im_rightwidth");
-          appendOptionalFloatFromList_(ft_delta_im_builder, id_target_im_delta, i, "delta_im");
-          appendOptionalFloatFromList_(ft_var_im_delta_builder, id_target_im_delta_score, i, "var_im_delta_score");
-          appendOptionalFloatFromList_(ft_var_im_log_intensity_builder, id_target_im_log_intensity, i, "var_im_log_intensity");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_contrast_builder, id_target_im_contrast_coelution, i, "var_im_xcorr_coelution_contrast");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_contrast_builder, id_target_im_contrast_shape, i, "var_im_xcorr_shape_contrast");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_combined_builder, id_target_im_sum_contrast_coelution, i, "var_im_xcorr_coelution_combined");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_combined_builder, id_target_im_sum_contrast_shape, i, "var_im_xcorr_shape_combined");
-          if (enable_target_peak_shape)
-          {
-            appendOptionalFloatFromList_(ft_start_position_at_5_builder, id_target_ind_start_position_at_5, i, "start_position_at_5");
-            appendOptionalFloatFromList_(ft_end_position_at_5_builder, id_target_ind_end_position_at_5, i, "end_position_at_5");
-            appendOptionalFloatFromList_(ft_start_position_at_10_builder, id_target_ind_start_position_at_10, i, "start_position_at_10");
-            appendOptionalFloatFromList_(ft_end_position_at_10_builder, id_target_ind_end_position_at_10, i, "end_position_at_10");
-            appendOptionalFloatFromList_(ft_start_position_at_50_builder, id_target_ind_start_position_at_50, i, "start_position_at_50");
-            appendOptionalFloatFromList_(ft_end_position_at_50_builder, id_target_ind_end_position_at_50, i, "end_position_at_50");
-            appendOptionalFloatFromList_(ft_total_width_builder, id_target_ind_total_width, i, "total_width");
-            appendOptionalFloatFromList_(ft_tailing_factor_builder, id_target_ind_tailing_factor, i, "tailing_factor");
-            appendOptionalFloatFromList_(ft_asymmetry_factor_builder, id_target_ind_asymmetry_factor, i, "asymmetry_factor");
-            appendOptionalFloatFromList_(ft_slope_of_baseline_builder, id_target_ind_slope_of_baseline, i, "slope_of_baseline");
-            appendOptionalFloatFromList_(ft_baseline_delta_2_height_builder, id_target_ind_baseline_delta_2_height, i, "baseline_delta_2_height");
-            appendOptionalFloatFromList_(ft_points_across_baseline_builder, id_target_ind_points_across_baseline, i, "points_across_baseline");
-            appendOptionalFloatFromList_(ft_points_across_half_height_builder, id_target_ind_points_across_half_height, i, "points_across_half_height");
-          }
-          else
-          {
-            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
-            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
-            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
-            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
-            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
-            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
-            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
-            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
-            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
-            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
-            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
-            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
-            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
-          }
-        }
-
-        auto id_decoy_transition_names = getSeparateScore_(feature, "id_decoy_transition_names");
-        auto id_decoy_area_intensity = getSeparateScore_(feature, "id_decoy_area_intensity");
-        auto id_decoy_total_area_intensity = getSeparateScore_(feature, "id_decoy_total_area_intensity");
-        auto id_decoy_apex_intensity = getSeparateScore_(feature, "id_decoy_apex_intensity");
-        auto id_decoy_peak_apex_position = getSeparateScore_(feature, "id_decoy_peak_apex_position");
-        auto id_decoy_peak_fwhm = getSeparateScore_(feature, "id_decoy_width_at_50");
-        auto id_decoy_total_mi = getSeparateScore_(feature, "id_decoy_total_mi");
-        auto id_decoy_intensity_score = getSeparateScore_(feature, "id_decoy_intensity_score");
-        auto id_decoy_intensity_ratio_score = getSeparateScore_(feature, "id_decoy_intensity_ratio_score");
-        auto id_decoy_log_intensity = getSeparateScore_(feature, "id_decoy_ind_log_intensity");
-        auto id_decoy_xcorr_coelution = getSeparateScore_(feature, "id_decoy_ind_xcorr_coelution");
-        auto id_decoy_xcorr_shape = getSeparateScore_(feature, "id_decoy_ind_xcorr_shape");
-        auto id_decoy_log_sn_score = getSeparateScore_(feature, "id_decoy_ind_log_sn_score");
-        auto id_decoy_massdev_score = getSeparateScore_(feature, "id_decoy_ind_massdev_score");
-        auto id_decoy_mi_score = getSeparateScore_(feature, "id_decoy_ind_mi_score");
-        auto id_decoy_mi_ratio_score = getSeparateScore_(feature, "id_decoy_ind_mi_ratio_score");
-        auto id_decoy_isotope_correlation = getSeparateScore_(feature, "id_decoy_ind_isotope_correlation");
-        auto id_decoy_isotope_overlap = getSeparateScore_(feature, "id_decoy_ind_isotope_overlap");
-        auto id_decoy_im_drift = getSeparateScore_(feature, "id_decoy_ind_im_drift");
-        auto id_decoy_im_drift_left = getSeparateScore_(feature, "id_decoy_ind_im_drift_left");
-        auto id_decoy_im_drift_right = getSeparateScore_(feature, "id_decoy_ind_im_drift_right");
-        auto id_decoy_im_delta = getSeparateScore_(feature, "id_decoy_ind_im_delta");
-        auto id_decoy_im_delta_score = getSeparateScore_(feature, "id_decoy_ind_im_delta_score");
-        auto id_decoy_im_log_intensity = getSeparateScore_(feature, "id_decoy_ind_im_log_intensity");
-        auto id_decoy_im_contrast_coelution = getSeparateScore_(feature, "id_decoy_ind_im_contrast_coelution");
-        auto id_decoy_im_contrast_shape = getSeparateScore_(feature, "id_decoy_ind_im_contrast_shape");
-        auto id_decoy_im_sum_contrast_coelution = getSeparateScore_(feature, "id_decoy_ind_im_sum_contrast_coelution");
-        auto id_decoy_im_sum_contrast_shape = getSeparateScore_(feature, "id_decoy_ind_im_sum_contrast_shape");
-
-        auto id_decoy_ind_start_position_at_5 = getSeparateScore_(feature, "id_decoy_ind_start_position_at_5");
-        const bool enable_decoy_peak_shape = !id_decoy_ind_start_position_at_5.empty() && id_decoy_ind_start_position_at_5[0] != "0";
-        auto id_decoy_ind_end_position_at_5 = getSeparateScore_(feature, "id_decoy_ind_end_position_at_5");
-        auto id_decoy_ind_start_position_at_10 = getSeparateScore_(feature, "id_decoy_ind_start_position_at_10");
-        auto id_decoy_ind_end_position_at_10 = getSeparateScore_(feature, "id_decoy_ind_end_position_at_10");
-        auto id_decoy_ind_start_position_at_50 = getSeparateScore_(feature, "id_decoy_ind_start_position_at_50");
-        auto id_decoy_ind_end_position_at_50 = getSeparateScore_(feature, "id_decoy_ind_end_position_at_50");
-        auto id_decoy_ind_total_width = getSeparateScore_(feature, "id_decoy_ind_total_width");
-        auto id_decoy_ind_tailing_factor = getSeparateScore_(feature, "id_decoy_ind_tailing_factor");
-        auto id_decoy_ind_asymmetry_factor = getSeparateScore_(feature, "id_decoy_ind_asymmetry_factor");
-        auto id_decoy_ind_slope_of_baseline = getSeparateScore_(feature, "id_decoy_ind_slope_of_baseline");
-        auto id_decoy_ind_baseline_delta_2_height = getSeparateScore_(feature, "id_decoy_ind_baseline_delta_2_height");
-        auto id_decoy_ind_points_across_baseline = getSeparateScore_(feature, "id_decoy_ind_points_across_baseline");
-        auto id_decoy_ind_points_across_half_height = getSeparateScore_(feature, "id_decoy_ind_points_across_half_height");
-
-        for (Size i = 0; i < id_decoy_transition_names.size(); ++i)
-        {
-          const std::string& transition_name = id_decoy_transition_names[i];
-          auto it = transition_to_id.find(transition_name);
-          if (it == transition_to_id.end()) continue;
-
-          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
-          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
-          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(it->second), "transition_id");
-          appendOptionalFloatFromList_(ft_area_builder, id_decoy_area_intensity, i, "area_intensity");
-          appendOptionalFloatFromList_(ft_total_area_builder, id_decoy_total_area_intensity, i, "total_area_intensity");
-          appendOptionalFloatFromList_(ft_apex_int_builder, id_decoy_apex_intensity, i, "apex_intensity");
-          appendOptionalFloatFromList_(ft_apex_rt_builder, id_decoy_peak_apex_position, i, "apex_rt");
-          appendOptionalFloatFromList_(ft_rt_fwhm_builder, id_decoy_peak_fwhm, i, "rt_fwhm");
-          appendOptionalFloatFromList_(ft_masserror_builder, id_decoy_massdev_score, i, "masserror_ppm");
-          appendOptionalFloatFromList_(ft_total_mi_builder, id_decoy_total_mi, i, "total_mi");
-          appendOptionalFloatFromList_(ft_var_intensity_builder, id_decoy_intensity_score, i, "var_intensity_score");
-          appendOptionalFloatFromList_(ft_var_intensity_ratio_builder, id_decoy_intensity_ratio_score, i, "var_intensity_ratio_score");
-          appendOptionalFloatFromList_(ft_var_log_intensity_builder, id_decoy_log_intensity, i, "var_log_intensity");
-          appendOptionalFloatFromList_(ft_var_xcorr_coelution_builder, id_decoy_xcorr_coelution, i, "var_xcorr_coelution");
-          appendOptionalFloatFromList_(ft_var_xcorr_shape_builder, id_decoy_xcorr_shape, i, "var_xcorr_shape");
-          appendOptionalFloatFromList_(ft_var_log_sn_builder, id_decoy_log_sn_score, i, "var_log_sn_score");
-          appendOptionalFloatFromList_(ft_var_massdev_builder, id_decoy_massdev_score, i, "var_massdev_score");
-          appendOptionalFloatFromList_(ft_var_mi_builder, id_decoy_mi_score, i, "var_mi_score");
-          appendOptionalFloatFromList_(ft_var_mi_ratio_builder, id_decoy_mi_ratio_score, i, "var_mi_ratio_score");
-          appendOptionalFloatFromList_(ft_var_isotope_corr_builder, id_decoy_isotope_correlation, i, "var_isotope_correlation_score");
-          appendOptionalFloatFromList_(ft_var_isotope_overlap_builder, id_decoy_isotope_overlap, i, "var_isotope_overlap_score");
-          appendOptionalFloatFromList_(ft_exp_im_builder, id_decoy_im_drift, i, "exp_im");
-          appendOptionalFloatFromList_(ft_exp_im_left_builder, id_decoy_im_drift_left, i, "exp_im_leftwidth");
-          appendOptionalFloatFromList_(ft_exp_im_right_builder, id_decoy_im_drift_right, i, "exp_im_rightwidth");
-          appendOptionalFloatFromList_(ft_delta_im_builder, id_decoy_im_delta, i, "delta_im");
-          appendOptionalFloatFromList_(ft_var_im_delta_builder, id_decoy_im_delta_score, i, "var_im_delta_score");
-          appendOptionalFloatFromList_(ft_var_im_log_intensity_builder, id_decoy_im_log_intensity, i, "var_im_log_intensity");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_contrast_builder, id_decoy_im_contrast_coelution, i, "var_im_xcorr_coelution_contrast");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_contrast_builder, id_decoy_im_contrast_shape, i, "var_im_xcorr_shape_contrast");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_combined_builder, id_decoy_im_sum_contrast_coelution, i, "var_im_xcorr_coelution_combined");
-          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_combined_builder, id_decoy_im_sum_contrast_shape, i, "var_im_xcorr_shape_combined");
-          if (enable_decoy_peak_shape)
-          {
-            appendOptionalFloatFromList_(ft_start_position_at_5_builder, id_decoy_ind_start_position_at_5, i, "start_position_at_5");
-            appendOptionalFloatFromList_(ft_end_position_at_5_builder, id_decoy_ind_end_position_at_5, i, "end_position_at_5");
-            appendOptionalFloatFromList_(ft_start_position_at_10_builder, id_decoy_ind_start_position_at_10, i, "start_position_at_10");
-            appendOptionalFloatFromList_(ft_end_position_at_10_builder, id_decoy_ind_end_position_at_10, i, "end_position_at_10");
-            appendOptionalFloatFromList_(ft_start_position_at_50_builder, id_decoy_ind_start_position_at_50, i, "start_position_at_50");
-            appendOptionalFloatFromList_(ft_end_position_at_50_builder, id_decoy_ind_end_position_at_50, i, "end_position_at_50");
-            appendOptionalFloatFromList_(ft_total_width_builder, id_decoy_ind_total_width, i, "total_width");
-            appendOptionalFloatFromList_(ft_tailing_factor_builder, id_decoy_ind_tailing_factor, i, "tailing_factor");
-            appendOptionalFloatFromList_(ft_asymmetry_factor_builder, id_decoy_ind_asymmetry_factor, i, "asymmetry_factor");
-            appendOptionalFloatFromList_(ft_slope_of_baseline_builder, id_decoy_ind_slope_of_baseline, i, "slope_of_baseline");
-            appendOptionalFloatFromList_(ft_baseline_delta_2_height_builder, id_decoy_ind_baseline_delta_2_height, i, "baseline_delta_2_height");
-            appendOptionalFloatFromList_(ft_points_across_baseline_builder, id_decoy_ind_points_across_baseline, i, "points_across_baseline");
-            appendOptionalFloatFromList_(ft_points_across_half_height_builder, id_decoy_ind_points_across_half_height, i, "points_across_half_height");
-          }
-          else
-          {
-            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
-            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
-            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
-            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
-            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
-            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
-            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
-            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
-            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
-            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
-            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
-            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
-            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
-          }
+          ParquetFile::appendOrThrow(ms2_builders[i]->AppendNull(), ms2_names[i]);
         }
       }
+    }
+
+    for (const auto& transition_row : osw_output.feature_transition_rows)
+    {
+      const int64_t feature_id = requireOSWInt64_(transition_row[0], "FEATURE_TRANSITION.FEATURE_ID");
+      const int64_t transition_id_value = resolveTransitionId_(transition_row[1], transition_to_id, transition_id);
+
+      ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
+      ParquetFile::appendOrThrow(ft_run_id_builder.Append(static_cast<int64_t>(run_id_clean)), "run_id");
+      ParquetFile::appendOrThrow(ft_transition_id_builder.Append(transition_id_value), "transition_id");
+
+      for (Size i = 0; i < transition_numeric_builders.size(); ++i)
+      {
+        appendOSWDouble_(*transition_numeric_builders[i], transition_row[i + 2], transition_numeric_names[i]);
+      }
+    }
+
+    for (const auto& precursor_row : osw_output.feature_precursor_rows)
+    {
+      const int64_t feature_id = requireOSWInt64_(precursor_row[0], "FEATURE_PRECURSOR.FEATURE_ID");
+      ParquetFile::appendOrThrow(fp_feature_id_builder.Append(feature_id), "feature_id");
+      ParquetFile::appendOrThrow(fp_run_id_builder.Append(static_cast<int64_t>(run_id_clean)), "run_id");
+      appendOSWInt32_(fp_isotope_builder, precursor_row[1], "precursor_isotope");
+      appendOSWDouble_(fp_area_builder, precursor_row[2], "precursor_area_intensity");
+      appendOSWDouble_(fp_apex_builder, precursor_row[3], "precursor_apex_intensity");
     }
 
     std::vector<std::future<void>> write_tasks;
