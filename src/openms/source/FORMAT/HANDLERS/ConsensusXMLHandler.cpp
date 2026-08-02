@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -1272,9 +1273,15 @@ namespace OpenMS::Internal
       // Restore the quantitative data arrays, if this group has any.
       if (!ProteinGroupQuant::getQuantMetaValues(owned, g, current_meta))
       {
-        warning(LOAD, std::string("Quantitative annotation of protein group '") + current_meta
-                        + "' does not belong to that group and was discarded. The file was most likely "
-                          "modified by a tool that renumbered protein groups without updating them.");
+        // Deliberately not XMLHandler::warning(): that is routed to OPENMS_LOG_DEBUG in release builds
+        // ("suppress warnings in release mode (more happy users)"), which is the right call for parser
+        // noise but not for silently dropping a protein's quantities on the floor.
+        OPENMS_LOG_WARN << "Warning: while loading '" << file_ << "': the quantitative annotation of "
+                        << "protein group '" << current_meta << "' was computed for a different set of "
+                        << "proteins and has been discarded. The file was most likely written by this "
+                        << "version, then filtered by a tool that renumbers protein groups without "
+                        << "knowing about the quantities. Re-run the quantification to restore them."
+                        << std::endl;
       }
 
       groups.push_back(std::move(g));
