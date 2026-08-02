@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <set>
 #include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -359,16 +360,24 @@ namespace OpenMS
     // depending on earlier options, these include:
     // - all charges or only the best charge state
     // - all fractions (if multiple fractions are analyzed)
-    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    // Zero abundances are deliberately not collected. A zero is not a measurement of "no protein":
+    // IsobaricChannelExtractor stores a reporter it could not find - or one below
+    // 'min_reporter_intensity' - as 0.0, so a zero means "not detected". Counting those would give a
+    // channel in which more than half the peptides went undetected a median of exactly 0, and the
+    // division below then scaled every abundance in it to infinity. Excluding them instead normalizes
+    // such a channel on the data it does have, which is what MSstatsTMT, isobar, scp and DEqMS do
+    // (zeros to NA, median with na.rm=TRUE).
+    map<UInt64, DoubleList> abundances; // positive peptide abundances by sample
+    set<UInt64> samples; // every sample seen, including ones without a single positive abundance
     for (auto & pq : pep_quant_)
     {
-      // maybe TODO: treat missing abundance values as zero
       for (auto & sa : pq.second.total_abundances)
       {
-        abundances[sa.first].push_back(sa.second);
+        samples.insert(sa.first);
+        if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
       }
     }
-    if (abundances.size() <= 1) { return; }
+    if (abundances.size() <= 1) { return; } // fewer than two samples carry any signal
 
     /////////////////////////////////////////////////////
     // compute scale factors on the sample level:
@@ -378,6 +387,9 @@ namespace OpenMS
       medians[ab.first] = Math::median(ab.second.begin(), ab.second.end());
     }
 
+    // Only samples that carry signal define the reference. Letting a dead channel contribute its
+    // median of 0 would drag the overall median down and mis-scale every other channel - quietly,
+    // with no infinity and no warning to show for it.
     DoubleList all_medians;
     for (auto & sa : medians)
     {
@@ -386,10 +398,29 @@ namespace OpenMS
     double overall_median = Math::median(all_medians.begin(),
                                          all_medians.end());
     SampleAbundances scale_factors;
-    for (auto & med : medians)
+    for (UInt64 sample : samples)
     {
-      scale_factors[med.first] = overall_median / med.second;
+      auto med_it = medians.find(sample);
+      if (med_it == medians.end()) // not a single positive abundance in this sample
+      {
+        OPENMS_LOG_WARN << "Warning: sample " << sample << " has no peptide with a positive abundance "
+                        << "(for isobaric data: no reporter ion was detected in that channel). It is "
+                        << "excluded from the normalization reference and left un-normalized." << endl;
+        continue; // no factor at all - see scaleFactorFor below
+      }
+      // a median over strictly positive values is itself positive, so this cannot divide by zero
+      scale_factors[sample] = overall_median / med_it->second;
     }
+
+    // Never look a factor up with operator[]: that default-constructs 0.0 for an unknown sample and
+    // would silently wipe its abundances. Samples reach the loops below that have no factor - one
+    // without any signal, and, with 'best_charge_and_fraction', one that never won a best combination
+    // and so never entered total_abundances at all. Leave those exactly as they are.
+    auto scaleFactorFor = [&scale_factors](size_t sample_id)
+    {
+      auto it = scale_factors.find(sample_id);
+      return (it == scale_factors.end()) ? 1.0 : it->second;
+    };
 
     /////////////////////////////////////////////////////
     // scale all abundance values:
@@ -398,7 +429,7 @@ namespace OpenMS
       // scale total abundances
       for (auto & sta : pep_q.second.total_abundances)
       {
-        sta.second *= scale_factors[sta.first];
+        sta.second *= scaleFactorFor(sta.first);
       }
 
       // scale individual abundances
@@ -413,7 +444,7 @@ namespace OpenMS
               const std::string & filename = fna.first;
               const UInt & channel = cha.first;
               size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
-              cha.second *= scale_factors[sample_id];
+              cha.second *= scaleFactorFor(sample_id);
             }
           }
         }
