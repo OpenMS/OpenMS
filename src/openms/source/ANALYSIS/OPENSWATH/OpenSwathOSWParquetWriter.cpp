@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 
+#include "OpenSwathCanonicalLibraryMappingHelper.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -228,17 +229,17 @@ namespace OpenMS
                                 const std::unordered_map<std::string, int64_t>& compound_to_precursor,
                                 const std::unordered_set<int64_t>& valid_precursor_ids)
     {
-      int64_t precursor_id = 0;
-      if (oswValueToInt64_(value, precursor_id) && valid_precursor_ids.contains(precursor_id))
-      {
-        return precursor_id;
-      }
-
       const std::string precursor_ref = oswValueToDebugString_(value);
       auto precursor_it = compound_to_precursor.find(precursor_ref);
       if (precursor_it != compound_to_precursor.end())
       {
         return precursor_it->second;
+      }
+
+      int64_t precursor_id = 0;
+      if (oswValueToInt64_(value, precursor_id) && valid_precursor_ids.contains(precursor_id))
+      {
+        return precursor_id;
       }
 
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -250,20 +251,20 @@ namespace OpenMS
                                  const std::unordered_map<std::string, int64_t>& transition_to_id,
                                  int64_t next_transition_id)
     {
-      int64_t transition_id = 0;
-      if (oswValueToInt64_(value, transition_id))
-      {
-        if (transition_id > 0 && transition_id < next_transition_id)
-        {
-          return transition_id;
-        }
-      }
-
       const std::string transition_ref = oswValueToDebugString_(value);
       auto transition_it = transition_to_id.find(transition_ref);
       if (transition_it != transition_to_id.end())
       {
         return transition_it->second;
+      }
+
+      int64_t transition_id = 0;
+      if (oswValueToInt64_(value, transition_id))
+      {
+        if (transition_id >= 0 && transition_id < next_transition_id)
+        {
+          return transition_id;
+        }
       }
 
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -528,69 +529,16 @@ namespace OpenMS
     }
     File::makeDir(run_path);
 
-    // Map compound.id -> precursor_id (int64). We must avoid collisions
-    // between numeric ids present in the source library and auto-assigned ids
-    // generated here (next_precursor_id). If a numeric id duplicates a
-    // previously-assigned id, prefer to auto-assign a fresh id to ensure
-    // uniqueness and preserve the original string id in the library's
-    // traml_id column for round-tripping.
-    std::unordered_map<std::string, int64_t> compound_to_precursor;
-    compound_to_precursor.reserve(assay_library.compounds.size());
-    std::unordered_set<int64_t> used_precursor_ids;
-    int64_t next_precursor_id = 1;
-    for (const auto& compound : assay_library.compounds)
+    const auto canonical_mapping = Internal::buildOpenSwathCanonicalLibraryMapping(assay_library);
+    const auto& compound_to_precursor = canonical_mapping.compound_to_precursor;
+    const auto& transition_to_id = canonical_mapping.transition_to_id;
+    std::unordered_set<int64_t> valid_precursor_ids;
+    valid_precursor_ids.reserve(compound_to_precursor.size());
+    for (const auto& [_, precursor_id] : compound_to_precursor)
     {
-      if (compound_to_precursor.contains(compound.id))
-      {
-        continue;
-      }
-
-      int64_t precursor_id = 0;
-      bool parsed_numeric = false;
-      try
-      {
-        precursor_id =StringUtils::toInt64(std::string(compound.id));
-        parsed_numeric = true;
-      }
-      catch (Exception::ConversionError&)
-      {
-        // fall through - we'll assign an auto id below
-      }
-
-      if (parsed_numeric)
-      {
-        // If numeric id collides with an already-used id, reject the numeric
-        // value and fall back to auto-assigning. This prevents accidental
-        // collisions between user-provided numeric ids and our auto ids.
-        if (used_precursor_ids.contains(precursor_id) || precursor_id <= 0)
-        {
-          precursor_id = next_precursor_id++;
-        }
-        else
-        {
-          // accept the numeric id and ensure next_precursor_id moves past it
-          if (precursor_id >= next_precursor_id)
-          {
-            next_precursor_id = precursor_id + 1;
-          }
-        }
-      }
-      else
-      {
-        precursor_id = next_precursor_id++;
-      }
-
-      used_precursor_ids.insert(precursor_id);
-      compound_to_precursor[compound.id] = precursor_id;
+      valid_precursor_ids.insert(precursor_id);
     }
-
-    std::unordered_map<std::string, int64_t> transition_to_id;
-    transition_to_id.reserve(assay_library.transitions.size());
-    int64_t transition_id = 1;
-    for (const auto& transition : assay_library.transitions)
-    {
-      transition_to_id[transition.transition_name] = transition_id++;
-    }
+    const int64_t transition_id_count = static_cast<int64_t>(assay_library.transitions.size());
 
     arrow::Int64Builder feature_id_builder;
     arrow::Int64Builder feature_run_id_builder;
@@ -844,7 +792,7 @@ namespace OpenMS
                                       "Canonical OSW feature row belongs to a different run than the requested parquet partition.",
                                       StringUtils::toStr(feature_run_id));
       }
-      const int64_t precursor_id = resolvePrecursorId_(feature_row[2], compound_to_precursor, used_precursor_ids);
+      const int64_t precursor_id = resolvePrecursorId_(feature_row[2], compound_to_precursor, valid_precursor_ids);
 
       ParquetFile::appendOrThrow(feature_id_builder.Append(feature_id), "feature_id");
       ParquetFile::appendOrThrow(feature_run_id_builder.Append(feature_run_id), "run_id");
@@ -893,7 +841,7 @@ namespace OpenMS
     for (const auto& transition_row : osw_output.feature_transition_rows)
     {
       const int64_t feature_id = requireOSWInt64_(transition_row[0], "FEATURE_TRANSITION.FEATURE_ID");
-      const int64_t transition_id_value = resolveTransitionId_(transition_row[1], transition_to_id, transition_id);
+      const int64_t transition_id_value = resolveTransitionId_(transition_row[1], transition_to_id, transition_id_count);
 
       ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
       ParquetFile::appendOrThrow(ft_run_id_builder.Append(static_cast<int64_t>(run_id_clean)), "run_id");

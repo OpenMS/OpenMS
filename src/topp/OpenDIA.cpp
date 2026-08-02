@@ -26,6 +26,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -51,6 +52,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "../openms/source/ANALYSIS/OPENSWATH/OpenSwathCanonicalLibraryMappingHelper.h"
 
 using namespace OpenMS;
 using namespace std;
@@ -1589,6 +1592,262 @@ protected:
     return joined;
   }
 
+  void finalizePreparedLibraryLookup_(PreparedLibraryLookup_& lookup) const
+  {
+    for (auto& [precursor_id, peptide_ids] : lookup.precursor_to_peptides)
+    {
+      std::sort(peptide_ids.begin(), peptide_ids.end());
+      peptide_ids.erase(std::unique(peptide_ids.begin(), peptide_ids.end()), peptide_ids.end());
+    }
+
+    for (auto& [peptide_id, protein_ids] : lookup.peptide_to_proteins)
+    {
+      std::sort(protein_ids.begin(), protein_ids.end());
+      protein_ids.erase(std::unique(protein_ids.begin(), protein_ids.end()), protein_ids.end());
+
+      std::vector<std::string> names;
+      names.reserve(protein_ids.size());
+      for (const Int64 protein_id : protein_ids)
+      {
+        const auto protein_it = lookup.proteins.find(protein_id);
+        if (protein_it != lookup.proteins.end())
+        {
+          names.push_back(protein_it->second.accession);
+        }
+      }
+      lookup.protein_names_by_peptide[peptide_id] = joinStrings_(names);
+      if (protein_ids.size() == 1)
+      {
+        lookup.unique_protein_by_peptide[peptide_id] = protein_ids.front();
+      }
+    }
+
+    for (auto& [peptide_id, gene_ids] : lookup.peptide_to_genes)
+    {
+      std::sort(gene_ids.begin(), gene_ids.end());
+      gene_ids.erase(std::unique(gene_ids.begin(), gene_ids.end()), gene_ids.end());
+
+      std::vector<std::string> names;
+      names.reserve(gene_ids.size());
+      for (const Int64 gene_id : gene_ids)
+      {
+        const auto gene_it = lookup.genes.find(gene_id);
+        if (gene_it != lookup.genes.end())
+        {
+          names.push_back(gene_it->second.name);
+        }
+      }
+      lookup.gene_names_by_peptide[peptide_id] = joinStrings_(names);
+      if (gene_ids.size() == 1)
+      {
+        lookup.unique_gene_by_peptide[peptide_id] = gene_ids.front();
+      }
+    }
+
+    for (auto& [transition_id, transition] : lookup.transitions)
+    {
+      std::sort(transition.peptide_ids.begin(), transition.peptide_ids.end());
+      transition.peptide_ids.erase(std::unique(transition.peptide_ids.begin(), transition.peptide_ids.end()), transition.peptide_ids.end());
+    }
+  }
+
+  PreparedLibraryLookup_ buildPreparedLibraryLookupFromLightTargetedExperiment_(
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
+    const bool load_transition_metadata) const
+  {
+    PreparedLibraryLookup_ lookup;
+    const auto canonical_mapping = Internal::buildOpenSwathCanonicalLibraryMapping(targeted_exp);
+
+    std::vector<std::string> peptide_sequences;
+    peptide_sequences.reserve(targeted_exp.compounds.size() + targeted_exp.transitions.size());
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      if (compound.isPeptide())
+      {
+        peptide_sequences.push_back(compound.sequence);
+      }
+    }
+    for (const auto& transition : targeted_exp.transitions)
+    {
+      for (const auto& peptidoform : transition.peptidoforms)
+      {
+        peptide_sequences.push_back(peptidoform);
+      }
+    }
+    std::sort(peptide_sequences.begin(), peptide_sequences.end());
+    peptide_sequences.erase(std::unique(peptide_sequences.begin(), peptide_sequences.end()), peptide_sequences.end());
+
+    std::unordered_map<std::string, Int64> peptide_ids_by_sequence;
+    peptide_ids_by_sequence.reserve(peptide_sequences.size());
+    for (Size i = 0; i < peptide_sequences.size(); ++i)
+    {
+      const auto& modified_sequence = peptide_sequences[i];
+      std::string unmodified_sequence;
+      try
+      {
+        unmodified_sequence = AASequence::fromString(modified_sequence).toUnmodifiedString();
+      }
+      catch (Exception::InvalidValue&)
+      {
+        unmodified_sequence = modified_sequence;
+      }
+
+      const Int64 peptide_id = static_cast<Int64>(i);
+      peptide_ids_by_sequence.emplace(modified_sequence, peptide_id);
+      lookup.peptides.emplace(peptide_id, PreparedLibraryPeptide_{peptide_id, unmodified_sequence, modified_sequence, false});
+    }
+
+    std::vector<std::string> protein_accessions;
+    protein_accessions.reserve(targeted_exp.proteins.size());
+    for (const auto& protein : targeted_exp.proteins)
+    {
+      protein_accessions.push_back(protein.id);
+    }
+    std::sort(protein_accessions.begin(), protein_accessions.end());
+    protein_accessions.erase(std::unique(protein_accessions.begin(), protein_accessions.end()), protein_accessions.end());
+
+    std::unordered_map<std::string, Int64> protein_ids_by_accession;
+    protein_ids_by_accession.reserve(protein_accessions.size());
+    for (Size i = 0; i < protein_accessions.size(); ++i)
+    {
+      const auto& accession = protein_accessions[i];
+      const Int64 protein_id = static_cast<Int64>(i);
+      protein_ids_by_accession.emplace(accession, protein_id);
+      lookup.proteins.emplace(protein_id, PreparedLibraryProtein_{protein_id, accession, false});
+    }
+
+    std::unordered_map<std::string, Int64> gene_ids_by_name;
+    gene_ids_by_name.reserve(targeted_exp.compounds.size());
+
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      const auto precursor_id_it = canonical_mapping.compound_to_precursor.find(compound.id);
+      if (precursor_id_it == canonical_mapping.compound_to_precursor.end())
+      {
+        continue;
+      }
+
+      const Int64 precursor_id = precursor_id_it->second;
+      PreparedLibraryPrecursor_ precursor;
+      precursor.precursor_id = precursor_id;
+      precursor.traml_id = compound.id;
+      precursor.group_label = compound.isPeptide() ? compound.peptide_group_label : "";
+      const auto precursor_mz_it = canonical_mapping.precursor_mz_by_id.find(precursor_id);
+      precursor.precursor_mz = precursor_mz_it != canonical_mapping.precursor_mz_by_id.end() ? precursor_mz_it->second : 0.0;
+      precursor.charge = static_cast<Int32>(compound.charge);
+      if (std::isfinite(compound.rt))
+      {
+        precursor.library_rt = compound.rt;
+      }
+      if (compound.drift_time != -1 && std::isfinite(compound.drift_time))
+      {
+        precursor.library_drift_time = compound.drift_time;
+      }
+      const auto precursor_decoy_it = canonical_mapping.precursor_decoy_by_id.find(precursor_id);
+      precursor.decoy = precursor_decoy_it != canonical_mapping.precursor_decoy_by_id.end() ?
+        precursor_decoy_it->second :
+        (compound.hasDecoy() ? compound.getDecoy() : false);
+      lookup.precursors[precursor_id] = std::move(precursor);
+
+      if (!compound.isPeptide())
+      {
+        continue;
+      }
+
+      const auto peptide_id_it = peptide_ids_by_sequence.find(compound.sequence);
+      if (peptide_id_it == peptide_ids_by_sequence.end())
+      {
+        continue;
+      }
+
+      const Int64 peptide_id = peptide_id_it->second;
+      appendUniqueEntity_(lookup.precursor_to_peptides[precursor_id], peptide_id);
+      lookup.peptides[peptide_id].decoy = lookup.peptides[peptide_id].decoy || lookup.precursors.at(precursor_id).decoy;
+
+      auto& protein_ids = lookup.peptide_to_proteins[peptide_id];
+      for (const auto& protein_ref : compound.protein_refs)
+      {
+        const auto protein_id_it = protein_ids_by_accession.find(protein_ref);
+        if (protein_id_it != protein_ids_by_accession.end())
+        {
+          appendUniqueEntity_(protein_ids, protein_id_it->second);
+        }
+      }
+
+      const std::string gene_name = compound.gene_name.empty() ? "NA" : compound.gene_name;
+      auto [gene_it, inserted] = gene_ids_by_name.try_emplace(gene_name, static_cast<Int64>(gene_ids_by_name.size()));
+      if (inserted)
+      {
+        lookup.genes.emplace(gene_it->second, PreparedLibraryGene_{gene_it->second, gene_name, false});
+      }
+      appendUniqueEntity_(lookup.peptide_to_genes[peptide_id], gene_it->second);
+    }
+
+    for (const auto& [peptide_id, protein_ids] : lookup.peptide_to_proteins)
+    {
+      if (lookup.peptides[peptide_id].decoy)
+      {
+        for (const Int64 protein_id : protein_ids)
+        {
+          lookup.proteins[protein_id].decoy = true;
+        }
+      }
+    }
+
+    for (const auto& [peptide_id, gene_ids] : lookup.peptide_to_genes)
+    {
+      if (lookup.peptides[peptide_id].decoy)
+      {
+        for (const Int64 gene_id : gene_ids)
+        {
+          lookup.genes[gene_id].decoy = true;
+        }
+      }
+    }
+
+    if (load_transition_metadata)
+    {
+      lookup.transitions.reserve(targeted_exp.transitions.size());
+      for (Size i = 0; i < targeted_exp.transitions.size(); ++i)
+      {
+        const auto& transition = targeted_exp.transitions[i];
+        const auto precursor_id_it = canonical_mapping.compound_to_precursor.find(transition.peptide_ref);
+        if (precursor_id_it == canonical_mapping.compound_to_precursor.end())
+        {
+          continue;
+        }
+
+        PreparedLibraryTransition_ transition_entry;
+        transition_entry.transition_id = static_cast<Int64>(i);
+        transition_entry.precursor_ids.push_back(precursor_id_it->second);
+        transition_entry.traml_id = transition.transition_name;
+        transition_entry.product_mz = transition.product_mz;
+        transition_entry.charge = static_cast<Int32>(transition.fragment_charge);
+        const std::string fragment_type = transition.getFragmentType();
+        transition_entry.type = fragment_type.empty() ? "" : StringUtils::substr(fragment_type, 0, 1);
+        transition_entry.ordinal = static_cast<Int32>(transition.fragment_nr);
+        transition_entry.annotation = transition.getAnnotation();
+        transition_entry.detecting = transition.isDetectingTransition();
+        transition_entry.library_intensity = transition.library_intensity;
+        transition_entry.decoy = transition.getDecoy();
+
+        for (const auto& peptidoform : transition.peptidoforms)
+        {
+          const auto peptide_id_it = peptide_ids_by_sequence.find(peptidoform);
+          if (peptide_id_it != peptide_ids_by_sequence.end())
+          {
+            appendUniqueEntity_(transition_entry.peptide_ids, peptide_id_it->second);
+          }
+        }
+
+        lookup.transitions.emplace(transition_entry.transition_id, std::move(transition_entry));
+      }
+    }
+
+    finalizePreparedLibraryLookup_(lookup);
+    return lookup;
+  }
+
   PreparedLibraryLookup_ loadPreparedLibraryLookup_(const std::string& prepared_library_pqp,
                                                     const bool load_transition_metadata) const
   {
@@ -1767,44 +2026,7 @@ protected:
       }
     }
 
-    for (const auto& [peptide_id, protein_ids] : lookup.peptide_to_proteins)
-    {
-      std::vector<std::string> names;
-      names.reserve(protein_ids.size());
-      for (const Int64 protein_id : protein_ids)
-      {
-        const auto protein_it = lookup.proteins.find(protein_id);
-        if (protein_it != lookup.proteins.end())
-        {
-          names.push_back(protein_it->second.accession);
-        }
-      }
-      lookup.protein_names_by_peptide[peptide_id] = joinStrings_(names);
-      if (protein_ids.size() == 1)
-      {
-        lookup.unique_protein_by_peptide[peptide_id] = protein_ids.front();
-      }
-    }
-
-    for (const auto& [peptide_id, gene_ids] : lookup.peptide_to_genes)
-    {
-      std::vector<std::string> names;
-      names.reserve(gene_ids.size());
-      for (const Int64 gene_id : gene_ids)
-      {
-        const auto gene_it = lookup.genes.find(gene_id);
-        if (gene_it != lookup.genes.end())
-        {
-          names.push_back(gene_it->second.name);
-        }
-      }
-      lookup.gene_names_by_peptide[peptide_id] = joinStrings_(names);
-      if (gene_ids.size() == 1)
-      {
-        lookup.unique_gene_by_peptide[peptide_id] = gene_ids.front();
-      }
-    }
-
+    finalizePreparedLibraryLookup_(lookup);
     return lookup;
   }
 
@@ -1816,6 +2038,38 @@ protected:
     if (!File::exists(precursors_path))
     {
       return;
+    }
+
+    const auto source_precursors = lookup.precursors;
+    const auto source_precursor_to_peptides = lookup.precursor_to_peptides;
+    const auto source_transitions = lookup.transitions;
+    lookup.precursors.clear();
+    lookup.precursor_to_peptides.clear();
+    lookup.transitions.clear();
+
+    std::unordered_map<std::string, Int64> source_precursor_ids_by_key;
+    source_precursor_ids_by_key.reserve(source_precursors.size() * 2);
+    for (const auto& [precursor_id, precursor] : source_precursors)
+    {
+      source_precursor_ids_by_key.try_emplace(StringUtils::toStr(precursor_id), precursor_id);
+      if (!precursor.traml_id.empty())
+      {
+        source_precursor_ids_by_key.try_emplace(precursor.traml_id, precursor_id);
+      }
+    }
+
+    std::unordered_map<std::string, Int64> source_transition_ids_by_key;
+    if (load_transition_metadata)
+    {
+      source_transition_ids_by_key.reserve(source_transitions.size() * 2);
+      for (const auto& [transition_id, transition] : source_transitions)
+      {
+        source_transition_ids_by_key.try_emplace(StringUtils::toStr(transition_id), transition_id);
+        if (!transition.traml_id.empty())
+        {
+          source_transition_ids_by_key.try_emplace(transition.traml_id, transition_id);
+        }
+      }
     }
 
     Int64 next_peptide_id = 1;
@@ -1847,21 +2101,56 @@ protected:
     for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
     {
       const Int64 precursor_id = ParquetFile::getInt64(precursor_id_col, row, 0, false);
-      if (!lookup.precursors.contains(precursor_id))
+      const std::string traml_id = ParquetFile::getString(traml_id_col, row);
+      std::optional<Int64> source_precursor_id;
+      if (!traml_id.empty())
       {
-        PreparedLibraryPrecursor_ precursor;
-        precursor.precursor_id = precursor_id;
-        precursor.traml_id = ParquetFile::getString(traml_id_col, row);
-        precursor.group_label = precursor.traml_id;
-        precursor.precursor_mz = ParquetFile::getDouble(precursor_mz_col, row, 0.0, false);
-        precursor.charge = static_cast<Int32>(ParquetFile::getInt64(charge_col, row, 0, false));
-        precursor.library_rt = ParquetFile::getDouble(library_rt_col, row, 0.0, true);
-        if (drift_time_col != nullptr && !drift_time_col->IsNull(row))
+        const auto source_it = source_precursor_ids_by_key.find(traml_id);
+        if (source_it != source_precursor_ids_by_key.end())
         {
-          precursor.library_drift_time = ParquetFile::getDouble(drift_time_col, row, 0.0, false);
+          source_precursor_id = source_it->second;
         }
-        precursor.decoy = ParquetFile::getBool(decoy_col, row, false, true);
-        lookup.precursors[precursor_id] = std::move(precursor);
+      }
+      if (!source_precursor_id.has_value())
+      {
+        const auto source_it = source_precursor_ids_by_key.find(StringUtils::toStr(precursor_id));
+        if (source_it != source_precursor_ids_by_key.end())
+        {
+          source_precursor_id = source_it->second;
+        }
+      }
+
+      PreparedLibraryPrecursor_ precursor;
+      if (source_precursor_id.has_value())
+      {
+        const auto source_it = source_precursors.find(*source_precursor_id);
+        if (source_it != source_precursors.end())
+        {
+          precursor = source_it->second;
+        }
+      }
+      precursor.precursor_id = precursor_id;
+      precursor.traml_id = traml_id;
+      precursor.group_label = traml_id;
+      precursor.precursor_mz = ParquetFile::getDouble(precursor_mz_col, row, 0.0, false);
+      precursor.charge = static_cast<Int32>(ParquetFile::getInt64(charge_col, row, 0, false));
+      precursor.library_rt = ParquetFile::getDouble(library_rt_col, row, 0.0, true);
+      precursor.library_drift_time.reset();
+      if (drift_time_col != nullptr && !drift_time_col->IsNull(row))
+      {
+        precursor.library_drift_time = ParquetFile::getDouble(drift_time_col, row, 0.0, false);
+      }
+      precursor.decoy = ParquetFile::getBool(decoy_col, row, false, true);
+      lookup.precursors[precursor_id] = std::move(precursor);
+
+      if (source_precursor_id.has_value())
+      {
+        const auto peptide_mapping_it = source_precursor_to_peptides.find(*source_precursor_id);
+        if (peptide_mapping_it != source_precursor_to_peptides.end())
+        {
+          lookup.precursor_to_peptides[precursor_id] = peptide_mapping_it->second;
+          continue;
+        }
       }
 
       auto& peptide_ids = lookup.precursor_to_peptides[precursor_id];
@@ -1938,13 +2227,24 @@ protected:
     {
       const Int64 transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
       const Int64 precursor_id = ParquetFile::getInt64(transition_precursor_id_col, row, 0, false);
-      auto& transition = lookup.transitions[transition_id];
-      transition.transition_id = transition_id;
-      if (std::find(transition.precursor_ids.begin(), transition.precursor_ids.end(), precursor_id) == transition.precursor_ids.end())
+      const std::string transition_traml_id = ParquetFile::getString(transition_traml_id_col, row);
+      PreparedLibraryTransition_ transition;
+      if (!transition_traml_id.empty())
       {
-        transition.precursor_ids.push_back(precursor_id);
+        const auto source_it = source_transition_ids_by_key.find(transition_traml_id);
+        if (source_it != source_transition_ids_by_key.end())
+        {
+          const auto transition_source_it = source_transitions.find(source_it->second);
+          if (transition_source_it != source_transitions.end())
+          {
+            transition = transition_source_it->second;
+          }
+        }
       }
-      transition.traml_id = ParquetFile::getString(transition_traml_id_col, row);
+      transition.transition_id = transition_id;
+      transition.precursor_ids.clear();
+      transition.precursor_ids.push_back(precursor_id);
+      transition.traml_id = transition_traml_id;
       transition.product_mz = ParquetFile::getDouble(product_mz_col, row, 0.0, false);
       transition.charge = static_cast<Int32>(ParquetFile::getInt64(transition_charge_col, row, 0, false));
       transition.type = ParquetFile::getString(transition_type_col, row);
@@ -1953,15 +2253,17 @@ protected:
       transition.detecting = ParquetFile::getBool(transition_detecting_col, row, true, true);
       transition.library_intensity = ParquetFile::getDouble(transition_intensity_col, row, 0.0, true);
       transition.decoy = ParquetFile::getBool(transition_decoy_col, row, false, true);
+      lookup.transitions[transition_id] = std::move(transition);
 
       const auto peptide_mapping_it = lookup.precursor_to_peptides.find(precursor_id);
       if (peptide_mapping_it != lookup.precursor_to_peptides.end())
       {
+        auto& transition_entry = lookup.transitions[transition_id];
         for (const Int64 peptide_id : peptide_mapping_it->second)
         {
-          if (std::find(transition.peptide_ids.begin(), transition.peptide_ids.end(), peptide_id) == transition.peptide_ids.end())
+          if (std::find(transition_entry.peptide_ids.begin(), transition_entry.peptide_ids.end(), peptide_id) == transition_entry.peptide_ids.end())
           {
-            transition.peptide_ids.push_back(peptide_id);
+            transition_entry.peptide_ids.push_back(peptide_id);
           }
         }
       }
@@ -4988,8 +5290,10 @@ protected:
               }
               return false;
             });
-        PreparedLibraryLookup_ prepared_library_lookup = loadPreparedLibraryLookup_(prepared_library_pqp, needs_transition_metadata);
-        augmentLookupFromOSWPQLibrary_(workflow_workspace, prepared_library_lookup, needs_transition_metadata);
+        Param tsv_reader_param = getParam_().copy("TargetedDataExtraction:Library:", true);
+        OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(FileTypes::PQP, prepared_library_pqp, tsv_reader_param);
+        PreparedLibraryLookup_ prepared_library_lookup =
+          buildPreparedLibraryLookupFromLightTargetedExperiment_(transition_exp, needs_transition_metadata);
         try
         {
           runInferenceOSWPQ_(workflow_workspace, prepared_library_lookup);

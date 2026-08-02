@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
@@ -127,6 +128,80 @@ START_SECTION(void write(const std::string&, const OpenSwath::LightTargetedExper
   const auto fmap_transitions = ParquetFile::readTable(fmap_base + "/runs/run_id=90/feature_transition.parquet");
   const auto rows_transitions = ParquetFile::readTable(rows_base + "/runs/run_id=90/feature_transition.parquet");
   TEST_EQUAL(fmap_transitions->num_rows(), rows_transitions->num_rows())
+END_SECTION
+
+START_SECTION(void write(...) uses sqlite-compatible canonical precursor ids and transition-derived precursor decoys)
+  OpenSwath::LightTargetedExperiment lib;
+  OpenSwath::LightCompound c0; c0.id = "0"; c0.charge = 2; c0.rt = 10.0; c0.setDecoy(false); lib.compounds.push_back(c0);
+  OpenSwath::LightCompound c2; c2.id = "2"; c2.charge = 2; c2.rt = 20.0; c2.setDecoy(false); lib.compounds.push_back(c2);
+  OpenSwath::LightCompound cA; cA.id = "A"; cA.charge = 2; cA.rt = 30.0; cA.setDecoy(false); lib.compounds.push_back(cA);
+
+  OpenSwath::LightTransition t0; t0.transition_name = "100"; t0.peptide_ref = "0"; t0.product_mz = 100.0; t0.precursor_mz = 400.0; t0.setDetectingTransition(true); t0.setDecoy(false); lib.transitions.push_back(t0);
+  OpenSwath::LightTransition t2; t2.transition_name = "200"; t2.peptide_ref = "2"; t2.product_mz = 200.0; t2.precursor_mz = 500.0; t2.setDetectingTransition(true); t2.setDecoy(true); lib.transitions.push_back(t2);
+  OpenSwath::LightTransition tA; tA.transition_name = "300"; tA.peptide_ref = "A"; tA.product_mz = 300.0; tA.precursor_mz = 600.0; tA.setDetectingTransition(true); tA.setDecoy(false); lib.transitions.push_back(tA);
+
+  FeatureMap fmap;
+  Feature f0; f0.setUniqueId(1); f0.setRT(10.0); f0.setIntensity(100.0); f0.setMetaValue("PeptideRef", "0");
+  Feature s0; s0.setRT(10.0); s0.setIntensity(10.0); s0.setMetaValue("FeatureLevel", "MS2"); s0.setMetaValue("native_id", "100"); f0.getSubordinates().push_back(s0);
+  Feature f2; f2.setUniqueId(2); f2.setRT(20.0); f2.setIntensity(200.0); f2.setMetaValue("PeptideRef", "2");
+  Feature s2; s2.setRT(20.0); s2.setIntensity(20.0); s2.setMetaValue("FeatureLevel", "MS2"); s2.setMetaValue("native_id", "200"); f2.getSubordinates().push_back(s2);
+  Feature fA; fA.setUniqueId(3); fA.setRT(30.0); fA.setIntensity(300.0); fA.setMetaValue("PeptideRef", "A");
+  Feature sA; sA.setRT(30.0); sA.setIntensity(30.0); sA.setMetaValue("FeatureLevel", "MS2"); sA.setMetaValue("native_id", "300"); fA.getSubordinates().push_back(sA);
+  fmap.push_back(f0);
+  fmap.push_back(f2);
+  fmap.push_back(fA);
+
+  File::TempDir tmp_dir;
+  const std::string base = tmp_dir.getPath() + "/canonical_ids";
+  File::makeDir(base);
+
+  writer.write(base, lib, fmap, 90, "input.mzML", false);
+
+  auto precursors = ParquetFile::readTable(base + "/library/precursors.parquet");
+  const auto precursor_id_col = ParquetFile::getColumn(precursors, "precursor_id");
+  const auto precursor_decoy_col = ParquetFile::getColumn(precursors, "decoy");
+  const auto precursor_traml_col = ParquetFile::getColumn(precursors, "traml_id");
+  std::map<std::string, std::pair<int64_t, bool>> precursor_info;
+  for (int64_t row = 0; row < precursors->num_rows(); ++row)
+  {
+    precursor_info[ParquetFile::getString(precursor_traml_col, row)] =
+      {ParquetFile::getInt64(precursor_id_col, row, 0, false), ParquetFile::getBool(precursor_decoy_col, row, false, true)};
+  }
+
+  TEST_EQUAL(precursor_info.at("0").first, 0)
+  TEST_EQUAL(precursor_info.at("0").second, false)
+  TEST_EQUAL(precursor_info.at("2").first, 1)
+  TEST_EQUAL(precursor_info.at("2").second, true)
+  TEST_EQUAL(precursor_info.at("A").first, 2)
+  TEST_EQUAL(precursor_info.at("A").second, false)
+
+  OpenSwathOSWParquetReader reader;
+  const auto scored = reader.fetchPeakGroupFeatures(base, "ms1ms2");
+  bool found_zero = false, found_two = false, found_a = false;
+  for (Size i = 0; i < scored.feature_id.size(); ++i)
+  {
+    if (scored.exp_rt[i] == 10.0)
+    {
+      TEST_EQUAL(scored.precursor_id[i], 0)
+      TEST_EQUAL(scored.decoy[i], false)
+      found_zero = true;
+    }
+    else if (scored.exp_rt[i] == 20.0)
+    {
+      TEST_EQUAL(scored.precursor_id[i], 1)
+      TEST_EQUAL(scored.decoy[i], true)
+      found_two = true;
+    }
+    else if (scored.exp_rt[i] == 30.0)
+    {
+      TEST_EQUAL(scored.precursor_id[i], 2)
+      TEST_EQUAL(scored.decoy[i], false)
+      found_a = true;
+    }
+  }
+  TEST_EQUAL(found_zero, true)
+  TEST_EQUAL(found_two, true)
+  TEST_EQUAL(found_a, true)
 END_SECTION
 
 END_TEST
