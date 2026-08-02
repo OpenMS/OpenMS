@@ -71,7 +71,7 @@ Three library modes:
   and decoy generation, normalize the result to `prepared_library.pqp`, then continue
 
 The downstream run then executes:
-1. extraction/scoring to a working `workflow.osw` or `workflow.oswpq`
+1. extraction/scoring to a working SQLite (`workflow.osw`) or Parquet archive (`workflow.oswpq`) container
 2. in-process Percolator rescoring in the same working container
 3. peptide/protein/gene/peptidoform inference in the same working workflow
 4. final result and matrix export to `out_dir`
@@ -489,9 +489,9 @@ protected:
     registerTOPPSubsection_("workflow", "Workflow options.");
     registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared-library normalization, or force empirical assay/decoy preparation.", false);
     setValidStrings_("workflow:library_mode", {"auto", "prepared", "empirical"});
-    registerStringOption_("workflow:working_format", "<choice>", "osw", "Internal workflow container used after extraction/scoring.", false);
-    setValidStrings_("workflow:working_format", {"osw", "oswpq"});
-    registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw or workflow.oswpq after success.", false);
+    registerStringOption_("workflow:working_format", "<choice>", "sqlite", "Internal workflow container used after extraction/scoring: 'sqlite' writes a .osw workflow, 'parquet' writes a .oswpq archive.", false);
+    setValidStrings_("workflow:working_format", {"sqlite", "parquet"});
+    registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw (.sqlite workflow) or workflow.oswpq (.parquet archive workflow) after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
     registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure.", false, false);
   }
@@ -507,10 +507,16 @@ protected:
     setValidStrings_("TargetedDataExtraction:enable_ms1", {"true", "false"});
     registerStringOption_("TargetedDataExtraction:enable_ipf", "<true|false>", "true", "Enable extraction-time UIS/IPF scoring when identifying transitions are present.", false, true);
     setValidStrings_("TargetedDataExtraction:enable_ipf", {"true", "false"});
+    registerStringOption_("TargetedDataExtraction:write_debug_files", "<true|false>", "false", "Automatically write per-run calibration/debug files into out_dir using <basename>.debug.* names when explicit debug output paths are not set.", false);
+    setValidStrings_("TargetedDataExtraction:write_debug_files", {"true", "false"});
+    registerStringOption_("TargetedDataExtraction:write_chromatograms", "<true|false>", "false", "Automatically write per-run extracted chromatograms into out_dir using <basename>.chrom.sqMass for sqlite workflows or <basename>.chrom.xic for parquet workflows when TargetedDataExtraction:out_chrom is not set.", false);
+    setValidStrings_("TargetedDataExtraction:write_chromatograms", {"true", "false"});
+    registerStringOption_("TargetedDataExtraction:write_mobilograms", "<true|false>", "false", "Automatically write per-run extracted ion mobilograms into out_dir using <basename>.mobi.xim when TargetedDataExtraction:out_mobilogram is not set.", false);
+    setValidStrings_("TargetedDataExtraction:write_mobilograms", {"true", "false"});
 
-    registerOutputFile_("TargetedDataExtraction:out_chrom", "<file>", "", "Optional chromatogram output in mzML (chrom.mzML), sqMass, or xic (Parquet).", false, true);
+    registerOutputFile_("TargetedDataExtraction:out_chrom", "<file>", "", "Optional chromatogram output in mzML (chrom.mzML), sqMass, or xic (Parquet). If multiple runs are analyzed, explicit file names are expanded per run as <basename>_<requested-name>.", false, true);
     setValidFormats_("TargetedDataExtraction:out_chrom", {"mzML", "sqMass", "xic"});
-    registerOutputFile_("TargetedDataExtraction:out_mobilogram", "<file>", "", "Optional extracted ion mobilogram output in Parquet (.xim).", false, true);
+    registerOutputFile_("TargetedDataExtraction:out_mobilogram", "<file>", "", "Optional extracted ion mobilogram output in Parquet (.xim). If multiple runs are analyzed, explicit file names are expanded per run as <basename>_<requested-name>.", false, true);
     setValidFormats_("TargetedDataExtraction:out_mobilogram", {"xim"});
 
     registerDoubleOption_("TargetedDataExtraction:min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a SWATH window to still consider a precursor, in Thomson.", false, true);
@@ -570,9 +576,9 @@ protected:
     registerSubsection_("TargetedDataExtraction:Calibration:MassIMCorrection", "m/z and ion mobility calibration.");
     registerSubsection_("TargetedDataExtraction:MRMMapping", "Parameters for mapping chromatograms to transitions in SRM/MRM data.");
 
-    registerOutputFile_("TargetedDataExtraction:irt_mzml", "<file>", "", "Optional chromatogram mzML containing the iRT peptides.", false);
+    registerOutputFile_("TargetedDataExtraction:irt_mzml", "<file>", "", "Optional chromatogram mzML containing the iRT peptides. If multiple runs are analyzed, explicit file names are expanded per run as <basename>_<requested-name>.", false);
     setValidFormats_("TargetedDataExtraction:irt_mzml", {"mzML"});
-    registerOutputFile_("TargetedDataExtraction:irt_trafo", "<file>", "", "Optional transformation file for RT normalization.", false);
+    registerOutputFile_("TargetedDataExtraction:irt_trafo", "<file>", "", "Optional transformation file for RT normalization. If multiple runs are analyzed, explicit file names are expanded per run as <basename>_<requested-name>.", false);
     setValidFormats_("TargetedDataExtraction:irt_trafo", {"trafoXML"});
     registerStringList_("TargetedDataExtraction:disable_features", "<list>", StringList(), "Debug-only feature toggles: no_IM_calibration, no_IM_windowing.", false, true);
     setValidStrings_("TargetedDataExtraction:disable_features", {"no_IM_calibration", "no_IM_windowing"});
@@ -920,7 +926,7 @@ protected:
 
   WorkflowFormat getWorkflowFormat_() const
   {
-    return getStringOption_("workflow:working_format") == "oswpq" ? WorkflowFormat::OSWPQ : WorkflowFormat::OSW;
+    return getStringOption_("workflow:working_format") == "parquet" ? WorkflowFormat::OSWPQ : WorkflowFormat::OSW;
   }
 
   OpenSwathLibraryPreparation::AssayGeneratorParameters getAssayGeneratorParameters_() const
@@ -1166,6 +1172,27 @@ protected:
   {
     const std::string base_name = input_files.size() == 1 ? File::stemName(input_files.front()) : "OpenDIA";
     return out_dir + "/" + base_name;
+  }
+
+  static std::string makeRunBasename_(const StringList& current_run_files)
+  {
+    return current_run_files.empty() ? "OpenDIA" : File::stemName(current_run_files.front());
+  }
+
+  static std::string makeAutoRunOutputPath_(const StringList& current_run_files,
+                                            const std::string& out_dir,
+                                            const std::string& stem,
+                                            const std::string& extension)
+  {
+    return File::absolutePath(out_dir) + "/" + makeRunBasename_(current_run_files) + "." + stem + "." + extension;
+  }
+
+  static std::string makePerRunManualOutputPath_(const std::string& requested_output,
+                                                 const std::string& run_basename)
+  {
+    const std::string directory = File::path(requested_output);
+    const std::string prefixed_name = run_basename + "_" + File::basename(requested_output);
+    return directory.empty() ? prefixed_name : directory + "/" + prefixed_name;
   }
 
   static void logPeptidoformSummary_(const std::vector<IPFResultRow>& results)
@@ -3658,7 +3685,7 @@ protected:
                     [](const auto& task) { return task.level == InferenceLevel::Peptidoform; }))
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Direct OSWPQ inference currently supports peptide, protein, and gene inference only. Use workflow:working_format osw for peptidoform/IPF inference.");
+                                    "Direct OSWPQ inference currently supports peptide, protein, and gene inference only. Use workflow:working_format sqlite for peptidoform/IPF inference.");
     }
 
     const ErrorEstimationConfig error_config = getErrorConfig_();
@@ -4283,7 +4310,7 @@ protected:
     if (config.ipf_mode != OpenSwathIPFExportMode::Disable && oswpqHasIPFColumns_(workspace))
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Direct OSWPQ export currently supports standard OpenSWATH-style exports only. Use Export:*:ipf disable or workflow:working_format osw for IPF-aware export.");
+                                    "Direct OSWPQ export currently supports standard OpenSWATH-style exports only. Use Export:*:ipf disable or workflow:working_format sqlite for IPF-aware export.");
     }
 
     const auto peptide_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Peptide);
@@ -4553,7 +4580,8 @@ protected:
   ExitCodes runExtractionToWorkflow_(const std::string& prepared_library_pqp,
                                      const std::string& workflow_output,
                                      const WorkflowFormat workflow_format,
-                                     const bool enable_uis_scoring)
+                                     const bool enable_uis_scoring,
+                                     const std::string& out_dir)
   {
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
 
@@ -4561,6 +4589,9 @@ protected:
     const std::string swath_windows_file = getStringOption_("TargetedDataExtraction:swath_windows_file");
     const std::string out_chrom = getStringOption_("TargetedDataExtraction:out_chrom");
     const std::string out_mobilogram = getStringOption_("TargetedDataExtraction:out_mobilogram");
+    const bool write_debug_files = toBool_(getStringOption_("TargetedDataExtraction:write_debug_files"));
+    const bool write_chromatograms = toBool_(getStringOption_("TargetedDataExtraction:write_chromatograms"));
+    const bool write_mobilograms = toBool_(getStringOption_("TargetedDataExtraction:write_mobilograms"));
     const bool split_file = getFlag_("TargetedDataExtraction:split_file_input");
     const bool use_emg_score = getFlag_("TargetedDataExtraction:use_elution_model_score");
     bool pasef = getFlag_("TargetedDataExtraction:pasef");
@@ -4857,25 +4888,52 @@ protected:
         }
       }
 
-      std::string file_basename;
-      if (run_groups.size() > 1)
-      {
-        file_basename = File::stemName(current_run_files[0]);
-      }
-
+      const std::string run_basename = makeRunBasename_(current_run_files);
       std::string irt_trafo_out = debug_params.getValue("irt_trafo").toString();
-      if (!irt_trafo_out.empty() && run_groups.size() > 1)
+      if (irt_trafo_out.empty() && write_debug_files)
       {
-        irt_trafo_out = File::path(irt_trafo_out) + "/" + file_basename + "_" + File::basename(irt_trafo_out);
+        irt_trafo_out = makeAutoRunOutputPath_(current_run_files, out_dir, "debug.irt", "trafoXML");
+        OPENMS_LOG_INFO << "Auto-writing RT transformation debug output to " << irt_trafo_out << std::endl;
+      }
+      else if (!irt_trafo_out.empty() && run_groups.size() > 1)
+      {
+        irt_trafo_out = makePerRunManualOutputPath_(irt_trafo_out, run_basename);
       }
       std::string irt_mzml_out = debug_params.getValue("irt_mzml").toString();
-      if (!irt_mzml_out.empty() && run_groups.size() > 1)
+      if (irt_mzml_out.empty() && write_debug_files)
       {
-        irt_mzml_out = File::path(irt_mzml_out) + "/" + file_basename + "_" + File::basename(irt_mzml_out);
+        irt_mzml_out = makeAutoRunOutputPath_(current_run_files, out_dir, "debug.irt", "mzML");
+        OPENMS_LOG_INFO << "Auto-writing iRT chromatogram debug output to " << irt_mzml_out << std::endl;
+      }
+      else if (!irt_mzml_out.empty() && run_groups.size() > 1)
+      {
+        irt_mzml_out = makePerRunManualOutputPath_(irt_mzml_out, run_basename);
       }
 
       Param irt_detection_param = getParam_().copy("TargetedDataExtraction:Calibration:RTNormalization:", true);
       Param calibration_param = getParam_().copy("TargetedDataExtraction:Calibration:MassIMCorrection:", true);
+      std::string debug_mz_out = calibration_param.getValue("debug_mz_file").toString();
+      if (debug_mz_out.empty() && write_debug_files)
+      {
+        debug_mz_out = makeAutoRunOutputPath_(current_run_files, out_dir, "debug.mz", "txt");
+        OPENMS_LOG_INFO << "Auto-writing m/z calibration debug output to " << debug_mz_out << std::endl;
+      }
+      else if (!debug_mz_out.empty() && run_groups.size() > 1)
+      {
+        debug_mz_out = makePerRunManualOutputPath_(debug_mz_out, run_basename);
+      }
+      calibration_param.setValue("debug_mz_file", debug_mz_out);
+      std::string debug_im_out = calibration_param.getValue("debug_im_file").toString();
+      if (debug_im_out.empty() && write_debug_files)
+      {
+        debug_im_out = makeAutoRunOutputPath_(current_run_files, out_dir, "debug.im", "txt");
+        OPENMS_LOG_INFO << "Auto-writing ion mobility calibration debug output to " << debug_im_out << std::endl;
+      }
+      else if (!debug_im_out.empty() && run_groups.size() > 1)
+      {
+        debug_im_out = makePerRunManualOutputPath_(debug_im_out, run_basename);
+      }
+      calibration_param.setValue("debug_im_file", debug_im_out);
       calibration_param.setValue("mz_extraction_window", cp_irt_current.mz_extraction_window);
       calibration_param.setValue("mz_extraction_window_ppm", cp_irt_current.ppm ? "true" : "false");
       calibration_param.setValue("im_extraction_window", cp_irt_current.im_extraction_window);
@@ -4953,17 +5011,28 @@ protected:
 
       Interfaces::IMSDataConsumer* chromatogramConsumer = nullptr;
       std::string out_chrom_current = out_chrom;
-      if (!out_chrom.empty() && run_groups.size() > 1)
+      if (out_chrom_current.empty() && write_chromatograms)
       {
-        out_chrom_current = File::path(out_chrom) + "/" + file_basename + "_" + File::basename(out_chrom);
+        const std::string extension = workflow_format == WorkflowFormat::OSWPQ ? "xic" : "sqMass";
+        out_chrom_current = makeAutoRunOutputPath_(current_run_files, out_dir, "chrom", extension);
+        OPENMS_LOG_INFO << "Auto-writing chromatograms to " << out_chrom_current << std::endl;
+      }
+      else if (!out_chrom.empty() && run_groups.size() > 1)
+      {
+        out_chrom_current = makePerRunManualOutputPath_(out_chrom, run_basename);
       }
       prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
       std::unique_ptr<MobilogramParquetConsumer> mobilogramConsumer;
       std::string out_mobilogram_current = out_mobilogram;
-      if (!out_mobilogram.empty() && run_groups.size() > 1)
+      if (out_mobilogram_current.empty() && write_mobilograms)
       {
-        out_mobilogram_current = File::path(out_mobilogram) + "/" + file_basename + "_" + File::basename(out_mobilogram);
+        out_mobilogram_current = makeAutoRunOutputPath_(current_run_files, out_dir, "mobi", "xim");
+        OPENMS_LOG_INFO << "Auto-writing mobilograms to " << out_mobilogram_current << std::endl;
+      }
+      else if (!out_mobilogram.empty() && run_groups.size() > 1)
+      {
+        out_mobilogram_current = makePerRunManualOutputPath_(out_mobilogram, run_basename);
       }
       prepareMobilogramOutput(mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
 
@@ -5238,7 +5307,7 @@ protected:
         enable_uis_scoring = true;
       }
 
-      const ExitCodes extraction_result = runExtractionToWorkflow_(prepared_library_pqp, workflow_output, workflow_format, enable_uis_scoring);
+      const ExitCodes extraction_result = runExtractionToWorkflow_(prepared_library_pqp, workflow_output, workflow_format, enable_uis_scoring, out_dir);
       if (extraction_result != EXECUTION_OK)
       {
         return extraction_result;
