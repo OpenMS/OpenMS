@@ -25,6 +25,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
@@ -4742,10 +4743,9 @@ protected:
     if (workflow_format == WorkflowFormat::OSW)
     {
       removeExistingPath_(workflow_output);
-      if (!File::copy(prepared_library_pqp, workflow_output))
-      {
-        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, workflow_output);
-      }
+      TransitionPQPFile workflow_writer;
+      workflow_writer.setLogType(log_type_);
+      workflow_writer.convertLightTargetedExperimentToPQP(workflow_output.c_str(), transition_exp);
     }
     else
     {
@@ -4786,6 +4786,9 @@ protected:
     parquet_writer.setPreserveExisting(true);
     if (write_osw)
     {
+      const auto canonical_mapping = Internal::buildOpenSwathCanonicalLibraryMapping(transition_exp);
+      oswwriter.setCanonicalLibraryMapping(canonical_mapping.compound_to_precursor,
+                                           canonical_mapping.transition_to_id);
       oswwriter.writeHeader();
     }
 

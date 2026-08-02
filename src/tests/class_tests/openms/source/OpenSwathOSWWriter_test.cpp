@@ -14,6 +14,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <string>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -209,6 +210,58 @@ START_SECTION([EXTRA] prepareLine uses available UIS transition names instead of
       "CREATE TEMP TABLE _uis_expected AS "
       "SELECT 1 FROM FEATURE_TRANSITION WHERE TRANSITION_ID = 201 AND AREA_INTENSITY = 10.0;");
     TEST_EQUAL(conn.countTableRows("_uis_expected"), 1)
+  }
+
+  File::remove(temp_file);
+}
+END_SECTION
+
+START_SECTION([EXTRA] prepareLine rewrites precursor and transition refs through the canonical library mapping)
+{
+  std::string temp_file = File::getTemporaryFile();
+
+  {
+    OpenSwathOSWWriter writer(temp_file, false);
+    writer.writeHeader();
+    writer.addRun(1, "test_input_file.mzML");
+    writer.setCanonicalLibraryMapping({{"P1", 7}}, {{"tr1", 11}});
+
+    Feature feature;
+    feature.ensureUniqueId();
+    feature.setRT(10.0);
+    feature.setIntensity(100.0);
+    feature.setMetaValue("leftWidth", 9.0);
+    feature.setMetaValue("rightWidth", 11.0);
+    feature.setMetaValue("total_xic", 1000.0);
+    feature.setMetaValue("peak_apices_sum", 100.0);
+
+    Feature ms2;
+    ms2.setIntensity(50.0);
+    ms2.setMetaValue("FeatureLevel", "MS2");
+    ms2.setMetaValue("native_id", "tr1");
+    ms2.setMetaValue("total_xic", 500.0);
+    ms2.setMetaValue("peak_apex_int", 25.0);
+    ms2.setMetaValue("peak_apex_position", 10.5);
+    ms2.setMetaValue("width_at_50", 2.0);
+
+    feature.getSubordinates().push_back(ms2);
+
+    FeatureMap output;
+    output.push_back(feature);
+    writer.writeLines(std::vector<std::string>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "P1")});
+  }
+
+  {
+    SqliteConnector conn(temp_file);
+    conn.executeStatement(
+      "CREATE TEMP TABLE _canonical_precursor_ok AS "
+      "SELECT 1 FROM FEATURE WHERE PRECURSOR_ID = 7;");
+    TEST_EQUAL(conn.countTableRows("_canonical_precursor_ok"), 1)
+
+    conn.executeStatement(
+      "CREATE TEMP TABLE _canonical_transition_ok AS "
+      "SELECT 1 FROM FEATURE_TRANSITION WHERE TRANSITION_ID = 11;");
+    TEST_EQUAL(conn.countTableRows("_canonical_transition_ok"), 1)
   }
 
   File::remove(temp_file);
