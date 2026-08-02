@@ -346,7 +346,8 @@ protected:
               const Param & mrm_mapping_param = Param(),
               class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
               int innerBatchSize = -1,
-              int maxConcurrentSwaths = -1);
+              int maxConcurrentSwaths = -1,
+              OpenSwathOSWWriter::OSWData* deferred_osw_output = nullptr);
 
   protected:
 

@@ -293,6 +293,7 @@ namespace OpenMS
     // fidelity. If traml_id is empty, fall back to the numeric precursor id.
     const std::string compound_id = info.traml_id.empty() ? precursor_id_str : std::string(info.traml_id);
     compound.id = compound_id;
+      compound.setDecoy(info.decoy);
       compound.drift_time = info.drift_time;
       compound.rt = info.library_rt;
       compound.charge = info.charge;
@@ -417,9 +418,9 @@ namespace OpenMS
     compound_decoy.reserve(targeted_exp.compounds.size());
     for (const auto& transition : targeted_exp.transitions)
     {
-      if (transition.getDecoy())
+      if (!compound_decoy.contains(transition.peptide_ref) && transition.isDetectingTransition())
       {
-        compound_decoy[transition.peptide_ref] = true;
+        compound_decoy[transition.peptide_ref] = transition.getDecoy();
       }
     }
 
@@ -492,8 +493,13 @@ namespace OpenMS
     for (const auto& compound : targeted_exp.compounds)
     {
       const int64_t precursor_id = compound_to_precursor[compound.id];
-      const bool is_decoy = compound_decoy[compound.id] ||
-        StringUtils::hasPrefix(compound.id, "DECOY_");
+      // Preserve an explicitly carried precursor-decoy annotation when the
+      // source format provided one (e.g. PQP / OSWPQ round-trips). Fall back
+      // to deriving the precursor label from detecting transitions for formats
+      // that only encode decoy state at the transition level.
+      const auto decoy_it = compound_decoy.find(compound.id);
+      const bool is_decoy = compound.hasDecoy() ? compound.getDecoy() :
+        (decoy_it != compound_decoy.end() ? decoy_it->second : false);
       stats.compounds_total++;
       stats.precursors_total++;
       if (compound.isPeptide())

@@ -234,6 +234,7 @@ namespace OpenMS
                   "-1 AS CE, " \
                   "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
                   "PRECURSOR." + traml_id + " AS group_id, " \
+                  "PRECURSOR.DECOY AS precursor_decoy, " \
                   "TRANSITION.DECOY AS decoy, " \
                   "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
                   "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
@@ -283,6 +284,7 @@ namespace OpenMS
                   "-1 AS CE, " \
                   "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
                   "PRECURSOR." + traml_id + " AS group_id, " \
+                  "PRECURSOR.DECOY AS precursor_decoy, " \
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
@@ -369,31 +371,31 @@ namespace OpenMS
       Sql::extractValue<double>(&mytransition.CE, stmt, 4);
       Sql::extractValue<double>(&mytransition.library_intensity, stmt, 5);
       Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
-      Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
-      Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
+      Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 8);
+      Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 9);
       std::string tmp_field;
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 9)) StringUtils::split(tmp_field, ';', mytransition.ProteinName);
-      Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
-      Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
-      Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
-      Sql::extractValue<std::string>(&mytransition.SMILES, stmt, 13);
-      Sql::extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
-      Sql::extractValue<std::string>(&mytransition.Adducts, stmt, 15);
-      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 16);
-      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 17);
-      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 18);
-      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 19);
-      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 20);
-      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
-      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
-      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 24)) StringUtils::split(tmp_field, ';', mytransition.uniprot_id);
-      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
-      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
-      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) StringUtils::split(tmp_field, '|', mytransition.peptidoforms);
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 10)) StringUtils::split(tmp_field, ';', mytransition.ProteinName);
+      Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 11);
+      Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 12);
+      Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 13);
+      Sql::extractValue<std::string>(&mytransition.SMILES, stmt, 14);
+      Sql::extractValue<std::string>(&mytransition.SumFormula, stmt, 15);
+      Sql::extractValue<std::string>(&mytransition.Adducts, stmt, 16);
+      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 17);
+      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 18);
+      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 19);
+      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 20);
+      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 21);
+      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 22);
+      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 23);
+      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 24);
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 25)) StringUtils::split(tmp_field, ';', mytransition.uniprot_id);
+      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 26);
+      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 27);
+      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 28);
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 29)) StringUtils::split(tmp_field, '|', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
-      int optional_col = 29;
+      int optional_col = 30;
       if (query_info.drift_time_exists)
       {
         Sql::extractValue<double>(&mytransition.drift_time, stmt, optional_col++);
@@ -475,7 +477,7 @@ namespace OpenMS
       std::string transition_name, group_id, peptide_sequence, full_peptide_name;
       std::string compound_name, smiles, sum_formula, adducts_str;
       std::string peptide_group_label, fragment_type_str, gene_name;
-      int decoy = 0, precursor_charge = 0, fragment_charge = 0, fragment_nr = -1;
+      int precursor_decoy = 0, decoy = 0, precursor_charge = 0, fragment_charge = 0, fragment_nr = -1;
       int detecting = 1, identifying = 0, quantifying = 1;
       std::string protein_names_str, peptidoforms_str;
 
@@ -486,29 +488,30 @@ namespace OpenMS
       // Skip CE (column 4) - not used in light path
       Sql::extractValue<double>(&library_intensity, stmt, 5);
       Sql::extractValue<std::string>(&group_id, stmt, 6);
-      Sql::extractValue<int>(&decoy, stmt, 7);
-      Sql::extractValue<std::string>(&peptide_sequence, stmt, 8);
-      Sql::extractValue<std::string>(&protein_names_str, stmt, 9);
+      Sql::extractValue<int>(&precursor_decoy, stmt, 7);
+      Sql::extractValue<int>(&decoy, stmt, 8);
+      Sql::extractValue<std::string>(&peptide_sequence, stmt, 9);
+      Sql::extractValue<std::string>(&protein_names_str, stmt, 10);
       // Skip Annotation (column 10) - reconstructed from fragment info
-      Sql::extractValue<std::string>(&full_peptide_name, stmt, 11);
-      Sql::extractValue<std::string>(&compound_name, stmt, 12);
-      Sql::extractValue<std::string>(&smiles, stmt, 13);
-      Sql::extractValue<std::string>(&sum_formula, stmt, 14);
-      Sql::extractValue<std::string>(&adducts_str, stmt, 15);
-      Sql::extractValue<int>(&precursor_charge, stmt, 16);
-      Sql::extractValue<std::string>(&peptide_group_label, stmt, 17);
+      Sql::extractValue<std::string>(&full_peptide_name, stmt, 12);
+      Sql::extractValue<std::string>(&compound_name, stmt, 13);
+      Sql::extractValue<std::string>(&smiles, stmt, 14);
+      Sql::extractValue<std::string>(&sum_formula, stmt, 15);
+      Sql::extractValue<std::string>(&adducts_str, stmt, 16);
+      Sql::extractValue<int>(&precursor_charge, stmt, 17);
+      Sql::extractValue<std::string>(&peptide_group_label, stmt, 18);
       // Skip label_type (column 18) - not in PQP
-      Sql::extractValue<int>(&fragment_charge, stmt, 19);
-      Sql::extractValue<int>(&fragment_nr, stmt, 20);
+      Sql::extractValue<int>(&fragment_charge, stmt, 20);
+      Sql::extractValue<int>(&fragment_nr, stmt, 21);
       // Skip fragment_mzdelta (column 21)
       // Skip fragment_modification (column 22)
-      Sql::extractValue<std::string>(&fragment_type_str, stmt, 23);
+      Sql::extractValue<std::string>(&fragment_type_str, stmt, 24);
       // Skip uniprot_id (column 24) - not in PQP
-      Sql::extractValue<int>(&detecting, stmt, 25);
-      Sql::extractValue<int>(&identifying, stmt, 26);
-      Sql::extractValue<int>(&quantifying, stmt, 27);
-      Sql::extractValue<std::string>(&peptidoforms_str, stmt, 28);
-      int optional_col = 29;
+      Sql::extractValue<int>(&detecting, stmt, 26);
+      Sql::extractValue<int>(&identifying, stmt, 27);
+      Sql::extractValue<int>(&quantifying, stmt, 28);
+      Sql::extractValue<std::string>(&peptidoforms_str, stmt, 29);
+      int optional_col = 30;
       if (query_info.drift_time_exists)
       {
         Sql::extractValue<double>(&drift_time, stmt, optional_col++);
@@ -551,6 +554,7 @@ namespace OpenMS
         compound.drift_time = drift_time;
         compound.rt = rt_calibrated;
         compound.charge = precursor_charge;
+        compound.setDecoy(precursor_decoy != 0);
         compound.peptide_group_label = peptide_group_label;
         compound.gene_name = gene_name;
 

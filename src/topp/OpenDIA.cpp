@@ -4671,13 +4671,15 @@ protected:
       oswwriter.setRunId(cur_run);
 
       FeatureMap run_feature_file;
-      const bool store_features_in_feature_file = write_parquet;
+      OpenSwathOSWWriter::OSWData run_osw_rows;
+      const bool store_features_in_feature_file = false;
       OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run,
                            transition_exp, run_feature_file, store_features_in_feature_file, oswwriter, chromatogramConsumer,
                            batchSize, ms1_isotopes, load_into_memory, mrm_map_param,
-                           mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
+                           mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths,
+                           write_parquet ? &run_osw_rows : nullptr);
 
       swath_maps.clear();
       if (mobilogramConsumer)
@@ -4687,7 +4689,7 @@ protected:
       delete chromatogramConsumer;
       if (write_parquet)
       {
-        parquet_writer.write(workflow_output, transition_exp, run_feature_file, cur_run, current_run_files[0], enable_uis_scoring);
+        parquet_writer.write(workflow_output, transition_exp, run_osw_rows, cur_run, current_run_files[0], enable_uis_scoring);
       }
       ++run_index;
     }
