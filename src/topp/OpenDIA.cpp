@@ -929,6 +929,33 @@ protected:
     return getStringOption_("workflow:working_format") == "parquet" ? WorkflowFormat::OSWPQ : WorkflowFormat::OSW;
   }
 
+  FileTypes::Type resolveTransitionLibraryType_(const std::string& input_library) const
+  {
+    const std::string requested_type_name = getStringOption_("tr_type");
+    FileTypes::Type requested_type = FileTypes::nameToType(requested_type_name);
+    if (requested_type == FileTypes::UNKNOWN)
+    {
+      requested_type = FileHandler::getType(input_library);
+      if (requested_type == FileTypes::UNKNOWN)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Could not determine input file type for '-tr'.");
+      }
+      return requested_type;
+    }
+
+    const FileTypes::Type detected_type = FileHandler::getType(input_library);
+    if (detected_type != FileTypes::UNKNOWN && detected_type != requested_type)
+    {
+      throw Exception::InvalidParameter(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Explicit library type '-tr_type " + requested_type_name + "' does not match the detected file type '" +
+        FileTypes::typeToName(detected_type) + "' for '" + input_library + "'. Use '-tr_type " +
+        FileTypes::typeToName(detected_type) + "' or omit '-tr_type' to auto-detect.");
+    }
+    return requested_type;
+  }
+
   OpenSwathLibraryPreparation::AssayGeneratorParameters getAssayGeneratorParameters_() const
   {
     OpenSwathLibraryPreparation::AssayGeneratorParameters parameters;
@@ -5213,23 +5240,14 @@ protected:
     const StringList input_files = getStringList_("in");
     const std::string out_dir = File::absolutePath(getOutputDirOption("out_dir"));
     const std::string input_library = getStringOption_("tr");
-
-    FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
-    if (tr_type == FileTypes::UNKNOWN)
-    {
-      tr_type = FileHandler::getType(input_library);
-    }
-    if (tr_type == FileTypes::UNKNOWN)
-    {
-      writeLogError_("Error: Could not determine input file type for '-tr'.");
-      return PARSE_ERROR;
-    }
-
-    WorkingDirectory working_dir = prepareWorkingDirectory_(out_dir);
-    OPENMS_LOG_INFO << "OpenDIA working directory: " << working_dir.path << std::endl;
+    WorkingDirectory working_dir;
 
     try
     {
+      const FileTypes::Type tr_type = resolveTransitionLibraryType_(input_library);
+      working_dir = prepareWorkingDirectory_(out_dir);
+      OPENMS_LOG_INFO << "OpenDIA working directory: " << working_dir.path << std::endl;
+
       File::makeDir(out_dir);
       const std::string prepared_library_pqp = working_dir.path + "/prepared_library.pqp";
       const WorkflowFormat workflow_format = getWorkflowFormat_();
@@ -5392,7 +5410,14 @@ protected:
     }
     catch (const Exception::BaseException&)
     {
-      OPENMS_LOG_ERROR << "OpenDIA failed. Intermediate workflow files were preserved in: " << working_dir.path << std::endl;
+      if (!working_dir.path.empty())
+      {
+        OPENMS_LOG_ERROR << "OpenDIA failed. Intermediate workflow files were preserved in: " << working_dir.path << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "OpenDIA failed before creating a workflow working directory." << std::endl;
+      }
       throw;
     }
   }
