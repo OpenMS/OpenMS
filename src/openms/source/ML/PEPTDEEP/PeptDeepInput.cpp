@@ -63,6 +63,12 @@ namespace OpenMS
       for (size_t batch_idx = 0; batch_idx < peptides.size(); ++batch_idx)
       {
         const OpenMS::AASequence& seq = peptides[batch_idx];
+
+        if (seq.size() == 0)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence cannot be empty.");
+        }
+
         size_t written = 0;
 
         // Apply modifications by placing them at their specific AlphaPeptDeep index
@@ -78,11 +84,13 @@ namespace OpenMS
                   int count = element_count.second;
 
                   // Normalize OpenMS isotope format "(13)C" to AlphaPeptDeep format "13C"
-                  if (symbol.front() == '(') {
-                      size_t close_paren = symbol.find(')');
-                      if (close_paren != std::string::npos) {
-                          symbol = symbol.substr(1, close_paren - 1) + symbol.substr(close_paren + 1);
-                      }
+                  if (symbol.front() == '(')
+                  {
+                    size_t close_paren = symbol.find(')');
+                    if (close_paren != std::string::npos)
+                    {
+                      symbol = symbol.substr(1, close_paren - 1) + symbol.substr(close_paren + 1);
+                    }
                   }
 
                   auto it = std::find(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), ALPHAPEPTDEEP_MOD_ELEMENTS.end(), symbol);
@@ -90,11 +98,11 @@ namespace OpenMS
 
                   if (it != ALPHAPEPTDEEP_MOD_ELEMENTS.end())
                   {
-                      tensor_elem_index = std::distance(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), it);
-                      if (tensor_elem_index >= static_cast<int>(PEPTDEEP_MOD_ELEMENTS))
-                      {
-                          tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1;
-                      }
+                    tensor_elem_index = std::distance(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), it);
+                    if (tensor_elem_index >= static_cast<int>(PEPTDEEP_MOD_ELEMENTS))
+                    {
+                      tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1;
+                    }
                   }
 
                   batch.mod_x[tensor_offset + tensor_elem_index] += static_cast<float>(count);
@@ -139,11 +147,7 @@ namespace OpenMS
         }
         else if (seq.hasCTerminalModification())
         {
-           // Explicitly guard against empty sequence underflow before writing offset
-           if (written > 0)
-           {
-               apply_modification(seq.getCTerminalModification(), written - 1);
-           }
+           apply_modification(seq.getCTerminalModification(), written - 1);
         }
 
         while (written < batch.sequence_length)

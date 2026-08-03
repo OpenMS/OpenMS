@@ -23,9 +23,10 @@ namespace OpenMS
   PeptDeepCCSInference::PeptDeepCCSInference(const std::string& model_path, int intra_op_threads, size_t batch_size)
     : model_(model_path, intra_op_threads), batch_size_(batch_size)
   {
-      if (batch_size_ == 0) {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
-      }
+    if (batch_size_ == 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
+    }
   }
 
   PeptDeepCCSInference::~PeptDeepCCSInference() = default;

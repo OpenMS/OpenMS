@@ -27,9 +27,10 @@ namespace OpenMS {
 PeptDeepMS2Inference::PeptDeepMS2Inference(const std::string& model_path, int intra_op_threads, size_t batch_size)
     : model_(model_path, intra_op_threads), batch_size_(batch_size)
 {
-    if (batch_size_ == 0) {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
-    }
+  if (batch_size_ == 0)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
+  }
 }
 
 PeptDeepMS2Inference::~PeptDeepMS2Inference() = default;
@@ -167,12 +168,14 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();
             auto out_shape = output_tensors.front().GetTensorTypeAndShapeInfo().GetShape();
 
-            if (out_shape.size() != 3) {
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected MS2 output tensor to have a rank of 3.", std::to_string(out_shape.size()));
+            if (out_shape.size() != 3)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected MS2 output tensor to have a rank of 3.", std::to_string(out_shape.size()));
             }
 
-            if (out_shape[0] != batch_size_cast) {
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ONNX MS2 output batch dimension mismatch.", std::to_string(out_shape[0]));
+            if (out_shape[0] != batch_size_cast)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ONNX MS2 output batch dimension mismatch.", std::to_string(out_shape[0]));
             }
 
             int64_t actual_rows = out_shape[1];
