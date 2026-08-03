@@ -101,9 +101,9 @@ namespace OpenMS
     // Window padding factors
     defaults_.setValue("windows:rt_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.");
     defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
-    defaults_.setValue("windows:min_rt_window", 0.0, "Minimum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the floor and use the raw estimated RT window.");
+    defaults_.setValue("windows:min_rt_window", 60.0, "Minimum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the floor and use the raw estimated RT window.");
     defaults_.setMinFloat("windows:min_rt_window", 0.0);
-    defaults_.setValue("windows:max_rt_window", 0.0, "Maximum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the ceiling and use the raw estimated RT window.");
+    defaults_.setValue("windows:max_rt_window", 600.0, "Maximum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the ceiling and use the raw estimated RT window.");
     defaults_.setMinFloat("windows:max_rt_window", 0.0);
 
     // Quality control parameters
