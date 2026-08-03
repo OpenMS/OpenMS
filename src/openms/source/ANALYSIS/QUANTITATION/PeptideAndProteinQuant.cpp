@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <set>
 #include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -56,7 +57,7 @@ namespace OpenMS
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
-    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal.");
+    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that the median of each sample matches the overall median.\nAbundances of zero count as 'not detected' and are left out of the medians; a sample without any positive abundance takes no part in the normalization.");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
@@ -359,16 +360,34 @@ namespace OpenMS
     // depending on earlier options, these include:
     // - all charges or only the best charge state
     // - all fractions (if multiple fractions are analyzed)
-    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    // Zero abundances are deliberately not collected. A zero is not a measurement of "no protein":
+    // IsobaricChannelExtractor stores a reporter it could not find - or one below
+    // 'min_reporter_intensity' - as 0.0, so a zero means "not detected". Counting those would give a
+    // channel in which more than half the peptides went undetected a median of exactly 0, and the
+    // division below then scaled every positive abundance in it to infinity (and the zeros to NaN,
+    // since 0 * inf is NaN). Excluding them instead normalizes such a channel on the data it does
+    // have. Keeping zeros out of the statistic is the convention elsewhere: MSstatsTMT turns them
+    // into NA before taking median(log2Intensity, na.rm = TRUE), isobar nulls sub-1 values after
+    // impurity correction, and scp calls zeroIsNA() first, "to avoid artefacts in downstream steps".
+    // Note this is about the zeros, not about log versus linear space - isobar and scp both divide
+    // in linear space, as here, and are safe purely because no zero ever reaches the median.
+    map<UInt64, DoubleList> abundances; // positive peptide abundances by sample
+    set<UInt64> samples; // every sample seen, including ones without a single positive abundance
     for (auto & pq : pep_quant_)
     {
-      // maybe TODO: treat missing abundance values as zero
       for (auto & sa : pq.second.total_abundances)
       {
-        abundances[sa.first].push_back(sa.second);
+        samples.insert(sa.first);
+        if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
       }
     }
-    if (abundances.size() <= 1) { return; }
+    if (abundances.size() <= 1)
+    { // no reference to scale to - say so, rather than returning as if normalization had happened
+      OPENMS_LOG_WARN << "Warning: fewer than two samples contain a peptide with a positive abundance, "
+                      << "so there is nothing to normalize against. Abundances are left unchanged."
+                      << endl;
+      return;
+    }
 
     /////////////////////////////////////////////////////
     // compute scale factors on the sample level:
@@ -378,6 +397,9 @@ namespace OpenMS
       medians[ab.first] = Math::median(ab.second.begin(), ab.second.end());
     }
 
+    // Only samples that carry signal define the reference. Letting a dead channel contribute its
+    // median of 0 would drag the overall median down and mis-scale every other channel - quietly,
+    // with no infinity and no warning to show for it.
     DoubleList all_medians;
     for (auto & sa : medians)
     {
@@ -386,10 +408,41 @@ namespace OpenMS
     double overall_median = Math::median(all_medians.begin(),
                                          all_medians.end());
     SampleAbundances scale_factors;
-    for (auto & med : medians)
+    for (UInt64 sample : samples)
     {
-      scale_factors[med.first] = overall_median / med.second;
+      auto med_it = medians.find(sample);
+      if (med_it == medians.end()) // not a single positive abundance in this sample
+      {
+        // Name the (file, channel) pairs behind the sample: the sample id is a design-internal index
+        // that does not appear in any input the user wrote.
+        std::string where;
+        for (const auto& lookup : sample_id_lookup_)
+        {
+          if (lookup.second != sample) { continue; }
+          if (!where.empty()) { where += ", "; }
+          where += "'" + lookup.first.first + "' channel " + StringUtils::toStr(lookup.first.second);
+        }
+        OPENMS_LOG_WARN << "Warning: sample " << sample
+                        << (where.empty() ? "" : " (" + where + ")")
+                        << " has no peptide with a positive abundance - for isobaric data, no reporter "
+                        << "ion was detected for it in any quantified peptide. It does not take part in "
+                        << "the normalization: it defines no reference and its values are left as they "
+                        << "are (they are all zero)." << endl;
+        continue; // no factor at all - see scaleFactorFor below
+      }
+      // a median over strictly positive values is itself positive, so this cannot divide by zero
+      scale_factors[sample] = overall_median / med_it->second;
     }
+
+    // Never look a factor up with operator[]: that default-constructs 0.0 for an unknown sample and
+    // would silently wipe its abundances. Samples reach the loops below that have no factor - one
+    // without any signal, and, with 'best_charge_and_fraction', one that never won a best combination
+    // and so never entered total_abundances at all. Leave those exactly as they are.
+    auto scaleFactorFor = [&scale_factors](size_t sample_id)
+    {
+      auto it = scale_factors.find(sample_id);
+      return (it == scale_factors.end()) ? 1.0 : it->second;
+    };
 
     /////////////////////////////////////////////////////
     // scale all abundance values:
@@ -398,7 +451,7 @@ namespace OpenMS
       // scale total abundances
       for (auto & sta : pep_q.second.total_abundances)
       {
-        sta.second *= scale_factors[sta.first];
+        sta.second *= scaleFactorFor(sta.first);
       }
 
       // scale individual abundances
@@ -413,7 +466,7 @@ namespace OpenMS
               const std::string & filename = fna.first;
               const UInt & channel = cha.first;
               size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
-              cha.second *= scale_factors[sample_id];
+              cha.second *= scaleFactorFor(sample_id);
             }
           }
         }

@@ -33,7 +33,11 @@ namespace OpenMS
 
   bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return std::tie(probability, accessions) == std::tie(rhs.probability, rhs.accessions);
+    // The data arrays are part of the group's state - they carry the quantities attached by
+    // PeptideAndProteinQuant - so they have to be compared. Leaving them out made store/load tests
+    // pass while every quantity was being dropped.
+    return std::tie(probability, accessions, float_data_arrays_, string_data_arrays_, integer_data_arrays_)
+        == std::tie(rhs.probability, rhs.accessions, rhs.float_data_arrays_, rhs.string_data_arrays_, rhs.integer_data_arrays_);
   }
 
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
