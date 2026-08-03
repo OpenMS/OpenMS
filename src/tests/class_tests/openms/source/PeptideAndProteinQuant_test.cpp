@@ -16,10 +16,94 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
+#include <algorithm>
+#include <cmath>
+
 
 using namespace OpenMS;
 using namespace std;
 
+
+// Builds a one-file isobaric ConsensusMap: one consensus feature per peptide, one sub-feature per
+// channel. `intensities[p][c]` is the reporter intensity of peptide p in channel c; a 0 stands for a
+// reporter that was not detected, which is exactly what IsobaricChannelExtractor writes out.
+namespace
+{
+  PeptideAndProteinQuant makeNormalizedQuantifier(const std::vector<std::vector<double>>& intensities,
+                                                 bool best_charge_and_fraction = false)
+  {
+    const Size n_channels = intensities.front().size();
+
+    ConsensusMap consensus;
+    consensus.setExperimentType("labeled_MS2");
+    for (Size c = 0; c < n_channels; ++c)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = "A.mzML";
+      h.label = "ch" + std::to_string(c + 1);
+      h.setMetaValue("channel_id", (int)c); // label = channel_id + 1
+      consensus.getColumnHeaders()[c] = h;
+    }
+
+    for (Size p = 0; p < intensities.size(); ++p)
+    {
+      ConsensusFeature cf;
+      for (Size c = 0; c < n_channels; ++c)
+      {
+        Peak2D peak;
+        peak.setIntensity(intensities[p][c]);
+        peak.setRT(1.0 + p);
+        peak.setMZ(400.0 + p);
+        cf.insert(c, peak, c);
+      }
+      PeptideIdentification pid;
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(std::string("PEPTIDE") + char('A' + p)));
+      hit.setCharge(2);
+      hit.setScore(1.0);
+      pid.setHits({hit});
+      cf.setPeptideIdentifications({pid});
+      consensus.push_back(cf);
+    }
+
+    ExperimentalDesign::MSFileSection fs;
+    ExperimentalDesign::SampleSection ss;
+    for (Size c = 0; c < n_channels; ++c)
+    {
+      ExperimentalDesign::MSFileSectionEntry r;
+      r.path = "/tmp/A.mzML";
+      r.label = c + 1;
+      r.fraction = 1;
+      r.fraction_group = 1;
+      r.sample = c;
+      r.sample_name = "S" + std::to_string(c + 1);
+      fs.push_back(r);
+      ss.addSample("S" + std::to_string(c + 1));
+    }
+    ExperimentalDesign design(fs, ss);
+
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("consensus:normalize", "true");
+    if (best_charge_and_fraction) { p.setValue("best_charge_and_fraction", "true"); }
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    return quantifier;
+  }
+
+  /// abundances of one peptide across all samples, sorted so the test does not depend on sample ids
+  std::vector<double> sortedAbundances(PeptideAndProteinQuant& q, const std::string& sequence)
+  {
+    const auto& pep_quant = q.getPeptideResults();
+    const auto it = pep_quant.find(AASequence::fromString(sequence));
+    std::vector<double> out;
+    if (it == pep_quant.end()) { return out; }
+    for (const auto& sa : it->second.total_abundances) { out.push_back(sa.second); }
+    std::sort(out.begin(), out.end());
+    return out;
+  }
+}
 
 START_TEST(PeptideAndProteinQuant, "$Id$")
 
@@ -543,6 +627,99 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] normalization: a channel with mostly undetected reporters is scaled on the data it has))
+{
+  // channel 3 has no reporter for 3 of 5 peptides, so its median over ALL values would be 0 and the
+  // scale factor overall_median/0 = inf - which used to turn every abundance in the channel into inf
+  // and, once protein quantities were written to consensusXML, produced a file that could not be read
+  // back at all. The median is taken over the detected values only.
+  //   ch1: 10 20 30 40  50   -> median  30 -> factor 60/30  = 2
+  //   ch2: 20 40 60 80 100   -> median  60 -> factor 60/60  = 1
+  //   ch3:  -  -  - 90 120   -> median 105 -> factor 60/105
+  //   overall median of (30, 60, 105) = 60
+  PeptideAndProteinQuant q = makeNormalizedQuantifier({{10, 20, 0},
+                                                       {20, 40, 0},
+                                                       {30, 60, 0},
+                                                       {40, 80, 90},
+                                                       {50, 100, 120}});
+
+  const std::vector<double> pd = sortedAbundances(q, "PEPTIDED"); // 40, 80, 90
+  TEST_EQUAL(pd.size(), 3)
+  for (double v : pd) { TEST_EQUAL(std::isfinite(v), true) }
+  TEST_REAL_SIMILAR(pd[0], 90.0 * 60.0 / 105.0) // ~51.43
+  TEST_REAL_SIMILAR(pd[1], 80.0)                // 40 * 2
+  TEST_REAL_SIMILAR(pd[2], 80.0)                // 80 * 1
+
+  const std::vector<double> pa = sortedAbundances(q, "PEPTIDEA"); // 10, 20, undetected
+  TEST_EQUAL(pa.size(), 3)
+  TEST_REAL_SIMILAR(pa[0], 0.0)  // stays undetected
+  TEST_REAL_SIMILAR(pa[1], 20.0) // 10 * 2
+  TEST_REAL_SIMILAR(pa[2], 20.0) // 20 * 1
+}
+END_SECTION
+
+START_SECTION(([EXTRA] normalization: a channel without any detected reporter does not skew the others))
+{
+  // channel 3 is empty throughout. It must be left alone AND kept out of the reference, otherwise its
+  // median of 0 drags the overall median down and mis-scales every other channel - silently, with no
+  // infinity to give it away.
+  //   ch1: 10 20 30 40  50 -> median 30 |  ch2: 20 40 60 80 100 -> median 60
+  //   overall median of (30, 60) = 45   ->  factors 1.5 and 0.75
+  //   (were the empty channel counted, the reference would be median(30, 60, 0) = 30 instead)
+  PeptideAndProteinQuant q = makeNormalizedQuantifier({{10, 20, 0},
+                                                       {20, 40, 0},
+                                                       {30, 60, 0},
+                                                       {40, 80, 0},
+                                                       {50, 100, 0}});
+
+  const std::vector<double> pd = sortedAbundances(q, "PEPTIDED"); // 40, 80, empty
+  TEST_EQUAL(pd.size(), 3)
+  for (double v : pd) { TEST_EQUAL(std::isfinite(v), true) }
+  TEST_REAL_SIMILAR(pd[0], 0.0)
+  TEST_REAL_SIMILAR(pd[1], 60.0) // 40 * 1.5
+  TEST_REAL_SIMILAR(pd[2], 60.0) // 80 * 0.75
+
+  // the empty channel keeps its zeros - it is neither scaled by a made-up factor nor by 0
+  const std::vector<double> pe = sortedAbundances(q, "PEPTIDEE"); // 50, 100, empty
+  TEST_REAL_SIMILAR(pe[0], 0.0)
+  TEST_REAL_SIMILAR(pe[1], 75.0)  // 50 * 1.5
+  TEST_REAL_SIMILAR(pe[2], 75.0)  // 100 * 0.75
+}
+END_SECTION
+
+START_SECTION(([EXTRA] normalization: a sample without a scale factor is left alone, not zeroed))
+{
+  // With 'best_charge_and_fraction', total_abundances holds only the single best combination per
+  // peptide, while the scaling loop walks EVERY fraction/file/charge/channel. Channels 3 and 4 below
+  // are positive throughout but never win a best slot, so they never enter total_abundances and get no
+  // scale factor. Looking the factor up with map::operator[] default-constructs 0.0 and wipes them;
+  // they must be left untouched instead.
+  //   P1: 100  20 30 40 -> best channel 1 (getBest_ takes the most abundant entry)
+  //   P2:  10 200 60 70 -> best channel 2  (two samples, so normalization is not skipped)
+  //   medians over the best-combination totals: {100} and {200} -> overall 150 -> factors 1.5 and 0.75
+  PeptideAndProteinQuant q = makeNormalizedQuantifier({{100, 20, 30, 40},
+                                                       {10, 200, 60, 70}},
+                                                      /*best_charge_and_fraction=*/true);
+
+  const auto& pep_quant = q.getPeptideResults();
+  Size positive = 0, total = 0;
+  for (const auto& pq : pep_quant)
+  {
+    for (const auto& fa : pq.second.abundances)          // fractions
+      for (const auto& fna : fa.second)                  // filenames
+        for (const auto& ca : fna.second)                // charges
+          for (const auto& cha : ca.second)              // channels
+          {
+            ++total;
+            TEST_EQUAL(std::isfinite(cha.second), true)
+            if (cha.second > 0.0) { ++positive; }
+          }
+  }
+  TEST_EQUAL(total, 8)     // 2 peptides x 4 channels, all originally positive
+  TEST_EQUAL(positive, 8)  // channels 3 and 4 have no scale factor and must survive unscaled
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
