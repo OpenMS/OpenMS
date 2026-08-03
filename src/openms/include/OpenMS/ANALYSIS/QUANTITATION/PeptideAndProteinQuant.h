@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -260,6 +261,11 @@ private:
 
     /// Precomputed (fraction group, label) -> sample lookup used to normalize unit abundances.
     std::map<std::pair<UInt, UInt>, Size> fraction_group_label_to_sample_;
+
+    /// Fraction-group/label cells represented by the current quantification input. For a
+    /// ConsensusMap this is the intersection of its column headers with the design, so design
+    /// files that were not part of the map do not create invented zero-valued QPX quantities.
+    std::set<std::pair<UInt, UInt>> quantification_fraction_group_labels_;
 
 
     /**

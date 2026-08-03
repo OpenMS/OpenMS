@@ -182,6 +182,7 @@ namespace OpenMS
     // linearly scan the MS file section (and recompute File::stemName) for every value.
     design_cell_lookup_.clear();
     fraction_group_label_to_sample_.clear();
+    quantification_fraction_group_labels_.clear();
     std::map<std::string, UInt> run_to_fraction_group;
     const Size n_samples = experimental_design_.getNumberOfSamples();
     for (const auto& entry : experimental_design_.getMSFileSection())
@@ -219,6 +220,7 @@ namespace OpenMS
       }
 
       const auto unit_label = std::make_pair(entry.fraction_group, entry.label);
+      quantification_fraction_group_labels_.insert(unit_label);
       auto [unit_it, unit_inserted] = fraction_group_label_to_sample_.emplace(unit_label, entry.sample);
       if (!unit_inserted && unit_it->second != entry.sample)
       {
@@ -798,6 +800,27 @@ namespace OpenMS
       }
     }
 
+    // The design may list files that are intentionally absent from this ConsensusMap. QPX builds
+    // its quantification units from the column headers, so remember that same set of cells for the
+    // protein annotations. Otherwise every absent design file would add an invented zero-valued
+    // quantity that the exporter correctly refuses as an extra key.
+    quantification_fraction_group_labels_.clear();
+    for (const auto& [map_index, header] : consensus.getColumnHeaders())
+    {
+      (void)map_index;
+      const std::string filename = File::stemName(header.filename);
+      const UInt label = header.getLabelAsUInt(consensus.getExperimentType());
+      auto it = file_and_label_to_msfile_entry.find({filename, label});
+      if (it == file_and_label_to_msfile_entry.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "File+Label referenced in consensus header not found in experimental design: "
+          + filename + "\t" + StringUtils::toStr(label));
+      }
+      quantification_fraction_group_labels_.emplace(it->second.fraction_group, label);
+    }
+
     for (auto & c : consensus)
     {
       stats_.total_features += c.getFeatures().size();
@@ -943,6 +966,7 @@ namespace OpenMS
     prot_quant_.clear();
     design_cell_lookup_.clear();
     fraction_group_label_to_sample_.clear();
+    quantification_fraction_group_labels_.clear();
   }
 
 
@@ -980,12 +1004,10 @@ namespace OpenMS
 
     // Extract the Spectra Filepath column from the design
     map<UInt64, map<UInt64, std::string>> design_group_fraction_filename;
-    std::set<std::pair<UInt, UInt>> design_fraction_group_labels;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
       const std::string fn = File::stemName(f.path);
       design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
-      design_fraction_group_labels.emplace(f.fraction_group, f.label);
     }
 
     auto & id_groups = proteins.getIndistinguishableProteins();
@@ -1062,16 +1084,16 @@ namespace OpenMS
         }
 
         // QPX 1.1 protein-group quantities are keyed by the exact OpenMS fraction_group and
-        // label. Materialize every design key in deterministic order, using zero for a quantified
-        // protein without sufficient evidence in that cell just as the sample-level abundance
-        // array above does for an absent sample result.
+        // label. Materialize every cell represented by the quantification input in deterministic
+        // order, using zero for a quantified protein without sufficient evidence in that cell just
+        // as the sample-level abundance array above does for an absent sample result.
         auto& fraction_group_level_abundance = id_group->getFloatDataArrays()[4];
         fraction_group_level_abundance.setName("fraction_group_level_abundance");
         auto& fraction_group_level_fraction_group = id_group->getIntegerDataArrays()[2];
         fraction_group_level_fraction_group.setName("fraction_group_level_fraction_group");
         auto& fraction_group_level_label = id_group->getIntegerDataArrays()[3];
         fraction_group_level_label.setName("fraction_group_level_label");
-        for (const auto& [fraction_group, label] : design_fraction_group_labels)
+        for (const auto& [fraction_group, label] : quantification_fraction_group_labels_)
         {
           double abundance = 0.0;
           if (auto group_it = q.second.fraction_group_abundances.find(fraction_group);

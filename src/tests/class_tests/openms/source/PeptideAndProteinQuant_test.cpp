@@ -338,10 +338,11 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
 }
 END_SECTION
 
-START_SECTION(([EXTRA] fraction-group/label quantities remain distinct before protein aggregation))
+START_SECTION(([EXTRA] fraction-group/label quantities remain distinct and omit absent design runs))
 {
   // One sample is reused in two fraction groups. The established sample abundance is their sum,
-  // while QPX 1.1 needs two independently aggregated protein quantities.
+  // while QPX 1.1 needs two independently aggregated protein quantities. A third design run is
+  // not represented by a ConsensusMap column header and must not invent another zero quantity.
   ConsensusMap consensus;
   consensus.setExperimentType("label-free");
   for (Size i = 0; i < 2; ++i)
@@ -383,10 +384,11 @@ START_SECTION(([EXTRA] fraction-group/label quantities remain distinct before pr
   consensus.setProteinIdentifications({proteins});
 
   ExperimentalDesign::MSFileSection files;
-  for (Size i = 0; i < 2; ++i)
+  for (Size i = 0; i < 3; ++i)
   {
     ExperimentalDesign::MSFileSectionEntry entry;
-    entry.path = i == 0 ? "/data/technical_a.mzML" : "/data/technical_b.mzML";
+    entry.path = i == 0 ? "/data/technical_a.mzML"
+                        : (i == 1 ? "/data/technical_b.mzML" : "/data/not_in_map.mzML");
     entry.label = 1;
     entry.fraction = 1;
     entry.fraction_group = static_cast<UInt>(i) + 1;
@@ -415,6 +417,7 @@ START_SECTION(([EXTRA] fraction-group/label quantities remain distinct before pr
   TEST_REAL_SIMILAR(protein.total_abundances.at(0), 70.0)
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 30.0)
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(2).at(1), 40.0)
+  TEST_EQUAL(protein.fraction_group_abundances.count(3), 0)
 
   quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, false);
   const auto& annotated = proteins.getIndistinguishableProteins()[0];
