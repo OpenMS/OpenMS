@@ -47,6 +47,14 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input vectors must have the same size.");
     }
 
+    std::vector<OpenMS::AASequence> parsed_peptides;
+    parsed_peptides.reserve(peptides.size());
+    for (const std::string& pep : peptides)
+    {
+        ML::validatePeptide(pep);
+        parsed_peptides.push_back(OpenMS::AASequence::fromString(pep));
+    }
+
     // 1. Grouping by Sequence Length
     ML::PeptDeepInputConfig input_config;
     const std::vector<int64_t> input_shape = model_.getInputShape(0);
@@ -57,14 +65,14 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     std::vector<std::vector<size_t>> groups;
     if (input_config.fixed_sequence_length > 0) {
         groups.push_back({});
-        groups.back().reserve(peptides.size());
-        for (size_t i = 0; i < peptides.size(); ++i) {
+        groups.back().reserve(parsed_peptides.size());
+        for (size_t i = 0; i < parsed_peptides.size(); ++i) {
             groups.back().push_back(i);
         }
     } else {
         std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
-        for (size_t i = 0; i < peptides.size(); ++i) {
-            indices_by_encoded_length[OpenMS::AASequence::fromString(peptides[i]).size() + 2].push_back(i);
+        for (size_t i = 0; i < parsed_peptides.size(); ++i) {
+            indices_by_encoded_length[parsed_peptides[i].size() + 2].push_back(i);
         }
         for (auto& item : indices_by_encoded_length) {
             groups.push_back(std::move(item.second));
@@ -72,7 +80,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     }
 
     // 2. Setup master predictions array and ONNX variables
-    std::vector<std::vector<float>> predictions(peptides.size());
+    std::vector<std::vector<float>> predictions(parsed_peptides.size());
 
     std::vector<std::string> input_names = model_.getInputNames();
     std::vector<const char*> input_names_chars;
@@ -92,7 +100,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
         {
             size_t current_chunk_size = std::min(batch_size_, group_indices.size() - chunk_start);
 
-            std::vector<std::string> chunk_peptides;
+            std::vector<OpenMS::AASequence> chunk_peptides;
             std::vector<float> chunk_charges, chunk_nces;
             std::vector<int64_t> chunk_instruments;
 
@@ -103,7 +111,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
 
             for (size_t j = 0; j < current_chunk_size; ++j) {
                 size_t original_idx = group_indices[chunk_start + j];
-                chunk_peptides.push_back(peptides[original_idx]);
+                chunk_peptides.push_back(parsed_peptides[original_idx]);
                 chunk_charges.push_back(charges[original_idx]);
                 chunk_nces.push_back(nces[original_idx]);
                 chunk_instruments.push_back(instrument_indices[original_idx]);
@@ -163,14 +171,18 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                 throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected MS2 output tensor to have a rank of 3.", std::to_string(out_shape.size()));
             }
 
+            if (out_shape[0] != batch_size_cast) {
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ONNX MS2 output batch dimension mismatch.", std::to_string(out_shape[0]));
+            }
+
             int64_t actual_rows = out_shape[1];
             int64_t num_ions = out_shape.back();
             int64_t elements_per_batch = actual_rows * num_ions;
 
             for (size_t j = 0; j < current_chunk_size; ++j) {
-                const std::string& current_peptide = chunk_peptides[j];
+                const OpenMS::AASequence& current_seq = chunk_peptides[j];
 
-                size_t parsed_size = OpenMS::AASequence::fromString(current_peptide).size();
+                size_t parsed_size = current_seq.size();
                 if (parsed_size < 1) {
                     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parsed peptide sequence cannot be empty.");
                 }

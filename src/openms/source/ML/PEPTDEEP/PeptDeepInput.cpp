@@ -21,9 +21,8 @@ namespace
   constexpr float CHARGE_SCALE = 0.1f;
   constexpr float NCE_SCALE = 0.01f;
 
-  size_t encodedLength_(const std::string& peptide, const OpenMS::ML::PeptDeepInputConfig& config)
+  size_t encodedLength_(const OpenMS::AASequence& seq, const OpenMS::ML::PeptDeepInputConfig& config)
   {
-    OpenMS::AASequence seq = OpenMS::AASequence::fromString(peptide);
     return seq.size() + (config.add_terminal_tokens ? 2 : 0);
   }
 }
@@ -33,7 +32,7 @@ namespace OpenMS
   namespace ML
   {
     PeptDeepInputBatch PeptDeepInputBuilder::buildPeptideBatch(
-      const std::vector<std::string>& peptides,
+      const std::vector<OpenMS::AASequence>& peptides,
       const PeptDeepInputConfig& config)
     {
       if (peptides.empty())
@@ -42,10 +41,9 @@ namespace OpenMS
       }
 
       size_t longest_encoded = 0;
-      for (const std::string& peptide : peptides)
+      for (const auto& seq : peptides)
       {
-        validatePeptide(peptide);
-        longest_encoded = std::max(longest_encoded, encodedLength_(peptide, config));
+        longest_encoded = std::max(longest_encoded, encodedLength_(seq, config));
       }
 
       if (config.fixed_sequence_length > 0 && longest_encoded > config.fixed_sequence_length)
@@ -64,7 +62,7 @@ namespace OpenMS
 
       for (size_t batch_idx = 0; batch_idx < peptides.size(); ++batch_idx)
       {
-        OpenMS::AASequence seq = OpenMS::AASequence::fromString(peptides[batch_idx]);
+        const OpenMS::AASequence& seq = peptides[batch_idx];
         size_t written = 0;
 
         // Apply modifications by placing them at their specific AlphaPeptDeep index
@@ -141,7 +139,11 @@ namespace OpenMS
         }
         else if (seq.hasCTerminalModification())
         {
-           apply_modification(seq.getCTerminalModification(), written - 1);
+           // Explicitly guard against empty sequence underflow before writing offset
+           if (written > 0)
+           {
+               apply_modification(seq.getCTerminalModification(), written - 1);
+           }
         }
 
         while (written < batch.sequence_length)
@@ -155,7 +157,7 @@ namespace OpenMS
     }
 
     PeptDeepInputBatch PeptDeepInputBuilder::buildPrecursorBatch(
-      const std::vector<std::string>& peptides,
+      const std::vector<OpenMS::AASequence>& peptides,
       const std::vector<float>& charges,
       const PeptDeepInputConfig& config)
     {
@@ -177,7 +179,7 @@ namespace OpenMS
     }
 
     PeptDeepInputBatch PeptDeepInputBuilder::buildProductMetaBatch(
-      const std::vector<std::string>& peptides,
+      const std::vector<OpenMS::AASequence>& peptides,
       const std::vector<float>& charges,
       const std::vector<float>& nces,
       const std::vector<int64_t>& instrument_indices,

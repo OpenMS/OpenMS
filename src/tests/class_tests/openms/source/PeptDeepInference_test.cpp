@@ -8,6 +8,7 @@
 #include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <algorithm>
 #include <cmath>
@@ -70,6 +71,18 @@ static string getSequenceFromCSV(const vector<string>& fields, const map<string,
     return pep_seq;
 }
 
+// Helper to parse strings into OpenMS::AASequence objects for builder tests
+static std::vector<OpenMS::AASequence> parsePeptides(const std::vector<std::string>& peptides)
+{
+    std::vector<OpenMS::AASequence> parsed;
+    parsed.reserve(peptides.size());
+    for (const std::string& p : peptides)
+    {
+        parsed.push_back(OpenMS::AASequence::fromString(p));
+    }
+    return parsed;
+}
+
 START_TEST(PeptDeepInference, "$Id$")
 
 // Note: These paths will be resolved by the OpenMS CMake testing environment
@@ -105,7 +118,7 @@ START_SECTION(PeptDeepInputBuilder)
     STATUS("Testing shared PeptDeep input featurization...");
 
     vector<string> peptides = {"AGHCEWQMKYR", "PEPTIDE"};
-    ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPeptideBatch(peptides);
+    ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(peptides));
 
     TEST_EQUAL(batch.batch_size, 2);
     TEST_EQUAL(batch.sequence_length, 13);
@@ -122,7 +135,7 @@ START_SECTION(PeptDeepInputBuilder)
     vector<float> nces = {30.0f, 27.0f};
     vector<int64_t> instruments = {0, 2};
 
-    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildProductMetaBatch(peptides, charges, nces, instruments);
+    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildProductMetaBatch(parsePeptides(peptides), charges, nces, instruments);
 
     TEST_REAL_SIMILAR(instrument_batch.charges[0], 0.2f);
     TEST_REAL_SIMILAR(instrument_batch.charges[1], 0.3f);
@@ -133,7 +146,7 @@ START_SECTION(PeptDeepInputBuilder)
     STATUS("Testing native getDiffFormula() modification featurization (mod_x tensor)...");
 
     std::vector<std::string> mod_peptides = {"PEP(Oxidation)TIDE", "M(Oxidation)Y(Phospho)PEP"};
-    ML::PeptDeepInputBatch mod_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(mod_peptides);
+    ML::PeptDeepInputBatch mod_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(mod_peptides));
 
     TEST_EQUAL(mod_batch.batch_size, 2);
     TEST_EQUAL(mod_batch.sequence_length, 9);
@@ -157,7 +170,7 @@ START_SECTION(PeptDeepInputBuilder)
 
     STATUS("Testing terminal modifications...");
     std::vector<std::string> term_peptides = {"(Acetyl)PEPTIDE"};
-    ML::PeptDeepInputBatch term_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(term_peptides);
+    ML::PeptDeepInputBatch term_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(term_peptides));
 
     size_t acetyl_c_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 0;
     size_t acetyl_h_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
@@ -168,11 +181,8 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_o_idx], 1.0f);
 
     STATUS("Testing isotope tracking to specific channels...");
-    // "Label:13C(6)15N(2)" uses isotopes. OpenMS EmpiricalFormula returns "13C" and "15N".
-    // Since these ARE in the standard 109 ALPHAPEPTDEEP_MOD_ELEMENTS array,
-    // they should map to index 105 (13C) and index 106 (15N).
     std::vector<std::string> iso_peptides = {"K(Label:13C(6)15N(2))PEPTIDE"};
-    ML::PeptDeepInputBatch iso_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(iso_peptides);
+    ML::PeptDeepInputBatch iso_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(iso_peptides));
 
     size_t k_mod_pos = 1; // K is at index 1 (N-term padding is 0)
     size_t iso_13c_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 105;
@@ -183,7 +193,7 @@ START_SECTION(PeptDeepInputBuilder)
 
     STATUS("Testing parsed-length grouping logic...");
     std::vector<std::string> length_peptides = {"M(Oxidation)PEPT"};
-    ML::PeptDeepInputBatch length_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(length_peptides);
+    ML::PeptDeepInputBatch length_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(length_peptides));
     TEST_EQUAL(length_batch.sequence_length, 7);
 
     STATUS("Testing engine boundaries: Multi-modifications, batch mixing, and exceptions...");
@@ -191,7 +201,7 @@ START_SECTION(PeptDeepInputBuilder)
         "PEPTIDE",                             // Row 0: No mods
         "M(Oxidation)M(Oxidation)M(Oxidation)" // Row 1: Max mods
     };
-    ML::PeptDeepInputBatch mixed_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(mixed_peptides);
+    ML::PeptDeepInputBatch mixed_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(mixed_peptides));
 
     TEST_EQUAL(mixed_batch.batch_size, 2);
     TEST_EQUAL(mixed_batch.sequence_length, 9);
@@ -209,10 +219,10 @@ START_SECTION(PeptDeepInputBuilder)
     ML::PeptDeepInputConfig strict_config;
     strict_config.fixed_sequence_length = 5;
     std::vector<std::string> long_peptides = {"PEPTIDEK"};
-    TEST_EXCEPTION(Exception::IllegalArgument, ML::PeptDeepInputBuilder::buildPeptideBatch(long_peptides, strict_config));
+    TEST_EXCEPTION(Exception::IllegalArgument, ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(long_peptides), strict_config));
 
     std::vector<std::string> fake_peptides = {"PEP(FakeMod)TIDE"};
-    TEST_EXCEPTION(Exception::InvalidValue, ML::PeptDeepInputBuilder::buildPeptideBatch(fake_peptides));
+    TEST_EXCEPTION(Exception::InvalidValue, parsePeptides(fake_peptides));
 
 END_SECTION
 
