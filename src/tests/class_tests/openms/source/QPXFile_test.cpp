@@ -1573,6 +1573,24 @@ START_SECTION(([EXTRA] run_file_name resolves per PSM on a merged run))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] duplicate identification-run identifiers are refused by both merge-index preflights))
+{
+  auto prot = mergedRun({"/data/runA.mzML"});
+  ProteinIdentification duplicate = prot.front();
+  duplicate.setPrimaryMSRunPath({"/data/runB.mzML"});
+  prot.push_back(std::move(duplicate));
+
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  const auto ptrs = ptrsOf(peps);
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 QPXFile::requireResolvableMergeIndices(prot, peps))
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 QPXFile::requireResolvableMergeIndices(prot, ptrs))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] merged run without a usable id_merge_index is refused))
 {
   const StringList paths = {"/data/runA.mzML", "/data/runB.mzML"};

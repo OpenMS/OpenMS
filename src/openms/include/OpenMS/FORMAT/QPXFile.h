@@ -166,6 +166,7 @@ public:
     @param[in] protein_identifications Identification runs supplying @c spectra_data
     @param[in] peptide_identifications The PSMs about to be exported
     @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::InvalidValue if identification runs share an identifier
   */
   static void requireResolvableMergeIndices(
     const std::vector<ProteinIdentification>& protein_identifications,
@@ -180,6 +181,7 @@ public:
     @param[in] protein_identifications Identification runs supplying @c spectra_data
     @param[in] peptide_identifications The PSMs about to be exported
     @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::InvalidValue if identification runs share an identifier
   */
   static void requireResolvableMergeIndices(
     const std::vector<ProteinIdentification>& protein_identifications,

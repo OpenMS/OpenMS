@@ -77,12 +77,31 @@ namespace // anonymous
     return name;
   }
 
+  /// Refuse identification runs whose identifiers cannot uniquely select an MS-run path list.
+  void requireUniqueRunIdentifiers(const std::vector<ProteinIdentification>& protein_identifications)
+  {
+    std::set<std::string> seen_identifiers;
+    for (const auto& protein_identification : protein_identifications)
+    {
+      const std::string& identifier = protein_identification.getIdentifier();
+      if (!seen_identifiers.insert(identifier).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "QPXFile: several identification runs share the identifier '" + identifier
+          + "'. Their MS run paths cannot be told apart, so a PSM could be attributed to the wrong "
+          + "run file.", identifier);
+      }
+    }
+  }
+
   /// Build the run-identifier -> spectra_data mapping used to resolve each PSM's origin file.
   /// Duplicate 'spectra_data' across runs makes IdentifierMSRunMapper::create() throw, but the
   /// forward map (the only direction used here) is fully populated before that happens by design,
-  /// so the failure is downgraded to a warning - same idiom as TextExporter::buildUSIMapper_().
+  /// so that failure is downgraded to a warning. Duplicate identifiers are refused first because
+  /// they overwrite the forward map itself.
   IdentifierMSRunMapper buildRunMapper(const std::vector<ProteinIdentification>& protein_identifications)
   {
+    requireUniqueRunIdentifiers(protein_identifications);
     IdentifierMSRunMapper mapper;
     try
     {

@@ -518,7 +518,7 @@ namespace OpenMS
               "Could not resolve fraction group " + StringUtils::toStr(fraction_group) + ", label "
               + StringUtils::toStr(label) + " to a sample for normalization.");
           }
-          abundance *= scale_factors[sample_it->second];
+          abundance *= scaleFactorFor(sample_it->second);
         }
       }
 
