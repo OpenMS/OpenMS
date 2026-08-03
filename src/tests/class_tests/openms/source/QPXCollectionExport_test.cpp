@@ -62,6 +62,14 @@ namespace
     grp.getFloatDataArrays().resize(1);
     grp.getFloatDataArrays()[0].setName("abundances");
     for (Size i = 0; i < n_samples; ++i) { grp.getFloatDataArrays()[0].push_back(100.0f * (i + 1)); }
+    grp.getFloatDataArrays().resize(2);
+    grp.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+    grp.getFloatDataArrays()[1].push_back(100.0f);
+    grp.getIntegerDataArrays().resize(2);
+    grp.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+    grp.getIntegerDataArrays()[0].push_back(1);
+    grp.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+    grp.getIntegerDataArrays()[1].push_back(1);
     prot.insertIndistinguishableProteins(grp);
     cmap.setProteinIdentifications({prot});
     return cmap;
@@ -140,6 +148,34 @@ START_SECTION((static bool requireExportable(const ConsensusMap&, const Experime
 }
 END_SECTION
 
+START_SECTION(([EXTRA] requireExportable - refuses missing protein-identification prerequisites))
+{
+  const std::vector<std::string> paths = {"/d/F1.mzML"};
+
+  ConsensusMap no_ids = makeMap(paths);
+  no_ids.setProteinIdentifications({});
+  TEST_FALSE(QPXCollectionExport::requireExportable(no_ids, makeDesign(paths)))
+
+  ConsensusMap no_groups = makeMap(paths);
+  no_groups.getProteinIdentifications()[0].getIndistinguishableProteins().clear();
+  TEST_FALSE(QPXCollectionExport::requireExportable(no_groups, makeDesign(paths)))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] requireExportable - rejects the same duplicate run identifier as the feature writer))
+{
+  const std::vector<std::string> paths = {"/d/F1.mzML"};
+  ConsensusMap cmap = makeMap(paths);
+  auto duplicate = cmap.getProteinIdentifications()[0];
+  duplicate.setPrimaryMSRunPath({"/d/other.mzML"});
+  cmap.getProteinIdentifications().push_back(duplicate);
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 QPXCollectionExport::requireExportable(cmap, makeDesign(paths)))
+  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::exportToArrow(cmap))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] requireExportable - refuses what the feature view refuses))
 {
   // Divergent identifications: the feature view throws, so the collection must throw too --
@@ -168,6 +204,92 @@ START_SECTION(([EXTRA] requireExportable - refuses what the psm view refuses))
   // The feature view accepts it -- which is exactly why the collection-level check is needed.
   TEST_NOT_EQUAL(ConsensusMapArrowExport::exportToArrow(cmap), nullptr)
   TEST_EXCEPTION(Exception::MissingInformation, QPXCollectionExport::requireExportable(cmap, design))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] requireExportable - refuses an out-of-range design sample))
+{
+  const std::vector<std::string> paths = {"/d/F1.mzML"};
+  ConsensusMap cmap = makeMap(paths);
+  ExperimentalDesign design = makeDesign(paths);
+  auto section = design.getMSFileSection();
+  section[0].sample = 1; // sample section contains only index 0
+  design.setMSFileSection(section);
+
+  TEST_FALSE(QPXCollectionExport::requireExportable(cmap, design))
+  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, design), nullptr)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] requireExportable - refuses incomplete unit-level annotation arrays))
+{
+  const std::vector<std::string> paths = {"/d/F1.mzML"};
+  ConsensusMap cmap = makeMap(paths);
+  cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0]
+    .getIntegerDataArrays().pop_back();
+
+  TEST_FALSE(QPXCollectionExport::requireExportable(cmap, makeDesign(paths)))
+  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, makeDesign(paths)), nullptr)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] requireExportable - refuses conflicting label names within a fraction group))
+{
+  const std::vector<std::string> paths = {"/d/F1.mzML", "/d/F2.mzML"};
+  ConsensusMap cmap = makeMap(paths);
+  cmap.setExperimentType("labeled_MS2");
+  auto& first = cmap.getColumnHeaders()[0];
+  first.label = "tmt6plex_126";
+  first.setMetaValue("channel_name", "126");
+  first.setMetaValue("channel_id", 0);
+  auto& second = cmap.getColumnHeaders()[1];
+  second.label = "itraq4plex_114";
+  second.setMetaValue("channel_name", "114");
+  second.setMetaValue("channel_id", 0);
+
+  TEST_FALSE(QPXCollectionExport::requireExportable(cmap, makeDesign(paths)))
+  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, makeDesign(paths)), nullptr)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] requireExportable - refuses two channels with the same canonical label))
+{
+  const std::vector<std::string> paths = {"/d/plex.mzML"};
+  ConsensusMap cmap = makeMap(paths, 2);
+  cmap.setExperimentType("labeled_MS2");
+
+  auto& first = cmap.getColumnHeaders()[0];
+  first.label = "tmt6plex_126";
+  first.setMetaValue("channel_name", "126");
+  first.setMetaValue("channel_id", 0);
+  ConsensusMap::ColumnHeader second = first;
+  second.setMetaValue("channel_id", 1);
+  cmap.getColumnHeaders()[1] = second;
+
+  auto& group = cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
+  group.getFloatDataArrays()[1].push_back(200.0f);
+  group.getIntegerDataArrays()[0].push_back(1);
+  group.getIntegerDataArrays()[1].push_back(2);
+
+  ExperimentalDesign::MSFileSection section;
+  for (UInt label = 1; label <= 2; ++label)
+  {
+    ExperimentalDesign::MSFileSectionEntry entry;
+    entry.path = paths[0];
+    entry.fraction = 1;
+    entry.fraction_group = 1;
+    entry.label = label;
+    entry.sample = label - 1;
+    entry.sample_name = "S" + StringUtils::toStr(label);
+    section.push_back(entry);
+  }
+  ExperimentalDesign::SampleSection samples;
+  samples.addSample("S1");
+  samples.addSample("S2");
+  ExperimentalDesign design(section, samples);
+
+  TEST_FALSE(QPXCollectionExport::requireExportable(cmap, design))
+  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, design), nullptr)
 }
 END_SECTION
 
@@ -207,6 +329,17 @@ START_SECTION(([EXTRA] requireExportable - refuses a ragged design))
   grp.getFloatDataArrays()[0].setName("abundances");
   grp.getFloatDataArrays()[0].push_back(100.0f);
   grp.getFloatDataArrays()[0].push_back(200.0f);
+  grp.getFloatDataArrays().resize(2);
+  grp.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+  grp.getFloatDataArrays()[1].push_back(100.0f);
+  grp.getFloatDataArrays()[1].push_back(200.0f);
+  grp.getIntegerDataArrays().resize(2);
+  grp.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+  grp.getIntegerDataArrays()[0].push_back(1);
+  grp.getIntegerDataArrays()[0].push_back(1);
+  grp.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+  grp.getIntegerDataArrays()[1].push_back(1);
+  grp.getIntegerDataArrays()[1].push_back(2);
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 

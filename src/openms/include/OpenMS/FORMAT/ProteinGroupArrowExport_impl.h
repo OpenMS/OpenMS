@@ -22,59 +22,38 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <algorithm>
-#include <functional>
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
 namespace OpenMS::Internal
 {
 
-/// One label of a quantification unit, and the sample its quantity is stored under.
+/// One label of a quantification unit and the sample it resolves to in the design.
 struct QuantChannel
 {
   unsigned label = 1;      ///< design label / channel number, 1-based
-  Size sample = 0;         ///< index into the protein group's sample-level abundance array
+  Size sample = 0;         ///< design sample, retained to validate consistent run/sample resolution
   std::string qpx_label;   ///< QPX intensity label ("LFQ", "TMT126", ...)
 };
 
-/// One QPX quantification unit: the raw files aggregated into a single protein quantity,
-/// together with the sample each of its labels resolves to.
+/// One QPX quantification unit: exactly one OpenMS experimental-design fraction group.
 struct QuantUnit
 {
-  std::vector<std::string> runs;       ///< QPX run names, in (fraction group, fraction) order
+  UInt fraction_group = 0;             ///< OpenMS fraction_group defining this unit
+  std::vector<std::string> runs;       ///< QPX run names, in fraction order
   std::vector<QuantChannel> channels;  ///< one per label the unit's runs carry
 };
 
 /// The quantification units of an experimental design, indexed by run name.
 ///
-/// QPX 1.1 keys the pg view on the SET of files aggregated into one quantity (bigbio/qpx#220).
-/// In OpenMS that set is defined by the SAMPLE, because the sample is what the quantity is
-/// summed over: PeptideAndProteinQuant accumulates `total_abundances[sample] += abundance`
-/// across every fraction, file, charge and channel of that sample (PeptideAndProteinQuant.cpp),
-/// so the resulting per-file cells are not summands of the sample value and the files cannot be
-/// separated after the fact. It also matches how the spec says a row is resolved:
-/// "(any file in grouped_runs, label) -> run.samples[]".
-///
-/// A unit is a CONNECTED COMPONENT of the (run, sample) incidence: two runs belong together as
-/// soon as they share one sample, transitively. That is the weakest grouping under which no
-/// sample can straddle two units, which is what makes the spec's "any file in grouped_runs"
-/// well defined and stops one aggregated quantity from being published twice.
-///
-/// Two rules it deliberately is NOT:
-///  * the design's fraction_group -- share/OpenMS/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
-///    puts BSA1_F1 in fraction group 1 and BSA1_F2 in fraction group 4 while both are sample
-///    BSA1, so keying on it would emit that one sample quantity twice;
-///  * equality of a run's whole (label -> sample) map -- a design may simply be missing a row,
-///    which OpenMS accepts on purpose (ExperimentalDesign_test.cpp: "missing fractions and wrong
-///    orders should work now"). In ExperimentalDesign_input_2_wrong.tsv one fraction lacks its
-///    label-1 row; requiring equal maps would split that plex into separate units that then
-///    share samples, refusing a design the loader accepts.
-///
-/// Run names are File::stemName()'d design paths -- PeptideAndProteinQuant's own key
-/// convention for the design -- so the two sides agree by construction.
+/// Active QPX 1.1 defines OpenMS @c fraction_group as @c grouped_runs: all files in one fraction
+/// group form one quantity, and @c label is the orthogonal channel dimension. A sample may occur
+/// in several fraction groups (technical replicates or a shared reference) without joining them.
+/// PeptideAndProteinQuant preserves quantities at exactly this grain before protein aggregation.
 class QuantificationUnits
 {
 public:
@@ -105,15 +84,24 @@ public:
     {
       unsigned fraction_group = 0;
       unsigned fraction = 0;
+      bool initialized = false;
       std::map<unsigned, Size> label_sample;   ///< this run's label -> sample
     };
-    std::map<std::string, RunInfo> run_info;   // ordered, so the grouping below is deterministic
+    std::map<std::string, RunInfo> run_info;
+    const Size n_samples = design.getNumberOfSamples();
 
     for (const auto& entry : design.getMSFileSection())
     {
       const std::string run = ArrowIOHelpers::qpxRunFileName(entry.path);
       if (run.empty()) { continue; }
       if (!known_runs.count(run)) { dropped_runs_.insert(run); continue; }
+      if (entry.sample >= n_samples && invalid_sample_.empty())
+      {
+        invalid_sample_ = "run '" + run + "', label " + std::to_string(entry.label)
+                        + " refers to sample " + std::to_string(entry.sample)
+                        + ", but the sample section contains " + std::to_string(n_samples)
+                        + " sample(s)";
+      }
       if (!known_cells.count({run, entry.label}))
       {
         if (missing_cell_.empty())
@@ -125,8 +113,18 @@ public:
         continue;
       }
       auto& info = run_info[run];
-      info.fraction_group = entry.fraction_group;
-      info.fraction = entry.fraction;
+      if (!info.initialized)
+      {
+        info.fraction_group = entry.fraction_group;
+        info.fraction = entry.fraction;
+        info.initialized = true;
+      }
+      else if (info.fraction_group != entry.fraction_group && run_in_several_groups_.empty())
+      {
+        run_in_several_groups_ = "run '" + run + "' belongs to fraction groups "
+                               + std::to_string(info.fraction_group) + " and "
+                               + std::to_string(entry.fraction_group);
+      }
 
       // (path, label) is unique in a well-formed design, so a repeat with a different sample
       // means the design cannot say which sample this run's label belongs to.
@@ -134,60 +132,27 @@ public:
       if (!inserted && it->second != entry.sample) { inconsistent_ = true; }
     }
 
-    // -- Connected components of the (run, sample) incidence, by union-find over the runs --
-    std::vector<std::string> run_names;
-    for (const auto& [run, info] : run_info) { (void)info; run_names.push_back(run); }
-    std::vector<size_t> parent(run_names.size());
-    for (size_t i = 0; i < parent.size(); ++i) { parent[i] = i; }
-    std::function<size_t(size_t)> find = [&](size_t i) { while (parent[i] != i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
-    std::map<Size, size_t> first_run_of_sample;
-    for (size_t i = 0; i < run_names.size(); ++i)
+    std::map<UInt, std::vector<std::string>> runs_by_fraction_group;
+    for (const auto& [run, info] : run_info)
     {
-      for (const auto& [label, sample] : run_info.at(run_names[i]).label_sample)
-      {
-        (void)label;
-        auto [it, fresh] = first_run_of_sample.emplace(sample, i);
-        if (!fresh) { parent[find(i)] = find(it->second); }   // shares a sample -> same unit
-      }
+      runs_by_fraction_group[info.fraction_group].push_back(run);
     }
 
-    std::map<size_t, std::vector<std::string>> components;   // ordered by first run index
-    for (size_t i = 0; i < run_names.size(); ++i) { components[find(i)].push_back(run_names[i]); }
-
-    for (const auto& [root, runs] : components)
+    for (auto& [fraction_group, runs] : runs_by_fraction_group)
     {
-      (void)root;
       QuantUnit unit;
-      unit.runs = runs;
-      // Fraction order, so the list reads as the acquisition did rather than alphabetically.
+      unit.fraction_group = fraction_group;
+      unit.runs = std::move(runs);
       std::sort(unit.runs.begin(), unit.runs.end(),
                 [&run_info](const std::string& a, const std::string& b)
                 {
                   const auto& ia = run_info.at(a);
                   const auto& ib = run_info.at(b);
-                  return std::tie(ia.fraction_group, ia.fraction, a) <
-                         std::tie(ib.fraction_group, ib.fraction, b);
+                  return std::tie(ia.fraction, a) < std::tie(ib.fraction, b);
                 });
 
-      // A unit must be RECTANGULAR: every (label -> sample) cell it carries has to exist, with
-      // the same sample, in EVERY one of its runs. That is precisely the spec's resolution rule
-      // "(any file in grouped_runs, label) -> run.samples[]" -- "any file" only means anything
-      // when the mapping holds for all of them. Two ways it can fail, both refused because the
-      // row would name files that did not contribute to the sample it publishes:
-      //  * RAGGED: a run has no cell for a label the unit carries. Connectivity puts runs in one
-      //    component as soon as they share ONE sample, so a design missing a row bridges runs
-      //    whose remaining samples have smaller support -- the row would claim that run
-      //    aggregated a sample it never saw.
-      //  * AMBIGUOUS: two runs disagree about a label's sample. A common reference channel
-      //    shared across plexes joins the plexes, and the other channels then disagree.
-      // Plus the reverse direction: a sample reached by two labels of one unit would have its
-      // single aggregated number published twice.
-      // Naming a unit by its first run and a count keeps the diagnostic readable: a
-      // fractionated plex has dozens of runs.
-      const std::string unit_name = "the unit starting at '" + unit.runs.front() + "'"
-                                  + (unit.runs.size() > 1 ? " (" + std::to_string(unit.runs.size()) + " runs)" : "");
+      const std::string unit_name = "fraction group " + std::to_string(fraction_group);
       std::map<unsigned, Size> label_sample;
-      std::map<Size, unsigned> sample_label;
       for (const auto& run : unit.runs)
       {
         for (const auto& [label, sample] : run_info.at(run).label_sample)
@@ -199,13 +164,6 @@ public:
                              + " maps to sample " + std::to_string(ls->second) + " and sample "
                              + std::to_string(sample);
           }
-          auto [sl, sl_fresh] = sample_label.emplace(sample, label);
-          if (!sl_fresh && sl->second != label && duplicated_sample_.empty())
-          {
-            duplicated_sample_ = "sample " + std::to_string(sample) + " fills both label "
-                               + std::to_string(sl->second) + " and label " + std::to_string(label)
-                               + " of " + unit_name;
-          }
         }
       }
       for (const auto& run : unit.runs)
@@ -214,13 +172,21 @@ public:
         {
           if (run_info.at(run).label_sample.count(label)) { continue; }
           if (!ragged_unit_.empty()) { continue; }
-          ragged_unit_ = "run '" + run + "' of " + unit_name + " has no design row for label "
-                       + std::to_string(label) + ", but the unit carries sample "
-                       + std::to_string(sample) + " at that label";
+          ragged_unit_ = "run '" + run + "' of " + unit_name
+                       + " has no design row for label " + std::to_string(label)
+                       + ", which resolves to sample " + std::to_string(sample)
+                       + " in the other run(s)";
         }
       }
       for (const auto& [label, sample] : label_sample) { unit.channels.push_back(QuantChannel{label, sample, ""}); }
-      for (const auto& run : unit.runs) { unit_of_run_[run] = units_.size(); }
+      for (const auto& run : unit.runs)
+      {
+        auto [it, inserted] = unit_of_run_.emplace(run, units_.size());
+        if (!inserted && run_in_several_groups_.empty())
+        {
+          run_in_several_groups_ = "run '" + run + "' belongs to more than one fraction group";
+        }
+      }
       units_.push_back(std::move(unit));
     }
   }
@@ -228,8 +194,6 @@ public:
   bool empty() const { return units_.empty(); }
   /// A design assigning one (run, label) to several samples; the rows would be wrong.
   bool inconsistent() const { return inconsistent_; }
-  /// Non-empty when one sample fills several cells of a unit; the row would double-count it.
-  const std::string& duplicatedSample() const { return duplicated_sample_; }
   /// Non-empty when one label of a unit means several samples; the row cannot be written.
   const std::string& ambiguousLabel() const { return ambiguous_label_; }
   /// Non-empty when a unit's runs do not all carry every label it publishes.
@@ -238,6 +202,10 @@ public:
   const std::set<std::string>& droppedRuns() const { return dropped_runs_; }
   /// Non-empty when a run that IS in the map lacks a header for a label the design declares.
   const std::string& missingCell() const { return missing_cell_; }
+  /// Non-empty when a design row refers outside its sample section.
+  const std::string& invalidSample() const { return invalid_sample_; }
+  /// Non-empty when one run is assigned to multiple fraction groups.
+  const std::string& runInSeveralGroups() const { return run_in_several_groups_; }
   const std::vector<QuantUnit>& units() const { return units_; }
 
   /// Index of the unit containing @p run, or units().size() when the design does not list it.
@@ -249,16 +217,15 @@ public:
 
   /// Fill in every channel's QPX intensity label from @p label_for(run, channel_number).
   ///
-  /// A unit's runs are one sample measured several times, so they must agree on what a
-  /// channel is called. They are all consulted rather than only the first: a disagreement means
-  /// the fractions were labelled differently, which makes the single label the row can carry
-  /// arbitrary, and that is worth saying out loud even though the export can continue.
-  /// @return false if @p label_for could not name a channel; the caller must refuse the export.
+  /// Every run in a fraction group must agree on the canonical QPX label for a numeric channel.
+  /// @return false if a channel cannot be named, two runs disagree, or two channels resolve to
+  /// the same QPX label; the caller must refuse.
   template <typename LabelFor>
   bool resolveLabels(LabelFor label_for, const std::string& context)
   {
     for (auto& unit : units_)
     {
+      std::map<std::string, unsigned> label_to_channel;
       for (auto& channel : unit.channels)
       {
         channel.qpx_label = label_for(unit.runs.front(), channel.label);
@@ -268,10 +235,21 @@ public:
           const std::string other = label_for(unit.runs[i], channel.label);
           if (other == channel.qpx_label) { continue; }
           if (other.empty()) { return false; }             // already logged
-          OPENMS_LOG_WARN << context << ": runs '" << unit.runs.front() << "' and '" << unit.runs[i]
-                          << "' belong to one quantification unit but label channel "
-                          << channel.label << " differently ('" << channel.qpx_label << "' vs '"
-                          << other << "'). Keeping '" << channel.qpx_label << "'." << std::endl;
+          OPENMS_LOG_ERROR << context << ": runs '" << unit.runs.front() << "' and '"
+                           << unit.runs[i] << "' belong to fraction group " << unit.fraction_group
+                           << " but name label " << channel.label << " differently ('"
+                           << channel.qpx_label << "' vs '" << other
+                           << "'). A grouped row cannot choose one arbitrarily." << std::endl;
+          return false;
+        }
+        auto [label_it, label_inserted] = label_to_channel.emplace(channel.qpx_label, channel.label);
+        if (!label_inserted && label_it->second != channel.label)
+        {
+          OPENMS_LOG_ERROR << context << ": channels " << label_it->second << " and "
+                           << channel.label << " of fraction group " << unit.fraction_group
+                           << " both resolve to QPX label '" << channel.qpx_label
+                           << "'. They would duplicate the protein-group primary key." << std::endl;
+          return false;
         }
       }
     }
@@ -283,9 +261,10 @@ private:
   std::unordered_map<std::string, size_t> unit_of_run_;
   std::set<std::string> dropped_runs_;
   std::string missing_cell_;
-  std::string duplicated_sample_;
   std::string ambiguous_label_;
   std::string ragged_unit_;
+  std::string invalid_sample_;
+  std::string run_in_several_groups_;
   bool inconsistent_ = false;
 };
 
@@ -302,6 +281,72 @@ inline const ProteinIdentification::ProteinGroup::FloatDataArray* sampleAbundanc
     if (array.getName() == "abundances") { return &array; }
   }
   return nullptr;
+}
+
+/// Parsed parallel arrays carrying protein quantities at (fraction_group, label) grain.
+struct FractionGroupAbundanceData
+{
+  bool present = false;
+  bool valid = true;
+  std::string error;
+  std::map<std::pair<UInt, UInt>, float> values;
+};
+
+/// Read PeptideAndProteinQuant's named unit-level arrays and validate their parallel-key contract.
+inline FractionGroupAbundanceData fractionGroupAbundances(
+  const ProteinIdentification::ProteinGroup& group)
+{
+  constexpr const char* abundance_name = "fraction_group_level_abundance";
+  constexpr const char* fraction_group_name = "fraction_group_level_fraction_group";
+  constexpr const char* label_name = "fraction_group_level_label";
+
+  const ProteinIdentification::ProteinGroup::FloatDataArray* abundances = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+  for (const auto& array : group.getFloatDataArrays())
+  {
+    if (array.getName() == abundance_name) { abundances = &array; }
+  }
+  for (const auto& array : group.getIntegerDataArrays())
+  {
+    if (array.getName() == fraction_group_name) { fraction_groups = &array; }
+    else if (array.getName() == label_name) { labels = &array; }
+  }
+
+  FractionGroupAbundanceData result;
+  result.present = abundances != nullptr || fraction_groups != nullptr || labels != nullptr;
+  if (!result.present) { return result; }
+  if (abundances == nullptr || fraction_groups == nullptr || labels == nullptr)
+  {
+    result.valid = false;
+    result.error = "the fraction-group abundance, fraction-group key and label key arrays are not all present";
+    return result;
+  }
+  if (abundances->size() != fraction_groups->size() || abundances->size() != labels->size())
+  {
+    result.valid = false;
+    result.error = "the parallel fraction-group abundance arrays have different lengths";
+    return result;
+  }
+
+  for (Size i = 0; i < abundances->size(); ++i)
+  {
+    if ((*fraction_groups)[i] < 0 || (*labels)[i] <= 0)
+    {
+      result.valid = false;
+      result.error = "a fraction-group key is negative or a label key is not 1-based";
+      return result;
+    }
+    const auto key = std::make_pair(static_cast<UInt>((*fraction_groups)[i]),
+                                    static_cast<UInt>((*labels)[i]));
+    if (!result.values.emplace(key, (*abundances)[i]).second)
+    {
+      result.valid = false;
+      result.error = "the fraction-group abundance arrays contain a duplicate (fraction_group, label) key";
+      return result;
+    }
+  }
+  return result;
 }
 
 } // namespace OpenMS::Internal

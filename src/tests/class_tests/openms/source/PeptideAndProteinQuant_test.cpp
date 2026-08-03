@@ -338,6 +338,101 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
 }
 END_SECTION
 
+START_SECTION(([EXTRA] fraction-group/label quantities remain distinct before protein aggregation))
+{
+  // One sample is reused in two fraction groups. The established sample abundance is their sum,
+  // while QPX 1.1 needs two independently aggregated protein quantities.
+  ConsensusMap consensus;
+  consensus.setExperimentType("label-free");
+  for (Size i = 0; i < 2; ++i)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = i == 0 ? "/data/technical_a.mzML" : "/data/technical_b.mzML";
+    header.label = "label-free";
+    consensus.getColumnHeaders()[i] = header;
+  }
+
+  PeptideIdentification peptide_id;
+  peptide_id.setIdentifier("run");
+  PeptideHit peptide_hit;
+  peptide_hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  peptide_hit.setCharge(2);
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("PROT_A");
+  peptide_hit.setPeptideEvidences({evidence});
+  peptide_id.setHits({peptide_hit});
+
+  ConsensusFeature feature;
+  for (Size i = 0; i < 2; ++i)
+  {
+    BaseFeature handle;
+    handle.setIntensity(i == 0 ? 30.0 : 40.0);
+    feature.insert(i, handle);
+  }
+  feature.setPeptideIdentifications({peptide_id});
+  consensus.push_back(feature);
+
+  ProteinIdentification proteins;
+  proteins.setIdentifier("run");
+  ProteinHit protein_hit;
+  protein_hit.setAccession("PROT_A");
+  proteins.setHits({protein_hit});
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"PROT_A"};
+  proteins.insertIndistinguishableProteins(group);
+  consensus.setProteinIdentifications({proteins});
+
+  ExperimentalDesign::MSFileSection files;
+  for (Size i = 0; i < 2; ++i)
+  {
+    ExperimentalDesign::MSFileSectionEntry entry;
+    entry.path = i == 0 ? "/data/technical_a.mzML" : "/data/technical_b.mzML";
+    entry.label = 1;
+    entry.fraction = 1;
+    entry.fraction_group = static_cast<UInt>(i) + 1;
+    entry.sample = 0;
+    entry.sample_name = "S1";
+    files.push_back(entry);
+  }
+  ExperimentalDesign::SampleSection samples;
+  samples.addSample("S1");
+  ExperimentalDesign design(files, samples);
+
+  PeptideAndProteinQuant quantifier;
+  Param p;
+  p.setValue("top:include_all", "true");
+  quantifier.setParameters(p);
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+
+  const auto& peptide = quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEK"));
+  TEST_REAL_SIMILAR(peptide.total_abundances.at(0), 70.0)
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(1), 30.0)
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(2).at(1), 40.0)
+
+  quantifier.quantifyProteins(proteins);
+  const auto& protein = quantifier.getProteinResults().at("PROT_A");
+  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 70.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 30.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(2).at(1), 40.0)
+
+  quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, false);
+  const auto& annotated = proteins.getIndistinguishableProteins()[0];
+  const auto& float_arrays = annotated.getFloatDataArrays();
+  const auto& integer_arrays = annotated.getIntegerDataArrays();
+  TEST_STRING_EQUAL(float_arrays[4].getName(), "fraction_group_level_abundance")
+  TEST_STRING_EQUAL(integer_arrays[2].getName(), "fraction_group_level_fraction_group")
+  TEST_STRING_EQUAL(integer_arrays[3].getName(), "fraction_group_level_label")
+  TEST_EQUAL(float_arrays[4].size(), 2)
+  TEST_REAL_SIMILAR(float_arrays[4][0], 30.0)
+  TEST_REAL_SIMILAR(float_arrays[4][1], 40.0)
+  TEST_EQUAL(integer_arrays[2][0], 1)
+  TEST_EQUAL(integer_arrays[2][1], 2)
+  TEST_EQUAL(integer_arrays[3][0], 1)
+  TEST_EQUAL(integer_arrays[3][1], 1)
+}
+END_SECTION
+
 START_SECTION((void quantifyPeptides(const PeptideIdentificationList& peptides = PeptideIdentificationList())))
 {
   NOT_TESTABLE // tested together with the "readQuantData" methods
@@ -496,6 +591,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   TEST_EQUAL(prot_data.peptide_abundances.size(), 3);
   TEST_EQUAL(prot_data.total_abundances.size(), 1);
   TEST_REAL_SIMILAR(prot_data.total_abundances[0], 4711);
+  TEST_REAL_SIMILAR(prot_data.fraction_group_abundances.at(1).at(1), 4711);
   TEST_EQUAL(prot_data.psm_count, 6);
   prot_data = prot_quant["Protein1"];
   TEST_EQUAL(prot_data.peptide_abundances.size(), 1);
@@ -520,6 +616,7 @@ START_SECTION(([PeptideAndProteinQuant::PeptideData] PeptideData()))
   PeptideAndProteinQuant::PeptideData data;
   TEST_EQUAL(data.abundances.empty(), true);
   TEST_EQUAL(data.total_abundances.empty(), true);
+  TEST_EQUAL(data.fraction_group_abundances.empty(), true);
   TEST_EQUAL(data.accessions.empty(), true);
   TEST_EQUAL(data.psm_count, 0);
 }
@@ -529,7 +626,9 @@ START_SECTION(([PeptideAndProteinQuant::ProteinData] ProteinData()))
 {
   PeptideAndProteinQuant::ProteinData data;
   TEST_EQUAL(data.peptide_abundances.empty(), true);
+  TEST_EQUAL(data.peptide_fraction_group_abundances.empty(), true);
   TEST_EQUAL(data.total_abundances.empty(), true);
+  TEST_EQUAL(data.fraction_group_abundances.empty(), true);
   TEST_EQUAL(data.psm_count, 0);
 }
 END_SECTION
@@ -724,4 +823,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

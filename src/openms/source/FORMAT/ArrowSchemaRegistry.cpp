@@ -503,14 +503,6 @@ namespace OpenMS
     return arrow::list(arrow::utf8());
   }
 
-  std::shared_ptr<arrow::DataType> QPXPgSchema::intensitiesType()
-  {
-    return arrow::list(arrow::struct_({
-      arrow::field("label", arrow::utf8(), /*nullable=*/false),
-      arrow::field("intensity", arrow::float32(), /*nullable=*/false)
-    }));
-  }
-
   std::shared_ptr<arrow::DataType> QPXPgSchema::additionalIntensitiesType()
   {
     auto int_pair_type = arrow::struct_({
@@ -569,7 +561,8 @@ namespace OpenMS
       arrow::field(GROUPED_RUNS, groupedRunsType(), /*nullable=*/false),
       arrow::field(GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_QVALUE, arrow::float64()),
-      arrow::field(INTENSITIES, intensitiesType()),
+      arrow::field(LABEL, arrow::utf8()),
+      arrow::field(INTENSITY, arrow::float32()),
       arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
       arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
       arrow::field(CONTAMINANT, arrow::boolean()),

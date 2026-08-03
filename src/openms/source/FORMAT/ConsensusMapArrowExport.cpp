@@ -1327,6 +1327,17 @@ void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& cmap)
 {
   // Builds its own mapper so the check is usable without the rest of buildFeatureIdLookups().
   // The in-exporter paths pass the lookup's mapper instead, to avoid building it twice.
+  std::set<std::string> seen_identifiers;
+  for (const auto& prot_id : cmap.getProteinIdentifications())
+  {
+    if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ConsensusMapArrowExport: several identification runs share the identifier '"
+        + prot_id.getIdentifier() + "'. Their MS run paths cannot be told apart, so a feature "
+        "would be attributed to the wrong run file.", prot_id.getIdentifier());
+    }
+  }
   IdentifierMSRunMapper mapper;
   try { mapper.create(cmap.getProteinIdentifications()); }
   catch (const Exception::InvalidValue&) { /* duplicate path lists; forward map is complete */ }

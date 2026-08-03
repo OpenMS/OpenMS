@@ -54,27 +54,28 @@ public:
   /**
     @brief Export protein group data to Apache Arrow Table
 
-    Exports indistinguishable protein groups following the QPX pg schema. One row is emitted per
-    protein group per <b>quantification unit</b>, and @c grouped_runs lists that unit's raw files.
+    Exports indistinguishable protein groups following the active QPX 1.1 pg schema. One row is
+    emitted per protein group, experimental-design @c fraction_group, and label. @c grouped_runs
+    lists that fraction group's raw files, while scalar @c label and @c intensity carry one
+    quantity. Together with @c anchor_protein these columns form the primary key.
 
-    A quantification unit is a connected component of the (run, sample) incidence — runs join as
-    soon as they share one sample — and it must be <b>rectangular</b>: every (label, sample) cell
-    the unit publishes has to exist in every one of its runs, which is what makes the spec's
-    "(any file in grouped_runs, label) -> run.samples[]" resolvable. Designs that are ragged or
-    that disagree about a label are refused rather than given an overstated key. QPX 1.1 (bigbio/qpx#220) keys this view on that set
-    rather than on a single file, because a protein group's abundance is not separable per file:
-    PeptideAndProteinQuant sums a peptide's abundances over every fraction, file, charge and
-    channel of a sample, so the per-file cells are not summands of the sample value. Each row
-    therefore carries the <b>sample-level</b> abundance (the group's @c abundances float data
-    array), one @c intensities entry per label the unit's runs carry.
+    A fraction group must be <b>rectangular</b>: every label it publishes has to exist in every one
+    of its runs, which makes "(any file in grouped_runs, label) -> run.samples[]" resolvable.
+    Designs that are ragged, assign one run to several fraction groups, or disagree about a label
+    are refused. Reusing one sample in several fraction groups is valid and does not join them.
 
-    Groups without quantification are melted onto the units in which a member accession has
-    peptide evidence, with null @c intensities.
+    PeptideAndProteinQuant calculates protein quantities at @c (fraction_group, label) grain before
+    protein aggregation and annotates them in named parallel data arrays. The exporter refuses a
+    legacy sample-only annotation because an experiment-wide sample abundance cannot be split back
+    into independent fraction-group quantities.
+
+    Groups without quantification are melted onto the fraction groups in which a member accession
+    has peptide evidence, with null @c label and @c intensity.
 
     @param[in] cmap The ConsensusMap with annotated protein group quantification
-    @param[in] design The experimental design that was used to quantify @p cmap. It defines both
-               the run grouping and the sample index space of the groups' abundance arrays, so passing a different design silently mislabels the intensities; the
-               sample count is checked against the array length as a partial guard.
+    @param[in] design The experimental design that was used to quantify @p cmap. It defines the
+               exact fraction-group/label keys and their grouped runs. The exporter checks those
+               keys against every quantified protein group.
     @return Shared pointer to Arrow Table, or nullptr on error
   */
   static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
@@ -127,7 +128,7 @@ public:
 
     For search-engine output where no ConsensusMap is available. Populates required
     QPX pg fields (pg_accessions, anchor_protein, grouped_runs, is_decoy, peptides)
-    and sets quantification columns (intensities, additional_intensities) to null.
+    and sets quantification columns (label, intensity, additional_intensities) to null.
 
     This emits <b>one row per protein group per run</b>: the runs are those in which a member
     accession has peptide evidence, resolved per PSM through IdentifierMSRunMapper. A group in a
@@ -146,7 +147,7 @@ public:
     @param[in] peptide_identifications Peptide identifications (for peptide-per-protein counts)
     @return Shared pointer to Arrow Table (empty table if no groups), or nullptr if an Arrow
             builder fails
-    @throw Exception::MissingInformation if a PSM belongs to a merged run but carries no usable
+    @throws Exception::MissingInformation if a PSM belongs to a merged run but carries no usable
            @c id_merge_index, so its origin file -- and with it the row's key -- is undetermined
   */
   static std::shared_ptr<arrow::Table> exportToArrow(

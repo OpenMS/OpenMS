@@ -518,7 +518,7 @@ END_SECTION
 START_SECTION(QPXPgSchema::schema())
 {
   auto schema = QPXPgSchema::schema();
-  TEST_EQUAL(schema->num_fields(), 20)
+  TEST_EQUAL(schema->num_fields(), 21)
 
   // Required (non-nullable) fields
   TEST_EQUAL(schema->GetFieldByName("pg_accessions")->nullable(), false)
@@ -528,7 +528,9 @@ START_SECTION(QPXPgSchema::schema())
   TEST_EQUAL(schema->GetFieldByName("peptides")->nullable(), false)
 
   // Nullable (optional) fields
-  TEST_EQUAL(schema->GetFieldByName("intensities")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("label")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("intensity")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("intensities"), nullptr)
   TEST_EQUAL(schema->GetFieldByName("additional_intensities")->nullable(), true)
   TEST_EQUAL(schema->GetFieldByName("global_qvalue")->nullable(), true)
   TEST_EQUAL(schema->GetFieldByName("pg_qvalue")->nullable(), true)
@@ -570,7 +572,7 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 20)
+  TEST_EQUAL(table->num_columns(), 21)
 
   // Verify grouped_runs is derived from ProteinIdentification, without path or extension.
   // Identification input has no design to aggregate over, so the list holds exactly one run.
@@ -583,9 +585,9 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
   auto anchor_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("anchor_protein")->chunk(0));
   TEST_STRING_EQUAL(anchor_col->GetString(0), "PROT_A")
 
-  // Verify intensities is null (no quantification)
-  auto int_col = table->GetColumnByName("intensities")->chunk(0);
-  TEST_EQUAL(int_col->IsNull(0), true)
+  // Verify scalar quantity columns are null (no quantification)
+  TEST_TRUE(table->GetColumnByName("label")->chunk(0)->IsNull(0))
+  TEST_TRUE(table->GetColumnByName("intensity")->chunk(0)->IsNull(0))
 
   // is_decoy
   auto is_decoy_col = std::static_pointer_cast<arrow::BooleanArray>(
@@ -638,14 +640,14 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
-  TEST_EQUAL(table->num_columns(), 20)
+  TEST_EQUAL(table->num_columns(), 21)
 }
 END_SECTION
 
 START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not channel numbers))
 {
-  // intensities[].label is a join key (i.label = rs.label against run.samples), so it must
-  // carry a canonical channel token. This covers the isobaric path, which has no TOPP test.
+  // The scalar pg label is a join key against run.samples, so it must carry a canonical channel
+  // token. This covers the isobaric path, which has no TOPP test.
   //
   // Deliberately does NOT call setExperimentType: IsobaricWorkflow never does either, so the
   // mapping has to work off the headers' channel_id meta value alone.
@@ -681,17 +683,26 @@ START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not ch
     {
       group.getFloatDataArrays()[0].push_back(1000.0f * (c + 1));
     }
+    group.getFloatDataArrays().resize(2);
+    group.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+    group.getIntegerDataArrays().resize(2);
+    group.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+    group.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+    for (Size c = 0; c < channel_names.size(); ++c)
+    {
+      group.getFloatDataArrays()[1].push_back(1000.0f * (c + 1));
+      group.getIntegerDataArrays()[0].push_back(1);
+      group.getIntegerDataArrays()[1].push_back(static_cast<Int>(c + 1));
+    }
     prot_id.insertIndistinguishableProteins(group);
     cmap.setProteinIdentifications({prot_id});
     return cmap;
   };
 
-  auto labels_of = [](const std::shared_ptr<arrow::Table>& t)
+  auto pg_labels = [](const std::shared_ptr<arrow::Table>& t)
   {
     std::vector<std::string> out;
-    auto col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
-    auto st = std::static_pointer_cast<arrow::StructArray>(col->values());
-    auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+    auto lab = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("label")->chunk(0));
     for (int64_t i = 0; i < lab->length(); ++i) { out.push_back(lab->GetString(i)); }
     return out;
   };
@@ -703,8 +714,8 @@ START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not ch
       {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"});
     auto t = ProteinGroupArrowExport::exportToArrow(cmap);
     TEST_NOT_EQUAL(t, nullptr)
-    TEST_EQUAL(t->num_rows(), 1)
-    auto labels = labels_of(t);
+    TEST_EQUAL(t->num_rows(), 10)
+    auto labels = pg_labels(t);
     TEST_EQUAL(labels.size(), 10)
     TEST_STRING_EQUAL(labels[0], "TMT126")
     TEST_STRING_EQUAL(labels[1], "TMT127N")
@@ -722,7 +733,7 @@ START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not ch
     auto cmap = build_map("itraq4plex", {"114","115","116","117"});
     auto t = ProteinGroupArrowExport::exportToArrow(cmap);
     TEST_NOT_EQUAL(t, nullptr)
-    auto labels = labels_of(t);
+    auto labels = pg_labels(t);
     TEST_EQUAL(labels.size(), 4)
     TEST_STRING_EQUAL(labels[0], "ITRAQ114")
     TEST_STRING_EQUAL(labels[3], "ITRAQ117")
@@ -745,8 +756,8 @@ START_SECTION(([EXTRA] the three QPX views agree on their run names))
   // headers, and the quant/evidence arrays) -- agree on one spelling.
   //
   // Note this asserts the join key, not the join to run.parquet: OpenMS does not write
-  // run.parquet (the qpx converter generates it from SDRF), so intensities[].label can only
-  // be checked for canonical shape, not for actually matching run.samples[].label.
+  // run.parquet (the qpx converter generates it from SDRF), so the quantity label can only be
+  // checked for canonical shape, not for actually matching run.samples[].label.
   const std::vector<std::string> paths = {"/data/frac_a/RUN_ONE.mzML", "/data/frac_b/RUN_TWO.mzML"};
 
   ConsensusMap cmap;
@@ -779,6 +790,17 @@ START_SECTION(([EXTRA] the three QPX views agree on their run names))
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   for (Size m = 0; m < paths.size(); ++m) { grp.getFloatDataArrays()[0].push_back(100.0f * (m + 1)); }
+  grp.getFloatDataArrays().resize(2);
+  grp.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+  grp.getIntegerDataArrays().resize(2);
+  grp.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+  grp.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    grp.getFloatDataArrays()[1].push_back(100.0f * (m + 1));
+    grp.getIntegerDataArrays()[0].push_back(static_cast<Int>(m + 1));
+    grp.getIntegerDataArrays()[1].push_back(1);
+  }
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -866,9 +888,19 @@ START_SECTION(([EXTRA] the three QPX views agree on their run names))
     for (int64_t i = 0; i < lab->length(); ++i) { out.insert(lab->GetString(i)); }
     return out;
   };
+  auto pg_labels = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto labels = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("label")->chunk(0));
+    for (int64_t i = 0; i < labels->length(); ++i)
+    {
+      if (!labels->IsNull(i)) { out.insert(labels->GetString(i)); }
+    }
+    return out;
+  };
   const std::set<std::string> lfq = {"LFQ"};
   TEST_TRUE(labels_of(feat_t) == lfq)
-  TEST_TRUE(labels_of(pg_t) == lfq)
+  TEST_TRUE(pg_labels(pg_t) == lfq)
 }
 END_SECTION
 
@@ -1552,6 +1584,9 @@ START_SECTION(([EXTRA] merged run without a usable id_merge_index is refused))
     peps.push_back(mergedPSM("PEPTIDEK", 0));
     peps.push_back(mergedPSM("TESTPEPTIDER", 0, /*set_index=*/false));
     auto ptrs = ptrsOf(peps);
+
+    TEST_EXCEPTION(Exception::MissingInformation,
+                   QPXFile::requireResolvableMergeIndices(prot, ptrs))
 
     std::string f1; NEW_TMP_FILE(f1)
     TEST_EXCEPTION(Exception::MissingInformation, QPXFile::exportToParquet(prot, peps, f1))

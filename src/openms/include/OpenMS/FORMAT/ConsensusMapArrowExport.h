@@ -73,7 +73,7 @@ public:
           std::terminate.
 
     @param[in] cmap The map about to be exported
-    @throw Exception::IllegalArgument if any feature has divergent peptide annotations
+    @throws Exception::IllegalArgument if any feature has divergent peptide annotations
   */
   static void requireUnambiguousIdentities(const ConsensusMap& cmap);
 
@@ -92,7 +92,7 @@ public:
           region and before the output file is opened.
 
     @param[in] cmap The map about to be exported
-    @throw Exception::MissingInformation if a feature's winning identification belongs to a
+    @throws Exception::MissingInformation if a feature's winning identification belongs to a
            merged run but carries no usable @c id_merge_index
   */
   static void requireResolvableIdRuns(const ConsensusMap& cmap);

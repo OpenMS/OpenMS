@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <functional>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -122,7 +123,7 @@ namespace // anonymous
     return runs;
   }
 
-  /// Track emitted (anchor_protein, grouped_runs) pairs -- the QPX pg primary key -- and report
+  /// Track emitted (anchor_protein, grouped_runs, label) tuples -- the QPX pg primary key -- and report
   /// duplicates once per export.
   ///
   /// Two ProteinIdentifications whose paths share a stem, a repeated accession group, or two
@@ -135,14 +136,19 @@ namespace // anonymous
   class PrimaryKeyWatch
   {
   public:
-    void add(const std::string& anchor, const std::vector<std::string>& runs)
+    void add(const std::string& anchor, const std::vector<std::string>& runs,
+             const std::optional<std::string>& label)
     {
-      // The run list is emitted in a fixed order per unit, so concatenating is enough to
-      // recognise a repeat -- two rows that name the same files always name them alike.
-      const std::string key = ListUtils::concatenate(StringList(runs.begin(), runs.end()), "+");
-      if (!seen_.emplace(anchor, key).second && examples_.size() < 3)
+      // QPX stores fraction order but compares grouped_runs set-wise for primary-key identity.
+      // Canonicalize only the watch key; never reorder the emitted list.
+      std::vector<std::string> canonical_runs = runs;
+      std::sort(canonical_runs.begin(), canonical_runs.end());
+      const std::string key =
+        ListUtils::concatenate(StringList(canonical_runs.begin(), canonical_runs.end()), "+");
+      const auto pk = std::make_tuple(anchor, key, label);
+      if (!seen_.insert(pk).second && examples_.size() < 3)
       {
-        examples_.push_back(anchor + " / " + key);
+        examples_.push_back(anchor + " / " + key + " / " + label.value_or("<null>"));
       }
       ++emitted_;
     }
@@ -152,14 +158,14 @@ namespace // anonymous
       const size_t duplicates = emitted_ - seen_.size();
       if (duplicates == 0) { return; }
       OPENMS_LOG_WARN << context << ": " << duplicates << " of " << emitted_
-                      << " rows repeat an (anchor_protein, grouped_runs) primary key, e.g. "
+                      << " rows repeat an (anchor_protein, grouped_runs, label) primary key, e.g. "
                       << ListUtils::concatenate(StringList(examples_.begin(), examples_.end()), "; ")
-                      << ". The rows are kept, but consumers keying on the pair will see collisions."
+                      << ". The rows are kept, but consumers keying on the tuple will see collisions."
                       << std::endl;
     }
 
   private:
-    std::set<std::pair<std::string, std::string>> seen_;
+    std::set<std::tuple<std::string, std::string, std::optional<std::string>>> seen_;
     std::vector<std::string> examples_;
     size_t emitted_ = 0;
   };
@@ -273,10 +279,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   // -- Quantification units --
   //
-  // QPX 1.1 emits one row per (group, quantification unit); a unit is the set of run files the
-  // design aggregates into one sample. A design that maps one (run, label) onto several samples
-  // has no such unit and would silently pick one of the samples, so it is refused rather than
-  // guessed at.
+  // Active QPX 1.1 emits one row per (group, fraction_group, label). grouped_runs is exactly the
+  // set of run files in that experimental-design fraction group; sample identity does not join
+  // fraction groups.
   // (run, label) cells the map actually has a column header for. Cell-level, not run-level: a
   // design channel with no header would otherwise enter the unit and be given an invented
   // intensity label by labelFor() below -- a documented join key that resolves to nothing.
@@ -297,26 +302,36 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
                      << std::endl;
     return nullptr;
   }
+  if (!units.invalidSample().empty())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.invalidSample()
+                     << ". The experimental design cannot index the quantified abundances."
+                     << std::endl;
+    return nullptr;
+  }
+  if (!units.runInSeveralGroups().empty())
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.runInSeveralGroups()
+                     << ". QPX requires grouped_runs to be disjoint within one label."
+                     << std::endl;
+    return nullptr;
+  }
   if (!units.missingCell().empty())
   {
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.missingCell()
                      << ". The experimental design and the data disagree about the channel "
                         "layout -- an isobaric method with fewer channels than the design lists "
-                        "is the usual cause. Writing that cell would put an invented "
-                        "intensities[].label in the row, which joins to nothing." << std::endl;
+                        "is the usual cause. Writing that cell would put an invented label in "
+                        "the row, which joins to nothing." << std::endl;
     return nullptr;
   }
   if (!units.ambiguousLabel().empty())
   {
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.ambiguousLabel()
-                     << ". A pg row carries one intensity per label, so a label that means two "
-                        "different samples within one quantification unit cannot be written. A "
-                        "common reference channel shared across plexes is the usual cause: the "
-                        "shared sample joins the plexes into one unit, and the remaining channels "
-                        "then disagree about what each label means. In a design converted from "
-                        "SDRF the Sample column comes from 'source name' (sdrf-pipelines), so "
-                        "giving the reference a distinct source name per plex keeps the plexes "
-                        "apart." << std::endl;
+                     << ". A pg row carries one scalar label and intensity, so a label that means two "
+                        "different samples across the fractions of one fraction group cannot be "
+                        "written. Correct the design so each label has one sample within that "
+                        "fraction group." << std::endl;
     return nullptr;
   }
   if (!units.raggedUnit().empty())
@@ -329,15 +344,6 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
                         "in fewer files." << std::endl;
     return nullptr;
   }
-  if (!units.duplicatedSample().empty())
-  {
-    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: " << units.duplicatedSample()
-                     << ". A sample carries ONE aggregated quantity, so writing it into both "
-                        "cells would publish the same number twice as if two measurements had "
-                        "been made, and a consumer adding the cells up would double-count it."
-                     << std::endl;
-    return nullptr;
-  }
   if (!units.droppedRuns().empty())
   {
     OPENMS_LOG_INFO << "ProteinGroupArrowExport: " << units.droppedRuns().size()
@@ -346,9 +352,11 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
                     << "'. They contributed no quantification." << std::endl;
   }
 
-  // Estimate number of rows: one per group per quantification unit (or per evidence run when the
-  // group carries no quantification, which is bounded by the number of units in practice).
-  const Size estimated_rows = groups.size() * std::max<Size>(units.units().size(), 1);
+  // Quantified groups emit one row per (fraction_group, label). Identification-only groups emit
+  // one row per evidence unit, which is bounded well enough by the same minimum reservation.
+  Size quantities_per_group = 0;
+  for (const auto& unit : units.units()) { quantities_per_group += unit.channels.size(); }
+  const Size estimated_rows = groups.size() * std::max<Size>(quantities_per_group, 1);
 
   // -- Simple column builders --
   arrow::StringBuilder anchor_protein_builder;
@@ -371,17 +379,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   auto gg_names_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder gg_names_builder(arrow::default_memory_pool(), gg_names_vb);
 
-  // -- intensities: list<struct{label: utf8 not null, intensity: float32 not null}> --
-  auto intensity_struct_type = arrow::struct_({
-    arrow::field("label", arrow::utf8(), /*nullable=*/false),
-    arrow::field("intensity", arrow::float32(), /*nullable=*/false)
-  });
-  auto int_label_b = std::make_shared<arrow::StringBuilder>();
-  auto int_value_b = std::make_shared<arrow::FloatBuilder>();
-  auto int_struct_b = std::make_shared<arrow::StructBuilder>(
-    intensity_struct_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{int_label_b, int_value_b});
-  arrow::ListBuilder intensities_builder(arrow::default_memory_pool(), int_struct_b);
+  // -- scalar quantity columns; nullable for identification-only evidence rows --
+  arrow::StringBuilder label_builder;
+  arrow::FloatBuilder intensity_builder;
 
   // -- additional_intensities: list<struct{label: utf8 not null, intensities: list<struct{intensity_name: utf8 not null, intensity_value: float32 not null}> not null}> --
   auto int_pair_type = arrow::struct_({
@@ -475,6 +475,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: global_qvalue Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = pg_qvalue_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: pg_qvalue Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = label_builder.Reserve(estimated_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: label Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensity_builder.Reserve(estimated_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: intensity Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = gg_qvalue_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: gg_qvalue Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = sequence_coverage_builder.Reserve(estimated_rows);
@@ -486,14 +490,15 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   status = contaminant_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: contaminant Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Helper lambda to emit one row for a protein group + quantification unit
+  // Helper lambda to emit one row for a protein group + fraction-group/label quantity.
   PrimaryKeyWatch pk_watch;
   auto emitRow = [&](const ProteinIdentification::ProteinGroup& group,
                      const std::vector<std::string>& runs,
-                     const std::vector<std::pair<std::string, float>>& channel_intensities)
+                     const std::optional<std::string>& label,
+                     const std::optional<float>& intensity)
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
-    pk_watch.add(anchor, runs);
+    pk_watch.add(anchor, runs, label);
 
     // anchor_protein
     (void)anchor_protein_builder.Append(anchor);
@@ -551,27 +556,21 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     // pg_qvalue - not per-run in OpenMS
     (void)pg_qvalue_builder.AppendNull();
 
-    // intensities -- null, not an empty list, for a row the group was only identified in. An
-    // empty list reads as "quantified across zero channels"; null is the same "no quantification"
-    // the identification-only overload writes, so one column does not mean two things depending
-    // on which overload produced the file.
-    if (channel_intensities.empty())
+    // label/intensity are both null for a row backed only by identification evidence.
+    if (!label.has_value())
     {
-      (void)intensities_builder.AppendNull();
+      (void)label_builder.AppendNull();
+      (void)intensity_builder.AppendNull();
     }
     else
     {
-      (void)intensities_builder.Append();
-      for (const auto& [label, intensity] : channel_intensities)
-      {
-        (void)int_struct_b->Append();
-        (void)int_label_b->Append(label);
-        (void)int_value_b->Append(intensity);
-      }
+      (void)label_builder.Append(*label);
+      (void)intensity_builder.Append(*intensity);
     }
 
-    // additional_intensities - empty for now
-    (void)additional_intensities_builder.Append();
+    // additional_intensities - empty for quantified rows, null for identification-only rows.
+    if (label.has_value()) { (void)additional_intensities_builder.Append(); }
+    else                   { (void)additional_intensities_builder.AppendNull(); }
 
     // is_decoy
     auto anchor_it = hit_lookup.find(anchor);
@@ -728,8 +727,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // unit carries has an entry here.
   //
   // It used to invent one -- "LFQ" for channel 1, silently, or the bare channel number, warned
-  // once per export so every further channel was silent. intensities[].label is a documented
-  // join key against run.samples[].label, so an invented token resolves to nothing: a TMT10-
+  // once per export so every further channel was silent. The scalar label is a documented join
+  // key against run.samples[].label, so an invented token resolves to nothing: a TMT10-
   // shaped design against a 6-plex map wrote a pg view carrying "7".."10" and exited 0. The
   // feature view refuses an unnameable channel (ConsensusMapArrowExport), and so does this one
   // now. Keeping the branch as a refusal rather than deleting it makes the coupling between the
@@ -740,83 +739,107 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     auto it = channel_labels.find({run, static_cast<UInt>(channel)});
     if (it != channel_labels.end()) { return it->second; }
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: no column header describes channel " << channel
-                     << " of run '" << run << "', so its intensities[].label cannot be named and "
+                     << " of run '" << run << "', so its label cannot be named and "
                         "would not join against run.parquet." << std::endl;
     return "";
   };
   if (!units.resolveLabels(labelFor, "ProteinGroupArrowExport")) { return nullptr; }
 
+  std::set<std::pair<UInt, UInt>> expected_quantity_keys;
+  for (const auto& unit : units.units())
+  {
+    for (const auto& channel : unit.channels)
+    {
+      expected_quantity_keys.emplace(unit.fraction_group, channel.label);
+    }
+  }
+
   // Iterate protein groups and emit rows
   Size unattributable_groups = 0;
   for (const auto& group : groups)
   {
-    // Quantified means: the group carries the sample-level abundance array, and it is indexed by
-    // the sample space of the design we were handed. A length mismatch is the one way to notice
-    // that the caller passed a design other than the one used to quantify -- the samples would
-    // otherwise be read under a foreign numbering, silently attaching one sample's quantity to
-    // another's runs.
-    const auto* abundances = sampleAbundances(group);
-    if (abundances != nullptr && abundances->size() != design.getNumberOfSamples())
+    // The legacy sample abundance array identifies a quantified group and remains part of the
+    // mzTab-facing annotation. QPX must read the new fraction-group/label arrays: a sample may
+    // occur in multiple fraction groups, so its experiment-wide abundance cannot be split back
+    // into the independent quantities after protein aggregation.
+    const auto* sample_abundances = sampleAbundances(group);
+    const FractionGroupAbundanceData quantities = fractionGroupAbundances(group);
+    if (!quantities.valid)
+    {
+      OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                       << (group.accessions.empty() ? "" : group.accessions[0]) << "' has invalid "
+                       << "fraction-group abundance annotations: " << quantities.error << "."
+                       << std::endl;
+      return nullptr;
+    }
+    if (sample_abundances != nullptr && sample_abundances->size() != design.getNumberOfSamples())
     {
       OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
                        << (group.accessions.empty() ? "" : group.accessions[0]) << "' carries "
-                       << abundances->size() << " sample abundances but the experimental design "
+                       << sample_abundances->size() << " sample abundances but the experimental design "
                        << "describes " << design.getNumberOfSamples() << " samples. The design "
-                       << "does not belong to this quantification, so the intensities cannot be "
+                       << "does not belong to this quantification, so the quantities cannot be "
                        << "attributed to their runs." << std::endl;
       return nullptr;
     }
 
-    if (abundances != nullptr && !units.empty())
+    const bool quantified = sample_abundances != nullptr || quantities.present;
+    if (quantified)
     {
-      // One row per quantification unit, carrying the SAMPLE-level quantity. Summing the
-      // per-file cells instead would not reproduce it: PeptideAndProteinQuant sums a peptide
-      // over every run of the sample before aggregating, so the cells are not summands.
+      if (!quantities.present)
+      {
+        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                         << (group.accessions.empty() ? "" : group.accessions[0])
+                         << "' carries sample abundances but no fraction-group/label abundances. "
+                            "It was quantified before the QPX 1.1 unit-grain annotation was "
+                            "created and cannot be exported without changing its quantities."
+                         << std::endl;
+        return nullptr;
+      }
+      if (units.empty())
+      {
+        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                         << (group.accessions.empty() ? "" : group.accessions[0])
+                         << "' carries fraction-group abundances, but the experimental design "
+                            "yields no matching quantification unit -- it lists no MS files this "
+                            "map has a column header for." << std::endl;
+        return nullptr;
+      }
+      if (quantities.values.size() != expected_quantity_keys.size())
+      {
+        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                         << (group.accessions.empty() ? "" : group.accessions[0]) << "' carries "
+                         << quantities.values.size() << " fraction-group/label quantities but the "
+                            "experimental design requires " << expected_quantity_keys.size()
+                         << ". The annotations and design do not describe the same quantification."
+                         << std::endl;
+        return nullptr;
+      }
+
+      // One scalar row per label in each fraction group, matching the active QPX 1.1 primary key.
       for (const auto& unit : units.units())
       {
-        std::vector<std::pair<std::string, float>> channel_intensities;
-        channel_intensities.reserve(unit.channels.size());
         for (const auto& channel : unit.channels)
         {
-          if (channel.sample >= abundances->size())
+          const auto value = quantities.values.find({unit.fraction_group, channel.label});
+          if (value == quantities.values.end())
           {
-            // The size check above only compares counts; a design whose MS section names a
-            // sample its sample section does not contain slips past it. Dropping the channel
-            // would silently lose an intensity, so say so and stop.
-            OPENMS_LOG_ERROR << "ProteinGroupArrowExport: the experimental design maps label "
-                             << channel.label << " of run '" << unit.runs.front() << "' to sample "
-                             << channel.sample << ", which its sample section does not describe ("
-                             << abundances->size() << " samples). The intensity cannot be read."
-                             << std::endl;
+            OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
+                             << (group.accessions.empty() ? "" : group.accessions[0])
+                             << "' has no quantity for fraction group " << unit.fraction_group
+                             << ", label " << channel.label << "." << std::endl;
             return nullptr;
           }
-          channel_intensities.emplace_back(channel.qpx_label, (*abundances)[channel.sample]);
+          emitRow(group, unit.runs, channel.qpx_label, value->second);
         }
-        emitRow(group, unit.runs, channel_intensities);
       }
     }
     else
     {
-      // A group that HAS sample abundances but no unit to attribute them to would be written
-      // here with null intensities -- which does not mean "not quantified yet", it positively
-      // asserts that the group was not quantified in these runs, and is indistinguishable from
-      // the genuinely unquantified rows this same branch emits. Refuse, on the same reasoning as
-      // the sample-index check above: dropping an intensity silently is worse than not writing.
-      if (abundances != nullptr)
-      {
-        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                         << (group.accessions.empty() ? "" : group.accessions[0])
-                         << "' carries sample abundances, but the experimental design yields no "
-                            "quantification unit for them -- it lists no MS files this map has a "
-                            "column header for. Writing the row without intensities would assert "
-                            "that the group was not quantified, which is false." << std::endl;
-        return nullptr;
-      }
-
       // No quantification for this group. grouped_runs is a QPX primary-key component that MUST
       // NOT be empty, and quantms silently drops rows that violate that, so a run-less row is
       // not an option. Melt onto the units where the group actually has identification evidence,
-      // with null intensities. Fanning out across every unit in the experiment instead would
+      // with null label/intensity. Fanning out across every unit in the experiment instead would
       // assert observations that were never made.
 
       // Evidence is per run; the row is per unit, so the runs of one unit collapse into a single
@@ -834,7 +857,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         ++unattributable_groups;
         continue;
       }
-      for (const auto& runs : evidence_units) { emitRow(group, runs, {}); }
+      for (const auto& runs : evidence_units) { emitRow(group, runs, std::nullopt, std::nullopt); }
     }
   }
   pk_watch.report("ProteinGroupArrowExport");
@@ -849,7 +872,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   std::shared_ptr<arrow::Array> arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names;
   std::shared_ptr<arrow::Array> arr_gg_qval, arr_anchor, arr_grouped_runs;
   std::shared_ptr<arrow::Array> arr_global_qval, arr_pg_qval;
-  std::shared_ptr<arrow::Array> arr_intensities, arr_add_intensities;
+  std::shared_ptr<arrow::Array> arr_label, arr_intensity, arr_add_intensities;
   std::shared_ptr<arrow::Array> arr_is_decoy, arr_contaminant;
   std::shared_ptr<arrow::Array> arr_peptides, arr_pep_counts, arr_feat_counts;
   std::shared_ptr<arrow::Array> arr_seq_cov, arr_mol_weight;
@@ -873,8 +896,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: global_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = pg_qvalue_builder.Finish(&arr_pg_qval);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: pg_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = intensities_builder.Finish(&arr_intensities);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: intensities Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = label_builder.Finish(&arr_label);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: label Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensity_builder.Finish(&arr_intensity);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: intensity Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = additional_intensities_builder.Finish(&arr_add_intensities);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: additional_intensities Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = is_decoy_builder.Finish(&arr_is_decoy);
@@ -904,7 +929,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
     arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,
-    arr_intensities, arr_add_intensities,
+    arr_label, arr_intensity, arr_add_intensities,
     arr_is_decoy, arr_contaminant,
     arr_peptides, arr_pep_counts, arr_feat_counts,
     arr_seq_cov, arr_mol_weight,
@@ -1035,15 +1060,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   auto gg_names_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder gg_names_builder(arrow::default_memory_pool(), gg_names_vb);
 
-  // -- intensities: null (not available for id-only) --
-  // We still need a properly typed builder to match schema; append nulls per row
-  auto intensities_value_type = std::dynamic_pointer_cast<arrow::ListType>(QPXPgSchema::intensitiesType())->value_type();
-  auto int_label_b = std::make_shared<arrow::StringBuilder>();
-  auto int_value_b = std::make_shared<arrow::FloatBuilder>();
-  auto int_struct_b = std::make_shared<arrow::StructBuilder>(
-    intensities_value_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{int_label_b, int_value_b});
-  arrow::ListBuilder intensities_builder(arrow::default_memory_pool(), int_struct_b, QPXPgSchema::intensitiesType());
+  // -- scalar label/intensity: null (not available for id-only) --
+  arrow::StringBuilder label_builder;
+  arrow::FloatBuilder intensity_builder;
 
   // -- additional_intensities: null (not available for id-only) --
   auto add_int_value_type = std::dynamic_pointer_cast<arrow::ListType>(QPXPgSchema::additionalIntensitiesType())->value_type();
@@ -1118,6 +1137,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): grouped_runs Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = global_qvalue_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): global_qvalue Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = label_builder.Reserve(estimated_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): label Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensity_builder.Reserve(estimated_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): intensity Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = is_decoy_builder.Reserve(estimated_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): is_decoy Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
@@ -1248,7 +1271,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       for (const auto& run_file : runs)
       {
         const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
-        pk_watch.add(anchor, {run_file});
+        pk_watch.add(anchor, {run_file}, std::nullopt);
 
         // anchor_protein
         (void)anchor_protein_builder.Append(anchor);
@@ -1302,8 +1325,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         // pg_qvalue - not available for id-only
         (void)pg_qvalue_builder.AppendNull();
 
-        // intensities — null for id-only
-        (void)intensities_builder.AppendNull();
+        // label/intensity — null for id-only
+        (void)label_builder.AppendNull();
+        (void)intensity_builder.AppendNull();
 
         // additional_intensities — null for id-only
         (void)additional_intensities_builder.AppendNull();
@@ -1415,7 +1439,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   std::shared_ptr<arrow::Array> arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names;
   std::shared_ptr<arrow::Array> arr_gg_qval, arr_anchor, arr_grouped_runs;
   std::shared_ptr<arrow::Array> arr_global_qval, arr_pg_qval;
-  std::shared_ptr<arrow::Array> arr_intensities, arr_add_intensities;
+  std::shared_ptr<arrow::Array> arr_label, arr_intensity, arr_add_intensities;
   std::shared_ptr<arrow::Array> arr_is_decoy, arr_contaminant;
   std::shared_ptr<arrow::Array> arr_peptides, arr_pep_counts, arr_feat_counts;
   std::shared_ptr<arrow::Array> arr_seq_cov, arr_mol_weight;
@@ -1439,8 +1463,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): global_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = pg_qvalue_builder.Finish(&arr_pg_qval);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): pg_qvalue Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = intensities_builder.Finish(&arr_intensities);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): intensities Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = label_builder.Finish(&arr_label);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): label Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensity_builder.Finish(&arr_intensity);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): intensity Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = additional_intensities_builder.Finish(&arr_add_intensities);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): additional_intensities Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = is_decoy_builder.Finish(&arr_is_decoy);
@@ -1466,7 +1492,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
     arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,
-    arr_intensities, arr_add_intensities,
+    arr_label, arr_intensity, arr_add_intensities,
     arr_is_decoy, arr_contaminant,
     arr_peptides, arr_pep_counts, arr_feat_counts,
     arr_seq_cov, arr_mol_weight,

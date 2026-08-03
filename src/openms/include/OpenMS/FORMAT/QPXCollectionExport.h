@@ -53,17 +53,19 @@ public:
       - the feature view's divergent-identification and merge-index refusals,
       - the psm view's merge-index refusal over assigned <i>and</i> unassigned identifications,
       - the channel-label check shared by the feature and pg views,
-      - the pg view's quantification-unit checks (inconsistent, ragged, ambiguous label,
-        duplicated sample) and the per-group sample-abundance length check.
+      - the pg view's protein/group prerequisites and fraction-group checks (invalid sample,
+        inconsistent cell, ragged group, repeated run, or ambiguous/cross-run label),
+      - every quantified group's complete parallel @c (fraction_group, label, abundance)
+        annotation contract and its agreement with the design.
 
     @param[in] cmap The ConsensusMap about to be exported
     @param[in] design The experimental design that was used to quantify @p cmap
     @return true if all three views can be written; false for the conditions the views report
             by returning false/nullptr, having logged the reason
-    @throw Exception::IllegalArgument if a feature carries divergent peptide annotations
-    @throw Exception::MissingInformation if an identification of a merged run carries no usable
+    @throws Exception::IllegalArgument if a feature carries divergent peptide annotations
+    @throws Exception::MissingInformation if an identification of a merged run carries no usable
            @c id_merge_index
-    @throw Exception::InvalidValue if two identification runs share an identifier
+    @throws Exception::InvalidValue if two identification runs share an identifier
   */
   static bool requireExportable(const ConsensusMap& cmap, const ExperimentalDesign& design);
 };

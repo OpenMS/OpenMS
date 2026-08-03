@@ -30,6 +30,8 @@
 
 #include <arrow/api.h>
 
+#include <tuple>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -124,19 +126,47 @@ namespace
     return out;
   }
 
-  /// The intensities of one row as {label -> value}.
+  /// Attach the named parallel arrays emitted by PeptideAndProteinQuant for QPX 1.1.
+  void setFractionGroupQuantities(
+    ProteinIdentification::ProteinGroup& group,
+    const std::vector<std::tuple<UInt, UInt, float>>& quantities)
+  {
+    auto& abundance = group.getFloatDataArrays().emplace_back();
+    abundance.setName("fraction_group_level_abundance");
+    auto& integer_arrays = group.getIntegerDataArrays();
+    const Size first = integer_arrays.size();
+    integer_arrays.resize(first + 2);
+    auto& fraction_group = integer_arrays[first];
+    fraction_group.setName("fraction_group_level_fraction_group");
+    auto& label = integer_arrays[first + 1];
+    label.setName("fraction_group_level_label");
+    for (const auto& [fraction_group_id, label_id, value] : quantities)
+    {
+      abundance.push_back(value);
+      fraction_group.push_back(static_cast<Int>(fraction_group_id));
+      label.push_back(static_cast<Int>(label_id));
+    }
+  }
+
+  /// The scalar quantity of one row as an empty or single-entry {label -> value} map.
   std::map<std::string, float> intensitiesOf(const std::shared_ptr<arrow::Table>& table, int64_t row)
   {
     std::map<std::string, float> out;
-    auto col = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("intensities")->chunk(0));
-    if (col->IsNull(row)) { return out; }
-    auto st = std::static_pointer_cast<arrow::StructArray>(col->values());
-    auto labels = std::static_pointer_cast<arrow::StringArray>(st->field(0));
-    auto values = std::static_pointer_cast<arrow::FloatArray>(st->field(1));
-    for (int64_t j = 0; j < col->value_length(row); ++j)
+    auto labels = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("label")->chunk(0));
+    auto values = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("intensity")->chunk(0));
+    if (labels->IsNull(row) || values->IsNull(row)) { return out; }
+    out[labels->GetString(row)] = values->Value(row);
+    return out;
+  }
+
+  /// Collect scalar quantities from all rows (for tests with one grouped_runs unit).
+  std::map<std::string, float> allIntensities(const std::shared_ptr<arrow::Table>& table)
+  {
+    std::map<std::string, float> out;
+    for (int64_t row = 0; row < table->num_rows(); ++row)
     {
-      const int64_t k = col->value_offset(row) + j;
-      out[labels->GetString(k)] = values->Value(k);
+      const auto quantity = intensitiesOf(table, row);
+      out.insert(quantity.begin(), quantity.end());
     }
     return out;
   }
@@ -157,6 +187,8 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const std::vec
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
   TEST_TRUE(groupedRuns(table)[0] == std::vector<std::string>({"SimpleSearchEngine_1"}))
+  TEST_TRUE(table->GetColumnByName("label")->chunk(0)->IsNull(0))
+  TEST_TRUE(table->GetColumnByName("intensity")->chunk(0)->IsNull(0))
 }
 END_SECTION
 
@@ -322,7 +354,7 @@ END_SECTION
 START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows under one key))
 {
   // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the
-  // (anchor_protein, grouped_runs) primary key. Both are kept -- dropping one loses data and
+  // (anchor_protein, grouped_runs, label) primary key. Both are kept -- dropping one loses data and
   // there is no rule for merging two group probabilities -- and the export warns.
   auto prot_a = makeIdOnlyRun({"/a/run.mzML"});
   auto prot_b = makeIdOnlyRun({"/b/run.mzML"});
@@ -479,15 +511,8 @@ END_SECTION
 
 START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap&, const ExperimentalDesign&)))
 {
-  // QPX 1.1 keys the pg view on grouped_runs: the set of raw files aggregated into ONE quantity.
-  // Two fraction groups of two fractions each therefore give two rows of two runs, not four rows
-  // of one -- and each row carries the SAMPLE-level abundance.
-  //
-  // This is not a rename. Summing the per-file cells does not reproduce the sample value:
-  // PeptideAndProteinQuant sums a peptide across a fraction group's fractions before aggregating
-  // them into the protein quantity, so the per-file cells are not summands (measured on BSA:
-  // 304,924,936 against a true 214,289,808). The row must carry the sample value, which is why
-  // the exporter reads the group's "abundances" array rather than the per-file cells.
+  // QPX 1.1 keys the pg view on (anchor_protein, grouped_runs, label). Two fraction groups of two
+  // fractions each therefore give two LFQ rows of two runs, not four rows of one.
   const std::vector<std::string> paths = {"/data/S1_F1.mzML", "/data/S1_F2.mzML",
                                           "/data/S2_F1.mzML", "/data/S2_F2.mzML"};
   ConsensusMap cmap;
@@ -519,6 +544,7 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   grp.getFloatDataArrays()[0].setName("abundances");
   grp.getFloatDataArrays()[0].push_back(1000.0f);
   grp.getFloatDataArrays()[0].push_back(2000.0f);
+  setFractionGroupQuantities(grp, {{1, 1, 1000.0f}, {2, 1, 2000.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -534,7 +560,7 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   TEST_TRUE(runs[0] == std::vector<std::string>({"S1_F1", "S1_F2"}))
   TEST_TRUE(runs[1] == std::vector<std::string>({"S2_F1", "S2_F2"}))
 
-  // ... carrying the sample quantity, one intensity per label.
+  // ... carrying one scalar label/intensity quantity per row.
   const auto i0 = intensitiesOf(t, 0);
   const auto i1 = intensitiesOf(t, 1);
   TEST_EQUAL(i0.size(), 1)
@@ -550,13 +576,11 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
 }
 END_SECTION
 
-START_SECTION(([EXTRA] ConsensusMap overload - the unit is the sample, not the fraction group))
+START_SECTION(([EXTRA] ConsensusMap overload - fraction groups stay distinct when a sample repeats))
 {
-  // A design may spread one sample over several fraction groups -- OpenMS ships one that does:
-  // share/OpenMS/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv puts BSA1_F1 in fraction
-  // group 1 and BSA1_F2 in fraction group 4, both sample BSA1. PeptideAndProteinQuant sums the
-  // abundances per SAMPLE, so keying the row on the fraction group would emit that one quantity
-  // twice, under two keys, each claiming to describe a separate measurement.
+  // In active QPX 1.1, ExperimentalDesign::fraction_group maps exactly to grouped_runs. Reusing a
+  // sample across technical-replicate fraction groups must neither join the groups nor duplicate
+  // one sample-level value; PeptideAndProteinQuant preserves the two upstream quantities.
   const std::vector<std::string> paths = {"/data/S1_A.mzML", "/data/S1_B.mzML"};
   ConsensusMap cmap;
   cmap.setExperimentType("label-free");
@@ -583,7 +607,8 @@ START_SECTION(([EXTRA] ConsensusMap overload - the unit is the sample, not the f
   grp.probability = 0.01;
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
-  grp.getFloatDataArrays()[0].push_back(7000.0f);      // one sample => one abundance
+  grp.getFloatDataArrays()[0].push_back(7000.0f);      // legacy sample-level total
+  setFractionGroupQuantities(grp, {{1, 1, 3000.0f}, {4, 1, 4000.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -593,9 +618,11 @@ START_SECTION(([EXTRA] ConsensusMap overload - the unit is the sample, not the f
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap, design);
   TEST_NOT_EQUAL(t, nullptr)
-  TEST_EQUAL(t->num_rows(), 1)                        // one sample => one row, not two
-  TEST_TRUE(groupedRuns(t)[0] == std::vector<std::string>({"S1_A", "S1_B"}))
-  TEST_REAL_SIMILAR(intensitiesOf(t, 0).at("LFQ"), 7000.0f)
+  TEST_EQUAL(t->num_rows(), 2)
+  TEST_TRUE(groupedRuns(t)[0] == std::vector<std::string>({"S1_A"}))
+  TEST_TRUE(groupedRuns(t)[1] == std::vector<std::string>({"S1_B"}))
+  TEST_REAL_SIMILAR(intensitiesOf(t, 0).at("LFQ"), 3000.0f)
+  TEST_REAL_SIMILAR(intensitiesOf(t, 1).at("LFQ"), 4000.0f)
 }
 END_SECTION
 
@@ -607,8 +634,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design row missing from one fra
   // naming all three would claim fraction 2 aggregated a sample it never saw, and QPX resolves a
   // sample from ANY file of grouped_runs. Loader-tolerant is not the same as representable.
   //
-  // Connectivity alone does not catch this -- the three runs share samples 2..4, so they form one
-  // component whose label->sample relation is still a bijection. The unit must be RECTANGULAR.
+  // Grouping by fraction_group is not enough on its own: the unit must also be rectangular.
   const std::vector<std::string> paths = {"/d/F1.mzML", "/d/F2.mzML", "/d/F3.mzML"};
   ConsensusMap cmap;
   cmap.setExperimentType("labeled_MS2");
@@ -664,6 +690,8 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design row missing from one fra
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   for (Size i = 0; i < 4; ++i) { grp.getFloatDataArrays()[0].push_back(100.0f * (i + 1)); }
+  setFractionGroupQuantities(grp, {{1, 1, 100.0f}, {1, 2, 200.0f},
+                                   {1, 3, 300.0f}, {1, 4, 400.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -684,9 +712,9 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design row missing from one fra
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap, complete);
   TEST_NOT_EQUAL(t, nullptr)
-  TEST_EQUAL(t->num_rows(), 1)
+  TEST_EQUAL(t->num_rows(), 4)
   TEST_TRUE(groupedRuns(t)[0] == std::vector<std::string>({"F1", "F2", "F3"}))
-  const auto ints = intensitiesOf(t, 0);
+  const auto ints = allIntensities(t);
   TEST_EQUAL(ints.size(), 4)
   TEST_REAL_SIMILAR(ints.at("TMT126"), 100.0f)
   TEST_REAL_SIMILAR(ints.at("TMT128N"), 400.0f)
@@ -696,7 +724,7 @@ END_SECTION
 START_SECTION(([EXTRA] ConsensusMap overload - a design channel with no column header is refused))
 {
   // known_cells is per (run, LABEL), not per run. A run-level test admits a design row whose
-  // channel the map has no header for; labelFor() then invents an intensities[].label -- "LFQ"
+  // channel the map has no header for; labelFor() could otherwise invent a scalar label -- "LFQ"
   // for channel 1 (silently) or the bare channel number -- and that token joins to nothing.
   //
   // Measured on real data before this was cell-level: a TMT10-shaped design against the shipped
@@ -733,6 +761,12 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design channel with no column h
     grp.getFloatDataArrays().resize(1);
     grp.getFloatDataArrays()[0].setName("abundances");
     for (Size i = 0; i < n_samples; ++i) { grp.getFloatDataArrays()[0].push_back(100.0f * (i + 1)); }
+    std::vector<std::tuple<UInt, UInt, float>> quantities;
+    for (UInt label = 1; label <= n_samples; ++label)
+    {
+      quantities.emplace_back(1, label, 100.0f * label);
+    }
+    setFractionGroupQuantities(grp, quantities);
     prot.insertIndistinguishableProteins(grp);
     cmap.setProteinIdentifications({prot});
   };
@@ -764,19 +798,18 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design channel with no column h
   quantify(3);
   auto t = ProteinGroupArrowExport::exportToArrow(cmap, designWithLabels(3));
   TEST_NOT_EQUAL(t, nullptr)
-  const auto ints = intensitiesOf(t, 0);
+  TEST_EQUAL(t->num_rows(), 3)
+  const auto ints = allIntensities(t);
   TEST_EQUAL(ints.size(), 3)
   TEST_TRUE(ints.count("TMT126") == 1 && ints.count("TMT127N") == 1 && ints.count("TMT127C") == 1)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] ConsensusMap overload - a sample reused across units is refused))
+START_SECTION(([EXTRA] ConsensusMap overload - a sample reused across fraction groups remains representable))
 {
-  // A sample carries ONE aggregated quantity. If the design routes two quantification units to
-  // the same sample -- a common reference channel shared across plexes is the realistic case --
-  // that one number would be written into both rows, and a consumer summing them counts it
-  // twice. The row shape cannot express a sample that spans units, so the export is refused
-  // rather than publishing a plausible-looking duplicate.
+  // A common reference sample may occur in several plexes. Each fraction group has its own
+  // pre-aggregated label quantity, so the repeated sample does not join the plexes and is not a
+  // reason to refuse the design.
   ConsensusMap cmap;
   cmap.setExperimentType("labeled_MS2");
   const char* names[2][2] = {{"126", "127N"}, {"126", "127N"}};
@@ -809,12 +842,20 @@ START_SECTION(([EXTRA] ConsensusMap overload - a sample reused across units is r
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   for (Size i = 0; i < 3; ++i) { grp.getFloatDataArrays()[0].push_back(100.0f * (i + 1)); }
+  setFractionGroupQuantities(grp, {{1, 1, 10.0f}, {1, 2, 20.0f},
+                                   {2, 1, 30.0f}, {2, 2, 40.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
   const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
   TEST_EQUAL(design.getNumberOfSamples(), 3)   // REF, S0, S1 -- REF is reached from both plexes
-  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, design), nullptr)
+  auto t = ProteinGroupArrowExport::exportToArrow(cmap, design);
+  TEST_NOT_EQUAL(t, nullptr)
+  TEST_EQUAL(t->num_rows(), 4)
+  TEST_TRUE(groupedRuns(t)[0] == std::vector<std::string>({"plex0"}))
+  TEST_TRUE(groupedRuns(t)[2] == std::vector<std::string>({"plex1"}))
+  TEST_REAL_SIMILAR(intensitiesOf(t, 0).at("TMT126"), 10.0f)
+  TEST_REAL_SIMILAR(intensitiesOf(t, 2).at("TMT126"), 30.0f)
 }
 END_SECTION
 
@@ -866,6 +907,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - design files absent from the map 
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   grp.getFloatDataArrays()[0].push_back(5000.0f);
+  setFractionGroupQuantities(grp, {{1, 1, 5000.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -909,6 +951,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - total_features counts feature row
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   grp.getFloatDataArrays()[0].push_back(1234.0f);
+  setFractionGroupQuantities(grp, {{1, 1, 1234.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -974,6 +1017,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - a foreign design is refused, not 
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   grp.getFloatDataArrays()[0].push_back(1000.0f);   // ONE sample, but the design describes two
+  setFractionGroupQuantities(grp, {{1, 1, 1000.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
 
@@ -1009,6 +1053,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - quantification with nowhere to pu
   grp.getFloatDataArrays().resize(1);
   grp.getFloatDataArrays()[0].setName("abundances");
   grp.getFloatDataArrays()[0].push_back(1234.0f);
+  setFractionGroupQuantities(grp, {{1, 1, 1234.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
   cmap.getUnassignedPeptideIdentifications() = {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged")};
@@ -1085,7 +1130,8 @@ START_SECTION(([EXTRA] ConsensusMap overload - an unquantified group melts onto 
   TEST_NOT_EQUAL(t, nullptr)
   TEST_EQUAL(t->num_rows(), 1)                     // one unit, not two files
   TEST_TRUE(groupedRuns(t)[0] == std::vector<std::string>({"S1_F1", "S1_F2"}))
-  TEST_TRUE(t->GetColumnByName("intensities")->chunk(0)->IsNull(0))
+  TEST_TRUE(t->GetColumnByName("label")->chunk(0)->IsNull(0))
+  TEST_TRUE(t->GetColumnByName("intensity")->chunk(0)->IsNull(0))
 }
 END_SECTION
 

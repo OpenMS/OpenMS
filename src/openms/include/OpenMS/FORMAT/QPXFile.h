@@ -165,11 +165,25 @@ public:
 
     @param[in] protein_identifications Identification runs supplying @c spectra_data
     @param[in] peptide_identifications The PSMs about to be exported
-    @throw Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::MissingInformation if a PSM of a merged run has no usable index
   */
   static void requireResolvableMergeIndices(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications);
+
+  /**
+    @brief Pointer-based overload of requireResolvableMergeIndices()
+
+    Avoids copying every PSM when a caller already owns the identifications in another container.
+    Null pointers are ignored, matching the streaming exporter.
+
+    @param[in] protein_identifications Identification runs supplying @c spectra_data
+    @param[in] peptide_identifications The PSMs about to be exported
+    @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+  */
+  static void requireResolvableMergeIndices(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::vector<const PeptideIdentification*>& peptide_identifications);
 
   /**
     @brief Import PSMs from a PSMSchema Arrow table.
