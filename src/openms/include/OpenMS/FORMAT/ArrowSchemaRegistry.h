@@ -314,6 +314,11 @@ namespace OpenMS
   /// Defines column names, nested Arrow types, and the complete schema for
   /// protein group data in the QPX format. Supports both quantified (ConsensusMap)
   /// and identification-only (search engine) output — quantification columns are nullable.
+  ///
+  /// @note QPX 1.1 keys this view on @c anchor_protein, @c grouped_runs, and @c label. One
+  ///       protein-group quantity applies to one experimental-design fraction group and one
+  ///       label. The psm and feature views keep their scalar @c run_file_name and nested
+  ///       intensity representation.
   struct OPENMS_DLLAPI QPXPgSchema
   {
     static constexpr const char* PG_ACCESSIONS = "pg_accessions";
@@ -322,10 +327,11 @@ namespace OpenMS
     static constexpr const char* GG_NAMES = "gg_names";
     static constexpr const char* GG_QVALUE = "gg_qvalue";
     static constexpr const char* ANCHOR_PROTEIN = "anchor_protein";
-    static constexpr const char* RUN_FILE_NAME = "run_file_name";
+    static constexpr const char* GROUPED_RUNS = "grouped_runs";
     static constexpr const char* GLOBAL_QVALUE = "global_qvalue";
     static constexpr const char* PG_QVALUE = "pg_qvalue";
-    static constexpr const char* INTENSITIES = "intensities";
+    static constexpr const char* LABEL = "label";
+    static constexpr const char* INTENSITY = "intensity";
     static constexpr const char* ADDITIONAL_INTENSITIES = "additional_intensities";
     static constexpr const char* IS_DECOY = "is_decoy";
     static constexpr const char* CONTAMINANT = "contaminant";
@@ -337,8 +343,8 @@ namespace OpenMS
     static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
     static constexpr const char* CV_PARAMS = "cv_params";
 
-    /// @brief Arrow type for intensities: list<struct{label, intensity}> (nullable for search-engine output)
-    static std::shared_ptr<arrow::DataType> intensitiesType();
+    /// @brief Arrow type for grouped_runs: list<utf8> — the raw files of one quantification unit
+    static std::shared_ptr<arrow::DataType> groupedRunsType();
     /// @brief Arrow type for additional intensities: list<struct{label, intensities: list<struct{...}>}>
     static std::shared_ptr<arrow::DataType> additionalIntensitiesType();
     /// @brief Arrow type for peptides: list<struct{protein_name, peptide_count}>
@@ -351,7 +357,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> additionalScoresType();
     /// @brief Arrow type for CV params (delegates to QPXPSMSchema::cvParamsType)
     static std::shared_ptr<arrow::DataType> cvParamsType();
-    /// @brief Complete Arrow schema for QPX pg table (20 fields)
+    /// @brief Complete Arrow schema for QPX pg table (21 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 

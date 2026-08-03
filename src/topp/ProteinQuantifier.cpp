@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXCollectionExport.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -1030,6 +1031,15 @@ protected:
         }
       }
 
+      // Validate the whole collection before the first write. Each view refuses input it
+      // cannot represent, but only before its OWN file, so a refusal in the psm or pg view
+      // would leave the earlier files behind as a partial collection.
+      if (!QPXCollectionExport::requireExportable(consensus, ed))
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            out_qpx, "the QPX collection cannot be written in full");
+      }
+
       // Feature-level export
       if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
       {
@@ -1061,7 +1071,10 @@ protected:
       }
 
       // Protein group export
-      if (!ProteinGroupArrowExport::exportToParquet(consensus, out_qpx + "/quantms.pg.parquet"))
+      // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
+      // files aggregated into one quantity, and the design is what defines that grouping and
+      // the sample numbering the protein abundances are stored under.
+      if (!ProteinGroupArrowExport::exportToParquet(consensus, ed, out_qpx + "/quantms.pg.parquet"))
       {
         // Abort rather than log and continue: a partial QPX collection written with a zero
         // exit code looks like a successful export.

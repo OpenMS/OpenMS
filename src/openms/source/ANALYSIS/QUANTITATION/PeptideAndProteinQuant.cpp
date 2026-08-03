@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <set>
 #include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -56,7 +57,7 @@ namespace OpenMS
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
-    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal.");
+    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that the median of each sample matches the overall median.\nAbundances of zero count as 'not detected' and are left out of the medians; a sample without any positive abundance takes no part in the normalization.");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
@@ -177,23 +178,65 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::buildSampleIDLookup_()
   {
-    // Build a (basename, channel/label) -> sample lookup once, so that the
-    // per-peptide/per-channel aggregation below does not have to linearly scan
-    // the MS file section (and recompute File::stemName) for every single lookup.
-    sample_id_lookup_.clear();
+    // Build the design-cell lookups once, so that per-peptide aggregation does not have to
+    // linearly scan the MS file section (and recompute File::stemName) for every value.
+    design_cell_lookup_.clear();
+    fraction_group_label_to_sample_.clear();
+    quantification_fraction_group_labels_.clear();
+    std::map<std::string, UInt> run_to_fraction_group;
+    const Size n_samples = experimental_design_.getNumberOfSamples();
     for (const auto& entry : experimental_design_.getMSFileSection())
     {
-      // emplace keeps the first occurrence of a (basename, label) pair, matching
-      // the previous linear-scan behaviour which returned the first match.
-      sample_id_lookup_.emplace(std::make_pair(File::stemName(entry.path), entry.label), entry.sample);
+      const std::string run = File::stemName(entry.path);
+      const auto file_label = std::make_pair(run, entry.label);
+      const DesignCell cell{entry.sample, entry.fraction_group};
+
+      if (entry.sample >= n_samples)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Experimental-design cell ('" + run + "', label " + StringUtils::toStr(entry.label)
+          + ") refers to sample " + StringUtils::toStr(entry.sample) + ", but the sample section contains "
+          + StringUtils::toStr(n_samples) + " sample(s).");
+      }
+
+      auto [cell_it, cell_inserted] = design_cell_lookup_.emplace(file_label, cell);
+      if (!cell_inserted &&
+          (cell_it->second.sample != cell.sample || cell_it->second.fraction_group != cell.fraction_group))
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Experimental design assigns conflicting sample or fraction-group coordinates to ('"
+          + run + "', label " + StringUtils::toStr(entry.label) + ").");
+      }
+
+      auto [run_it, run_inserted] = run_to_fraction_group.emplace(run, entry.fraction_group);
+      if (!run_inserted && run_it->second != entry.fraction_group)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Experimental design assigns run '" + run + "' to fraction groups "
+          + StringUtils::toStr(run_it->second) + " and " + StringUtils::toStr(entry.fraction_group) + ".");
+      }
+
+      const auto unit_label = std::make_pair(entry.fraction_group, entry.label);
+      quantification_fraction_group_labels_.insert(unit_label);
+      auto [unit_it, unit_inserted] = fraction_group_label_to_sample_.emplace(unit_label, entry.sample);
+      if (!unit_inserted && unit_it->second != entry.sample)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Label " + StringUtils::toStr(entry.label) + " of fraction group "
+          + StringUtils::toStr(entry.fraction_group) + " resolves to samples "
+          + StringUtils::toStr(unit_it->second) + " and " + StringUtils::toStr(entry.sample) + ".");
+      }
     }
   }
 
-  size_t PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const std::string& filename,
-                                                                 UInt channel_or_label) const
+  const PeptideAndProteinQuant::DesignCell& PeptideAndProteinQuant::getDesignCellFromFilenameAndChannel_(
+    const std::string& filename, UInt channel_or_label) const
   {
-    // Map filename and label to sample using the precomputed lookup.
-    if (auto it = sample_id_lookup_.find({filename, channel_or_label}); it != sample_id_lookup_.end())
+    if (auto it = design_cell_lookup_.find({filename, channel_or_label}); it != design_cell_lookup_.end())
     {
       return it->second;
     }
@@ -204,6 +247,12 @@ namespace OpenMS
       __LINE__,
       OPENMS_PRETTY_FUNCTION,
       "Could not find sample mapping for filename '" + filename + "' and channel '" + StringUtils::toStr(channel_or_label) + "' in experimental design.");
+  }
+
+  Size PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const std::string& filename,
+                                                                  UInt channel_or_label) const
+  {
+    return getDesignCellFromFilenameAndChannel_(filename, channel_or_label).sample;
   }
 
   void PeptideAndProteinQuant::quantifyPeptides(
@@ -293,8 +342,9 @@ namespace OpenMS
         UInt best_channel = std::get<3>(best_combination);
         
         double abundance = pep_q.second.abundances[best_fraction][best_filename][best_charge][best_channel];
-        size_t sample_id = getSampleIDFromFilenameAndChannel_(best_filename, best_channel);
-        pep_q.second.total_abundances[sample_id] = abundance;
+        const DesignCell& cell = getDesignCellFromFilenameAndChannel_(best_filename, best_channel);
+        pep_q.second.total_abundances[cell.sample] = abundance;
+        pep_q.second.fraction_group_abundances[cell.fraction_group][best_channel] = abundance;
       }
       else
       { // sum up sample abundances over all fractions, filenames, charge states, and channels:
@@ -310,9 +360,11 @@ namespace OpenMS
                 const UInt & channel = cha.first;
                 const double & abundance = cha.second;
                 
-                // Map (filename, channel) to sample using ExperimentalDesign
-                size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
-                pep_q.second.total_abundances[sample_id] += abundance;
+                // Retain both grains. The sample value remains the established mzTab/API result;
+                // the fraction-group/label value is the QPX 1.1 protein-group quantification unit.
+                const DesignCell& cell = getDesignCellFromFilenameAndChannel_(filename, channel);
+                pep_q.second.total_abundances[cell.sample] += abundance;
+                pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
               }
             }
           }
@@ -359,16 +411,34 @@ namespace OpenMS
     // depending on earlier options, these include:
     // - all charges or only the best charge state
     // - all fractions (if multiple fractions are analyzed)
-    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    // Zero abundances are deliberately not collected. A zero is not a measurement of "no protein":
+    // IsobaricChannelExtractor stores a reporter it could not find - or one below
+    // 'min_reporter_intensity' - as 0.0, so a zero means "not detected". Counting those would give a
+    // channel in which more than half the peptides went undetected a median of exactly 0, and the
+    // division below then scaled every positive abundance in it to infinity (and the zeros to NaN,
+    // since 0 * inf is NaN). Excluding them instead normalizes such a channel on the data it does
+    // have. Keeping zeros out of the statistic is the convention elsewhere: MSstatsTMT turns them
+    // into NA before taking median(log2Intensity, na.rm = TRUE), isobar nulls sub-1 values after
+    // impurity correction, and scp calls zeroIsNA() first, "to avoid artefacts in downstream steps".
+    // Note this is about the zeros, not about log versus linear space - isobar and scp both divide
+    // in linear space, as here, and are safe purely because no zero ever reaches the median.
+    map<UInt64, DoubleList> abundances; // positive peptide abundances by sample
+    set<UInt64> samples; // every sample seen, including ones without a single positive abundance
     for (auto & pq : pep_quant_)
     {
-      // maybe TODO: treat missing abundance values as zero
       for (auto & sa : pq.second.total_abundances)
       {
-        abundances[sa.first].push_back(sa.second);
+        samples.insert(sa.first);
+        if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
       }
     }
-    if (abundances.size() <= 1) { return; }
+    if (abundances.size() <= 1)
+    { // no reference to scale to - say so, rather than returning as if normalization had happened
+      OPENMS_LOG_WARN << "Warning: fewer than two samples contain a peptide with a positive abundance, "
+                      << "so there is nothing to normalize against. Abundances are left unchanged."
+                      << endl;
+      return;
+    }
 
     /////////////////////////////////////////////////////
     // compute scale factors on the sample level:
@@ -378,6 +448,9 @@ namespace OpenMS
       medians[ab.first] = Math::median(ab.second.begin(), ab.second.end());
     }
 
+    // Only samples that carry signal define the reference. Letting a dead channel contribute its
+    // median of 0 would drag the overall median down and mis-scale every other channel - quietly,
+    // with no infinity and no warning to show for it.
     DoubleList all_medians;
     for (auto & sa : medians)
     {
@@ -386,10 +459,41 @@ namespace OpenMS
     double overall_median = Math::median(all_medians.begin(),
                                          all_medians.end());
     SampleAbundances scale_factors;
-    for (auto & med : medians)
+    for (UInt64 sample : samples)
     {
-      scale_factors[med.first] = overall_median / med.second;
+      auto med_it = medians.find(sample);
+      if (med_it == medians.end()) // not a single positive abundance in this sample
+      {
+        // Name the (file, channel) pairs behind the sample: the sample id is a design-internal index
+        // that does not appear in any input the user wrote.
+        std::string where;
+        for (const auto& lookup : design_cell_lookup_)
+        {
+          if (lookup.second.sample != sample) { continue; }
+          if (!where.empty()) { where += ", "; }
+          where += "'" + lookup.first.first + "' channel " + StringUtils::toStr(lookup.first.second);
+        }
+        OPENMS_LOG_WARN << "Warning: sample " << sample
+                        << (where.empty() ? "" : " (" + where + ")")
+                        << " has no peptide with a positive abundance - for isobaric data, no reporter "
+                        << "ion was detected for it in any quantified peptide. It does not take part in "
+                        << "the normalization: it defines no reference and its values are left as they "
+                        << "are (they are all zero)." << endl;
+        continue; // no factor at all - see scaleFactorFor below
+      }
+      // a median over strictly positive values is itself positive, so this cannot divide by zero
+      scale_factors[sample] = overall_median / med_it->second;
     }
+
+    // Never look a factor up with operator[]: that default-constructs 0.0 for an unknown sample and
+    // would silently wipe its abundances. Samples reach the loops below that have no factor - one
+    // without any signal, and, with 'best_charge_and_fraction', one that never won a best combination
+    // and so never entered total_abundances at all. Leave those exactly as they are.
+    auto scaleFactorFor = [&scale_factors](size_t sample_id)
+    {
+      auto it = scale_factors.find(sample_id);
+      return (it == scale_factors.end()) ? 1.0 : it->second;
+    };
 
     /////////////////////////////////////////////////////
     // scale all abundance values:
@@ -398,7 +502,26 @@ namespace OpenMS
       // scale total abundances
       for (auto & sta : pep_q.second.total_abundances)
       {
-        sta.second *= scale_factors[sta.first];
+        sta.second *= scaleFactorFor(sta.first);
+      }
+
+      // Scale each fraction-group/label quantity with the factor of the sample to which that
+      // design cell resolves. This keeps a sample split across technical-replicate fraction groups
+      // on the same normalization scale without merging those independently quantified units.
+      for (auto& [fraction_group, label_abundances] : pep_q.second.fraction_group_abundances)
+      {
+        for (auto& [label, abundance] : label_abundances)
+        {
+          const auto sample_it = fraction_group_label_to_sample_.find({fraction_group, label});
+          if (sample_it == fraction_group_label_to_sample_.end())
+          {
+            throw Exception::MissingInformation(
+              __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Could not resolve fraction group " + StringUtils::toStr(fraction_group) + ", label "
+              + StringUtils::toStr(label) + " to a sample for normalization.");
+          }
+          abundance *= scaleFactorFor(sample_it->second);
+        }
       }
 
       // scale individual abundances
@@ -413,7 +536,7 @@ namespace OpenMS
               const std::string & filename = fna.first;
               const UInt & channel = cha.first;
               size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
-              cha.second *= scale_factors[sample_id];
+              cha.second *= scaleFactorFor(sample_id);
             }
           }
         }
@@ -537,6 +660,8 @@ namespace OpenMS
 
       // Calculate protein abundances
       calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
+      calculateFractionGroupLevelProteinAbundances_(accession, selected_peptides, aggregate,
+                                                    top_n, include_all);
 
       // accession_to_leader and unmod_to_entries are loop-invariant and computed once before
       // the loop (see above).
@@ -673,6 +798,27 @@ namespace OpenMS
           "Ambiguous basename+label mapping in experimental design for '" + ed_filename +
           "' and label '" + StringUtils::toStr(e.label) + "'.");
       }
+    }
+
+    // The design may list files that are intentionally absent from this ConsensusMap. QPX builds
+    // its quantification units from the column headers, so remember that same set of cells for the
+    // protein annotations. Otherwise every absent design file would add an invented zero-valued
+    // quantity that the exporter correctly refuses as an extra key.
+    quantification_fraction_group_labels_.clear();
+    for (const auto& [map_index, header] : consensus.getColumnHeaders())
+    {
+      (void)map_index;
+      const std::string filename = File::stemName(header.filename);
+      const UInt label = header.getLabelAsUInt(consensus.getExperimentType());
+      auto it = file_and_label_to_msfile_entry.find({filename, label});
+      if (it == file_and_label_to_msfile_entry.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "File+Label referenced in consensus header not found in experimental design: "
+          + filename + "\t" + StringUtils::toStr(label));
+      }
+      quantification_fraction_group_labels_.emplace(it->second.fraction_group, label);
     }
 
     for (auto & c : consensus)
@@ -818,7 +964,9 @@ namespace OpenMS
     stats_ = Statistics();
     pep_quant_.clear();
     prot_quant_.clear();
-    sample_id_lookup_.clear();
+    design_cell_lookup_.clear();
+    fraction_group_label_to_sample_.clear();
+    quantification_fraction_group_labels_.clear();
   }
 
 
@@ -856,12 +1004,10 @@ namespace OpenMS
 
     // Extract the Spectra Filepath column from the design
     map<UInt64, map<UInt64, std::string>> design_group_fraction_filename;
-    UInt64 n_files = 0;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
       const std::string fn = File::stemName(f.path);
       design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
-      n_files++;
     }
 
     auto & id_groups = proteins.getIndistinguishableProteins();
@@ -904,9 +1050,11 @@ namespace OpenMS
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
       
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(4);
+        // Keep the existing positional arrays unchanged for mzTab and older consumers. QPX unit
+        // quantities are appended and consumed by name, never by these indices.
+        id_group->getFloatDataArrays().resize(5);
         id_group->getStringDataArrays().resize(2);
-        id_group->getIntegerDataArrays().resize(2);
+        id_group->getIntegerDataArrays().resize(4);
         
         // Sample-level arrays (indices 0-2)
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
@@ -933,6 +1081,32 @@ namespace OpenMS
         for (auto const & s : total_distinct_peptides)
         {
           peptide_counts[s.first] = (float) s.second;
+        }
+
+        // QPX 1.1 protein-group quantities are keyed by the exact OpenMS fraction_group and
+        // label. Materialize every cell represented by the quantification input in deterministic
+        // order, using zero for a quantified protein without sufficient evidence in that cell just
+        // as the sample-level abundance array above does for an absent sample result.
+        auto& fraction_group_level_abundance = id_group->getFloatDataArrays()[4];
+        fraction_group_level_abundance.setName("fraction_group_level_abundance");
+        auto& fraction_group_level_fraction_group = id_group->getIntegerDataArrays()[2];
+        fraction_group_level_fraction_group.setName("fraction_group_level_fraction_group");
+        auto& fraction_group_level_label = id_group->getIntegerDataArrays()[3];
+        fraction_group_level_label.setName("fraction_group_level_label");
+        for (const auto& [fraction_group, label] : quantification_fraction_group_labels_)
+        {
+          double abundance = 0.0;
+          if (auto group_it = q.second.fraction_group_abundances.find(fraction_group);
+              group_it != q.second.fraction_group_abundances.end())
+          {
+            if (auto label_it = group_it->second.find(label); label_it != group_it->second.end())
+            {
+              abundance = label_it->second;
+            }
+          }
+          fraction_group_level_abundance.push_back(static_cast<float>(abundance));
+          fraction_group_level_fraction_group.push_back(static_cast<Int>(fraction_group));
+          fraction_group_level_label.push_back(static_cast<Int>(label));
         }
 
         // Add file/channel level abundances
@@ -1061,6 +1235,15 @@ namespace OpenMS
       for (auto const& sta : pep_q.second.total_abundances)
       {
         prot_quant_[leader_accession].peptide_abundances[peptide][sta.first] += sta.second;
+      }
+
+      for (const auto& [fraction_group, label_abundances] : pep_q.second.fraction_group_abundances)
+      {
+        for (const auto& [label, abundance] : label_abundances)
+        {
+          prot_quant_[leader_accession]
+            .peptide_fraction_group_abundances[peptide][fraction_group][label] += abundance;
+        }
       }
 
       for (auto const& sta : pep_q.second.total_psm_counts)
@@ -1240,6 +1423,53 @@ namespace OpenMS
     }
   }
 
+  void PeptideAndProteinQuant::calculateFractionGroupLevelProteinAbundances_(
+    const std::string& protein_accession,
+    const std::vector<std::string>& selected_peptides,
+    const std::string& aggregate_method,
+    Size top_n,
+    bool include_all)
+  {
+    auto prot_it = prot_quant_.find(protein_accession);
+    if (prot_it == prot_quant_.end())
+    {
+      return;
+    }
+
+    ProteinData& pd = prot_it->second;
+    std::map<std::pair<UInt, UInt>, DoubleList> abundances;
+    for (const auto& peptide : selected_peptides)
+    {
+      auto peptide_it = pd.peptide_fraction_group_abundances.find(peptide);
+      if (peptide_it == pd.peptide_fraction_group_abundances.end())
+      {
+        continue;
+      }
+      for (const auto& [fraction_group, label_abundances] : peptide_it->second)
+      {
+        for (const auto& [label, abundance] : label_abundances)
+        {
+          abundances[{fraction_group, label}].push_back(abundance);
+        }
+      }
+    }
+
+    for (auto& [unit_label, values] : abundances)
+    {
+      if (!include_all && top_n > 0 && values.size() < top_n)
+      {
+        continue;
+      }
+      if (top_n > 0 && values.size() > top_n)
+      {
+        std::sort(values.begin(), values.end(), std::greater<double>());
+        values.resize(top_n);
+      }
+      pd.fraction_group_abundances[unit_label.first][unit_label.second] =
+        aggregateAbundances_(values, aggregate_method);
+    }
+  }
+
   void PeptideAndProteinQuant::calculateFileAndChannelLevelProteinAbundances_(const std::string& protein_accession,
                                                                   const std::vector<std::string>& selected_peptides,
                                                                   const std::string& aggregate_method,
@@ -1370,6 +1600,16 @@ namespace OpenMS
           for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
           {
             total_abundance.second /= double(peptides.size());
+          }
+          for (auto& [fraction_group, label_abundances] :
+               prot_quant_[hit_accession].fraction_group_abundances)
+          {
+            (void)fraction_group;
+            for (auto& [label, abundance] : label_abundances)
+            {
+              (void)label;
+              abundance /= double(peptides.size());
+            }
           }
         }
       }

@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -39,6 +40,9 @@ public:
     /// Mapping: sample ID -> abundance
     typedef std::map<UInt64, double> SampleAbundances;
 
+    /// Mapping: experimental-design fraction group -> label/channel -> abundance
+    typedef std::map<UInt, std::map<UInt, double>> FractionGroupAbundances;
+
     /// Quantitative and associated data for a peptide
     struct PeptideData
     {
@@ -50,6 +54,9 @@ public:
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
+
+      /// mapping: fraction group -> label/channel -> abundance
+      FractionGroupAbundances fraction_group_abundances;
 
       /// spectral counting-based abundances
       SampleAbundances total_psm_counts;
@@ -73,6 +80,9 @@ public:
       /// mapping: peptide (unmodified) -> sample -> abundance
       std::map<std::string, SampleAbundances> peptide_abundances;
 
+      /// mapping: peptide (unmodified) -> fraction group -> label/channel -> abundance
+      std::map<std::string, FractionGroupAbundances> peptide_fraction_group_abundances;
+
       std::map<std::string, SampleAbundances> peptide_psm_counts;
 
       /// mapping: filename -> channel/label -> abundance
@@ -83,6 +93,9 @@ public:
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
+
+      /// mapping: fraction group -> label/channel -> total abundance
+      FractionGroupAbundances fraction_group_abundances;
 
       /// spectral counting-based abundances
       SampleAbundances total_psm_counts;
@@ -213,6 +226,13 @@ private:
       }
     };
 
+    /// Experimental-design coordinates of one (basename, label) cell.
+    struct DesignCell
+    {
+      Size sample = 0;
+      UInt fraction_group = 0;
+    };
+
     /// Index: unmodified peptide sequence -> all @p pep_quant_ entries (modified
     /// peptidoforms) sharing that unmodified sequence. Built once per quantifyProteins()
     /// call so that channel-level aggregation does not rescan @p pep_quant_ (calling
@@ -233,11 +253,19 @@ private:
     /// Experimental design for filename/channel to sample mapping
     ExperimentalDesign experimental_design_;
 
-    /// Precomputed lookup (basename without extension, channel/label) -> sample ID,
+    /// Precomputed lookup (basename without extension, channel/label) -> design coordinates,
     /// built once from @p experimental_design_ to avoid linear scans of the MS file
     /// section for every peptide/channel during aggregation. Pure lookup (never iterated),
     /// so an unordered map is used for O(1) access without affecting output.
-    std::unordered_map<std::pair<std::string, UInt>, size_t, FileLabelHash> sample_id_lookup_;
+    std::unordered_map<std::pair<std::string, UInt>, DesignCell, FileLabelHash> design_cell_lookup_;
+
+    /// Precomputed (fraction group, label) -> sample lookup used to normalize unit abundances.
+    std::map<std::pair<UInt, UInt>, Size> fraction_group_label_to_sample_;
+
+    /// Fraction-group/label cells represented by the current quantification input. For a
+    /// ConsensusMap this is the intersection of its column headers with the design, so design
+    /// files that were not part of the map do not create invented zero-valued QPX quantities.
+    std::set<std::pair<UInt, UInt>> quantification_fraction_group_labels_;
 
 
     /**
@@ -361,6 +389,21 @@ private:
                                     bool include_all);
 
     /**
+         @brief Calculate protein abundances at experimental-design fraction-group/label grain.
+
+         @param[in] protein_accession The protein accession
+         @param[in] selected_peptides Vector of peptide sequences to use for quantification
+         @param[in] aggregate_method Method to aggregate peptide abundances
+         @param[in] top_n Maximum number of peptides to use per quantification unit
+         @param[in] include_all Whether to include proteins with insufficient peptides
+    */
+    void calculateFractionGroupLevelProteinAbundances_(const std::string& protein_accession,
+                                                       const std::vector<std::string>& selected_peptides,
+                                                       const std::string& aggregate_method,
+                                                       Size top_n,
+                                                       bool include_all);
+
+    /**
          @brief Calculate detailed protein abundances at channel level using selected peptides.
          
          @param[in] protein_accession The protein accession
@@ -409,24 +452,41 @@ private:
     void countPeptides_(PeptideIdentificationList& peptides);
 
     /**
-         @brief (Re)build @p sample_id_lookup_ from @p experimental_design_.
+         @brief (Re)build design-cell lookups from @p experimental_design_.
 
          Maps each (basename without extension, channel/label) of the MS file section to its
-         sample ID. The first occurrence of a (basename, label) pair wins, matching the
-         previous linear-scan semantics. Called whenever the experimental design is (re)set.
+         sample and fraction group. Conflicting duplicate cells and fraction-group labels that
+         resolve to different samples are rejected. Called whenever the experimental design is
+         (re)set.
+
+         @throws Exception::MissingInformation if a cell refers outside the sample section,
+                 duplicate cells conflict, one run belongs to several fraction groups, or one
+                 fraction-group label resolves to several samples
     */
     void buildSampleIDLookup_();
 
     /**
-         @brief Map (filename, channel) to sample using the precomputed @p sample_id_lookup_.
+         @brief Map (filename, channel) to its experimental-design cell.
 
          @param[in] filename The base filename (without path/extension)
          @param[in] channel_or_label The channel/label identifier
-         @return The sample ID corresponding to the filename and channel
-         @throw Exception::MissingInformation if the (filename, channel) pair is not in the experimental design
+         @return The design coordinates corresponding to the filename and channel
+         @throws Exception::MissingInformation if the (filename, channel) pair is not in the experimental design
     */
-    size_t getSampleIDFromFilenameAndChannel_(const std::string& filename,
-                                           UInt channel_or_label) const;
+    const DesignCell& getDesignCellFromFilenameAndChannel_(const std::string& filename,
+                                                           UInt channel_or_label) const;
+
+    /**
+         @brief Map (filename, channel) to a sample using the precomputed design-cell lookup.
+
+         @param[in] filename The base filename without path or extension
+         @param[in] channel_or_label The channel or label identifier
+         @return The sample corresponding to the filename and channel
+         @throws Exception::MissingInformation if the (filename, channel) pair is not in the
+                 experimental design
+    */
+    Size getSampleIDFromFilenameAndChannel_(const std::string& filename,
+                                            UInt channel_or_label) const;
 
     /// Clear all data when parameters are set
     void updateMembers_() override;
