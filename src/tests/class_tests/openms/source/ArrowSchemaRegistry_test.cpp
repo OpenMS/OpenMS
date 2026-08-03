@@ -1220,10 +1220,11 @@ START_SECTION(QPXFeatureSchema field types and nullability)
   TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(19)->nullable(), true)
   TEST_EQUAL(s->field(19)->type()->Equals(QPXFeatureSchema::pgAccessionsType()), true)
-  // anchor_protein: utf8, not null
+  // anchor_protein: utf8, nullable since bigbio/qpx#212 (de novo workflows have no protein
+  // mapping, so the spec added `nullable: true` while keeping `required: true`)
   TEST_EQUAL(s->field(20)->name(), "anchor_protein")
   TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(20)->nullable(), false)
+  TEST_EQUAL(s->field(20)->nullable(), true)
   // unique: bool, nullable
   TEST_EQUAL(s->field(21)->name(), "unique")
   TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::BOOL)

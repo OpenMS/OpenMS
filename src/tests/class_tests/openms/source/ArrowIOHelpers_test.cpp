@@ -143,6 +143,141 @@ START_SECTION([EXTRA] typed value accessors getColumn and isNull)
 }
 END_SECTION
 
+START_SECTION((std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(const std::string&, const ParquetWriteConfig&, const std::map<std::string, std::string>&)))
+{
+  // Default config is ZSTD -> the full documented key set is present.
+  auto md = ArrowIOHelpers::qpxFileMetadata("pg_file");
+  TEST_NOT_EQUAL(md, nullptr)
+
+  auto value_of = [&md](const std::string& key) -> std::string
+  {
+    auto r = md->Get(key);
+    return r.ok() ? r.ValueOrDie() : std::string();
+  };
+
+  TEST_STRING_EQUAL(value_of("qpx_version"), "1.0")
+  TEST_STRING_EQUAL(value_of("file_type"), "pg_file")
+  TEST_STRING_EQUAL(value_of("creator"), "OpenMS")
+  TEST_STRING_EQUAL(value_of("compression_format"), "zstd")
+  // software_provider carries the version; creator stays the bare org/tool name
+  TEST_TRUE(StringUtils::hasPrefix(value_of("software_provider"), "OpenMS "))
+  TEST_EQUAL(value_of("uuid").size(), 36)
+  TEST_TRUE(!value_of("creation_date").empty())
+
+  // Each call is a distinct file identity — reusing one call per file is the caller's job.
+  auto md2 = ArrowIOHelpers::qpxFileMetadata("pg_file");
+  TEST_NOT_EQUAL(md2, nullptr)
+  TEST_NOT_EQUAL(value_of("uuid"), md2->Get("uuid").ValueOrDie())
+
+  // Extra keys are appended verbatim.
+  auto md3 = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, {{"scan_format", "index"}});
+  TEST_NOT_EQUAL(md3, nullptr)
+  TEST_STRING_EQUAL(md3->Get("scan_format").ValueOrDie(), "index")
+
+  // compression_format vocabulary is zstd|snappy|gzip|lzo|none.
+  ParquetWriteConfig cfg;
+  cfg.compression = ParquetWriteConfig::Compression::SNAPPY;
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxFileMetadata("psm_file", cfg)->Get("compression_format").ValueOrDie(), "snappy")
+  cfg.compression = ParquetWriteConfig::Compression::GZIP;
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxFileMetadata("psm_file", cfg)->Get("compression_format").ValueOrDie(), "gzip")
+  cfg.compression = ParquetWriteConfig::Compression::NONE;
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxFileMetadata("psm_file", cfg)->Get("compression_format").ValueOrDie(), "none")
+
+  // LZ4 has no QPX token: refuse rather than emit an out-of-vocabulary value.
+  cfg.compression = ParquetWriteConfig::Compression::LZ4;
+  TEST_EQUAL(ArrowIOHelpers::qpxFileMetadata("psm_file", cfg), nullptr)
+}
+END_SECTION
+
+START_SECTION((bool qpxWarnOnRunNameCollisions(const std::string&, const std::vector<std::string>&)))
+{
+  // Warn-only, matching the PSM exporter: same-named files in different directories are a
+  // legitimate layout, so an ambiguous key is reported rather than refused.
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/a/run1.mzML", "/a/run2.mzML"}))
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/a/run1.mzML", "/a/run1.mzML"}))  // one run, twice
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {}))
+  TEST_TRUE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"", "/a/run1.mzML"}))
+
+  // Distinct paths collapsing onto one run_file_name: reported (false), not fatal.
+  TEST_FALSE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/frac_a/run1.mzML", "/frac_b/run1.mzML"}))
+  TEST_FALSE(ArrowIOHelpers::qpxWarnOnRunNameCollisions("t", {"/a/run1.mzML", "/a/run1.raw"}))
+}
+END_SECTION
+
+START_SECTION((std::string qpxIntensityLabel(const std::string&, const std::string&)))
+{
+  // Label-free: ProteomicsLFQ stamps "label-free" on every header; an unset label is the same.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("label-free", ""), "LFQ")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("", ""), "LFQ")
+
+  // Isobaric: IsobaricChannelExtractor builds the label as "<methodname>_<channelname>".
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt6plex_126", "126"), "TMT126")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_126", "126"), "TMT126")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_127N", "127N"), "TMT127N")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt11plex_131C", "131C"), "TMT131C")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt16plex_134N", "134N"), "TMT134N")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt18plex_135N", "135N"), "TMT135N")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq4plex_114", "114"), "ITRAQ114")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq8plex_121", "121"), "ITRAQ121")
+
+  // TMT10-plex channel 10 is "131" in OpenMS' naming. qpx's own converter map is
+  // 11-plex-indexed and calls the 10th channel "TMT131N"; OpenMS' name is authoritative.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_131", "131"), "TMT131")
+  // ... and 11-plex really does have both 131N and 131C.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt11plex_131N", "131N"), "TMT131N")
+
+  // Multiplex/SILAC headers carry the modification in `label` and annotate no channel;
+  // pass the tool's own label through rather than mislabel it LFQ.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Arg10", ""), "Arg10")
+
+  // A channel whose method cannot be identified must NOT be guessed — it is a join key.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("mystery_126", "126"), "")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("no_separator", "126"), "")
+}
+END_SECTION
+
+START_SECTION((std::string qpxRunFileName(const std::string&)))
+{
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/proj/S1_Frontal_1.mzML"), "S1_Frontal_1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("S1_Frontal_1.mzML"), "S1_Frontal_1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/run.raw"), "run")
+  // Bruker .d directories reduce like any other path
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("/data/run.d"), "run")
+  // Already in QPX form -> unchanged
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName("BSA1_F1"), "BSA1_F1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxRunFileName(""), "")
+}
+END_SECTION
+
+START_SECTION((std::string qpxScanFormat(const std::string&)))
+{
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("controllerType=0 controllerNumber=1 scan=1234"), "scan")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("scan=42"), "scan")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("scanId=42"), "scan")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("spectrum=7"), "scan")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("index=7"), "index")
+  // Not a recognized native ID -> no evidence either way
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat("some_opaque_identifier"), "")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(""), "")
+}
+END_SECTION
+
+START_SECTION((std::string qpxScanFormat(const std::vector<std::string>&)))
+{
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{"scan=1", "scan=2"}), "scan")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{"index=1", "index=2"}), "index")
+
+  // Unrecognized entries carry no evidence and must not veto a consistent set.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{"opaque", "scan=2", ""}), "scan")
+
+  // Genuinely mixed conventions: neither token describes the file, so omit rather than guess.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{"scan=1", "index=2"}), "")
+
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{}), "")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{"opaque", "also_opaque"}), "")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
