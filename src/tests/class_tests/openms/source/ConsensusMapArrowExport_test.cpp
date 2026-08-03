@@ -10,7 +10,9 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -173,6 +175,17 @@ ConsensusMap createTestConsensusMap()
   return cmap;
 }
 
+std::shared_ptr<arrow::Table> replaceColumn(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& name,
+  const std::shared_ptr<arrow::Array>& values)
+{
+  std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+  columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+    std::make_shared<arrow::ChunkedArray>(values);
+  return arrow::Table::Make(table->schema(), std::move(columns));
+}
+
 ConsensusMap createEmptyConsensusMap()
 {
   return ConsensusMap();
@@ -227,6 +240,51 @@ START_SECTION(exportToArrow - basic export)
   TEST_TRUE(schema->GetFieldIndex("charge") >= 0)
   TEST_TRUE(schema->GetFieldIndex("intensities") >= 0)
   TEST_TRUE(schema->GetFieldIndex("pg_accessions") >= 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] feature value validation rejects duplicate primary keys before writing))
+{
+  ConsensusMap cmap = createTestConsensusMap();
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  QPXValueValidation validator(QPXValueValidation::View::FEATURE);
+  TEST_TRUE(validator.validate(table).valid)
+
+  auto duplicate = arrow::ConcatenateTables({table->Slice(0, 1), table->Slice(0, 1)}).ValueOrDie();
+  QPXValueValidation duplicate_validator(QPXValueValidation::View::FEATURE);
+  auto duplicate_result = duplicate_validator.validate(duplicate);
+  TEST_FALSE(duplicate_result.valid)
+  TEST_TRUE(duplicate_result.toString().find("primary key") != std::string::npos)
+
+  auto invalid_keys = table->Slice(0, 1);
+  arrow::StringBuilder null_peptidoform_builder;
+  TEST_TRUE(null_peptidoform_builder.AppendNull().ok())
+  invalid_keys = replaceColumn(invalid_keys, QPXFeatureSchema::PEPTIDOFORM,
+                               null_peptidoform_builder.Finish().ValueOrDie());
+  arrow::Int16Builder null_charge_builder;
+  TEST_TRUE(null_charge_builder.AppendNull().ok())
+  invalid_keys = replaceColumn(invalid_keys, QPXFeatureSchema::CHARGE,
+                               null_charge_builder.Finish().ValueOrDie());
+  QPXValueValidation invalid_key_validator(QPXValueValidation::View::FEATURE);
+  const auto invalid_key_result = invalid_key_validator.validate(invalid_keys);
+  TEST_FALSE(invalid_key_result.valid)
+  TEST_TRUE(invalid_key_result.toString().find("null 'peptidoform'") != std::string::npos)
+  TEST_TRUE(invalid_key_result.toString().find("null 'charge'") != std::string::npos)
+
+  // Duplicating the source feature exercises the one-shot writer's validation placement: the
+  // output path remains absent because validation runs before FileOutputStream::Open().
+  cmap.push_back(cmap.front());
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquet(cmap, output))
+  TEST_FALSE(File::exists(output))
+
+  std::string stream_output;
+  NEW_TMP_FILE(stream_output);
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_output, 1))
+  TEST_FALSE(File::exists(stream_output))
 }
 END_SECTION
 
@@ -656,6 +714,52 @@ START_SECTION(([EXTRA] isobaric feature rows keep consensus coordinates and list
   TEST_STRING_EQUAL(lab->GetString(0), "TMT126")
   TEST_STRING_EQUAL(lab->GetString(1), "TMT127N")
   TEST_STRING_EQUAL(lab->GetString(2), "TMT127C")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] SILAC feature labels use the canonical QPX two-plex vocabulary))
+{
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS1");
+  const std::vector<std::string> raw_labels = {"no_label", "Arg6"};
+  for (Size channel = 0; channel < raw_labels.size(); ++channel)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = "/data/silac_run.mzML";
+    header.label = raw_labels[channel];
+    header.setMetaValue("channel_id", static_cast<int>(channel));
+    cmap.getColumnHeaders()[channel] = header;
+  }
+
+  ConsensusFeature feature;
+  feature.setMZ(600.0);
+  feature.setRT(120.0);
+  feature.setCharge(2);
+  for (Size channel = 0; channel < raw_labels.size(); ++channel)
+  {
+    BaseFeature handle;
+    handle.setIntensity(100.0f * (channel + 1));
+    handle.setMZ(600.0);
+    handle.setRT(120.0);
+    handle.setCharge(2);
+    feature.insert(channel, handle);
+  }
+  cmap.push_back(feature);
+
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  auto intensities = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("intensities")->chunk(0));
+  auto entries = std::static_pointer_cast<arrow::StructArray>(intensities->values());
+  auto labels = std::static_pointer_cast<arrow::StringArray>(entries->field(0));
+  TEST_EQUAL(intensities->value_length(0), 2)
+  TEST_STRING_EQUAL(labels->GetString(0), "SILAC light")
+  // Arg6 is the second/heavy-role channel in a two-plex, not "SILAC medium".
+  TEST_STRING_EQUAL(labels->GetString(1), "SILAC heavy")
+
+  QPXValueValidation validator(QPXValueValidation::View::FEATURE);
+  TEST_TRUE(validator.validate(table).valid)
 }
 END_SECTION
 

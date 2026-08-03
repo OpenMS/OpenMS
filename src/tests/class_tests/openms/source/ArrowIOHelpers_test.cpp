@@ -13,6 +13,8 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 #include <arrow/api.h>
 
 #include <set>
@@ -220,19 +222,148 @@ START_SECTION((std::string qpxIntensityLabel(const std::string&, const std::stri
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq4plex_114", "114"), "ITRAQ114")
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq8plex_121", "121"), "ITRAQ121")
 
+  // Older and synthetic maps may encode the complete identity only in the label.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt6plex_126", ""), "TMT126")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq4plex_114", ""), "ITRAQ114")
+
   // TMT10-plex channel 10 is "131" in OpenMS' naming. qpx's own converter map is
   // 11-plex-indexed and calls the 10th channel "TMT131N"; OpenMS' name is authoritative.
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_131", "131"), "TMT131")
   // ... and 11-plex really does have both 131N and 131C.
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt11plex_131N", "131N"), "TMT131N")
 
-  // Multiplex/SILAC headers carry the modification in `label` and annotate no channel;
-  // pass the tool's own label through rather than mislabel it LFQ.
-  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Arg10", ""), "Arg10")
+  // Scalar SILAC normalization uses the modification's mass class. Whole-map normalization below
+  // additionally sees the plex role, which matters for an Arg6 two-plex.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("no_label", ""), "SILAC light")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Arg6", ""), "SILAC medium")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Lys8Arg10", ""), "SILAC heavy")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Dimethyl4", ""), "DIMETHYL4")
+
+  // An unstandardized multiplex token cannot be written into a QPX join key.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("label 0", ""), "")
 
   // A channel whose method cannot be identified must NOT be guessed — it is a join key.
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("mystery_126", "126"), "")
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("no_separator", "126"), "")
+}
+END_SECTION
+
+START_SECTION((std::map<std::uint64_t, std::string> qpxIntensityLabels(const ConsensusMap&)))
+{
+  ConsensusMap two_plex;
+  two_plex.setExperimentType("labeled_MS1");
+  ConsensusMap::ColumnHeader light;
+  light.filename = "silac.mzML";
+  light.label = "no_label";
+  light.setMetaValue("channel_id", 0);
+  ConsensusMap::ColumnHeader arg6;
+  arg6.filename = "silac.mzML";
+  arg6.label = "Arg6";
+  arg6.setMetaValue("channel_id", 1);
+  two_plex.setColumnHeaders({{0, light}, {1, arg6}});
+
+  auto labels = ArrowIOHelpers::qpxIntensityLabels(two_plex);
+  TEST_STRING_EQUAL(labels.at(0), "SILAC light")
+  // Arg6 is medium by mass class, but it is the non-light (heavy-role) channel of a two-plex.
+  TEST_STRING_EQUAL(labels.at(1), "SILAC heavy")
+
+  ConsensusMap three_plex;
+  three_plex.setExperimentType("labeled_MS1");
+  ConsensusMap::ColumnHeader heavy;
+  heavy.filename = "silac3.mzML";
+  heavy.label = "Lys8Arg10";
+  heavy.setMetaValue("channel_id", 2);
+  ConsensusMap::ColumnHeader medium;
+  medium.filename = "silac3.mzML";
+  medium.label = "Lys4Arg6";
+  medium.setMetaValue("channel_id", 1);
+  light.filename = "silac3.mzML";
+  three_plex.setColumnHeaders({{3, heavy}, {7, light}, {9, medium}});
+
+  labels = ArrowIOHelpers::qpxIntensityLabels(three_plex);
+  TEST_STRING_EQUAL(labels.at(3), "SILAC heavy")
+  TEST_STRING_EQUAL(labels.at(7), "SILAC light")
+  TEST_STRING_EQUAL(labels.at(9), "SILAC medium")
+
+  ConsensusMap unsupported;
+  unsupported.setExperimentType("labeled_MS1");
+  heavy.filename = "unsupported_silac.mzML";
+  unsupported.setColumnHeaders({{0, heavy}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(unsupported);
+  TEST_STRING_EQUAL(labels.at(0), "")
+
+  ConsensusMap unknown_role;
+  unknown_role.setExperimentType("labeled_MS1");
+  light.filename = "unknown_role.mzML";
+  ConsensusMap::ColumnHeader unknown = heavy;
+  unknown.filename = "unknown_role.mzML";
+  unknown.label = "SILAC mystery";
+  unknown_role.setColumnHeaders({{0, light}, {1, unknown}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(unknown_role);
+  TEST_STRING_EQUAL(labels.at(0), "")
+  TEST_STRING_EQUAL(labels.at(1), "")
+
+  // A two-plex needs exactly one light channel.
+  ConsensusMap no_light;
+  no_light.setExperimentType("labeled_MS1");
+  medium.filename = "no_light.mzML";
+  heavy.filename = "no_light.mzML";
+  no_light.setColumnHeaders({{0, medium}, {1, heavy}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(no_light);
+  TEST_STRING_EQUAL(labels.at(0), "")
+  TEST_STRING_EQUAL(labels.at(1), "")
+
+  // A three-plex needs one channel per role.
+  ConsensusMap duplicate_role;
+  duplicate_role.setExperimentType("labeled_MS1");
+  light.filename = "duplicate_role.mzML";
+  medium.filename = "duplicate_role.mzML";
+  ConsensusMap::ColumnHeader medium_again = medium;
+  duplicate_role.setColumnHeaders({{0, light}, {1, medium}, {2, medium_again}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(duplicate_role);
+  TEST_STRING_EQUAL(labels.at(0), "")
+  TEST_STRING_EQUAL(labels.at(1), "")
+  TEST_STRING_EQUAL(labels.at(2), "")
+
+  ConsensusMap label_free;
+  label_free.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader lfq;
+  lfq.filename = "lfq.mzML";
+  lfq.label = "label-free";
+  label_free.setColumnHeaders({{0, lfq}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(label_free);
+  TEST_STRING_EQUAL(labels.at(0), "LFQ")
+
+  // Ordinary words containing "lys" must not route the whole source through SILAC validation.
+  ConsensusMap ordinary_labels;
+  ordinary_labels.setExperimentType("label-free");
+  lfq.filename = "ordinary.mzML";
+  ConsensusMap::ColumnHeader lysate = lfq;
+  lysate.label = "Lysate_A";
+  ConsensusMap::ColumnHeader catalyst = lfq;
+  catalyst.label = "catalyst";
+  ordinary_labels.setColumnHeaders({{0, lfq}, {1, lysate}, {2, catalyst}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(ordinary_labels);
+  TEST_STRING_EQUAL(labels.at(0), "LFQ")
+  TEST_STRING_EQUAL(labels.at(1), "")
+  TEST_STRING_EQUAL(labels.at(2), "")
+}
+END_SECTION
+
+START_SECTION((bool qpxIsCanonicalIntensityLabel(const std::string&)))
+{
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("LFQ"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("SILAC light"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("SILAC medium"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("SILAC heavy"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("TMT131"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("TMT131N"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("ITRAQ121"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("DIMETHYL8"))
+
+  TEST_FALSE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("Arg10"))
+  TEST_FALSE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("silac heavy"))
+  TEST_FALSE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("TMT999"))
 }
 END_SECTION
 

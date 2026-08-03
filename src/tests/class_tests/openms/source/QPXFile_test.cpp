@@ -25,6 +25,7 @@
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -88,6 +89,17 @@ namespace
     ptrs.reserve(peps.size());
     for (const auto& p : peps) { ptrs.push_back(&p); }
     return ptrs;
+  }
+
+  std::shared_ptr<arrow::Table> replaceColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    const std::shared_ptr<arrow::Array>& values)
+  {
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+    columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+      std::make_shared<arrow::ChunkedArray>(values);
+    return arrow::Table::Make(table->schema(), std::move(columns));
   }
 }
 
@@ -235,6 +247,84 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] QPX value validation rejects empty and duplicate PSM keys before writing))
+{
+  auto prot = mergedRun({"/data/runA.mzML"});
+  PeptideIdentificationList peps{mergedPSM("PEPTIDEK", 0)};
+  auto table = QPXFile::exportPSMsToQPXArrow(prot, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  QPXValueValidation validator(QPXValueValidation::View::PSM);
+  auto validation = validator.validate(table);
+  TEST_TRUE(validation.valid)
+
+  // One validator instance spans streaming batches, so a key repeated in a later batch is found.
+  validation = validator.validate(table);
+  TEST_FALSE(validation.valid)
+  TEST_TRUE(validation.toString().find("primary key") != std::string::npos)
+  validator.reset();
+  TEST_TRUE(validator.validate(table).valid)
+
+  // The same invariant applies within one table.
+  auto duplicate = arrow::ConcatenateTables({table, table}).ValueOrDie();
+  QPXValueValidation duplicate_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(duplicate_validator.validate(duplicate).valid)
+
+  // An empty string satisfies Arrow's non-nullable declaration, but it is not a usable QPX key.
+  arrow::StringBuilder run_builder;
+  TEST_TRUE(run_builder.Append("").ok())
+  auto empty_run = replaceColumn(table, QPXPSMSchema::RUN_FILE_NAME,
+                                 run_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_run_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(empty_run_validator.validate(empty_run).valid)
+
+  arrow::StringBuilder null_run_builder;
+  TEST_TRUE(null_run_builder.AppendNull().ok())
+  auto null_run = replaceColumn(table, QPXPSMSchema::RUN_FILE_NAME,
+                                null_run_builder.Finish().ValueOrDie());
+  QPXValueValidation null_run_validator(QPXValueValidation::View::PSM);
+  auto null_run_result = null_run_validator.validate(null_run);
+  TEST_FALSE(null_run_result.valid)
+  TEST_TRUE(null_run_result.toString().find("physical null") != std::string::npos)
+
+  // Report every missing primary-key component, even though required-column validation already
+  // rejects the physical nulls independently of uniqueness checking.
+  arrow::StringBuilder null_peptidoform_builder;
+  TEST_TRUE(null_peptidoform_builder.AppendNull().ok())
+  auto null_keys = replaceColumn(table, QPXPSMSchema::PEPTIDOFORM,
+                                 null_peptidoform_builder.Finish().ValueOrDie());
+  arrow::Int16Builder null_charge_builder;
+  TEST_TRUE(null_charge_builder.AppendNull().ok())
+  null_keys = replaceColumn(null_keys, QPXPSMSchema::CHARGE,
+                            null_charge_builder.Finish().ValueOrDie());
+  arrow::StringBuilder null_key_run_builder;
+  TEST_TRUE(null_key_run_builder.AppendNull().ok())
+  null_keys = replaceColumn(null_keys, QPXPSMSchema::RUN_FILE_NAME,
+                            null_key_run_builder.Finish().ValueOrDie());
+  QPXValueValidation null_key_validator(QPXValueValidation::View::PSM);
+  const auto null_key_result = null_key_validator.validate(null_keys);
+  TEST_FALSE(null_key_result.valid)
+  TEST_TRUE(null_key_result.toString().find("null 'peptidoform'") != std::string::npos)
+  TEST_TRUE(null_key_result.toString().find("null 'charge'") != std::string::npos)
+  TEST_TRUE(null_key_result.toString().find("null 'run_file_name'") != std::string::npos)
+
+  // A non-null empty scan list is equally unusable because scan is part of the PSM primary key.
+  auto scan_values = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder scan_builder(arrow::default_memory_pool(), scan_values);
+  TEST_TRUE(scan_builder.Append().ok())
+  auto empty_scan = replaceColumn(table, QPXPSMSchema::SCAN,
+                                  scan_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_scan_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(empty_scan_validator.validate(empty_scan).valid)
+
+  // The table-taking writer runs the same validation before FileOutputStream::Open().
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_FALSE(QPXFile::exportToParquet(empty_run, output))
+  TEST_FALSE(File::exists(output))
+}
+END_SECTION
+
 START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...) with export_all_psms)
 {
   // Create test data with multiple hits per peptide identification
@@ -308,6 +398,7 @@ START_SECTION(static bool exportToParquet(...))
   protein_id.setSearchEngine("TestEngine");
   protein_id.setScoreType("TestScore");
   protein_id.setHigherScoreBetter(true);
+  protein_id.setPrimaryMSRunPath({"test_run.mzML"});
   protein_ids.push_back(protein_id);
 
   PeptideIdentification peptide_id;
@@ -315,6 +406,7 @@ START_SECTION(static bool exportToParquet(...))
   peptide_id.setRT(1234.5);
   peptide_id.setMZ(500.25);
   peptide_id.setScoreType("TestScore");
+  peptide_id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=1234");
 
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEM(Oxidation)TIDER"));
@@ -391,10 +483,10 @@ START_SECTION(static bool exportToParquet(...))
   TEST_TRUE(compression_idx >= 0)
   TEST_EQUAL(metadata->value(compression_idx), "zstd")
 
-  // scan_format is derived from the spectrum native IDs. This fixture sets none, so the
-  // key must be absent rather than asserted as "scan" — the scan column cannot hold scan
-  // numbers when there is no native ID to extract them from.
-  TEST_TRUE(metadata->FindKey("scan_format") < 0)
+  // scan_format is derived from the spectrum native IDs.
+  auto scan_format_idx = metadata->FindKey("scan_format");
+  TEST_TRUE(scan_format_idx >= 0)
+  TEST_EQUAL(metadata->value(scan_format_idx), "scan")
 
   // software_provider carries the versioned library ("OpenMS <version>"); creator is the
   // bare tool/org name.
@@ -419,6 +511,7 @@ START_SECTION([EXTRA] QPX scan_format is derived from the spectrum native IDs)
 
     ProteinIdentification protein_id;
     protein_id.setIdentifier("sf_search");
+    protein_id.setPrimaryMSRunPath({"scan_format_run.mzML"});
     protein_ids.push_back(protein_id);
 
     PeptideIdentification pid;
@@ -453,9 +546,9 @@ START_SECTION([EXTRA] QPX scan_format is derived from the spectrum native IDs)
   TEST_STRING_EQUAL(scan_format_for("controllerType=0 controllerNumber=1 scan=1234"), "scan")
   TEST_STRING_EQUAL(scan_format_for("scan=42"), "scan")
   TEST_STRING_EQUAL(scan_format_for("index=7"), "index")
-  // Unrecognized / absent native IDs yield no evidence, so the key is omitted.
-  TEST_STRING_EQUAL(scan_format_for("some_opaque_identifier"), "")
-  TEST_STRING_EQUAL(scan_format_for(""), "")
+  // Unrecognized and absent native IDs cannot populate the numeric QPX scan key.
+  TEST_STRING_EQUAL(scan_format_for("some_opaque_identifier"), "<write failed>")
+  TEST_STRING_EQUAL(scan_format_for(""), "<write failed>")
 }
 END_SECTION
 
@@ -1264,6 +1357,15 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
     TEST_EQUAL(o_table->num_rows(), 1)
   }
 
+  // One validator spans all batches, so a primary key repeated after a batch boundary fails.
+  {
+    std::vector<const PeptideIdentification*> duplicate_ptrs{ptrs[0], ptrs[0]};
+    std::string duplicate_file;
+    NEW_TMP_FILE(duplicate_file)
+    TEST_FALSE(QPXFile::exportToParquetStreaming(
+      protein_ids, duplicate_ptrs, duplicate_file, false, 1))
+  }
+
   // --- Edge case: batch_size=0 must not hang (guarded to default) and write all rows ---
   {
     std::string zero_file;
@@ -1505,7 +1607,12 @@ START_SECTION(([EXTRA] exportToParquetStreaming dedicated-column values (index p
   // Replicate so the parallel path actually partitions (n_threads=4, batch_size=3 => multiple
   // batches AND multiple partitions per batch), then check the first and last row.
   const size_t NREP = 10;
-  for (size_t i = 0; i < NREP; ++i) { peps.push_back(pid); }
+  for (size_t i = 0; i < NREP; ++i)
+  {
+    PeptideIdentification replicate(pid);
+    replicate.setSpectrumReference(std::string("controllerType=0 controllerNumber=1 scan=") + std::to_string(4242 + i));
+    peps.push_back(std::move(replicate));
+  }
   std::vector<const PeptideIdentification*> ptrs;
   ptrs.reserve(peps.size());
   for (const auto& p : peps) { ptrs.push_back(&p); }

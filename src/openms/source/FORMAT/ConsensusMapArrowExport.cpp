@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -169,16 +170,17 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
     for (const auto& [map_index, header] : cmap.getColumnHeaders()) { header_paths.push_back(header.filename); }
     (void)ArrowIOHelpers::qpxWarnOnRunNameCollisions("ConsensusMapArrowExport", header_paths);
   }
+  const auto qpx_labels = ArrowIOHelpers::qpxIntensityLabels(cmap);
   for (const auto& [map_index, header] : cmap.getColumnHeaders())
   {
     const std::string channel_name = header.metaValueExists("channel_name")
                                    ? header.getMetaValue("channel_name").toString() : "";
     if (!channel_name.empty()) { lut.is_isobaric = true; }
 
-    std::string label = ArrowIOHelpers::qpxIntensityLabel(header.label, channel_name);
+    std::string label = qpx_labels.at(map_index);
     if (label.empty())
     {
-      // qpxIntensityLabel() documents that callers must handle this: the channel's method
+      // qpxIntensityLabels() documents that callers must handle this: the channel's method
       // could not be identified, so any token written here would be a guessed join key.
       lut.has_unlabelable_channel = true;
       OPENMS_LOG_ERROR << "ConsensusMapArrowExport: column header '" << header.label
@@ -1372,6 +1374,15 @@ bool ConsensusMapArrowExport::exportToParquet(
   if (!meta) { return false; } // unsupported compression for QPX; already logged
   table = table->ReplaceSchemaMetadata(meta);
 
+  QPXValueValidation value_validator(QPXValueValidation::View::FEATURE);
+  const auto value_validation = value_validator.validate(table);
+  if (!value_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: refusing invalid QPX feature table ("
+                     << filename << "): " << value_validation.toString() << std::endl;
+    return false;
+  }
+
   // Open output file
   auto result = arrow::io::FileOutputStream::Open(filename);
   if (!result.ok())
@@ -1468,6 +1479,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   auto writer = std::move(writer_result).ValueOrDie();
 
   const int64_t rg = static_cast<int64_t>(config.row_group_size);
+  QPXValueValidation value_validator(QPXValueValidation::View::FEATURE);
 
   // Build one feature batch [b, e): partition it into W contiguous sub-ranges, build each sub-table
   // in parallel (OpenMP), then write them in index order (serial — the FileWriter is not thread-safe).
@@ -1517,6 +1529,13 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
         OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch partition " << t << std::endl;
         return false;
       }
+      const auto value_validation = value_validator.validate(parts[t]);
+      if (!value_validation.valid)
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: refusing invalid QPX feature batch for "
+                         << filename << ": " << value_validation.toString() << std::endl;
+        return false;
+      }
       auto st = writer->WriteTable(*parts[t]->ReplaceSchemaMetadata(meta), rg);
       if (!st.ok())
       {
@@ -1556,6 +1575,11 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close output stream for " << filename << ": "
                      << outfile_close.ToString() << std::endl;
     ok = false;
+  }
+  if (!ok && !File::remove(filename))
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                     << filename << std::endl;
   }
   return ok;
 }

@@ -11,7 +11,9 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -27,6 +29,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 
@@ -170,6 +173,17 @@ namespace
     }
     return out;
   }
+
+  std::shared_ptr<arrow::Table> replaceColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    const std::shared_ptr<arrow::Array>& values)
+  {
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+    columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+      std::make_shared<arrow::ChunkedArray>(values);
+    return arrow::Table::Make(table->schema(), std::move(columns));
+  }
 }
 
 START_TEST(ProteinGroupArrowExport, "$Id$")
@@ -189,6 +203,140 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const std::vec
   TEST_TRUE(groupedRuns(table)[0] == std::vector<std::string>({"SimpleSearchEngine_1"}))
   TEST_TRUE(table->GetColumnByName("label")->chunk(0)->IsNull(0))
   TEST_TRUE(table->GetColumnByName("intensity")->chunk(0)->IsNull(0))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] pg value validation enforces keys, labels, and grouped_runs invariants))
+{
+  auto prot_id = makeIdOnlyRun({"/data/runA.mzML"});
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+
+  QPXValueValidation validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_TRUE(validator.validate(table).valid)
+
+  auto duplicate = arrow::ConcatenateTables({table, table}).ValueOrDie();
+  QPXValueValidation duplicate_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_FALSE(duplicate_validator.validate(duplicate).valid)
+
+  // grouped_runs is a non-empty set, not merely a non-null Arrow list.
+  auto run_values = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder duplicate_runs_builder(arrow::default_memory_pool(), run_values);
+  TEST_TRUE(duplicate_runs_builder.Append().ok())
+  TEST_TRUE(run_values->Append("runA").ok())
+  TEST_TRUE(run_values->Append("runA").ok())
+  auto duplicate_runs = replaceColumn(table, QPXPgSchema::GROUPED_RUNS,
+                                      duplicate_runs_builder.Finish().ValueOrDie());
+  QPXValueValidation grouped_runs_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_FALSE(grouped_runs_validator.validate(duplicate_runs).valid)
+
+  auto empty_values = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder empty_runs_builder(arrow::default_memory_pool(), empty_values);
+  TEST_TRUE(empty_runs_builder.Append().ok())
+  auto empty_runs = replaceColumn(table, QPXPgSchema::GROUPED_RUNS,
+                                  empty_runs_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_runs_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_FALSE(empty_runs_validator.validate(empty_runs).valid)
+
+  auto blank_values = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder blank_run_builder(arrow::default_memory_pool(), blank_values);
+  TEST_TRUE(blank_run_builder.Append().ok())
+  TEST_TRUE(blank_values->Append(" ").ok())
+  auto blank_run = replaceColumn(table, QPXPgSchema::GROUPED_RUNS,
+                                 blank_run_builder.Finish().ValueOrDie());
+  QPXValueValidation blank_run_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_FALSE(blank_run_validator.validate(blank_run).valid)
+
+  arrow::StringBuilder anchor_builder;
+  TEST_TRUE(anchor_builder.Append("").ok())
+  auto empty_anchor = replaceColumn(table, QPXPgSchema::ANCHOR_PROTEIN,
+                                    anchor_builder.Finish().ValueOrDie());
+  QPXValueValidation anchor_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_FALSE(anchor_validator.validate(empty_anchor).valid)
+
+  // A quantified row sets label and intensity together, and the label must be canonical.
+  arrow::StringBuilder bad_label_builder;
+  TEST_TRUE(bad_label_builder.Append("Arg10").ok())
+  arrow::FloatBuilder intensity_builder;
+  TEST_TRUE(intensity_builder.Append(42.0f).ok())
+  auto bad_label = replaceColumn(table, QPXPgSchema::LABEL,
+                                 bad_label_builder.Finish().ValueOrDie());
+  bad_label = replaceColumn(bad_label, QPXPgSchema::INTENSITY,
+                            intensity_builder.Finish().ValueOrDie());
+  QPXValueValidation label_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  auto label_result = label_validator.validate(bad_label);
+  TEST_FALSE(label_result.valid)
+  TEST_TRUE(label_result.toString().find("non-canonical") != std::string::npos)
+
+  arrow::StringBuilder lfq_label_builder;
+  TEST_TRUE(lfq_label_builder.Append("LFQ").ok())
+  auto unmatched_label = replaceColumn(table, QPXPgSchema::LABEL,
+                                       lfq_label_builder.Finish().ValueOrDie());
+  QPXValueValidation pair_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  TEST_FALSE(pair_validator.validate(unmatched_label).valid)
+
+  // additional_intensities uses the same canonical label as the flattened pg row.
+  auto pair_name_builder = std::make_shared<arrow::StringBuilder>();
+  auto pair_value_builder = std::make_shared<arrow::FloatBuilder>();
+  auto pair_type = arrow::struct_({
+    arrow::field("intensity_name", arrow::utf8(), false),
+    arrow::field("intensity_value", arrow::float32(), false)});
+  auto pair_struct_builder = std::make_shared<arrow::StructBuilder>(
+    pair_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pair_name_builder, pair_value_builder});
+  auto pair_list_builder = std::make_shared<arrow::ListBuilder>(
+    arrow::default_memory_pool(), pair_struct_builder);
+  auto extra_label_builder = std::make_shared<arrow::StringBuilder>();
+  auto extra_type = arrow::struct_({
+    arrow::field("label", arrow::utf8(), false),
+    arrow::field("intensities", arrow::list(pair_type), false)});
+  auto extra_struct_builder = std::make_shared<arrow::StructBuilder>(
+    extra_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{extra_label_builder, pair_list_builder});
+  arrow::ListBuilder extras_builder(arrow::default_memory_pool(), extra_struct_builder);
+  TEST_TRUE(extras_builder.Append().ok())
+  TEST_TRUE(extra_struct_builder->Append().ok())
+  TEST_TRUE(extra_label_builder->Append("Arg10").ok())
+  TEST_TRUE(pair_list_builder->Append().ok())
+  TEST_TRUE(pair_struct_builder->Append().ok())
+  TEST_TRUE(pair_name_builder->Append("normalized").ok())
+  TEST_TRUE(pair_value_builder->Append(21.0f).ok())
+  auto bad_extras = unmatched_label;
+  arrow::FloatBuilder lfq_intensity_builder;
+  TEST_TRUE(lfq_intensity_builder.Append(42.0f).ok())
+  bad_extras = replaceColumn(bad_extras, QPXPgSchema::INTENSITY,
+                             lfq_intensity_builder.Finish().ValueOrDie());
+  bad_extras = replaceColumn(bad_extras, QPXPgSchema::ADDITIONAL_INTENSITIES,
+                             extras_builder.Finish().ValueOrDie());
+  QPXValueValidation extras_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  const auto extras_result = extras_validator.validate(bad_extras);
+  TEST_FALSE(extras_result.valid)
+  TEST_TRUE(extras_result.toString().find("additional_intensities") != std::string::npos)
+
+  // Distinct grouped_runs keys may not overlap for one (anchor_protein, label), or the same raw
+  // measurement would contribute to two protein quantities.
+  auto two_rows = arrow::ConcatenateTables({table, table}).ValueOrDie();
+  auto overlap_values = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder overlap_builder(arrow::default_memory_pool(), overlap_values);
+  TEST_TRUE(overlap_builder.Append().ok())
+  TEST_TRUE(overlap_values->Append("runA").ok())
+  TEST_TRUE(overlap_values->Append("runB").ok())
+  TEST_TRUE(overlap_builder.Append().ok())
+  TEST_TRUE(overlap_values->Append("runB").ok())
+  TEST_TRUE(overlap_values->Append("runC").ok())
+  auto overlap = replaceColumn(two_rows, QPXPgSchema::GROUPED_RUNS,
+                               overlap_builder.Finish().ValueOrDie());
+  QPXValueValidation overlap_validator(QPXValueValidation::View::PROTEIN_GROUP);
+  auto overlap_result = overlap_validator.validate(overlap);
+  TEST_FALSE(overlap_result.valid)
+  TEST_TRUE(overlap_result.toString().find("reuses run") != std::string::npos)
+
+  // The table-taking writer invokes the shared validator before opening its destination.
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_FALSE(ProteinGroupArrowExport::exportToParquet(duplicate, output))
+  TEST_FALSE(File::exists(output))
 }
 END_SECTION
 
@@ -354,8 +502,8 @@ END_SECTION
 START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows under one key))
 {
   // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the
-  // (anchor_protein, grouped_runs, label) primary key. Both are kept -- dropping one loses data and
-  // there is no rule for merging two group probabilities -- and the export warns.
+  // (anchor_protein, grouped_runs, label) primary key. The in-memory builder keeps both so callers
+  // can inspect the source conflict; the Parquet writer's shared value validator refuses them.
   auto prot_a = makeIdOnlyRun({"/a/run.mzML"});
   auto prot_b = makeIdOnlyRun({"/b/run.mzML"});
   prot_b.setIdentifier("PI_1");
