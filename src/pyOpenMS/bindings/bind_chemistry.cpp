@@ -59,6 +59,89 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
+namespace
+{
+  // The setters guarded below hand OpenMS a raw pointer that it stores verbatim and keeps
+  // using after the call returns. nb::keep_alive cannot make those safe: the receivers are
+  // copyable, and a C++ copy duplicates the stored pointer without carrying the Python-side
+  // lifetime edge with it, so the copy dangles as soon as the original wrapper is collected.
+  // Only a database-owned pointee has process lifetime and can be stored safely.
+  [[noreturn]] void rejectForeignPointer_(const std::string& kind, const std::string& db, const std::string& name)
+  {
+    throw nb::value_error((kind + " '" + name + "' is not owned by " + db + ". OpenMS keeps this "
+                           "pointer after the call returns, so it would dangle once the Python object is "
+                           "collected. Obtain the " + kind + " from " + db + " instead.").c_str());
+  }
+
+  const OpenMS::Ribonucleotide* requireDBRibonucleotide_(const OpenMS::Ribonucleotide* r)
+  {
+    if (r != nullptr)
+    {
+      try
+      {
+        if (OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode()) == r) { return r; }
+      }
+      catch (const OpenMS::Exception::ElementNotFound&)
+      {
+      }
+    }
+    rejectForeignPointer_("Ribonucleotide", "RibonucleotideDB", r == nullptr ? "None" : r->getCode());
+  }
+
+  const OpenMS::DigestionEnzyme* requireDBEnzyme_(const OpenMS::DigestionEnzyme* e)
+  {
+    if (e != nullptr)
+    {
+      const auto* protease = dynamic_cast<const OpenMS::DigestionEnzymeProtein*>(e);
+      if (protease != nullptr && OpenMS::ProteaseDB::getInstance()->hasEnzyme(protease)) { return e; }
+      const auto* rnase = dynamic_cast<const OpenMS::DigestionEnzymeRNA*>(e);
+      if (rnase != nullptr && OpenMS::RNaseDB::getInstance()->hasEnzyme(rnase)) { return e; }
+    }
+    rejectForeignPointer_("Enzyme", "ProteaseDB or RNaseDB", e == nullptr ? "None" : e->getName());
+  }
+
+  // RNaseDigestion::setEnzyme dynamic_casts to DigestionEnzymeRNA and dereferences the result
+  // without a null check, so a non-RNase argument is an immediate crash independent of lifetime.
+  const OpenMS::DigestionEnzyme* requireDBRNase_(const OpenMS::DigestionEnzyme* e)
+  {
+    if (e != nullptr)
+    {
+      const auto* rnase = dynamic_cast<const OpenMS::DigestionEnzymeRNA*>(e);
+      if (rnase != nullptr && OpenMS::RNaseDB::getInstance()->hasEnzyme(rnase)) { return e; }
+    }
+    rejectForeignPointer_("RNase", "RNaseDB", e == nullptr ? "None" : e->getName());
+  }
+
+  // EnzymaticDigestion::setEnzyme is virtual, so calling the *base* descriptor explicitly with a
+  // derived receiver -- EnzymaticDigestion.setEnzyme(rnase_digestion, protease) -- dispatches to
+  // the override and would slip past the guard on the derived binding. Pick the requirement from
+  // the receiver's dynamic type rather than from which binding was entered.
+  const OpenMS::DigestionEnzyme* requireEnzymeForReceiver_(const OpenMS::EnzymaticDigestion& self,
+                                                           const OpenMS::DigestionEnzyme* e)
+  {
+    if (dynamic_cast<const OpenMS::RNaseDigestion*>(&self) != nullptr) { return requireDBRNase_(e); }
+    return requireDBEnzyme_(e);
+  }
+
+  const OpenMS::Residue* requireDBResidue_(const OpenMS::Residue* r)
+  {
+    if (r != nullptr && OpenMS::ResidueDB::getInstance()->hasResidue(r)) { return r; }
+    rejectForeignPointer_("Residue", "ResidueDB", r == nullptr ? "None" : r->getName());
+  }
+
+  // Returns the ModificationsDB-owned equivalent, so an equal-but-foreign copy is accepted and
+  // substituted rather than stored.
+  const OpenMS::ResidueModification* requireDBModification_(const OpenMS::ResidueModification* m)
+  {
+    if (m != nullptr)
+    {
+      const OpenMS::ResidueModification* owned = OpenMS::ModificationsDB::getInstance()->searchModification(*m);
+      if (owned != nullptr) { return owned; }
+    }
+    rejectForeignPointer_("Modification", "ModificationsDB", m == nullptr ? "None" : m->getFullId());
+  }
+} // namespace
+
 NB_MODULE(_pyopenms_chemistry, m) {
     m.doc() = "pyOpenMS chemistry bindings";
 
@@ -97,12 +180,17 @@ instance primarily contains a sequence of residues.
         .def("toUnmodifiedString", [](const OpenMS::AASequence& self) { return self.toUnmodifiedString(); }, "Returns the peptide as string without any modifications")
         .def("toUniModString", [](const OpenMS::AASequence& self) { return self.toUniModString(); }, "Returns the peptide as string with UniMod-style modifications embedded in brackets")
         .def("setModification", [](OpenMS::AASequence& self, size_t index, const std::string& modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
-        .def("setModification", [](OpenMS::AASequence& self, size_t index, OpenMS::Residue * modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
-        .def("setModification", [](OpenMS::AASequence& self, size_t index, OpenMS::ResidueModification * modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
+        .def("setModification", [](OpenMS::AASequence& self, size_t index, OpenMS::Residue * modification) {
+            // unlike the ResidueModification overloads, AASequence::setModification(Size, const Residue*)
+            // is an unchecked peptide_[index] assignment
+            if (index >= self.size()) throw nb::index_error();
+            return self.setModification(index, requireDBResidue_(modification));
+        }, "index"_a, "modification"_a, "Sets the residue at position index. The residue must come from ResidueDB, since AASequence stores it by reference")
+        .def("setModification", [](OpenMS::AASequence& self, size_t index, OpenMS::ResidueModification * modification) { return self.setModification(index, *modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. The modification is interned into ModificationsDB, so a copy is stored rather than the object passed in")
         .def("setModification", [](OpenMS::AASequence& self, size_t index, const OpenMS::ResidueModification& modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
         .def("setModificationByDiffMonoMass", [](OpenMS::AASequence& self, size_t index, double diffMonoMass) { return self.setModificationByDiffMonoMass(index, diffMonoMass); }, "index"_a, "diffMonoMass"_a, "Modifies the residue at index in the sequence and potentially in the ResidueDB")
         .def("setNTerminalModification", [](OpenMS::AASequence& self, const std::string& modification) { return self.setNTerminalModification(modification); }, "modification"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
-        .def("setNTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setNTerminalModification(modification); }, "modification"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
+        .def("setNTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setNTerminalModification(*modification); }, "modification"_a, "Sets the N-terminal modification. The modification is interned into ModificationsDB, so a copy is stored rather than the object passed in")
         .def("setNTerminalModification", [](OpenMS::AASequence& self, const OpenMS::ResidueModification& mod) { return self.setNTerminalModification(mod); }, "mod"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setNTerminalModificationByDiffMonoMass", [](OpenMS::AASequence& self, double diffMonoMass, bool protein_term) { return self.setNTerminalModificationByDiffMonoMass(diffMonoMass, protein_term); }, "diffMonoMass"_a, "protein_term"_a, 
             R"doc(
@@ -111,7 +199,7 @@ Sets the N-terminal modification by the monoisotopic mass difference it introduc
         .def("getNTerminalModificationName", [](const OpenMS::AASequence& self) { return self.getNTerminalModificationName(); }, "Returns the name (ID) of the N-terminal modification, or an empty string if none is set")
         .def("getNTerminalModification", [](const OpenMS::AASequence& self) { return self.getNTerminalModification(); }, nb::rv_policy::reference_internal, "Returns a copy of the name N-terminal modification object, or None")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, const std::string& modification) { return self.setCTerminalModification(modification); }, "modification"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
-        .def("setCTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setCTerminalModification(modification); }, "modification"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
+        .def("setCTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setCTerminalModification(*modification); }, "modification"_a, "Sets the C-terminal modification. The modification is interned into ModificationsDB, so a copy is stored rather than the object passed in")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, const OpenMS::ResidueModification& mod) { return self.setCTerminalModification(mod); }, "mod"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setCTerminalModificationByDiffMonoMass", [](OpenMS::AASequence& self, double diffMonoMass, bool protein_term) { return self.setCTerminalModificationByDiffMonoMass(diffMonoMass, protein_term); }, "diffMonoMass"_a, "protein_term"_a, 
             R"doc(
@@ -135,7 +223,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::AASequence& self) { return std::hash<OpenMS::AASequence>{}(self); })
-        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::AASequence& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::AASequence& self, size_t i) -> const OpenMS::Residue & { 
             if (i >= self.size()) throw nb::index_error();
@@ -553,7 +641,7 @@ Thus no random selection of just n specific missed cleavage sites is performed.
         .def("getMissedCleavages", [](const OpenMS::EnzymaticDigestion& self) { return self.getMissedCleavages(); }, "Returns the max. number of allowed missed cleavages for the digestion")
         .def("setMissedCleavages", [](OpenMS::EnzymaticDigestion& self, size_t missed_cleavages) { return self.setMissedCleavages(missed_cleavages); }, "missed_cleavages"_a, "Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used")
         .def("getEnzymeName", [](const OpenMS::EnzymaticDigestion& self) { return self.getEnzymeName(); }, "Returns the enzyme for the digestion")
-        .def("setEnzyme", [](OpenMS::EnzymaticDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(enzyme); }, "enzyme"_a, "Sets the enzyme for the digestion")
+        .def("setEnzyme", [](OpenMS::EnzymaticDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(requireEnzymeForReceiver_(self, enzyme)); }, "enzyme"_a, "Sets the enzyme for the digestion. The enzyme must come from ProteaseDB or RNaseDB, since EnzymaticDigestion stores it by reference")
         .def("getSpecificity", [](const OpenMS::EnzymaticDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
         .def("setSpecificity", [](OpenMS::EnzymaticDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); }, "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
         .def_static("getSpecificityByName", [](const std::string& name) { return OpenMS::EnzymaticDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
@@ -770,7 +858,7 @@ IsotopePatternGenerator
         .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
-        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D & {
             if (i >= self.size()) throw nb::index_error();
@@ -1541,7 +1629,7 @@ print (fragment)
         .def(nb::init<const OpenMS::RNaseDigestion &>())
         .def("__copy__", [](const OpenMS::RNaseDigestion& self) { return OpenMS::RNaseDigestion(self); })
         .def("__deepcopy__", [](const OpenMS::RNaseDigestion& self, nb::dict) { return OpenMS::RNaseDigestion(self); }, "memo"_a)
-        .def("setEnzyme", [](OpenMS::RNaseDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(enzyme); }, "enzyme"_a, "Sets the enzyme for the digestion (by name)")
+        .def("setEnzyme", [](OpenMS::RNaseDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(requireEnzymeForReceiver_(self, enzyme)); }, "enzyme"_a, "Sets the enzyme for the digestion. The enzyme must come from RNaseDB, since RNaseDigestion stores it by reference and requires an RNase")
         .def("setEnzyme", [](OpenMS::RNaseDigestion& self, const std::string& name) { return self.setEnzyme(name); }, "name"_a, "Sets the enzyme for the digestion (by name)")
         .def("getMissedCleavages", [](const OpenMS::RNaseDigestion& self) { return self.getMissedCleavages(); }, "Returns the max. number of allowed missed cleavages for the digestion")
         .def("setMissedCleavages", [](OpenMS::RNaseDigestion& self, size_t missed_cleavages) { return self.setMissedCleavages(missed_cleavages); }, "missed_cleavages"_a, "Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used")
@@ -1636,7 +1724,7 @@ non-integer weights with an error allowed
         .def("getMonoWeight", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getMonoWeight(res_type); }, "res_type"_a)
         .def("getModification", [](const OpenMS::Residue& self) { return self.getModification(); }, nb::rv_policy::reference_internal)
         .def("setModification", [](OpenMS::Residue& self, const std::string& name) { return self.setModification(name); }, "name"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
-        .def("setModification", [](OpenMS::Residue& self, OpenMS::ResidueModification * mod) { return self.setModification(mod); }, "mod"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
+        .def("setModification", [](OpenMS::Residue& self, OpenMS::ResidueModification * mod) { return self.setModification(*mod); }, "mod"_a, "Sets the modification. The modification is interned into ModificationsDB, so a copy is stored rather than the object passed in")
         .def("setModification", [](OpenMS::Residue& self, const OpenMS::ResidueModification& mod) { return self.setModification(mod); }, "mod"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
         .def("setModificationByDiffMonoMass", [](OpenMS::Residue& self, double diffMonoMass) { return self.setModificationByDiffMonoMass(diffMonoMass); }, "diffMonoMass"_a, 
             R"doc(
@@ -1759,7 +1847,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getResidue", [](const OpenMS::ResidueDB& self, const unsigned char& one_letter_code) { return self.getResidue(one_letter_code); }, "one_letter_code"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
         .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
         .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, const std::string& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
-        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, requireDBModification_(mod)); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getResidues", [](const OpenMS::ResidueDB& self, const std::string& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
         .def("getResidueSets", [](const OpenMS::ResidueDB& self) { return self.getResidueSets(); }, "Returns all residue sets that are registered which this instance")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
@@ -2036,22 +2124,31 @@ the fixed and variable modifications given to the constructor
         .def("__iter__", [](const OpenMS::NASequence& self) {
             return nb::make_iterator<nb::rv_policy::reference>(nb::type<OpenMS::NASequence>(), "NASequence_iter",
                 self.begin(), self.end());
-        })
+        }, nb::keep_alive<0, 1>())
         .def("get", [](OpenMS::NASequence& self, size_t index) -> const OpenMS::Ribonucleotide* {
+            if (index >= self.size()) throw nb::index_error(); // NASequence::get is an unchecked seq_[index]
             return self.get(index);
         }, "index"_a, nb::rv_policy::reference, "Returns the ribonucleotide at the given index")
         .def("getPrefix", [](const OpenMS::NASequence& self, size_t length) { return self.getPrefix(length); }, "length"_a, "Returns the prefix of the given length")
         .def("getSuffix", [](const OpenMS::NASequence& self, size_t length) { return self.getSuffix(length); }, "length"_a, "Returns the suffix of the given length")
         .def("getSubsequence", [](const OpenMS::NASequence& self, size_t start, size_t length) { return self.getSubsequence(start, length); }, "start"_a, "length"_a, "Returns a subsequence starting at start with the given length")
-        .def("set", [](OpenMS::NASequence& self, size_t index, const OpenMS::Ribonucleotide* r) { self.set(index, r); }, "index"_a, "ribonucleotide"_a, "Sets the ribonucleotide at the given index")
+        .def("set", [](OpenMS::NASequence& self, size_t index, const OpenMS::Ribonucleotide* r) {
+            if (index >= self.size()) throw nb::index_error(); // NASequence::set is an unchecked seq_[index]
+            self.set(index, requireDBRibonucleotide_(r));
+        }, "index"_a, "ribonucleotide"_a, "Sets the ribonucleotide at the given index. It must come from RibonucleotideDB, since NASequence stores it by reference")
         .def("getFivePrimeMod", [](const OpenMS::NASequence& self) -> const OpenMS::Ribonucleotide* { return self.getFivePrimeMod(); }, nb::rv_policy::reference, "Returns the 5' modification, or None if not set")
         .def("getThreePrimeMod", [](const OpenMS::NASequence& self) -> const OpenMS::Ribonucleotide* { return self.getThreePrimeMod(); }, nb::rv_policy::reference, "Returns the 3' modification, or None if not set")
-        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setFivePrimeMod(mod); }, "mod"_a, "Sets the 5' modification")
-        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(mod); }, "mod"_a, "Sets the 3' modification")
+        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setFivePrimeMod(requireDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 5' modification. It must come from RibonucleotideDB, since NASequence stores it by reference")
+        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(requireDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 3' modification. It must come from RibonucleotideDB, since NASequence stores it by reference")
         .def("hasFivePrimeMod", &OpenMS::NASequence::hasFivePrimeMod, "Returns true if the sequence has a 5' modification")
         .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
         .def("getSequence", [](const OpenMS::NASequence& self) { return self.getSequence(); }, nb::rv_policy::reference_internal, "Returns the sequence of ribonucleotides")
-        .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) { self.setSequence(seq); }, "seq"_a, "Sets the sequence of ribonucleotides")
+        .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) {
+            std::vector<const OpenMS::Ribonucleotide*> checked;
+            checked.reserve(seq.size());
+            for (const auto* r : seq) { checked.push_back(requireDBRibonucleotide_(r)); }
+            self.setSequence(checked);
+        }, "seq"_a, "Sets the sequence of ribonucleotides. Each must come from RibonucleotideDB, since NASequence stores them by reference")
         .def("__repr__", [](const OpenMS::NASequence& self) {
             std::ostringstream oss;
             oss << "NASequence(sequence='" << std::string(self.toString())

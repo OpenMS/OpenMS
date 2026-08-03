@@ -949,6 +949,40 @@ START_SECTION([EXTRA] b-ion and a-ion neutral-loss m/z values)
 }
 END_SECTION
 
+START_SECTION([EXTRA] add_internal_fragments on very short peptides does not hang (unsigned underflow regression))
+{
+  // Regression for the unsigned underflow in addInternalFragmentPeaks_():
+  // the old loop bound 'l < peptide.size() - 1 - 2' underflows to a huge value
+  // for peptides shorter than length 4, causing an effectively infinite loop.
+  // With the additive bound 'l + 3 < peptide.size()' these calls simply return.
+  // Reaching the end of this section (i.e. NOT hanging) is the regression assertion.
+  TheoreticalSpectrumGenerator t_gen;
+  Param params = t_gen.getParameters();
+  params.setValue("add_internal_fragments", "true");
+  t_gen.setParameters(params);
+
+  PeakSpectrum spec;
+  t_gen.getSpectrum(spec, AASequence::fromString("AC"), 1, 1); // length 2
+  t_gen.getSpectrum(spec, AASequence::fromString("A"), 1, 1);  // length 1
+  // if we get here the loop terminated for short peptides
+  TEST_TRUE(true)
+
+  // a normal-length peptide must still produce internal fragments:
+  // turning add_internal_fragments on must add peaks compared to off.
+  Param params_off = t_gen.getParameters();
+  params_off.setValue("add_internal_fragments", "false");
+  t_gen.setParameters(params_off);
+  PeakSpectrum spec_off;
+  t_gen.getSpectrum(spec_off, AASequence::fromString("PEPTIDEK"), 1, 1);
+
+  t_gen.setParameters(params); // internal fragments on
+  PeakSpectrum spec_on;
+  t_gen.getSpectrum(spec_on, AASequence::fromString("PEPTIDEK"), 1, 1);
+
+  TEST_TRUE(spec_on.size() > spec_off.size())
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////

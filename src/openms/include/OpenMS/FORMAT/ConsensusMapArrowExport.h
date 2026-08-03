@@ -53,6 +53,31 @@ public:
   static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap);
 
   /**
+    @brief Verify that every feature can be attributed to a single peptide
+
+    The QPX feature and pg views have singular @c sequence / @c peptidoform / @c charge and
+    no ConsensusFeature identifier, so a feature whose identifications disagree on the top
+    peptide cannot be represented: exporting one would publish a chosen interpretation while
+    silently discarding the alternatives, and the pg view would count evidence contributed by
+    one peptide under another's identity. The ambiguity-preserving representation is the
+    OpenMS-native @c consensusparquet (ConsensusMapArrowIO), which keeps every hit and the
+    consensus feature association, and which @ref TOPP_IDConflictResolver accepts as input.
+
+    Several identifications agreeing on the same modified sequence
+    (@c FEATURE_ID_MULTIPLE_SAME) are unambiguous and accepted -- that is the deliberate
+    output of IDConflictResolverAlgorithm::resolve() with @p keep_matching.
+
+    @note Must be called as a preflight, before any OpenMP region and before the output file
+          is opened. An exception escaping the parallel batch build would be flattened into a
+          boolean by the worker's catch-all, and one escaping the region at all is
+          std::terminate.
+
+    @param[in] cmap The map about to be exported
+    @throw Exception::IllegalArgument if any feature has divergent peptide annotations
+  */
+  static void requireUnambiguousIdentities(const ConsensusMap& cmap);
+
+  /**
     @brief Export ConsensusMap to Parquet file
 
     @param[in] cmap The ConsensusMap to export

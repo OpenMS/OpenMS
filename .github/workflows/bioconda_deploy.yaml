@@ -55,7 +55,16 @@ jobs:
           git checkout -b nightly origin/nightly
           git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
           git fetch bioconda master
-          git rebase bioconda/master
+          # Use a merge, not a rebase, to integrate upstream bioconda/master.
+          # Rebase replays our nightly branch's commits one at a time, in their
+          # original historical order, onto today's master. Since our nightly
+          # branch already periodically merges upstream (so its tip is already
+          # reconciled with a past state of master), replaying an older nightly
+          # commit in isolation reintroduces conflicts upstream and nightly
+          # resolved together long ago -- even though the two tips merge
+          # cleanly. A merge diffs tip-vs-tip once instead of replaying stale
+          # history, so it only conflicts on genuinely unresolved changes.
+          git merge --no-edit bioconda/master
 
       - name: Lint and build OpenMS Bioconda packages
         run: |

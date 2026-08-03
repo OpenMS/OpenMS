@@ -344,12 +344,12 @@ def test_msspectrum_drift_time_no_im():
     assert not spec.containsIMData()
     assert spec.get_drift_time_array() is None
     assert spec.get_drift_time_array_view() is None
-    assert spec.get_drift_time_unit() is None
+    assert spec.get_drift_time_array_unit() is None
 
 
 def test_msspectrum_drift_time_with_im():
     """Test drift time methods with ion mobility data."""
-    from pyopenms import MSSpectrum, FloatDataArray
+    from pyopenms import MSSpectrum, FloatDataArray, DriftTimeUnit
 
     spec = MSSpectrum()
     spec.set_peaks(([100.0, 200.0, 300.0], [1000.0, 2000.0, 500.0]))
@@ -372,7 +372,7 @@ def test_msspectrum_drift_time_with_im():
     assert drift[1] == pytest.approx(2.5, abs=0.1)
     assert drift[2] == pytest.approx(3.5, abs=0.1)
 
-    assert spec.get_drift_time_unit() is not None
+    assert spec.get_drift_time_array_unit() == DriftTimeUnit.MILLISECOND  # "Ion Mobility" without a CV accession means ms
 
 
 def test_float_data_array_get_data():
