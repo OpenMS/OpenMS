@@ -1142,6 +1142,17 @@ namespace OpenMS
     min_rt_window_ = (double)param_.getValue("windows:min_rt_window");
     max_rt_window_ = (double)param_.getValue("windows:max_rt_window");
 
+    if (min_rt_window_ > 0.0 && !isValidWindow_(min_rt_window_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "CalibrationWorkflow parameter 'windows:min_rt_window' must be 0 (disabled) or greater than 1e-9.");
+    }
+    if (max_rt_window_ > 0.0 && !isValidWindow_(max_rt_window_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "CalibrationWorkflow parameter 'windows:max_rt_window' must be 0 (disabled) or greater than 1e-9.");
+    }
+
     if (min_rt_window_ > 0.0 && max_rt_window_ > 0.0 && max_rt_window_ < min_rt_window_)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
