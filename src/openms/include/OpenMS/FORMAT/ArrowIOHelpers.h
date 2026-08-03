@@ -178,8 +178,8 @@ namespace ArrowIOHelpers
     @param[in] column_label ConsensusMap::ColumnHeader::label. IsobaricChannelExtractor
                writes @c "&lt;methodname&gt;_&lt;channelname&gt;" (e.g. @c "tmt10plex_126");
                ProteomicsLFQ writes @c "label-free".
-    @param[in] channel_name The header's @c channel_name meta value (e.g. @c "126"); empty
-               when the map is not isobaric.
+    @param[in] channel_name The header's @c channel_name meta value (e.g. @c "126"); when it is
+               absent from an isobaric header, the validated @c column_label suffix is used.
     @return The label, or @c "" when the isobaric method, non-isobaric vocabulary token, or
             SILAC role cannot be identified — writing a guessed token into a join key is worse
             than writing none, so callers must handle the empty result.

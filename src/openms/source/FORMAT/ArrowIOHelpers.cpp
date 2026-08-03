@@ -168,6 +168,33 @@ std::string qpxScanFormat(const std::string& native_id)
 
 std::string qpxIntensityLabel(const std::string& column_label, const std::string& channel_name)
 {
+  // IsobaricChannelExtractor writes both fields, but older/synthetic ConsensusMaps may carry the
+  // complete "<method>_<channel>" identity only in ColumnHeader::label. Recover the channel from
+  // that label after validating the method instead of rejecting otherwise unambiguous input.
+  const auto sep = column_label.rfind('_');
+  const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
+  const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
+  std::string resolved_channel_name = channel_name;
+  if (resolved_channel_name.empty()
+      && method != IsobaricQuantitationMethod::MethodType::UNKNOWN
+      && sep + 1 < column_label.size())
+  {
+    resolved_channel_name = column_label.substr(sep + 1);
+  }
+
+  if (!resolved_channel_name.empty()
+      && method != IsobaricQuantitationMethod::MethodType::UNKNOWN)
+  {
+    if (StringUtils::hasPrefix(method_name, "tmt"))
+    {
+      return "TMT" + resolved_channel_name;
+    }
+    if (StringUtils::hasPrefix(method_name, "itraq"))
+    {
+      return "ITRAQ" + resolved_channel_name;
+    }
+  }
+
   // No channel => not an isobaric map.
   if (channel_name.empty())
   {
@@ -213,23 +240,6 @@ std::string qpxIntensityLabel(const std::string& column_label, const std::string
                      << "' is not in the canonical SDRF/QPX intensity-label vocabulary."
                      << std::endl;
     return "";
-  }
-
-  // Isobaric: IsobaricChannelExtractor builds the label as "<methodname>_<channelname>".
-  const auto sep = column_label.rfind('_');
-  const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
-  const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
-
-  // Family prefix + OpenMS' own reporter name, so TMT10-plex channel 10 is "TMT131"
-  // (qpx's own converter map is 11-plex-indexed and says "TMT131N"; sdrf-pipelines agrees
-  // with OpenMS). methodTypeFromName() has already validated the method against
-  // METHOD_REGISTRY, so the family follows from its canonical identifier ("tmt6plex",
-  // "itraq4plex", ...) rather than from a switch that would silently drop a join key for
-  // any method added later.
-  if (method != IsobaricQuantitationMethod::MethodType::UNKNOWN)
-  {
-    if (StringUtils::hasPrefix(method_name, "tmt"))   { return "TMT" + channel_name; }
-    if (StringUtils::hasPrefix(method_name, "itraq")) { return "ITRAQ" + channel_name; }
   }
 
   OPENMS_LOG_ERROR << "ArrowIOHelpers: cannot derive a QPX intensity label for channel '"

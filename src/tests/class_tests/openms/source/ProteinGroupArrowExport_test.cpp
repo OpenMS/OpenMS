@@ -333,7 +333,8 @@ START_SECTION(([EXTRA] pg value validation enforces keys, labels, and grouped_ru
   TEST_TRUE(overlap_result.toString().find("reuses run") != std::string::npos)
 
   // The table-taking writer invokes the shared validator before opening its destination.
-  NEW_TMP_FILE(output)
+  std::string output;
+  NEW_TMP_FILE(output);
   TEST_FALSE(ProteinGroupArrowExport::exportToParquet(duplicate, output))
   TEST_FALSE(File::exists(output))
 }

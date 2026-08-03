@@ -249,11 +249,13 @@ START_SECTION(([EXTRA] feature value validation rejects duplicate primary keys b
   // Duplicating the source feature exercises the one-shot writer's validation placement: the
   // output path remains absent because validation runs before FileOutputStream::Open().
   cmap.push_back(cmap.front());
-  NEW_TMP_FILE(output)
+  std::string output;
+  NEW_TMP_FILE(output);
   TEST_FALSE(ConsensusMapArrowExport::exportToParquet(cmap, output))
   TEST_FALSE(File::exists(output))
 
-  NEW_TMP_FILE(stream_output)
+  std::string stream_output;
+  NEW_TMP_FILE(stream_output);
   TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_output, 1))
 }
 END_SECTION

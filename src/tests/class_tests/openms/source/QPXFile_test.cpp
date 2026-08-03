@@ -297,7 +297,8 @@ START_SECTION(([EXTRA] QPX value validation rejects empty and duplicate PSM keys
   TEST_FALSE(empty_scan_validator.validate(empty_scan).valid)
 
   // The table-taking writer runs the same validation before FileOutputStream::Open().
-  NEW_TMP_FILE(output)
+  std::string output;
+  NEW_TMP_FILE(output);
   TEST_FALSE(QPXFile::exportToParquet(empty_run, output))
   TEST_FALSE(File::exists(output))
 }
@@ -376,6 +377,7 @@ START_SECTION(static bool exportToParquet(...))
   protein_id.setSearchEngine("TestEngine");
   protein_id.setScoreType("TestScore");
   protein_id.setHigherScoreBetter(true);
+  protein_id.setPrimaryMSRunPath({"test_run.mzML"});
   protein_ids.push_back(protein_id);
 
   PeptideIdentification peptide_id;
@@ -383,6 +385,7 @@ START_SECTION(static bool exportToParquet(...))
   peptide_id.setRT(1234.5);
   peptide_id.setMZ(500.25);
   peptide_id.setScoreType("TestScore");
+  peptide_id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=1234");
 
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEM(Oxidation)TIDER"));
@@ -459,10 +462,10 @@ START_SECTION(static bool exportToParquet(...))
   TEST_TRUE(compression_idx >= 0)
   TEST_EQUAL(metadata->value(compression_idx), "zstd")
 
-  // scan_format is derived from the spectrum native IDs. This fixture sets none, so the
-  // key must be absent rather than asserted as "scan" — the scan column cannot hold scan
-  // numbers when there is no native ID to extract them from.
-  TEST_TRUE(metadata->FindKey("scan_format") < 0)
+  // scan_format is derived from the spectrum native IDs.
+  auto scan_format_idx = metadata->FindKey("scan_format");
+  TEST_TRUE(scan_format_idx >= 0)
+  TEST_EQUAL(metadata->value(scan_format_idx), "scan")
 
   // software_provider carries the versioned library ("OpenMS <version>"); creator is the
   // bare tool/org name.
@@ -487,6 +490,7 @@ START_SECTION([EXTRA] QPX scan_format is derived from the spectrum native IDs)
 
     ProteinIdentification protein_id;
     protein_id.setIdentifier("sf_search");
+    protein_id.setPrimaryMSRunPath({"scan_format_run.mzML"});
     protein_ids.push_back(protein_id);
 
     PeptideIdentification pid;
@@ -521,9 +525,9 @@ START_SECTION([EXTRA] QPX scan_format is derived from the spectrum native IDs)
   TEST_STRING_EQUAL(scan_format_for("controllerType=0 controllerNumber=1 scan=1234"), "scan")
   TEST_STRING_EQUAL(scan_format_for("scan=42"), "scan")
   TEST_STRING_EQUAL(scan_format_for("index=7"), "index")
-  // Unrecognized / absent native IDs yield no evidence, so the key is omitted.
-  TEST_STRING_EQUAL(scan_format_for("some_opaque_identifier"), "")
-  TEST_STRING_EQUAL(scan_format_for(""), "")
+  // Unrecognized and absent native IDs cannot populate the numeric QPX scan key.
+  TEST_STRING_EQUAL(scan_format_for("some_opaque_identifier"), "<write failed>")
+  TEST_STRING_EQUAL(scan_format_for(""), "<write failed>")
 }
 END_SECTION
 
@@ -1582,7 +1586,12 @@ START_SECTION(([EXTRA] exportToParquetStreaming dedicated-column values (index p
   // Replicate so the parallel path actually partitions (n_threads=4, batch_size=3 => multiple
   // batches AND multiple partitions per batch), then check the first and last row.
   const size_t NREP = 10;
-  for (size_t i = 0; i < NREP; ++i) { peps.push_back(pid); }
+  for (size_t i = 0; i < NREP; ++i)
+  {
+    PeptideIdentification replicate(pid);
+    replicate.setSpectrumReference(std::string("controllerType=0 controllerNumber=1 scan=") + std::to_string(4242 + i));
+    peps.push_back(std::move(replicate));
+  }
   std::vector<const PeptideIdentification*> ptrs;
   ptrs.reserve(peps.size());
   for (const auto& p : peps) { ptrs.push_back(&p); }

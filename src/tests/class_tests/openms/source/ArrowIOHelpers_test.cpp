@@ -222,6 +222,10 @@ START_SECTION((std::string qpxIntensityLabel(const std::string&, const std::stri
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq4plex_114", "114"), "ITRAQ114")
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq8plex_121", "121"), "ITRAQ121")
 
+  // Older and synthetic maps may encode the complete identity only in the label.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt6plex_126", ""), "TMT126")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("itraq4plex_114", ""), "ITRAQ114")
+
   // TMT10-plex channel 10 is "131" in OpenMS' naming. qpx's own converter map is
   // 11-plex-indexed and calls the 10th channel "TMT131N"; OpenMS' name is authoritative.
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt10plex_131", "131"), "TMT131")
