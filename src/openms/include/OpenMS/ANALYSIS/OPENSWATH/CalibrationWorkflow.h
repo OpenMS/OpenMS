@@ -393,6 +393,7 @@ namespace OpenMS
     double windows_rt_percentile_;
     double rt_estimation_padding_factor_;
     double min_rt_window_;
+    double max_rt_window_;
 
     // Quality Control Parameters
     double min_rsq_;

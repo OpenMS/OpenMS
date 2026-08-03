@@ -103,6 +103,8 @@ namespace OpenMS
     defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
     defaults_.setValue("windows:min_rt_window", 0.0, "Minimum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the floor and use the raw estimated RT window.");
     defaults_.setMinFloat("windows:min_rt_window", 0.0);
+    defaults_.setValue("windows:max_rt_window", 0.0, "Maximum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the ceiling and use the raw estimated RT window.");
+    defaults_.setMinFloat("windows:max_rt_window", 0.0);
 
     // Quality control parameters
     defaults_.setValue("qc:min_rsq", 0.95, "Minimum R-squared required for RT peptides regression");
@@ -697,6 +699,13 @@ namespace OpenMS
                         << " seconds before extraction." << std::endl;
         effective_rt_window = min_rt_window_;
       }
+      if (max_rt_window_ > 0.0 && effective_rt_window > max_rt_window_)
+      {
+        OPENMS_LOG_INFO << "[Estimated] RT window ceiling applied: clamped estimated window from "
+                        << effective_rt_window << " to " << max_rt_window_
+                        << " seconds before extraction." << std::endl;
+        effective_rt_window = max_rt_window_;
+      }
 
       applyWindow_("RT", effective_rt_window, cp.rt_extraction_window,
                   cp.rt_extraction_window, true, true);
@@ -1131,6 +1140,13 @@ namespace OpenMS
     windows_rt_percentile_ = (double)param_.getValue("windows:rt_percentile");
     rt_estimation_padding_factor_ = (double)param_.getValue("windows:rt_estimation_padding_factor");
     min_rt_window_ = (double)param_.getValue("windows:min_rt_window");
+    max_rt_window_ = (double)param_.getValue("windows:max_rt_window");
+
+    if (min_rt_window_ > 0.0 && max_rt_window_ > 0.0 && max_rt_window_ < min_rt_window_)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "CalibrationWorkflow parameter 'windows:max_rt_window' must be >= 'windows:min_rt_window' when both are set.");
+    }
 
     // Quality control parameters
     min_rsq_ = (double)param_.getValue("qc:min_rsq");
