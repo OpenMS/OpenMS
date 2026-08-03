@@ -465,9 +465,9 @@ namespace OpenMS
         // Name the (file, channel) pairs behind the sample: the sample id is a design-internal index
         // that does not appear in any input the user wrote.
         std::string where;
-        for (const auto& lookup : sample_id_lookup_)
+        for (const auto& lookup : design_cell_lookup_)
         {
-          if (lookup.second != sample) { continue; }
+          if (lookup.second.sample != sample) { continue; }
           if (!where.empty()) { where += ", "; }
           where += "'" + lookup.first.first + "' channel " + StringUtils::toStr(lookup.first.second);
         }
