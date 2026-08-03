@@ -764,72 +764,25 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     // into the independent quantities after protein aggregation.
     const auto* sample_abundances = sampleAbundances(group);
     const FractionGroupAbundanceData quantities = fractionGroupAbundances(group);
-    if (!quantities.valid)
+    const std::string annotation_error = validateQuantificationAnnotations(
+      sample_abundances, quantities, design.getNumberOfSamples(), units, expected_quantity_keys);
+    if (!annotation_error.empty())
     {
       OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                       << (group.accessions.empty() ? "" : group.accessions[0]) << "' has invalid "
-                       << "fraction-group abundance annotations: " << quantities.error << "."
-                       << std::endl;
-      return nullptr;
-    }
-    if (sample_abundances != nullptr && sample_abundances->size() != design.getNumberOfSamples())
-    {
-      OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                       << (group.accessions.empty() ? "" : group.accessions[0]) << "' carries "
-                       << sample_abundances->size() << " sample abundances but the experimental design "
-                       << "describes " << design.getNumberOfSamples() << " samples. The design "
-                       << "does not belong to this quantification, so the quantities cannot be "
-                       << "attributed to their runs." << std::endl;
+                       << (group.accessions.empty() ? "" : group.accessions[0]) << "' "
+                       << annotation_error << ".\n";
       return nullptr;
     }
 
     const bool quantified = sample_abundances != nullptr || quantities.present;
     if (quantified)
     {
-      if (!quantities.present)
-      {
-        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                         << (group.accessions.empty() ? "" : group.accessions[0])
-                         << "' carries sample abundances but no fraction-group/label abundances. "
-                            "It was quantified before the QPX 1.1 unit-grain annotation was "
-                            "created and cannot be exported without changing its quantities."
-                         << std::endl;
-        return nullptr;
-      }
-      if (units.empty())
-      {
-        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                         << (group.accessions.empty() ? "" : group.accessions[0])
-                         << "' carries fraction-group abundances, but the experimental design "
-                            "yields no matching quantification unit -- it lists no MS files this "
-                            "map has a column header for." << std::endl;
-        return nullptr;
-      }
-      if (quantities.values.size() != expected_quantity_keys.size())
-      {
-        OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                         << (group.accessions.empty() ? "" : group.accessions[0]) << "' carries "
-                         << quantities.values.size() << " fraction-group/label quantities but the "
-                            "experimental design requires " << expected_quantity_keys.size()
-                         << ". The annotations and design do not describe the same quantification."
-                         << std::endl;
-        return nullptr;
-      }
-
       // One scalar row per label in each fraction group, matching the active QPX 1.1 primary key.
       for (const auto& unit : units.units())
       {
         for (const auto& channel : unit.channels)
         {
           const auto value = quantities.values.find({unit.fraction_group, channel.label});
-          if (value == quantities.values.end())
-          {
-            OPENMS_LOG_ERROR << "ProteinGroupArrowExport: protein group '"
-                             << (group.accessions.empty() ? "" : group.accessions[0])
-                             << "' has no quantity for fraction group " << unit.fraction_group
-                             << ", label " << channel.label << "." << std::endl;
-            return nullptr;
-          }
           emitRow(group, unit.runs, channel.qpx_label, value->second);
         }
       }

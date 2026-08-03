@@ -136,39 +136,11 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const Expe
   {
     const auto* sample_abundances = Internal::sampleAbundances(group);
     const auto quantities = Internal::fractionGroupAbundances(group);
-    if (!quantities.valid) { return refuse(quantities.error); }
-    if (sample_abundances != nullptr && sample_abundances->size() != design.getNumberOfSamples())
+    const std::string annotation_error = Internal::validateQuantificationAnnotations(
+      sample_abundances, quantities, design.getNumberOfSamples(), units, expected_quantity_keys);
+    if (!annotation_error.empty())
     {
-      return refuse("a protein group carries " + std::to_string(sample_abundances->size())
-                    + " sample abundances but the experimental design describes "
-                    + std::to_string(design.getNumberOfSamples())
-                    + " samples, so the design does not belong to this quantification");
-    }
-
-    const bool quantified = sample_abundances != nullptr || quantities.present;
-    if (!quantified) { continue; }
-    if (!quantities.present)
-    {
-      return refuse("a protein group carries sample abundances but no fraction-group/label "
-                    "abundances from the QPX 1.1 quantification path");
-    }
-    if (units.empty())
-    {
-      return refuse("a protein group carries fraction-group abundances, but the experimental "
-                    "design yields no matching quantification unit");
-    }
-    if (quantities.values.size() != expected_quantity_keys.size())
-    {
-      return refuse("a protein group's fraction-group/label abundance count does not match the "
-                    "experimental design");
-    }
-    for (const auto& key : expected_quantity_keys)
-    {
-      if (!quantities.values.count(key))
-      {
-        return refuse("a protein group has no quantity for fraction group "
-                      + std::to_string(key.first) + ", label " + std::to_string(key.second));
-      }
+      return refuse("a protein group " + annotation_error);
     }
   }
 

@@ -458,6 +458,10 @@ private:
          sample and fraction group. Conflicting duplicate cells and fraction-group labels that
          resolve to different samples are rejected. Called whenever the experimental design is
          (re)set.
+
+         @throws Exception::MissingInformation if a cell refers outside the sample section,
+                 duplicate cells conflict, one run belongs to several fraction groups, or one
+                 fraction-group label resolves to several samples
     */
     void buildSampleIDLookup_();
 
@@ -472,7 +476,15 @@ private:
     const DesignCell& getDesignCellFromFilenameAndChannel_(const std::string& filename,
                                                            UInt channel_or_label) const;
 
-    /// Map (filename, channel) to sample using the precomputed design-cell lookup.
+    /**
+         @brief Map (filename, channel) to a sample using the precomputed design-cell lookup.
+
+         @param[in] filename The base filename without path or extension
+         @param[in] channel_or_label The channel or label identifier
+         @return The sample corresponding to the filename and channel
+         @throws Exception::MissingInformation if the (filename, channel) pair is not in the
+                 experimental design
+    */
     Size getSampleIDFromFilenameAndChannel_(const std::string& filename,
                                             UInt channel_or_label) const;
 

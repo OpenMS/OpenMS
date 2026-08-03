@@ -103,6 +103,37 @@ namespace
     std::sort(out.begin(), out.end());
     return out;
   }
+
+  ExperimentalDesign::MSFileSectionEntry designRow(const std::string& path,
+                                                    UInt label,
+                                                    UInt fraction_group,
+                                                    Size sample)
+  {
+    ExperimentalDesign::MSFileSectionEntry row;
+    row.path = path;
+    row.label = label;
+    row.fraction = 1;
+    row.fraction_group = fraction_group;
+    row.sample = sample;
+    row.sample_name = "S" + std::to_string(sample + 1);
+    return row;
+  }
+
+  // Use the setters deliberately: these malformed designs must reach PeptideAndProteinQuant's
+  // lookup validation instead of being rejected by ExperimentalDesign's public constructor.
+  ExperimentalDesign uncheckedDesign(const ExperimentalDesign::MSFileSection& rows,
+                                     Size sample_count)
+  {
+    ExperimentalDesign::SampleSection samples;
+    for (Size i = 0; i < sample_count; ++i)
+    {
+      samples.addSample("S" + std::to_string(i + 1));
+    }
+    ExperimentalDesign design;
+    design.setMSFileSection(rows);
+    design.setSampleSection(samples);
+    return design;
+  }
 }
 
 START_TEST(PeptideAndProteinQuant, "$Id$")
@@ -261,6 +292,43 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
 
   PeptideAndProteinQuant quantifier;
   TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(consensus, design));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] malformed experimental-design lookups are rejected before quantification))
+{
+  FeatureMap features;
+
+  // A design cell cannot refer beyond the sample section.
+  {
+    ExperimentalDesign design = uncheckedDesign({designRow("A.mzML", 1, 1, 1)}, 1);
+    PeptideAndProteinQuant quantifier;
+    TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(features, design))
+  }
+
+  // One (run, label) cell cannot carry conflicting sample coordinates.
+  {
+    ExperimentalDesign design = uncheckedDesign({designRow("A.mzML", 1, 1, 0),
+                                                 designRow("A.mzML", 1, 1, 1)}, 2);
+    PeptideAndProteinQuant quantifier;
+    TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(features, design))
+  }
+
+  // Distinct labels of one run cannot place that run in several fraction groups.
+  {
+    ExperimentalDesign design = uncheckedDesign({designRow("A.mzML", 1, 1, 0),
+                                                 designRow("A.mzML", 2, 2, 1)}, 2);
+    PeptideAndProteinQuant quantifier;
+    TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(features, design))
+  }
+
+  // One (fraction_group, label) quantity cannot resolve to several samples.
+  {
+    ExperimentalDesign design = uncheckedDesign({designRow("A.mzML", 1, 1, 0),
+                                                 designRow("B.mzML", 1, 1, 1)}, 2);
+    PeptideAndProteinQuant quantifier;
+    TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(features, design))
+  }
 }
 END_SECTION
 

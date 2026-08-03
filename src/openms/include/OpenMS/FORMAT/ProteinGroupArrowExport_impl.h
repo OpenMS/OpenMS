@@ -349,4 +349,63 @@ inline FractionGroupAbundanceData fractionGroupAbundances(
   return result;
 }
 
+/**
+  @brief Validate one protein group's complete QPX 1.1 quantification annotation contract.
+
+  @param[in] sample_abundances Optional legacy sample-level abundance array
+  @param[in] quantities Parsed fraction-group/label abundance arrays
+  @param[in] design_samples Number of samples in the experimental design
+  @param[in] units Quantification units derived from the design and ConsensusMap headers
+  @param[in] expected_quantity_keys Fraction-group/label keys required by @p units
+  @return An empty string when exportable, otherwise a diagnostic describing the first violation
+*/
+inline std::string validateQuantificationAnnotations(
+  const ProteinIdentification::ProteinGroup::FloatDataArray* sample_abundances,
+  const FractionGroupAbundanceData& quantities,
+  Size design_samples,
+  const QuantificationUnits& units,
+  const std::set<std::pair<UInt, UInt>>& expected_quantity_keys)
+{
+  if (!quantities.valid)
+  {
+    return "has invalid fraction-group abundance annotations: " + quantities.error;
+  }
+  if (sample_abundances != nullptr && sample_abundances->size() != design_samples)
+  {
+    return "carries " + std::to_string(sample_abundances->size())
+         + " sample abundances but the experimental design describes "
+         + std::to_string(design_samples)
+         + " samples, so the design does not belong to this quantification";
+  }
+
+  const bool quantified = sample_abundances != nullptr || quantities.present;
+  if (!quantified) { return {}; }
+  if (!quantities.present)
+  {
+    return "carries sample abundances but no fraction-group/label abundances from the QPX 1.1 "
+           "quantification path";
+  }
+  if (units.empty())
+  {
+    return "carries fraction-group abundances, but the experimental design yields no matching "
+           "quantification unit";
+  }
+  if (quantities.values.size() != expected_quantity_keys.size())
+  {
+    return "carries " + std::to_string(quantities.values.size())
+         + " fraction-group/label quantities but the experimental design requires "
+         + std::to_string(expected_quantity_keys.size())
+         + ", so the annotations and design do not describe the same quantification";
+  }
+  for (const auto& key : expected_quantity_keys)
+  {
+    if (!quantities.values.count(key))
+    {
+      return "has no quantity for fraction group " + std::to_string(key.first)
+           + ", label " + std::to_string(key.second);
+    }
+  }
+  return {};
+}
+
 } // namespace OpenMS::Internal
