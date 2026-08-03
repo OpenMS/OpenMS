@@ -20,6 +20,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include "binding_utils.h"
+#include "peak_layout.h"
 #include <sstream>
 
 namespace nb = nanobind;
@@ -41,17 +42,14 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-NB_MODULE(_pyopenms_chromatogram, m) {
-    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
-    static_assert(std::is_standard_layout_v<OpenMS::ChromatogramPeak>,
-                  "ChromatogramPeak must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
-    static_assert(sizeof(OpenMS::ChromatogramPeak) == 16,
-                  "ChromatogramPeak must be 16 bytes for zero-copy structured array access");
-    static_assert(std::is_same_v<OpenMS::ChromatogramPeak::CoordinateType, double>,
-                  "ChromatogramPeak::CoordinateType must be double (dtype assumes float64 for position)");
-    static_assert(std::is_same_v<OpenMS::ChromatogramPeak::IntensityType, float>,
-                  "ChromatogramPeak::IntensityType must be float (dtype assumes float32 for intensity)");
+// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
+// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+using ChromatogramPeakLayout = pyopenms::PeakLayout<OpenMS::ChromatogramPeak>;
+static_assert(ChromatogramPeakLayout::position_offset == 0 && ChromatogramPeakLayout::intensity_offset == 8,
+    "ChromatogramPeak's structured dtype is documented as rt (float64) at 0, intensity (float32) at 8");
 
+NB_MODULE(_pyopenms_chromatogram, m) {
     m.doc() = "pyOpenMS chromatogram bindings";
 
     // -----------------------------------------------------------------------
@@ -90,7 +88,13 @@ rt, intensities = chromatogram.get_peaks()
         .def("getName", [](const OpenMS::MSChromatogram& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MSChromatogram& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getMZ", [](const OpenMS::MSChromatogram& self) { return self.getMZ(); }, "Returns the mz of the product entry, makes sense especially for MRM scans")
-        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
+        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
+            R"doc(
+Lexicographically sorts the peaks by their intensity.
+Sorts the peaks according to ascending intensity (lowest to highest) when reverse is False.
+When reverse is True, sorts by descending intensity (highest to lowest).
+Meta data arrays will be sorted accordingly
+)doc")
         .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); },
             R"doc(
 Lexicographically sorts the peaks by their position (RT).
@@ -99,10 +103,16 @@ Sorts the peaks according to ascending RT. Meta data arrays will be sorted accor
         .def("isSorted", [](const OpenMS::MSChromatogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending RT")
         .def("findNearest", [](const OpenMS::MSChromatogram& self, double rt) { return self.findNearest(rt); }, "rt"_a,
             R"doc(
-Lexicographically sorts the peaks by their position
-The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
+Binary search for the peak nearest to a specific RT.
+Returns the index of the peak. The chromatogram must be sorted with respect to RT, otherwise
+the result is undefined. Raises an exception if the chromatogram is empty.
 )doc")
-        .def("clear", [](OpenMS::MSChromatogram& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a)
+        .def("clear", [](OpenMS::MSChromatogram& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a,
+            R"doc(
+Clears all data and meta data.
+Always deletes all peaks, associated data arrays (float, integer, string), and ranges.
+If clear_meta_data is True, also deletes the descriptive meta data (ChromatogramSettings, name).
+)doc")
         .def("getNativeID", [](const OpenMS::MSChromatogram& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software.")
         .def("setNativeID", [](OpenMS::MSChromatogram& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
         .def("getComment", [](const OpenMS::MSChromatogram& self) { return self.getComment(); }, "Returns the free-text comment")
@@ -122,7 +132,7 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         .def("setDataProcessing", [](OpenMS::MSChromatogram& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
         .def("getDataProcessing", [](OpenMS::MSChromatogram& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns the description of the applied processing")
 
-        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSChromatogram>(), "MSChromatogram_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSChromatogram>(), "MSChromatogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::MSChromatogram& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak& {
             if (i >= self.size()) throw nb::index_error();
@@ -172,14 +182,12 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
 
-                // Derive dtype from C++ layout (validated by static_asserts at module init)
-                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
-                constexpr size_t int_offset = sizeof(OpenMS::ChromatogramPeak::PositionType);
+                // Offsets are read off the C++ layout, not reconstructed from it
                 nb::dict dtype_dict;
                 dtype_dict["names"] = nb::make_tuple("rt", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
-                dtype_dict["itemsize"] = sizeof(OpenMS::ChromatogramPeak);
+                dtype_dict["offsets"] = nb::make_tuple(ChromatogramPeakLayout::position_offset, ChromatogramPeakLayout::intensity_offset);
+                dtype_dict["itemsize"] = ChromatogramPeakLayout::itemsize;
                 auto py_dtype = np.attr("dtype")(dtype_dict);
 
                 if (n == 0) {
@@ -201,22 +209,34 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             "Returns zero-copy structured array with fields 'rt' (float64) and 'intensity' (float32)."
         )
     
-        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
+        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj, const std::string& metadata) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
+            }
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             auto rt_arr = as_numpy_array<double>(rt_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
-            self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setRT(rt_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "rt"_a, "intensity"_a, "Set peaks from rt and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq) {
+            writePeaksWithPolicy(self, n, policy, "chromatogram",
+                                 [rt_ptr, int_ptr](OpenMS::MSChromatogram& chrom, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         chrom[i].setRT(rt_ptr[i]);
+                                         chrom[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
+        }, "rt"_a, "intensity"_a, "metadata"_a = "error",
+           "Set peaks from rt and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq, const std::string& metadata) {
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
             }
@@ -226,14 +246,17 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
-            self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setRT(rt_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from a tuple/list of (rt_array, intensity_array)")
+            writePeaksWithPolicy(self, n, policy, "chromatogram",
+                                 [rt_ptr, int_ptr](OpenMS::MSChromatogram& chrom, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         chrom[i].setRT(rt_ptr[i]);
+                                         chrom[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
+           "Set peaks from a tuple/list of (rt_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("size", [](const OpenMS::MSChromatogram& self) {
             return self.size();

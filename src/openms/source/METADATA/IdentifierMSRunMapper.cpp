@@ -94,6 +94,49 @@ namespace OpenMS
     return std::string();
   }
 
+  void IdentifierMSRunMapper::validateMergeIndex(const PeptideIdentification& pep_id, size_t psm_index) const
+  {
+    const StringList& paths = getMSRunPaths(pep_id.getIdentifier());
+    // Only a merged run can be mis-resolved: with 0 or 1 paths there is no wrong file to pick.
+    //
+    // Deliberately NOT extended to a stale index on a single-path run. That shape is produced by
+    // QPXFile::importFromArrow, whose shell run carries one path while the PSMs it restores keep
+    // their original indices -- and there it is harmless, because each hit also carries a
+    // 'reference_file_name' metavalue that resolution prefers. Refusing it would reject a round
+    // trip that produces correct output. Where no such fallback exists the index simply does not
+    // resolve, which callers see as evidence they could not attribute rather than as a wrong key.
+    if (paths.size() < 2) { return; }
+
+    const bool has_index = pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
+
+    const std::string key = std::string(Constants::UserParam::ID_MERGE_INDEX);
+    const std::string where = "PSM #" + StringUtils::toStr(psm_index) + " of identification run '"
+                            + pep_id.getIdentifier() + "' (" + StringUtils::toStr(paths.size())
+                            + " files in the run)";
+
+    if (!has_index)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Multiple files in a run, but no '" + key + "' in PeptideIdentification found: " + where + ".");
+    }
+
+    const DataValue& dv = pep_id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+    if (dv.valueType() != DataValue::INT_VALUE)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'" + key + "' is not an integer: " + where + ".");
+    }
+
+    // long long, not Size: DataValue's unsigned conversion throws its own ConversionError on a
+    // negative value, which would escape as an undiagnosed exception instead of the message above.
+    const long long merge_index = static_cast<long long>(dv);
+    if (merge_index < 0 || static_cast<size_t>(merge_index) >= paths.size())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'" + key + "' = " + StringUtils::toStr(merge_index) + " is out of range: " + where + ".");
+    }
+  }
+
   bool IdentifierMSRunMapper::hasIdentifier(const std::string& identifier) const
   {
     return identifier_to_msrunpath_.contains(identifier);

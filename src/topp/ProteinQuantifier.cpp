@@ -939,6 +939,31 @@ protected:
   {
     ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
+
+    // Drop features whose peptide identifications disagree on the top sequence. They already
+    // contribute nothing: PeptideAndProteinQuant::getAnnotation_() returns an empty hit for
+    // them, so they are absent from every abundance this tool computes. Removing them here
+    // makes that explicit and keeps any QPX export describing exactly what was quantified --
+    // the QPX feature and pg views record one peptide per feature and reject ambiguity.
+    // Identifications agreeing on the same modified sequence are unambiguous and kept.
+    {
+      const Size before = consensus.size();
+      auto divergent = [](const ConsensusFeature& cf)
+      {
+        return cf.getAnnotationState() == BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
+      };
+      consensus.erase(std::remove_if(consensus.begin(), consensus.end(), divergent), consensus.end());
+      if (const Size removed = before - consensus.size(); removed > 0)
+      {
+        OPENMS_LOG_WARN << "ProteinQuantifier: ignoring " << removed << " of " << before
+                        << " consensus feature(s) whose peptide identifications disagree on the "
+                           "top sequence; they cannot be attributed to one peptide and are "
+                           "excluded from quantification. Resolve the conflicts first "
+                           "(IDConflictResolver, ConsensusID with algorithm 'best', or FileFilter "
+                           "with id:keep_best_score_id)." << std::endl;
+      }
+    }
+
     columns_headers_ = consensus.getColumnHeaders();
 
     ExperimentalDesign ed = getExperimentalDesignConsensusMap_(design_file, consensus);
@@ -1008,7 +1033,10 @@ protected:
       // Feature-level export
       if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
       {
-        OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
+        // Abort rather than log and continue: a partial QPX collection written with a zero
+        // exit code looks like a successful export.
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            out_qpx, "failed to write the features Parquet file");
       }
 
       // PSM-level export
@@ -1026,13 +1054,19 @@ protected:
       }
       if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
       {
-        OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
+        // Abort rather than log and continue: a partial QPX collection written with a zero
+        // exit code looks like a successful export.
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            out_qpx, "failed to write the PSM Parquet file");
       }
 
       // Protein group export
       if (!ProteinGroupArrowExport::exportToParquet(consensus, out_qpx + "/quantms.pg.parquet"))
       {
-        OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
+        // Abort rather than log and continue: a partial QPX collection written with a zero
+        // exit code looks like a successful export.
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            out_qpx, "failed to write the protein groups Parquet file");
       }
     }
 

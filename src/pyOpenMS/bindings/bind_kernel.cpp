@@ -38,7 +38,6 @@
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -86,6 +85,7 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include "peak_layout.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -110,17 +110,14 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-NB_MODULE(_pyopenms_kernel, m) {
-    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
-    static_assert(std::is_standard_layout_v<OpenMS::MobilityPeak1D>,
-                  "MobilityPeak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
-    static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
-                  "MobilityPeak1D must be 16 bytes for zero-copy structured array access");
-    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::CoordinateType, double>,
-                  "MobilityPeak1D::CoordinateType must be double (dtype assumes float64 for position)");
-    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::IntensityType, float>,
-                  "MobilityPeak1D::IntensityType must be float (dtype assumes float32 for intensity)");
+// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
+// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+using MobilityPeak1DLayout = pyopenms::PeakLayout<OpenMS::MobilityPeak1D>;
+static_assert(MobilityPeak1DLayout::position_offset == 0 && MobilityPeak1DLayout::intensity_offset == 8,
+    "MobilityPeak1D's structured dtype is documented as mobility (float64) at 0, intensity (float32) at 8");
 
+NB_MODULE(_pyopenms_kernel, m) {
     m.doc() = "pyOpenMS kernel bindings";
 
 
@@ -1604,15 +1601,21 @@ mobility, intensities = mobilogram.get_peaks()
         .def("getDriftTimeUnit", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnit(); }, "Returns the ion mobility drift time unit")
         .def("getDriftTimeUnitAsString", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnitAsString(); }, "Returns the ion mobility drift time unit as string")
         .def("setDriftTimeUnit", [](OpenMS::Mobilogram& self, OpenMS::DriftTimeUnit dt) { return self.setDriftTimeUnit(dt); }, "dt"_a, "Sets the ion mobility drift time unit")
-        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
-        .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); }, 
+        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
             R"doc(
 Lexicographically sorts the peaks by their intensity
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+Sorts the peaks according to ascending intensity (lowest to highest) when reverse is False.
+When reverse is True, sorts by descending intensity (highest to lowest).
+Meta data arrays will be sorted accordingly
+)doc")
+        .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); },
+            R"doc(
+Lexicographically sorts the peaks by their position (mobility)
+The mobilogram is sorted with respect to position (mobility). Meta data arrays will be sorted accordingly
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
-        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::Mobilogram& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D& {
             if (i >= self.size()) throw nb::index_error();
@@ -1640,7 +1643,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
 
         .def("clear", [](OpenMS::Mobilogram& self) {
             self.clear();
-        }, "Clear all peaks")
+        }, "Clears all data: deletes all peaks, associated data arrays (float, integer, string), and resets the mobility and intensity ranges")
 
         .def("get_peaks", [](const OpenMS::Mobilogram& self) {
             // Single allocation + single capsule to reduce overhead for small arrays
@@ -1680,13 +1683,11 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
                 nb::dict dtype_dict;
-                // Derive dtype from C++ layout (validated by static_asserts at module init)
-                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
-                constexpr size_t int_offset = sizeof(OpenMS::MobilityPeak1D::PositionType);
+                // Offsets are read off the C++ layout, not reconstructed from it
                 dtype_dict["names"] = nb::make_tuple("mobility", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
-                dtype_dict["itemsize"] = sizeof(OpenMS::MobilityPeak1D);
+                dtype_dict["offsets"] = nb::make_tuple(MobilityPeak1DLayout::position_offset, MobilityPeak1DLayout::intensity_offset);
+                dtype_dict["itemsize"] = MobilityPeak1DLayout::itemsize;
                 auto py_dtype = np.attr("dtype")(dtype_dict);
                 if (n == 0) {
                     return np.attr("empty")(0, py_dtype);
@@ -1702,20 +1703,34 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             "Returns zero-copy structured array with fields 'mobility' (float64) and 'intensity' (float32)."
         )
 
-        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj, const std::string& metadata) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
+            }
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             auto mob_arr = as_numpy_array<double>(mob_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
-            self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMobility(mob_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "mob"_a, "intensity"_a, "Set mobility and intensity from numpy arrays")
-        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq) {
+            writePeaksWithPolicy(self, n, policy, "mobilogram",
+                                 [mob_ptr, int_ptr](OpenMS::Mobilogram& mob, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         mob[i].setMobility(mob_ptr[i]);
+                                         mob[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
+        }, "mob"_a, "intensity"_a, "metadata"_a = "error",
+           "Set mobility and intensity from numpy arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq, const std::string& metadata) {
+            // parsed above the tuple/list branch so that a bad policy is reported at the same
+            // point as in the other five set_peaks overloads
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             nb::object item0, item1;
             if (nb::isinstance<nb::tuple>(peaks_seq)) {
                 auto tup = nb::cast<nb::tuple>(peaks_seq);
@@ -1730,14 +1745,17 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = as_numpy_array<float>(item1);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
-            self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMobility(mob_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from [mobility_array, intensity_array]")
+            writePeaksWithPolicy(self, n, policy, "mobilogram",
+                                 [mob_ptr, int_ptr](OpenMS::Mobilogram& mob, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         mob[i].setMobility(mob_ptr[i]);
+                                         mob[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
+           "Set peaks from [mobility_array, intensity_array]" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("getFloatDataArrays", [](const OpenMS::Mobilogram& self) {
             return self.getFloatDataArrays();
@@ -1917,6 +1935,17 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
         .def("setMZ", [](OpenMS::Peak1D& self, double mz) { return self.setMZ(mz); }, "mz"_a, "Sets the m/z (mass-to-charge) value of the peak")
         .def("getPos", [](const OpenMS::Peak1D& self) { return self.getPos(); }, "Returns the position (alias for getMZ)")
         .def("setPos", [](OpenMS::Peak1D& self, double pos) { return self.setPos(pos); }, "pos"_a, "Sets the position (alias for setMZ)")
+        // Pythonic snake_case properties over the scalar getters/setters (issue #9760).
+        // Additive: the getX()/setX() methods above are unchanged. 'pos' is intentionally
+        // omitted because it is an alias of mz (avoid alias pairs; keep the property list reviewable).
+        .def_prop_rw("mz",
+            [](const OpenMS::Peak1D& self) { return self.getMZ(); },
+            [](OpenMS::Peak1D& self, double v) { self.setMZ(v); },
+            "The m/z (mass-to-charge) value of the peak")
+        .def_prop_rw("intensity",
+            [](const OpenMS::Peak1D& self) { return self.getIntensity(); },
+            [](OpenMS::Peak1D& self, float v) { self.setIntensity(v); },
+            "The intensity (height) of the peak")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::Peak1D& self) {
@@ -1982,28 +2011,6 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         .value("DIMENSION", OpenMS::Peak2D::DimensionDescription::DIMENSION)
 
         .export_values();
-
-    // -----------------------------------------------------------------------
-    // PeakIndex
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIndex>(m, "PeakIndex", 
-        R"doc(
-Index of a peak or feature
-This struct can be used to store both peak or feature indices
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<size_t>())
-        .def(nb::init<size_t, size_t>())
-        .def("isValid", [](const OpenMS::PeakIndex& self) { return self.isValid(); }, "Returns if the current peak ref is valid")
-        .def("clear", [](OpenMS::PeakIndex& self) { return self.clear(); }, "Invalidates the current index")
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def_rw("peak", &OpenMS::PeakIndex::peak)
-        .def_rw("spectrum", &OpenMS::PeakIndex::spectrum)
-        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the feature in the given map")
-        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the peak in the given map")
-        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the spectrum in the given map")
-        ;
 
     // -----------------------------------------------------------------------
     // PeptideHit
@@ -3380,7 +3387,7 @@ This class supports direct iteration in Python.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
-        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature & {
             if (i >= self.size()) throw nb::index_error();
@@ -3586,7 +3593,7 @@ Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)
 )doc")
         
-        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature & {
             if (i >= self.size()) throw nb::index_error();

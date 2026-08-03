@@ -2297,7 +2297,7 @@ state0:
         export_empty_pep_ids_,
         export_all_psms_);
 
-    if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
+    if (!export_all_psms_ || current_psm_idx_ + 1 >= pid->getHits().size())
     {
       ++pep_id_;
       current_psm_idx_ = 0;
@@ -3087,7 +3087,7 @@ state0:
         export_empty_pep_ids_,
         export_all_psms_);
 
-    if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
+    if (!export_all_psms_ || current_psm_idx_ + 1 >= pid->getHits().size())
     {
       ++pep_counter_;
       current_psm_idx_ = 0;

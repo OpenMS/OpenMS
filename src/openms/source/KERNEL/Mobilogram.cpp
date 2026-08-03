@@ -13,7 +13,10 @@
 
 #include <OpenMS/KERNEL/Mobilogram.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -110,16 +113,32 @@ namespace OpenMS
     {
       return;
     }
+
+    // fast path: nothing to keep in sync with the peaks
+    if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
+    {
+      if (reverse)
+      {
+        std::stable_sort(begin(), end(), [](const auto& left, const auto& right) {
+          PeakType::IntensityLess cmp;
+          return cmp(right, left);
+        });
+      }
+      else
+      {
+        std::stable_sort(begin(), end(), PeakType::IntensityLess());
+      }
+      return;
+    }
+
+    // permute peaks and *all* data arrays together
     if (reverse)
     {
-      std::stable_sort(begin(), end(), [](auto& left, auto& right) {
-        PeakType::IntensityLess cmp;
-        return cmp(right, left);
-      });
+      sort([this](const Size i1, const Size i2) { return data_[i2].getIntensity() < data_[i1].getIntensity(); });
     }
     else
     {
-      std::stable_sort(begin(), end(), PeakType::IntensityLess());
+      sort([this](const Size i1, const Size i2) { return data_[i1].getIntensity() < data_[i2].getIntensity(); });
     }
   }
 
@@ -129,7 +148,16 @@ namespace OpenMS
     {
       return;
     }
-    std::stable_sort(begin(), end(), PeakType::PositionLess());
+
+    // fast path: nothing to keep in sync with the peaks
+    if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
+    {
+      std::stable_sort(begin(), end(), PeakType::PositionLess());
+      return;
+    }
+
+    // permute peaks and *all* data arrays together
+    sort([this](const Size i1, const Size i2) { return data_[i1].getPosition() < data_[i2].getPosition(); });
   }
 
   bool Mobilogram::isSorted() const
@@ -364,7 +392,112 @@ namespace OpenMS
   void Mobilogram::clear() noexcept
   {
     data_.clear();
+    // The data arrays are parallel to the peaks: keeping them while dropping the peaks
+    // would leave the mobilogram internally inconsistent (and any later sort()/select()
+    // would throw on the size mismatch).
+    float_data_arrays_.clear();
+    string_data_arrays_.clear();
+    integer_data_arrays_.clear();
     RangeManager::clearRanges();
+  }
+
+  void Mobilogram::checkDataArraySizes_() const
+  {
+    const Size peaks = data_.size();
+    auto check = [peaks](const auto& arrays, const char* what)
+    {
+      for (Size i = 0; i < arrays.size(); ++i)
+      {
+        if (!arrays[i].empty() && arrays[i].size() != peaks)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
+                                          ") does not match mobilogram size (" + StringUtils::toStr(peaks) + ")");
+        }
+      }
+    };
+    check(float_data_arrays_, "FloatDataArray");
+    check(string_data_arrays_, "StringDataArray");
+    check(integer_data_arrays_, "IntegerDataArray");
+  }
+
+  Mobilogram& Mobilogram::select(const std::vector<Size>& indices)
+  {
+    const Size snew = indices.size();
+    const Size peaks_old = data_.size();
+
+    // Validate everything *before* touching any storage, so a rejected call leaves
+    // the mobilogram exactly as it was instead of half-permuted.
+    for (Size i = 0; i < snew; ++i)
+    {
+      if (indices[i] >= peaks_old)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Index " + StringUtils::toStr(indices[i]) + " is out of range for a mobilogram of size " +
+                                        StringUtils::toStr(peaks_old));
+      }
+    }
+    checkDataArraySizes_();
+
+    std::vector<MobilityPeak1D> tmp;
+    tmp.reserve(snew);
+    for (Size i = 0; i < snew; ++i)
+    {
+      tmp.push_back(std::move(data_[indices[i]]));
+    }
+    data_.swap(tmp);
+
+    std::vector<float> mda_tmp_float;
+    for (Size i = 0; i < float_data_arrays_.size(); ++i)
+    {
+      if (float_data_arrays_[i].empty())
+      {
+        continue;
+      }
+      mda_tmp_float.clear();
+      mda_tmp_float.reserve(snew);
+      for (Size j = 0; j < snew; ++j)
+      {
+        mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
+      }
+      std::swap(float_data_arrays_[i], mda_tmp_float);
+    }
+
+    std::vector<std::string> mda_tmp_str;
+    for (Size i = 0; i < string_data_arrays_.size(); ++i)
+    {
+      if (string_data_arrays_[i].empty())
+      {
+        continue;
+      }
+      mda_tmp_str.clear();
+      mda_tmp_str.reserve(snew);
+      for (Size j = 0; j < snew; ++j)
+      {
+        // copy, not move: 'indices' may name the same source entry twice, and a
+        // moved-from std::string would yield an empty second copy
+        mda_tmp_str.push_back(string_data_arrays_[i][indices[j]]);
+      }
+      std::swap(string_data_arrays_[i], mda_tmp_str);
+    }
+
+    std::vector<Int> mda_tmp_int;
+    for (Size i = 0; i < integer_data_arrays_.size(); ++i)
+    {
+      if (integer_data_arrays_[i].empty())
+      {
+        continue;
+      }
+      mda_tmp_int.clear();
+      mda_tmp_int.reserve(snew);
+      for (Size j = 0; j < snew; ++j)
+      {
+        mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
+      }
+      std::swap(integer_data_arrays_[i], mda_tmp_int);
+    }
+
+    return *this;
   }
 
   Mobilogram::ConstIterator Mobilogram::getBasePeak() const

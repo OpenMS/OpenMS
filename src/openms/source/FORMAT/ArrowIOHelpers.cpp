@@ -8,10 +8,18 @@
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <set>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -45,6 +53,147 @@ namespace
     }
     return arrow::Compression::ZSTD;
   }
+
+  /// QPX `compression_format` token for @p c, or "" if QPX does not define one.
+  /// The spec's vocabulary is zstd|snappy|gzip|lzo|none — LZ4 has no token.
+  std::string qpxCompressionName(ParquetWriteConfig::Compression c)
+  {
+    switch (c)
+    {
+      case ParquetWriteConfig::Compression::NONE:   return "none";
+      case ParquetWriteConfig::Compression::SNAPPY: return "snappy";
+      case ParquetWriteConfig::Compression::GZIP:   return "gzip";
+      case ParquetWriteConfig::Compression::ZSTD:   return "zstd";
+      case ParquetWriteConfig::Compression::LZ4:    return "";
+    }
+    return "";
+  }
+}
+
+std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
+  const std::string& file_type,
+  const ParquetWriteConfig& config,
+  const std::map<std::string, std::string>& extra)
+{
+  const std::string compression = qpxCompressionName(config.compression);
+  if (compression.empty())
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: QPX does not define a compression_format token for LZ4; "
+                        "use ZSTD (default), SNAPPY, GZIP or NONE for QPX output." << std::endl;
+    return nullptr;
+  }
+
+  std::vector<std::string> keys{
+    "qpx_version", "file_type", "creator", "software_provider", "creation_date",
+    "compression_format", "uuid"};
+  std::vector<std::string> values{
+    "1.0",
+    file_type,
+    "OpenMS",
+    "OpenMS " + VersionInfo::getVersion(),
+    DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ"),
+    compression,
+    generateUuidV4()};
+
+  for (const auto& [k, v] : extra)
+  {
+    keys.push_back(k);
+    values.push_back(v);
+  }
+
+  return std::make_shared<arrow::KeyValueMetadata>(std::move(keys), std::move(values));
+}
+
+std::string qpxScanFormat(const std::string& native_id)
+{
+  if (StringUtils::hasPrefix(native_id, "index=")) { return "index"; }
+  if (SpectrumNativeIDParser::isNativeID(native_id)) { return "scan"; }
+  return "";
+}
+
+std::string qpxIntensityLabel(const std::string& column_label, const std::string& channel_name)
+{
+  // No channel => not an isobaric map.
+  if (channel_name.empty())
+  {
+    // ProteomicsLFQ stamps "label-free" on every header; an unset label means the same.
+    if (column_label.empty() || column_label == "label-free") { return "LFQ"; }
+    // Multiplex/SILAC headers carry the modification in `label` and annotate no channel
+    // (see ConsensusMap::ColumnHeader::getLabelAsUInt). QPX defines no token for those, so
+    // pass the tool's own label through rather than mislabel it as LFQ.
+    return column_label;
+  }
+
+  // Isobaric: IsobaricChannelExtractor builds the label as "<methodname>_<channelname>".
+  const auto sep = column_label.rfind('_');
+  const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
+  const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
+
+  // Family prefix + OpenMS' own reporter name, so TMT10-plex channel 10 is "TMT131"
+  // (qpx's own converter map is 11-plex-indexed and says "TMT131N"; sdrf-pipelines agrees
+  // with OpenMS). methodTypeFromName() has already validated the method against
+  // METHOD_REGISTRY, so the family follows from its canonical identifier ("tmt6plex",
+  // "itraq4plex", ...) rather than from a switch that would silently drop a join key for
+  // any method added later.
+  if (method != IsobaricQuantitationMethod::MethodType::UNKNOWN)
+  {
+    if (StringUtils::hasPrefix(method_name, "tmt"))   { return "TMT" + channel_name; }
+    if (StringUtils::hasPrefix(method_name, "itraq")) { return "ITRAQ" + channel_name; }
+  }
+
+  OPENMS_LOG_ERROR << "ArrowIOHelpers: cannot derive a QPX intensity label for channel '"
+                   << channel_name << "' — column header label '" << column_label
+                   << "' does not name a known isobaric quantitation method." << std::endl;
+  return "";
+}
+
+std::string qpxRunFileName(const std::string& ms_run_path)
+{
+  // File::stemName() already maps "" -> "".
+  return File::stemName(ms_run_path);
+}
+
+bool qpxWarnOnRunNameCollisions(const std::string& context,
+                                const std::vector<std::string>& ms_run_paths)
+{
+  std::map<std::string, std::set<std::string>> stem_to_paths;
+  for (const auto& path : ms_run_paths)
+  {
+    if (path.empty()) { continue; }
+    stem_to_paths[qpxRunFileName(path)].insert(path);
+  }
+
+  bool unique = true;
+  for (const auto& [stem, paths] : stem_to_paths)
+  {
+    if (paths.size() < 2) { continue; }
+    unique = false;
+    OPENMS_LOG_WARN << context << ": several MS runs share the run_file_name '" << stem
+                    << "' after stripping path and extension: "
+                    << ListUtils::concatenate(StringList(paths.begin(), paths.end()), ", ")
+                    << ". They cannot be told apart in the exported QPX tables." << std::endl;
+  }
+  return unique;
+}
+
+std::string qpxScanFormat(const std::vector<std::string>& native_ids)
+{
+  std::string resolved;
+  for (const auto& id : native_ids)
+  {
+    const std::string fmt = qpxScanFormat(id);
+    if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
+    if (resolved.empty()) { resolved = fmt; }
+    else if (resolved != fmt)
+    {
+      // Two conventions in one export: neither token would describe the whole file, so
+      // omit scan_format rather than assert a wrong one.
+      OPENMS_LOG_WARN << "ArrowIOHelpers: spectrum native IDs mix '" << resolved << "' and '"
+                      << fmt << "' conventions; omitting QPX scan_format." << std::endl;
+      return "";
+    }
+  }
+  return resolved;
 }
 
 bool writeTableToParquet(
@@ -110,7 +259,8 @@ bool writeTableToParquet(
 bool concatenateAndWriteToParquet(
   const std::vector<std::shared_ptr<arrow::Table>>& tables,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const std::shared_ptr<const arrow::KeyValueMetadata>& metadata)
 {
   if (tables.empty()) { return true; }
 
@@ -122,7 +272,11 @@ bool concatenateAndWriteToParquet(
     return false;
   }
 
-  return writeTableToParquet(concat_result.ValueOrDie(), filename, config);
+  auto table = concat_result.ValueOrDie();
+  // The concatenated table inherits the first input's schema metadata, which carries that
+  // input's uuid/creation_date. Stamp one identity for the merged file instead.
+  if (metadata) { table = table->ReplaceSchemaMetadata(metadata); }
+  return writeTableToParquet(table, filename, config);
 }
 
 // ---------------------------------------------------------------------------
@@ -231,7 +385,7 @@ void readMetaValues(
 
     if (type_str == "int")
     {
-      try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
+      try { target.setMetaValue(name, static_cast<SignedSize>(std::stoll(value_str))); }
       catch (...) { target.setMetaValue(name, value_str); }
     }
     else if (type_str == "double" || type_str == "float")

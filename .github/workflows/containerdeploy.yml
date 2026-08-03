@@ -10,6 +10,7 @@ on:
     branches:
       - nightly
     tags:
+      - 'v[0-9]*'
       - "Release*"
       - "Release/*"
 

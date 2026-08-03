@@ -284,6 +284,25 @@ namespace OpenMS
     /// Extract experimental design from consensus map
     static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
 
+    /**
+      @brief Write this design's fraction structure onto a ConsensusMap's column headers
+
+      The inverse of fromConsensusMap(): stamps @c fraction_group, @c fraction and
+      @c sample_name as meta values on every column header whose @c (basename, label) pair
+      matches a design row. Headers are matched on the 1-based label, so this works for both
+      label-free maps (one header per file) and multiplexed ones (one header per file and
+      channel).
+
+      Without this the fraction structure lives only in the design object, and consumers that
+      read the map -- exporters, converters -- cannot tell two fractions of one sample from two
+      independent runs.
+
+      @param[in,out] cmap Map whose column headers are annotated in place
+      @return Number of column headers with no matching design row, left unannotated. Non-zero
+              means the design does not describe the whole map; callers should report it.
+    */
+    Size annotateColumnHeaders(ConsensusMap& cmap) const;
+
     /// Extract experimental design from feature map
     static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
 

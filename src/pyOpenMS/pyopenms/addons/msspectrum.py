@@ -96,8 +96,13 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                 else:
                     data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
             if want('ion_mobility_unit'):
+                # from the same getIMData() call that selected the values above, not from
+                # getDriftTimeUnitAsString(): that reports the spectrum-wide scalar, which a
+                # frame carrying a per-peak array leaves unset, so it read '<NONE>' for
+                # exactly the spectra this column exists to describe
+                from pyopenms import IMTypes
                 data_dict['ion_mobility_unit'] = np.full(
-                    cnt, self.getDriftTimeUnitAsString(), dtype='U50'
+                    cnt, IMTypes.driftTimeUnitToString(drift_time_unit), dtype='U50'
                 )
         else:
             if requested is not None:

@@ -58,8 +58,8 @@ namespace OpenMS::Internal
 
         //required
         std::string required_string;
-        optionalAttributeAsString_(advanced_string, attributes, "required");
-        if (advanced_string == "true")
+        optionalAttributeAsString_(required_string, attributes, "required");
+        if (required_string == "true")
         {
           tags.emplace_back("required");
         }
@@ -233,7 +233,7 @@ namespace OpenMS::Internal
           list_.tags.emplace_back("advanced");
         }
 
-        //advanced
+        //required
         std::string required_string;
         optionalAttributeAsString_(required_string, attributes, "required");
         if (required_string == "true")
