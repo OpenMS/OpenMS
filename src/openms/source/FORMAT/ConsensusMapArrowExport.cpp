@@ -1576,6 +1576,11 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
                      << outfile_close.ToString() << std::endl;
     ok = false;
   }
+  if (!ok && !File::remove(filename))
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                     << filename << std::endl;
+  }
   return ok;
 }
 

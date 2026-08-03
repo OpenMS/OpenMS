@@ -280,12 +280,15 @@ namespace
 
   bool hasSILACMarker(const std::string& label)
   {
+    const SILACRole role = silacRole(label);
+    if (role == SILACRole::MEDIUM || role == SILACRole::HEAVY) { return true; }
+
     std::string lower = label;
     std::transform(lower.begin(), lower.end(), lower.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-    return lower.find("silac") != std::string::npos
-           || lower.find("arg") != std::string::npos
-           || lower.find("lys") != std::string::npos;
+    // An explicit SILAC label with an unknown role must still enter the map-level validation
+    // branch and be rejected. Ordinary labels containing "arg" or "lys" are not SILAC markers.
+    return lower.find("silac") != std::string::npos;
   }
 
   std::string canonicalSILACLabel(SILACRole role)

@@ -147,7 +147,13 @@ namespace OpenMS
       const std::string& name,
       QPXValueValidation::Result& result)
     {
-      if (values->IsNull(row) || isBlank(values->GetString(row)))
+      if (values->IsNull(row))
+      {
+        addError(result, "row " + std::to_string(row) + " has a null '" + name
+                         + "' primary-key value");
+        return false;
+      }
+      if (isBlank(values->GetString(row)))
       {
         addError(result, "row " + std::to_string(row) + " has an empty or blank '" + name
                          + "' primary-key value");
@@ -331,9 +337,18 @@ namespace OpenMS
 
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
-        bool key_valid = nonEmptyString(peptidoform, row, QPXPSMSchema::PEPTIDOFORM, result)
-                         && nonEmptyString(run, row, QPXPSMSchema::RUN_FILE_NAME, result);
-        if (charge->IsNull(row)) { key_valid = false; }
+        const bool peptidoform_valid = nonEmptyString(
+          peptidoform, row, QPXPSMSchema::PEPTIDOFORM, result);
+        const bool run_valid = nonEmptyString(
+          run, row, QPXPSMSchema::RUN_FILE_NAME, result);
+        bool charge_valid = true;
+        if (charge->IsNull(row))
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has a null 'charge' primary-key value");
+          charge_valid = false;
+        }
+        bool key_valid = peptidoform_valid && run_valid && charge_valid;
         if (scan->IsNull(row) || scan->value_length(row) == 0)
         {
           addError(result, "row " + std::to_string(row)
@@ -405,7 +420,17 @@ namespace OpenMS
         const bool strings_valid = nonEmptyString(
           run, row, QPXFeatureSchema::RUN_FILE_NAME, result);
         const bool peptidoform_valid = !peptidoform->IsNull(row);
+        if (!peptidoform_valid)
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has a null 'peptidoform' primary-key value");
+        }
         const bool charge_valid = !charge->IsNull(row);
+        if (!charge_valid)
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has a null 'charge' primary-key value");
+        }
         bool rt_valid = true;
         if (!rt->IsNull(row) && !std::isfinite(rt->Value(row)))
         {

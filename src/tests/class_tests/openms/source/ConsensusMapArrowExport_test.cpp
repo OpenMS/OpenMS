@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 ///////////////////////////
@@ -174,6 +175,17 @@ ConsensusMap createTestConsensusMap()
   return cmap;
 }
 
+std::shared_ptr<arrow::Table> replaceColumn(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& name,
+  const std::shared_ptr<arrow::Array>& values)
+{
+  std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+  columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+    std::make_shared<arrow::ChunkedArray>(values);
+  return arrow::Table::Make(table->schema(), std::move(columns));
+}
+
 ConsensusMap createEmptyConsensusMap()
 {
   return ConsensusMap();
@@ -246,6 +258,21 @@ START_SECTION(([EXTRA] feature value validation rejects duplicate primary keys b
   TEST_FALSE(duplicate_result.valid)
   TEST_TRUE(duplicate_result.toString().find("primary key") != std::string::npos)
 
+  auto invalid_keys = table->Slice(0, 1);
+  arrow::StringBuilder null_peptidoform_builder;
+  TEST_TRUE(null_peptidoform_builder.AppendNull().ok())
+  invalid_keys = replaceColumn(invalid_keys, QPXFeatureSchema::PEPTIDOFORM,
+                               null_peptidoform_builder.Finish().ValueOrDie());
+  arrow::Int16Builder null_charge_builder;
+  TEST_TRUE(null_charge_builder.AppendNull().ok())
+  invalid_keys = replaceColumn(invalid_keys, QPXFeatureSchema::CHARGE,
+                               null_charge_builder.Finish().ValueOrDie());
+  QPXValueValidation invalid_key_validator(QPXValueValidation::View::FEATURE);
+  const auto invalid_key_result = invalid_key_validator.validate(invalid_keys);
+  TEST_FALSE(invalid_key_result.valid)
+  TEST_TRUE(invalid_key_result.toString().find("null 'peptidoform'") != std::string::npos)
+  TEST_TRUE(invalid_key_result.toString().find("null 'charge'") != std::string::npos)
+
   // Duplicating the source feature exercises the one-shot writer's validation placement: the
   // output path remains absent because validation runs before FileOutputStream::Open().
   cmap.push_back(cmap.front());
@@ -257,6 +284,7 @@ START_SECTION(([EXTRA] feature value validation rejects duplicate primary keys b
   std::string stream_output;
   NEW_TMP_FILE(stream_output);
   TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_output, 1))
+  TEST_FALSE(File::exists(stream_output))
 }
 END_SECTION
 

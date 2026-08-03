@@ -287,6 +287,27 @@ START_SECTION(([EXTRA] QPX value validation rejects empty and duplicate PSM keys
   TEST_FALSE(null_run_result.valid)
   TEST_TRUE(null_run_result.toString().find("physical null") != std::string::npos)
 
+  // Report every missing primary-key component, even though required-column validation already
+  // rejects the physical nulls independently of uniqueness checking.
+  arrow::StringBuilder null_peptidoform_builder;
+  TEST_TRUE(null_peptidoform_builder.AppendNull().ok())
+  auto null_keys = replaceColumn(table, QPXPSMSchema::PEPTIDOFORM,
+                                 null_peptidoform_builder.Finish().ValueOrDie());
+  arrow::Int16Builder null_charge_builder;
+  TEST_TRUE(null_charge_builder.AppendNull().ok())
+  null_keys = replaceColumn(null_keys, QPXPSMSchema::CHARGE,
+                            null_charge_builder.Finish().ValueOrDie());
+  arrow::StringBuilder null_key_run_builder;
+  TEST_TRUE(null_key_run_builder.AppendNull().ok())
+  null_keys = replaceColumn(null_keys, QPXPSMSchema::RUN_FILE_NAME,
+                            null_key_run_builder.Finish().ValueOrDie());
+  QPXValueValidation null_key_validator(QPXValueValidation::View::PSM);
+  const auto null_key_result = null_key_validator.validate(null_keys);
+  TEST_FALSE(null_key_result.valid)
+  TEST_TRUE(null_key_result.toString().find("null 'peptidoform'") != std::string::npos)
+  TEST_TRUE(null_key_result.toString().find("null 'charge'") != std::string::npos)
+  TEST_TRUE(null_key_result.toString().find("null 'run_file_name'") != std::string::npos)
+
   // A non-null empty scan list is equally unusable because scan is part of the PSM primary key.
   auto scan_values = std::make_shared<arrow::Int32Builder>();
   arrow::ListBuilder scan_builder(arrow::default_memory_pool(), scan_values);

@@ -291,6 +291,62 @@ START_SECTION((std::map<std::uint64_t, std::string> qpxIntensityLabels(const Con
   unsupported.setColumnHeaders({{0, heavy}});
   labels = ArrowIOHelpers::qpxIntensityLabels(unsupported);
   TEST_STRING_EQUAL(labels.at(0), "")
+
+  ConsensusMap unknown_role;
+  unknown_role.setExperimentType("labeled_MS1");
+  light.filename = "unknown_role.mzML";
+  ConsensusMap::ColumnHeader unknown = heavy;
+  unknown.filename = "unknown_role.mzML";
+  unknown.label = "SILAC mystery";
+  unknown_role.setColumnHeaders({{0, light}, {1, unknown}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(unknown_role);
+  TEST_STRING_EQUAL(labels.at(0), "")
+  TEST_STRING_EQUAL(labels.at(1), "")
+
+  // A two-plex needs exactly one light channel.
+  ConsensusMap no_light;
+  no_light.setExperimentType("labeled_MS1");
+  medium.filename = "no_light.mzML";
+  heavy.filename = "no_light.mzML";
+  no_light.setColumnHeaders({{0, medium}, {1, heavy}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(no_light);
+  TEST_STRING_EQUAL(labels.at(0), "")
+  TEST_STRING_EQUAL(labels.at(1), "")
+
+  // A three-plex needs one channel per role.
+  ConsensusMap duplicate_role;
+  duplicate_role.setExperimentType("labeled_MS1");
+  light.filename = "duplicate_role.mzML";
+  medium.filename = "duplicate_role.mzML";
+  ConsensusMap::ColumnHeader medium_again = medium;
+  duplicate_role.setColumnHeaders({{0, light}, {1, medium}, {2, medium_again}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(duplicate_role);
+  TEST_STRING_EQUAL(labels.at(0), "")
+  TEST_STRING_EQUAL(labels.at(1), "")
+  TEST_STRING_EQUAL(labels.at(2), "")
+
+  ConsensusMap label_free;
+  label_free.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader lfq;
+  lfq.filename = "lfq.mzML";
+  lfq.label = "label-free";
+  label_free.setColumnHeaders({{0, lfq}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(label_free);
+  TEST_STRING_EQUAL(labels.at(0), "LFQ")
+
+  // Ordinary words containing "lys" must not route the whole source through SILAC validation.
+  ConsensusMap ordinary_labels;
+  ordinary_labels.setExperimentType("label-free");
+  lfq.filename = "ordinary.mzML";
+  ConsensusMap::ColumnHeader lysate = lfq;
+  lysate.label = "Lysate_A";
+  ConsensusMap::ColumnHeader catalyst = lfq;
+  catalyst.label = "catalyst";
+  ordinary_labels.setColumnHeaders({{0, lfq}, {1, lysate}, {2, catalyst}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(ordinary_labels);
+  TEST_STRING_EQUAL(labels.at(0), "LFQ")
+  TEST_STRING_EQUAL(labels.at(1), "")
+  TEST_STRING_EQUAL(labels.at(2), "")
 }
 END_SECTION
 
