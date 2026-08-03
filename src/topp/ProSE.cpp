@@ -622,6 +622,11 @@ class ProSE :
         // -- QPX directory output --
         if (!out_qpx_dir.empty())
         {
+          // Wrapped like the sibling modes above: the QPX exporters refuse input they cannot key
+          // (a merged run whose PSMs lack 'id_merge_index', ambiguous feature identities), and an
+          // escaping exception would abort the whole per-file loop rather than failing this mode.
+          try
+          {
           // PSM — build table once, write to file, accumulate same table for merge.
           const std::string qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
           auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
@@ -662,6 +667,23 @@ class ProSE :
           else
           {
             OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << qpx_pg_file << endl;
+          }
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << ": " << e.what() << endl;
+            input_failed = true;
+          }
+          catch (const std::exception& e)
+          {
+            // Unlike the sibling modes, this one calls into Arrow/Parquet, whose exceptions do
+            // not derive from Exception::BaseException. The write helpers check Status rather
+            // than throwing, but allocation and internal parquet failures still surface here,
+            // and letting one escape would skip the remaining outputs for this input.
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << " (Arrow/Parquet): " << e.what() << endl;
+            input_failed = true;
           }
         }
 

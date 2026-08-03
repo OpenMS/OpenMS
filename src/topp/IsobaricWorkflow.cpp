@@ -809,12 +809,24 @@ protected:
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
     cmap.setProteinIdentifications(merged_prot_ids);
 
-    ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
-    if (exp_design != "")
+    // Only fall back to deriving a design from the map when none was supplied. Calling
+    // fromConsensusMap() unconditionally logged "No fractions annotated in consensusXML.
+    // Assuming unfractionated." once per column header even when -exp_design says otherwise.
+    ExperimentalDesign design = (exp_design != "") ? ExperimentalDesignFile::load(exp_design, true)
+                                                   : ExperimentalDesign::fromConsensusMap(cmap);
+
+    // Annotate the resolved design back onto the column headers. IsobaricChannelExtractor sets
+    // only the channel meta values, so without this the fraction structure is known here and
+    // nowhere else -- consumers reading the map cannot tell two fractions of one sample from
+    // two independent runs.
+    if (const Size unannotated = design.annotateColumnHeaders(cmap); unannotated > 0)
     {
-      design = ExperimentalDesignFile::load(exp_design, true);
+      OPENMS_LOG_WARN << "IsobaricWorkflow: " << unannotated << " of " << cmap.getColumnHeaders().size()
+                      << " (file, channel) column(s) have no matching row in the experimental "
+                         "design, so they carry no fraction annotation. Downstream fraction-aware "
+                         "output cannot group them." << std::endl;
     }
-    
+
     bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 

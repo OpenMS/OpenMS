@@ -48,6 +48,51 @@ namespace OpenMS
       isValid_();
     }
 
+    Size ExperimentalDesign::annotateColumnHeaders(ConsensusMap& cmap) const
+    {
+      const auto& pl2fg = getPathLabelToFractionGroupMapping(true);
+      const auto& pl2f = getPathLabelToFractionMapping(true);
+      const auto& pl2s = getPathLabelToSampleMapping(true);
+
+      // Two headers of one file that resolve to the same design row cannot both be that row.
+      // ColumnHeader::getLabelAsUInt() returns 1 for any header without a 'channel_id' -- which
+      // is what the Multiplex tools emit, carrying the channel in 'label' instead -- so a
+      // light/heavy pair collapses onto label 1 and would otherwise both be stamped with the
+      // first channel's sample.
+      std::map<std::pair<std::string, unsigned>, Size> key_uses;
+      for (const auto& [map_index, header] : cmap.getColumnHeaders())
+      {
+        ++key_uses[{File::basename(header.filename), header.getLabelAsUInt(cmap.getExperimentType())}];
+      }
+
+      Size unannotated = 0;
+      for (auto& [map_index, header] : cmap.getColumnHeaders())
+      {
+        // The design is keyed on (file, label); a column header carries the file and, for a
+        // multiplexed map, the 1-based channel that getLabelAsUInt() returns.
+        const std::pair<std::string, unsigned> key(File::basename(header.filename),
+                                                   header.getLabelAsUInt(cmap.getExperimentType()));
+        auto fg = pl2fg.find(key);
+        if (fg == pl2fg.end()) { ++unannotated; continue; }
+        if (key_uses[key] > 1) { ++unannotated; continue; } // ambiguous: several headers, one row
+
+        header.setMetaValue("fraction_group", fg->second);
+        auto fr = pl2f.find(key);
+        if (fr != pl2f.end()) { header.setMetaValue("fraction", fr->second); }
+        auto sa = pl2s.find(key);
+        if (sa != pl2s.end())
+        {
+          // A design inferred by fromConsensusMap() has sample rows but no "Sample" COLUMN, so
+          // getSampleName() throws std::out_of_range on its internal column lookup. The name is
+          // optional decoration here -- fraction and fraction_group are what callers group on --
+          // so a design that cannot supply one must not cost them the annotation entirely.
+          try { header.setMetaValue("sample_name", getSampleSection().getSampleName(sa->second)); }
+          catch (const std::exception&) { /* no Sample column; fraction data above still stands */ }
+        }
+      }
+      return unannotated;
+    }
+
     ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
     {
       ExperimentalDesign experimental_design;
