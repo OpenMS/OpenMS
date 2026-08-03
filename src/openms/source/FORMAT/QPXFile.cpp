@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -1708,6 +1709,7 @@ bool QPXFile::exportToParquetStreaming(
   // config.row_group_size is the max rows per Parquet row group (WriteTable chunk size);
   // batch_size only bounds peak memory (PeptideIdentifications materialized at once).
   const int64_t rg = static_cast<int64_t>(config.row_group_size);
+  QPXValueValidation value_validator(QPXValueValidation::View::PSM);
 
   // Build one batch [b, e) of PeptideIdentifications: partition it into W contiguous sub-ranges,
   // build each sub-table in parallel (OpenMP), then write them in index order (serial — the
@@ -1759,6 +1761,13 @@ bool QPXFile::exportToParquetStreaming(
       if (!parts[t])
       {
         OPENMS_LOG_ERROR << "QPXFile: Failed to build PSM batch partition " << t << std::endl;
+        return false;
+      }
+      const auto value_validation = value_validator.validate(parts[t]);
+      if (!value_validation.valid)
+      {
+        OPENMS_LOG_ERROR << "QPXFile: refusing invalid QPX PSM batch for " << filename << ": "
+                         << value_validation.toString() << std::endl;
         return false;
       }
       auto st = writer->WriteTable(*parts[t]->ReplaceSchemaMetadata(meta), rg);

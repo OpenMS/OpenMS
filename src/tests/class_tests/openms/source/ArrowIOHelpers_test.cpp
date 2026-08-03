@@ -13,6 +13,8 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 #include <arrow/api.h>
 
 #include <set>
@@ -226,13 +228,82 @@ START_SECTION((std::string qpxIntensityLabel(const std::string&, const std::stri
   // ... and 11-plex really does have both 131N and 131C.
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("tmt11plex_131N", "131N"), "TMT131N")
 
-  // Multiplex/SILAC headers carry the modification in `label` and annotate no channel;
-  // pass the tool's own label through rather than mislabel it LFQ.
-  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Arg10", ""), "Arg10")
+  // Scalar SILAC normalization uses the modification's mass class. Whole-map normalization below
+  // additionally sees the plex role, which matters for an Arg6 two-plex.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("no_label", ""), "SILAC light")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Arg6", ""), "SILAC medium")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Lys8Arg10", ""), "SILAC heavy")
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("Dimethyl4", ""), "DIMETHYL4")
+
+  // An unstandardized multiplex token cannot be written into a QPX join key.
+  TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("label 0", ""), "")
 
   // A channel whose method cannot be identified must NOT be guessed — it is a join key.
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("mystery_126", "126"), "")
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxIntensityLabel("no_separator", "126"), "")
+}
+END_SECTION
+
+START_SECTION((std::map<std::uint64_t, std::string> qpxIntensityLabels(const ConsensusMap&)))
+{
+  ConsensusMap two_plex;
+  two_plex.setExperimentType("labeled_MS1");
+  ConsensusMap::ColumnHeader light;
+  light.filename = "silac.mzML";
+  light.label = "no_label";
+  light.setMetaValue("channel_id", 0);
+  ConsensusMap::ColumnHeader arg6;
+  arg6.filename = "silac.mzML";
+  arg6.label = "Arg6";
+  arg6.setMetaValue("channel_id", 1);
+  two_plex.setColumnHeaders({{0, light}, {1, arg6}});
+
+  auto labels = ArrowIOHelpers::qpxIntensityLabels(two_plex);
+  TEST_STRING_EQUAL(labels.at(0), "SILAC light")
+  // Arg6 is medium by mass class, but it is the non-light (heavy-role) channel of a two-plex.
+  TEST_STRING_EQUAL(labels.at(1), "SILAC heavy")
+
+  ConsensusMap three_plex;
+  three_plex.setExperimentType("labeled_MS1");
+  ConsensusMap::ColumnHeader heavy;
+  heavy.filename = "silac3.mzML";
+  heavy.label = "Lys8Arg10";
+  heavy.setMetaValue("channel_id", 2);
+  ConsensusMap::ColumnHeader medium;
+  medium.filename = "silac3.mzML";
+  medium.label = "Lys4Arg6";
+  medium.setMetaValue("channel_id", 1);
+  light.filename = "silac3.mzML";
+  three_plex.setColumnHeaders({{3, heavy}, {7, light}, {9, medium}});
+
+  labels = ArrowIOHelpers::qpxIntensityLabels(three_plex);
+  TEST_STRING_EQUAL(labels.at(3), "SILAC heavy")
+  TEST_STRING_EQUAL(labels.at(7), "SILAC light")
+  TEST_STRING_EQUAL(labels.at(9), "SILAC medium")
+
+  ConsensusMap unsupported;
+  unsupported.setExperimentType("labeled_MS1");
+  heavy.filename = "unsupported_silac.mzML";
+  unsupported.setColumnHeaders({{0, heavy}});
+  labels = ArrowIOHelpers::qpxIntensityLabels(unsupported);
+  TEST_STRING_EQUAL(labels.at(0), "")
+}
+END_SECTION
+
+START_SECTION((bool qpxIsCanonicalIntensityLabel(const std::string&)))
+{
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("LFQ"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("SILAC light"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("SILAC medium"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("SILAC heavy"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("TMT131"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("TMT131N"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("ITRAQ121"))
+  TEST_TRUE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("DIMETHYL8"))
+
+  TEST_FALSE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("Arg10"))
+  TEST_FALSE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("silac heavy"))
+  TEST_FALSE(ArrowIOHelpers::qpxIsCanonicalIntensityLabel("TMT999"))
 }
 END_SECTION
 

@@ -29,6 +29,7 @@ namespace arrow
 
 namespace OpenMS
 {
+class ConsensusMap;
 class MetaInfoInterface;
 
 /**
@@ -168,22 +169,53 @@ namespace ArrowIOHelpers
     @c run.samples[].label of @c run.parquet (docs/spec/views.md), so it must be a
     canonical channel token, not a channel index or a file name.
 
-    Isobaric channels resolve to the reporter name prefixed by the method family, using
-    OpenMS' own channel names — @c "TMT126", @c "TMT131" (TMT10-plex channel 10),
-    @c "ITRAQ114". Label-free maps resolve to @c "LFQ".
+    Isobaric channels resolve to the reporter name prefixed by the method family, using OpenMS'
+    own channel names — @c "TMT126", @c "TMT131" (TMT10-plex channel 10), @c "ITRAQ114".
+    Label-free maps resolve to @c "LFQ". Recognizable SILAC modification labels resolve by mass
+    class; callers that have a whole ConsensusMap should prefer qpxIntensityLabels(), which can
+    distinguish a two-plex second channel (heavy by role) from a three-plex medium channel.
 
     @param[in] column_label ConsensusMap::ColumnHeader::label. IsobaricChannelExtractor
                writes @c "&lt;methodname&gt;_&lt;channelname&gt;" (e.g. @c "tmt10plex_126");
                ProteomicsLFQ writes @c "label-free".
     @param[in] channel_name The header's @c channel_name meta value (e.g. @c "126"); empty
                when the map is not isobaric.
-    @return The label, or @c "" when @p channel_name names a channel whose quantitation
-            method cannot be identified — writing a guessed token into a join key is worse
+    @return The label, or @c "" when the isobaric method, non-isobaric vocabulary token, or
+            SILAC role cannot be identified — writing a guessed token into a join key is worse
             than writing none, so callers must handle the empty result.
   */
   OPENMS_DLLAPI std::string qpxIntensityLabel(
     const std::string& column_label,
     const std::string& channel_name);
+
+  /**
+    @brief Derive canonical QPX intensity labels for every ConsensusMap column
+
+    Unlike the scalar overload, this sees all columns of one source run. It recognizes the
+    FeatureFinderMultiplex SILAC shapes and maps them to the active SDRF/QPX vocabulary:
+    @c "SILAC light" / @c "SILAC heavy" for two-plex and
+    @c "SILAC light" / @c "SILAC medium" / @c "SILAC heavy" for three-plex. The mapping is by
+    channel role, so a two-plex @c Arg6 channel is correctly called heavy even though the same
+    modification is the medium channel in the standard three-plex.
+
+    @param[in] cmap ConsensusMap whose column headers are labelled
+    @return Map index to canonical label. An unrepresentable header maps to @c "" and is logged;
+            exporters must refuse it.
+  */
+  OPENMS_DLLAPI std::map<std::uint64_t, std::string> qpxIntensityLabels(
+    const ConsensusMap& cmap);
+
+  /**
+    @brief Test whether a string is in the canonical SDRF/QPX intensity-label vocabulary
+
+    Covers every isobaric method supported by OpenMS plus the QPX LFQ, SILAC, mTRAQ, and dimethyl
+    plex labels. Intended for write-time value validation, after producer-specific labels have
+    been normalized.
+
+    @param[in] label Candidate label
+    @return true if @p label is a canonical QPX channel token
+  */
+  OPENMS_DLLAPI bool qpxIsCanonicalIntensityLabel(const std::string& label);
 
   // ---------------------------------------------------------------------------
   // Read helpers

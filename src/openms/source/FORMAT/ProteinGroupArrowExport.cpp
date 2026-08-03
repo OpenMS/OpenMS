@@ -21,7 +21,6 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <arrow/api.h>
@@ -122,53 +121,6 @@ namespace // anonymous
     }
     return runs;
   }
-
-  /// Track emitted (anchor_protein, grouped_runs, label) tuples -- the QPX pg primary key -- and report
-  /// duplicates once per export.
-  ///
-  /// Two ProteinIdentifications whose paths share a stem, a repeated accession group, or two
-  /// identifiers mapping to one path list (which IdentifierMSRunMapper::create() overwrites
-  /// silently, throwing only on duplicate path lists) all produce byte-different rows under one
-  /// key. Emitting both is deliberate -- dropping a row loses data and no merge rule exists for
-  /// two group probabilities -- but it must not be silent, because nothing downstream enforces
-  /// the key either: qpxc validate reports duplicate PKs at severity "warning" and its is_valid
-  /// ignores warnings.
-  class PrimaryKeyWatch
-  {
-  public:
-    void add(const std::string& anchor, const std::vector<std::string>& runs,
-             const std::optional<std::string>& label)
-    {
-      // QPX stores fraction order but compares grouped_runs set-wise for primary-key identity.
-      // Canonicalize only the watch key; never reorder the emitted list.
-      std::vector<std::string> canonical_runs = runs;
-      std::sort(canonical_runs.begin(), canonical_runs.end());
-      const std::string key =
-        ListUtils::concatenate(StringList(canonical_runs.begin(), canonical_runs.end()), "+");
-      const auto pk = std::make_tuple(anchor, key, label);
-      if (!seen_.insert(pk).second && examples_.size() < 3)
-      {
-        examples_.push_back(anchor + " / " + key + " / " + label.value_or("<null>"));
-      }
-      ++emitted_;
-    }
-
-    void report(const std::string& context) const
-    {
-      const size_t duplicates = emitted_ - seen_.size();
-      if (duplicates == 0) { return; }
-      OPENMS_LOG_WARN << context << ": " << duplicates << " of " << emitted_
-                      << " rows repeat an (anchor_protein, grouped_runs, label) primary key, e.g. "
-                      << ListUtils::concatenate(StringList(examples_.begin(), examples_.end()), "; ")
-                      << ". The rows are kept, but consumers keying on the tuple will see collisions."
-                      << std::endl;
-    }
-
-  private:
-    std::set<std::tuple<std::string, std::string, std::optional<std::string>>> seen_;
-    std::vector<std::string> examples_;
-    size_t emitted_ = 0;
-  };
 
 } // anonymous namespace
 
@@ -491,15 +443,12 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: contaminant Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Helper lambda to emit one row for a protein group + fraction-group/label quantity.
-  PrimaryKeyWatch pk_watch;
   auto emitRow = [&](const ProteinIdentification::ProteinGroup& group,
                      const std::vector<std::string>& runs,
                      const std::optional<std::string>& label,
                      const std::optional<float>& intensity)
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
-    pk_watch.add(anchor, runs, label);
-
     // anchor_protein
     (void)anchor_protein_builder.Append(anchor);
 
@@ -711,12 +660,11 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // 1-based number. Keying the lookup on the run as well as the channel keeps it correct for maps
   // whose runs use different methods, rather than assuming one global channel -> label mapping.
   std::map<std::pair<std::string, UInt>, std::string> channel_labels;
+  const auto qpx_labels = ArrowIOHelpers::qpxIntensityLabels(cmap);
   for (const auto& [map_index, header] : cmap.getColumnHeaders())
   {
     const UInt channel = header.getLabelAsUInt(cmap.getExperimentType());
-    const std::string channel_name = header.metaValueExists("channel_name")
-                                   ? header.getMetaValue("channel_name").toString() : "";
-    const std::string label = ArrowIOHelpers::qpxIntensityLabel(header.label, channel_name);
+    const std::string& label = qpx_labels.at(map_index);
     if (label.empty()) { return nullptr; } // unidentifiable channel; already logged
     channel_labels[{ArrowIOHelpers::qpxRunFileName(header.filename), channel}] = label;
   }
@@ -813,7 +761,6 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       for (const auto& runs : evidence_units) { emitRow(group, runs, std::nullopt, std::nullopt); }
     }
   }
-  pk_watch.report("ProteinGroupArrowExport");
   if (unattributable_groups > 0)
   {
     OPENMS_LOG_INFO << "ProteinGroupArrowExport: skipped " << unattributable_groups
@@ -1128,7 +1075,6 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   Size groups_without_run_name = 0;   // run carries no spectra_data at all
   Size groups_without_evidence = 0;   // merged run, but nothing identifies which file
   Size unresolved_psms = 0;           // PSM in a run with files, but resolving to none of them
-  PrimaryKeyWatch pk_watch;
   for (const auto& prot_id : protein_identifications)
   {
     const auto& groups = prot_id.getIndistinguishableProteins();
@@ -1224,8 +1170,6 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       for (const auto& run_file : runs)
       {
         const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
-        pk_watch.add(anchor, {run_file}, std::nullopt);
-
         // anchor_protein
         (void)anchor_protein_builder.Append(anchor);
 
@@ -1354,7 +1298,6 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     }
   }
 
-  pk_watch.report("ProteinGroupArrowExport (id-only)");
   // WARN, not INFO: for a protein-inference result this is typically *every* group, and an empty
   // output file that was announced at INFO reads as "nothing to export" rather than "your input
   // could not be keyed".

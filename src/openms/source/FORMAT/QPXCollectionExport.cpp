@@ -76,18 +76,16 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const Expe
   // Feature intensities[].label and the pg scalar label both join against run.samples[].label.
   std::set<std::pair<std::string, unsigned>> header_cells;
   std::map<std::pair<std::string, UInt>, std::string> channel_labels;
+  const auto qpx_labels = ArrowIOHelpers::qpxIntensityLabels(cmap);
   for (const auto& [map_index, header] : cmap.getColumnHeaders())
   {
-    (void)map_index;
     const std::string run = ArrowIOHelpers::qpxRunFileName(header.filename);
     const UInt channel = header.getLabelAsUInt(cmap.getExperimentType());
     header_cells.emplace(run, channel);
-    const std::string channel_name = header.metaValueExists("channel_name")
-                                   ? header.getMetaValue("channel_name").toString() : "";
-    const std::string label = ArrowIOHelpers::qpxIntensityLabel(header.label, channel_name);
+    const std::string& label = qpx_labels.at(map_index);
     if (label.empty())
     {
-      // qpxIntensityLabel already logged which header and why.
+      // qpxIntensityLabels() already logged which header set and why.
       OPENMS_LOG_ERROR << "QPXCollectionExport: a column header names a channel QPX cannot "
                           "label, so its quantity would not join against run.parquet. "
                           "No QPX file was written." << std::endl;

@@ -25,6 +25,7 @@
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -88,6 +89,17 @@ namespace
     ptrs.reserve(peps.size());
     for (const auto& p : peps) { ptrs.push_back(&p); }
     return ptrs;
+  }
+
+  std::shared_ptr<arrow::Table> replaceColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    const std::shared_ptr<arrow::Array>& values)
+  {
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+    columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+      std::make_shared<arrow::ChunkedArray>(values);
+    return arrow::Table::Make(table->schema(), std::move(columns));
   }
 }
 
@@ -232,6 +244,62 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
   TEST_EQUAL(scan_values->Value(scan_list->value_offset(1)), 1001)
   TEST_EQUAL(scan_list->value_length(2), 1)
   TEST_EQUAL(scan_values->Value(scan_list->value_offset(2)), 1002)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] QPX value validation rejects empty and duplicate PSM keys before writing))
+{
+  auto prot = mergedRun({"/data/runA.mzML"});
+  PeptideIdentificationList peps{mergedPSM("PEPTIDEK", 0)};
+  auto table = QPXFile::exportPSMsToQPXArrow(prot, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  QPXValueValidation validator(QPXValueValidation::View::PSM);
+  auto validation = validator.validate(table);
+  TEST_TRUE(validation.valid)
+
+  // One validator instance spans streaming batches, so a key repeated in a later batch is found.
+  validation = validator.validate(table);
+  TEST_FALSE(validation.valid)
+  TEST_TRUE(validation.toString().find("primary key") != std::string::npos)
+  validator.reset();
+  TEST_TRUE(validator.validate(table).valid)
+
+  // The same invariant applies within one table.
+  auto duplicate = arrow::ConcatenateTables({table, table}).ValueOrDie();
+  QPXValueValidation duplicate_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(duplicate_validator.validate(duplicate).valid)
+
+  // An empty string satisfies Arrow's non-nullable declaration, but it is not a usable QPX key.
+  arrow::StringBuilder run_builder;
+  TEST_TRUE(run_builder.Append("").ok())
+  auto empty_run = replaceColumn(table, QPXPSMSchema::RUN_FILE_NAME,
+                                 run_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_run_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(empty_run_validator.validate(empty_run).valid)
+
+  arrow::StringBuilder null_run_builder;
+  TEST_TRUE(null_run_builder.AppendNull().ok())
+  auto null_run = replaceColumn(table, QPXPSMSchema::RUN_FILE_NAME,
+                                null_run_builder.Finish().ValueOrDie());
+  QPXValueValidation null_run_validator(QPXValueValidation::View::PSM);
+  auto null_run_result = null_run_validator.validate(null_run);
+  TEST_FALSE(null_run_result.valid)
+  TEST_TRUE(null_run_result.toString().find("physical null") != std::string::npos)
+
+  // A non-null empty scan list is equally unusable because scan is part of the PSM primary key.
+  auto scan_values = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder scan_builder(arrow::default_memory_pool(), scan_values);
+  TEST_TRUE(scan_builder.Append().ok())
+  auto empty_scan = replaceColumn(table, QPXPSMSchema::SCAN,
+                                  scan_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_scan_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(empty_scan_validator.validate(empty_scan).valid)
+
+  // The table-taking writer runs the same validation before FileOutputStream::Open().
+  NEW_TMP_FILE(output)
+  TEST_FALSE(QPXFile::exportToParquet(empty_run, output))
+  TEST_FALSE(File::exists(output))
 }
 END_SECTION
 
@@ -1262,6 +1330,15 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
     auto o_table = read_combined(one_file);
     TEST_NOT_EQUAL(o_table, nullptr)
     TEST_EQUAL(o_table->num_rows(), 1)
+  }
+
+  // One validator spans all batches, so a primary key repeated after a batch boundary fails.
+  {
+    std::vector<const PeptideIdentification*> duplicate_ptrs{ptrs[0], ptrs[0]};
+    std::string duplicate_file;
+    NEW_TMP_FILE(duplicate_file)
+    TEST_FALSE(QPXFile::exportToParquetStreaming(
+      protein_ids, duplicate_ptrs, duplicate_file, false, 1))
   }
 
   // --- Edge case: batch_size=0 must not hang (guarded to default) and write all rows ---
