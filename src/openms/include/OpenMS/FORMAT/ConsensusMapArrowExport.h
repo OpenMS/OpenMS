@@ -73,9 +73,29 @@ public:
           std::terminate.
 
     @param[in] cmap The map about to be exported
-    @throw Exception::IllegalArgument if any feature has divergent peptide annotations
+    @throws Exception::IllegalArgument if any feature has divergent peptide annotations
   */
   static void requireUnambiguousIdentities(const ConsensusMap& cmap);
+
+  /**
+    @brief Refuse a map whose features cannot be attributed to an origin MS run
+
+    A feature's identification names its run through @c id_merge_index into the identification
+    run's @c spectra_data. Without a usable index every PSM of a merged run resolves to the
+    run's FIRST file, so @c run_file_name would be wrong rather than missing.
+
+    Only the identification the exported row actually uses is validated -- validating every
+    attached one refuses a feature whose winning hit resolves perfectly because a sibling,
+    hitless or simply not selected, lacks an index that is never read.
+
+    @note Same preflight constraint as requireUnambiguousIdentities(): call before any OpenMP
+          region and before the output file is opened.
+
+    @param[in] cmap The map about to be exported
+    @throws Exception::MissingInformation if a feature's winning identification belongs to a
+           merged run but carries no usable @c id_merge_index
+  */
+  static void requireResolvableIdRuns(const ConsensusMap& cmap);
 
   /**
     @brief Export ConsensusMap to Parquet file

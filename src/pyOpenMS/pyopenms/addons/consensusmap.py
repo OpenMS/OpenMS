@@ -476,7 +476,7 @@ def to_feature_parquet(self, filename, compression='snappy', **kwargs):
 
 
 @addon("ConsensusMap")
-def to_feature_qpx(self, qpx_version="1.0", creator="pyopenms", software_provider="OpenMS",
+def to_feature_qpx(self, qpx_version="1.1", creator="pyopenms", software_provider="OpenMS",
                    **kwargs):
     """
     Export consensus features as QPX format (dict with file_metadata and features).

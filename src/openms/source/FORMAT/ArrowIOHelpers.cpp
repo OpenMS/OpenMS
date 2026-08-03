@@ -87,7 +87,11 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
     "qpx_version", "file_type", "creator", "software_provider", "creation_date",
     "compression_format", "uuid"};
   std::vector<std::string> values{
-    "1.0",
+    // QPX 1.1 (bigbio/qpx#220): the pg view is re-keyed from a scalar run_file_name onto
+    // grouped_runs (list<string>). Breaking, but shipped as a minor under the spec's pre-2.0
+    // stabilisation rule, so a reader must consult the version rather than assume 1.x is additive.
+    // The psm and feature views are unchanged by 1.1 and carry the same version key.
+    "1.1",
     file_type,
     "OpenMS",
     "OpenMS " + VersionInfo::getVersion(),
@@ -168,7 +172,7 @@ bool qpxWarnOnRunNameCollisions(const std::string& context,
   {
     if (paths.size() < 2) { continue; }
     unique = false;
-    OPENMS_LOG_WARN << context << ": several MS runs share the run_file_name '" << stem
+    OPENMS_LOG_WARN << context << ": several MS runs share the QPX run name '" << stem
                     << "' after stripping path and extension: "
                     << ListUtils::concatenate(StringList(paths.begin(), paths.end()), ", ")
                     << ". They cannot be told apart in the exported QPX tables." << std::endl;
