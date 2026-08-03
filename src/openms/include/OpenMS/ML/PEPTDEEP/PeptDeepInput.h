@@ -55,7 +55,7 @@ namespace OpenMS
       /// @param[in] parsed_peptides A vector of pre-parsed AASequence objects.
       /// @param[in] config Configuration dictating padding and terminal token policies.
       /// @return A PeptDeepInputBatch populated with sequence lengths, aa_indices, and mod_x.
-      /// @throws Exception::IllegalArgument If the batch is empty or an encoded peptide exceeds fixed sequence length.
+      /// @throws Exception::IllegalArgument If the batch is empty, any peptide sequence is empty, or an encoded peptide exceeds fixed sequence length.
       static PeptDeepInputBatch buildPeptideBatch(
         const std::vector<OpenMS::AASequence>& parsed_peptides,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
@@ -65,7 +65,7 @@ namespace OpenMS
       /// @param[in] charges A vector of precursor charges corresponding to the peptides.
       /// @param[in] config Configuration dictating padding and terminal token policies.
       /// @return A PeptDeepInputBatch populated with baseline features and scaled charges.
-      /// @throws Exception::IllegalArgument If the size of the vectors do not match, the batch is empty, or an encoded peptide exceeds fixed sequence length.
+      /// @throws Exception::IllegalArgument If the size of the vectors do not match, the batch is empty, any peptide sequence is empty, or an encoded peptide exceeds fixed sequence length.
       static PeptDeepInputBatch buildPrecursorBatch(
         const std::vector<OpenMS::AASequence>& parsed_peptides,
         const std::vector<float>& charges,
@@ -78,7 +78,7 @@ namespace OpenMS
       /// @param[in] instrument_indices A vector of instrument identifier indices.
       /// @param[in] config Configuration dictating padding and terminal token policies.
       /// @return A fully populated PeptDeepInputBatch ready for MS2 ONNX inference.
-      /// @throws Exception::IllegalArgument If the size of the vectors do not match, the batch is empty, or an encoded peptide exceeds fixed sequence length.
+      /// @throws Exception::IllegalArgument If the size of the vectors do not match, the batch is empty, any peptide sequence is empty, or an encoded peptide exceeds fixed sequence length.
       static PeptDeepInputBatch buildProductMetaBatch(
         const std::vector<OpenMS::AASequence>& parsed_peptides,
         const std::vector<float>& charges,
