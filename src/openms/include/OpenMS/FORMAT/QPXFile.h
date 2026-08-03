@@ -92,19 +92,24 @@ public:
     @brief Write a pre-built QPX PSM Arrow table to a Parquet file
 
     The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow).
-    Attaches QPX file metadata (qpx_version, file_type="psm", UUID, creation_date)
-    before writing. Use this overload when the caller already has the table built
-    (e.g., for merged output) to avoid rebuilding it.
+    Attaches QPX file metadata (qpx_version, file_type="psm_file", UUID, creation_date,
+    compression_format) before writing. Use this overload when the caller already has the
+    table built (e.g., for merged output) to avoid rebuilding it.
 
     @param[in] table QPX PSM Arrow table (must not be null)
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[in] scan_format QPX scan_format token for the source native IDs, from
+               ArrowIOHelpers::qpxScanFormat(). A pre-built table no longer carries the
+               native IDs, so the caller must supply it; when empty the key is omitted
+               rather than guessed.
     @return true on success, false on error
   */
   static bool exportToParquet(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::string& scan_format = "");
 
   /**
     @brief Stream PSMs to a QPX Parquet file in row-batches to cap peak memory.

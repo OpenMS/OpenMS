@@ -518,6 +518,9 @@ class ProSE :
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
+      // Per-run QPX scan_format tokens, reconciled for the merged file below. A built table
+      // no longer carries the native IDs, so this has to be collected as we go.
+      std::vector<std::string> qpx_psm_scan_formats;
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
       Size failed_count = 0;
@@ -619,13 +622,26 @@ class ProSE :
         // -- QPX directory output --
         if (!out_qpx_dir.empty())
         {
+          // Wrapped like the sibling modes above: the QPX exporters refuse input they cannot key
+          // (a merged run whose PSMs lack 'id_merge_index', ambiguous feature identities), and an
+          // escaping exception would abort the whole per-file loop rather than failing this mode.
+          try
+          {
           // PSM — build table once, write to file, accumulate same table for merge.
           const std::string qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
           auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (qpx_psm_table)
           {
             qpx_psm_tables.push_back(qpx_psm_table);
-            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file))
+            std::vector<std::string> spec_refs;
+            spec_refs.reserve(result.peptide_ids.size());
+            for (const auto& pid : result.peptide_ids)
+            {
+              if (!pid.getSpectrumReference().empty()) { spec_refs.push_back(pid.getSpectrumReference()); }
+            }
+            const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spec_refs);
+            qpx_psm_scan_formats.push_back(psm_scan_format);
+            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file, ParquetWriteConfig{}, psm_scan_format))
             {
               OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
               input_failed = true;
@@ -651,6 +667,23 @@ class ProSE :
           else
           {
             OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << qpx_pg_file << endl;
+          }
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << ": " << e.what() << endl;
+            input_failed = true;
+          }
+          catch (const std::exception& e)
+          {
+            // Unlike the sibling modes, this one calls into Arrow/Parquet, whose exceptions do
+            // not derive from Exception::BaseException. The write helpers check Status rather
+            // than throwing, but allocation and internal parquet failures still surface here,
+            // and letting one escape would skip the remaining outputs for this input.
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << " (Arrow/Parquet): " << e.what() << endl;
+            input_failed = true;
           }
         }
 
@@ -734,8 +767,29 @@ class ProSE :
       bool merged_ok = true;
       if (!out_qpx_dir.empty())
       {
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet") && merged_ok;
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(qpx_pg_tables,  out_qpx_dir + "/quantms.pg.parquet")  && merged_ok;
+        // Concatenation inherits the first input's schema metadata, i.e. that per-run file's
+        // uuid/creation_date. Stamp a fresh identity so the merged file is its own QPX file.
+        // scan_format only describes the merged file if every contributing run agreed on a
+        // convention; otherwise it is omitted rather than taken from an arbitrary run.
+        std::map<std::string, std::string> psm_extra;
+        std::set<std::string> distinct_formats(qpx_psm_scan_formats.begin(), qpx_psm_scan_formats.end());
+        if (distinct_formats.size() == 1 && !distinct_formats.begin()->empty())
+        {
+          psm_extra["scan_format"] = *distinct_formats.begin();
+        }
+        auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, psm_extra);
+        auto pg_meta  = ArrowIOHelpers::qpxFileMetadata("pg_file");
+        merged_ok = psm_meta && pg_meta && merged_ok;
+        if (psm_meta)
+        {
+          merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
+            qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", ParquetWriteConfig{}, psm_meta) && merged_ok;
+        }
+        if (pg_meta)
+        {
+          merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
+            qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+        }
       }
 
       if (!out_parquet_dir.empty())

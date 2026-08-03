@@ -143,6 +143,17 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transpa
 configure_file(${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/setIcon.sh.in ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/MacOSX/setIcon.sh)
 set(CPACK_POSTFLIGHT_APPLICATIONS_SCRIPT ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/MacOSX/setIcon.sh)
 
+## The pyopenms Python extension modules (COMPONENT python_modules, see
+## src/pyOpenMS/CMakeLists.txt) are not meant to be bundled into the desktop
+## application installer - they are shipped separately as Python wheels (see
+## .github/workflows/pyopenms-wheels-cibuildwheel.yml). productbuild packages
+## every known component into its own sub-pkg by default, and since these were
+## never signed, notarization rejected the whole installer. Exclude them here
+## instead of signing them, so they no longer get packaged at all. This must
+## run after all install(... COMPONENT ...) calls in the project have been
+## processed, so it picks up every real component.
+get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
+list(REMOVE_ITEM CPACK_COMPONENTS_ALL python_modules)
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist
