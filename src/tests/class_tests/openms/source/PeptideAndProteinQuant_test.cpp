@@ -1023,6 +1023,110 @@ START_SECTION(([EXTRA] top:N ranking prefers the peptide detected in more sample
 }
 END_SECTION
 
+START_SECTION(([EXTRA] median/mean aggregate the detected peptides, not the stored zeros))
+{
+  // The protein is measured at 1000 in every channel. In channel 2 only one of its three
+  // peptides has a reporter; the other two are stored as 0.0, which is what
+  // IsobaricChannelExtractor writes for a reporter it could not find. Aggregating those zeros
+  // reports the protein as ABSENT from a sample it was measured in - the artefact
+  // normalizePeptides_() already excludes zeros to avoid, and the opposite of what this tool
+  // documents: "mean and median ignore missing cases, averaging only present values".
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  makeIsobaricProteinInput({{"PEPTIDEK", {1000.0, 1000.0, 1000.0}},
+                            {"AAAAAK",   {1000.0,    0.0, 1000.0}},
+                            {"CCCCCK",   {1000.0,    0.0, 1000.0}}},
+                           consensus, design);
+
+  // 'top:include_all' is what IsobaricWorkflow sets, so this is the shipped isobaric path.
+  for (const std::string& aggregate : {"median", "mean"})
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("top:aggregate", aggregate);
+    p.setValue("top:include_all", "true");
+    quantifier.setParameters(p);
+
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 1000.0)
+    TEST_REAL_SIMILAR(protein.total_abundances.at(1), 1000.0) // was 0.0 (median) / 333.33 (mean)
+    TEST_REAL_SIMILAR(protein.total_abundances.at(2), 1000.0)
+  }
+
+  // 'sum' documents the opposite convention - missing values count as zero - and summing zeros
+  // changes nothing, so its numbers must not move.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("top:aggregate", "sum");
+    p.setValue("top:include_all", "true");
+    quantifier.setParameters(p);
+
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 3000.0)
+    TEST_REAL_SIMILAR(protein.total_abundances.at(1), 1000.0)
+    TEST_REAL_SIMILAR(protein.total_abundances.at(2), 3000.0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] "enough peptides" counts the detected ones, and a dead sample still reports))
+{
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  makeIsobaricProteinInput({{"PEPTIDEK", {1000.0, 1000.0, 0.0}},
+                            {"AAAAAK",   {1000.0,    0.0, 0.0}},
+                            {"CCCCCK",   {1000.0,    0.0, 0.0}}},
+                           consensus, design);
+
+  // Without 'include_all' and with 'top:N' 3, sample 2 has one detected peptide and sample 3 has
+  // none, so neither reaches the threshold and both are left unquantified rather than being
+  // credited with peptides that were never measured.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("top:N", 3);
+    p.setValue("top:aggregate", "median");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 1000.0)
+    TEST_EQUAL(protein.total_abundances.find(1) == protein.total_abundances.end(), true)
+    TEST_EQUAL(protein.total_abundances.find(2) == protein.total_abundances.end(), true)
+  }
+
+  // With 'include_all' the gate is bypassed: sample 2 reports its one detected peptide, and
+  // sample 3 - where nothing was detected at all - keeps a zero entry rather than vanishing.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("top:N", 3);
+    p.setValue("top:aggregate", "median");
+    p.setValue("top:include_all", "true");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 1000.0)
+    TEST_REAL_SIMILAR(protein.total_abundances.at(1), 1000.0)
+    TEST_REAL_SIMILAR(protein.total_abundances.at(2), 0.0)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

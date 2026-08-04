@@ -1398,38 +1398,52 @@ namespace OpenMS
 
     ProteinData& pd = prot_it->second;
 
-    // consider only the selected peptides for quantification:
-    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    // Consider only the selected peptides, and within them only the samples they were actually
+    // detected in. An abundance stored as 0.0 is "not detected", not a measured absence:
+    // IsobaricChannelExtractor writes a reporter it could not find (or one below
+    // 'min_reporter_intensity') as 0.0 and inserts the handle regardless, so every peptide of an
+    // isobaric run carries an entry for every channel. Aggregating those is what this tool's own
+    // documentation says must not happen - "mean and median ignore missing cases, averaging only
+    // present values" - and it is the artefact normalizePeptides_() excludes zeros to avoid: a
+    // channel in which most of a protein's peptides went undetected gets a median of exactly 0,
+    // i.e. the protein is reported absent from a sample it was measured in.
+    // The samples are still tracked separately, so a sample whose peptides were all undetected
+    // keeps its (zero) entry under 'include_all' rather than disappearing from the output.
+    map<UInt64, DoubleList> abundances; // detected peptide abundances by sample
+    set<UInt64> samples;                // every sample the selected peptides reach
     for (const auto& pep : selected_peptides)    // for all selected peptides
     {
       auto pep_it = pd.peptide_abundances.find(pep);
       if (pep_it != pd.peptide_abundances.end())
       {
-        for (auto& sa : pep_it->second) // copy over all abundances
+        for (auto& sa : pep_it->second) // copy over the abundances that are measurements
         {
-          abundances[sa.first].push_back(sa.second);
+          samples.insert(sa.first);
+          if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
         }
       }
     }
 
-    for (auto& ab : abundances)
+    for (UInt64 sample : samples)
     {
-      // check if the protein has enough peptides in this sample
-      if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
+      DoubleList& values = abundances[sample]; // empty if nothing was detected in this sample
+
+      // check if the protein has enough detected peptides in this sample
+      if (!include_all && (top_n > 0) && (values.size() < top_n))
       {
         continue;
       }
 
       // if we have more than "top", reduce to the top ones
-      if ((top_n > 0) && (ab.second.size() > top_n))
+      if ((top_n > 0) && (values.size() > top_n))
       {
         // sort descending:
-        sort(ab.second.begin(), ab.second.end(), greater<double>());
-        ab.second.resize(top_n); // remove all but best N values
+        sort(values.begin(), values.end(), greater<double>());
+        values.resize(top_n); // remove all but best N values
       }
 
-      double abundance_result = aggregateAbundances_(ab.second, aggregate_method);
-      pd.total_abundances[ab.first] = abundance_result;
+      double abundance_result = aggregateAbundances_(values, aggregate_method);
+      pd.total_abundances[sample] = abundance_result;
     }
   }
 
