@@ -2932,6 +2932,31 @@ set_tests_properties("TOPP_ProteinQuantifier_27_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge_and_fraction -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
+# 29: log2 ratios where a sample was NOT quantified. Without 'top:include_all' the sample-level
+#     abundance map is sparse - calculateProteinAbundances_ skips a sample in which the protein has
+#     fewer than 'top:N' detected peptides - so sample 3 has no entry at all. The ratio columns used
+#     to dereference that missing key (undefined behaviour) and to print a missing sample as 0.0,
+#     which in a log2 column claims the sample is exactly equal to the reference. Both must now read
+#     'nan', while the one ratio whose two samples ARE quantified must still be computed exactly.
+#     The existing ratio tests (12/13) both pass 'top:include_all', the one configuration in which
+#     no key can be missing, which is why this went unnoticed.
+add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv -top:N 3 -ratiosSILAC)
+add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
+#     FuzzyDiff compares the two files numerically and reports "No numeric differences were found"
+#     between 'nan' and '-inf', so the reference diff above CANNOT catch the defect it was written
+#     for - it passes against the old output. The token has to be asserted textually instead.
+add_test(NAME "TOPP_ProteinQuantifier_29_out2" COMMAND ${CMAKE_COMMAND} -E cat ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv)
+set_tests_properties("TOPP_ProteinQuantifier_29_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29"
+                     FAIL_REGULAR_EXPRESSION "inf" PASS_REGULAR_EXPRESSION "nan")
+# 30: '-ratios' combined with '-file_and_channel_level_output'. The header writer emits the ratio
+#     column names only in the branch it shares with the sample-level abundance columns, so in this
+#     configuration there are none - and the row must not carry ratio values either. Previously it
+#     did, giving a 7-field header over a 10-field row, which shifts every column for any reader
+#     that trusts the header.
+add_test("TOPP_ProteinQuantifier_30" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output.tmp.csv -file_and_channel_level_output true -top:N 0 -top:aggregate sum -ratios)
+add_test("TOPP_ProteinQuantifier_30_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_30_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_30_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_30")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
