@@ -499,7 +499,7 @@ protected:
     setValidStrings_("workflow:working_format", {"sqlite", "parquet"});
     registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw (.sqlite workflow) or workflow.oswpq (.parquet archive workflow) after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
-    registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure. If it matches out_dir while workflow:keep_intermediate_files=false, OpenDIA uses a nested OpenDIA_intermediates subdirectory to protect final exports.", false, false);
+    registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure. When left empty, OpenDIA uses a nested OpenDIA_intermediates subdirectory under out_dir. If it matches out_dir while workflow:keep_intermediate_files=false, OpenDIA also uses that nested OpenDIA_intermediates subdirectory to protect final exports.", false, false);
   }
 
   void registerTargetedDataExtractionOptions_()
@@ -561,7 +561,7 @@ protected:
 
     registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Whether to read directly, cache to disk first, or keep cached data in memory.", false, true);
     setValidStrings_("TargetedDataExtraction:readOptions", {"normal", "cache", "cacheWorkingInMemory", "workingInMemory"});
-    registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory used for cached SWATH input files.", false, true);
+    registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", "", "Temporary directory used for cached SWATH input files. When left empty, OpenDIA uses out_dir as the base directory and creates protected per-run temporary subdirectories there.", false, true);
     registerFlag_("TargetedDataExtraction:keep_cached_files", "If set, do not remove cached input files created in TargetedDataExtraction:tempDirectory.", false);
 
     registerStringOption_("TargetedDataExtraction:extraction_function", "<name>", "tophat", "Extraction kernel used for signal extraction.", false, true);
@@ -1367,9 +1367,13 @@ protected:
       return working_dir;
     }
 
-    working_dir.temp_dir = std::make_unique<File::TempDir>(true);
-    working_dir.path = working_dir.temp_dir->getPath();
+    File::makeDir(out_dir_abs);
+    working_dir.path = out_dir_abs + "/OpenDIA_intermediates";
+    File::makeDir(working_dir.path);
     working_dir.remove_on_success = true;
+    OPENMS_LOG_INFO << "workflow:intermediate_dir not set; using nested intermediate directory '"
+                    << working_dir.path
+                    << "' under out_dir." << std::endl;
     return working_dir;
   }
 
@@ -1379,6 +1383,20 @@ protected:
     {
       File::removeDirRecursively(working_dir.path);
     }
+  }
+
+  std::string resolveCachedInputTempBaseDir_(const std::string& out_dir) const
+  {
+    const std::string requested_tmp_dir = getStringOption_("TargetedDataExtraction:tempDirectory");
+    if (!requested_tmp_dir.empty())
+    {
+      return StringUtils::ensureLastChar(File::absolutePath(requested_tmp_dir), '/');
+    }
+
+    std::string out_dir_abs = File::absolutePath(out_dir);
+    File::makeDir(out_dir_abs);
+    OPENMS_LOG_INFO << "TargetedDataExtraction:tempDirectory not set; using out_dir as the base directory for cached SWATH input files." << std::endl;
+    return StringUtils::ensureLastChar(out_dir_abs, '/');
   }
 
   bool isPeptidoformInferenceRequested_() const
@@ -4748,7 +4766,7 @@ protected:
 
     std::string readoptions = getStringOption_("TargetedDataExtraction:readOptions");
     const bool keep_cached_files = getFlag_("TargetedDataExtraction:keep_cached_files");
-    const std::string tmp_dir = StringUtils::ensureLastChar(File::absolutePath(getStringOption_("TargetedDataExtraction:tempDirectory")), '/');
+    const std::string tmp_dir = readoptions == "cache" ? resolveCachedInputTempBaseDir_(out_dir) : "";
 
     bool load_into_memory = false;
     if (readoptions == "cacheWorkingInMemory")
