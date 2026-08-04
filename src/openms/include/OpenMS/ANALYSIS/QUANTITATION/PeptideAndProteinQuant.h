@@ -247,6 +247,10 @@ private:
     /// Peptide quantification data
     PeptideQuant pep_quant_;
 
+    /// Charge selected per modified peptide when @p best_charge_and_fraction is enabled.
+    /// Kept separately so detailed peptide output can retain all observed charge states.
+    std::map<AASequence, Int> best_charge_by_peptidoform_;
+
     /// Protein quantification data
     ProteinQuant prot_quant_;
 
@@ -293,15 +297,19 @@ private:
       UInt channel_or_label);
 
     /**
-     *   @brief Determine fraction, filename, charge state, and channel of a peptide with the highest
-     *   number of abundances.
-     *   @param[in] peptide_abundances Const input map fraction -> filename -> charge -> channel -> abundance
-     *   @param[in] best Will additionally return the best fraction, filename, charge state, and channel
-     *   @return true if at least one abundance was found, false otherwise
-     */
-    bool getBest_(
-      const std::map<Int, std::map<std::string, std::map<Int, std::map<UInt, double>>>> & peptide_abundances,
-      std::tuple<size_t, std::string, size_t, UInt> & best);
+         @brief Select one charge state globally for a modified peptide.
+
+         Positive observations are collapsed to samples through the experimental design. The
+         charge quantified in the most distinct samples wins; ties are resolved by its summed
+         abundance across all samples. If both criteria tie, the lower charge wins deterministically.
+
+         @param[in] peptide_abundances Mapping fraction -> filename -> charge -> channel -> abundance
+         @param[out] best_charge Selected charge state
+         @return True if at least one positive abundance was found, false otherwise
+    */
+    bool getBestCharge_(
+      const std::map<Int, std::map<std::string, std::map<Int, std::map<UInt, double>>>>& peptide_abundances,
+      Int& best_charge) const;
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
