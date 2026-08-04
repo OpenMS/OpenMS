@@ -10,6 +10,9 @@
 
 #include <OpenMS/config.h>
 
+#include <string>
+#include <vector>
+
 namespace OpenMS
 {
   class ConsensusMap;
@@ -36,8 +39,10 @@ namespace OpenMS
   table.
 
   @note Only conditions that are decidable from the input are covered. I/O failures, and
-        anything that can only be discovered while building a row, still leave a partial
-        collection; that is a narrower hazard and is tracked separately.
+        anything that can only be discovered while building a row, cannot be. Those are handled
+        from the other side, by Transaction: it removes whatever was written when the export does
+        not run to completion. Use both -- the preflight so a refusable input never opens a file,
+        the transaction so anything that slips past it is not left behind.
 
   @experimental This API is experimental and may change in future versions.
 
@@ -68,6 +73,74 @@ public:
     @throws Exception::InvalidValue if two identification runs share an identifier
   */
   static bool requireExportable(const ConsensusMap& cmap, const ExperimentalDesign& design);
+
+  /**
+    @brief Scope guard that leaves no partial QPX collection behind
+
+    requireExportable() cannot decide everything: a view can still refuse a row it only sees
+    while building the table, and a write can fail on I/O. Either way the earlier files of the
+    collection are already on disk, and a directory holding @c quantms.feature.parquet but no
+    @c quantms.psm.parquet is indistinguishable from a complete export of a smaller dataset.
+
+    Construct this before the first write and call commit() once the last one has succeeded.
+    On any other exit -- a view returning false, a writer throwing, an early return -- the
+    destructor removes the collection files <i>this export created</i>, so the export is
+    all-or-nothing. Enumerating the failure sites instead would silently miss the next one.
+
+    Files that already existed when the guard was constructed are never removed. Exporting into
+    a directory that still holds an earlier collection is the normal way to re-run a pipeline,
+    and a failed re-run must not take the previous result with it. Such a run does leave the
+    directory mixed -- the views that ran overwrote their files before the failure -- so the
+    destructor names the surviving files in its warning rather than pretending the directory is
+    still coherent.
+
+    @code
+    QPXCollectionExport::Transaction qpx(out_qpx);
+    if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/quantms.feature.parquet")) { throw ...; }
+    if (!QPXFile::exportToParquet(prot_ids, pep_ids, out_qpx + "/quantms.psm.parquet"))        { throw ...; }
+    if (!ProteinGroupArrowExport::exportToParquet(cmap, design, out_qpx + "/quantms.pg.parquet")) { throw ...; }
+    qpx.commit();
+    @endcode
+
+    @experimental This API is experimental and may change in future versions.
+  */
+  class OPENMS_DLLAPI Transaction
+  {
+  public:
+    /**
+      @brief Start guarding a QPX collection directory
+
+      Records which collection files already exist, so that only the ones this export creates
+      can be removed again.
+
+      @param[in] directory Output directory the three collection files are written to
+    */
+    explicit Transaction(const std::string& directory);
+
+    /**
+      @brief Remove the collection files this export created, unless commit() was called
+
+      Never throws: it runs during stack unwinding when a writer threw, and a throwing
+      destructor would replace a reported export failure with a call to std::terminate().
+    */
+    ~Transaction();
+
+    /**
+      @brief Keep the collection: the export completed
+    */
+    void commit();
+
+    Transaction(const Transaction&) = delete;
+    Transaction& operator=(const Transaction&) = delete;
+    Transaction(Transaction&&) = delete;
+    Transaction& operator=(Transaction&&) = delete;
+
+  private:
+    std::string directory_;
+    /// Collection files that were already on disk when the guard started; never removed.
+    std::vector<std::string> preexisting_;
+    bool committed_ {false};
+  };
 };
 
 } // namespace OpenMS

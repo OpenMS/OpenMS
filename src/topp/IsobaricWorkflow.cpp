@@ -994,6 +994,12 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE; // already logged
         }
 
+        // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error -
+        // is undone here: without the commit below, every file already written is removed.
+        // This matters most for the streaming views, where a late batch can be refused after
+        // gigabytes have been flushed.
+        QPXCollectionExport::Transaction qpx_collection(out_qpx);
+
         // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
@@ -1049,6 +1055,8 @@ protected:
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
+
+        qpx_collection.commit(); // all three views written
       }
     }
 

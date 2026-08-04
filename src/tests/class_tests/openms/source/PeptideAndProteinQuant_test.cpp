@@ -14,6 +14,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <algorithm>
@@ -858,21 +860,29 @@ START_SECTION(([EXTRA] normalization: a channel without any detected reporter do
 }
 END_SECTION
 
-START_SECTION(([EXTRA] normalization: a sample without a scale factor is left alone, not zeroed))
+START_SECTION(([EXTRA] normalization: best charge retains every sample before scaling))
 {
-  // With 'best_charge_and_fraction', total_abundances holds only the single best combination per
-  // peptide, while the scaling loop walks EVERY fraction/file/charge/channel. Channels 3 and 4 below
-  // are positive throughout but never win a best slot, so they never enter total_abundances and get no
-  // scale factor. Looking the factor up with map::operator[] default-constructs 0.0 and wipes them;
-  // they must be left untouched instead.
-  //   P1: 100  20 30 40 -> best channel 1 (getBest_ takes the most abundant entry)
-  //   P2:  10 200 60 70 -> best channel 2  (two samples, so normalization is not skipped)
-  //   medians over the best-combination totals: {100} and {200} -> overall 150 -> factors 1.5 and 0.75
+  // Every reporter channel below is the same charge state. Selecting that charge must retain all
+  // four samples, so all four take part in median normalization instead of only the largest cell of
+  // each peptide being visible. Per-sample medians are 55, 110, 45, 55; their median is 55.
   PeptideAndProteinQuant q = makeNormalizedQuantifier({{100, 20, 30, 40},
                                                        {10, 200, 60, 70}},
                                                       /*best_charge_and_fraction=*/true);
 
   const auto& pep_quant = q.getPeptideResults();
+  const auto& p1 = pep_quant.at(AASequence::fromString("PEPTIDEA")).total_abundances;
+  const auto& p2 = pep_quant.at(AASequence::fromString("PEPTIDEB")).total_abundances;
+  TEST_EQUAL(p1.size(), 4);
+  TEST_EQUAL(p2.size(), 4);
+  TEST_REAL_SIMILAR(p1.at(0), 100.0);
+  TEST_REAL_SIMILAR(p1.at(1), 10.0);
+  TEST_REAL_SIMILAR(p1.at(2), 110.0 / 3.0);
+  TEST_REAL_SIMILAR(p1.at(3), 40.0);
+  TEST_REAL_SIMILAR(p2.at(0), 10.0);
+  TEST_REAL_SIMILAR(p2.at(1), 100.0);
+  TEST_REAL_SIMILAR(p2.at(2), 220.0 / 3.0);
+  TEST_REAL_SIMILAR(p2.at(3), 70.0);
+
   Size positive = 0, total = 0;
   for (const auto& pq : pep_quant)
   {
@@ -887,9 +897,733 @@ START_SECTION(([EXTRA] normalization: a sample without a scale factor is left al
           }
   }
   TEST_EQUAL(total, 8)     // 2 peptides x 4 channels, all originally positive
-  TEST_EQUAL(positive, 8)  // channels 3 and 4 have no scale factor and must survive unscaled
+  TEST_EQUAL(positive, 8)
 }
 END_SECTION
+
+/////////////////////////////////////////////////////////////
+// File+channel level ("detailed") protein abundances.
+//
+// ProteinData::channel_level_abundances is the source of the
+// "-file_and_channel_level_output true" columns of ProteinQuantifier and the named
+// file/channel arrays persisted on protein groups. It has to follow the *same*
+// peptide-level policy as ProteinData::total_abundances, which is computed from
+// the peptidoform-merged ProteinData::peptide_abundances:
+//   - all peptidoforms of an unmodified sequence are summed into one peptide,
+//   - all charge states are summed by default; with 'best_charge_and_fraction',
+//     only the globally selected charge of each peptidoform contributes,
+//   - "top:N" therefore counts peptides, not peptidoforms and not charge states,
+//   - a (file, channel) cell that does not reach "top:N" peptides is absent,
+//     not filled with a raw sum over everything.
+/////////////////////////////////////////////////////////////
+
+// one quantified peptide observation in the synthetic input below
+struct DetailedEntry
+{
+  Size file_index;       ///< index into the file list
+  const char* sequence;  ///< (modified) peptide sequence
+  Int charge;
+  double intensity;
+};
+
+// Build a label-free ConsensusMap (one column header and one sample per file)
+// with a matching ExperimentalDesign. All peptides are assigned to @p accession.
+auto make_detailed_input = [](const vector<std::string>& files,
+                              const vector<DetailedEntry>& entries,
+                              const std::string& accession,
+                              ConsensusMap& consensus,
+                              ExperimentalDesign& design)
+{
+  consensus.setExperimentType("label-free");
+  for (Size i = 0; i < files.size(); ++i)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = files[i] + ".mzML";
+    h.label = "label-free";
+    consensus.getColumnHeaders()[i] = h;
+  }
+
+  double rt = 1.0;
+  for (const auto& e : entries)
+  {
+    PeptideEvidence ev;
+    ev.setProteinAccession(accession);
+
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(e.sequence));
+    hit.setCharge(e.charge);
+    hit.setScore(1.0);
+    hit.setPeptideEvidences({ev});
+
+    PeptideIdentification pid;
+    pid.setHits({hit});
+
+    ConsensusFeature cf;
+    Peak2D p;
+    p.setIntensity(e.intensity);
+    p.setRT(rt);
+    p.setMZ(500.0 + rt);
+    rt += 1.0;
+    cf.insert(e.file_index, p, e.file_index);
+    cf.setPeptideIdentifications({pid});
+    consensus.push_back(cf);
+  }
+
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::SampleSection ss;
+  for (Size i = 0; i < files.size(); ++i)
+  {
+    ExperimentalDesign::MSFileSectionEntry row;
+    row.path = files[i] + ".mzML";
+    row.label = 1;
+    row.fraction = 1;
+    row.fraction_group = i + 1;
+    row.sample = i;
+    row.sample_name = files[i];
+    fs.push_back(row);
+    ss.addSample(files[i]);
+  }
+  design = ExperimentalDesign(fs, ss);
+};
+
+// Build a FRACTIONATED, multi-channel ConsensusMap: a single fraction group whose files are
+// consecutive fractions, each measured in @p n_channels channels. A sample is a
+// (file, label) pair, so here one sample spans ALL files at a given channel - i.e. one sample
+// corresponds to several (file, channel) cells. @p file_index/@p channel index the entry.
+struct FractionEntry
+{
+  Size file_index;
+  UInt channel;          ///< 1-based label/channel
+  const char* sequence;
+  Int charge;
+  double intensity;
+};
+
+auto make_fractionated_input = [](const vector<std::string>& files,
+                                  UInt n_channels,
+                                  const vector<FractionEntry>& entries,
+                                  const std::string& accession,
+                                  ConsensusMap& consensus,
+                                  ExperimentalDesign& design)
+{
+  consensus.setExperimentType("labeled_MS2");
+  // map index = file_index * n_channels + (channel - 1)
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    for (UInt c = 1; c <= n_channels; ++c)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = files[f] + ".mzML";
+      h.label = "ch" + std::to_string(c);
+      h.setMetaValue("channel_id", (int)(c - 1)); // getLabelAsUInt() returns channel_id + 1
+      consensus.getColumnHeaders()[f * n_channels + (c - 1)] = h;
+    }
+  }
+
+  double rt = 1.0;
+  for (const auto& e : entries)
+  {
+    PeptideEvidence ev;
+    ev.setProteinAccession(accession);
+
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(e.sequence));
+    hit.setCharge(e.charge);
+    hit.setScore(1.0);
+    hit.setPeptideEvidences({ev});
+
+    PeptideIdentification pid;
+    pid.setHits({hit});
+
+    const Size map_index = e.file_index * n_channels + (e.channel - 1);
+    ConsensusFeature cf;
+    Peak2D p;
+    p.setIntensity(e.intensity);
+    p.setRT(rt);
+    p.setMZ(500.0 + rt);
+    rt += 1.0;
+    cf.insert(map_index, p, map_index);
+    cf.setPeptideIdentifications({pid});
+    consensus.push_back(cf);
+  }
+
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::SampleSection ss;
+  for (UInt c = 1; c <= n_channels; ++c)
+  {
+    ss.addSample("S" + std::to_string(c));
+  }
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    for (UInt c = 1; c <= n_channels; ++c)
+    {
+      ExperimentalDesign::MSFileSectionEntry row;
+      row.path = files[f] + ".mzML";
+      row.label = c;
+      row.fraction = f + 1;   // consecutive fractions ...
+      row.fraction_group = 1; // ... of ONE fraction group
+      row.sample = c - 1;     // one sample per channel, spanning all fractions
+      row.sample_name = "S" + std::to_string(c);
+      fs.push_back(row);
+    }
+  }
+  design = ExperimentalDesign(fs, ss);
+};
+
+START_SECTION(([EXTRA] best_charge_and_fraction selects by sample prevalence and retains all selected-charge cells))
+{
+  // Charge 2 is quantified in two distinct samples (channels 1 and 2), whereas the much
+  // more abundant charge 3 occurs in only one (channel 3). The two fraction observations
+  // in channel 1 still count as one sample. Charge 2 must therefore win globally, and all
+  // of its fraction/sample cells - including the explicit zero in channel 3 - must survive.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"fileA", "fileB"}, 3,
+                          {{0, 1, "PEPTIDEK", 2, 10.0},
+                           {1, 1, "PEPTIDEK", 2, 5.0},
+                           {0, 2, "PEPTIDEK", 2, 20.0},
+                           {0, 3, "PEPTIDEK", 2, 0.0},
+                           {0, 3, "PEPTIDEK", 3, 1000.0}},
+                          "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("best_charge_and_fraction", "true");
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("top:include_all", "true");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+
+  const auto& peptide = quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEK"));
+  TEST_EQUAL(peptide.total_abundances.size(), 3);
+  TEST_REAL_SIMILAR(peptide.total_abundances.at(0), 15.0);
+  TEST_REAL_SIMILAR(peptide.total_abundances.at(1), 20.0);
+  TEST_REAL_SIMILAR(peptide.total_abundances.at(2), 0.0);
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(1), 15.0);
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(2), 20.0);
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(3), 0.0);
+
+  // Selection affects protein quantification, not the detailed peptide observations.
+  TEST_REAL_SIMILAR(peptide.abundances.at(1).at("fileA").at(3).at(3), 1000.0);
+
+  quantifier.quantifyProteins();
+  const auto& protein = quantifier.getProteinResults().at("Prot");
+  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 15.0);
+  TEST_REAL_SIMILAR(protein.total_abundances.at(1), 20.0);
+  TEST_REAL_SIMILAR(protein.total_abundances.at(2), 0.0);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 15.0);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 20.0);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 0.0);
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(1), 10.0);
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(2), 20.0);
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(3), 0.0);
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileB").at(1), 5.0);
+
+  // These named arrays are consumed directly by ProteinGroupArrowExport for QPX pg.parquet.
+  ProteinIdentification proteins;
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"Prot"};
+  group.probability = 1.0;
+  proteins.getIndistinguishableProteins().push_back(group);
+  quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, true);
+  const auto& annotated = proteins.getIndistinguishableProteins().front();
+  const auto& qpx_abundances = annotated.getFloatDataArrays().at(4);
+  const auto& qpx_fraction_groups = annotated.getIntegerDataArrays().at(2);
+  const auto& qpx_labels = annotated.getIntegerDataArrays().at(3);
+  TEST_STRING_EQUAL(qpx_abundances.getName(), "fraction_group_level_abundance");
+  TEST_EQUAL(qpx_abundances.size(), 3);
+  TEST_REAL_SIMILAR(qpx_abundances[0], 15.0);
+  TEST_REAL_SIMILAR(qpx_abundances[1], 20.0);
+  TEST_REAL_SIMILAR(qpx_abundances[2], 0.0);
+  TEST_EQUAL(qpx_fraction_groups[0], 1);
+  TEST_EQUAL(qpx_fraction_groups[1], 1);
+  TEST_EQUAL(qpx_fraction_groups[2], 1);
+  TEST_EQUAL(qpx_labels[0], 1);
+  TEST_EQUAL(qpx_labels[1], 2);
+  TEST_EQUAL(qpx_labels[2], 3);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] best_charge_and_fraction breaks equal-prevalence ties by total abundance))
+{
+  // Both charge states occur in both samples. For PEPTIDEK, charge 3 has the larger total
+  // abundance and must be retained in both samples; selection must not collapse to its largest
+  // single cell. AAAAAK has an exact prevalence/abundance tie and must retain lower charge 2.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA", "fileB"},
+                      {{0, "PEPTIDEK", 2, 20.0},
+                       {1, "PEPTIDEK", 2, 10.0},
+                       {0, "PEPTIDEK", 3, 5.0},
+                       {1, "PEPTIDEK", 3, 40.0},
+                       {0, "AAAAAK", 2, 10.0},
+                       {1, "AAAAAK", 2, 20.0},
+                       {0, "AAAAAK", 3, 20.0},
+                       {1, "AAAAAK", 3, 10.0}},
+                      "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("best_charge_and_fraction", "true");
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+
+  const auto& peptide = quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEK"));
+  TEST_EQUAL(peptide.total_abundances.size(), 2);
+  TEST_REAL_SIMILAR(peptide.total_abundances.at(0), 5.0);
+  TEST_REAL_SIMILAR(peptide.total_abundances.at(1), 40.0);
+  const auto& exact_tie = quantifier.getPeptideResults().at(AASequence::fromString("AAAAAK"));
+  TEST_REAL_SIMILAR(exact_tie.total_abundances.at(0), 10.0);
+  TEST_REAL_SIMILAR(exact_tie.total_abundances.at(1), 20.0);
+
+  quantifier.quantifyProteins();
+  const auto& protein = quantifier.getProteinResults().at("Prot");
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(1), 15.0);
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileB").at(1), 60.0);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] best_charge_and_fraction selects a charge independently for each peptidoform))
+{
+  // The unmodified peptidoform selects charge 3 (100 > 10), while its oxidized form selects
+  // charge 2 (90 > 1). Protein-level sample and file/channel values must merge the two selected
+  // peptidoform quantities, rather than selecting once per unmodified sequence or summing all cells.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "PEPTIDEMK", 2, 10.0},
+                       {0, "PEPTIDEMK", 3, 100.0},
+                       {0, "PEPTIDEM(Oxidation)K", 2, 90.0},
+                       {0, "PEPTIDEM(Oxidation)K", 3, 1.0}},
+                      "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("best_charge_and_fraction", "true");
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEMK")).total_abundances.at(0), 100.0);
+  TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEM(Oxidation)K")).total_abundances.at(0), 90.0);
+
+  quantifier.quantifyProteins();
+  const auto& protein = quantifier.getProteinResults().at("Prot");
+  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 190.0);
+  TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(1), 190.0);
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() fractionated: file+channel cells decompose the sample for sum))
+{
+  // One sample spans two fraction files, so the (file, channel) cells are a decomposition of
+  // the sample - but only exactly so for top:N 0 with "sum", where per-file aggregation
+  // commutes with aggregation across fractions.
+  //   fileA ch1: PEPTIDEK 100 + AAAAAK 200 = 300     fileB ch1: CCCCCK 300 + PEPTIDEK 50 = 350
+  //   fileA ch2: PEPTIDEK  10 + AAAAAK  20 =  30     fileB ch2: CCCCCK  30 + PEPTIDEK  5 =  35
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"fileA", "fileB"}, 2,
+                          {{0, 1, "PEPTIDEK", 2, 100.0}, {0, 2, "PEPTIDEK", 2, 10.0},
+                           {0, 1, "AAAAAK",   2, 200.0}, {0, 2, "AAAAAK",   2, 20.0},
+                           {1, 1, "CCCCCK",   2, 300.0}, {1, 2, "CCCCCK",   2, 30.0},
+                           {1, 1, "PEPTIDEK", 2,  50.0}, {1, 2, "PEPTIDEK", 2,  5.0}},
+                          "Prot", consensus, design);
+
+  TEST_EQUAL(design.getNumberOfSamples(), 2);
+  TEST_EQUAL(design.getNumberOfFractions(), 2);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 300.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(1), 350.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(2), 30.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(2), 35.0);
+
+  // the cells of a sample add up to that sample's value
+  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 650.0);
+  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 65.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1) +
+                    pd.channel_level_abundances.at("fileB").at(1), pd.total_abundances.at(0));
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(2) +
+                    pd.channel_level_abundances.at("fileB").at(2), pd.total_abundances.at(1));
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() fractionated: "top:N" is enforced per file, not per sample))
+{
+  // Same input, but with top:N = 3. Each sample has three peptides, so the protein IS
+  // quantified at the sample level; no individual fraction file holds three peptides, so
+  // every (file, channel) cell is dropped. This is intended - the cells are per-file values -
+  // and is documented on the 'file_and_channel_level_output' parameter. It is also strictly
+  // stricter than the sample-level rule, which is why it deserves pinning.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"fileA", "fileB"}, 2,
+                          {{0, 1, "PEPTIDEK", 2, 100.0}, {0, 2, "PEPTIDEK", 2, 10.0},
+                           {0, 1, "AAAAAK",   2, 200.0}, {0, 2, "AAAAAK",   2, 20.0},
+                           {1, 1, "CCCCCK",   2, 300.0}, {1, 2, "CCCCCK",   2, 30.0},
+                           {1, 1, "PEPTIDEK", 2,  50.0}, {1, 2, "PEPTIDEK", 2,  5.0}},
+                          "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 3);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("top:include_all", "false");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+  TEST_EQUAL(pd.peptide_abundances.size(), 3);
+
+  // quantified per sample (three peptides each) ...
+  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 650.0);
+  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 65.0);
+  // ... but no fraction file holds three peptides, so no cell survives
+  TEST_TRUE(pd.channel_level_abundances.empty());
+}
+END_SECTION
+
+START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins, bool remove_unquantified) isobaric: one file, N channels))
+{
+  // This is the shape IsobaricAnalyzer produces and IsobaricWorkflow quantifies: ONE file
+  // whose column headers differ only in label/channel. A sample is a (file, label) pair, so
+  // here every (file, channel) cell IS exactly one sample - the two granularities are
+  // degenerate and cannot disagree, which is why the per-file peptide selection and
+  // aggregation documented on 'file_and_channel_level_output' are harmless for unfractionated
+  // isobaric data (contrast the two fractionated sections above).
+  //   fileA ch1: PEPTIDEK 100, AAAAAK 200, CCCCCK 300     fileA ch2: 10, 20, 30
+  // This section also covers annotateQuantificationsToProteins(), which persists the
+  // file/channel arrays and the fraction-group arrays consumed by the QPX protein-group
+  // export. mzTab reads the separate sample-level abundance array.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"fileA"}, 2,
+                          {{0, 1, "PEPTIDEK", 2, 100.0}, {0, 2, "PEPTIDEK", 2, 10.0},
+                           {0, 1, "AAAAAK",   2, 200.0}, {0, 2, "AAAAAK",   2, 20.0},
+                           {0, 1, "CCCCCK",   2, 300.0}, {0, 2, "CCCCCK",   2, 30.0}},
+                          "Prot", consensus, design);
+
+  TEST_EQUAL(design.getNumberOfSamples(), 2);
+  TEST_EQUAL(design.getNumberOfFractions(), 1);
+  TEST_EQUAL(design.getNumberOfLabels(), 2);
+
+  ProteinIdentification proteins;
+  ProteinHit prot_hit;
+  prot_hit.setAccession("Prot");
+  proteins.setHits({prot_hit});
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"Prot"};
+  group.probability = 1.0;
+  proteins.getIndistinguishableProteins().push_back(group);
+
+  PeptideAndProteinQuant quantifier;
+  // stock defaults on purpose: top:N 3, "median", include_all false - the configuration whose
+  // per-file peptide-count gate drops every cell of a fractionated design
+  quantifier.setParameters(quantifier.getDefaults());
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(proteins);
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+
+  // each channel holds three peptides in this single file, so the gate passes and the cells
+  // are present - median{100,200,300} = 200 and median{10,20,30} = 20
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 200.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(2), 20.0);
+  // ... and they equal the sample-level values, because cell == sample here
+  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 200.0);
+  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 20.0);
+
+  quantifier.annotateQuantificationsToProteins(quant, proteins, true);
+
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1);
+  const auto& annotated = proteins.getIndistinguishableProteins()[0];
+
+  TEST_EQUAL(annotated.getFloatDataArrays().size(), 5);
+  TEST_EQUAL(annotated.getStringDataArrays().size(), 2);
+  TEST_EQUAL(annotated.getIntegerDataArrays().size(), 4);
+
+  const auto& sample_abundances = annotated.getFloatDataArrays()[0];
+  const auto& cell_abundances = annotated.getFloatDataArrays()[3];
+  const auto& fraction_group_abundances = annotated.getFloatDataArrays()[4];
+  const auto& cell_filenames = annotated.getStringDataArrays()[0];
+  const auto& cell_channels = annotated.getIntegerDataArrays()[0];
+  const auto& fraction_groups = annotated.getIntegerDataArrays()[2];
+  const auto& fraction_group_labels = annotated.getIntegerDataArrays()[3];
+
+  TEST_STRING_EQUAL(sample_abundances.getName(), "abundances");
+  TEST_STRING_EQUAL(cell_abundances.getName(), "file_channel_level_abundance");
+  TEST_STRING_EQUAL(cell_filenames.getName(), "file_channel_level_filename");
+  TEST_STRING_EQUAL(cell_channels.getName(), "file_channel_level_channel");
+  TEST_STRING_EQUAL(fraction_group_abundances.getName(), "fraction_group_level_abundance");
+  TEST_STRING_EQUAL(fraction_groups.getName(), "fraction_group_level_fraction_group");
+  TEST_STRING_EQUAL(fraction_group_labels.getName(), "fraction_group_level_label");
+
+  // one entry per (file, channel) of the design, in design order
+  TEST_EQUAL(cell_abundances.size(), 2);
+  TEST_EQUAL(cell_filenames.size(), 2);
+  TEST_EQUAL(cell_channels.size(), 2);
+  TEST_EQUAL(fraction_group_abundances.size(), 2);
+  TEST_EQUAL(fraction_groups.size(), 2);
+  TEST_EQUAL(fraction_group_labels.size(), 2);
+
+  TEST_STRING_EQUAL(cell_filenames[0], "fileA");
+  TEST_STRING_EQUAL(cell_filenames[1], "fileA");
+  TEST_EQUAL(cell_channels[0], 1);
+  TEST_EQUAL(cell_channels[1], 2);
+  TEST_REAL_SIMILAR(fraction_group_abundances[0], 200.0);
+  TEST_REAL_SIMILAR(fraction_group_abundances[1], 20.0);
+  TEST_EQUAL(fraction_groups[0], 1);
+  TEST_EQUAL(fraction_groups[1], 1);
+  TEST_EQUAL(fraction_group_labels[0], 1);
+  TEST_EQUAL(fraction_group_labels[1], 2);
+
+  // the annotated cells carry the aggregated values, and coincide with the sample-level
+  // array element-wise - the property that makes this output well-defined for isobaric data
+  TEST_EQUAL(sample_abundances.size(), 2);
+  TEST_REAL_SIMILAR(cell_abundances[0], 200.0);
+  TEST_REAL_SIMILAR(cell_abundances[1], 20.0);
+  TEST_REAL_SIMILAR(cell_abundances[0], sample_abundances[0]);
+  TEST_REAL_SIMILAR(cell_abundances[1], sample_abundances[1]);
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() file+channel level must sum all peptidoforms))
+{
+  // Two peptidoforms of the same unmodified sequence, in one file/channel.
+  // transferPeptideDataToProteins_() merges them into a single peptide
+  // (10 + 90 = 100), so the file+channel level cell must be 100 as well - not
+  // the value of whichever peptidoform happens to come first in pep_quant_.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "PEPTIDEMK", 2, 10.0},
+                       {0, "PEPTIDEM(Oxidation)K", 2, 90.0}},
+                      "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("top:include_all", "true");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  // peptide level keeps the peptidoforms apart
+  TEST_EQUAL(quantifier.getPeptideResults().size(), 2);
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+
+  // protein level merges them into one peptide
+  TEST_EQUAL(pd.peptide_abundances.size(), 1);
+  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 100.0);
+
+  // ... and the file+channel level must agree
+  TEST_TRUE(pd.channel_level_abundances.find("fileA") != pd.channel_level_abundances.end());
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 100.0);
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N" must count peptides, not charge states))
+{
+  // "Prot" has three distinct peptides overall, so it passes the protein-level
+  // "at least N peptides" gate. In fileA only ONE of them is observed, in three
+  // charge states; in fileB all three are observed once each.
+  // With top:N = 3 the fileA cell must be dropped (one peptide < 3), exactly as
+  // the sample-level result for fileA is dropped. Charge states must not be
+  // counted as separate peptides.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA", "fileB"},
+                      {{0, "PEPTIDEK", 2, 100.0},
+                       {0, "PEPTIDEK", 3, 100.0},
+                       {0, "PEPTIDEK", 4, 100.0},
+                       {1, "PEPTIDEK", 2, 10.0},
+                       {1, "AAAAAK", 2, 10.0},
+                       {1, "CCCCCK", 2, 10.0}},
+                      "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 3);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("top:include_all", "false");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+  TEST_EQUAL(pd.peptide_abundances.size(), 3); // clears the protein-level gate
+
+  // sample level: fileA (sample 0) has only one peptide -> no abundance
+  TEST_TRUE(pd.total_abundances.find(0) == pd.total_abundances.end());
+  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 30.0);
+
+  // file+channel level must make the same decision
+  TEST_TRUE(pd.channel_level_abundances.find("fileA") == pd.channel_level_abundances.end());
+  TEST_TRUE(pd.channel_level_abundances.find("fileB") != pd.channel_level_abundances.end());
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(1), 30.0);
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() file+channel level must not keep un-aggregated sums))
+{
+  // fileA sees only two of the protein's three peptides, so with top:N = 3 its
+  // cell cannot be quantified. It must then be ABSENT - it must not fall back to
+  // a raw sum over all peptides collected while transferring peptide data to
+  // proteins (which would be 5 + 7 = 12 here, a value that never passed top:N).
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA", "fileB"},
+                      {{0, "AAAAAK", 2, 5.0},
+                       {0, "CCCCCK", 2, 7.0},
+                       {1, "AAAAAK", 2, 1.0},
+                       {1, "CCCCCK", 2, 1.0},
+                       {1, "EEEEEK", 2, 1.0}},
+                      "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 3);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("top:include_all", "false");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+  TEST_EQUAL(pd.peptide_abundances.size(), 3);
+
+  // sample level drops fileA (sample 0)
+  TEST_TRUE(pd.total_abundances.find(0) == pd.total_abundances.end());
+  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 3.0);
+
+  // file+channel level must drop it too, instead of reporting the raw 12.0
+  TEST_TRUE(pd.channel_level_abundances.find("fileA") == pd.channel_level_abundances.end());
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(1), 3.0);
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N" truncation must rank peptides))
+{
+  // The sections above use "sum", which is insensitive to how the values are grouped as
+  // long as nothing is dropped. This one uses "mean" together with an actually truncating
+  // top:N, so a wrong grouping changes the result:
+  //   peptide AAAAAMK is split over a peptidoform AND a charge state (100 + 90 = 190),
+  //   CCCCCK = 80, EEEEEK = 70.
+  // Ranking peptides gives mean(190, 80) = 135; ranking raw peptidoform/charge cells
+  // instead would rank 100 and 90 into the top 2 and give mean(100, 90) = 95.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "AAAAAMK", 2, 100.0},
+                       {0, "AAAAAM(Oxidation)K", 3, 90.0},
+                       {0, "CCCCCK", 2, 80.0},
+                       {0, "EEEEEK", 2, 70.0}},
+                      "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 2);
+  p.setValue("top:aggregate", "mean");
+  p.setValue("top:include_all", "false");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+  TEST_EQUAL(pd.peptide_abundances.size(), 3);
+
+  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 135.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 135.0);
+}
+END_SECTION
+
+START_SECTION((const ProteinQuant& getProteinResults() iBAQ must also normalize the file+channel level))
+{
+  // iBAQ divides the protein abundance by the number of theoretically observable
+  // peptides. That normalization has to reach the file+channel level as well,
+  // otherwise the detailed output is off by the (protein-dependent) divisor.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "AAAAAK", 2, 100.0},
+                       {0, "CCCCCK", 2, 200.0}},
+                      "Prot", consensus, design);
+
+  ProteinHit prot_hit;
+  prot_hit.setAccession("Prot");
+  prot_hit.setSequence("AAAAAKCCCCCKEEEEEK"); // 3 fully tryptic peptides
+  ProteinIdentification proteins;
+  proteins.setHits({prot_hit});
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("method", "iBAQ");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(proteins);
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end());
+  const auto& pd = quant.at("Prot");
+
+  // (100 + 200) / 3 theoretical peptides
+  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 100.0);
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 100.0);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -185,7 +185,7 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[P00761|TRYP_PIG]"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.052631578947368,PH_9"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_abundances" value="[35.0, 31.0, 25.0]"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[13.0, 11.0, 14.0, 15.0, 9.0, 9.0]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[19.0, 16.0, 16.0, 15.0, 15.0, 10.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[35.0, 31.0, 25.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_fraction_group" value="[1, 2, 3]"/>

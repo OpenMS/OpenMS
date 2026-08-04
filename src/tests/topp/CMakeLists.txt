@@ -2886,6 +2886,52 @@ add_test(NAME "TOPP_ProteinQuantifier_19_qpx_feature_exists" COMMAND ${CMAKE_COM
 set_tests_properties("TOPP_ProteinQuantifier_19_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
 add_test(NAME "TOPP_ProteinQuantifier_19_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet)
 set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+# NOTE: numbering continues at 23 - 18 and 19 are already taken by the "_qpx" tests above,
+# which write ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv and
+# ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp. ctest runs in parallel, so reusing a temp
+# path across two tests lets one clobber the other's output between producer and FuzzyDiff.
+
+# file+channel level output with peptidoform/charge structure. The input has a peptide
+# split over two peptidoforms and another split over two charge states, and a second file
+# that sees only a single peptide, so the detailed columns are sensitive to peptidoform
+# merging, to 'top:N' counting peptides rather than raw cells, and to an unquantifiable
+# cell being reported as absent instead of as an un-aggregated sum.
+add_test("TOPP_ProteinQuantifier_23" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_23_output.tmp -top:N 2 -top:aggregate mean)
+add_test("TOPP_ProteinQuantifier_23_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_23_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_23_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_23_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_23")
+
+# same input under iBAQ: the file+channel level values must be normalized by the number of
+# theoretically observable peptides, just like the sample-level ones
+add_test("TOPP_ProteinQuantifier_24" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_24_output.tmp -method iBAQ)
+add_test("TOPP_ProteinQuantifier_24_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_24_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_24_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_24_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_24")
+
+# Fractionated design (one sample spans two fraction files, two channels).
+# 25/26: with 'top:N 0' + 'sum' the file+channel cells decompose the sample level exactly
+#        (300 + 350 = 650 for ch1, 30 + 35 = 65 for ch2).
+add_test("TOPP_ProteinQuantifier_25" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_25_output.tmp -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_25_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_25_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_25_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_25_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_25")
+
+add_test("TOPP_ProteinQuantifier_26" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_26_output.tmp -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_26_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_26_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_26_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_26_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_26")
+
+# 27: same input at the default 'top:N 3'. The 'at least N peptides' requirement is enforced
+#     per file, so with no fraction holding 3 peptides the protein is quantified at the sample
+#     level while all of its file+channel cells are 0. This is intended (these are per-file
+#     values); before the aggregation fix the cells instead showed un-aggregated raw sums.
+add_test("TOPP_ProteinQuantifier_27" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_27_output.tmp)
+add_test("TOPP_ProteinQuantifier_27_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_27_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_27_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_27_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_27")
+
+# 28: detailed peptide output on the same fractionated design. Every fraction file must keep its
+#     own column pair (keying the header by fraction group alone collapsed them onto the last
+#     file), and every (file, channel) cell must be written - a peptide seen in only one of the
+#     two fractions must report 0.0 for the other, not skip the cells and shift the row.
+add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge_and_fraction -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
@@ -3561,7 +3607,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:enzyme Trypsin/P
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
-    -Search:decoys auto
+    -Search:decoys
     -threads 4)
 
   add_test("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
@@ -3878,6 +3924,55 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
   add_test(NAME "TOPP_ProteomicsLFQ_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
+
+# QPX Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
+# The test above runs -targeted_only true, whose consensus features are all identified: 0 of its 60
+# feature rows are unmapped. Seeding makes unmapped features the majority -- 210 of 298 rows here --
+# and those carry an empty peptidoform, so they lean on the rest of the QPX feature primary key to
+# stay distinct. No -out_qpx test covered that shape, which is why the key defect reached develop.
+# What this guards is that the shape reaches the exporter and is accepted end to end; the specific
+# float32-rt collision is reproduced directly in ConsensusMapArrowExport_test, since at this
+# fixture's size the pre-fix key happens not to collide. Kept as a separate run rather than folded
+# into TOPP_ProteomicsLFQ_3 so no reference file is touched.
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
+           -in
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+           -ids
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+           -design
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+           -Alignment:align_algorithm:max_rt_shift 0
+           -Linking:min_nr_diffs_per_bin 10
+           -fasta
+           ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+           -targeted_only false
+           -mass_recalibration false
+           -PeptideQuantification:seed_apex_rt_tolerance 0
+           -out ${TESTS_TEMP_DIR}/BSA_qpx_seeds.tmp.mzTab
+           -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir
+           -threads 1
+           -proteinFDR 0.3
+           -test
+           -debug 0
+           )
+  # All three files must exist: a refused table aborts the tool, and the export is transactional,
+  # so a failure leaves the directory empty rather than partially written (sha256sum then fails).
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
 
 # Test ProteomicsLFQ bypass with -in_feat (Multi-file)
 add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
