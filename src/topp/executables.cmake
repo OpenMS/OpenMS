@@ -134,6 +134,7 @@ SpectraSTSearchAdapter
 StaticModification
 TICCalculator
 TextExporter
+TOPPMassErrorEstimator
 TriqlerConverter
 XFDR
 XMLValidator

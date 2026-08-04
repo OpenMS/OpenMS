@@ -348,6 +348,7 @@ set(filtering_executables_list
   LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
+  MassErrorEstimator_test
   MassTraceDetection_test
   MorphologicalFilter_test
   ModifiedSincSmoother_test
