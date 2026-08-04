@@ -117,6 +117,8 @@ protected:
     OSWPQ
   };
 
+  static constexpr double DEFAULT_PASEF_IM_EXTRACTION_WINDOW = 0.06;
+
   struct InferenceTask
   {
     InferenceLevel level = InferenceLevel::Peptidoform;
@@ -525,11 +527,13 @@ protected:
 
     registerDoubleOption_("TargetedDataExtraction:min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a SWATH window to still consider a precursor, in Thomson.", false, true);
     registerFlag_("TargetedDataExtraction:pasef", "Treat the input as PASEF / diaPASEF data.");
+    registerStringOption_("TargetedDataExtraction:ion_mobility_mode", "<choice>", "auto", "How to use the ion mobility dimension. 'auto' detects ion mobility SWATH windows and enables PASEF-style extraction/scoring automatically, filling negative IM extraction windows with 0.06 1/K0 defaults. 'enabled' keeps ion mobility enabled whenever such data are present. 'disabled' disables ion mobility extraction, calibration, and scoring even if the input contains ion mobility.", false);
+    setValidStrings_("TargetedDataExtraction:ion_mobility_mode", {"auto", "enabled", "disabled"});
 
     registerDoubleOption_("TargetedDataExtraction:rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract the whole range; 600 means +/- 300 s around the expected elution).", false);
     registerDoubleOption_("TargetedDataExtraction:extra_rt_extraction_window", "<double>", 0.0, "Optional extra RT padding for the written chromatogram output.", false, true);
     setMinFloat_("TargetedDataExtraction:extra_rt_extraction_window", 0.0);
-    registerDoubleOption_("TargetedDataExtraction:ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (full width; -1 extracts the whole range).", false);
+    registerDoubleOption_("TargetedDataExtraction:ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (full width; negative values extract the whole range unless detected diaPASEF/timsTOF data trigger automatic 0.06 1/K0 defaults).", false);
     registerDoubleOption_("TargetedDataExtraction:mz_extraction_window", "<double>", 50, "MS2 extraction window in Thomson or ppm (see TargetedDataExtraction:mz_extraction_window_unit).", false);
     setMinFloat_("TargetedDataExtraction:mz_extraction_window", 0.0);
     registerStringOption_("TargetedDataExtraction:mz_extraction_window_unit", "<name>", "ppm", "Unit for the MS2 m/z extraction window.", false, true);
@@ -539,7 +543,7 @@ protected:
     setMinFloat_("TargetedDataExtraction:mz_extraction_window_ms1", 0.0);
     registerStringOption_("TargetedDataExtraction:mz_extraction_window_ms1_unit", "<name>", "ppm", "Unit for the MS1 m/z extraction window.", false, true);
     setValidStrings_("TargetedDataExtraction:mz_extraction_window_ms1_unit", {"ppm", "Th"});
-    registerDoubleOption_("TargetedDataExtraction:im_extraction_window_ms1", "<double>", -1, "MS1 ion mobility extraction window. -1 disables MS1 ion mobility extraction.", false);
+    registerDoubleOption_("TargetedDataExtraction:im_extraction_window_ms1", "<double>", -1, "MS1 ion mobility extraction window. Negative values disable MS1 ion mobility extraction unless detected diaPASEF/timsTOF data trigger automatic 0.06 1/K0 defaults.", false);
     registerStringOption_("TargetedDataExtraction:use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the fragment-ion ion mobility window.", false, true);
     setValidStrings_("TargetedDataExtraction:use_ms1_ion_mobility", {"true", "false"});
 
@@ -550,7 +554,7 @@ protected:
     setMinFloat_("TargetedDataExtraction:irt_mz_extraction_window", 0.0);
     registerStringOption_("TargetedDataExtraction:irt_mz_extraction_window_unit", "<name>", "ppm", "Unit for the iRT m/z extraction window.", false, true);
     setValidStrings_("TargetedDataExtraction:irt_mz_extraction_window_unit", {"Th", "ppm"});
-    registerDoubleOption_("TargetedDataExtraction:irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT calibration (-1 disables IM calibration).", false, true);
+    registerDoubleOption_("TargetedDataExtraction:irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT calibration (negative values disable IM calibration unless detected diaPASEF/timsTOF data trigger automatic 0.06 1/K0 defaults).", false, true);
 
     registerFlag_("TargetedDataExtraction:split_file_input", "Interpret the input files as one SWATH window per file.", true);
     registerFlag_("TargetedDataExtraction:use_elution_model_score", "Turn on the CPU-intensive EMG elution model score.", true);
@@ -4724,6 +4728,7 @@ protected:
     const bool split_file = getFlag_("TargetedDataExtraction:split_file_input");
     const bool use_emg_score = getFlag_("TargetedDataExtraction:use_elution_model_score");
     bool pasef = getFlag_("TargetedDataExtraction:pasef");
+    const std::string ion_mobility_mode = getStringOption_("TargetedDataExtraction:ion_mobility_mode");
     const bool sort_swath_maps = getFlag_("TargetedDataExtraction:sort_swath_maps");
     const bool use_ms1_traces = getStringOption_("TargetedDataExtraction:enable_ms1") == "true";
     const int batchSize = static_cast<int>(getIntOption_("TargetedDataExtraction:batchSize"));
@@ -4735,8 +4740,11 @@ protected:
     Param debug_params = getParam_().copy("TargetedDataExtraction:", true);
 
     StringList disable_features = getStringList_("TargetedDataExtraction:disable_features");
-    const bool disable_im_calibration = std::find(disable_features.begin(), disable_features.end(), "no_IM_calibration") != disable_features.end();
-    const bool disable_im_windowing = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing") != disable_features.end();
+    const bool force_disable_ion_mobility = ion_mobility_mode == "disabled";
+    const bool disable_im_calibration = force_disable_ion_mobility ||
+      std::find(disable_features.begin(), disable_features.end(), "no_IM_calibration") != disable_features.end();
+    const bool disable_im_windowing = force_disable_ion_mobility ||
+      std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing") != disable_features.end();
 
     std::string readoptions = getStringOption_("TargetedDataExtraction:readOptions");
     const bool keep_cached_files = getFlag_("TargetedDataExtraction:keep_cached_files");
@@ -4824,7 +4832,6 @@ protected:
     const double min_upper_edge_dist = getDoubleOption_("TargetedDataExtraction:min_upper_edge_dist");
     const bool use_ms1_im = getStringOption_("TargetedDataExtraction:use_ms1_ion_mobility") == "true";
     const bool prm = getStringOption_("TargetedDataExtraction:matching_window_only") == "true";
-
     ChromExtractParams cp;
     cp.min_upper_edge_dist = min_upper_edge_dist;
     cp.mz_extraction_window = getDoubleOption_("TargetedDataExtraction:mz_extraction_window");
@@ -4961,6 +4968,7 @@ protected:
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;
       Param feature_finder_param_run = feature_finder_param;
+      bool use_ms1_im_current = use_ms1_im && !disable_im_windowing;
 
       std::string per_run_tmp = tmp_dir;
       std::unique_ptr<File::TempDir> per_run_temp_dir;
@@ -4981,24 +4989,67 @@ protected:
         return PARSE_ERROR;
       }
 
-      if (!pasef)
-      {
-        const bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
-          [](const OpenSwath::SwathMap& map)
-          {
-            return !map.ms1 && map.imLower >= 0 && map.imUpper >= 0;
-          });
-        if (has_im_windows)
+      const bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
+        [](const OpenSwath::SwathMap& map)
         {
+          return !map.ms1 && map.imLower >= 0 && map.imUpper >= 0;
+        });
+
+      if (force_disable_ion_mobility)
+      {
+        OPENMS_LOG_INFO << "TargetedDataExtraction:ion_mobility_mode=disabled: disabling ion mobility extraction, calibration, and scoring for this run." << std::endl;
+        pasef = false;
+        cp_current.im_extraction_window = -1;
+        cp_ms1_current.im_extraction_window = -1;
+        cp_irt_current.im_extraction_window = -1;
+        use_ms1_im_current = false;
+        feature_finder_param_run.setValue("use_ms1_ion_mobility", "false");
+        if (feature_finder_param_run.getValue("Scores:use_ion_mobility_scores").toString() != "false")
+        {
+          OPENMS_LOG_INFO << "Overriding TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores to false because ion mobility mode is disabled." << std::endl;
+        }
+        feature_finder_param_run.setValue("Scores:use_ion_mobility_scores", "false");
+      }
+      else
+      {
+        if (!pasef && has_im_windows)
+        {
+          OPENMS_LOG_INFO << "Auto-detected ion mobility (PASEF) data from SWATH windows. Enabling PASEF mode automatically." << std::endl;
           pasef = true;
         }
-      }
-      if (disable_im_windowing && pasef)
-      {
-        pasef = false;
-      }
+        if (disable_im_windowing && pasef)
+        {
+          OPENMS_LOG_INFO << "Debugging: no_IM_windowing active -- forcing pasef = false (disabling ion mobility window matching)." << std::endl;
+          pasef = false;
+        }
 
-      {
+        feature_finder_param_run.setValue("use_ms1_ion_mobility", use_ms1_im_current ? "true" : "false");
+
+        if (pasef)
+        {
+          if (cp_current.im_extraction_window < 0.0)
+          {
+            cp_current.im_extraction_window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+            OPENMS_LOG_INFO << "Auto-applying MS2 ion mobility extraction window of "
+                            << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
+                            << " 1/K0 for detected PASEF data because TargetedDataExtraction:ion_mobility_window remained negative." << std::endl;
+          }
+          if (!disable_im_calibration && cp_irt_current.im_extraction_window < 0.0)
+          {
+            cp_irt_current.im_extraction_window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+            OPENMS_LOG_INFO << "Auto-applying iRT ion mobility extraction window of "
+                            << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
+                            << " 1/K0 for detected PASEF data because TargetedDataExtraction:irt_im_extraction_window remained negative." << std::endl;
+          }
+          if (use_ms1_im_current && cp_ms1_current.im_extraction_window < 0.0)
+          {
+            cp_ms1_current.im_extraction_window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+            OPENMS_LOG_INFO << "Auto-applying MS1 ion mobility extraction window of "
+                            << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
+                            << " 1/K0 for detected PASEF data because TargetedDataExtraction:im_extraction_window_ms1 remained negative." << std::endl;
+          }
+        }
+
         const std::string im_score_setting = feature_finder_param_run.getValue("Scores:use_ion_mobility_scores").toString();
         if (im_score_setting == "auto")
         {
@@ -5054,7 +5105,15 @@ protected:
       }
       calibration_param.setValue("debug_mz_file", debug_mz_out);
       std::string debug_im_out = calibration_param.getValue("debug_im_file").toString();
-      if (debug_im_out.empty() && write_debug_files)
+      if (force_disable_ion_mobility)
+      {
+        if (!debug_im_out.empty() || write_debug_files)
+        {
+          OPENMS_LOG_INFO << "Ion mobility mode is disabled; suppressing ion mobility calibration debug output for this run." << std::endl;
+        }
+        debug_im_out.clear();
+      }
+      else if (debug_im_out.empty() && write_debug_files)
       {
         debug_im_out = makeAutoRunOutputPath_(current_run_files, out_dir, "debug.im", "txt");
         OPENMS_LOG_INFO << "Auto-writing ion mobility calibration debug output to " << debug_im_out << std::endl;
@@ -5151,15 +5210,26 @@ protected:
         out_chrom_current = makePerRunManualOutputPath_(out_chrom, run_basename);
       }
 
-      std::string out_mobilogram_current = out_mobilogram;
-      if (out_mobilogram_current.empty() && write_mobilograms)
+      std::string out_mobilogram_current;
+      if (force_disable_ion_mobility)
       {
-        out_mobilogram_current = makeAutoRunOutputPath_(current_run_files, out_dir, "mobi", "xim");
-        OPENMS_LOG_INFO << "Auto-writing mobilograms to " << out_mobilogram_current << std::endl;
+        if (!out_mobilogram.empty() || write_mobilograms)
+        {
+          OPENMS_LOG_INFO << "Ion mobility mode is disabled; suppressing mobilogram output for this run." << std::endl;
+        }
       }
-      else if (!out_mobilogram.empty() && run_groups.size() > 1)
+      else
       {
-        out_mobilogram_current = makePerRunManualOutputPath_(out_mobilogram, run_basename);
+        out_mobilogram_current = out_mobilogram;
+        if (out_mobilogram_current.empty() && write_mobilograms)
+        {
+          out_mobilogram_current = makeAutoRunOutputPath_(current_run_files, out_dir, "mobi", "xim");
+          OPENMS_LOG_INFO << "Auto-writing mobilograms to " << out_mobilogram_current << std::endl;
+        }
+        else if (!out_mobilogram.empty() && run_groups.size() > 1)
+        {
+          out_mobilogram_current = makePerRunManualOutputPath_(out_mobilogram, run_basename);
+        }
       }
       const bool rt_window_estimation_enabled = irt_calibration_params.getValue("windows:estimate_rt").toBool();
       const double original_user_rt_window = cp.rt_extraction_window;
@@ -5198,7 +5268,7 @@ protected:
 
         FeatureMap run_feature_file;
         const bool store_features_in_feature_file = false;
-        OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
+        OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im_current, prm, pasef, mrm_mode, outer_loop_threads);
         wf.setLogType(log_type_);
         wf.performExtraction(swath_maps, trafo_rtnorm, extraction_cp, cp_ms1_current, feature_finder_param_run,
                              transition_exp, run_feature_file, store_features_in_feature_file, oswwriter, attempt_chromatogram_consumer,
