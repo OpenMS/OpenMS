@@ -1474,6 +1474,14 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open Parquet writer for " << filename << ": "
                      << writer_result.status().ToString() << std::endl;
+    // FileOutputStream::Open above already created (and truncated) the file, so returning here
+    // would leave a zero-byte .parquet behind that no reader can open.
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                       << filename << std::endl;
+    }
     return false;
   }
   auto writer = std::move(writer_result).ValueOrDie();

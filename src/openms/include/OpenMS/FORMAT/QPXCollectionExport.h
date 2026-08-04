@@ -11,6 +11,7 @@
 #include <OpenMS/config.h>
 
 #include <string>
+#include <vector>
 
 namespace OpenMS
 {
@@ -83,8 +84,15 @@ public:
 
     Construct this before the first write and call commit() once the last one has succeeded.
     On any other exit -- a view returning false, a writer throwing, an early return -- the
-    destructor removes every collection file present in the directory, so the export is
+    destructor removes the collection files <i>this export created</i>, so the export is
     all-or-nothing. Enumerating the failure sites instead would silently miss the next one.
+
+    Files that already existed when the guard was constructed are never removed. Exporting into
+    a directory that still holds an earlier collection is the normal way to re-run a pipeline,
+    and a failed re-run must not take the previous result with it. Such a run does leave the
+    directory mixed -- the views that ran overwrote their files before the failure -- so the
+    destructor names the surviving files in its warning rather than pretending the directory is
+    still coherent.
 
     @code
     QPXCollectionExport::Transaction qpx(out_qpx);
@@ -99,13 +107,27 @@ public:
   class OPENMS_DLLAPI Transaction
   {
   public:
-    /// Start guarding the collection directory @p directory
+    /**
+      @brief Start guarding a QPX collection directory
+
+      Records which collection files already exist, so that only the ones this export creates
+      can be removed again.
+
+      @param[in] directory Output directory the three collection files are written to
+    */
     explicit Transaction(const std::string& directory);
 
-    /// Removes the collection files unless commit() was called. Never throws.
+    /**
+      @brief Remove the collection files this export created, unless commit() was called
+
+      Never throws: it runs during stack unwinding when a writer threw, and a throwing
+      destructor would replace a reported export failure with a call to std::terminate().
+    */
     ~Transaction();
 
-    /// Keep the collection: the export completed
+    /**
+      @brief Keep the collection: the export completed
+    */
     void commit();
 
     Transaction(const Transaction&) = delete;
@@ -115,6 +137,8 @@ public:
 
   private:
     std::string directory_;
+    /// Collection files that were already on disk when the guard started; never removed.
+    std::vector<std::string> preexisting_;
     bool committed_ {false};
   };
 };

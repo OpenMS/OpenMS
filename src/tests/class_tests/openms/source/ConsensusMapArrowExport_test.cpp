@@ -297,7 +297,10 @@ START_SECTION(([EXTRA] unmapped features are separated by observed_mz, not by rt
   // export would be refused. ProteomicsLFQ with seeds leaves most of its features unmapped, so
   // this is the common shape, not an exotic one.
   ConsensusMap cmap = createTestConsensusMap();
-  while (!cmap.empty()) { cmap.pop_back(); }
+  while (!cmap.empty())
+  {
+    cmap.pop_back();
+  }
 
   const auto make_unmapped = [](double rt, double mz, double intensity)
   {
