@@ -80,6 +80,17 @@ Similarly, only proteotypic peptides (i.e. those matching to exactly one protein
 
 Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
 
+<B>Output granularity: samples vs. files and channels</B>
+
+By default one protein abundance is reported per @a sample. A sample is identified by a (file, label/channel) pair of the experimental design, so in a fractionated experiment a single sample spans <em>several</em> files - all fractions of its fraction group at that label - and the reported value aggregates over them.
+
+With @p file_and_channel_level_output the protein abundances are instead reported per (file, channel) cell. These cells are computed with the same peptide-level policy as the sample-level values (all peptidoforms are accumulated into one peptide; all charge states contribute by default, or only each peptidoform's selected charge with @p best_charge_and_fraction), but the peptide selection and the aggregation are applied <em>per file</em>. Two consequences are worth knowing:
+
+- The cells only decompose the sample value exactly for @p top:N 0 together with @p top:aggregate @p sum. Top-N selection, @p median, @p mean and @p weighted_mean do not commute with aggregation across fractions, so for those settings the cells of a sample neither sum nor average to the sample-level value.
+- The @p top:N requirement ("at least N peptides") is likewise enforced per file, not per sample. In a fractionated experiment this is considerably stricter than the sample-level rule: a protein can easily have N peptides in a sample while no individual fraction contains N of them, in which case the protein is quantified at the sample level but <em>all</em> of its (file, channel) cells are reported as 0. Use @p top:N 0 (optionally with @p top:aggregate @p sum) or @p top:include_all if per-file values are wanted for such data.
+
+With @p best_charge_and_fraction, one charge is selected globally for each modified peptide. Charges are ranked first by the number of distinct samples with a positive abundance and then, on a tie, by total abundance across all samples (an exact tie deterministically keeps the lower charge). Every observation of the selected charge is retained and summed over fractions within a sample; the detailed peptide output still reports all observed fraction and charge combinations. The same selected-charge policy is used for sample, fraction-group/label, and file/channel protein quantities.
+
 <B>Input: idXML</B>
 
 Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
@@ -299,7 +310,7 @@ Different parameter combinations lead to different quantification scenarios, as 
 
 <B>Further considerations for parameter selection</B>
 
-With @p best_charge_and_fractions and @p aggregate, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
+With @p best_charge_and_fraction and the protein aggregation settings, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
 Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
 For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
 
@@ -365,7 +376,7 @@ protected:
     registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
     registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
     
-    registerStringOption_("file_and_channel_level_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.", false);
+    registerStringOption_("file_and_channel_level_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.\nNote that peptide selection and aggregation are then applied per file, not per sample: 'top:N' requires N peptides in that single file (much stricter than the sample-level rule for fractionated data, where all cells of a quantified protein can end up 0), and the cells only decompose the sample-level value for 'top:N' 0 with 'top:aggregate' sum.", false);
     setValidStrings_("file_and_channel_level_output", {"true","false"});
 
     registerTOPPSubsection_("format", "Output formatting options");
@@ -471,7 +482,8 @@ protected:
       }
       else
       {
-        // write total abundances (accumulated over all charge states and fractions):
+        // Write sample totals accumulated over fractions and either all charge states or the
+        // globally selected charge, depending on 'best_charge_and_fraction'.
         out << q.first.toString() << protein << accessions.size() << 0;
 
         for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
