@@ -61,7 +61,7 @@ namespace OpenMS
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
-     "all peptides that occur in every sample are considered.\nOtherwise ('N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
+     "all peptides that occur in every sample are considered.\nOtherwise ('N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).\nA peptide counts as occurring in a sample only where its abundance is positive: an abundance stored as zero means 'not detected' (e.g. an isobaric reporter below 'min_reporter_intensity'), not a measurement of absence.");
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
     defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
@@ -1296,6 +1296,19 @@ namespace OpenMS
     }
   }
 
+  Size PeptideAndProteinQuant::countQuantifiedSamples_(const SampleAbundances& abundances)
+  {
+    Size n_quantified = 0;
+    for (const auto& sample_abundance : abundances)
+    {
+      if (sample_abundance.second > 0.0)
+      {
+        ++n_quantified;
+      }
+    }
+    return n_quantified;
+  }
+
   std::vector<std::string> PeptideAndProteinQuant::selectPeptidesForQuantification_(const std::string& protein_accession,
                                                                               Size top_n,
                                                                               bool fix_peptides)
@@ -1315,7 +1328,7 @@ namespace OpenMS
       // consider all peptides that occur in every sample:
       for (auto const& ab : pd.peptide_abundances)
       {
-        if (ab.second.size() == stats_.n_samples)
+        if (countQuantifiedSamples_(ab.second) == stats_.n_samples)
         {
           peptides.push_back(ab.first);
         }
@@ -1386,38 +1399,52 @@ namespace OpenMS
 
     ProteinData& pd = prot_it->second;
 
-    // consider only the selected peptides for quantification:
-    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    // Consider only the selected peptides, and within them only the samples they were actually
+    // detected in. An abundance stored as 0.0 is "not detected", not a measured absence:
+    // IsobaricChannelExtractor writes a reporter it could not find (or one below
+    // 'min_reporter_intensity') as 0.0 and inserts the handle regardless, so every peptide of an
+    // isobaric run carries an entry for every channel. Aggregating those is what this tool's own
+    // documentation says must not happen - "mean and median ignore missing cases, averaging only
+    // present values" - and it is the artefact normalizePeptides_() excludes zeros to avoid: a
+    // channel in which most of a protein's peptides went undetected gets a median of exactly 0,
+    // i.e. the protein is reported absent from a sample it was measured in.
+    // The samples are still tracked separately, so a sample whose peptides were all undetected
+    // keeps its (zero) entry under 'include_all' rather than disappearing from the output.
+    map<UInt64, DoubleList> abundances; // detected peptide abundances by sample
+    set<UInt64> samples;                // every sample the selected peptides reach
     for (const auto& pep : selected_peptides)    // for all selected peptides
     {
       auto pep_it = pd.peptide_abundances.find(pep);
       if (pep_it != pd.peptide_abundances.end())
       {
-        for (auto& sa : pep_it->second) // copy over all abundances
+        for (auto& sa : pep_it->second) // copy over the abundances that are measurements
         {
-          abundances[sa.first].push_back(sa.second);
+          samples.insert(sa.first);
+          if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
         }
       }
     }
 
-    for (auto& ab : abundances)
+    for (UInt64 sample : samples)
     {
-      // check if the protein has enough peptides in this sample
-      if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
+      DoubleList& values = abundances[sample]; // empty if nothing was detected in this sample
+
+      // check if the protein has enough detected peptides in this sample
+      if (!include_all && (top_n > 0) && (values.size() < top_n))
       {
         continue;
       }
 
       // if we have more than "top", reduce to the top ones
-      if ((top_n > 0) && (ab.second.size() > top_n))
+      if ((top_n > 0) && (values.size() > top_n))
       {
         // sort descending:
-        sort(ab.second.begin(), ab.second.end(), greater<double>());
-        ab.second.resize(top_n); // remove all but best N values
+        sort(values.begin(), values.end(), greater<double>());
+        values.resize(top_n); // remove all but best N values
       }
 
-      double abundance_result = aggregateAbundances_(ab.second, aggregate_method);
-      pd.total_abundances[ab.first] = abundance_result;
+      double abundance_result = aggregateAbundances_(values, aggregate_method);
+      pd.total_abundances[sample] = abundance_result;
     }
   }
 

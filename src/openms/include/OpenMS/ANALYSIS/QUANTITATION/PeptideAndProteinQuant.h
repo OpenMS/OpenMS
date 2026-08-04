@@ -312,6 +312,20 @@ private:
       Int& best_charge) const;
 
     /**
+         @brief Number of samples in which @p abundances is actually quantified
+
+         Counts the entries with a positive abundance, not the entries. A zero is not a
+         measurement of "no protein": IsobaricChannelExtractor stores a reporter it could not
+         find - or one below 'min_reporter_intensity' - as 0.0, and quantifyFeature_ records
+         that handle like any other, so the sample key exists with value 0. Counting those keys
+         would report a peptide with signal in 2 of 10 TMT channels as quantified in all 10.
+
+         This is the rule normalizePeptides_() already applies to its medians and getBestCharge_()
+         to its charge prevalence; it belongs to every count of "in how many samples".
+    */
+    static Size countQuantifiedSamples_(const SampleAbundances& abundances);
+
+    /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
 
          The keys of @p abundances are stored ordered in @p result, best first.
@@ -332,7 +346,7 @@ private:
           total += samp_it->second;
         }
         if (total <= 0.0) continue;         // not quantified
-        PairType key = std::make_pair(ab_it->second.size(), total);
+        PairType key = std::make_pair(countQuantifiedSamples_(ab_it->second), total);
         order.insert(std::make_pair(key, ab_it->first));
       }
       result.clear();
