@@ -893,4 +893,136 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+// Isobaric map, one file, @p n_channels channels, one consensus feature per peptide with one
+// sub-feature per channel. `peptides[i].second[c]` is peptide i's reporter intensity in channel c;
+// a 0 is a reporter IsobaricChannelExtractor could not find, which it writes out as 0.0. All
+// peptides are assigned to one protein so quantifyProteins() has something to aggregate.
+auto makeIsobaricProteinInput = [](
+    const std::vector<std::pair<std::string, std::vector<double>>>& peptides,
+    ConsensusMap& consensus,
+    ExperimentalDesign& design)
+  {
+    const Size n_channels = peptides.front().second.size();
+
+    consensus.setExperimentType("labeled_MS2");
+    for (Size c = 0; c < n_channels; ++c)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = "A.mzML";
+      h.label = "ch" + std::to_string(c + 1);
+      h.setMetaValue("channel_id", (int)c); // label = channel_id + 1
+      consensus.getColumnHeaders()[c] = h;
+    }
+
+    for (Size p = 0; p < peptides.size(); ++p)
+    {
+      ConsensusFeature cf;
+      for (Size c = 0; c < n_channels; ++c)
+      {
+        Peak2D peak;
+        peak.setIntensity(peptides[p].second[c]);
+        peak.setRT(1.0 + p);
+        peak.setMZ(400.0 + p);
+        cf.insert(c, peak, c);
+      }
+      PeptideEvidence ev;
+      ev.setProteinAccession("Prot");
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(peptides[p].first));
+      hit.setCharge(2);
+      hit.setScore(1.0);
+      hit.setPeptideEvidences({ev});
+      PeptideIdentification pid;
+      pid.setHits({hit});
+      cf.setPeptideIdentifications({pid});
+      consensus.push_back(cf);
+    }
+
+    ExperimentalDesign::MSFileSection fs;
+    ExperimentalDesign::SampleSection ss;
+    for (Size c = 0; c < n_channels; ++c)
+    {
+      ExperimentalDesign::MSFileSectionEntry r;
+      r.path = "/tmp/A.mzML";
+      r.label = c + 1;
+      r.fraction = 1;
+      r.fraction_group = 1;
+      r.sample = c;
+      r.sample_name = "S" + std::to_string(c + 1);
+      fs.push_back(r);
+      ss.addSample("S" + std::to_string(c + 1));
+    }
+    design = ExperimentalDesign(fs, ss);
+  };
+
+START_SECTION(([EXTRA] "occurs in every sample" counts detected samples, not stored zeros))
+{
+  // 'consensus:fix_peptides' with 'top:N' 0 keeps the peptides that occur in EVERY sample.
+  // quantifyFeature_ records an undetected reporter as an explicit 0.0, so the sample key of a
+  // peptide exists whether or not it was detected there. Counting keys makes every peptide seen
+  // anywhere pass, and the filter stops filtering.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  makeIsobaricProteinInput({{"PEPTIDEK", {100.0, 100.0, 100.0, 100.0}},   // detected in all four
+                            {"AAAAAK",   {500.0, 500.0,   0.0,   0.0}}},  // detected in two
+                           consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getParameters();
+  p.setValue("consensus:fix_peptides", "true");
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  // Only PEPTIDEK qualifies, so the protein is its 100 per sample. Counting the stored zeros
+  // would admit AAAAAK too and report 600, 600, 100, 100.
+  const auto& protein = quantifier.getProteinResults().at("Prot");
+  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 100.0)
+  TEST_REAL_SIMILAR(protein.total_abundances.at(1), 100.0)
+  TEST_REAL_SIMILAR(protein.total_abundances.at(2), 100.0)
+  TEST_REAL_SIMILAR(protein.total_abundances.at(3), 100.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] top:N ranking prefers the peptide detected in more samples, not the taller one))
+{
+  // orderBest_ ranks by (number of samples quantified, total abundance). With stored zeros
+  // counted, every peptide of a TMT run ties at the channel count and the tie-break by total
+  // abundance decides alone - so a peptide with a big signal in 2 of 10 channels takes the
+  // top:N slot from one genuinely measured in 6.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  makeIsobaricProteinInput({{"BROADK", {100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 0.0, 0.0, 0.0, 0.0}},
+                            {"TALLK",  {1000.0, 1000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},
+                            {"SMALLK", {10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}}},
+                           consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getParameters();
+  p.setValue("consensus:fix_peptides", "true");
+  p.setValue("top:N", 1);
+  p.setValue("top:aggregate", "sum");
+  quantifier.setParameters(p);
+
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  // BROADK is quantified in 6 samples, TALLK in 2, so BROADK takes the single slot and the
+  // protein reports 100 in the first six samples. Ranking on the stored zeros would tie all
+  // three at 10 samples and hand the slot to TALLK's larger total, giving 1000, 1000, 0, ...
+  const auto& protein = quantifier.getProteinResults().at("Prot");
+  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 100.0)
+  TEST_REAL_SIMILAR(protein.total_abundances.at(1), 100.0)
+  TEST_REAL_SIMILAR(protein.total_abundances.at(5), 100.0)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 END_TEST

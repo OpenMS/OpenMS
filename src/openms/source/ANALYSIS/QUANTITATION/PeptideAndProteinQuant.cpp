@@ -61,7 +61,7 @@ namespace OpenMS
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
-     "all peptides that occur in every sample are considered.\nOtherwise ('N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
+     "all peptides that occur in every sample are considered.\nOtherwise ('N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).\nA peptide counts as occurring in a sample only where its abundance is positive: an abundance stored as zero means 'not detected' (e.g. an isobaric reporter below 'min_reporter_intensity'), not a measurement of absence.");
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
     defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
@@ -1298,6 +1298,16 @@ namespace OpenMS
     }
   }
 
+  Size PeptideAndProteinQuant::countQuantifiedSamples_(const SampleAbundances& abundances)
+  {
+    Size n_quantified = 0;
+    for (const auto& sample_abundance : abundances)
+    {
+      if (sample_abundance.second > 0.0) { ++n_quantified; }
+    }
+    return n_quantified;
+  }
+
   std::vector<std::string> PeptideAndProteinQuant::selectPeptidesForQuantification_(const std::string& protein_accession,
                                                                               Size top_n,
                                                                               bool fix_peptides)
@@ -1317,7 +1327,7 @@ namespace OpenMS
       // consider all peptides that occur in every sample:
       for (auto const& ab : pd.peptide_abundances)
       {
-        if (ab.second.size() == stats_.n_samples)
+        if (countQuantifiedSamples_(ab.second) == stats_.n_samples)
         {
           peptides.push_back(ab.first);
         }
