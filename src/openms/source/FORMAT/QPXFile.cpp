@@ -1702,6 +1702,13 @@ bool QPXFile::exportToParquetStreaming(
   {
     OPENMS_LOG_ERROR << "QPXFile: Failed to open Parquet writer for " << filename << ": "
                      << writer_result.status().ToString() << std::endl;
+    // FileOutputStream::Open above already created (and truncated) the file, so returning here
+    // would leave a zero-byte .parquet behind that no reader can open.
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "QPXFile: Failed to remove incomplete output " << filename << std::endl;
+    }
     return false;
   }
   auto writer = std::move(writer_result).ValueOrDie();
@@ -1818,6 +1825,14 @@ bool QPXFile::exportToParquetStreaming(
                        "must not be, and the key the psm view is joined to feature and pg on. "
                        "Protein inference commonly drops the path: set it with "
                        "ProteinIdentification::setPrimaryMSRunPath() before exporting." << std::endl;
+  }
+  // A batch can be refused after earlier batches were already flushed, and the writer is closed
+  // either way, so a failed run leaves a footer-complete file holding only the batches that
+  // happened to pass. That reads as a valid, merely smaller, PSM table. Remove it, matching
+  // ConsensusMapArrowExport's streaming writer.
+  if (!ok && !File::remove(filename))
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Failed to remove incomplete output " << filename << std::endl;
   }
   return ok;
 }

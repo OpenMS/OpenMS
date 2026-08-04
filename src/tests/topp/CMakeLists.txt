@@ -3925,6 +3925,55 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
   add_test(NAME "TOPP_ProteomicsLFQ_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
+# QPX Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
+# The test above runs -targeted_only true, whose consensus features are all identified: 0 of its 60
+# feature rows are unmapped. Seeding makes unmapped features the majority -- 210 of 298 rows here --
+# and those carry an empty peptidoform, so they lean on the rest of the QPX feature primary key to
+# stay distinct. No -out_qpx test covered that shape, which is why the key defect reached develop.
+# What this guards is that the shape reaches the exporter and is accepted end to end; the specific
+# float32-rt collision is reproduced directly in ConsensusMapArrowExport_test, since at this
+# fixture's size the pre-fix key happens not to collide. Kept as a separate run rather than folded
+# into TOPP_ProteomicsLFQ_3 so no reference file is touched.
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
+           -in
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+           -ids
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+           -design
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+           -Alignment:align_algorithm:max_rt_shift 0
+           -Linking:min_nr_diffs_per_bin 10
+           -fasta
+           ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+           -targeted_only false
+           -mass_recalibration false
+           -PeptideQuantification:seed_apex_rt_tolerance 0
+           -out ${TESTS_TEMP_DIR}/BSA_qpx_seeds.tmp.mzTab
+           -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir
+           -threads 1
+           -proteinFDR 0.3
+           -test
+           -debug 0
+           )
+  # All three files must exist: a refused table aborts the tool, and the export is transactional,
+  # so a failure leaves the directory empty rather than partially written (sha256sum then fails).
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+
 # Test ProteomicsLFQ bypass with -in_feat (Multi-file)
 add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
 

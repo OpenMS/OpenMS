@@ -1400,11 +1400,34 @@ bool ConsensusMapArrowExport::exportToParquet(
     *table, arrow::default_memory_pool(), outfile,
     config.row_group_size, writer_props, arrow_props);
 
+  // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+  // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+  // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+  // removing: on Windows an open handle blocks the unlink.
+  const auto abandon = [&](const std::string& what)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " << what << std::endl;
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                       << filename << std::endl;
+    }
+    return false;
+  };
+
   if (!status.ok())
   {
-    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write Parquet: "
-                     << status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to write Parquet: " + status.ToString());
+  }
+
+  // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+  // final flush is where a full disk surfaces, and reporting success there would hand back a
+  // truncated file.
+  auto close_status = outfile->Close();
+  if (!close_status.ok())
+  {
+    return abandon("Failed to close " + filename + ": " + close_status.ToString());
   }
 
   return true;
@@ -1474,6 +1497,14 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open Parquet writer for " << filename << ": "
                      << writer_result.status().ToString() << std::endl;
+    // FileOutputStream::Open above already created (and truncated) the file, so returning here
+    // would leave a zero-byte .parquet behind that no reader can open.
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                       << filename << std::endl;
+    }
     return false;
   }
   auto writer = std::move(writer_result).ValueOrDie();

@@ -96,6 +96,15 @@ namespace OpenMS
       appendInteger(key, std::bit_cast<std::uint32_t>(value));
     }
 
+    /// Append a nullable float key component; a null is its own value, distinct from any float.
+    void appendNullableFloat(
+      std::string& key, const std::shared_ptr<arrow::FloatArray>& values, int64_t row)
+    {
+      if (values->IsNull(row)) { key += "N|"; return; }
+      key += "F|";
+      appendFloat(key, values->Value(row));
+    }
+
     std::shared_ptr<arrow::Schema> schemaFor(QPXValueValidation::View view)
     {
       switch (view)
@@ -404,9 +413,11 @@ namespace OpenMS
         combinedColumn(table, QPXFeatureSchema::RUN_FILE_NAME, result));
       auto rt = std::static_pointer_cast<arrow::FloatArray>(
         combinedColumn(table, QPXFeatureSchema::RT, result));
+      auto observed_mz = std::static_pointer_cast<arrow::FloatArray>(
+        combinedColumn(table, QPXFeatureSchema::OBSERVED_MZ, result));
       auto intensities = std::static_pointer_cast<arrow::ListArray>(
         combinedColumn(table, QPXFeatureSchema::INTENSITIES, result));
-      if (!peptidoform || !charge || !run || !rt || !intensities) { return result; }
+      if (!peptidoform || !charge || !run || !rt || !observed_mz || !intensities) { return result; }
 
       const auto intensity_values = std::static_pointer_cast<arrow::StructArray>(intensities->values());
       const auto labels = std::static_pointer_cast<arrow::StringArray>(intensity_values->field(0));
@@ -415,8 +426,13 @@ namespace OpenMS
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
         // QPX explicitly permits unmapped features; OpenMS represents their unknown peptidoform
-        // as an empty string and the RT still distinguishes their primary key. The run identity,
-        // unlike the optional mapping, must always be present.
+        // as an empty string. The run identity, unlike the optional mapping, must always be
+        // present.
+        //
+        // 'observed_mz' is in the key (see the class documentation) for the sake of those
+        // unmapped rows: without it the key collapses to (charge, run_file_name, rt), and 'rt' is
+        // float32 on write - one ULP is 244 us at 3000 s - so two co-eluting unmapped features of
+        // one charge in one run would collide. Do not drop it back out.
         const bool strings_valid = nonEmptyString(
           run, row, QPXFeatureSchema::RUN_FILE_NAME, result);
         const bool peptidoform_valid = !peptidoform->IsNull(row);
@@ -438,23 +454,26 @@ namespace OpenMS
                            + " has a non-finite 'rt' primary-key value");
           rt_valid = false;
         }
-        if (strings_valid && peptidoform_valid && charge_valid && rt_valid)
+        bool observed_mz_valid = true;
+        if (!observed_mz->IsNull(row) && !std::isfinite(observed_mz->Value(row)))
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has a non-finite 'observed_mz' primary-key value");
+          observed_mz_valid = false;
+        }
+        if (strings_valid && peptidoform_valid && charge_valid && rt_valid && observed_mz_valid)
         {
           std::string key;
           appendString(key, peptidoform->GetString(row));
           appendInteger(key, charge->Value(row));
           appendString(key, run->GetString(row));
-          if (rt->IsNull(row)) { key += "N|"; }
-          else
-          {
-            key += "F|";
-            appendFloat(key, rt->Value(row));
-          }
+          appendNullableFloat(key, rt, row);
+          appendNullableFloat(key, observed_mz, row);
           if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
           {
             addError(result, "row " + std::to_string(row)
                              + " repeats the QPX feature primary key "
-                               "(peptidoform, charge, run_file_name, rt)");
+                               "(peptidoform, charge, run_file_name, rt, observed_mz)");
           }
         }
 

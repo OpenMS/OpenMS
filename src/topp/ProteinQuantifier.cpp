@@ -107,6 +107,12 @@ In order for everything to work correctly, it is important that the protein infe
 
 More information below the parameter specification.
 
+<B>Optional output: QPX Parquet (@p out_qpx)</B>
+
+@p out_qpx writes the quantification as a QPX collection - @c quantms.feature.parquet, @c quantms.psm.parquet and @c quantms.pg.parquet - for consensusXML input. QPX is an interchange format with a strict value contract, and OpenMS refuses to write a table it cannot represent rather than emit one that will not join. A refusal aborts the tool and leaves no files behind, including any view already written.
+
+Consensus maps produced by @ref TOPP_ProteomicsLFQ and @ref TOPP_IsobaricWorkflow satisfy the contract by construction; those two are the supported producers. A map assembled by a different pipeline may not. What the contract requires, and how to satisfy it, is documented in one place: on OpenMS::QPXValueValidation, the class that enforces it.
+
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
@@ -366,7 +372,7 @@ protected:
     registerOutputFile_("mztab", "<file>", "", "Output file (mzTab)", false);
     setValidFormats_("mztab", ListUtils::create<std::string>("mzTab"));
 
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). Only supported for consensusXML input.", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). Only supported for consensusXML input.\nQPX has a strict value contract; input that does not meet it is refused outright and no files are written. Maps produced by ProteomicsLFQ or IsobaricWorkflow satisfy it by construction, other pipelines may not. The contract is documented on the OpenMS::QPXValueValidation class, which enforces it.", false, false);
 
     // algorithm parameters:
     addEmptyLine_();
@@ -1077,6 +1083,11 @@ protected:
                                             out_qpx, "the QPX collection cannot be written in full");
       }
 
+      // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error - is
+      // undone here: the throws below unwind through this guard, which removes every file
+      // already written unless the commit at the end is reached.
+      QPXCollectionExport::Transaction qpx_collection(out_qpx);
+
       // Feature-level export
       if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
       {
@@ -1118,6 +1129,8 @@ protected:
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             out_qpx, "failed to write the protein groups Parquet file");
       }
+
+      qpx_collection.commit(); // all three views written
     }
 
     return ed;

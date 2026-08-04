@@ -288,6 +288,70 @@ START_SECTION(([EXTRA] feature value validation rejects duplicate primary keys b
 }
 END_SECTION
 
+START_SECTION(([EXTRA] unmapped features are separated by observed_mz, not by rt alone))
+{
+  // The feature primary key is (peptidoform, charge, run_file_name, rt, observed_mz). For an
+  // unmapped feature the peptidoform is empty, so without observed_mz the key would collapse to
+  // (charge, run, rt) -- and 'rt' is float32 on write, one ULP being 244 us at 3000 s. Two
+  // co-eluting unmapped features of the same charge in one run would then collide and the whole
+  // export would be refused. ProteomicsLFQ with seeds leaves most of its features unmapped, so
+  // this is the common shape, not an exotic one.
+  ConsensusMap cmap = createTestConsensusMap();
+  while (!cmap.empty())
+  {
+    cmap.pop_back();
+  }
+
+  const auto make_unmapped = [](double rt, double mz, double intensity)
+  {
+    ConsensusFeature cf;
+    cf.setRT(rt);
+    cf.setMZ(mz);
+    cf.setIntensity(intensity);
+    cf.setCharge(2);
+    BaseFeature bf;
+    bf.setRT(rt);
+    bf.setMZ(mz);
+    bf.setIntensity(static_cast<float>(intensity));
+    bf.setCharge(2);
+    cf.insert(0, bf);
+    return cf; // no PeptideIdentification: an unmapped feature
+  };
+
+  // Same run, same charge, retention times that differ but round to the SAME float32.
+  // Their m/z differ by 100 Th, so they are plainly different features.
+  const double rt_a = 3000.0;
+  const double rt_b = 3000.0001;
+  TEST_EQUAL(static_cast<float>(rt_a), static_cast<float>(rt_b)) // the collision this guards
+  cmap.push_back(make_unmapped(rt_a, 400.0, 5000.0));
+  cmap.push_back(make_unmapped(rt_b, 500.0, 6000.0));
+
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  QPXValueValidation validator(QPXValueValidation::View::FEATURE);
+  TEST_TRUE(validator.validate(table).valid)
+
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_TRUE(ConsensusMapArrowExport::exportToParquet(cmap, output))
+  TEST_TRUE(File::exists(output))
+
+  // The check must still fire when the m/z matches too: then the two rows really are
+  // indistinguishable and one of them is a duplicate.
+  ConsensusMap same_mz = cmap;
+  same_mz.pop_back();
+  same_mz.push_back(make_unmapped(rt_b, 400.0, 6000.0));
+  auto same_mz_table = ConsensusMapArrowExport::exportToArrow(same_mz);
+  TEST_NOT_EQUAL(same_mz_table, nullptr)
+  QPXValueValidation same_mz_validator(QPXValueValidation::View::FEATURE);
+  const auto same_mz_result = same_mz_validator.validate(same_mz_table);
+  TEST_FALSE(same_mz_result.valid)
+  TEST_TRUE(same_mz_result.toString().find("primary key") != std::string::npos)
+}
+END_SECTION
+
 START_SECTION(exportToArrow - column types)
 {
   ConsensusMap cmap = createTestConsensusMap();
@@ -850,6 +914,29 @@ START_SECTION(exportToParquet - no compression)
   TEST_TRUE(success)
 
   TEST_TRUE(File::exists(filename))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToParquet leaves no file behind when the write fails))
+{
+  // The value validation runs before the file is opened, so a refused table never creates one.
+  // A write that fails afterwards is a different matter: FileOutputStream::Open has created and
+  // truncated the file and the Parquet writer has already put its magic bytes there, so what
+  // survives is a headerless fragment that reports as corrupt rather than as the smaller table
+  // it looks like. The streaming writer handles this; the one-shot writer must too.
+  // A row group size of 0 is refused by Parquet for a non-empty table, which reaches that
+  // failure deterministically on every platform.
+  ConsensusMap cmap = createTestConsensusMap();
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  filename += ".parquet";
+
+  ParquetWriteConfig pq_config;
+  pq_config.row_group_size = 0;
+
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config))
+  TEST_FALSE(File::exists(filename))
 }
 END_SECTION
 

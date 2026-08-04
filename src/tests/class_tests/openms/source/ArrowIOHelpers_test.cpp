@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 
@@ -406,6 +407,34 @@ START_SECTION((std::string qpxScanFormat(const std::vector<std::string>&)))
 
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{}), "")
   TEST_STRING_EQUAL(ArrowIOHelpers::qpxScanFormat(std::vector<std::string>{"opaque", "also_opaque"}), "")
+}
+END_SECTION
+
+START_SECTION((bool writeTableToParquet(const std::shared_ptr<arrow::Table>&, const std::string&, const ParquetWriteConfig&)))
+{
+  arrow::Int32Builder builder;
+  TEST_TRUE(builder.Append(1).ok())
+  std::shared_ptr<arrow::Array> values;
+  TEST_TRUE(builder.Finish(&values).ok())
+  const auto schema = arrow::schema({arrow::field("value", arrow::int32())});
+  const auto table = arrow::Table::Make(schema, {values});
+
+  std::string good_file;
+  NEW_TMP_FILE(good_file)
+  TEST_TRUE(ArrowIOHelpers::writeTableToParquet(table, good_file, ParquetWriteConfig{}))
+  TEST_TRUE(File::exists(good_file))
+
+  // A write that fails after the file has been opened must not leave the file behind.
+  // FileOutputStream::Open creates and truncates it, and the Parquet writer has already put its
+  // magic bytes there, so what survives is a headerless fragment that reports as corrupt rather
+  // than as the smaller table it looks like. A row group size of 0 is refused by Parquet for a
+  // non-empty table, which reaches that failure deterministically on every platform.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  std::string failed_file;
+  NEW_TMP_FILE(failed_file)
+  TEST_FALSE(ArrowIOHelpers::writeTableToParquet(table, failed_file, no_row_group))
+  TEST_FALSE(File::exists(failed_file))
 }
 END_SECTION
 

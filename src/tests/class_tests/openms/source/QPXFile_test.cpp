@@ -1358,12 +1358,16 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
   }
 
   // One validator spans all batches, so a primary key repeated after a batch boundary fails.
+  // With batch_size 1 the first batch is flushed before the second is refused, and the writer
+  // is closed either way - so without cleanup a footer-complete file holding just the first
+  // PSM would be left behind, indistinguishable from a valid smaller export. It must be gone.
   {
     std::vector<const PeptideIdentification*> duplicate_ptrs{ptrs[0], ptrs[0]};
     std::string duplicate_file;
     NEW_TMP_FILE(duplicate_file)
     TEST_FALSE(QPXFile::exportToParquetStreaming(
       protein_ids, duplicate_ptrs, duplicate_file, false, 1))
+    TEST_FALSE(File::exists(duplicate_file))
   }
 
   // --- Edge case: batch_size=0 must not hang (guarded to default) and write all rows ---
