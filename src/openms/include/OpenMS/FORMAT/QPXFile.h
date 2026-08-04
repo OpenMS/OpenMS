@@ -196,6 +196,16 @@ public:
     @p protein_identifications by run identifier. If no match exists, a
     new `ProteinIdentification` shell is appended.
 
+    A shell also gets the run's ordered @c spectra_data back, rebuilt from the per-PSM
+    @c reference_file_name and @c id_merge_index: on a merged run the index is what selects a PSM's
+    file, so the whole list has to be restored - a single path would leave every index but 0
+    pointing past the end. Indices are preserved, and a file that contributed no PSM stays an empty
+    entry rather than being closed up, so IdentifierMSRunMapper resolves each imported PSM to the
+    same origin file it had before the export. PSMs the table stores no usable index for are placed
+    by their path instead, and their @c id_merge_index is set to match (merged runs only - on a
+    single-file run index 0 is the default and none is written). Runs @p protein_identifications
+    already covers are left alone: their own @c spectra_data is authoritative.
+
     @param[in]    table                     PSMSchema Arrow table (must not be null)
     @param[in,out] protein_identifications  Existing protein identifications (used for higher_score_better lookup; new shells appended for unknown run_identifiers)
     @param[in,out] peptide_identifications  Peptide identifications appended to (caller may pass an empty or pre-populated list)

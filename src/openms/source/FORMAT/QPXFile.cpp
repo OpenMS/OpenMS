@@ -34,6 +34,7 @@
 #include <cstdio>
 #include <cstring>
 #include <exception>
+#include <optional>
 #include <random>
 #include <set>
 #include <unordered_map>
@@ -1837,6 +1838,147 @@ bool QPXFile::exportToParquetStreaming(
   return ok;
 }
 
+namespace // anonymous
+{
+
+/// Upper bound on the 'spectra_data' length rebuilt from a stored 'id_merge_index'. The index is
+/// file content, so a corrupt value must not turn into an unbounded allocation; a PSM claiming a
+/// slot beyond this is placed by its 'reference_file_name' instead.
+constexpr Size MAX_RECONSTRUCTED_RUN_FILES = 100000;
+
+/// The 'id_merge_index' of @p pep_id, if it can be honored as a slot in 'spectra_data'.
+/// Absent, non-integer, negative and absurdly large values yield nullopt: the PSM is then placed
+/// by its origin path instead of by an index that cannot be used.
+std::optional<Size> usableMergeIndex(const PeptideIdentification& pep_id)
+{
+  if (!pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { return std::nullopt; }
+  const DataValue& dv = pep_id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+  if (dv.valueType() != DataValue::INT_VALUE) { return std::nullopt; }
+  // long long, not Size: DataValue's unsigned conversion throws on a negative value.
+  const long long index = static_cast<long long>(dv);
+  if (index < 0 || index >= static_cast<long long>(MAX_RECONSTRUCTED_RUN_FILES)) { return std::nullopt; }
+  return static_cast<Size>(index);
+}
+
+/// Rebuild the ordered 'spectra_data' of an identification run the caller has no
+/// ProteinIdentification for, so the shell synthesized in its place can carry it.
+///
+/// A merged run (ProteomicsLFQ, IDMerger, ...) lists every input file in 'spectra_data' and each
+/// PSM picks one of them by 'id_merge_index'. Both halves survive the export - the resolved origin
+/// path per row in 'reference_file_name', the index among the PSM's round-tripped metavalues - so
+/// the list is rebuilt slot by slot: a PSM's stored index is where its origin file goes. Leaving
+/// those indices untouched is what makes the pair (list, index) resolve to the same file after the
+/// round trip as before it; a shell carrying a single path cannot, because the index of every file
+/// but the first then points past the end.
+///
+/// A file that contributed no PSM leaves an interior gap, kept as an empty entry: closing it would
+/// shift every later file and silently redefine the indices the surviving PSMs carry. Trailing
+/// gaps are dropped instead - nothing is known about them and no path behind them needs holding in
+/// place, so a PSM indexing past the end resolves to "origin unknown", exactly what it resolved to
+/// when the table was written.
+///
+/// Two kinds of PSM have no index to preserve. They are placed by their path and then stamped with
+/// the index that placement implies:
+///   - PSMs stored without a usable 'id_merge_index' - a table from a producer that writes no
+///     spectrum metavalues, or an unmerged run whose PSMs never needed one
+///   - PSMs whose index claims a slot another file already holds (inconsistent input; warned about)
+/// Stamping is skipped for a single-file run, where index 0 is the default anyway: writing it onto
+/// every PSM of every ordinary unmerged run would be noise.
+///
+/// @param[in] run_identifier The run being rebuilt (diagnostics only)
+/// @param[in] members Positions in @p peptide_identifications of this run's PSMs
+/// @param[in] origin_files Origin path of every PSM this import added, indexed by
+///            (position in @p peptide_identifications) - @p first_imported. Empty where the PSM's
+///            rows named no file.
+/// @param[in] first_imported Position of the first PSM this import added
+/// @param[in,out] peptide_identifications All PSMs; repaired indices are written back here
+/// @return The reconstructed 'spectra_data'; empty if no PSM of the run named an origin file
+StringList rebuildShellSpectraData(
+  const std::string& run_identifier,
+  const std::vector<Size>& members,
+  const std::vector<std::string>& origin_files,
+  Size first_imported,
+  PeptideIdentificationList& peptide_identifications)
+{
+  std::map<Size, std::string> slot_to_file; ///< ordered, so the last key is the last known slot
+  std::vector<Size> place_by_path;          ///< entries of @p members whose index cannot be honored
+  bool conflicting_indices = false;
+
+  for (Size k = 0; k < members.size(); ++k)
+  {
+    const std::string& origin_file = origin_files[members[k] - first_imported];
+    // A PSM the table stores no origin file for neither defines a slot nor needs one: there is
+    // nothing to place it by, and its index (if any) is left exactly as it was stored.
+    if (origin_file.empty()) { continue; }
+
+    const std::optional<Size> slot = usableMergeIndex(peptide_identifications[members[k]]);
+    if (!slot)
+    {
+      place_by_path.push_back(k);
+      continue;
+    }
+    auto [it, inserted] = slot_to_file.try_emplace(*slot, origin_file);
+    if (!inserted && it->second != origin_file)
+    {
+      // The index points at a file the table itself contradicts. Honoring it would attribute the
+      // PSM to the wrong run file, so place it by its own path.
+      conflicting_indices = true;
+      place_by_path.push_back(k);
+    }
+  }
+
+  if (conflicting_indices)
+  {
+    OPENMS_LOG_WARN << "QPXFile::importFromArrow: identification run '" << run_identifier
+                    << "' stores 'id_merge_index' values that disagree with the per-PSM "
+                       "'reference_file_name'. The affected PSMs keep their origin file and are "
+                       "re-indexed against the reconstructed 'spectra_data'." << std::endl;
+  }
+
+  StringList spectra_data;
+  if (!slot_to_file.empty()) { spectra_data.resize(slot_to_file.rbegin()->first + 1); }
+  std::map<std::string, Size> file_to_slot;
+  for (const auto& [slot, file] : slot_to_file)
+  {
+    spectra_data[slot] = file;
+    file_to_slot.emplace(file, slot);
+  }
+
+  // Give every PSM placed by path a slot holding exactly its own file, appending one where the
+  // rebuilt list does not hold that file yet.
+  std::vector<std::pair<Size, Size>> stamp; ///< (entry in @p members, slot it was placed in)
+  stamp.reserve(place_by_path.size());
+  for (Size k : place_by_path)
+  {
+    const std::string& origin_file = origin_files[members[k] - first_imported];
+    auto [it, inserted] = file_to_slot.try_emplace(origin_file, spectra_data.size());
+    if (inserted) { spectra_data.push_back(origin_file); }
+    stamp.emplace_back(k, it->second);
+  }
+
+  if (spectra_data.size() > 1)
+  {
+    for (const auto& [k, slot] : stamp)
+    {
+      peptide_identifications[members[k]].setMetaValue(
+        Constants::UserParam::ID_MERGE_INDEX, static_cast<Int>(slot));
+    }
+  }
+
+  const auto unknown = std::count(spectra_data.begin(), spectra_data.end(), std::string());
+  if (unknown > 0)
+  {
+    OPENMS_LOG_WARN << "QPXFile::importFromArrow: " << unknown << " file(s) of identification run '"
+                    << run_identifier << "' contributed no PSM, so the table does not name them. "
+                       "They are kept as empty 'spectra_data' entries, which leaves the "
+                       "'id_merge_index' of the files that did contribute pointing at their own "
+                       "file." << std::endl;
+  }
+  return spectra_data;
+}
+
+} // anonymous namespace (shell 'spectra_data' reconstruction)
+
 bool QPXFile::importFromArrow(
   const std::shared_ptr<arrow::Table>& table,
   std::vector<ProteinIdentification>& protein_identifications,
@@ -1911,10 +2053,18 @@ bool QPXFile::importFromArrow(
   std::unordered_map<int32_t, size_t> p_id_to_idx;
   const size_t pep_ids_start_size = peptide_identifications.size();
 
-  // Capture the first non-empty reference_file_name per run_identifier so that
-  // shell ProteinIdentifications synthesized below can preserve the primary MS
-  // run path on round-trip.
-  std::unordered_map<std::string, std::string> run_id_to_ref_file;
+  // Identification runs the caller already has. Only the others get a shell below - and only a
+  // shell's PSMs need their origin file remembered, so an import whose ProteinIdentifications the
+  // caller supplied copies no path at all.
+  std::unordered_set<std::string> known;
+  for (const auto& p : protein_identifications) { known.insert(p.getIdentifier()); }
+
+  // Origin file of every PeptideIdentification this call adds, in the same order (the first
+  // non-empty reference_file_name among the PSM's rows), for the shells synthesized below: they
+  // rebuild their ordered 'spectra_data' from it, so that a merged run's PSMs keep resolving to
+  // the file they came from. @see rebuildShellSpectraData
+  std::vector<std::string> origin_files;
+  std::vector<char> collect_origin; ///< parallel to origin_files: is this PSM's run a shell run?
 
   // Hoist loop-invariant child arrays out of the row loop (GetFieldByName() is a
   // linear field search); rows index them via value_offset/length.
@@ -1950,6 +2100,7 @@ bool QPXFile::importFromArrow(
     if (inserted)
     {
       peptide_identifications.emplace_back();
+      origin_files.emplace_back();
       PeptideIdentification& pid = peptide_identifications.back();
       pid.setScoreType(ArrowIOHelpers::getStringValue(col_score_type, row));
 
@@ -1957,6 +2108,9 @@ bool QPXFile::importFromArrow(
       {
         pid.setIdentifier(ArrowIOHelpers::getStringValue(col_run_id, row));
       }
+      // Decided once per PSM, not per row: the run it belongs to is fixed by its first row.
+      const std::string& run_id = pid.getIdentifier();
+      collect_origin.push_back((!run_id.empty() && !known.contains(run_id)) ? 1 : 0);
 
       if (col_hsb && !ArrowIOHelpers::isNull(col_hsb, row))
       {
@@ -2061,11 +2215,8 @@ bool QPXFile::importFromArrow(
     {
       const std::string ref_file = ArrowIOHelpers::getStringValue(col_ref_file, row);
       hit.setMetaValue("reference_file_name", ref_file);
-      if (!ref_file.empty())
-      {
-        const std::string& run_id = peptide_identifications[it->second].getIdentifier();
-        run_id_to_ref_file.try_emplace(run_id, ref_file);
-      }
+      const size_t pos = it->second - pep_ids_start_size;
+      if (collect_origin[pos] && origin_files[pos].empty()) { origin_files[pos] = ref_file; }
     }
 
     if (col_psm_metavalues)
@@ -2081,25 +2232,33 @@ bool QPXFile::importFromArrow(
 
   // Append a shell ProteinIdentification for any run_identifier we saw but don't have.
   // Only consider PIDs added by this call (caller may concatenate multiple imports).
-  std::unordered_set<std::string> known;
-  for (const auto& p : protein_identifications) { known.insert(p.getIdentifier()); }
-  for (size_t i = pep_ids_start_size; i < peptide_identifications.size(); ++i)
+  std::vector<std::string> shell_runs;                              // in first-seen order
+  std::unordered_map<std::string, std::vector<Size>> shell_members; // run -> its PSMs' positions
+  for (Size i = pep_ids_start_size; i < peptide_identifications.size(); ++i)
   {
-    const auto& pid = peptide_identifications[i];
-    const std::string& id = pid.getIdentifier();
-    if (!id.empty() && known.insert(id).second)
-    {
-      ProteinIdentification shell;
-      shell.setIdentifier(id);
-      shell.setScoreType(pid.getScoreType());
-      shell.setHigherScoreBetter(pid.isHigherScoreBetter());
-      auto rf_it = run_id_to_ref_file.find(id);
-      if (rf_it != run_id_to_ref_file.end())
-      {
-        shell.setPrimaryMSRunPath({rf_it->second});
-      }
-      protein_identifications.push_back(std::move(shell));
-    }
+    const std::string& id = peptide_identifications[i].getIdentifier();
+    if (id.empty() || known.contains(id)) { continue; }
+    auto [it, inserted] = shell_members.try_emplace(id);
+    if (inserted) { shell_runs.push_back(id); }
+    it->second.push_back(i);
+  }
+
+  for (const std::string& id : shell_runs)
+  {
+    const std::vector<Size>& members = shell_members[id];
+    // Runs the caller does have keep their own 'spectra_data': only a shell needs one rebuilt,
+    // and only a shell may have the merge indices of its PSMs repaired (hence before the shell
+    // is filled, and taking the PSMs by reference).
+    const StringList spectra_data =
+      rebuildShellSpectraData(id, members, origin_files, pep_ids_start_size, peptide_identifications);
+
+    const PeptideIdentification& first = peptide_identifications[members.front()];
+    ProteinIdentification shell;
+    shell.setIdentifier(id);
+    shell.setScoreType(first.getScoreType());
+    shell.setHigherScoreBetter(first.isHigherScoreBetter());
+    if (!spectra_data.empty()) { shell.setPrimaryMSRunPath(spectra_data); }
+    protein_identifications.push_back(std::move(shell));
   }
 
   return true;

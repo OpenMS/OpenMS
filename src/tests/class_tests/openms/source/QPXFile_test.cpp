@@ -26,6 +26,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -1821,6 +1822,208 @@ START_SECTION(([EXTRA] per-PSM origin survives an internal-format round trip))
   TEST_EQUAL(qpx->num_rows(), 2)
   TEST_STRING_EQUAL(rfn->GetString(0), "runA")
   TEST_STRING_EQUAL(rfn->GetString(1), "runB")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow rebuilds the ordered spectra_data of a merged run))
+{
+  // A merged run's PSM resolves to its origin file through the pair ('spectra_data',
+  // 'id_merge_index'). A shell carrying a single path breaks that pair - every index but 0 then
+  // points past the end - so the whole ordered list is rebuilt, with the indices left alone.
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  peps.push_back(mergedPSM("TESTPEPTIDER", 1));
+  peps.push_back(mergedPSM("ANOTHERPEPK", 1));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(internal, nullptr)
+
+  vector<ProteinIdentification> prot_in; // nothing to match the run: a shell has to be synthesized
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(internal, prot_in, peps_in))
+
+  TEST_EQUAL(prot_in.size(), 1)
+  StringList spectra_data;
+  prot_in[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 2)
+  TEST_STRING_EQUAL(spectra_data[0], "/data/runA.mzML")
+  TEST_STRING_EQUAL(spectra_data[1], "/data/runB.mzML")
+
+  TEST_EQUAL(peps_in.size(), 3)
+  const IdentifierMSRunMapper mapper(prot_in);
+  const std::vector<Int> expected_index = {0, 1, 1};
+  const StringList expected_file = {"/data/runA.mzML", "/data/runB.mzML", "/data/runB.mzML"};
+  for (Size i = 0; i < peps_in.size(); ++i)
+  {
+    TEST_EQUAL((Int)peps_in[i].getMetaValue(Constants::UserParam::ID_MERGE_INDEX), expected_index[i])
+    TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[i]), expected_file[i])
+  }
+
+  // With the list restored, the QPX re-export no longer depends on the per-hit
+  // 'reference_file_name' metavalue it used to need as a fallback.
+  for (auto& p : peps_in)
+  {
+    for (auto& h : p.getHits()) { h.removeMetaValue("reference_file_name"); }
+  }
+  auto qpx = QPXFile::exportPSMsToQPXArrow(prot_in, peps_in, false);
+  TEST_NOT_EQUAL(qpx, nullptr)
+  auto rfn = std::static_pointer_cast<arrow::StringArray>(qpx->GetColumnByName("run_file_name")->chunk(0));
+  TEST_EQUAL(qpx->num_rows(), 3)
+  TEST_STRING_EQUAL(rfn->GetString(0), "runA")
+  TEST_STRING_EQUAL(rfn->GetString(1), "runB")
+  TEST_STRING_EQUAL(rfn->GetString(2), "runB")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow keeps the slot of a run file that contributed no PSM))
+{
+  // Only the third input file still has identifications. Closing the two empty slots would shift
+  // it to index 0 and silently redefine the index its PSMs carry, so they are kept as gaps.
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML", "/data/runC.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 2));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(internal, nullptr)
+
+  vector<ProteinIdentification> prot_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(internal, prot_in, peps_in))
+
+  TEST_EQUAL(prot_in.size(), 1)
+  StringList spectra_data;
+  prot_in[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 3)
+  TEST_TRUE(spectra_data[0].empty()) // the table does not name a file that produced no PSM
+  TEST_TRUE(spectra_data[1].empty())
+  TEST_STRING_EQUAL(spectra_data[2], "/data/runC.mzML")
+
+  TEST_EQUAL((Int)peps_in[0].getMetaValue(Constants::UserParam::ID_MERGE_INDEX), 2)
+  const IdentifierMSRunMapper mapper(prot_in);
+  TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[0]), "/data/runC.mzML")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow places PSMs by path when the table stores no id_merge_index))
+{
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 1));
+  peps.push_back(mergedPSM("TESTPEPTIDER", 0));
+  peps.push_back(mergedPSM("ANOTHERPEPK", 1));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(internal, nullptr)
+
+  // Drop the column the index round-trips in, as a producer writing no spectrum metavalues would.
+  const int field = internal->schema()->GetFieldIndex(PSMSchema::SPECTRUM_METAVALUES);
+  TEST_NOT_EQUAL(field, -1)
+  auto nulls = arrow::MakeArrayOfNull(internal->schema()->field(field)->type(),
+                                      internal->num_rows()).ValueOrDie();
+  auto stripped = replaceColumn(internal, PSMSchema::SPECTRUM_METAVALUES, nulls);
+
+  vector<ProteinIdentification> prot_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(stripped, prot_in, peps_in))
+
+  // Without an index to preserve, each PSM is placed by the file it names; first-seen order is
+  // the only order the table still states.
+  StringList spectra_data;
+  prot_in[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 2)
+  TEST_STRING_EQUAL(spectra_data[0], "/data/runB.mzML")
+  TEST_STRING_EQUAL(spectra_data[1], "/data/runA.mzML")
+
+  const IdentifierMSRunMapper mapper(prot_in);
+  TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[0]), "/data/runB.mzML")
+  TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[1]), "/data/runA.mzML")
+  TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[2]), "/data/runB.mzML")
+
+  // The stamped indices are what the export preflight demands of a merged run.
+  bool preflight_ok = true;
+  try { QPXFile::requireResolvableMergeIndices(prot_in, peps_in); }
+  catch (...) { preflight_ok = false; }
+  TEST_TRUE(preflight_ok)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow re-indexes a PSM whose id_merge_index contradicts its file))
+{
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  peps.push_back(mergedPSM("TESTPEPTIDER", 0));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(internal, nullptr)
+
+  // Inconsistent input: both PSMs claim slot 0, but they name two different origin files.
+  arrow::StringBuilder ref_builder;
+  TEST_TRUE(ref_builder.Append("/data/runA.mzML").ok())
+  TEST_TRUE(ref_builder.Append("/data/runB.mzML").ok())
+  auto inconsistent = replaceColumn(internal, PSMSchema::REFERENCE_FILE_NAME,
+                                    ref_builder.Finish().ValueOrDie());
+
+  vector<ProteinIdentification> prot_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(inconsistent, prot_in, peps_in))
+
+  StringList spectra_data;
+  prot_in[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 2)
+  // The stored file wins over the index that disagrees with it, so no PSM is attributed to a file
+  // the table does not name for it.
+  const IdentifierMSRunMapper mapper(prot_in);
+  TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[0]), "/data/runA.mzML")
+  TEST_STRING_EQUAL(mapper.getPrimaryMSRunPath(peps_in[1]), "/data/runB.mzML")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow adds no id_merge_index to an unmerged run))
+{
+  // One file in the run means index 0 is the default: writing it onto every PSM would be noise.
+  auto prot = mergedRun({"/data/only.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0, /*set_index=*/false));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(internal, nullptr)
+
+  vector<ProteinIdentification> prot_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(internal, prot_in, peps_in))
+
+  StringList spectra_data;
+  prot_in[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 1)
+  TEST_STRING_EQUAL(spectra_data[0], "/data/only.mzML")
+  TEST_FALSE(peps_in[0].metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow leaves a run the caller already has alone))
+{
+  // Reconstruction is for shells only: a run with its own ProteinIdentification keeps the
+  // 'spectra_data' that identification carries, however the table's rows resolve.
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 1));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(internal, nullptr)
+
+  vector<ProteinIdentification> prot_in = prot;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(internal, prot_in, peps_in))
+
+  TEST_EQUAL(prot_in.size(), 1) // no shell appended next to the run that is already there
+  StringList spectra_data;
+  prot_in[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 2)
+  TEST_STRING_EQUAL(spectra_data[0], "/data/runA.mzML")
+  TEST_STRING_EQUAL(spectra_data[1], "/data/runB.mzML")
+  TEST_EQUAL((Int)peps_in[0].getMetaValue(Constants::UserParam::ID_MERGE_INDEX), 1)
 }
 END_SECTION
 

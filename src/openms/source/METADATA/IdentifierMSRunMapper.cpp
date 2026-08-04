@@ -99,12 +99,12 @@ namespace OpenMS
     const StringList& paths = getMSRunPaths(pep_id.getIdentifier());
     // Only a merged run can be mis-resolved: with 0 or 1 paths there is no wrong file to pick.
     //
-    // Deliberately NOT extended to a stale index on a single-path run. That shape is produced by
-    // QPXFile::importFromArrow, whose shell run carries one path while the PSMs it restores keep
-    // their original indices -- and there it is harmless, because each hit also carries a
-    // 'reference_file_name' metavalue that resolution prefers. Refusing it would reject a round
-    // trip that produces correct output. Where no such fallback exists the index simply does not
-    // resolve, which callers see as evidence they could not attribute rather than as a wrong key.
+    // Deliberately NOT extended to a stale index on a single-path run: whatever such an index
+    // says, the run holds exactly one file, so every PSM of it is still attributed correctly.
+    // That shape occurs whenever a run's 'spectra_data' is narrowed to one file while its PSMs
+    // keep the indices of the merge they came from, and refusing it would reject input that
+    // produces correct output. Where the index does not resolve at all, callers see an empty
+    // path -- evidence they could not attribute the PSM, rather than a wrong key.
     if (paths.size() < 2) { return; }
 
     const bool has_index = pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
