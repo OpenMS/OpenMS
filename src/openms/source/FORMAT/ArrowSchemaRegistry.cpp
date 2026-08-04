@@ -495,12 +495,12 @@ namespace OpenMS
 
   // -- QPXPgSchema (quantms Parquet eXchange format, protein group table) --
 
-  std::shared_ptr<arrow::DataType> QPXPgSchema::intensitiesType()
+  std::shared_ptr<arrow::DataType> QPXPgSchema::groupedRunsType()
   {
-    return arrow::list(arrow::struct_({
-      arrow::field("label", arrow::utf8(), /*nullable=*/false),
-      arrow::field("intensity", arrow::float32(), /*nullable=*/false)
-    }));
+    // list<utf8> with the default (nullable) element field, matching pg_accessions and what
+    // arrow::ListBuilder over a StringBuilder produces -- a non-nullable element field would
+    // build a type the builders never emit and fail Table::Validate().
+    return arrow::list(arrow::utf8());
   }
 
   std::shared_ptr<arrow::DataType> QPXPgSchema::additionalIntensitiesType()
@@ -558,10 +558,11 @@ namespace OpenMS
       arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
       arrow::field(GG_QVALUE, arrow::float64()),
       arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
-      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(GROUPED_RUNS, groupedRunsType(), /*nullable=*/false),
       arrow::field(GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_QVALUE, arrow::float64()),
-      arrow::field(INTENSITIES, intensitiesType()),
+      arrow::field(LABEL, arrow::utf8()),
+      arrow::field(INTENSITY, arrow::float32()),
       arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
       arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
       arrow::field(CONTAMINANT, arrow::boolean()),
@@ -656,7 +657,9 @@ namespace OpenMS
       arrow::field(INTENSITIES, intensitiesType()),
       arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
       arrow::field(PG_ACCESSIONS, pgAccessionsType()),
-      arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
+      // nullable since bigbio/qpx#212 (de novo workflows): "Representative protein; null when
+      // no protein mapping was performed". Still `required: true` -- the column must exist.
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8()),
       arrow::field(UNIQUE, arrow::boolean()),
       arrow::field(PG_GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_POSITIONS, pgPositionsType()),

@@ -44,6 +44,7 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXCollectionExport.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -329,7 +330,19 @@ protected:
     if (calc_id_purity || !has_ms3)
     {
       double ms1_purity = -1.;
-      if (!interpolate_precursor_purity)
+      // An MS2 with no preceding MS1 has no survey scan to measure isolation purity against --
+      // an acquisition that starts mid-cycle, or an mzML filtered down to a spectrum subset.
+      // MSExperiment::getPrecursorSpectrum() reports that as -1, which is NOT a spectrum index:
+      // passing it on reached MSSpectrum::MZBegin() on a spectrum before the start of the
+      // experiment and segfaulted inside PrecursorPurity. -1.0 is the value this function
+      // already returns for "purity unavailable", and fillConsensusFeature_() only writes the
+      // metavalue when it is > 0, so the feature is quantified without a purity annotation
+      // instead of the tool dying.
+      if (ms1_spec_idx < 0)
+      {
+        ms1_purity = -1.;
+      }
+      else if (!interpolate_precursor_purity)
       {
         ms1_purity = PrecursorPurity::computeSingleScanPrecursorPurities(id_spec_idx, ms1_spec_idx, exp, max_precursor_isotope_deviation)[0];
       }
@@ -697,8 +710,9 @@ protected:
           }
           else
           {
-            // will leave the cMap with a default initialized consensus feature. Remember to remove it later.
-            // should also never happen
+            // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
+            // pruned before the merge below. Should not normally happen: an identified spectrum is
+            // expected to exist in the mzML.
             OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in mzML file. Skipping." << std::endl;
           }
         }
@@ -722,6 +736,24 @@ protected:
       //IsobaricNormalizer::normalize(cur_cmap);
 
       // TODO cleanup, reset?
+
+      // cur_cmap was pre-sized to one ConsensusFeature per peptide ID (resize above) and only the
+      // features we could actually quantify were filled in - fillConsensusFeature_ always inserts at
+      // least one FeatureHandle per channel. Peptide IDs we could not quantify (an identified MS2 with
+      // no corresponding MS3, an identified spectrum missing from the mzML, or one without a spectrum
+      // reference) leave their slot as a default-constructed feature with zero FeatureHandles
+      // (rt/mz/charge = 0, empty sequence, no map association). Their identifications are preserved in
+      // the unassigned peptide IDs, so drop these empty placeholders here instead of merging them into
+      // the output map.
+      const Size before_prune = cur_cmap.size();
+      cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
+                               [](const ConsensusFeature& cf) { return cf.empty(); }),
+                     cur_cmap.end());
+      if (const Size pruned = before_prune - cur_cmap.size(); pruned > 0)
+      {
+        OPENMS_LOG_INFO << "Removed " << pruned << " unquantified consensus feature(s) without reporter "
+                        << "channels (their peptide identifications are kept in the unassigned IDs)." << std::endl;
+      }
 
       // Always use insert (not move assignment) to preserve column headers registered at line 577.
       // Move assignment would lose column headers if early files have no peptide IDs after filtering.
@@ -776,7 +808,10 @@ protected:
     
     addDataProcessing_(cmap, dp);
 
-    // remove empty features (TODO based on some other filtering settings?)
+    // Drop features that carry no reporter signal (zero total intensity). Structurally empty
+    // (unquantified) features were already removed per input file before merging above; this remaining
+    // filter only affects real, identified features whose reporter channels were all below threshold.
+    // TODO expose this as a proper min-intensity filtering setting.
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
     cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
     cmap.ensureUniqueId();
@@ -787,12 +822,24 @@ protected:
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
     cmap.setProteinIdentifications(merged_prot_ids);
 
-    ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
-    if (exp_design != "")
+    // Only fall back to deriving a design from the map when none was supplied. Calling
+    // fromConsensusMap() unconditionally logged "No fractions annotated in consensusXML.
+    // Assuming unfractionated." once per column header even when -exp_design says otherwise.
+    ExperimentalDesign design = (exp_design != "") ? ExperimentalDesignFile::load(exp_design, true)
+                                                   : ExperimentalDesign::fromConsensusMap(cmap);
+
+    // Annotate the resolved design back onto the column headers. IsobaricChannelExtractor sets
+    // only the channel meta values, so without this the fraction structure is known here and
+    // nowhere else -- consumers reading the map cannot tell two fractions of one sample from
+    // two independent runs.
+    if (const Size unannotated = design.annotateColumnHeaders(cmap); unannotated > 0)
     {
-      design = ExperimentalDesignFile::load(exp_design, true);
+      OPENMS_LOG_WARN << "IsobaricWorkflow: " << unannotated << " of " << cmap.getColumnHeaders().size()
+                      << " (file, channel) column(s) have no matching row in the experimental "
+                         "design, so they carry no fraction annotation. Downstream fraction-aware "
+                         "output cannot group them." << std::endl;
     }
-    
+
     bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
@@ -939,6 +986,14 @@ protected:
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
 
+        // Validate the whole collection before the first write. This tool streams millions of
+        // feature and PSM rows before the pg view is even reached, so a design-level refusal
+        // there would otherwise land after two very large files are already on disk.
+        if (!QPXCollectionExport::requireExportable(cmap, design))
+        {
+          return CANNOT_WRITE_OUTPUT_FILE; // already logged
+        }
+
         // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
@@ -986,7 +1041,10 @@ protected:
         }
 
         // Protein group export
-        if (!ProteinGroupArrowExport::exportToParquet(cmap, out_qpx + "/quantms.pg.parquet"))
+        // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
+        // files aggregated into one quantity, and the design is what defines that grouping and
+        // the sample numbering the protein abundances are stored under.
+        if (!ProteinGroupArrowExport::exportToParquet(cmap, design, out_qpx + "/quantms.pg.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;

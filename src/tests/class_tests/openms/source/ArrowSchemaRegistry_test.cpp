@@ -1084,6 +1084,63 @@ START_SECTION(QPXPSMSchema validation with table)
 }
 END_SECTION
 
+// ========== QPXPgSchema ==========
+
+START_SECTION(QPXPgSchema::schema() matches the active QPX 1.1 scalar quantity shape)
+{
+  auto s = QPXPgSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 21)
+  TEST_STRING_EQUAL(QPXPgSchema::GROUPED_RUNS, "grouped_runs")
+  TEST_STRING_EQUAL(QPXPgSchema::LABEL, "label")
+  TEST_STRING_EQUAL(QPXPgSchema::INTENSITY, "intensity")
+
+  const std::vector<std::string> expected_names = {
+    "pg_accessions", "pg_names", "gg_accessions", "gg_names", "gg_qvalue",
+    "anchor_protein", "grouped_runs", "global_qvalue", "pg_qvalue", "label", "intensity",
+    "additional_intensities", "is_decoy", "contaminant", "peptides", "peptide_counts",
+    "feature_counts", "sequence_coverage", "molecular_weight", "additional_scores", "cv_params"
+  };
+  const std::vector<arrow::Type::type> expected_types = {
+    arrow::Type::LIST, arrow::Type::LIST, arrow::Type::LIST, arrow::Type::LIST,
+    arrow::Type::DOUBLE, arrow::Type::STRING, arrow::Type::LIST, arrow::Type::DOUBLE,
+    arrow::Type::DOUBLE, arrow::Type::STRING, arrow::Type::FLOAT, arrow::Type::LIST,
+    arrow::Type::BOOL, arrow::Type::BOOL, arrow::Type::LIST, arrow::Type::STRUCT,
+    arrow::Type::STRUCT, arrow::Type::FLOAT, arrow::Type::FLOAT, arrow::Type::LIST,
+    arrow::Type::LIST
+  };
+  const std::vector<bool> expected_nullable = {
+    false, true, true, true, true, false, false, true, true, true, true,
+    true, false, true, false, true, true, true, true, true, true
+  };
+  for (Size i = 0; i < expected_names.size(); ++i)
+  {
+    TEST_STRING_EQUAL(s->field(static_cast<int>(i))->name(), expected_names[i])
+    TEST_EQUAL(s->field(static_cast<int>(i))->type()->id(), expected_types[i])
+    TEST_EQUAL(s->field(static_cast<int>(i))->nullable(), expected_nullable[i])
+  }
+
+  TEST_EQUAL(s->field(6)->name(), "grouped_runs")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(6)->nullable(), false)
+  TEST_EQUAL(s->field(9)->name(), "label")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  TEST_EQUAL(s->field(10)->name(), "intensity")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  TEST_EQUAL(s->GetFieldIndex("intensities"), -1)
+
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (const auto& field : s->fields())
+  {
+    columns.push_back(arrow::MakeEmptyArray(field->type()).ValueOrDie());
+  }
+  const auto result = ArrowSchemaValidation::validate(arrow::Table::Make(s, columns), s);
+  TEST_TRUE(result.valid)
+}
+END_SECTION
+
 // ========== QPXFeatureSchema ==========
 
 START_SECTION(QPXFeatureSchema::schema() returns non-null with 31 fields)
@@ -1220,10 +1277,11 @@ START_SECTION(QPXFeatureSchema field types and nullability)
   TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(19)->nullable(), true)
   TEST_EQUAL(s->field(19)->type()->Equals(QPXFeatureSchema::pgAccessionsType()), true)
-  // anchor_protein: utf8, not null
+  // anchor_protein: utf8, nullable since bigbio/qpx#212 (de novo workflows have no protein
+  // mapping, so the spec added `nullable: true` while keeping `required: true`)
   TEST_EQUAL(s->field(20)->name(), "anchor_protein")
   TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(20)->nullable(), false)
+  TEST_EQUAL(s->field(20)->nullable(), true)
   // unique: bool, nullable
   TEST_EQUAL(s->field(21)->name(), "unique")
   TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::BOOL)

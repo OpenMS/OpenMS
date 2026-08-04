@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -77,12 +78,31 @@ namespace // anonymous
     return name;
   }
 
+  /// Refuse identification runs whose identifiers cannot uniquely select an MS-run path list.
+  void requireUniqueRunIdentifiers(const std::vector<ProteinIdentification>& protein_identifications)
+  {
+    std::set<std::string> seen_identifiers;
+    for (const auto& protein_identification : protein_identifications)
+    {
+      const std::string& identifier = protein_identification.getIdentifier();
+      if (!seen_identifiers.insert(identifier).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "QPXFile: several identification runs share the identifier '" + identifier
+          + "'. Their MS run paths cannot be told apart, so a PSM could be attributed to the wrong "
+          + "run file.", identifier);
+      }
+    }
+  }
+
   /// Build the run-identifier -> spectra_data mapping used to resolve each PSM's origin file.
   /// Duplicate 'spectra_data' across runs makes IdentifierMSRunMapper::create() throw, but the
   /// forward map (the only direction used here) is fully populated before that happens by design,
-  /// so the failure is downgraded to a warning - same idiom as TextExporter::buildUSIMapper_().
+  /// so that failure is downgraded to a warning. Duplicate identifiers are refused first because
+  /// they overwrite the forward map itself.
   IdentifierMSRunMapper buildRunMapper(const std::vector<ProteinIdentification>& protein_identifications)
   {
+    requireUniqueRunIdentifiers(protein_identifications);
     IdentifierMSRunMapper mapper;
     try
     {
@@ -122,59 +142,39 @@ namespace // anonymous
     }
   }
 
-  /// Throw if @p pep_id belongs to a merged run (more than one 'spectra_data' entry) but carries
-  /// no usable 'id_merge_index'. Without it the origin file cannot be resolved and every PSM of the
-  /// run would silently be labelled with the run's first file. Mirrors the MzTab exporter, which
-  /// refuses the same input (MzTab.cpp). Runs with 0 or 1 path are exempt - unmerged input is
-  /// unaffected. @p psm_index only feeds the error message.
-  void validateMergeIndex(const IdentifierMSRunMapper& mapper, const PeptideIdentification& pep_id, size_t psm_index)
-  {
-    const StringList& paths = mapper.getMSRunPaths(pep_id.getIdentifier());
-    if (paths.size() < 2) { return; }
-
-    const std::string key = std::string(Constants::UserParam::ID_MERGE_INDEX);
-    const std::string where = "PSM #" + StringUtils::toStr(psm_index) + " of identification run '"
-                            + pep_id.getIdentifier() + "' (" + StringUtils::toStr(paths.size())
-                            + " files in the run)";
-
-    if (!pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Multiple files in a run, but no '" + key + "' in PeptideIdentification found: " + where + ".");
-    }
-
-    const DataValue& dv = pep_id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-    if (dv.valueType() != DataValue::INT_VALUE)
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "'" + key + "' is not an integer: " + where + ".");
-    }
-
-    const long long merge_index = static_cast<long long>(dv);
-    if (merge_index < 0 || static_cast<size_t>(merge_index) >= paths.size())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "'" + key + "' = " + StringUtils::toStr(merge_index) + " is out of range: " + where + ".");
-    }
-  }
-
-  /// @copydoc validateMergeIndex
+  /// Refuse PSMs of a merged run that carry no usable 'id_merge_index'.
+  /// @see IdentifierMSRunMapper::validateMergeIndex, which holds the check itself so the pg
+  ///      exporter can apply the same refusal.
   void validateMergeIndices(const IdentifierMSRunMapper& mapper, const PeptideIdentificationList& pep_ids)
   {
-    for (size_t i = 0; i < pep_ids.size(); ++i) { validateMergeIndex(mapper, pep_ids[i], i); }
+    for (size_t i = 0; i < pep_ids.size(); ++i) { mapper.validateMergeIndex(pep_ids[i], i); }
   }
 
-  /// @copydoc validateMergeIndex
+  /// @copydoc validateMergeIndices
   void validateMergeIndices(const IdentifierMSRunMapper& mapper, const std::vector<const PeptideIdentification*>& pep_ptrs)
   {
     for (size_t i = 0; i < pep_ptrs.size(); ++i)
     {
-      if (pep_ptrs[i] != nullptr) { validateMergeIndex(mapper, *pep_ptrs[i], i); }
+      if (pep_ptrs[i] != nullptr) { mapper.validateMergeIndex(*pep_ptrs[i], i); }
     }
   }
 
 } // anonymous namespace
 
+
+void QPXFile::requireResolvableMergeIndices(
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const PeptideIdentificationList& peptide_identifications)
+{
+  validateMergeIndices(buildRunMapper(protein_identifications), peptide_identifications);
+}
+
+void QPXFile::requireResolvableMergeIndices(
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const std::vector<const PeptideIdentification*>& peptide_identifications)
+{
+  validateMergeIndices(buildRunMapper(protein_identifications), peptide_identifications);
+}
 
 std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   const std::vector<ProteinIdentification>& protein_identifications,
@@ -865,12 +865,16 @@ namespace // anonymous
 /// (no global/cross-row state), so any contiguous sub-range produces a self-contained table;
 /// this is what makes the streaming export safe. Shared by exportPSMsToQPXArrow() (whole
 /// range) and exportToParquetStreaming() (one batch per call).
+/// @param[out] unattributable_psms Incremented per PSM whose origin file could not be resolved,
+///             so the caller can report it once. Written only through the caller's own slot --
+///             this runs inside an OpenMP region (see exportToParquetStreaming).
 std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   const IdentifierMSRunMapper& mapper,
   const std::vector<const PeptideIdentification*>& pep_ptrs,
   size_t range_begin,
   size_t range_end,
-  bool export_all_psms)
+  bool export_all_psms,
+  size_t& unattributable_psms)
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder;
@@ -1294,7 +1298,14 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
         // QPX defines run_file_name as the spectrum file name without path or extension. Stem
         // every source of the value, not just this fallback, so the column is a usable join key
         // across the psm/feature/pg tables no matter which branch above supplied it.
-        (void)run_file_name_builder.Append(File::stemName(run_file)); // non-nullable, default to empty
+        const std::string run_stem = File::stemName(run_file);
+        // QPX makes run_file_name a non-nullable primary-key component, but an empty string is
+        // not null -- it satisfies Arrow while violating the spec, and consumers key on it to
+        // join psm against feature and pg. Emit the row (a PSM is a primary record; dropping it
+        // would discard an identification) but count it, so a collection that cannot be joined
+        // is not handed over silently.
+        if (run_stem.empty()) { ++unattributable_psms; }
+        (void)run_file_name_builder.Append(run_stem);
       }
 
       // === cv_params (list<struct>, nullable - null for now) ===
@@ -1508,32 +1519,44 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   std::vector<const PeptideIdentification*> ptrs;
   ptrs.reserve(peptide_identifications.size());
   for (const auto& pep_id : peptide_identifications) { ptrs.push_back(&pep_id); }
-  return buildQPXPSMTableRange(mapper, ptrs, 0, ptrs.size(), export_all_psms);
+  size_t unattributable = 0;
+  auto table = buildQPXPSMTableRange(mapper, ptrs, 0, ptrs.size(), export_all_psms, unattributable);
+  if (unattributable > 0)
+  {
+    OPENMS_LOG_WARN << "QPXFile: " << unattributable << " PSM(s) have no resolvable origin file, "
+                       "so their run_file_name is empty -- a QPX primary-key component that must "
+                       "not be, and the key the psm view is joined to feature and pg on. Protein "
+                       "inference commonly drops the path: set it with "
+                       "ProteinIdentification::setPrimaryMSRunPath() before exporting." << std::endl;
+  }
+  return table;
 }
 
 
 namespace
 {
-  /// Build the canonical QPX "psm" file metadata (qpx_version, file_type="psm",
-  /// UUID, creation date, scan_format, creator). Each call mints a fresh uuid and
+  /// Build the canonical QPX "psm" file metadata. Each call mints a fresh uuid and
   /// creation_date, so callers needing one identity per file must build it once.
-  std::shared_ptr<const arrow::KeyValueMetadata> qpxPsmMetadata()
+  /// @param scan_format QPX scan_format token; omitted from the metadata when empty.
+  std::shared_ptr<const arrow::KeyValueMetadata> qpxPsmMetadata(
+    const ParquetWriteConfig& config,
+    const std::string& scan_format)
   {
-    return arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "psm"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
-      {"scan_format", "scan"},
-      {"software_provider", "OpenMS"}
-    });
+    std::map<std::string, std::string> extra;
+    if (!scan_format.empty()) { extra["scan_format"] = scan_format; }
+    return ArrowIOHelpers::qpxFileMetadata("psm_file", config, extra);
   }
 
-  /// Attach the canonical QPX "psm" file metadata to the schema of @p table.
-  std::shared_ptr<arrow::Table> attachQPXPsmMetadata(const std::shared_ptr<arrow::Table>& table)
+  /// Collect the spectrum references of @p pep_ptrs, for scan_format detection.
+  std::vector<std::string> spectrumReferences(const std::vector<const PeptideIdentification*>& pep_ptrs)
   {
-    return table->ReplaceSchemaMetadata(qpxPsmMetadata());
+    std::vector<std::string> refs;
+    refs.reserve(pep_ptrs.size());
+    for (const auto* p : pep_ptrs)
+    {
+      if (p && !p->getSpectrumReference().empty()) { refs.push_back(p->getSpectrumReference()); }
+    }
+    return refs;
   }
 
   /// Translate ParquetWriteConfig::Compression to arrow::Compression::type.
@@ -1583,13 +1606,20 @@ bool QPXFile::exportToParquet(
     OPENMS_LOG_ERROR << "QPXFile: Failed to create Arrow table" << std::endl;
     return false;
   }
-  return exportToParquet(table, filename, config);
+  std::vector<std::string> refs;
+  refs.reserve(peptide_identifications.size());
+  for (const auto& p : peptide_identifications)
+  {
+    if (!p.getSpectrumReference().empty()) { refs.push_back(p.getSpectrumReference()); }
+  }
+  return exportToParquet(table, filename, config, ArrowIOHelpers::qpxScanFormat(refs));
 }
 
 bool QPXFile::exportToParquet(
   const std::shared_ptr<arrow::Table>& table,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const std::string& scan_format)
 {
   if (!table)
   {
@@ -1597,7 +1627,7 @@ bool QPXFile::exportToParquet(
     return false;
   }
 
-  // Guard: the table-taking overload attaches file_type="psm" metadata, so the
+  // Guard: the table-taking overload attaches file_type="psm_file" metadata, so the
   // caller must actually pass a QPXPSMSchema table (not, e.g., the internal
   // PSMSchema produced by exportToArrow).
   auto validation = ArrowSchemaValidation::validate(table, QPXPSMSchema::schema(), ArrowSchemaValidation::Mode::Strict);
@@ -1608,7 +1638,9 @@ bool QPXFile::exportToParquet(
     return false;
   }
 
-  return ArrowIOHelpers::writeTableToParquet(attachQPXPsmMetadata(table), filename, config);
+  auto meta = qpxPsmMetadata(config, scan_format);
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
+  return ArrowIOHelpers::writeTableToParquet(table->ReplaceSchemaMetadata(meta), filename, config);
 }
 
 bool QPXFile::exportToParquetStreaming(
@@ -1648,7 +1680,8 @@ bool QPXFile::exportToParquetStreaming(
 
   // One metadata identity (uuid/creation_date) for the whole file. Reused both for the
   // writer's schema and for each batch table so their schemas are identical.
-  auto meta = qpxPsmMetadata();
+  auto meta = qpxPsmMetadata(config, ArrowIOHelpers::qpxScanFormat(spectrumReferences(peptide_identification_ptrs)));
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
   auto schema_meta = QPXPSMSchema::schema()->WithMetadata(meta);
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
@@ -1676,17 +1709,20 @@ bool QPXFile::exportToParquetStreaming(
   // config.row_group_size is the max rows per Parquet row group (WriteTable chunk size);
   // batch_size only bounds peak memory (PeptideIdentifications materialized at once).
   const int64_t rg = static_cast<int64_t>(config.row_group_size);
+  QPXValueValidation value_validator(QPXValueValidation::View::PSM);
 
   // Build one batch [b, e) of PeptideIdentifications: partition it into W contiguous sub-ranges,
   // build each sub-table in parallel (OpenMP), then write them in index order (serial — the
   // FileWriter is not thread-safe). Peak memory stays batch-bounded (the W sub-tables together hold
   // one batch's rows). Row content/order is identical to the serial path (contiguous, in-order).
+  size_t unattributable_total = 0; // accumulated across batches, reported once below
   auto write_batch = [&](size_t b, size_t e) -> bool
   {
     const size_t rows = e - b;
     const int W = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(rows, 1)));
     std::vector<std::shared_ptr<arrow::Table>> parts(W);
     std::vector<std::exception_ptr> errs(W);
+    std::vector<size_t> unattr(W, 0); // one slot per worker; summed after the region
 
     #pragma omp parallel for num_threads(W) schedule(static)
     for (int t = 0; t < W; ++t)
@@ -1696,13 +1732,15 @@ bool QPXFile::exportToParquetStreaming(
         const size_t base = rows / W, rem = rows % W;
         const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
         const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
-        parts[t] = buildQPXPSMTableRange(mapper, peptide_identification_ptrs, sb, se, export_all_psms);
+        parts[t] = buildQPXPSMTableRange(mapper, peptide_identification_ptrs, sb, se, export_all_psms, unattr[t]);
       }
       catch (...)
       {
         errs[t] = std::current_exception(); // never let an exception escape the OpenMP region
       }
     }
+
+    for (int t = 0; t < W; ++t) { unattributable_total += unattr[t]; }
 
     // Surface any worker exception as a logged failure (convert to the bool error contract).
     for (int t = 0; t < W; ++t)
@@ -1723,6 +1761,13 @@ bool QPXFile::exportToParquetStreaming(
       if (!parts[t])
       {
         OPENMS_LOG_ERROR << "QPXFile: Failed to build PSM batch partition " << t << std::endl;
+        return false;
+      }
+      const auto value_validation = value_validator.validate(parts[t]);
+      if (!value_validation.valid)
+      {
+        OPENMS_LOG_ERROR << "QPXFile: refusing invalid QPX PSM batch for " << filename << ": "
+                         << value_validation.toString() << std::endl;
         return false;
       }
       auto st = writer->WriteTable(*parts[t]->ReplaceSchemaMetadata(meta), rg);
@@ -1765,6 +1810,14 @@ bool QPXFile::exportToParquetStreaming(
     OPENMS_LOG_ERROR << "QPXFile: Failed to close output stream for " << filename << ": "
                      << outfile_close.ToString() << std::endl;
     ok = false;
+  }
+  if (unattributable_total > 0)
+  {
+    OPENMS_LOG_WARN << "QPXFile: " << unattributable_total << " PSM(s) have no resolvable origin "
+                       "file, so their run_file_name is empty -- a QPX primary-key component that "
+                       "must not be, and the key the psm view is joined to feature and pg on. "
+                       "Protein inference commonly drops the path: set it with "
+                       "ProteinIdentification::setPrimaryMSRunPath() before exporting." << std::endl;
   }
   return ok;
 }

@@ -92,19 +92,24 @@ public:
     @brief Write a pre-built QPX PSM Arrow table to a Parquet file
 
     The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow).
-    Attaches QPX file metadata (qpx_version, file_type="psm", UUID, creation_date)
-    before writing. Use this overload when the caller already has the table built
-    (e.g., for merged output) to avoid rebuilding it.
+    Attaches QPX file metadata (qpx_version, file_type="psm_file", UUID, creation_date,
+    compression_format) before writing. Use this overload when the caller already has the
+    table built (e.g., for merged output) to avoid rebuilding it.
 
     @param[in] table QPX PSM Arrow table (must not be null)
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[in] scan_format QPX scan_format token for the source native IDs, from
+               ArrowIOHelpers::qpxScanFormat(). A pre-built table no longer carries the
+               native IDs, so the caller must supply it; when empty the key is omitted
+               rather than guessed.
     @return true on success, false on error
   */
   static bool exportToParquet(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::string& scan_format = "");
 
   /**
     @brief Stream PSMs to a QPX Parquet file in row-batches to cap peak memory.
@@ -146,6 +151,41 @@ public:
     size_t batch_size = 1000000,
     const ParquetWriteConfig& config = ParquetWriteConfig{},
     int n_threads = 1);
+
+  /**
+    @brief Refuse PSMs of a merged run that carry no usable @c id_merge_index
+
+    Without the index every PSM of a merged identification run resolves to the run's FIRST
+    file, so @c run_file_name -- a QPX primary-key component -- would be wrong rather than
+    missing.
+
+    @note Preflight: call before the output file is opened. The streaming build runs inside an
+          OpenMP region whose exception firewall would flatten a throw into a logged
+          @c return @c false, leaving a truncated .parquet behind.
+
+    @param[in] protein_identifications Identification runs supplying @c spectra_data
+    @param[in] peptide_identifications The PSMs about to be exported
+    @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::InvalidValue if identification runs share an identifier
+  */
+  static void requireResolvableMergeIndices(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications);
+
+  /**
+    @brief Pointer-based overload of requireResolvableMergeIndices()
+
+    Avoids copying every PSM when a caller already owns the identifications in another container.
+    Null pointers are ignored, matching the streaming exporter.
+
+    @param[in] protein_identifications Identification runs supplying @c spectra_data
+    @param[in] peptide_identifications The PSMs about to be exported
+    @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::InvalidValue if identification runs share an identifier
+  */
+  static void requireResolvableMergeIndices(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::vector<const PeptideIdentification*>& peptide_identifications);
 
   /**
     @brief Import PSMs from a PSMSchema Arrow table.

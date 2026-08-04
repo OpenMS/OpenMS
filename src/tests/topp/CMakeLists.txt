@@ -1006,7 +1006,49 @@ set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPE
 
 #------------------------------------------------------------------------------
 # IsobaricWorkflow tests
-# TODO
+# TMT-10plex, one file, 10 channels/samples. The consensusXML check covers the protein-group
+# quantities: with remove_unquantified=true every group that survives carries data arrays, so this
+# is the path where dropping them on store is most visible.
+add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML
+  -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.mzTab)
+add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
+
+# An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
+# TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made
+# MSExperiment::getPrecursorSpectrum() return -1 and PrecursorPurity index before the start of
+# the experiment -- a segfault. The feature must still be quantified, just without a purity.
+add_test("TOPP_IsobaricWorkflow_2_no_preceding_ms1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
+         -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+         -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_2_input.idXML
+         -type tmt10plex
+         -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_2_output.tmp.consensusXML
+         -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_2_output.tmp.mzTab)
+
+# QPX Parquet export. IsobaricWorkflow is the only -out_qpx producer that uses the STREAMING
+# feature and PSM writers, and the only one whose pg export runs after two large streamed files
+# -- so it is the one where a late refusal would leave a partial collection behind. Only the
+# existence of the three files is checked: the content carries a fresh uuid and creation_date per
+# run and is therefore not byte-reproducible.
+add_test("TOPP_IsobaricWorkflow_qpx" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
+         -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+         -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+         -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+         -type tmt10plex
+         -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx.tmp.consensusXML
+         -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx.tmp.mzTab
+         -out_qpx ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir)
+add_test(NAME "TOPP_IsobaricWorkflow_qpx_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.feature.parquet)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_features" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test(NAME "TOPP_IsobaricWorkflow_qpx_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_psms" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test(NAME "TOPP_IsobaricWorkflow_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+
 #add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML)
 #add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
 #set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1")
