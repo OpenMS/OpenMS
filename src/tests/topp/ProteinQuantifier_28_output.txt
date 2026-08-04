@@ -1,0 +1,7 @@
+# Peptide abundances computed from file 'ProteinQuantifier_25_input.consensusXML'
+# Parameters (relevant only): best_charge_and_fraction=true
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance|fileA|ch1"	"abundance|fileA|ch2"	"abundance|fileB|ch1"	"abundance|fileB|ch2"	"fraction"
+"AAAAAK"	"Protein"	1	2	200.0	20.0	0.0	0.0	1
+"CCCCCK"	"Protein"	1	2	0.0	0.0	300.0	30.0	2
+"PEPTIDEK"	"Protein"	1	2	100.0	10.0	0.0	0.0	1
+"PEPTIDEK"	"Protein"	1	2	0.0	0.0	50.0	5.0	2
