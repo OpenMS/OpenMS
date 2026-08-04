@@ -2261,6 +2261,9 @@ if(NOT DISABLE_OPENSWATH)
   add_test("TOPP_OpenDIA_help"
     bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" --help > ${TESTS_TEMP_DIR}/OpenDIA_help.log 2>&1 && grep -q \"workflow:library_mode <choice>\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"prepared_pqp\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"transition_list\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"workflow:working_format <choice>\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"sqlite' writes a .osw workflow, 'parquet' writes a .oswpq archive\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"TargetedDataExtraction:write_debug_files\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"TargetedDataExtraction:write_chromatograms\" ${TESTS_TEMP_DIR}/OpenDIA_help.log && grep -q \"TargetedDataExtraction:write_mobilograms\" ${TESTS_TEMP_DIR}/OpenDIA_help.log")
 
+  add_test("TOPP_OpenDIA_write_ini_massim_defaults"
+    bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" -test -write_ini ${TESTS_TEMP_DIR}/OpenDIA_massim_defaults.ini > /dev/null 2>&1 && grep -q '<ITEM name=\"mz_correction_function\" value=\"quadratic_regression_delta_ppm\"' ${TESTS_TEMP_DIR}/OpenDIA_massim_defaults.ini")
+
   add_test("TOPP_OpenDIA_tr_type_mismatch_failure"
     bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv -tr_type pqp -workflow:library_mode auto -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch_out > ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"Explicit library type '-tr_type pqp' does not match the detected file type 'tsv'\" ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch.log")
 

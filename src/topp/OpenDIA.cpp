@@ -906,7 +906,11 @@ protected:
     }
     else if (name == "TargetedDataExtraction:Calibration:MassIMCorrection")
     {
-      return SwathMapMassCorrection().getDefaults();
+      Param p = SwathMapMassCorrection().getDefaults();
+      p.setValue("mz_correction_function",
+                 "quadratic_regression_delta_ppm",
+                 p.getDescription("mz_correction_function"));
+      return p;
     }
     else if (name == "Rescoring")
     {
