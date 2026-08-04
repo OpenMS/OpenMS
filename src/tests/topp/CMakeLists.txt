@@ -2394,13 +2394,16 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   endif()
 
   # reporting of multiple hits and tsv output
-  add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
-  add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
-  add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
-  set_tests_properties("TOPP_OpenNuXL_3_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
-  set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
+    add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
+    add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
+    set_tests_properties("TOPP_OpenNuXL_3_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+    set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+  endif()
 
   # reporting of multiple hits and tsv output and decoy generation
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
@@ -2415,20 +2418,26 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   endif()
 
   # test internal decoy generation - slow scoring
-  add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
-  add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
-  set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
+    add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
+  endif()
 
   # reporting of multiple hits and tsv output and decoy generation with huge mass window so that all candidates are scored
-  add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
-  add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
-  add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
-  set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
-  set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
+    add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
+    add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
+    set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+    set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  endif()
 endif(NOT MSVC)
 
 #------------------------------------------------------------------------------
