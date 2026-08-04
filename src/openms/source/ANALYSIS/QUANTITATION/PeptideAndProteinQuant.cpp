@@ -1303,7 +1303,10 @@ namespace OpenMS
     Size n_quantified = 0;
     for (const auto& sample_abundance : abundances)
     {
-      if (sample_abundance.second > 0.0) { ++n_quantified; }
+      if (sample_abundance.second > 0.0)
+      {
+        ++n_quantified;
+      }
     }
     return n_quantified;
   }
