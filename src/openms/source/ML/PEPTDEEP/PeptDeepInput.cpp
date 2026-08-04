@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace
 {
@@ -24,6 +25,21 @@ namespace
   size_t encodedLength_(const OpenMS::AASequence& seq, const OpenMS::ML::PeptDeepInputConfig& config)
   {
     return seq.size() + (config.add_terminal_tokens ? 2 : 0);
+  }
+
+  // Pre-compute the modification element indices for O(1) lookups
+  const std::unordered_map<std::string, int>& getElementToIndexMap()
+  {
+    static const std::unordered_map<std::string, int> map = []()
+    {
+      std::unordered_map<std::string, int> res;
+      for (size_t i = 0; i < OpenMS::ML::ALPHAPEPTDEEP_MOD_ELEMENTS.size(); ++i)
+      {
+        res[OpenMS::ML::ALPHAPEPTDEEP_MOD_ELEMENTS[i]] = static_cast<int>(i);
+      }
+      return res;
+    }();
+    return map;
   }
 }
 
@@ -60,6 +76,9 @@ namespace OpenMS
 
       batch.mod_x.assign(batch.batch_size * batch.sequence_length * PEPTDEEP_MOD_ELEMENTS, 0.0f);
 
+      // Fetch the static O(1) lookup map once for the batch
+      const auto& elem_map = getElementToIndexMap();
+
       for (size_t batch_idx = 0; batch_idx < peptides.size(); ++batch_idx)
       {
         const OpenMS::AASequence& seq = peptides[batch_idx];
@@ -93,12 +112,13 @@ namespace OpenMS
                     }
                   }
 
-                  auto it = std::find(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), ALPHAPEPTDEEP_MOD_ELEMENTS.end(), symbol);
+                  // O(1) unordered_map lookup instead of linear std::find scan
+                  auto it = elem_map.find(symbol);
                   int tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1; // Default to "Other"
 
-                  if (it != ALPHAPEPTDEEP_MOD_ELEMENTS.end())
+                  if (it != elem_map.end())
                   {
-                    tensor_elem_index = std::distance(ALPHAPEPTDEEP_MOD_ELEMENTS.begin(), it);
+                    tensor_elem_index = it->second;
                     if (tensor_elem_index >= static_cast<int>(PEPTDEEP_MOD_ELEMENTS))
                     {
                       tensor_elem_index = static_cast<int>(PEPTDEEP_MOD_ELEMENTS) - 1;
