@@ -330,26 +330,31 @@ namespace OpenMS
       if (param_.getValue("best_charge_and_fraction") == "true")
       { // quantify according to the best charge state only:
         Int best_charge = 0;
-        if (!getBestCharge_(pep_q.second.abundances, best_charge))
+        // A peptidoform without a single positive observation has no charge to select, so it stays
+        // unquantified. Do not skip the rest of the loop body for it: the PSM-count aggregation
+        // below is identification evidence and must not depend on the charge-selection flag - an
+        // isobaric peptide whose reporters are all 0.0 (undetected or below
+        // 'min_reporter_intensity') would otherwise silently lose its spectral counts, and with
+        // them the protein's 'psm_count'/'distinct_peptides' in mzTab and the QPX pg row.
+        if (getBestCharge_(pep_q.second.abundances, best_charge))
         {
-          continue;
-        }
-        best_charge_by_peptidoform_[pep_q.first] = best_charge;
+          best_charge_by_peptidoform_[pep_q.first] = best_charge;
 
-        // Retain every observation of the selected charge. Sample abundances span all fractions;
-        // fraction-group/label abundances retain the QPX quantification grain. Explicit zeros are
-        // kept in both maps but did not count as evidence when the charge was selected above.
-        for (const auto& fa : pep_q.second.abundances)
-        {
-          for (const auto& fna : fa.second)
+          // Retain every observation of the selected charge. Sample abundances span all fractions;
+          // fraction-group/label abundances retain the QPX quantification grain. Explicit zeros are
+          // kept in both maps but did not count as evidence when the charge was selected above.
+          for (const auto& fa : pep_q.second.abundances)
           {
-            auto charge_it = fna.second.find(best_charge);
-            if (charge_it == fna.second.end()) { continue; }
-            for (const auto& [channel, abundance] : charge_it->second)
+            for (const auto& fna : fa.second)
             {
-              const DesignCell& cell = getDesignCellFromFilenameAndChannel_(fna.first, channel);
-              pep_q.second.total_abundances[cell.sample] += abundance;
-              pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
+              auto charge_it = fna.second.find(best_charge);
+              if (charge_it == fna.second.end()) { continue; }
+              for (const auto& [channel, abundance] : charge_it->second)
+              {
+                const DesignCell& cell = getDesignCellFromFilenameAndChannel_(fna.first, channel);
+                pep_q.second.total_abundances[cell.sample] += abundance;
+                pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
+              }
             }
           }
         }

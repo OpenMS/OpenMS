@@ -91,6 +91,8 @@ With @p file_and_channel_level_output the protein abundances are instead reporte
 
 With @p best_charge_and_fraction, one charge is selected globally for each modified peptide. Charges are ranked first by the number of distinct samples with a positive abundance and then, on a tie, by total abundance across all samples (an exact tie deterministically keeps the lower charge). Every observation of the selected charge is retained and summed over fractions within a sample; the detailed peptide output still reports all observed fraction and charge combinations. The same selected-charge policy is used for sample, fraction-group/label, and file/channel protein quantities.
 
+The detailed @p peptide_out table that this flag produces has one row per (fraction, charge) and one abundance column per (file, channel) covering <em>every</em> file of the experimental design, so a row reports 0.0 for the files and channels its fraction does not cover. Without the flag, @p peptide_out instead writes one column per sample and one row per peptide, with @p fraction reported as "all".
+
 <B>Input: idXML</B>
 
 Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
@@ -391,28 +393,53 @@ protected:
   void writePeptideTable_(SVOutStream& out, const PeptideQuant& quant, const ExperimentalDesign& ed)
   {
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
+    const bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
+    const UInt n_labels = (UInt)ed.getNumberOfLabels();
 
-    // Extract the Spectra Filepath column from the design
+    // Extract the Spectra Filepath column from the design.
+    // Keyed by (fraction group, fraction) like the protein table: the detailed rows below report
+    // one cell per (file, channel), so every fraction file has to survive. Keying by fraction group
+    // alone collapses all fractions of a group onto whichever file the design happens to list last,
+    // which drops 11 of 12 files for a 12-fraction group.
+    map<UInt64, map<UInt64, std::string>> design_group_fraction_filename;
+    // The sample-level rows further below write one cell per sample instead, under the historical
+    // one-column-per-fraction-group header; keep that mapping unchanged for them.
     map<UInt64, std::string> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const std::string fn = File::stemName(f.path);      
+      const std::string fn = File::stemName(f.path);
+      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
       design_filenames[f.fraction_group] = fn;
     }
-    
+
     // write header:
     out << "peptide" << "protein" << "n_proteins" << "charge";
-    for (const auto& [fraction_group, filename] : design_filenames)
+    if (best_charge_and_fraction)
     {
-      for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
+      for (const auto& [fraction_group, fraction_to_filename] : design_group_fraction_filename)
       {
-        out << "abundance|" + filename + "|ch" + StringUtils::toStr(c);
+        for (const auto& [fraction, filename] : fraction_to_filename)
+        {
+          for (UInt c = 1; c <= n_labels; ++c)
+          {
+            out << "abundance|" + filename + "|ch" + StringUtils::toStr(c);
+          }
+        }
+      }
+    }
+    else
+    {
+      for (const auto& [fraction_group, filename] : design_filenames)
+      {
+        for (UInt c = 1; c <= n_labels; ++c)
+        {
+          out << "abundance|" + filename + "|ch" + StringUtils::toStr(c);
+        }
       }
     }
 
     out << "fraction" << endl;
 
-    bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
     for (auto const & q : quant) // loop over sequence->peptide data
     {
       if (q.second.total_abundances.empty())
@@ -434,8 +461,8 @@ protected:
           const Size fraction = fa.first;
           auto& filename_to_chargemap = fa.second; // filenames -> (charge -> abundance)
 
-          std::set<Int64> charge_of_peptide; // store the charge states of the peptide
-          
+          std::set<Int> charge_of_peptide; // store the charge states of the peptide
+
           // determine charge states the peptide was quantified over all files
           for (const auto& filenames : filename_to_chargemap) {
             for (const auto& [charge, abundance] : filenames.second) {
@@ -443,36 +470,34 @@ protected:
             }
           }
 
-          for (Int64 charge : charge_of_peptide)
+          for (Int charge : charge_of_peptide)
           {
             // write peptide sequence, protein, number of accessions, and charge:
             out << q.first.toString() << protein << accessions.size() << charge;
 
-            // fill file + channel/label columns 
-            for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
+            // fill file + channel/label columns
+            for (const auto& [fraction_group, fraction_to_filename] : design_group_fraction_filename) // note: we need to use the order in the experimental design file
             {
-              std::string filename = file.second; // get the filename from the design
-              for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
+              for (const auto& [design_fraction, filename] : fraction_to_filename)
               {
-                bool no_quant = false;
-                if (filename_to_chargemap.contains(filename))
+                for (UInt c = 1; c <= n_labels; ++c)
                 {
-                  if (const auto& charge_map = filename_to_chargemap.at(filename); charge_map.contains(charge))
+                  // Always emit a value, exactly as the protein table does. A file the peptide was
+                  // never seen in, a file that saw it only at another charge, and a channel without
+                  // a value are all reported as 0.0; emitting nothing for any of them would shift
+                  // every later cell of the row one column to the left.
+                  double abundance = 0.0;
+                  if (auto file_it = filename_to_chargemap.find(filename); file_it != filename_to_chargemap.end())
                   {
-                    const auto& channel_to_abundance = charge_map.at(charge);
-                    if (channel_to_abundance.contains(c))
+                    if (auto charge_it = file_it->second.find(charge); charge_it != file_it->second.end())
                     {
-                      out << channel_to_abundance.at(c);
+                      if (auto channel_it = charge_it->second.find(c); channel_it != charge_it->second.end())
+                      {
+                        abundance = channel_it->second;
+                      }
                     }
                   }
-                  else
-                  {
-                    no_quant = true;
-                  }
-                }
-                if (no_quant)
-                {
-                  out << 0.0; // no abundance for this file and charge
+                  out << abundance;
                 }
               }
             }
