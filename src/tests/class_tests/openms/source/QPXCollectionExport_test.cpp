@@ -26,6 +26,9 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -424,6 +427,83 @@ START_SECTION(([EXTRA] requireExportable - refuses a channel QPX cannot label))
 
   TEST_FALSE(QPXCollectionExport::requireExportable(cmap, makeDesign({"/d/run.mzML"})))
   TEST_EQUAL(ConsensusMapArrowExport::exportToArrow(cmap), nullptr)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Transaction removes a partially written collection unless committed))
+{
+  // requireExportable() cannot decide everything: a view can still refuse a row it only sees
+  // while building its table, and a write can fail on I/O. The earlier files are on disk by
+  // then, and a directory holding quantms.feature.parquet but no quantms.psm.parquet reads as a
+  // complete export of a smaller dataset. Transaction is what makes the collection
+  // all-or-nothing.
+  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_qpx_txn";
+  TEST_TRUE(File::makeDir(dir))
+
+  const std::vector<std::string> files{dir + "/quantms.feature.parquet",
+                                       dir + "/quantms.psm.parquet",
+                                       dir + "/quantms.pg.parquet"};
+  const auto writeStubs = [&files](size_t n)
+  {
+    for (size_t i = 0; i < n; ++i)
+    {
+      std::ofstream out(files[i].c_str());
+      out << "stub";
+    }
+  };
+
+  // Abandoned after the first view: nothing may survive.
+  writeStubs(1);
+  TEST_TRUE(File::exists(files[0]))
+  {
+    QPXCollectionExport::Transaction txn(dir);
+  }
+  TEST_FALSE(File::exists(files[0]))
+
+  // Abandoned after two of three views: still nothing.
+  writeStubs(2);
+  TEST_TRUE(File::exists(files[0]))
+  TEST_TRUE(File::exists(files[1]))
+  {
+    QPXCollectionExport::Transaction txn(dir);
+  }
+  TEST_FALSE(File::exists(files[0]))
+  TEST_FALSE(File::exists(files[1]))
+
+  // Committed: the complete collection is kept.
+  writeStubs(3);
+  {
+    QPXCollectionExport::Transaction txn(dir);
+    txn.commit();
+  }
+  TEST_TRUE(File::exists(files[0]))
+  TEST_TRUE(File::exists(files[1]))
+  TEST_TRUE(File::exists(files[2]))
+
+  // The guard runs during stack unwinding, so it must clean up when a writer throws - and must
+  // not throw itself, which would turn a reported export failure into a std::terminate.
+  bool propagated = false;
+  try
+  {
+    QPXCollectionExport::Transaction txn(dir);
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, dir, "boom");
+  }
+  catch (const Exception::UnableToCreateFile&)
+  {
+    propagated = true;
+  }
+  TEST_TRUE(propagated)
+  TEST_FALSE(File::exists(files[0]))
+  TEST_FALSE(File::exists(files[1]))
+  TEST_FALSE(File::exists(files[2]))
+
+  // A directory that never received a file is left alone rather than reported as an error.
+  {
+    QPXCollectionExport::Transaction txn(dir);
+  }
+  TEST_TRUE(File::exists(dir))
+
+  File::removeDirRecursively(dir);
 }
 END_SECTION
 

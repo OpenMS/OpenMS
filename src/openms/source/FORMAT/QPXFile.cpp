@@ -1819,6 +1819,14 @@ bool QPXFile::exportToParquetStreaming(
                        "Protein inference commonly drops the path: set it with "
                        "ProteinIdentification::setPrimaryMSRunPath() before exporting." << std::endl;
   }
+  // A batch can be refused after earlier batches were already flushed, and the writer is closed
+  // either way, so a failed run leaves a footer-complete file holding only the batches that
+  // happened to pass. That reads as a valid, merely smaller, PSM table. Remove it, matching
+  // ConsensusMapArrowExport's streaming writer.
+  if (!ok && !File::remove(filename))
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Failed to remove incomplete output " << filename << std::endl;
+  }
   return ok;
 }
 

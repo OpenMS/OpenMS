@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <map>
 #include <set>
@@ -143,6 +144,47 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const Expe
   }
 
   return true;
+}
+
+QPXCollectionExport::Transaction::Transaction(const std::string& directory) :
+  directory_(directory)
+{
+}
+
+void QPXCollectionExport::Transaction::commit()
+{
+  committed_ = true;
+}
+
+QPXCollectionExport::Transaction::~Transaction()
+{
+  if (committed_) { return; }
+
+  // Runs during stack unwinding when a writer threw, so nothing here may escape.
+  try
+  {
+    for (const char* name : {"/quantms.feature.parquet", "/quantms.psm.parquet", "/quantms.pg.parquet"})
+    {
+      const std::string path = directory_ + name;
+      if (!File::exists(path)) { continue; }
+      if (File::remove(path))
+      {
+        OPENMS_LOG_INFO << "QPXCollectionExport: removed " << path
+                        << " -- the QPX collection was not written in full." << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "QPXCollectionExport: failed to remove " << path
+                         << ", which is part of an incomplete QPX collection. Delete the "
+                            "directory before using it." << std::endl;
+      }
+    }
+  }
+  catch (...) // NOLINT(bugprone-empty-catch)
+  {
+    // A destructor that throws during unwinding terminates the process, which would replace a
+    // reported export failure with a crash. There is nothing left to report to.
+  }
 }
 
 } // namespace OpenMS

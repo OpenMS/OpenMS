@@ -10,6 +10,8 @@
 
 #include <OpenMS/config.h>
 
+#include <string>
+
 namespace OpenMS
 {
   class ConsensusMap;
@@ -36,8 +38,10 @@ namespace OpenMS
   table.
 
   @note Only conditions that are decidable from the input are covered. I/O failures, and
-        anything that can only be discovered while building a row, still leave a partial
-        collection; that is a narrower hazard and is tracked separately.
+        anything that can only be discovered while building a row, cannot be. Those are handled
+        from the other side, by Transaction: it removes whatever was written when the export does
+        not run to completion. Use both -- the preflight so a refusable input never opens a file,
+        the transaction so anything that slips past it is not left behind.
 
   @experimental This API is experimental and may change in future versions.
 
@@ -68,6 +72,51 @@ public:
     @throws Exception::InvalidValue if two identification runs share an identifier
   */
   static bool requireExportable(const ConsensusMap& cmap, const ExperimentalDesign& design);
+
+  /**
+    @brief Scope guard that leaves no partial QPX collection behind
+
+    requireExportable() cannot decide everything: a view can still refuse a row it only sees
+    while building the table, and a write can fail on I/O. Either way the earlier files of the
+    collection are already on disk, and a directory holding @c quantms.feature.parquet but no
+    @c quantms.psm.parquet is indistinguishable from a complete export of a smaller dataset.
+
+    Construct this before the first write and call commit() once the last one has succeeded.
+    On any other exit -- a view returning false, a writer throwing, an early return -- the
+    destructor removes every collection file present in the directory, so the export is
+    all-or-nothing. Enumerating the failure sites instead would silently miss the next one.
+
+    @code
+    QPXCollectionExport::Transaction qpx(out_qpx);
+    if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/quantms.feature.parquet")) { throw ...; }
+    if (!QPXFile::exportToParquet(prot_ids, pep_ids, out_qpx + "/quantms.psm.parquet"))        { throw ...; }
+    if (!ProteinGroupArrowExport::exportToParquet(cmap, design, out_qpx + "/quantms.pg.parquet")) { throw ...; }
+    qpx.commit();
+    @endcode
+
+    @experimental This API is experimental and may change in future versions.
+  */
+  class OPENMS_DLLAPI Transaction
+  {
+  public:
+    /// Start guarding the collection directory @p directory
+    explicit Transaction(const std::string& directory);
+
+    /// Removes the collection files unless commit() was called. Never throws.
+    ~Transaction();
+
+    /// Keep the collection: the export completed
+    void commit();
+
+    Transaction(const Transaction&) = delete;
+    Transaction& operator=(const Transaction&) = delete;
+    Transaction(Transaction&&) = delete;
+    Transaction& operator=(Transaction&&) = delete;
+
+  private:
+    std::string directory_;
+    bool committed_ {false};
+  };
 };
 
 } // namespace OpenMS

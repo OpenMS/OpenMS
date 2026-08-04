@@ -1040,6 +1040,11 @@ protected:
                                             out_qpx, "the QPX collection cannot be written in full");
       }
 
+      // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error - is
+      // undone here: the throws below unwind through this guard, which removes every file
+      // already written unless the commit at the end is reached.
+      QPXCollectionExport::Transaction qpx_collection(out_qpx);
+
       // Feature-level export
       if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
       {
@@ -1081,6 +1086,8 @@ protected:
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             out_qpx, "failed to write the protein groups Parquet file");
       }
+
+      qpx_collection.commit(); // all three views written
     }
 
     return ed;
