@@ -241,4 +241,47 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
 }
 END_SECTION
 
+START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP preserves decoy flags when heavy TraML fallback is normalized to PQP)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+
+  auto assay_params = makeIPFTestParameters_();
+  assay_params.enable_ipf = false;
+  assay_params.unimod_file.clear();
+
+  auto decoy_params = makeDeterministicDecoyParameters_();
+  decoy_params.min_decoy_fraction = 0.0;
+
+  std::string output_pqp;
+  NEW_TMP_FILE(output_pqp);
+  output_pqp += ".pqp";
+
+  const auto stats = prep.prepareEmpiricalLibraryToPQP(
+    toppDataPath_("OpenSwathWorkflow_1_input.TraML"),
+    FileTypes::TRAML,
+    output_pqp,
+    assay_params,
+    decoy_params);
+
+  TEST_TRUE(File::exists(output_pqp))
+  TEST_TRUE(stats.transition_count > 0)
+  TEST_TRUE(stats.hasDecoys())
+
+  TransitionPQPFile pqp_reader;
+  OpenSwath::LightTargetedExperiment light_exp;
+  pqp_reader.convertPQPToTargetedExperiment(output_pqp.c_str(), light_exp, true);
+
+  const Size decoy_count = static_cast<Size>(std::count_if(
+    light_exp.transitions.begin(), light_exp.transitions.end(),
+    [](const auto& transition)
+    {
+      return transition.getDecoy();
+    }));
+
+  TEST_TRUE(decoy_count > 0)
+  TEST_EQUAL(decoy_count, stats.decoy_transition_count)
+}
+END_SECTION
+
 END_TEST
