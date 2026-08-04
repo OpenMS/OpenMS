@@ -917,6 +917,29 @@ START_SECTION(exportToParquet - no compression)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exportToParquet leaves no file behind when the write fails))
+{
+  // The value validation runs before the file is opened, so a refused table never creates one.
+  // A write that fails afterwards is a different matter: FileOutputStream::Open has created and
+  // truncated the file and the Parquet writer has already put its magic bytes there, so what
+  // survives is a headerless fragment that reports as corrupt rather than as the smaller table
+  // it looks like. The streaming writer handles this; the one-shot writer must too.
+  // A row group size of 0 is refused by Parquet for a non-empty table, which reaches that
+  // failure deterministically on every platform.
+  ConsensusMap cmap = createTestConsensusMap();
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  filename += ".parquet";
+
+  ParquetWriteConfig pq_config;
+  pq_config.row_group_size = 0;
+
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config))
+  TEST_FALSE(File::exists(filename))
+}
+END_SECTION
+
 START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, const std::string& filename, size_t batch_size, const ParquetWriteConfig& config)))
 {
   arrow::MemoryPool* pool = arrow::default_memory_pool();
