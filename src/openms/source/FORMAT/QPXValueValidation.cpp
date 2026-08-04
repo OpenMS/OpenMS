@@ -429,17 +429,10 @@ namespace OpenMS
         // as an empty string. The run identity, unlike the optional mapping, must always be
         // present.
         //
-        // 'observed_mz' is part of the key precisely because of those unmapped rows. With an
-        // empty peptidoform the key collapses to (charge, run_file_name, rt), and 'rt' is
-        // narrowed to float32 on write - one ULP is 244 us at a retention time of 3000 s. Two
-        // co-eluting unmapped features of the same charge in one run then share a key even
-        // though they are plainly different features, and the whole export is refused. That is
-        // not a corner case for the producers OpenMS ships: ProteomicsLFQ with seeds leaves the
-        // large majority of its consensus features unidentified (79 % in the
-        // ProteomicsLFQ_3 test fixture), and a real run carries tens of thousands of them, where
-        // the birthday bound over ~2.2e7 representable float32 retention times makes a collision
-        // the expected outcome rather than a remote one. The m/z is written one column over and
-        // separates them.
+        // 'observed_mz' is in the key (see the class documentation) for the sake of those
+        // unmapped rows: without it the key collapses to (charge, run_file_name, rt), and 'rt' is
+        // float32 on write - one ULP is 244 us at 3000 s - so two co-eluting unmapped features of
+        // one charge in one run would collide. Do not drop it back out.
         const bool strings_valid = nonEmptyString(
           run, row, QPXFeatureSchema::RUN_FILE_NAME, result);
         const bool peptidoform_valid = !peptidoform->IsNull(row);
