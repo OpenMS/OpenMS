@@ -1474,13 +1474,26 @@ namespace OpenMS
       {
         for (const auto& [label, abundance] : label_abundances)
         {
-          abundances[{fraction_group, label}].push_back(abundance);
+          // Touch the cell even where the peptide was not detected, so a cell whose peptides were
+          // all undetected still reports zero rather than dropping out. Only measurements become
+          // values: an abundance stored as 0.0 is "not detected" - IsobaricChannelExtractor writes
+          // a reporter it could not find (or one below 'min_reporter_intensity') as 0.0 and
+          // inserts the handle anyway - so counting it here would let undetected peptides satisfy
+          // the 'top_n' gate and drag a median or mean of the cell towards zero. Same rule as
+          // calculateProteinAbundances_(), calculateFileAndChannelLevelProteinAbundances_() and
+          // normalizePeptides_().
+          DoubleList& cell = abundances[{fraction_group, label}];
+          if (abundance > 0.0) { cell.push_back(abundance); }
         }
       }
     }
 
     for (auto& [unit_label, values] : abundances)
     {
+      // Detected abundances only; empty means every peptide of this cell was undetected. That is
+      // not the same as "no peptide reached this cell" - such a cell has no key at all - so it is
+      // deliberately not skipped: the gate below drops it when 'top_n' peptides are required, and
+      // aggregateAbundances_() renders it as 0.0 otherwise.
       if (!include_all && top_n > 0 && values.size() < top_n)
       {
         continue;
@@ -1584,7 +1597,16 @@ namespace OpenMS
 
       for (auto const& [key, abundance] : abundances_of_peptide)
       {
-        channel_level_abundances_for_selected_peptides[key].push_back(abundance);
+        // Touch the cell even where the peptide was not detected, so a cell whose peptides were
+        // all undetected still reports zero rather than dropping out of the parallel
+        // (filename, channel, abundance) arrays. Only measurements become values: an abundance
+        // stored as 0.0 is "not detected" - IsobaricChannelExtractor writes a reporter it could
+        // not find (or one below 'min_reporter_intensity') as 0.0 and inserts the handle anyway -
+        // so counting it here would let undetected peptides satisfy the per-file 'top_n' gate and
+        // drag a median or mean of the cell towards zero. Same rule as
+        // calculateProteinAbundances_() and normalizePeptides_().
+        DoubleList& cell = channel_level_abundances_for_selected_peptides[key];
+        if (abundance > 0.0) { cell.push_back(abundance); }
       }
     }
     
@@ -1595,11 +1617,13 @@ namespace OpenMS
       std::string filename = get<1>(selected_peptide);
       UInt channel = get<2>(selected_peptide);
       
+      // Detected abundances only; empty means every peptide of this cell was undetected. That is
+      // not the same as "no peptide reached this cell" - such a cell has no key at all - so it is
+      // deliberately not skipped here: the gate below drops it when 'top_n' peptides are
+      // required, and aggregateAbundances_() renders it as 0.0 otherwise.
       DoubleList& all_abundances = detailed_ab.second;
-      
-      if (all_abundances.empty()) continue;
-      
-      // check if we have enough peptides for this detailed key
+
+      // check if we have enough detected peptides for this detailed key
       if (!include_all && (top_n > 0) && (all_abundances.size() < top_n))
       {
         continue;

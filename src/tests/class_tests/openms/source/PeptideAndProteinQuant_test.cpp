@@ -1625,6 +1625,158 @@ START_SECTION((const ProteinQuant& getProteinResults() iBAQ must also normalize 
 END_SECTION
 
 
+START_SECTION((const ProteinQuant& getProteinResults() file+channel level aggregates detected peptides, not stored zeros))
+{
+  // The protein is measured at 1000 in every channel of the one file. In channel 2 only one of
+  // its three peptides has a reporter; the other two are stored as 0.0, which is what
+  // IsobaricChannelExtractor writes for a reporter it could not find. Aggregating those zeros
+  // reports the cell as empty for a channel the protein was measured in - the same defect as at
+  // the sample level, in the array that feeds the abundance|<file>|ch<N> columns and the QPX pg
+  // view.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"fileA"}, 3,
+                          {{0, 1, "PEPTIDEK", 2, 1000.0}, {0, 2, "PEPTIDEK", 2, 1000.0}, {0, 3, "PEPTIDEK", 2, 1000.0},
+                           {0, 1, "AAAAAK",   2, 1000.0}, {0, 2, "AAAAAK",   2,    0.0}, {0, 3, "AAAAAK",   2, 1000.0},
+                           {0, 1, "CCCCCK",   2, 1000.0}, {0, 2, "CCCCCK",   2,    0.0}, {0, 3, "CCCCCK",   2, 1000.0}},
+                          "Prot", consensus, design);
+
+  // 'top:include_all' is what IsobaricWorkflow sets, so this is the shipped isobaric path.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:aggregate", "median");
+    p.setValue("top:include_all", "true");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(1), 1000.0)
+    TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(2), 1000.0) // was 0.0
+    TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(3), 1000.0)
+  }
+
+  // 'sum' documents the opposite convention - missing values count as zero - and summing zeros
+  // changes nothing, so its cells must not move.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:N", 0);
+    p.setValue("top:aggregate", "sum");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(1), 3000.0)
+    TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(2), 1000.0)
+    TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(3), 3000.0)
+  }
+
+  // The per-file "at least N peptides" gate counts detected peptides too: channel 2 has one, so
+  // without 'include_all' and with 'top:N' 3 the cell is declined rather than credited with
+  // peptides that were never measured. The cell keeps no entry; the writers render that as 0.0.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:N", 3);
+    p.setValue("top:aggregate", "median");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& cells = quantifier.getProteinResults().at("Prot").channel_level_abundances.at("fileA");
+    TEST_REAL_SIMILAR(cells.at(1), 1000.0)
+    TEST_TRUE(cells.find(2) == cells.end())
+    TEST_REAL_SIMILAR(cells.at(3), 1000.0)
+  }
+}
+END_SECTION
+
+
+START_SECTION((const ProteinQuant& getProteinResults() fraction group level aggregates detected peptides, not stored zeros))
+{
+  // Third copy of the same aggregation, and it had the same defect: the per-(fraction group,
+  // label) cells were built by pushing every stored abundance, zeros included. The fixture is the
+  // one used for the file+channel level above - one file, three channels, and in channel 2 only
+  // one of the protein's three peptides carries a reporter - so all three levels describe the
+  // same measurement and must agree. Before this fix they did not: IsobaricWorkflow_1's reference
+  // showed the fraction-group array at exactly half the sample-level values wherever a peptide
+  // went undetected, the signature of mean(x, 0).
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"fileA"}, 3,
+                          {{0, 1, "PEPTIDEK", 2, 1000.0}, {0, 2, "PEPTIDEK", 2, 1000.0}, {0, 3, "PEPTIDEK", 2, 1000.0},
+                           {0, 1, "AAAAAK",   2, 1000.0}, {0, 2, "AAAAAK",   2,    0.0}, {0, 3, "AAAAAK",   2, 1000.0},
+                           {0, 1, "CCCCCK",   2, 1000.0}, {0, 2, "CCCCCK",   2,    0.0}, {0, 3, "CCCCCK",   2, 1000.0}},
+                          "Prot", consensus, design);
+
+  // The helper puts every file in fraction group 1 and labels the channels 1..N, so the cells are
+  // (1, channel) and correspond one-to-one to the samples.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:aggregate", "median");
+    p.setValue("top:include_all", "true");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 1000.0) // was 0.0
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 1000.0)
+
+    // One file x N channels means a cell is a sample, so the three levels must report the same
+    // number. This is the invariant IsobaricWorkflow_1's reference file encodes.
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2),
+                      protein.channel_level_abundances.at("fileA").at(2))
+  }
+
+  // 'sum' counts missing values as zero by documented convention, and summing zeros changes
+  // nothing, so these cells must not move.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:N", 0);
+    p.setValue("top:aggregate", "sum");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& protein = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 3000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 3000.0)
+  }
+
+  // The "at least N peptides" gate counts detected peptides here too: channel 2 has one, so with
+  // 'top:N' 3 and no 'include_all' the cell is declined rather than credited with peptides that
+  // were never measured. It keeps no entry; the writers render that as 0.0.
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:N", 3);
+    p.setValue("top:aggregate", "median");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins();
+
+    const auto& cells = quantifier.getProteinResults().at("Prot").fraction_group_abundances.at(1);
+    TEST_REAL_SIMILAR(cells.at(1), 1000.0)
+    TEST_TRUE(cells.find(2) == cells.end())
+    TEST_REAL_SIMILAR(cells.at(3), 1000.0)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
