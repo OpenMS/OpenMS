@@ -58,6 +58,7 @@
 
 using namespace OpenMS;
 using namespace std;
+namespace Sql = Internal::SqliteHelper;
 
 /**
 @page TOPP_OpenDIA OpenDIA
@@ -65,9 +66,9 @@ using namespace std;
 @brief High-level DIA workflow front-end that prepares peptide query parameters, performs targeted extraction, rescoring, inference, and export in one invocation.
 
 Three library modes:
-- @c auto: probe the input library for decoy transitions and automatically choose between the prepared and empirical paths
-- @c prepared: accept an already prepared peptide query parameter library (`tsv`, `pqp`, `oswpq`, or `TraML`) and normalize it to an internal `prepared_library.pqp`
-- @c empirical: accept an empirical transition library, run assay preparation
+- @c auto: probe the input library for decoy transitions and automatically choose between the prepared and transition-list paths
+- @c prepared_pqp: accept an already prepared peptide query parameter library (`tsv`, `pqp`, `oswpq`, or `TraML`) and normalize it to an internal `prepared_library.pqp`
+- @c transition_list: accept an empirical transition library, run assay preparation
   and decoy generation, normalize the result to `prepared_library.pqp`, then continue
 
 The downstream run then executes:
@@ -78,7 +79,10 @@ The downstream run then executes:
 
 By default intermediate files are removed after success. Use
 @p workflow:keep_intermediate_files to retain them, or
-@p workflow:intermediate_dir to control their location.
+@p workflow:intermediate_dir to control their location. If it is set to the
+same directory as @p out_dir while @p workflow:keep_intermediate_files is false,
+OpenDIA uses a nested @c OpenDIA_intermediates working directory to avoid
+removing final exports during cleanup.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_OpenDIA.cli
@@ -487,13 +491,13 @@ protected:
     registerOutputDir_("out_dir", "<dir>", ".", "Directory for final exported OpenDIA outputs.", false, false);
 
     registerTOPPSubsection_("workflow", "Workflow options.");
-    registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared-library normalization, or force empirical assay/decoy preparation.", false);
-    setValidStrings_("workflow:library_mode", {"auto", "prepared", "empirical"});
+    registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared peptide-query normalization, or force transition-list assay/decoy preparation.", false);
+    setValidStrings_("workflow:library_mode", {"auto", "prepared_pqp", "transition_list"});
     registerStringOption_("workflow:working_format", "<choice>", "sqlite", "Internal workflow container used after extraction/scoring: 'sqlite' writes a .osw workflow, 'parquet' writes a .oswpq archive.", false);
     setValidStrings_("workflow:working_format", {"sqlite", "parquet"});
     registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw (.sqlite workflow) or workflow.oswpq (.parquet archive workflow) after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
-    registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure.", false, false);
+    registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure. If it matches out_dir while workflow:keep_intermediate_files=false, OpenDIA uses a nested OpenDIA_intermediates subdirectory to protect final exports.", false, false);
   }
 
   void registerTargetedDataExtractionOptions_()
@@ -586,7 +590,7 @@ protected:
 
   void registerPeptideQueryParameterOptions_()
   {
-    registerTOPPSubsection_("PeptideQueryParameters:AssayGenerator", "Assay-generation parameters used when workflow:library_mode=empirical.");
+    registerTOPPSubsection_("PeptideQueryParameters:AssayGenerator", "Assay-generation parameters used when workflow:library_mode=transition_list.");
     registerIntOption_("PeptideQueryParameters:AssayGenerator:min_transitions", "<int>", 6, "Minimal number of transitions.", false);
     registerIntOption_("PeptideQueryParameters:AssayGenerator:max_transitions", "<int>", 6, "Maximal number of transitions.", false);
     registerStringOption_("PeptideQueryParameters:AssayGenerator:allowed_fragment_types", "<type>", "b,y", "Allowed fragment types.", false);
@@ -603,7 +607,7 @@ protected:
     setValidFormats_("PeptideQueryParameters:AssayGenerator:swath_windows_file", {"txt"});
     registerInputFile_("PeptideQueryParameters:AssayGenerator:unimod_file", "<file>", "", "Optional Unimod XML file used for IPF transition generation.", false, false);
     setValidFormats_("PeptideQueryParameters:AssayGenerator:unimod_file", {"xml"});
-    registerFlag_("PeptideQueryParameters:AssayGenerator:enable_ipf", "Generate identifying transitions for IPF during empirical library preparation.");
+    registerFlag_("PeptideQueryParameters:AssayGenerator:enable_ipf", "Generate identifying transitions for IPF during transition-list library preparation.");
     registerIntOption_("PeptideQueryParameters:AssayGenerator:max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations.", false, true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_identification_ms2_precursors", "IPF: disable MS2 precursor ions for identification transitions.", true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_identification_specific_losses", "IPF: disable specific neutral losses for identification transitions.", true);
@@ -612,7 +616,7 @@ protected:
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_decoy_transitions", "IPF: disable generation of decoy UIS transitions.", true);
     registerIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", "<int>", -1, "IPF: random seed for decoy shuffle (-1 = time-based).", false, true);
 
-    registerTOPPSubsection_("PeptideQueryParameters:DecoyGenerator", "Decoy-generation parameters used when workflow:library_mode=empirical.");
+    registerTOPPSubsection_("PeptideQueryParameters:DecoyGenerator", "Decoy-generation parameters used when workflow:library_mode=transition_list.");
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:method", "<type>", "shuffle", "Decoy generation method.", false);
     setValidStrings_("PeptideQueryParameters:DecoyGenerator:method", {"shuffle", "pseudo-reverse", "reverse", "shift"});
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:decoy_tag", "<type>", "DECOY_", "Decoy tag.", false);
@@ -851,6 +855,7 @@ protected:
     {
       CalibrationWorkflow cal_wf;
       Param p = cal_wf.getDefaults();
+      p.setValue("windows:min_rt_window", 30.0, "Minimum RT extraction window in seconds to apply after RT-window estimation in OpenDIA. This guards against overconfident auto-estimated RT windows on broad or sparse-gradient data; set to 0 to disable the floor.");
       p.setValue("tr_irt_priority_sampling", "", "Optional custom TSV transition file containing additional priority peptides for auto-iRT sampling.");
       p.setValue("rt_norm", "", "RT normalization file (if set, linear iRT files may be omitted).");
       return p;
@@ -913,11 +918,11 @@ protected:
   LibraryMode getLibraryMode_() const
   {
     const std::string mode = getStringOption_("workflow:library_mode");
-    if (mode == "empirical")
+    if (mode == "transition_list")
     {
       return LibraryMode::EMPIRICAL;
     }
-    if (mode == "prepared")
+    if (mode == "prepared_pqp")
     {
       return LibraryMode::PREPARED;
     }
@@ -1321,12 +1326,26 @@ protected:
   WorkingDirectory prepareWorkingDirectory_(const std::string& out_dir) const
   {
     WorkingDirectory working_dir;
+    const std::string out_dir_abs = File::absolutePath(out_dir);
     const bool keep_intermediate_files = toBool_(getStringOption_("workflow:keep_intermediate_files"));
     const std::string requested_dir = getOutputDirOption("workflow:intermediate_dir");
 
     if (!requested_dir.empty())
     {
-      working_dir.path = File::absolutePath(requested_dir);
+      const std::string requested_dir_abs = File::absolutePath(requested_dir);
+      if (!keep_intermediate_files && requested_dir_abs == out_dir_abs)
+      {
+        File::makeDir(out_dir_abs);
+        working_dir.path = out_dir_abs + "/OpenDIA_intermediates";
+        File::makeDir(working_dir.path);
+        working_dir.remove_on_success = true;
+        OPENMS_LOG_INFO << "workflow:intermediate_dir matches out_dir while workflow:keep_intermediate_files=false; using nested intermediate directory '"
+                        << working_dir.path
+                        << "' to protect final exports." << std::endl;
+        return working_dir;
+      }
+
+      working_dir.path = requested_dir_abs;
       File::makeDir(working_dir.path);
       working_dir.remove_on_success = !keep_intermediate_files;
       return working_dir;
@@ -1334,7 +1353,8 @@ protected:
 
     if (keep_intermediate_files)
     {
-      working_dir.path = File::absolutePath(out_dir + "/OpenDIA_intermediates");
+      File::makeDir(out_dir_abs);
+      working_dir.path = out_dir_abs + "/OpenDIA_intermediates";
       File::makeDir(working_dir.path);
       return working_dir;
     }
@@ -1464,6 +1484,84 @@ protected:
     for (const char* suffix : {"-journal", "-wal", "-shm"})
     {
       remove_file(path + suffix);
+    }
+  }
+
+  static UInt64 countOSWFeaturesForRun_(const std::string& osw_path, const UInt64 run_id)
+  {
+    if (!File::exists(osw_path))
+    {
+      return 0;
+    }
+
+    SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READ_ONLY);
+    if (!conn.tableExists("FEATURE"))
+    {
+      return 0;
+    }
+
+    sqlite3* db = Sql::getNativeHandle(conn);
+    sqlite3_stmt* stmt = nullptr;
+    const std::string sql = "SELECT COUNT(*) FROM FEATURE WHERE RUN_ID = ?1;";
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    {
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to prepare feature-count query.");
+    }
+    const sqlite3_int64 run_id_sql = static_cast<sqlite3_int64>(Sql::clearSignBit(run_id));
+    if (sqlite3_bind_int64(stmt, 1, run_id_sql) != SQLITE_OK)
+    {
+      sqlite3_finalize(stmt);
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to bind RUN_ID while counting extracted OSW features.");
+    }
+
+    const int step_rc = sqlite3_step(stmt);
+    if (step_rc != SQLITE_ROW && step_rc != SQLITE_DONE)
+    {
+      sqlite3_finalize(stmt);
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to execute feature-count query.");
+    }
+    const UInt64 feature_count = step_rc == SQLITE_ROW ?
+      static_cast<UInt64>(sqlite3_column_int64(stmt, 0)) :
+      0;
+    sqlite3_finalize(stmt);
+    return feature_count;
+  }
+
+  static void clearOSWRunData_(const std::string& osw_path, const UInt64 run_id)
+  {
+    if (!File::exists(osw_path))
+    {
+      return;
+    }
+
+    SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READWRITE);
+    const UInt64 run_id_clean = Sql::clearSignBit(run_id);
+    const std::string run_id_sql = StringUtils::toStr(run_id_clean);
+
+    conn.executeStatement("BEGIN TRANSACTION;");
+    try
+    {
+      conn.executeStatement("DELETE FROM FEATURE_MS1 WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
+      conn.executeStatement("DELETE FROM FEATURE_MS2 WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
+      conn.executeStatement("DELETE FROM FEATURE_PRECURSOR WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
+      conn.executeStatement("DELETE FROM FEATURE_TRANSITION WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
+      conn.executeStatement("DELETE FROM FEATURE WHERE RUN_ID = " + run_id_sql + ";");
+      conn.executeStatement("DELETE FROM RUN WHERE ID = " + run_id_sql + ";");
+      conn.executeStatement("COMMIT;");
+    }
+    catch (...)
+    {
+      try
+      {
+        conn.executeStatement("ROLLBACK;");
+      }
+      catch (...)
+      {
+      }
+      throw;
     }
   }
 
@@ -4842,6 +4940,7 @@ protected:
     OpenSwathOSWWriter oswwriter(write_osw ? workflow_output : "", enable_uis_scoring);
     OpenSwathOSWParquetWriter parquet_writer;
     parquet_writer.setPreserveExisting(true);
+    UInt64 total_extracted_features = 0;
     if (write_osw)
     {
       const auto canonical_mapping = Internal::buildOpenSwathCanonicalLibraryMapping(transition_exp);
@@ -5036,7 +5135,6 @@ protected:
 
       const UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
 
-      Interfaces::IMSDataConsumer* chromatogramConsumer = nullptr;
       std::string out_chrom_current = out_chrom;
       if (out_chrom_current.empty() && write_chromatograms)
       {
@@ -5048,9 +5146,7 @@ protected:
       {
         out_chrom_current = makePerRunManualOutputPath_(out_chrom, run_basename);
       }
-      prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
-      std::unique_ptr<MobilogramParquetConsumer> mobilogramConsumer;
       std::string out_mobilogram_current = out_mobilogram;
       if (out_mobilogram_current.empty() && write_mobilograms)
       {
@@ -5061,38 +5157,117 @@ protected:
       {
         out_mobilogram_current = makePerRunManualOutputPath_(out_mobilogram, run_basename);
       }
-      prepareMobilogramOutput(mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
+      const bool rt_window_estimation_enabled = irt_calibration_params.getValue("windows:estimate_rt").toBool();
+      const double original_user_rt_window = cp.rt_extraction_window;
 
-      oswwriter.addRun(cur_run, current_run_files[0]);
-      if (auto* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer))
+      auto run_extraction_attempt = [&](const ChromExtractParams& extraction_cp,
+                                        OpenSwathOSWWriter::OSWData& attempt_osw_rows,
+                                        const bool reset_outputs) -> UInt64
       {
-        sql_cons->addRun(current_run_files[0], cur_run);
-        sql_cons->setRunId(cur_run);
-      }
-      oswwriter.setRunId(cur_run);
+        if (reset_outputs)
+        {
+          if (!out_chrom_current.empty())
+          {
+            removeExistingPath_(out_chrom_current);
+          }
+          if (!out_mobilogram_current.empty())
+          {
+            removeExistingPath_(out_mobilogram_current);
+          }
+        }
 
-      FeatureMap run_feature_file;
+        Interfaces::IMSDataConsumer* attempt_chromatogram_consumer = nullptr;
+        std::unique_ptr<MobilogramParquetConsumer> attempt_mobilogram_consumer;
+        prepareChromOutput(&attempt_chromatogram_consumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
+        prepareMobilogramOutput(attempt_mobilogram_consumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
+
+        if (write_osw)
+        {
+          oswwriter.addRun(cur_run, current_run_files[0]);
+          if (auto* sql_cons = dynamic_cast<MSDataSqlConsumer*>(attempt_chromatogram_consumer))
+          {
+            sql_cons->addRun(current_run_files[0], cur_run);
+            sql_cons->setRunId(cur_run);
+          }
+        }
+        oswwriter.setRunId(cur_run);
+
+        FeatureMap run_feature_file;
+        const bool store_features_in_feature_file = false;
+        OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
+        wf.setLogType(log_type_);
+        wf.performExtraction(swath_maps, trafo_rtnorm, extraction_cp, cp_ms1_current, feature_finder_param_run,
+                             transition_exp, run_feature_file, store_features_in_feature_file, oswwriter, attempt_chromatogram_consumer,
+                             batchSize, ms1_isotopes, load_into_memory, mrm_map_param,
+                             attempt_mobilogram_consumer.get(), innerBatchSize, maxConcurrentSwaths,
+                             write_parquet ? &attempt_osw_rows : nullptr);
+
+        if (attempt_mobilogram_consumer)
+        {
+          attempt_mobilogram_consumer->finalize();
+        }
+        delete attempt_chromatogram_consumer;
+
+        return write_parquet ?
+          static_cast<UInt64>(attempt_osw_rows.feature_rows.size()) :
+          countOSWFeaturesForRun_(workflow_output, cur_run);
+      };
+
       OpenSwathOSWWriter::OSWData run_osw_rows;
-      const bool store_features_in_feature_file = false;
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
-      wf.setLogType(log_type_);
-      wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run,
-                           transition_exp, run_feature_file, store_features_in_feature_file, oswwriter, chromatogramConsumer,
-                           batchSize, ms1_isotopes, load_into_memory, mrm_map_param,
-                           mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths,
-                           write_parquet ? &run_osw_rows : nullptr);
+      UInt64 run_feature_count = run_extraction_attempt(cp_current, run_osw_rows, false);
+
+      const bool estimated_rt_window_narrowed =
+        rt_window_estimation_enabled &&
+        original_user_rt_window > 0.0 &&
+        cp_current.rt_extraction_window > 0.0 &&
+        cp_current.rt_extraction_window + 1e-6 < original_user_rt_window;
+
+      if (run_feature_count == 0 && estimated_rt_window_narrowed)
+      {
+        OPENMS_LOG_WARN << "Extraction produced zero feature rows for run '" << current_run_files[0]
+                        << "' after RT-window estimation narrowed the extraction window from "
+                        << original_user_rt_window << " to " << cp_current.rt_extraction_window
+                        << " seconds. Retrying this run once with the original user RT window."
+                        << std::endl;
+
+        ChromExtractParams retry_cp = cp_current;
+        retry_cp.rt_extraction_window = original_user_rt_window;
+        if (write_osw)
+        {
+          clearOSWRunData_(workflow_output, cur_run);
+        }
+        run_osw_rows = OpenSwathOSWWriter::OSWData();
+        run_feature_count = run_extraction_attempt(retry_cp, run_osw_rows, true);
+        if (run_feature_count > 0)
+        {
+          OPENMS_LOG_INFO << "Retry with the original RT window recovered " << run_feature_count
+                          << " extracted feature rows for run '" << current_run_files[0] << "'."
+                          << std::endl;
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "Retry with the original RT window still produced zero feature rows for run '"
+                          << current_run_files[0] << "'." << std::endl;
+        }
+      }
 
       swath_maps.clear();
-      if (mobilogramConsumer)
-      {
-        mobilogramConsumer->finalize();
-      }
-      delete chromatogramConsumer;
+      total_extracted_features += run_feature_count;
       if (write_parquet)
       {
         parquet_writer.write(workflow_output, transition_exp, run_osw_rows, cur_run, current_run_files[0], enable_uis_scoring);
       }
       ++run_index;
+    }
+
+    if (total_extracted_features == 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Targeted extraction produced zero OpenSWATH feature rows across all runs. "
+                                    "If RT-window estimation was enabled, try disabling "
+                                    "'TargetedDataExtraction:Calibration:windows:estimate_rt', increasing "
+                                    "'TargetedDataExtraction:rt_extraction_window', or increasing "
+                                    "'TargetedDataExtraction:Calibration:windows:min_rt_window'.");
     }
 
     return EXECUTION_OK;
@@ -5272,12 +5447,12 @@ protected:
         {
           resolved_library_mode = LibraryMode::PREPARED;
           prepared_library_ready = true;
-          OPENMS_LOG_INFO << "Auto-detected prepared library input because decoy transitions are already present.\n";
+          OPENMS_LOG_INFO << "Auto-detected prepared_pqp library input because decoy transitions are already present.\n";
         }
         else
         {
           resolved_library_mode = LibraryMode::EMPIRICAL;
-          OPENMS_LOG_INFO << "Auto-detected empirical library input because no decoy transitions were found. Running peptide query preparation.\n";
+          OPENMS_LOG_INFO << "Auto-detected transition_list library input because no decoy transitions were found. Running peptide query preparation.\n";
           if (File::exists(prepared_library_pqp) && !File::remove(prepared_library_pqp))
           {
             throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prepared_library_pqp);
@@ -5289,13 +5464,13 @@ protected:
       {
         if (!prepared_library_ready)
         {
-          OPENMS_LOG_INFO << "Using prepared library mode.\n";
+          OPENMS_LOG_INFO << "Using prepared_pqp library mode.\n";
           library_stats = library_preparation.normalizeLibraryToPQP(input_library, tr_type, prepared_library_pqp, reader_parameters);
         }
       }
       else
       {
-        OPENMS_LOG_INFO << "Using empirical library mode: running peptide query preparation.\n";
+        OPENMS_LOG_INFO << "Using transition_list library mode: running peptide query preparation.\n";
         const auto assay_parameters = getAssayGeneratorParameters_();
         const auto decoy_parameters = getDecoyGeneratorParameters_();
         if (isPeptidoformInferenceRequested_() && !assay_parameters.enable_ipf)
