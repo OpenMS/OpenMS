@@ -28,6 +28,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <cmath>
+#include <limits>
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/QPXFile.h>
@@ -381,8 +382,8 @@ protected:
 
     registerStringOption_("greedy_group_resolution", "<choice>", "false", "Pre-process identifications with greedy resolution of shared peptides based on the protein group probabilities. (Only works with an idXML file given as protein_groups parameter).", false);
     setValidStrings_("greedy_group_resolution", ListUtils::create<std::string>("true,false"));
-    registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
-    registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
+    registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...\nA ratio is written only where both samples were quantified; otherwise 'nan'. A sample has no abundance when the protein has fewer than 'top:N' detected peptides in it, and an abundance stored as 0.0 means 'not detected' -- neither is a measurement, and 0.0 would read as 'equal to the reference'. Only emitted together with the sample-level abundance columns, i.e. not with 'file_and_channel_level_output' and not for a single sample.", false);
+    registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)\nThe light/middle/heavy roles are taken from the sample order of the experimental design, not from its labels. Unquantified samples give 'nan', as for 'ratios'.", false);
     
     registerStringOption_("file_and_channel_level_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.\nNote that peptide selection and aggregation are then applied per file, not per sample: 'top:N' requires N peptides in that single file (much stricter than the sample-level rule for fractionated data, where all cells of a quantified protein can end up 0), and the cells only decompose the sample-level value for 'top:N' 0 with 'top:aggregate' sum.", false);
     setValidStrings_("file_and_channel_level_output", {"true","false"});
@@ -717,33 +718,65 @@ protected:
           SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
           out << (pos != q.second.total_abundances.end() ? pos->second : 0.0);
         }
-      }
 
-      // if ratios-flag is set, print log2-ratios. ab1/ab0, ab2/ab0, ... , ab'n/ab0
-      if (print_ratios)
-      {
-        double log2 = log(2.0);
-        double ref_abundance = q.second.total_abundances.find(0)->second;
-        out << 0; // =log(1)/log2;
-        for (size_t sample_id = 1; sample_id < ed.getNumberOfSamples(); ++sample_id)
-
+        // The ratio columns exist only here. writeProteinTableHeader_() emits their names in the
+        // matching branch of the same three-way split - not for '-file_and_channel_level_output',
+        // and not for a single sample - so writing them anywhere else appends values under no
+        // column name at all, and a reader that trusts the header silently shifts every field.
+        if (ed.getNumberOfSamples() > 1)
         {
-          SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
-          out << (pos != q.second.total_abundances.end() ? log(pos->second / ref_abundance) / log2 : 0.0);
+          // A sample carries no measurement in two distinct ways, and neither may enter a ratio:
+          //  - no entry at all: calculateProteinAbundances_() skips a sample in which the protein
+          //    has fewer than 'top:N' detected peptides, so a missing key is the normal case
+          //    rather than an error - which is why the abundance loop above reads the same map
+          //    defensively;
+          //  - an entry of 0.0: "not detected", the convention the rest of the class follows
+          //    (IsobaricChannelExtractor stores an unfound reporter as 0.0).
+          // Dividing by either gives +-inf or NaN, and the previous code's fallback of 0.0 was
+          // worse than both: in a log2-ratio column 0.0 reads as "exactly equal to the reference",
+          // so a protein that could not be quantified was reported as unchanged. Emit 'nan'.
+          const auto quantified = [&q](size_t sample_id) -> const double*
+          {
+            const auto pos = q.second.total_abundances.find(sample_id);
+            if (pos == q.second.total_abundances.end() || !(pos->second > 0.0)) { return nullptr; }
+            return &pos->second;
+          };
+          // Keep the exact arithmetic of the original - log(x) / log(2.0), not std::log2(x), which
+          // may differ in the last ulp - so quantified proteins produce byte-identical output.
+          const double log2 = log(2.0);
+          const auto writeLog2Ratio = [&out, log2](const double* numerator, const double* denominator)
+          {
+            if (numerator == nullptr || denominator == nullptr)
+            {
+              out.writeValueOrNan(std::numeric_limits<double>::quiet_NaN());
+              return;
+            }
+            out << log(*numerator / *denominator) / log2;
+          };
+
+          // if ratios-flag is set, print log2-ratios. ab1/ab0, ab2/ab0, ... , ab'n/ab0
+          if (print_ratios)
+          {
+            const double* reference = quantified(0);
+            if (reference != nullptr) { out << 0; } // =log(1)/log2, written as an int as before
+            else { out.writeValueOrNan(std::numeric_limits<double>::quiet_NaN()); }
+            for (size_t sample_id = 1; sample_id < ed.getNumberOfSamples(); ++sample_id)
+            {
+              writeLog2Ratio(quantified(sample_id), reference);
+            }
+          }
+          // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
+          if (print_SILACratios && ed.getNumberOfSamples() == 3)
+          {
+            const double* light = quantified(0);
+            const double* middle = quantified(1);
+            const double* heavy = quantified(2);
+
+            writeLog2Ratio(heavy, light);
+            writeLog2Ratio(heavy, middle);
+            writeLog2Ratio(middle, light);
+          }
         }
-      }
-      // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
-      if (print_SILACratios && ed.getNumberOfSamples() == 3)
-      {
-        double light = q.second.total_abundances.find(0)->second;
-        double middle = q.second.total_abundances.find(1)->second;
-        double heavy = q.second.total_abundances.find(2)->second;
-
-        double log2 = log(2.0);
-
-        out << log(heavy / light) / log2
-            << log(heavy / middle) / log2
-            << log(middle / light) / log2;
       }
       out << endl;
     }
