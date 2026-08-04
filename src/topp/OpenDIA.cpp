@@ -4987,6 +4987,9 @@ protected:
       ChromExtractParams cp_irt_current = cp_irt;
       Param feature_finder_param_run = feature_finder_param;
       bool use_ms1_im_current = use_ms1_im && !disable_im_windowing;
+      bool auto_pasef_ms2_im_window = false;
+      bool auto_pasef_irt_im_window = false;
+      bool auto_pasef_ms1_im_window = false;
 
       std::string per_run_tmp = tmp_dir;
       std::unique_ptr<File::TempDir> per_run_temp_dir;
@@ -5048,6 +5051,7 @@ protected:
           if (cp_current.im_extraction_window < 0.0)
           {
             cp_current.im_extraction_window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+            auto_pasef_ms2_im_window = true;
             OPENMS_LOG_INFO << "Auto-applying MS2 ion mobility extraction window of "
                             << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
                             << " 1/K0 for detected PASEF data because TargetedDataExtraction:ion_mobility_window remained negative." << std::endl;
@@ -5055,6 +5059,7 @@ protected:
           if (!disable_im_calibration && cp_irt_current.im_extraction_window < 0.0)
           {
             cp_irt_current.im_extraction_window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+            auto_pasef_irt_im_window = true;
             OPENMS_LOG_INFO << "Auto-applying iRT ion mobility extraction window of "
                             << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
                             << " 1/K0 for detected PASEF data because TargetedDataExtraction:irt_im_extraction_window remained negative." << std::endl;
@@ -5062,6 +5067,7 @@ protected:
           if (use_ms1_im_current && cp_ms1_current.im_extraction_window < 0.0)
           {
             cp_ms1_current.im_extraction_window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+            auto_pasef_ms1_im_window = true;
             OPENMS_LOG_INFO << "Auto-applying MS1 ion mobility extraction window of "
                             << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
                             << " 1/K0 for detected PASEF data because TargetedDataExtraction:im_extraction_window_ms1 remained negative." << std::endl;
@@ -5213,6 +5219,26 @@ protected:
           irt_mrm_map_param, pasef, load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
         trafo_rtnorm = calibration_result.rt_trafo;
       }
+
+      auto clamp_auto_pasef_im_window = [&](double& window, const char* label, const bool enabled)
+      {
+        if (!enabled)
+        {
+          return;
+        }
+        if (!std::isfinite(window) || window < DEFAULT_PASEF_IM_EXTRACTION_WINDOW)
+        {
+          OPENMS_LOG_INFO << "[Estimated] " << label
+                          << " window floor applied post-calibration: clamped window from "
+                          << window << " to " << DEFAULT_PASEF_IM_EXTRACTION_WINDOW
+                          << " 1/K0 because OpenDIA auto-configured the PASEF extraction window for this run."
+                          << std::endl;
+          window = DEFAULT_PASEF_IM_EXTRACTION_WINDOW;
+        }
+      };
+      clamp_auto_pasef_im_window(cp_current.im_extraction_window, "MS2 ion mobility (1/k0)", auto_pasef_ms2_im_window);
+      clamp_auto_pasef_im_window(cp_irt_current.im_extraction_window, "iRT ion mobility (1/k0)", auto_pasef_irt_im_window);
+      clamp_auto_pasef_im_window(cp_ms1_current.im_extraction_window, "MS1 ion mobility (1/k0)", auto_pasef_ms1_im_window);
 
       const UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
 
