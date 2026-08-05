@@ -18,6 +18,8 @@
 
 #include <arrow/api.h>
 
+#include <limits>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -54,6 +56,68 @@ namespace
                                  arrow::field("value", arrow::float32(), true),
                                  arrow::field("tags", arrow::list(arrow::utf8()), true)});
     return arrow::Table::Make(schema, {key_a, value_a, tag_a});
+  }
+
+  /// key (string) + value (float64), for NaN / infinity cases.
+  std::shared_ptr<arrow::Table> makeDoubleTable(const std::vector<std::string>& keys,
+                                                const std::vector<double>& values)
+  {
+    arrow::StringBuilder key_b;
+    for (const auto& k : keys) { (void)key_b.Append(k); }
+    std::shared_ptr<arrow::Array> key_a;
+    (void)key_b.Finish(&key_a);
+
+    arrow::DoubleBuilder value_b;
+    for (double v : values) { (void)value_b.Append(v); }
+    std::shared_ptr<arrow::Array> value_a;
+    (void)value_b.Finish(&value_a);
+
+    return arrow::Table::Make(arrow::schema({arrow::field("key", arrow::utf8(), false),
+                                             arrow::field("value", arrow::float64(), true)}),
+                              {key_a, value_a});
+  }
+
+  /// key (string) + value (int64), for the wide-integer case.
+  std::shared_ptr<arrow::Table> makeIntTable(const std::vector<std::string>& keys,
+                                             const std::vector<int64_t>& values)
+  {
+    arrow::StringBuilder key_b;
+    for (const auto& k : keys) { (void)key_b.Append(k); }
+    std::shared_ptr<arrow::Array> key_a;
+    (void)key_b.Finish(&key_a);
+
+    arrow::Int64Builder value_b;
+    for (int64_t v : values) { (void)value_b.Append(v); }
+    std::shared_ptr<arrow::Array> value_a;
+    (void)value_b.Finish(&value_a);
+
+    return arrow::Table::Make(arrow::schema({arrow::field("key", arrow::utf8(), false),
+                                             arrow::field("value", arrow::int64(), true)}),
+                              {key_a, value_a});
+  }
+
+  /// key (string) + nums (list<double>), for multiset pairing of numeric lists.
+  std::shared_ptr<arrow::Table> makeNumListTable(const std::vector<std::string>& keys,
+                                                 const std::vector<std::vector<double>>& nums)
+  {
+    arrow::StringBuilder key_b;
+    for (const auto& k : keys) { (void)key_b.Append(k); }
+    std::shared_ptr<arrow::Array> key_a;
+    (void)key_b.Finish(&key_a);
+
+    auto num_values = std::make_shared<arrow::DoubleBuilder>();
+    arrow::ListBuilder num_b(arrow::default_memory_pool(), num_values);
+    for (const auto& row : nums)
+    {
+      (void)num_b.Append();
+      for (double v : row) { (void)num_values->Append(v); }
+    }
+    std::shared_ptr<arrow::Array> num_a;
+    (void)num_b.Finish(&num_a);
+
+    return arrow::Table::Make(arrow::schema({arrow::field("key", arrow::utf8(), false),
+                                             arrow::field("nums", arrow::list(arrow::float64()), true)}),
+                              {key_a, num_a});
   }
 
   /// Write @p table to @p path. The caller supplies the path via NEW_TMP_FILE_EXT, which is
@@ -341,6 +405,71 @@ START_SECTION([EXTRA] max_reported caps each diagnostic and the remainder is cou
   TEST_EQUAL(r.equal, false)
   TEST_EQUAL(r.value_errors.size(), 1)
   TEST_EQUAL(r.suppressed, 2)  // the two it did not list
+}
+END_SECTION
+
+START_SECTION([EXTRA] two NaNs compare equal and a NaN never matches a number)
+{
+  const double nan_v = std::numeric_limits<double>::quiet_NaN();
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeDoubleTable({"p1"}, {nan_v}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeDoubleTable({"p1"}, {nan_v}), b))
+
+  ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
+  TEST_EQUAL(r.equal, true)
+
+  // ... but NaN against a real number is a difference no tolerance can accept
+  std::string c;
+  NEW_TMP_FILE_EXT(c, "parquet")
+  TEST_TRUE(writeTo(makeDoubleTable({"p1"}, {1.0}), c))
+  ParquetDiffSettings loose = pk_settings;
+  loose.acceptable_absdiff = 1e9;
+  r = ParquetTableComparator::compare(a, c, loose);
+  TEST_EQUAL(r.equal, false)
+}
+END_SECTION
+
+START_SECTION([EXTRA] a 64-bit integer difference survives the widening to double)
+{
+  // 2^53 and 2^53+1 are the same double; the difference must still be seen exactly.
+  const int64_t big = 9007199254740992LL;   // 2^53
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeIntTable({"p1"}, {big}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeIntTable({"p1"}, {big + 1}), b))
+
+  // exact comparison must report the difference rather than lose it to rounding
+  ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
+  TEST_EQUAL(r.equal, false)
+
+  // and a tolerance of 1 must accept it
+  ParquetDiffSettings tol = pk_settings;
+  tol.acceptable_absdiff = 1.0;
+  r = ParquetTableComparator::compare(a, b, tol);
+  TEST_EQUAL(r.equal, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] unordered numeric lists are paired by value not by canonical text)
+{
+  // Lexically "10" < "20" but "20.1" < "9.99"; pairing by text would compare 10 against 20.1.
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeNumListTable({"p1"}, {{10.0, 20.0}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeNumListTable({"p1"}, {{20.1, 9.99}}), b))
+
+  ParquetDiffSettings unordered = pk_settings;
+  unordered.unordered_lists = true;
+  unordered.acceptable_absdiff = 0.11;
+  const ParquetDiffResult r = ParquetTableComparator::compare(a, b, unordered);
+  TEST_EQUAL(r.equal, true)
 }
 END_SECTION
 

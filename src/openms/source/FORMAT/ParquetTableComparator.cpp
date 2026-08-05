@@ -28,7 +28,7 @@ namespace OpenMS
 {
   namespace
   {
-    /// Read a Parquet file into a single-chunk Arrow table. Returns nullptr and logs on failure.
+    /// Read a Parquet file into an Arrow table. Returns nullptr and logs on failure.
     std::shared_ptr<arrow::Table> readTable_(const std::string& filename)
     {
       auto infile_result = arrow::io::ReadableFile::Open(filename);
@@ -114,10 +114,10 @@ namespace OpenMS
       happened to emit. This mirrors what the QPX reference implementation does before it
       checks primary-key uniqueness.
     */
-    std::string canonicalKey_(const std::shared_ptr<arrow::Scalar>& scalar)
+    std::string canonicalKey_(const std::shared_ptr<arrow::Scalar>& scalar, bool& ok)
     {
-      if (!scalar) { return "E;"; }        // unreadable
-      if (!scalar->is_valid) { return "N;"; } // null
+      if (!scalar) { ok = false; return "E;"; }  // unreadable: caller must not key on this
+      if (!scalar->is_valid) { return "N;"; }    // null
 
       if (isListLike_(scalar->type->id()))
       {
@@ -127,7 +127,14 @@ namespace OpenMS
         for (int64_t i = 0; i < values->length(); ++i)
         {
           auto element = values->GetScalar(i);
-          parts.push_back(element.ok() ? canonicalKey_(*element) : "E;");
+          if (!element.ok())
+          {
+            // Two different unreadable elements must not collapse to one key.
+            ok = false;
+            parts.push_back("E;");
+            continue;
+          }
+          parts.push_back(canonicalKey_(*element, ok));
         }
         std::sort(parts.begin(), parts.end());
         std::string joined = "L" + std::to_string(parts.size()) + ";";
@@ -211,6 +218,40 @@ namespace OpenMS
     }
 
     /**
+      @brief Exact |a-b| for two integer scalars.
+
+      Widening a 64-bit integer to a double loses precision, so the difference has to be taken
+      in integer space first. The result is exact whenever it fits a double's mantissa; a
+      difference larger than that is far beyond any tolerance anyway.
+    */
+    bool integerAbsDiff_(const arrow::Scalar& a, const arrow::Scalar& b, double& absdiff)
+    {
+      if (!arrow::is_integer(a.type->id()) || !arrow::is_integer(b.type->id())) { return false; }
+
+      if (arrow::is_unsigned_integer(a.type->id()) && arrow::is_unsigned_integer(b.type->id()))
+      {
+        auto ca = a.CastTo(arrow::uint64());
+        auto cb = b.CastTo(arrow::uint64());
+        if (!ca.ok() || !cb.ok()) { return false; }
+        const uint64_t ua = static_cast<const arrow::UInt64Scalar&>(**ca).value;
+        const uint64_t ub = static_cast<const arrow::UInt64Scalar&>(**cb).value;
+        absdiff = static_cast<double>(ua > ub ? ua - ub : ub - ua);
+        return true;
+      }
+
+      auto ca = a.CastTo(arrow::int64());
+      auto cb = b.CastTo(arrow::int64());
+      if (!ca.ok() || !cb.ok()) { return false; }
+      const int64_t ia = static_cast<const arrow::Int64Scalar&>(**ca).value;
+      const int64_t ib = static_cast<const arrow::Int64Scalar&>(**cb).value;
+      // Subtract in unsigned space so INT64_MIN/INT64_MAX cannot overflow.
+      const uint64_t diff = (ia > ib) ? (static_cast<uint64_t>(ia) - static_cast<uint64_t>(ib))
+                                      : (static_cast<uint64_t>(ib) - static_cast<uint64_t>(ia));
+      absdiff = static_cast<double>(diff);
+      return true;
+    }
+
+    /**
       @brief Numeric value of a scalar, if it holds one.
 
       Integers are included: "numeric" in the tolerance contract means every number, not only
@@ -265,10 +306,19 @@ namespace OpenMS
         double ratio = 1.0;
         double absdiff = 0.0;
         bool ok = numbersAcceptable_(av, bv, settings, ratio, absdiff);
-        // A 64-bit integer difference can vanish when both sides are widened to a double.
-        // Two scalars that are not exactly equal must never be accepted on a zero difference.
-        if (ok && absdiff == 0.0 && !a->Equals(*b)) { ok = false; }
-        if (std::isfinite(ratio)) { max_ratio = std::max(max_ratio, ratio); }
+
+        // Integers: retake the difference exactly, because widening a 64-bit value to a double
+        // can collapse a real difference to zero. Deliberately NOT applied to floating point --
+        // Scalar::Equals defaults to nans_equal_ = false, so using it as a tie-breaker here
+        // would report two NaNs as different, which the tolerance contract says are equal.
+        double exact = 0.0;
+        if (integerAbsDiff_(*a, *b, exact))
+        {
+          absdiff = exact;
+          ok = absdiff <= settings.acceptable_absdiff || ratio <= settings.acceptable_ratio;
+        }
+
+        max_ratio = std::max(max_ratio, ratio);   // may be inf: that is an observed ratio
         max_absdiff = std::max(max_absdiff, absdiff);
         if (!ok)
         {
@@ -303,23 +353,39 @@ namespace OpenMS
         }
         if (settings.unordered_lists)
         {
-          // Precompute one canonical key per element. Building them inside the comparator would
-          // re-derive each key O(log n) times, and canonicalKey_ recurses through nested values.
-          auto keys_of = [](const std::shared_ptr<arrow::Array>& arr) {
-            std::vector<std::string> keys(static_cast<size_t>(arr->length()));
+          // Precompute one sort key per element; building them inside the comparator would
+          // re-derive each key O(log n) times through a recursive function.
+          //
+          // Numeric elements are ordered NUMERICALLY, not by canonical text. Sorting "10","20"
+          // against "9.99","20.1" lexically pairs 10 with 20.1 and 20 with 9.99, reporting a
+          // difference for two lists that actually match within tolerance.
+          const auto elem_id = av_list->type()->id();
+          const bool numeric_elements = arrow::is_integer(elem_id) || arrow::is_floating(elem_id);
+          auto keys_of = [&](const std::shared_ptr<arrow::Array>& arr) {
+            std::vector<std::pair<double, std::string>> keys(static_cast<size_t>(arr->length()));
             for (int64_t i = 0; i < arr->length(); ++i)
             {
+              auto& slot = keys[static_cast<size_t>(i)];
               auto s = arr->GetScalar(i);
-              keys[static_cast<size_t>(i)] = s.ok() ? canonicalKey_(*s) : std::string("E;");
+              if (!s.ok()) { slot.first = 0.0; slot.second = "E;"; continue; }
+              bool key_ok = true;
+              slot.second = canonicalKey_(*s, key_ok);
+              if (!numeric_elements || !asDouble_(**s, slot.first)) { slot.first = 0.0; }
             }
             return keys;
           };
-          const std::vector<std::string> keys_a = keys_of(av_list);
-          const std::vector<std::string> keys_b = keys_of(bv_list);
-          std::stable_sort(order_a.begin(), order_a.end(),
-                           [&](int64_t l, int64_t r) { return keys_a[l] < keys_a[r]; });
-          std::stable_sort(order_b.begin(), order_b.end(),
-                           [&](int64_t l, int64_t r) { return keys_b[l] < keys_b[r]; });
+          const auto keys_a = keys_of(av_list);
+          const auto keys_b = keys_of(bv_list);
+          auto by_key = [numeric_elements](const std::vector<std::pair<double, std::string>>& k) {
+            return [&k, numeric_elements](int64_t l, int64_t r) {
+              const size_t li = static_cast<size_t>(l);
+              const size_t ri = static_cast<size_t>(r);
+              if (numeric_elements && k[li].first != k[ri].first) { return k[li].first < k[ri].first; }
+              return k[li].second < k[ri].second;
+            };
+          };
+          std::stable_sort(order_a.begin(), order_a.end(), by_key(keys_a));
+          std::stable_sort(order_b.begin(), order_b.end(), by_key(keys_b));
         }
 
         for (size_t i = 0; i < order_a.size(); ++i)
@@ -479,13 +545,24 @@ namespace OpenMS
             ok = false;
             return keys;
           }
-          key += canonicalKey_(cell);
+          // A nested element that cannot be read would otherwise encode as the same "E;" token
+          // as any other unreadable element, letting two different rows share a key.
+          bool key_ok = true;
+          key += canonicalKey_(cell, key_ok);
+          if (!key_ok)
+          {
+            report_(result.key_errors, settings.max_reported, result.suppressed,
+                    which + ": row " + std::to_string(row)
+                      + " has an unreadable nested value inside key column '" + key_columns[k] + "'");
+            ok = false;
+            return keys;
+          }
           if (k != 0) { display += ", "; }
           display += key_columns[k] + "=" + displayValue_(cell);
         }
         auto& entry = keys[key];
+        if (entry.rows.empty()) { entry.display = display; }  // .front() is the row compared
         entry.rows.push_back(row);
-        entry.display = display;
       }
 
       for (const auto& [key, entry] : keys)
