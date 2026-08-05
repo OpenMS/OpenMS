@@ -21,7 +21,6 @@
 #include <cmath>
 #include <limits>
 #include <map>
-#include <unordered_map>
 
 namespace OpenMS
 {
@@ -59,15 +58,10 @@ namespace OpenMS
         return nullptr;
       }
 
-      // One chunk per column keeps the row-index arithmetic below straightforward.
-      auto combined = table->CombineChunks(arrow::default_memory_pool());
-      if (!combined.ok())
-      {
-        OPENMS_LOG_ERROR << "ParquetTableComparator: cannot combine chunks of '" << filename
-                         << "': " << combined.status().ToString() << std::endl;
-        return nullptr;
-      }
-      return *combined;
+      // Deliberately NOT CombineChunks(): it documents that "binary columns may be combined
+      // into multiple chunks" to avoid offset overflow, so a single chunk is not guaranteed
+      // for large string columns. cellAt_ indexes the ChunkedArray globally instead.
+      return table;
     }
 
     /// Value of a key in the table's schema metadata, or "" when absent.
@@ -79,31 +73,51 @@ namespace OpenMS
       return (idx < 0) ? std::string() : md->value(idx);
     }
 
-    /// Element at @p row of a single-chunk column, or nullptr when the column is absent/empty.
+    /**
+      @brief Element at @p row of a column.
+
+      Indexes the ChunkedArray globally rather than assuming a single chunk: a large string
+      column can legitimately span several chunks. @p ok distinguishes "this cell is null"
+      from "this cell could not be read" -- conflating the two would let an unreadable cell
+      on both sides compare equal.
+    */
     std::shared_ptr<arrow::Scalar> cellAt_(const std::shared_ptr<arrow::Table>& table,
-                                           int col, int64_t row)
+                                           int col, int64_t row, bool& ok)
     {
+      ok = false;
       if (col < 0) { return nullptr; }
-      const auto& chunked = table->column(col);
-      if (chunked->num_chunks() == 0) { return nullptr; }
-      auto scalar_result = chunked->chunk(0)->GetScalar(row);
+      auto scalar_result = table->column(col)->GetScalar(row);
       if (!scalar_result.ok()) { return nullptr; }
+      ok = true;
       return *scalar_result;
     }
 
+    /// True for the Arrow scalar types that derive from BaseListScalar.
+    bool isListLike_(arrow::Type::type id)
+    {
+      return id == arrow::Type::LIST || id == arrow::Type::LARGE_LIST
+             || id == arrow::Type::FIXED_SIZE_LIST || id == arrow::Type::MAP;
+    }
+
     /**
-      @brief Canonical string of a scalar, used to form primary keys.
+      @brief Canonical, self-delimiting encoding of a scalar, used to form primary keys.
+
+      Every part is length-prefixed, so concatenating the encodings of several key columns is
+      unambiguous: a value containing any byte -- including a separator character or the text
+      of the null marker -- cannot be confused with a structural boundary. A plain delimiter
+      would not be safe, because Arrow string values may contain arbitrary bytes.
 
       List elements are sorted so that a set-valued key column (QPX @c grouped_runs, and the
       @c scan component of the psm key) compares equal regardless of the order the producer
       happened to emit. This mirrors what the QPX reference implementation does before it
       checks primary-key uniqueness.
     */
-    std::string canonicalString_(const std::shared_ptr<arrow::Scalar>& scalar)
+    std::string canonicalKey_(const std::shared_ptr<arrow::Scalar>& scalar)
     {
-      if (!scalar || !scalar->is_valid) { return "<null>"; }
+      if (!scalar) { return "E;"; }        // unreadable
+      if (!scalar->is_valid) { return "N;"; } // null
 
-      if (scalar->type->id() == arrow::Type::LIST || scalar->type->id() == arrow::Type::LARGE_LIST)
+      if (isListLike_(scalar->type->id()))
       {
         const auto& values = static_cast<const arrow::BaseListScalar&>(*scalar).value;
         std::vector<std::string> parts;
@@ -111,18 +125,16 @@ namespace OpenMS
         for (int64_t i = 0; i < values->length(); ++i)
         {
           auto element = values->GetScalar(i);
-          parts.push_back(element.ok() ? canonicalString_(*element) : "<err>");
+          parts.push_back(element.ok() ? canonicalKey_(*element) : "E;");
         }
         std::sort(parts.begin(), parts.end());
-        std::string joined = "[";
-        for (size_t i = 0; i < parts.size(); ++i)
-        {
-          if (i != 0) { joined += ","; }
-          joined += parts[i];
-        }
-        return joined + "]";
+        std::string joined = "L" + std::to_string(parts.size()) + ";";
+        for (const auto& p : parts) { joined += p; }
+        return joined;
       }
-      return scalar->ToString();
+
+      const std::string text = scalar->ToString();
+      return "V" + std::to_string(text.size()) + ":" + text;
     }
 
     /// True when both are NaN, which regression comparison should treat as equal.
@@ -148,36 +160,39 @@ namespace OpenMS
       if (a == b) { return true; }
 
       absdiff = std::fabs(a - b);
-      if (absdiff <= settings.acceptable_absdiff) { return true; }
 
+      // Both metrics are computed unconditionally, even when the first one already accepts,
+      // so that ParquetDiffResult::max_ratio / max_absdiff really are the largest observed.
       if (a != 0.0 && b != 0.0 && ((a > 0.0) == (b > 0.0)))
       {
         const double aa = std::fabs(a);
         const double bb = std::fabs(b);
         ratio = (aa > bb) ? (aa / bb) : (bb / aa);
-        return ratio <= settings.acceptable_ratio;
       }
-      ratio = std::numeric_limits<double>::infinity();
-      return false;
+      else
+      {
+        // No ratio bridges zero to non-zero, or opposite signs; only absdiff can accept those.
+        ratio = std::numeric_limits<double>::infinity();
+      }
+      return absdiff <= settings.acceptable_absdiff || ratio <= settings.acceptable_ratio;
     }
 
-    /// Numeric value of a scalar, if it holds one.
+    /**
+      @brief Numeric value of a scalar, if it holds one.
+
+      Integers are included: "numeric" in the tolerance contract means every number, not only
+      the floating-point ones. Values wider than the 53-bit mantissa of a double lose precision
+      here, which the caller compensates for by never accepting a zero difference between two
+      scalars that are not exactly equal.
+    */
     bool asDouble_(const arrow::Scalar& scalar, double& out)
     {
-      switch (scalar.type->id())
-      {
-        case arrow::Type::HALF_FLOAT:
-        case arrow::Type::FLOAT:
-        case arrow::Type::DOUBLE:
-        {
-          auto casted = scalar.CastTo(arrow::float64());
-          if (!casted.ok()) { return false; }
-          out = static_cast<const arrow::DoubleScalar&>(**casted).value;
-          return true;
-        }
-        default:
-          return false;
-      }
+      const auto id = scalar.type->id();
+      if (!arrow::is_integer(id) && !arrow::is_floating(id)) { return false; }
+      auto casted = scalar.CastTo(arrow::float64());
+      if (!casted.ok()) { return false; }
+      out = static_cast<const arrow::DoubleScalar&>(**casted).value;
+      return true;
     }
 
     /**
@@ -217,7 +232,10 @@ namespace OpenMS
       {
         double ratio = 1.0;
         double absdiff = 0.0;
-        const bool ok = numbersAcceptable_(av, bv, settings, ratio, absdiff);
+        bool ok = numbersAcceptable_(av, bv, settings, ratio, absdiff);
+        // A 64-bit integer difference can vanish when both sides are widened to a double.
+        // Two scalars that are not exactly equal must never be accepted on a zero difference.
+        if (ok && absdiff == 0.0 && !a->Equals(*b)) { ok = false; }
         if (std::isfinite(ratio)) { max_ratio = std::max(max_ratio, ratio); }
         max_absdiff = std::max(max_absdiff, absdiff);
         if (!ok)
@@ -230,7 +248,7 @@ namespace OpenMS
       }
 
       const auto id = a->type->id();
-      if (id == arrow::Type::LIST || id == arrow::Type::LARGE_LIST)
+      if (isListLike_(id))
       {
         const auto& av_list = static_cast<const arrow::BaseListScalar&>(*a).value;
         const auto& bv_list = static_cast<const arrow::BaseListScalar&>(*b).value;
@@ -255,7 +273,7 @@ namespace OpenMS
         {
           auto key_of = [](const std::shared_ptr<arrow::Array>& arr, int64_t i) {
             auto s = arr->GetScalar(i);
-            return s.ok() ? canonicalString_(*s) : std::string("<err>");
+            return s.ok() ? canonicalKey_(*s) : std::string("E;");
           };
           std::stable_sort(order_a.begin(), order_a.end(),
                            [&](int64_t l, int64_t r) { return key_of(av_list, l) < key_of(av_list, r); });
@@ -362,16 +380,23 @@ namespace OpenMS
       }
     }
 
-    /// Build primary keys for every row; reports duplicates, which a QPX key must not have.
-    std::unordered_map<std::string, int64_t> buildKeys_(const std::shared_ptr<arrow::Table>& table,
-                                                        const std::vector<std::string>& key_columns,
-                                                        const std::string& which,
-                                                        const ParquetDiffSettings& settings,
-                                                        ParquetDiffResult& result,
-                                                        bool& ok)
+    /**
+      @brief Build primary keys for every row.
+
+      Returns key -> all rows carrying it, ordered, so that a duplicated key is visible as a
+      multiplicity rather than silently collapsing to its first occurrence. A std::map keeps
+      iteration deterministic, which matters because ParquetDiffSettings::max_reported decides
+      which differences are shown.
+    */
+    std::map<std::string, std::vector<int64_t>> buildKeys_(const std::shared_ptr<arrow::Table>& table,
+                                                           const std::vector<std::string>& key_columns,
+                                                           const std::string& which,
+                                                           const ParquetDiffSettings& settings,
+                                                           ParquetDiffResult& result,
+                                                           bool& ok)
     {
       ok = true;
-      std::unordered_map<std::string, int64_t> keys;
+      std::map<std::string, std::vector<int64_t>> keys;
 
       std::vector<int> indices;
       indices.reserve(key_columns.size());
@@ -388,25 +413,45 @@ namespace OpenMS
       }
       if (!ok) { return keys; }
 
-      keys.reserve(static_cast<size_t>(table->num_rows()));
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
+        // canonicalKey_ is self-delimiting, so plain concatenation is unambiguous.
         std::string key;
-        for (size_t k = 0; k < indices.size(); ++k)
+        for (const int index : indices)
         {
-          if (k != 0) { key += "\x1f"; } // unit separator: cannot occur in a canonical value
-          key += canonicalString_(cellAt_(table, indices[k], row));
+          bool cell_ok = false;
+          auto cell = cellAt_(table, index, row, cell_ok);
+          if (!cell_ok)
+          {
+            report_(result.key_errors, settings.max_reported, result.suppressed,
+                    which + ": row " + std::to_string(row) + " has an unreadable key cell in '"
+                      + table->schema()->field(index)->name() + "'");
+            ok = false;
+            return keys;
+          }
+          key += canonicalKey_(cell);
         }
-        auto inserted = keys.emplace(key, row);
-        if (!inserted.second)
+        keys[key].push_back(row);
+      }
+
+      for (const auto& [key, rows] : keys)
+      {
+        if (rows.size() > 1)
         {
+          std::string row_list;
+          for (size_t i = 0; i < rows.size(); ++i)
+          {
+            if (i != 0) { row_list += ", "; }
+            row_list += std::to_string(rows[i]);
+          }
           report_(result.key_errors, settings.max_reported, result.suppressed,
-                  which + ": duplicate primary key {" + key + "} at rows "
-                    + std::to_string(inserted.first->second) + " and " + std::to_string(row));
+                  which + ": primary key occurs " + std::to_string(rows.size())
+                    + " times (rows " + row_list + "): " + key);
         }
       }
       return keys;
     }
+
   } // anonymous namespace
 
   std::string ParquetTableComparator::viewFromFileType(const std::string& file_type)
@@ -470,7 +515,7 @@ namespace OpenMS
       const std::string view = viewFromFileType(metadataValue_(t1, "file_type"));
       if (view.empty())
       {
-        result.schema_errors.push_back(
+        result.key_errors.push_back(
           "no primary key given and file 1 carries no recognised QPX 'file_type' metadata; "
           "pass the key columns explicitly");
         return result;
@@ -501,32 +546,47 @@ namespace OpenMS
     const auto keys_2 = buildKeys_(t2, key_columns, "file 2", settings, result, ok_2);
     if (!ok_1 || !ok_2) { return result; }
 
-    for (const auto& [key, row] : keys_1)
+    // Key-set drift, including multiplicity: a key present twice on one side and once on the
+    // other is a real difference, not something to collapse.
+    for (const auto& [key, rows] : keys_1)
     {
-      if (!keys_2.count(key))
+      const auto it = keys_2.find(key);
+      if (it == keys_2.end())
       {
         report_(result.key_errors, settings.max_reported, result.suppressed,
-                "row only in file 1: {" + key + "}");
+                "row only in file 1: " + key);
       }
-      (void)row;
+      else if (it->second.size() != rows.size())
+      {
+        report_(result.key_errors, settings.max_reported, result.suppressed,
+                "key occurs " + std::to_string(rows.size()) + " times in file 1 but "
+                  + std::to_string(it->second.size()) + " times in file 2: " + key);
+      }
     }
-    for (const auto& [key, row] : keys_2)
+    for (const auto& [key, rows] : keys_2)
     {
-      if (!keys_1.count(key))
+      (void)rows;
+      if (keys_1.find(key) == keys_1.end())
       {
         report_(result.key_errors, settings.max_reported, result.suppressed,
-                "row only in file 2: {" + key + "}");
+                "row only in file 2: " + key);
       }
-      (void)row;
     }
 
-    // Compare the columns both tables agree on, minus the ignored ones.
+    // Columns to compare: those both tables agree on, minus the ignored ones, and minus the
+    // primary-key columns. The key columns already matched the rows, and they matched under
+    // canonical (order-insensitive) semantics -- re-comparing them as ordinary values would
+    // contradict that by reporting a reordered grouped_runs as a difference.
     std::vector<std::pair<int, int>> columns;
     std::vector<std::string> column_names;
     for (const auto& field : t1->schema()->fields())
     {
       if (std::find(settings.ignore_columns.begin(), settings.ignore_columns.end(), field->name())
           != settings.ignore_columns.end())
+      {
+        continue;
+      }
+      if (std::find(key_columns.begin(), key_columns.end(), field->name()) != key_columns.end())
       {
         continue;
       }
@@ -537,23 +597,35 @@ namespace OpenMS
       column_names.push_back(field->name());
     }
 
-    for (const auto& [key, row_1] : keys_1)
+    for (const auto& [key, rows_1] : keys_1)
     {
       const auto it = keys_2.find(key);
       if (it == keys_2.end()) { continue; }
-      const int64_t row_2 = it->second;
+      // With a well-formed key both sides hold exactly one row; duplicates were reported above
+      // and the first occurrence is compared so that the value report is still useful.
+      const int64_t row_1 = rows_1.front();
+      const int64_t row_2 = it->second.front();
       ++result.rows_compared;
 
       for (size_t c = 0; c < columns.size(); ++c)
       {
+        bool ok_a = false;
+        bool ok_b = false;
+        auto cell_a = cellAt_(t1, columns[c].first, row_1, ok_a);
+        auto cell_b = cellAt_(t2, columns[c].second, row_2, ok_b);
+        if (!ok_a || !ok_b)
+        {
+          report_(result.value_errors, settings.max_reported, result.suppressed,
+                  key + " " + column_names[c] + ": cell could not be read");
+          continue;
+        }
+
         std::string message;
-        if (!scalarsEqual_(cellAt_(t1, columns[c].first, row_1),
-                           cellAt_(t2, columns[c].second, row_2),
-                           settings, column_names[c], message,
+        if (!scalarsEqual_(cell_a, cell_b, settings, column_names[c], message,
                            result.max_ratio, result.max_absdiff))
         {
           report_(result.value_errors, settings.max_reported, result.suppressed,
-                  "{" + key + "} " + message);
+                  key + " " + message);
         }
       }
     }
@@ -562,7 +634,6 @@ namespace OpenMS
                    && result.value_errors.empty();
     return result;
   }
-
   ParquetDiffResult ParquetTableComparator::validate(const std::string& file,
                                                      const std::string& view,
                                                      const ParquetDiffSettings& settings)
@@ -605,10 +676,12 @@ namespace OpenMS
                 "column '" + field->name() + "': expected " + field->type()->ToString()
                   + ", found " + present->type()->ToString());
       }
-      if (!field->nullable() && present->nullable())
+      if (field->nullable() != present->nullable())
       {
         report_(result.schema_errors, settings.max_reported, result.suppressed,
-                "column '" + field->name() + "' must not be nullable");
+                "column '" + field->name() + "': expected nullable "
+                  + (field->nullable() ? "true" : "false") + ", found "
+                  + (present->nullable() ? "true" : "false"));
       }
     }
     for (const auto& field : actual->fields())

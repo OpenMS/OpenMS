@@ -133,7 +133,7 @@ protected:
     settings.unordered_lists = getFlag_("unordered_lists");
     settings.max_reported = static_cast<Size>(getIntOption_("max_reported"));
 
-    // An empty StringList parameter arrives as one empty string; drop it.
+    // Drop empty entries a user may have supplied explicitly; the default is already empty.
     for (const auto& c : getStringList_("pk"))
     {
       if (!c.empty()) { settings.primary_key.push_back(c); }
