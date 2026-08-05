@@ -1344,15 +1344,32 @@ namespace OpenMS
   size_t MzTab::getQuantStudyVariables_(const ProteinIdentification& pid)
   {
     size_t quant_study_variables(0);
-    for (auto & p : pid.getIndistinguishableProteins())
+    for (const auto& p : pid.getIndistinguishableProteins())
     {
-      if (p.getFloatDataArrays().empty()
-        || p.getFloatDataArrays()[0].getName() != "abundances")
+      const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+      for (const auto& array : p.getFloatDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_abundance") { assay_abundances = &array; }
+      }
+      for (const auto& array : p.getIntegerDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_fraction_group") { fraction_groups = &array; }
+        else if (array.getName() == "fraction_group_level_label") { labels = &array; }
+      }
+
+      // The three parallel assay arrays are the explicit quantified-group marker. Their
+      // abundance count is only used as a non-zero gate by the callers; the consensus-map
+      // exporter derives the actual assay and study-variable counts from the design.
+      if (assay_abundances == nullptr || fraction_groups == nullptr || labels == nullptr
+          || assay_abundances->size() != fraction_groups->size()
+          || assay_abundances->size() != labels->size())
       {
         quant_study_variables = 0;
         break;
       }
-      quant_study_variables = p.getFloatDataArrays()[0].size();
+      quant_study_variables = assay_abundances->size();
     }
     return quant_study_variables; 
   }
@@ -1762,13 +1779,6 @@ Not sure how to handle these:
     {
       const auto& float_arrays = group.getFloatDataArrays();
 
-      // Keep the established positional "abundances" gate: consensusXML readers and older
-      // producers use this first array to signal that the group was quantified.
-      if (float_arrays.empty() || float_arrays[0].getName() != "abundances")
-      {
-        return false;
-      }
-
       const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
       const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
       const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
@@ -1794,14 +1804,14 @@ Not sure how to handle these:
       const bool any_assay_array = assay_abundances != nullptr || fraction_groups != nullptr || labels != nullptr;
       if (!any_assay_array)
       {
-        return false; // old consensusXML or another producer: keep the legacy sample-grain values
+        return false; // old consensusXML or another producer: keep any legacy abundance columns
       }
 
       const auto warnAndFallback = [&group](const std::string& reason)
       {
         const std::string accession = group.accessions.empty() ? "<unknown>" : group.accessions.front();
         OPENMS_LOG_WARN << "Cannot use assay-level protein abundances for group '" << accession
-                        << "': " << reason << ". Falling back to the sample-level 'abundances' array.\n";
+                        << "': " << reason << ". Keeping any pre-existing abundance columns.\n";
         return false;
       };
 

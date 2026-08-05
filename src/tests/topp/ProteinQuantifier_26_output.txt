@@ -1,4 +1,4 @@
 # Protein abundances computed from file 'ProteinQuantifier_25_input.consensusXML'
 # Parameters (relevant only): method=top, top:N=0, top:aggregate=sum
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_sample1[condA]"	"abundance_sample2[condB]"
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_fractiongroup1_label1"	"abundance_fractiongroup1_label2"
 "Protein"	1	0.99	3	650.0	65.0

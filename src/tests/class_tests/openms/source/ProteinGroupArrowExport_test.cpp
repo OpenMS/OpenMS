@@ -686,12 +686,8 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   ProteinIdentification::ProteinGroup grp;
   grp.accessions = {"PROT_A"};
   grp.probability = 0.01;
-  // Sample-level abundances, as PeptideAndProteinQuant writes them: one entry per design sample,
-  // indexed by MSFileSectionEntry::sample. Two label-free fraction groups => two samples.
-  grp.getFloatDataArrays().resize(1);
-  grp.getFloatDataArrays()[0].setName("abundances");
-  grp.getFloatDataArrays()[0].push_back(1000.0f);
-  grp.getFloatDataArrays()[0].push_back(2000.0f);
+  // The fraction-group arrays themselves identify this as a quantified group; no legacy
+  // sample-abundance marker is required.
   setFractionGroupQuantities(grp, {{1, 1, 1000.0f}, {2, 1, 2000.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});

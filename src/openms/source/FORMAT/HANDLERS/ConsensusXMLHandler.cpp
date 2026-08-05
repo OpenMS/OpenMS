@@ -926,7 +926,7 @@ namespace OpenMS::Internal
 
       @code
       <UserParam type="string"    name="indistinguishable_proteins_0"            value="0.98,PH_0,PH_1"/>
-      <UserParam type="floatList" name="indistinguishable_proteins_0_abundances" value="[1.2,3.4]"/>
+      <UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.2,3.4]"/>
       @endcode
 
       UserParam is already unbounded inside @p ProteinIdentificationType and @p intList / @p floatList /
@@ -936,13 +936,17 @@ namespace OpenMS::Internal
     struct ProteinGroupQuant
     {
       /**
-        The producer (PeptideAndProteinQuant::annotateQuantificationsToProteins) always lays the arrays
-        out in this fixed order, and consumers index them positionally rather than by name - MzTab reads
-        @p getFloatDataArrays()[0], ProteinGroupArrowExport reads @p [3] / string @p [0] / integer @p [0].
-        Restoring the same layout keeps a round-tripped map behaving like a freshly quantified one even
-        though not every array reaches the file.
+        PeptideAndProteinQuant lays the non-abundance arrays out in this fixed order. The explicit
+        fraction-group/label arrays are the quantified-group marker and are consumed by name; they
+        are appended only when present so a round trip cannot invent a marker for legacy data.
       */
       static const StringList& canonicalFloatNames()
+      {
+        static const StringList names {"psm_count", "distinct_peptides", "file_channel_level_abundance"};
+        return names;
+      }
+      /// Float-array order used by files that still carry the removed sample-abundance grain
+      static const StringList& legacyCanonicalFloatNames()
       {
         static const StringList names {"abundances", "psm_count", "distinct_peptides", "file_channel_level_abundance"};
         return names;
@@ -968,18 +972,15 @@ namespace OpenMS::Internal
       /**
         @brief True if @p array carries no information worth writing out.
 
-        Skipping an array also discards its LENGTH, so this may only skip arrays whose length can be
-        reconstructed on load. That holds for "psm_count" and "distinct_peptides": both are as long as
-        "abundances", and PeptideAndProteinQuant resizes them to the sample count but never fills them
-        (PeptideData::psm_counts is never written anywhere), so they are all-zero in every run today.
-        Writing them would only add columns of zeros, and the check is on the values, so they start
-        being written by themselves once the counts are populated upstream.
+        "psm_count" and "distinct_peptides" are empty in every newly quantified group because
+        PeptideData::psm_counts is never populated. Legacy groups can still carry zero-filled
+        versions of these arrays; writing them would only add columns of zeros. The value check
+        makes them start being written automatically once counts are populated.
 
-        Every other array is written whenever it is non-empty - including an all-zero "abundances",
-        whose length anchors the two above. Skipping that one by value would hand back a zero-length
-        "abundances" for a protein quantified as zero everywhere, which MzTab::getQuantStudyVariables_
-        turns into "no quantities in this file at all" and ProteinGroupArrowExport turns into a
-        silently omitted row.
+        Every other non-empty array is written, in particular the three parallel
+        fraction-group/label arrays. They are the explicit quantified-group marker and must survive
+        even when every abundance is zero. For a legacy group, "abundances" is still preserved as
+        data, but it no longer gates mzTab or QPX output.
       */
       template <typename ArrayT>
       static bool isRedundant(const ArrayT& array)
@@ -1124,16 +1125,22 @@ namespace OpenMS::Internal
 
         if (floats.empty() && integers.empty() && strings.empty()) { return true; }
 
-        fillCanonical(group.getFloatDataArrays(), canonicalFloatNames(), floats);
+        const bool has_legacy_sample_abundances = floats.contains("abundances");
+        fillCanonical(group.getFloatDataArrays(),
+                      has_legacy_sample_abundances ? legacyCanonicalFloatNames() : canonicalFloatNames(),
+                      floats);
         fillCanonical(group.getIntegerDataArrays(), canonicalIntegerNames(), integers);
         fillCanonical(group.getStringDataArrays(), canonicalStringNames(), strings);
 
-        // "psm_count" and "distinct_peptides" are zero-filled by the producer and therefore never
-        // written; give them the length they had in memory so the shape survives the round trip.
-        const Size n_samples = group.getFloatDataArrays()[0].size();
-        for (Size i = 1; i <= 2; ++i)
+        // Legacy files used sample abundances as the length anchor for two omitted all-zero count
+        // arrays. Preserve that old in-memory shape without making new assay-only files depend on it.
+        if (has_legacy_sample_abundances)
         {
-          if (group.getFloatDataArrays()[i].empty()) { group.getFloatDataArrays()[i].resize(n_samples, 0.0f); }
+          const Size n_samples = group.getFloatDataArrays()[0].size();
+          for (Size i = 1; i <= 2; ++i)
+          {
+            if (group.getFloatDataArrays()[i].empty()) { group.getFloatDataArrays()[i].resize(n_samples, 0.0f); }
+          }
         }
         return true;
       }

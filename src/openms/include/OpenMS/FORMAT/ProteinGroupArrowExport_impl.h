@@ -378,13 +378,8 @@ inline std::string validateQuantificationAnnotations(
          + " samples, so the design does not belong to this quantification";
   }
 
-  const bool quantified = sample_abundances != nullptr || quantities.present;
+  const bool quantified = quantities.present;
   if (!quantified) { return {}; }
-  if (!quantities.present)
-  {
-    return "carries sample abundances but no fraction-group/label abundances from the QPX 1.1 "
-           "quantification path";
-  }
   if (units.empty())
   {
     return "carries fraction-group abundances, but the experimental design yields no matching "

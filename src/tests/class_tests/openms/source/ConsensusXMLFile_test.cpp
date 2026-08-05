@@ -278,21 +278,23 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
 
   group.getFloatDataArrays().resize(4);
   group.getStringDataArrays().resize(2);
-  group.getIntegerDataArrays().resize(2);
-  group.getFloatDataArrays()[0].setName("abundances");
-  group.getFloatDataArrays()[0].assign({1.5f, 2.5f});
-  group.getFloatDataArrays()[1].setName("psm_count");
-  group.getFloatDataArrays()[1].resize(2); // all zero, as produced today
-  group.getFloatDataArrays()[2].setName("distinct_peptides");
-  group.getFloatDataArrays()[2].resize(2); // all zero, as produced today
-  group.getFloatDataArrays()[3].setName("file_channel_level_abundance");
-  group.getFloatDataArrays()[3].assign({10.0f, 20.0f, 30.0f, 40.0f});
+  group.getIntegerDataArrays().resize(4);
+  group.getFloatDataArrays()[0].setName("psm_count");
+  group.getFloatDataArrays()[1].setName("distinct_peptides");
+  group.getFloatDataArrays()[2].setName("file_channel_level_abundance");
+  group.getFloatDataArrays()[2].assign({10.0f, 20.0f, 30.0f, 40.0f});
+  group.getFloatDataArrays()[3].setName("fraction_group_level_abundance");
+  group.getFloatDataArrays()[3].assign({1.5f, 2.5f});
   group.getStringDataArrays()[0].setName("file_channel_level_filename");
   group.getStringDataArrays()[0].assign({"fileA", "fileA", "fileB", "fileB"});
   group.getStringDataArrays()[1].setName("file_level_filename");
   group.getIntegerDataArrays()[0].setName("file_channel_level_channel");
   group.getIntegerDataArrays()[0].assign({1, 2, 1, 2});
   group.getIntegerDataArrays()[1].setName("file_level_psm_count");
+  group.getIntegerDataArrays()[2].setName("fraction_group_level_fraction_group");
+  group.getIntegerDataArrays()[2].assign({1, 2});
+  group.getIntegerDataArrays()[3].setName("fraction_group_level_label");
+  group.getIntegerDataArrays()[3].assign({1, 1});
 
   prot.insertIndistinguishableProteins(group);
 
@@ -306,21 +308,21 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
   const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
 
-  // the positional layout consumers rely on (MzTab, ProteinGroupArrowExport) is restored
+  // The assay-only layout is restored without inventing a legacy sample array.
   TEST_EQUAL(rt.getFloatDataArrays().size(), 4)
   TEST_EQUAL(rt.getStringDataArrays().size(), 2)
-  TEST_EQUAL(rt.getIntegerDataArrays().size(), 2)
-  TEST_EQUAL(rt.getFloatDataArrays()[0].getName(), "abundances")
-  TEST_EQUAL(rt.getFloatDataArrays()[3].getName(), "file_channel_level_abundance")
+  TEST_EQUAL(rt.getIntegerDataArrays().size(), 4)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].getName(), "file_channel_level_abundance")
+  TEST_EQUAL(rt.getFloatDataArrays()[3].getName(), "fraction_group_level_abundance")
   TEST_EQUAL(rt.getStringDataArrays()[0].getName(), "file_channel_level_filename")
   TEST_EQUAL(rt.getIntegerDataArrays()[0].getName(), "file_channel_level_channel")
 
-  TEST_EQUAL(rt.getFloatDataArrays()[0].size(), 2)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][0], 1.5)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][1], 2.5)
-  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 4)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][0], 10.0)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][3], 40.0)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 4)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[2][0], 10.0)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[2][3], 40.0)
+  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 2)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][0], 1.5)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][1], 2.5)
   TEST_EQUAL(rt.getStringDataArrays()[0].size(), 4)
   TEST_EQUAL(rt.getStringDataArrays()[0][0], "fileA")
   TEST_EQUAL(rt.getStringDataArrays()[0][3], "fileB")
@@ -328,22 +330,21 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   TEST_EQUAL(rt.getIntegerDataArrays()[0][0], 1)
   TEST_EQUAL(rt.getIntegerDataArrays()[0][3], 2)
 
-  // all-zero arrays are not written, but keep their in-memory shape
-  TEST_EQUAL(rt.getFloatDataArrays()[1].size(), 2)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[1][0], 0.0)
-  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 2)
+  // All-zero count arrays are not written and no longer borrow a length from sample abundances.
+  TEST_TRUE(rt.getFloatDataArrays()[0].empty())
+  TEST_TRUE(rt.getFloatDataArrays()[1].empty())
 
   // no leftovers of the encoding on the ProteinIdentification
   std::vector<std::string> keys;
   loaded.getProteinIdentifications()[0].getKeys(keys);
   for (const std::string& key : keys)
   {
-    TEST_EQUAL(StringUtils::hasSubstring(key, "_abundances"), false)
-    TEST_EQUAL(StringUtils::hasSubstring(key, "_quantified_proteins"), false)
+    TEST_FALSE(StringUtils::hasSubstring(key, "_abundances"))
+    TEST_FALSE(StringUtils::hasSubstring(key, "_quantified_proteins"))
   }
 
   // and the file is still schema-valid
-  TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true)
+  TEST_TRUE(f.isValid(tmp_filename, std::cerr))
 
   // storing again must be stable
   std::string tmp_filename2;
@@ -351,7 +352,7 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   f.store(tmp_filename2, loaded);
   ConsensusMap loaded2;
   f.load(tmp_filename2, loaded2);
-  TEST_EQUAL(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt, true)
+  TEST_TRUE(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt)
 }
 END_SECTION
 
@@ -436,11 +437,10 @@ START_SECTION([EXTRA] Quantities whose owner no longer matches the group are dis
 }
 END_SECTION
 
-START_SECTION([EXTRA] All-zero abundances keep their length across a round-trip)
+START_SECTION([EXTRA] Legacy all-zero sample abundances keep their length across a round-trip)
 {
-  // A protein quantified as zero in every sample must not come back with a zero-LENGTH "abundances"
-  // array: MzTab::getQuantStudyVariables_ reads its size and would report no quantities for the whole
-  // file, and ProteinGroupArrowExport would silently omit the group's row.
+  // Preserve the shape of old consensusXML annotations even though sample abundances no longer
+  // identify a quantified group. This compatibility path must not invent assay arrays.
   ConsensusXMLFile f;
   ConsensusMap map;
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);

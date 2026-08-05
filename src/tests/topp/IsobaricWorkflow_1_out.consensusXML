@@ -28,7 +28,6 @@
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[TMTTenPlexMethod_test.mzML]"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.333333333333333,PH_0"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_0_abundances" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
@@ -37,7 +36,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[PROTA]"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.333333333333333,PH_1"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_abundances" value="[1.73015e04, 7452.32861328125, 8584.0458984375, 6278.6962890625, 9257.294921875, 1.3124208984375e04, 1.07423837890625e04, 4838.69970703125, 1.5770388671875e04, 1.19306630859375e04]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[1.73015e04, 7452.32861328125, 8584.0458984375, 6278.6962890625, 9257.294921875, 1.3124208984375e04, 1.07423837890625e04, 4838.69970703125, 1.5770388671875e04, 1.19306630859375e04]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[1.73015e04, 7452.32861328125, 8584.0458984375, 6278.6962890625, 9257.294921875, 1.3124208984375e04, 1.07423837890625e04, 4838.69970703125, 1.5770388671875e04, 1.19306630859375e04]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
