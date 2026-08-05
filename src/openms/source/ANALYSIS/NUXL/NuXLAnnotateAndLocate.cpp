@@ -18,7 +18,6 @@
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <cmath>
 #include <regex>
 
 using namespace std;
@@ -70,84 +69,37 @@ namespace OpenMS
     /**
     @brief Removes duplicate peaks based on their m/z values.
 
-    This function identifies and removes duplicate peaks from the spectrum based on
-    their m/z values. Peaks whose m/z differ from their group's anchor peak by at
-    most DUPLICATE_MZ_EPSILON_ are considered the same theoretical peak; of each such
-    group, only one is retained. The function uses the `select()` method to
-    efficiently remove the duplicate peaks and their corresponding entries in the
-    data arrays.
+    This function identifies and removes duplicate peaks from the spectrum based on 
+    their m/z values. Only the first occurrence of a peak with a given m/z value is
+    retained. The function uses the `select()` method to efficiently remove the 
+    duplicate peaks and their corresponding entries in the data arrays.
 
-    @note The spectrum should be sorted by position (m/z) before calling this function
+    @note The spectrum should be sorted by position (m/z) before calling this function 
           to ensure correct identification of duplicates.
-    @note Each group is anchored to the m/z of its first (lowest) member, and every
-          later candidate is compared against that fixed anchor -- not against the
-          immediately preceding peak, and not against the group's current tie-break
-          winner. Chaining to a moving reference would let the group boundary drift:
-          three peaks each within tolerance of their immediate neighbor, but with the
-          first and last more than DUPLICATE_MZ_EPSILON_ apart, would otherwise merge
-          transitively into one group even though the outer two are not duplicates of
-          each other. A real floating-point-noise duplicate is always a close pair
-          (the same true value computed twice), so anchoring to a fixed reference does
-          not miss genuine cases while it avoids that transitive over-merging.
-    @note Exact duplicates (identical bit pattern, e.g. two ion types whose composition
-          happens to sum to precisely the same double) are common and always resolve to
-          the same result on every platform, so they keep the first-encountered
-          annotation, as before.
-    @note Near-duplicates -- two theoretical fragments of identical composition (e.g.
-          [M+H-H2O]+U and [M+H]+U-H2O) computed via different arithmetic paths that
-          rarely land on the exact same double bit pattern -- are a different case: the
-          gap between them is FP rounding noise (observed up to ~5e-10 Da) that can
-          differ between platforms/compilers. An exact '==' comparison kept both as
-          distinct peaks, and the alignment step matched whichever happened to sort
-          first, making the reported ion name non-deterministic across builds. For this
-          case only (m/z differs, but by less than DUPLICATE_MZ_EPSILON_), the tie is
-          broken on the annotation string instead, which keeps the pick identical on
-          every platform. DUPLICATE_MZ_EPSILON_ is deliberately far tighter than the
-          generic Constants::EPSILON (1e-6): distinct fragment ions of different
-          composition can legitimately land within a few 1e-7 Da of each other (e.g.
-          isomeric internal fragments), and merging those would silently drop a real,
-          distinct candidate peak rather than just fixing an annotation tie.
   */
   static void removeDuplicatedPeaks(MSSpectrum& spec)
   {
     if (spec.empty()) return;
 
-    // ~2 orders of magnitude above the largest FP rounding noise observed for these
-    // masses (~5e-10 Da), ~2 orders of magnitude below the smallest real mass gap
-    // between distinct fragment ions seen in practice.
-    constexpr double DUPLICATE_MZ_EPSILON_ = 1e-8;
-
-    const auto& annotations = spec.getStringDataArrays()[0];
-
     std::vector<Size> indices_to_keep;
     indices_to_keep.push_back(0); // Always keep the first peak
-    Size group_anchor = 0; // index whose m/z is the fixed reference for the current group
 
     for (Size i = 1; i < spec.size(); ++i)
     {
-      const double mz_diff = std::fabs(spec[i].getMZ() - spec[group_anchor].getMZ());
-      if (mz_diff > DUPLICATE_MZ_EPSILON_)
+      // Compare the current peak's m/z with the last kept peak's m/z
+      if (spec[i].getMZ() != spec[indices_to_keep.back()].getMZ())
       {
         indices_to_keep.push_back(i);
-        group_anchor = i; // this peak starts (and anchors) a new group
       }
+#ifdef DEBUG_OpenNuXL
       else
       {
-        Size& kept = indices_to_keep.back();
-        // Only break the tie on annotation for genuine near-duplicates (mz_diff > 0).
-        // Exact duplicates (mz_diff == 0) keep the first-encountered annotation --
-        // that choice is already platform-independent, and changing it here would
-        // needlessly flip the (arbitrary but stable) winner for peaks that were
-        // never affected by the non-determinism this function guards against.
-        const bool discard_kept = mz_diff > 0.0 && annotations[i] < annotations[kept];
-#ifdef DEBUG_OpenNuXL
         // happens a lot with precursor peaks and internal ions
-        OPENMS_LOG_DEBUG << "Removing duplicate peak at m/z: " << spec[i].getMZ() << "\n";
-        OPENMS_LOG_DEBUG << (discard_kept ? annotations[kept] : annotations[i]) << " - " << (discard_kept ? annotations[i] : annotations[kept]) << "\n";
-#endif
-        if (discard_kept) { kept = i; }
-        // group_anchor is intentionally left unchanged -- see function-level note.
+        std::cout << "Removing duplicate peak at m/z: " << spec[i].getMZ() << endl;
+        std::cout << spec.getStringDataArrays()[0][i] << " - " 
+          << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
       }
+#endif
     }
 
     if (indices_to_keep.size() == spec.size()) return; // No duplicates found
