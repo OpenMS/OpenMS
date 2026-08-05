@@ -4,6 +4,8 @@ pyOpenMS is a Python library for the analysis of mass spectrometry data. It uses
 
 Additionally, it provides convenience functions for plotting and converting from/to DataFrames or NumPy/pyarrow arrays.
 
+For binding-specific development guidance, see [the wrapping guide](README_WRAPPING_NEW_CLASSES.md) and the [thread-safety contract](THREAD_SAFETY.md).
+
 ## Build Instructions
 
 There are two main ways to build pyOpenMS:
