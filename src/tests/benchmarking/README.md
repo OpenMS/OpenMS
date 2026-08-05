@@ -9,8 +9,8 @@ committed baselines.
 
 Currently only the skeleton is present:
 
-- CMake option `ENABLE_BENCHMARK_TESTING` (OFF by default) in the top-level
-  `CMakeLists.txt`
+- CMake option `ENABLE_BENCHMARK_TESTING` (OFF by default) in
+  `src/tests/CMakeLists.txt` (matching the `ENABLE_TOPP_TESTING` convention)
 - This directory with a single placeholder test (`BENCH_SKELETON`) proving
   the CTest wiring
 
@@ -41,6 +41,11 @@ isolated and trended over time (the "run regularly" goal of Issue #8788).
   (mzTab / featureXML / idXML), compare against baselines.
 - **Scheduled runs** (nightly CI) come in a later PR; these tests are
   intentionally excluded from per-PR test runs.
+
+- **TOPP tools dependency:** `ENABLE_BENCHMARK_TESTING` is independent of
+  `BUILD_TOPP_TOOLS` for now (the skeleton runs no TOPP tool). Once real
+  benchmark tests execute TOPP tools, they must also be covered by the
+  `BUILD_TOPP_TOOLS` FATAL_ERROR guard in `src/tests/CMakeLists.txt`.
 
 ## Adding a benchmark (later PRs)
 
