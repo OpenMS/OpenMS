@@ -2945,7 +2945,7 @@ add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Protein
 set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
 #     FuzzyDiff compares the two files numerically and reports "No numeric differences were found"
 #     between 'nan' and '-inf', so the reference diff above CANNOT catch the defect it was written
-#     for - it passes against the old output. The token has to be asserted textually instead.
+#     for - it passes against the old output (OpenMS#9859). The token has to be asserted textually.
 add_test(NAME "TOPP_ProteinQuantifier_29_out2" COMMAND ${CMAKE_COMMAND} -E cat ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv)
 set_tests_properties("TOPP_ProteinQuantifier_29_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29"
                      FAIL_REGULAR_EXPRESSION "inf" PASS_REGULAR_EXPRESSION "nan")
