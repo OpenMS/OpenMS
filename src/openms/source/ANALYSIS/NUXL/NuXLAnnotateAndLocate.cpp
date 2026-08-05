@@ -15,9 +15,11 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
 #include <regex>
 
 using namespace std;
@@ -69,37 +71,51 @@ namespace OpenMS
     /**
     @brief Removes duplicate peaks based on their m/z values.
 
-    This function identifies and removes duplicate peaks from the spectrum based on 
-    their m/z values. Only the first occurrence of a peak with a given m/z value is
-    retained. The function uses the `select()` method to efficiently remove the 
+    This function identifies and removes duplicate peaks from the spectrum based on
+    their m/z values. Peaks whose m/z differ by less than Constants::EPSILON are
+    considered the same theoretical peak; of each such group, only one is retained.
+    The function uses the `select()` method to efficiently remove the
     duplicate peaks and their corresponding entries in the data arrays.
 
-    @note The spectrum should be sorted by position (m/z) before calling this function 
+    @note The spectrum should be sorted by position (m/z) before calling this function
           to ensure correct identification of duplicates.
+    @note Two theoretical fragments of identical composition (e.g. [M+H-H2O]+U and
+          [M+H]+U-H2O) are computed via different arithmetic paths, so they rarely land
+          on the exact same double bit pattern -- the gap is FP rounding noise
+          (~1e-10 Da) that can differ between platforms/compilers. An exact '=='
+          comparison kept both as distinct peaks, and the alignment step matched
+          whichever happened to sort first, making the reported ion name
+          non-deterministic across builds. Comparing with a tolerance clears the
+          noise while staying far below any real chemical mass difference; breaking
+          ties on the annotation string keeps the pick identical on every platform.
   */
   static void removeDuplicatedPeaks(MSSpectrum& spec)
   {
     if (spec.empty()) return;
+
+    const auto& annotations = spec.getStringDataArrays()[0];
 
     std::vector<Size> indices_to_keep;
     indices_to_keep.push_back(0); // Always keep the first peak
 
     for (Size i = 1; i < spec.size(); ++i)
     {
+      Size& kept = indices_to_keep.back();
       // Compare the current peak's m/z with the last kept peak's m/z
-      if (spec[i].getMZ() != spec[indices_to_keep.back()].getMZ())
+      if (std::fabs(spec[i].getMZ() - spec[kept].getMZ()) > Constants::EPSILON)
       {
         indices_to_keep.push_back(i);
       }
-#ifdef DEBUG_OpenNuXL
       else
       {
+#ifdef DEBUG_OpenNuXL
         // happens a lot with precursor peaks and internal ions
         std::cout << "Removing duplicate peak at m/z: " << spec[i].getMZ() << endl;
-        std::cout << spec.getStringDataArrays()[0][i] << " - " 
-          << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
-      }
+        std::cout << annotations[i] << " - " << annotations[kept] << std::endl;
 #endif
+        // deterministic tie-break independent of platform-specific floating-point rounding
+        if (annotations[i] < annotations[kept]) { kept = i; }
+      }
     }
 
     if (indices_to_keep.size() == spec.size()) return; // No duplicates found
