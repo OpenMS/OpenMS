@@ -188,6 +188,42 @@ add_test("TOPP_IDMerger_idparquet_diff"
     -whitelist "IdentificationRun date" "UserParam.*file_origin")
 set_tests_properties("TOPP_IDMerger_idparquet_diff" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet_convert")
 
+### ParquetDiff ###
+# Uses the checked-in .idparquet psm tables as fixtures: both have the same 29-column schema,
+# (peptidoform, precursor_charge) is unique in each, and the two share no key at all -- so a
+# self-comparison must report equal and a cross-comparison must report differences. No
+# generated reference file is needed.
+add_test("TOPP_ParquetDiff_1" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge)
+
+# Schema-only mode: the value comparison is skipped entirely, so identical schemas are equal.
+add_test("TOPP_ParquetDiff_2" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -schema_only)
+
+# Two different tables: the key sets are disjoint, so this must exit non-zero.
+add_test("TOPP_ParquetDiff_3" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge)
+set_tests_properties("TOPP_ParquetDiff_3" PROPERTIES WILL_FAIL 1)
+
+# A primary-key column that does not exist must be reported, not silently ignored.
+add_test("TOPP_ParquetDiff_4" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk no_such_column)
+set_tests_properties("TOPP_ParquetDiff_4" PROPERTIES WILL_FAIL 1)
+
+# Neither 'in2' nor 'schema' given: illegal parameters.
+add_test("TOPP_ParquetDiff_5" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet)
+set_tests_properties("TOPP_ParquetDiff_5" PROPERTIES WILL_FAIL 1)
+
 # .idparquet rip: split the merged .idparquet from TOPP_IDMerger_idparquet back into
 # per-run .idparquet directories.  -numeric_filenames + -split_ident_runs make output
 # names deterministic (merged_<ident_run_idx>_<file_origin_idx>.idparquet) so the diff
