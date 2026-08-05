@@ -351,11 +351,16 @@ namespace OpenMS
               reportFailure_("one value is NaN and the other is not");
               continue;
             }
-            if (std::isinf(element_1_.number) && std::isinf(element_2_.number))
+            if (std::isinf(element_1_.number) || std::isinf(element_2_.number))
             {
-              // Both infinite but not equal, so they differ in sign: the ratio is NaN, which the
-              // sign test below cannot see.
-              reportFailure_("infinities have different signs");
+              if (std::isinf(element_1_.number) && std::isinf(element_2_.number))
+              {
+                reportFailure_("infinities have different signs");
+              }
+              else
+              {
+                reportFailure_("one value is infinite and the other is not");
+              }
               continue;
             }
 
