@@ -56,13 +56,11 @@ namespace
     return arrow::Table::Make(schema, {key_a, value_a, tag_a});
   }
 
-  /// Write @p table to a fresh temporary file and return its path.
-  std::string writeTemp(const std::shared_ptr<arrow::Table>& table, const std::string& stem)
+  /// Write @p table to @p path. The caller supplies the path via NEW_TMP_FILE_EXT, which is
+  /// line-based and so must be expanded at the call site rather than inside this helper.
+  bool writeTo(const std::shared_ptr<arrow::Table>& table, const std::string& path)
   {
-    const std::string path = File::getTempDirectory() + "/" + stem + "_"
-                             + File::getUniqueName() + ".parquet";
-    ArrowIOHelpers::writeTableToParquet(table, path);
-    return path;
+    return ArrowIOHelpers::writeTableToParquet(table, path);
   }
 }
 
@@ -76,29 +74,36 @@ pk_settings.primary_key = {"key"};
 START_SECTION((static ParquetDiffResult compare(const std::string& file_1, const std::string& file_2, const ParquetDiffSettings& settings)))
 {
   // identical content -> equal
-  const std::string a = writeTemp(makeTable({"p1", "p2"}, {10.0, 20.0}, {{"x"}, {"y"}}), "pd_a");
-  const std::string b = writeTemp(makeTable({"p1", "p2"}, {10.0, 20.0}, {{"x"}, {"y"}}), "pd_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p2"}, {10.0, 20.0}, {{"x"}, {"y"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p2"}, {10.0, 20.0}, {{"x"}, {"y"}}), b))
   ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
   TEST_EQUAL(r.equal, true)
   TEST_EQUAL(r.rows_compared, 2)
   TEST_EQUAL(r.schema_errors.empty(), true)
 
   // row order must not matter: the whole point of keying on the primary key
-  const std::string c = writeTemp(makeTable({"p2", "p1"}, {20.0, 10.0}, {{"y"}, {"x"}}), "pd_c");
+  std::string c;
+  NEW_TMP_FILE_EXT(c, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p2", "p1"}, {20.0, 10.0}, {{"y"}, {"x"}}), c))
   r = ParquetTableComparator::compare(a, c, pk_settings);
   TEST_EQUAL(r.equal, true)
   TEST_EQUAL(r.rows_compared, 2)
 
-  File::remove(a);
-  File::remove(b);
-  File::remove(c);
 }
 END_SECTION
 
 START_SECTION([EXTRA] numeric tolerance is satisfied by either ratio or absdiff)
 {
-  const std::string a = writeTemp(makeTable({"p1"}, {100.0}, {{"x"}}), "pd_tol_a");
-  const std::string b = writeTemp(makeTable({"p1"}, {101.0}, {{"x"}}), "pd_tol_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {100.0}, {{"x"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {101.0}, {{"x"}}), b))
 
   // exact comparison fails
   ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
@@ -117,15 +122,17 @@ START_SECTION([EXTRA] numeric tolerance is satisfied by either ratio or absdiff)
   r = ParquetTableComparator::compare(a, b, abs_settings);
   TEST_EQUAL(r.equal, true)
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
 START_SECTION([EXTRA] zero vs. epsilon is only reachable through absdiff)
 {
-  const std::string a = writeTemp(makeTable({"p1"}, {0.0}, {{"x"}}), "pd_zero_a");
-  const std::string b = writeTemp(makeTable({"p1"}, {1e-6}, {{"x"}}), "pd_zero_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {0.0}, {{"x"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1e-6}, {{"x"}}), b))
 
   // no ratio can bridge zero to non-zero
   ParquetDiffSettings huge_ratio = pk_settings;
@@ -138,15 +145,17 @@ START_SECTION([EXTRA] zero vs. epsilon is only reachable through absdiff)
   r = ParquetTableComparator::compare(a, b, abs_settings);
   TEST_EQUAL(r.equal, true)
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
 START_SECTION([EXTRA] rows present in only one file are reported as key differences)
 {
-  const std::string a = writeTemp(makeTable({"p1", "p2"}, {1.0, 2.0}, {{"x"}, {"y"}}), "pd_k_a");
-  const std::string b = writeTemp(makeTable({"p1"}, {1.0}, {{"x"}}), "pd_k_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p2"}, {1.0, 2.0}, {{"x"}, {"y"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"x"}}), b))
 
   const ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
   TEST_EQUAL(r.equal, false)
@@ -155,29 +164,33 @@ START_SECTION([EXTRA] rows present in only one file are reported as key differen
   TEST_EQUAL(r.rows_1, 2)
   TEST_EQUAL(r.rows_2, 1)
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
 START_SECTION([EXTRA] a duplicate primary key is itself an error)
 {
-  const std::string a = writeTemp(makeTable({"p1", "p1"}, {1.0, 2.0}, {{"x"}, {"y"}}), "pd_dup_a");
-  const std::string b = writeTemp(makeTable({"p1"}, {1.0}, {{"x"}}), "pd_dup_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p1"}, {1.0, 2.0}, {{"x"}, {"y"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"x"}}), b))
 
   const ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
   TEST_EQUAL(r.equal, false)
   TEST_NOT_EQUAL(r.key_errors.size(), 0)
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
 START_SECTION([EXTRA] a list-valued cell compares element-wise or as a multiset on request)
 {
-  const std::string a = writeTemp(makeTable({"p1"}, {1.0}, {{"x", "y"}}), "pd_l_a");
-  const std::string b = writeTemp(makeTable({"p1"}, {1.0}, {{"y", "x"}}), "pd_l_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"x", "y"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"y", "x"}}), b))
 
   // sequence semantics by default: the reordering is a difference
   ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
@@ -188,14 +201,14 @@ START_SECTION([EXTRA] a list-valued cell compares element-wise or as a multiset 
   r = ParquetTableComparator::compare(a, b, unordered);
   TEST_EQUAL(r.equal, true)
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
 START_SECTION([EXTRA] a column present in only one file is a schema difference)
 {
-  const std::string a = writeTemp(makeTable({"p1"}, {1.0}, {{"x"}}), "pd_s_a");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"x"}}), a))
 
   arrow::StringBuilder key_b;
   (void)key_b.Append("p1");
@@ -203,29 +216,31 @@ START_SECTION([EXTRA] a column present in only one file is a schema difference)
   (void)key_b.Finish(&key_a);
   auto narrow = arrow::Table::Make(arrow::schema({arrow::field("key", arrow::utf8(), false)}),
                                    {key_a});
-  const std::string b = writeTemp(narrow, "pd_s_b");
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(narrow, b))
 
   const ParquetDiffResult r = ParquetTableComparator::compare(a, b, pk_settings);
   TEST_EQUAL(r.equal, false)
   TEST_EQUAL(r.schema_errors.size(), 2) // 'value' and 'tags' only in file 1
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
 START_SECTION([EXTRA] ignored columns are excluded from value comparison)
 {
-  const std::string a = writeTemp(makeTable({"p1"}, {1.0}, {{"x"}}), "pd_i_a");
-  const std::string b = writeTemp(makeTable({"p1"}, {99.0}, {{"x"}}), "pd_i_b");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"x"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {99.0}, {{"x"}}), b))
 
   ParquetDiffSettings ignore_value = pk_settings;
   ignore_value.ignore_columns = {"value"};
   const ParquetDiffResult r = ParquetTableComparator::compare(a, b, ignore_value);
   TEST_EQUAL(r.equal, true)
 
-  File::remove(a);
-  File::remove(b);
 }
 END_SECTION
 
@@ -256,7 +271,9 @@ END_SECTION
 START_SECTION((static ParquetDiffResult validate(const std::string& file, const std::string& view, const ParquetDiffSettings& settings)))
 {
   // a table that is plainly not a QPX pg view: every required column is missing
-  const std::string a = writeTemp(makeTable({"p1"}, {1.0}, {{"x"}}), "pd_v_a");
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1"}, {1.0}, {{"x"}}), a))
 
   ParquetDiffSettings settings;
   settings.primary_key = {"key"}; // the file has no QPX key; check schema reporting only
@@ -268,7 +285,62 @@ START_SECTION((static ParquetDiffResult validate(const std::string& file, const 
   TEST_EXCEPTION(Exception::IllegalArgument,
                  ParquetTableComparator::validate(a, "nosuchview", settings))
 
-  File::remove(a);
+}
+END_SECTION
+
+START_SECTION([EXTRA] schema_only reports schema drift without building keys or comparing values)
+{
+  // Differs in BOTH schema and values, and carries a duplicate primary key: under schema_only
+  // only the schema difference may be reported.
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p1"}, {1.0, 2.0}, {{"x"}, {"y"}}), a))
+
+  arrow::StringBuilder key_b;
+  (void)key_b.Append("p1");
+  (void)key_b.Append("p1");
+  std::shared_ptr<arrow::Array> key_a;
+  (void)key_b.Finish(&key_a);
+  auto narrow = arrow::Table::Make(arrow::schema({arrow::field("key", arrow::utf8(), false)}),
+                                   {key_a});
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(narrow, b))
+
+  ParquetDiffSettings schema_only = pk_settings;
+  schema_only.schema_only = true;
+  const ParquetDiffResult r = ParquetTableComparator::compare(a, b, schema_only);
+  TEST_EQUAL(r.equal, false)
+  TEST_NOT_EQUAL(r.schema_errors.size(), 0)
+  TEST_EQUAL(r.key_errors.size(), 0)     // no key building, so no duplicate-key report
+  TEST_EQUAL(r.value_errors.size(), 0)
+  TEST_EQUAL(r.rows_compared, 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] max_reported caps each diagnostic and the remainder is counted as suppressed)
+{
+  // Three rows that all differ in 'value'.
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p2", "p3"}, {1.0, 2.0, 3.0}, {{"x"}, {"y"}, {"z"}}), a))
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"p1", "p2", "p3"}, {9.0, 8.0, 7.0}, {{"x"}, {"y"}, {"z"}}), b))
+
+  ParquetDiffSettings uncapped = pk_settings;
+  uncapped.max_reported = 0;   // unlimited
+  ParquetDiffResult r = ParquetTableComparator::compare(a, b, uncapped);
+  TEST_EQUAL(r.equal, false)
+  TEST_EQUAL(r.value_errors.size(), 3)
+  TEST_EQUAL(r.suppressed, 0)
+
+  ParquetDiffSettings capped = pk_settings;
+  capped.max_reported = 1;
+  r = ParquetTableComparator::compare(a, b, capped);
+  TEST_EQUAL(r.equal, false)
+  TEST_EQUAL(r.value_errors.size(), 1)
+  TEST_EQUAL(r.suppressed, 2)  // the two it did not list
 }
 END_SECTION
 

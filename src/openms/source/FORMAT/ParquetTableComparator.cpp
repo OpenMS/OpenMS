@@ -303,14 +303,23 @@ namespace OpenMS
         }
         if (settings.unordered_lists)
         {
-          auto key_of = [](const std::shared_ptr<arrow::Array>& arr, int64_t i) {
-            auto s = arr->GetScalar(i);
-            return s.ok() ? canonicalKey_(*s) : std::string("E;");
+          // Precompute one canonical key per element. Building them inside the comparator would
+          // re-derive each key O(log n) times, and canonicalKey_ recurses through nested values.
+          auto keys_of = [](const std::shared_ptr<arrow::Array>& arr) {
+            std::vector<std::string> keys(static_cast<size_t>(arr->length()));
+            for (int64_t i = 0; i < arr->length(); ++i)
+            {
+              auto s = arr->GetScalar(i);
+              keys[static_cast<size_t>(i)] = s.ok() ? canonicalKey_(*s) : std::string("E;");
+            }
+            return keys;
           };
+          const std::vector<std::string> keys_a = keys_of(av_list);
+          const std::vector<std::string> keys_b = keys_of(bv_list);
           std::stable_sort(order_a.begin(), order_a.end(),
-                           [&](int64_t l, int64_t r) { return key_of(av_list, l) < key_of(av_list, r); });
+                           [&](int64_t l, int64_t r) { return keys_a[l] < keys_a[r]; });
           std::stable_sort(order_b.begin(), order_b.end(),
-                           [&](int64_t l, int64_t r) { return key_of(bv_list, l) < key_of(bv_list, r); });
+                           [&](int64_t l, int64_t r) { return keys_b[l] < keys_b[r]; });
         }
 
         for (size_t i = 0; i < order_a.size(); ++i)
@@ -739,11 +748,15 @@ namespace OpenMS
       }
     }
 
-    // A QPX primary key must be unique; buildKeys_ reports any duplicate it finds.
-    const auto key_columns = settings.primary_key.empty() ? qpxPrimaryKey(view) : settings.primary_key;
-    result.primary_key_used = key_columns;
-    bool ok = false;
-    (void)buildKeys_(table, key_columns, File::basename(file), settings, result, ok);
+    // A QPX primary key must be unique; buildKeys_ reports any duplicate it finds. Skipped under
+    // schema_only, which the settings contract defines as "schemas only, no key building".
+    if (!settings.schema_only)
+    {
+      const auto key_columns = settings.primary_key.empty() ? qpxPrimaryKey(view) : settings.primary_key;
+      result.primary_key_used = key_columns;
+      bool ok = false;
+      (void)buildKeys_(table, key_columns, File::basename(file), settings, result, ok);
+    }
 
     result.equal = result.schema_errors.empty() && result.key_errors.empty();
     return result;
