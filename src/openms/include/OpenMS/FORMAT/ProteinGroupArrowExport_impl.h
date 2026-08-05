@@ -331,10 +331,12 @@ inline FractionGroupAbundanceData fractionGroupAbundances(
 
   for (Size i = 0; i < abundances->size(); ++i)
   {
-    if ((*fraction_groups)[i] < 0 || (*labels)[i] <= 0)
+    // Both keys are 1-based: MSFileSectionEntry defaults fraction_group to 1 and
+    // ExperimentalDesign::isValid_() requires the set to start at 1.
+    if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0)
     {
       result.valid = false;
-      result.error = "a fraction-group key is negative or a label key is not 1-based";
+      result.error = "a fraction-group or label key is not 1-based";
       return result;
     }
     const auto key = std::make_pair(static_cast<UInt>((*fraction_groups)[i]),

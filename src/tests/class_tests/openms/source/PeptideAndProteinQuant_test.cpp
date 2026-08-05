@@ -253,9 +253,9 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, Pepti
   TEST_EQUAL(seq_it->second.abundances.at(1).size(), 2);
   // ...and end up in two distinct assays, each with a single spectral-count abundance.
   TEST_EQUAL(seq_it->second.fraction_group_abundances.size(), 2);
-  // fromIdentifications currently numbers inferred fraction groups from zero.
-  TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(0).at(1), 1);
+  // fromIdentifications numbers inferred fraction groups 1..n, like every other producer.
   TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(1).at(1), 1);
+  TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(2).at(1), 1);
 }
 END_SECTION
 
