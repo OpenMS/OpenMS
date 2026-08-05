@@ -100,21 +100,25 @@ namespace OpenMS
 
     for (Size i = 1; i < spec.size(); ++i)
     {
-      Size& kept = indices_to_keep.back();
-      // Compare the current peak's m/z with the last kept peak's m/z
-      if (std::fabs(spec[i].getMZ() - spec[kept].getMZ()) > Constants::EPSILON)
+      // Compare against the previous peak in sort order (not the group's current
+      // "kept" representative, whose m/z can jump around once the annotation
+      // tie-break below reassigns it) so a run of adjacent near-duplicates chains
+      // into a single group regardless of which member ends up retained.
+      if (std::fabs(spec[i].getMZ() - spec[i - 1].getMZ()) > Constants::EPSILON)
       {
         indices_to_keep.push_back(i);
       }
       else
       {
+        Size& kept = indices_to_keep.back();
+        // deterministic tie-break independent of platform-specific floating-point rounding
+        const bool discard_kept = annotations[i] < annotations[kept];
 #ifdef DEBUG_OpenNuXL
         // happens a lot with precursor peaks and internal ions
-        std::cout << "Removing duplicate peak at m/z: " << spec[i].getMZ() << endl;
-        std::cout << annotations[i] << " - " << annotations[kept] << std::endl;
+        OPENMS_LOG_DEBUG << "Removing duplicate peak at m/z: " << spec[i].getMZ() << "\n";
+        OPENMS_LOG_DEBUG << (discard_kept ? annotations[kept] : annotations[i]) << " - " << (discard_kept ? annotations[i] : annotations[kept]) << "\n";
 #endif
-        // deterministic tie-break independent of platform-specific floating-point rounding
-        if (annotations[i] < annotations[kept]) { kept = i; }
+        if (discard_kept) { kept = i; }
       }
     }
 
