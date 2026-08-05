@@ -47,14 +47,17 @@ namespace OpenMS
       }
       auto reader = std::move(reader_result.ValueOrDie());
 
-      auto table_result = reader->ReadTable();
-      if (!table_result.ok())
+      // The Result-returning overload is newer than the Arrow in contrib, so use the
+      // pointer-out form that ConsensusMapArrowIO uses. It is deprecated in recent Arrow,
+      // which is why -Wdeprecated-declarations fires here on newer system installs.
+      std::shared_ptr<arrow::Table> table;
+      const auto read_status = reader->ReadTable(&table);
+      if (!read_status.ok())
       {
         OPENMS_LOG_ERROR << "ParquetTableComparator: cannot read table from '" << filename
-                         << "': " << table_result.status().ToString() << std::endl;
+                         << "': " << read_status.ToString() << std::endl;
         return nullptr;
       }
-      const auto& table = *table_result;
 
       // One chunk per column keeps the row-index arithmetic below straightforward.
       auto combined = table->CombineChunks(arrow::default_memory_pool());
