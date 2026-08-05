@@ -82,6 +82,25 @@ runs:
           exit 1
         fi
 
+        # The deploy host is occasionally unreachable for a few minutes at a
+        # time (see #9702), so retry transient failures with backoff rather
+        # than failing the whole (otherwise healthy) build.
+        rsync_with_retry() {
+          local attempt max_attempts=5 delay=15
+          for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+            if rsync "$@"; then
+              return 0
+            fi
+            if ((attempt == max_attempts)); then
+              echo >&2 "ERROR: rsync failed after ${max_attempts} attempts"
+              return 1
+            fi
+            echo >&2 "rsync attempt ${attempt}/${max_attempts} failed, retrying in ${delay}s..."
+            sleep "$delay"
+            delay=$((delay * 2))
+          done
+        }
+
         rsync_options=(
           "--progress"
           "-avz"
@@ -94,7 +113,7 @@ runs:
 
         # Allow globing on the src directory:
         # shellcheck disable=SC2086
-        rsync \
+        rsync_with_retry \
           "${rsync_options[@]}" \
           $SRC_DIR \
           "${SSH_USER}@${SSH_HOST}:${DST_DIR}"
@@ -106,7 +125,7 @@ runs:
             LATEST_DST=$(dirname "$DST_DIR")
           fi
 
-          rsync \
+          rsync_with_retry \
             "${rsync_options[@]}" \
             "latest" \
             "${SSH_USER}@${SSH_HOST}:${LATEST_DST}"
