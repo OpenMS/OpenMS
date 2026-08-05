@@ -224,7 +224,8 @@ namespace OpenMS
       in integer space first. The result is exact whenever it fits a double's mantissa; a
       difference larger than that is far beyond any tolerance anyway.
     */
-    bool integerAbsDiff_(const arrow::Scalar& a, const arrow::Scalar& b, double& absdiff)
+    bool integerAbsDiff_(const arrow::Scalar& a, const arrow::Scalar& b,
+                         double& absdiff, double& min_magnitude, bool& same_sign)
     {
       if (!arrow::is_integer(a.type->id()) || !arrow::is_integer(b.type->id())) { return false; }
 
@@ -236,6 +237,8 @@ namespace OpenMS
         const uint64_t ua = static_cast<const arrow::UInt64Scalar&>(**ca).value;
         const uint64_t ub = static_cast<const arrow::UInt64Scalar&>(**cb).value;
         absdiff = static_cast<double>(ua > ub ? ua - ub : ub - ua);
+        min_magnitude = static_cast<double>(std::min(ua, ub));
+        same_sign = (ua != 0 && ub != 0);
         return true;
       }
 
@@ -248,6 +251,10 @@ namespace OpenMS
       const uint64_t diff = (ia > ib) ? (static_cast<uint64_t>(ia) - static_cast<uint64_t>(ib))
                                       : (static_cast<uint64_t>(ib) - static_cast<uint64_t>(ia));
       absdiff = static_cast<double>(diff);
+      const double fa = std::fabs(static_cast<double>(ia));
+      const double fb = std::fabs(static_cast<double>(ib));
+      min_magnitude = std::min(fa, fb);
+      same_sign = (ia != 0 && ib != 0 && ((ia > 0) == (ib > 0)));
       return true;
     }
 
@@ -312,10 +319,19 @@ namespace OpenMS
         // Scalar::Equals defaults to nans_equal_ = false, so using it as a tie-breaker here
         // would report two NaNs as different, which the tolerance contract says are equal.
         double exact = 0.0;
-        if (integerAbsDiff_(*a, *b, exact))
+        double min_magnitude = 0.0;
+        bool same_sign = false;
+        if (integerAbsDiff_(*a, *b, exact, min_magnitude, same_sign))
         {
           absdiff = exact;
-          ok = absdiff <= settings.acceptable_absdiff || ratio <= settings.acceptable_ratio;
+          // The ratio test is applied as absdiff <= (tolerance - 1) * min, never by forming the
+          // ratio: 1 + 1/2^53 rounds back to exactly 1.0, so a formed ratio would accept a real
+          // difference under the default tolerance of 1.0.
+          const bool ratio_ok = same_sign && min_magnitude > 0.0
+                                && absdiff <= (settings.acceptable_ratio - 1.0) * min_magnitude;
+          ratio = (same_sign && min_magnitude > 0.0) ? (1.0 + absdiff / min_magnitude)
+                                                     : std::numeric_limits<double>::infinity();
+          ok = absdiff <= settings.acceptable_absdiff || ratio_ok;
         }
 
         max_ratio = std::max(max_ratio, ratio);   // may be inf: that is an observed ratio
