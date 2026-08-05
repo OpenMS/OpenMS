@@ -213,6 +213,7 @@
   <b>[for developers]</b>
   - @subpage TOPP_CVInspector - Visualization and validation of PSI mapping and CV files.
   - @subpage TOPP_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage TOPP_ParquetDiff - Compares two Parquet tables by primary key, tolerating numeric differences.
   - @subpage TOPP_JSONExporter - Exports .oms (SQLite) files in JSON format
   - @subpage TOPP_OpenMSDatabasesInfo - prints the content of OpenMS' enzyme and modification databases to a TSV file.
   - @subpage TOPP_SemanticValidator - SemanticValidator for analysisXML and mzML files.
