@@ -20,6 +20,8 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+
+#include <algorithm>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -954,7 +956,13 @@ namespace OpenMS
 
     // Preserve the existing compact layout when assay and study-variable grain are identical.
     // Once the design genuinely splits them, initialize every assay column in every row.
-    const bool has_distinct_assay_grain = n_assays != n_study_variables;
+    // Ask the mapping, not the two counts: a sample section may hold a sample that owns no assay,
+    // so the counts can agree while one study variable owns two assays and another owns none. Under
+    // the count test the assay columns would then be dropped AND the multi-assay study variable
+    // would stay null below, so those intensities would vanish from the row entirely.
+    const bool has_distinct_assay_grain = std::any_of(
+      study_variable_to_assays.begin() + 1, study_variable_to_assays.end(),
+      [](const std::vector<Size>& assays) { return assays.size() != 1; });
     if (has_distinct_assay_grain)
     {
       for (Size assay = 1; assay <= n_assays; ++assay)
@@ -985,7 +993,15 @@ namespace OpenMS
 
       UInt label = ch.getLabelAsUInt(experiment_type);
       auto pl = make_pair(ch.filename, label);
-      const Size assay = path_label_to_assay.at(pl) + 1; // design mapping is zero-based; mzTab assays are one-based
+      const auto assay_it = path_label_to_assay.find(pl);
+      if (assay_it == path_label_to_assay.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column ('" + ch.filename + "', label " + StringUtils::toStr(label)
+          + ") has no quantification unit in the experimental design.");
+      }
+      const Size assay = assay_it->second + 1; // design mapping is zero-based; mzTab assays are one-based
       const Size study_variable = assay_to_study_variable.at(assay);
       assay_abundances[assay] += fit->getIntensity();
 
@@ -3050,7 +3066,15 @@ state0:
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      const Size assay_index = path_label_to_assay_.at(pl) + 1;
+      const auto assay_it = path_label_to_assay_.find(pl);
+      if (assay_it == path_label_to_assay_.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column ('" + c.second.filename + "', label " + StringUtils::toStr(label)
+          + ") has no quantification unit in the experimental design.");
+      }
+      const Size assay_index = assay_it->second + 1;
 
       if (experiment_type == "label-free")
       {
@@ -3065,7 +3089,15 @@ state0:
         quantification_reagent.fromCellString("[PRIDE,PRIDE:0000317,MS2 based isotope labeling," + c.second.label + "]");
       }
       
-      const Size curr_run_index = path_to_ms_run_index.at(c.second.filename);
+      const auto run_it = path_to_ms_run_index.find(c.second.filename);
+      if (run_it == path_to_ms_run_index.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column '" + c.second.filename + "' has no ms_run entry; the primary MS "
+          "run paths and the column headers disagree.");
+      }
+      const Size curr_run_index = run_it->second;
 
       meta_data_.assay[assay_index].quantification_reagent = quantification_reagent;
       auto& ms_run_refs = meta_data_.assay[assay_index].ms_run_ref;
