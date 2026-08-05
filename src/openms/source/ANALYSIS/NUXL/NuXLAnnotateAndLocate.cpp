@@ -79,15 +79,19 @@ namespace OpenMS
 
     @note The spectrum should be sorted by position (m/z) before calling this function
           to ensure correct identification of duplicates.
-    @note Two theoretical fragments of identical composition (e.g. [M+H-H2O]+U and
-          [M+H]+U-H2O) are computed via different arithmetic paths, so they rarely land
-          on the exact same double bit pattern -- the gap is FP rounding noise
-          (~1e-10 Da) that can differ between platforms/compilers. An exact '=='
-          comparison kept both as distinct peaks, and the alignment step matched
-          whichever happened to sort first, making the reported ion name
-          non-deterministic across builds. Comparing with a tolerance clears the
-          noise while staying far below any real chemical mass difference; breaking
-          ties on the annotation string keeps the pick identical on every platform.
+    @note Exact duplicates (identical bit pattern, e.g. two ion types whose composition
+          happens to sum to precisely the same double) are common and always resolve to
+          the same result on every platform, so they keep the first-encountered
+          annotation, as before.
+    @note Near-duplicates -- two theoretical fragments of identical composition (e.g.
+          [M+H-H2O]+U and [M+H]+U-H2O) computed via different arithmetic paths that
+          rarely land on the exact same double bit pattern -- are a different case: the
+          gap between them is FP rounding noise (~1e-10 Da) that can differ between
+          platforms/compilers. An exact '==' comparison kept both as distinct peaks,
+          and the alignment step matched whichever happened to sort first, making the
+          reported ion name non-deterministic across builds. For this case only (m/z
+          differs, but by less than the tolerance), the tie is broken on the annotation
+          string instead, which keeps the pick identical on every platform.
   */
   static void removeDuplicatedPeaks(MSSpectrum& spec)
   {
@@ -104,15 +108,20 @@ namespace OpenMS
       // "kept" representative, whose m/z can jump around once the annotation
       // tie-break below reassigns it) so a run of adjacent near-duplicates chains
       // into a single group regardless of which member ends up retained.
-      if (std::fabs(spec[i].getMZ() - spec[i - 1].getMZ()) > Constants::EPSILON)
+      const double mz_diff = std::fabs(spec[i].getMZ() - spec[i - 1].getMZ());
+      if (mz_diff > Constants::EPSILON)
       {
         indices_to_keep.push_back(i);
       }
       else
       {
         Size& kept = indices_to_keep.back();
-        // deterministic tie-break independent of platform-specific floating-point rounding
-        const bool discard_kept = annotations[i] < annotations[kept];
+        // Only break the tie on annotation for genuine near-duplicates (mz_diff > 0).
+        // Exact duplicates (mz_diff == 0) keep the first-encountered annotation --
+        // that choice is already platform-independent, and changing it here would
+        // needlessly flip the (arbitrary but stable) winner for peaks that were
+        // never affected by the non-determinism this function guards against.
+        const bool discard_kept = mz_diff > 0.0 && annotations[i] < annotations[kept];
 #ifdef DEBUG_OpenNuXL
         // happens a lot with precursor peaks and internal ions
         OPENMS_LOG_DEBUG << "Removing duplicate peak at m/z: " << spec[i].getMZ() << "\n";
