@@ -19,8 +19,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <map>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -137,6 +139,37 @@ namespace OpenMS
       return "V" + std::to_string(text.size()) + ":" + text;
     }
 
+    /// Human-readable rendering of a scalar, for messages (never used for matching).
+    std::string displayValue_(const std::shared_ptr<arrow::Scalar>& scalar)
+    {
+      if (!scalar) { return "<unreadable>"; }
+      if (!scalar->is_valid) { return "null"; }
+
+      if (isListLike_(scalar->type->id()))
+      {
+        const auto& values = static_cast<const arrow::BaseListScalar&>(*scalar).value;
+        std::string rendered = "[";
+        for (int64_t i = 0; i < values->length(); ++i)
+        {
+          if (i != 0) { rendered += ", "; }
+          auto element = values->GetScalar(i);
+          rendered += element.ok() ? displayValue_(*element) : "<unreadable>";
+        }
+        return rendered + "]";
+      }
+      return scalar->ToString();
+    }
+
+    /// Format a double without the trailing-zero noise of std::to_string.
+    std::string formatNumber_(double value)
+    {
+      if (std::isinf(value)) { return value > 0 ? "inf" : "-inf"; }
+      if (std::isnan(value)) { return "nan"; }
+      std::ostringstream out;
+      out << std::setprecision(10) << std::defaultfloat << value;
+      return out.str();
+    }
+
     /// True when both are NaN, which regression comparison should treat as equal.
     bool bothNaN_(double a, double b)
     {
@@ -215,8 +248,7 @@ namespace OpenMS
       if (!a_valid && !b_valid) { return true; }
       if (a_valid != b_valid)
       {
-        message = path + ": " + (a_valid ? a->ToString() : "<null>") + " vs. "
-                  + (b_valid ? b->ToString() : "<null>");
+        message = path + ": " + displayValue_(a) + " vs. " + displayValue_(b);
         return false;
       }
 
@@ -241,8 +273,8 @@ namespace OpenMS
         if (!ok)
         {
           message = path + ": " + a->ToString() + " vs. " + b->ToString()
-                    + " (absdiff " + std::to_string(absdiff) + ", ratio "
-                    + (std::isfinite(ratio) ? std::to_string(ratio) : std::string("inf")) + ")";
+                    + " (absdiff " + formatNumber_(absdiff)
+                    + ", ratio " + formatNumber_(ratio) + ")";
         }
         return ok;
       }
@@ -388,7 +420,14 @@ namespace OpenMS
       iteration deterministic, which matters because ParquetDiffSettings::max_reported decides
       which differences are shown.
     */
-    std::map<std::string, std::vector<int64_t>> buildKeys_(const std::shared_ptr<arrow::Table>& table,
+    /// Rows carrying one primary key, plus a readable rendering of that key for messages.
+    struct KeyEntry
+    {
+      std::vector<int64_t> rows;
+      std::string display;
+    };
+
+    std::map<std::string, KeyEntry> buildKeys_(const std::shared_ptr<arrow::Table>& table,
                                                            const std::vector<std::string>& key_columns,
                                                            const std::string& which,
                                                            const ParquetDiffSettings& settings,
@@ -396,7 +435,7 @@ namespace OpenMS
                                                            bool& ok)
     {
       ok = true;
-      std::map<std::string, std::vector<int64_t>> keys;
+      std::map<std::string, KeyEntry> keys;
 
       std::vector<int> indices;
       indices.reserve(key_columns.size());
@@ -415,38 +454,45 @@ namespace OpenMS
 
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
-        // canonicalKey_ is self-delimiting, so plain concatenation is unambiguous.
+        // canonicalKey_ is self-delimiting, so plain concatenation is unambiguous. It is an
+        // identity, not a label: messages use the readable rendering built alongside it.
         std::string key;
-        for (const int index : indices)
+        std::string display;
+        for (size_t k = 0; k < indices.size(); ++k)
         {
           bool cell_ok = false;
-          auto cell = cellAt_(table, index, row, cell_ok);
+          auto cell = cellAt_(table, indices[k], row, cell_ok);
           if (!cell_ok)
           {
             report_(result.key_errors, settings.max_reported, result.suppressed,
                     which + ": row " + std::to_string(row) + " has an unreadable key cell in '"
-                      + table->schema()->field(index)->name() + "'");
+                      + key_columns[k] + "'");
             ok = false;
             return keys;
           }
           key += canonicalKey_(cell);
+          if (k != 0) { display += ", "; }
+          display += key_columns[k] + "=" + displayValue_(cell);
         }
-        keys[key].push_back(row);
+        auto& entry = keys[key];
+        entry.rows.push_back(row);
+        entry.display = display;
       }
 
-      for (const auto& [key, rows] : keys)
+      for (const auto& [key, entry] : keys)
       {
-        if (rows.size() > 1)
+        (void)key;
+        if (entry.rows.size() > 1)
         {
           std::string row_list;
-          for (size_t i = 0; i < rows.size(); ++i)
+          for (size_t i = 0; i < entry.rows.size(); ++i)
           {
             if (i != 0) { row_list += ", "; }
-            row_list += std::to_string(rows[i]);
+            row_list += std::to_string(entry.rows[i]);
           }
           report_(result.key_errors, settings.max_reported, result.suppressed,
-                  which + ": primary key occurs " + std::to_string(rows.size())
-                    + " times (rows " + row_list + "): " + key);
+                  which + ": primary key occurs " + std::to_string(entry.rows.size())
+                    + " times (rows " + row_list + "): [" + entry.display + "]");
         }
       }
       return keys;
@@ -548,28 +594,28 @@ namespace OpenMS
 
     // Key-set drift, including multiplicity: a key present twice on one side and once on the
     // other is a real difference, not something to collapse.
-    for (const auto& [key, rows] : keys_1)
+    for (const auto& [key, entry] : keys_1)
     {
       const auto it = keys_2.find(key);
       if (it == keys_2.end())
       {
         report_(result.key_errors, settings.max_reported, result.suppressed,
-                "row only in file 1: " + key);
+                "row only in file 1: [" + entry.display + "]");
       }
-      else if (it->second.size() != rows.size())
+      else if (it->second.rows.size() != entry.rows.size())
       {
         report_(result.key_errors, settings.max_reported, result.suppressed,
-                "key occurs " + std::to_string(rows.size()) + " times in file 1 but "
-                  + std::to_string(it->second.size()) + " times in file 2: " + key);
+                "key occurs " + std::to_string(entry.rows.size()) + "x in file 1 but "
+                  + std::to_string(it->second.rows.size()) + "x in file 2: ["
+                  + entry.display + "]");
       }
     }
-    for (const auto& [key, rows] : keys_2)
+    for (const auto& [key, entry] : keys_2)
     {
-      (void)rows;
       if (keys_1.find(key) == keys_1.end())
       {
         report_(result.key_errors, settings.max_reported, result.suppressed,
-                "row only in file 2: " + key);
+                "row only in file 2: [" + entry.display + "]");
       }
     }
 
@@ -597,14 +643,14 @@ namespace OpenMS
       column_names.push_back(field->name());
     }
 
-    for (const auto& [key, rows_1] : keys_1)
+    for (const auto& [key, entry] : keys_1)
     {
       const auto it = keys_2.find(key);
       if (it == keys_2.end()) { continue; }
       // With a well-formed key both sides hold exactly one row; duplicates were reported above
       // and the first occurrence is compared so that the value report is still useful.
-      const int64_t row_1 = rows_1.front();
-      const int64_t row_2 = it->second.front();
+      const int64_t row_1 = entry.rows.front();
+      const int64_t row_2 = it->second.rows.front();
       ++result.rows_compared;
 
       for (size_t c = 0; c < columns.size(); ++c)
@@ -616,7 +662,7 @@ namespace OpenMS
         if (!ok_a || !ok_b)
         {
           report_(result.value_errors, settings.max_reported, result.suppressed,
-                  key + " " + column_names[c] + ": cell could not be read");
+                  "[" + entry.display + "] " + column_names[c] + ": cell could not be read");
           continue;
         }
 
@@ -625,7 +671,7 @@ namespace OpenMS
                            result.max_ratio, result.max_absdiff))
         {
           report_(result.value_errors, settings.max_reported, result.suppressed,
-                  key + " " + message);
+                  "[" + entry.display + "] " + message);
         }
       }
     }
