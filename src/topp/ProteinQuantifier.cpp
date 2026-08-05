@@ -444,7 +444,7 @@ protected:
       }
     }
 
-    out << "fraction" << endl;
+    out << "fraction" << nl;
 
     for (auto const & q : quant) // loop over sequence->peptide data
     {

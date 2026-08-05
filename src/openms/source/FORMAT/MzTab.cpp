@@ -1007,15 +1007,23 @@ namespace OpenMS
 
       if (export_subfeatures)
       {
-        MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
-        opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + StringUtils::toStr(study_variable) + "]";
-        opt_global_mass_to_charge_study_variable.second = MzTabString(StringUtils::toStr(fit->getMZ()));
-        row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+        // One column per handle. Keying on the study variable is only unique while it owns a single
+        // assay; once it groups replicates, two handles would emit the same column name twice. Keep
+        // the established name in the single-assay case and fall back to the assay otherwise.
+        const bool sv_is_one_assay = study_variable_to_assays.at(study_variable).size() == 1;
+        const std::string suffix = sv_is_one_assay
+          ? "study_variable[" + StringUtils::toStr(study_variable) + "]"
+          : "assay[" + StringUtils::toStr(assay) + "]";
 
-        MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
-        opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + StringUtils::toStr(study_variable) + "]";
-        opt_global_retention_time_study_variable.second = MzTabString(StringUtils::toStr(fit->getRT()));
-        row.opt_.push_back(opt_global_retention_time_study_variable);
+        MzTabOptionalColumnEntry opt_global_mass_to_charge;
+        opt_global_mass_to_charge.first = "opt_global_mass_to_charge_" + suffix;
+        opt_global_mass_to_charge.second = MzTabString(StringUtils::toStr(fit->getMZ()));
+        row.opt_.push_back(opt_global_mass_to_charge);
+
+        MzTabOptionalColumnEntry opt_global_retention_time;
+        opt_global_retention_time.first = "opt_global_retention_time_" + suffix;
+        opt_global_retention_time.second = MzTabString(StringUtils::toStr(fit->getRT()));
+        row.opt_.push_back(opt_global_retention_time);
       }
     }
 
@@ -1827,9 +1835,18 @@ Not sure how to handle these:
       map<pair<UInt, UInt>, float> abundance_by_assay_key;
       for (Size i = 0; i < assay_abundances->size(); ++i)
       {
-        if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0)
+        // Same boundary as the QPX sibling (ProteinGroupArrowExport_impl.h fractionGroupAbundances):
+        // a label is 1-based, but a fraction group is only required to be non-negative.
+        //
+        // Zero is a real value here. Only designs built through the validating constructor must
+        // start at 1 (ExperimentalDesign.cpp isValid_()); the programmatic paths do not go through
+        // it. fromIdentifications() numbers fraction groups from 0, and fromConsensusMap() passes
+        // an annotated 'fraction_group' through unchanged - so a consensusXML carrying 0 reaches
+        // this validator through ProteinQuantifier. Rejecting it would silently drop that run's
+        // protein quantities, since the sample-grain array this used to fall back to is gone.
+        if ((*fraction_groups)[i] < 0 || (*labels)[i] <= 0)
         {
-          return warnAndFallback("a fraction group or label key is not positive");
+          return warnAndFallback("a fraction group key is negative or a label key is not 1-based");
         }
         const pair<UInt, UInt> key(static_cast<UInt>((*fraction_groups)[i]),
                                    static_cast<UInt>((*labels)[i]));

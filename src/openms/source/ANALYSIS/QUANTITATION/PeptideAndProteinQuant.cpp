@@ -455,8 +455,7 @@ namespace OpenMS
     if (abundances.size() <= 1)
     { // no reference to scale to - say so, rather than returning as if normalization had happened
       OPENMS_LOG_WARN << "Warning: fewer than two assays contain a peptide with a positive abundance, "
-                      << "so there is nothing to normalize against. Abundances are left unchanged."
-                      << endl;
+                      << "so there is nothing to normalize against. Abundances are left unchanged.\n";
       return;
     }
 
@@ -488,7 +487,7 @@ namespace OpenMS
                         << " has no peptide with a positive abundance - for isobaric data, no reporter "
                         << "ion was detected for it in any quantified peptide. It does not take part in "
                         << "the normalization: it defines no reference and its values are left as they "
-                        << "are (they are all zero)." << endl;
+                        << "are (they are all zero).\n";
         continue; // no factor at all - see scaleFactorFor below
       }
       // a median over strictly positive values is itself positive, so this cannot divide by zero
@@ -1300,7 +1299,10 @@ namespace OpenMS
     else if (fix_peptides && (top_n > 0) && (pd.peptide_fraction_group_abundances.size() > top_n))
     {
       orderBest_(pd.peptide_fraction_group_abundances, peptides);
-      peptides.resize(top_n);
+      // Truncate, never pad: the guard above counts every entry, while orderBest_ drops those with
+      // no positive abundance, so fewer than 'top_n' names can come back and resize() would append
+      // empty ones.
+      peptides.resize(std::min(top_n, peptides.size()));
     }
     else
     {

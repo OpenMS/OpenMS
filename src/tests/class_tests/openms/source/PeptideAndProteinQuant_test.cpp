@@ -605,7 +605,7 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   pep_data = pep_quant[AASequence::fromString("GGGGG")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one file
-  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // two charges  
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge  
 
   TEST_EQUAL(pep_data.fraction_group_abundances.size(), 1);
   TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 7777);
