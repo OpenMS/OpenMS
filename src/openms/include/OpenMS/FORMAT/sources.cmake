@@ -77,6 +77,7 @@ ParamCTDFile.h
 ParamCWLFile.h
 ParamJSONFile.h
 ParamXMLFile.h
+ParquetTableComparator.h
 PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
