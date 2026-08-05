@@ -15,7 +15,6 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -72,7 +71,7 @@ namespace OpenMS
     @brief Removes duplicate peaks based on their m/z values.
 
     This function identifies and removes duplicate peaks from the spectrum based on
-    their m/z values. Peaks whose m/z differ by less than Constants::EPSILON are
+    their m/z values. Peaks whose m/z differ by less than DUPLICATE_MZ_EPSILON_ are
     considered the same theoretical peak; of each such group, only one is retained.
     The function uses the `select()` method to efficiently remove the
     duplicate peaks and their corresponding entries in the data arrays.
@@ -86,16 +85,26 @@ namespace OpenMS
     @note Near-duplicates -- two theoretical fragments of identical composition (e.g.
           [M+H-H2O]+U and [M+H]+U-H2O) computed via different arithmetic paths that
           rarely land on the exact same double bit pattern -- are a different case: the
-          gap between them is FP rounding noise (~1e-10 Da) that can differ between
-          platforms/compilers. An exact '==' comparison kept both as distinct peaks,
-          and the alignment step matched whichever happened to sort first, making the
-          reported ion name non-deterministic across builds. For this case only (m/z
-          differs, but by less than the tolerance), the tie is broken on the annotation
-          string instead, which keeps the pick identical on every platform.
+          gap between them is FP rounding noise (observed up to ~5e-10 Da) that can
+          differ between platforms/compilers. An exact '==' comparison kept both as
+          distinct peaks, and the alignment step matched whichever happened to sort
+          first, making the reported ion name non-deterministic across builds. For this
+          case only (m/z differs, but by less than DUPLICATE_MZ_EPSILON_), the tie is
+          broken on the annotation string instead, which keeps the pick identical on
+          every platform. DUPLICATE_MZ_EPSILON_ is deliberately far tighter than the
+          generic Constants::EPSILON (1e-6): distinct fragment ions of different
+          composition can legitimately land within a few 1e-7 Da of each other (e.g.
+          isomeric internal fragments), and merging those would silently drop a real,
+          distinct candidate peak rather than just fixing an annotation tie.
   */
   static void removeDuplicatedPeaks(MSSpectrum& spec)
   {
     if (spec.empty()) return;
+
+    // ~2 orders of magnitude above the largest FP rounding noise observed for these
+    // masses (~5e-10 Da), ~2 orders of magnitude below the smallest real mass gap
+    // between distinct fragment ions seen in practice.
+    constexpr double DUPLICATE_MZ_EPSILON_ = 1e-8;
 
     const auto& annotations = spec.getStringDataArrays()[0];
 
@@ -109,7 +118,7 @@ namespace OpenMS
       // tie-break below reassigns it) so a run of adjacent near-duplicates chains
       // into a single group regardless of which member ends up retained.
       const double mz_diff = std::fabs(spec[i].getMZ() - spec[i - 1].getMZ());
-      if (mz_diff > Constants::EPSILON)
+      if (mz_diff > DUPLICATE_MZ_EPSILON_)
       {
         indices_to_keep.push_back(i);
       }
