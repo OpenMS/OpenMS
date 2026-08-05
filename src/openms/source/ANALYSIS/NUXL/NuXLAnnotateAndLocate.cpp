@@ -71,8 +71,8 @@ namespace OpenMS
     @brief Removes duplicate peaks based on their m/z values.
 
     This function identifies and removes duplicate peaks from the spectrum based on
-    their m/z values. Peaks whose m/z differ from their group's anchor peak by less
-    than DUPLICATE_MZ_EPSILON_ are considered the same theoretical peak; of each such
+    their m/z values. Peaks whose m/z differ from their group's anchor peak by at
+    most DUPLICATE_MZ_EPSILON_ are considered the same theoretical peak; of each such
     group, only one is retained. The function uses the `select()` method to
     efficiently remove the duplicate peaks and their corresponding entries in the
     data arrays.
