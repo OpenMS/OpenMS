@@ -71,13 +71,24 @@ namespace OpenMS
     @brief Removes duplicate peaks based on their m/z values.
 
     This function identifies and removes duplicate peaks from the spectrum based on
-    their m/z values. Peaks whose m/z differ by less than DUPLICATE_MZ_EPSILON_ are
-    considered the same theoretical peak; of each such group, only one is retained.
-    The function uses the `select()` method to efficiently remove the
-    duplicate peaks and their corresponding entries in the data arrays.
+    their m/z values. Peaks whose m/z differ from their group's anchor peak by less
+    than DUPLICATE_MZ_EPSILON_ are considered the same theoretical peak; of each such
+    group, only one is retained. The function uses the `select()` method to
+    efficiently remove the duplicate peaks and their corresponding entries in the
+    data arrays.
 
     @note The spectrum should be sorted by position (m/z) before calling this function
           to ensure correct identification of duplicates.
+    @note Each group is anchored to the m/z of its first (lowest) member, and every
+          later candidate is compared against that fixed anchor -- not against the
+          immediately preceding peak, and not against the group's current tie-break
+          winner. Chaining to a moving reference would let the group boundary drift:
+          three peaks each within tolerance of their immediate neighbor, but with the
+          first and last more than DUPLICATE_MZ_EPSILON_ apart, would otherwise merge
+          transitively into one group even though the outer two are not duplicates of
+          each other. A real floating-point-noise duplicate is always a close pair
+          (the same true value computed twice), so anchoring to a fixed reference does
+          not miss genuine cases while it avoids that transitive over-merging.
     @note Exact duplicates (identical bit pattern, e.g. two ion types whose composition
           happens to sum to precisely the same double) are common and always resolve to
           the same result on every platform, so they keep the first-encountered
@@ -110,17 +121,15 @@ namespace OpenMS
 
     std::vector<Size> indices_to_keep;
     indices_to_keep.push_back(0); // Always keep the first peak
+    Size group_anchor = 0; // index whose m/z is the fixed reference for the current group
 
     for (Size i = 1; i < spec.size(); ++i)
     {
-      // Compare against the previous peak in sort order (not the group's current
-      // "kept" representative, whose m/z can jump around once the annotation
-      // tie-break below reassigns it) so a run of adjacent near-duplicates chains
-      // into a single group regardless of which member ends up retained.
-      const double mz_diff = std::fabs(spec[i].getMZ() - spec[i - 1].getMZ());
+      const double mz_diff = std::fabs(spec[i].getMZ() - spec[group_anchor].getMZ());
       if (mz_diff > DUPLICATE_MZ_EPSILON_)
       {
         indices_to_keep.push_back(i);
+        group_anchor = i; // this peak starts (and anchors) a new group
       }
       else
       {
@@ -137,6 +146,7 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << (discard_kept ? annotations[kept] : annotations[i]) << " - " << (discard_kept ? annotations[i] : annotations[kept]) << "\n";
 #endif
         if (discard_kept) { kept = i; }
+        // group_anchor is intentionally left unchanged -- see function-level note.
       }
     }
 
