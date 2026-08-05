@@ -699,7 +699,6 @@ END_SECTION
 START_SECTION(([PeptideAndProteinQuant::ProteinData] ProteinData()))
 {
   PeptideAndProteinQuant::ProteinData data;
-  TEST_TRUE(data.peptide_abundances.empty());
   TEST_TRUE(data.peptide_fraction_group_abundances.empty());
   TEST_TRUE(data.fraction_group_abundances.empty());
   TEST_EQUAL(data.psm_count, 0);

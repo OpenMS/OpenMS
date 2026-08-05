@@ -25,19 +25,6 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         quant = pyopenms.PeptideAndProteinQuant()
         self.assertIsNotNone(quant)
 
-    def test_deprecated_total_abundances_compatibility_properties(self):
-        """The removed sample-grain fields remain empty, deprecated properties."""
-        peptide_data = pyopenms.PeptideAndProteinQuant_PeptideData()
-        protein_data = pyopenms.PeptideAndProteinQuant_ProteinData()
-
-        for data in (peptide_data, protein_data):
-            with self.assertWarns(DeprecationWarning):
-                self.assertEqual(data.total_abundances, {})
-            with self.assertWarns(DeprecationWarning):
-                data.total_abundances = {0: 42.0}
-            with self.assertWarns(DeprecationWarning):
-                self.assertEqual(data.total_abundances, {})
-
     def test_get_peptide_results_from_feature_map(self):
         """Test getPeptideResults() returns dict with correct peptide data from FeatureMap."""
         # Load feature map

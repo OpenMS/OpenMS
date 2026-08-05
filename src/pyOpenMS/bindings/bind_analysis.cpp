@@ -1977,28 +1977,6 @@ CVTermList
         .def("__deepcopy__", [](const OpenMS::PeptideAndProteinQuant::PeptideData& self, nb::dict) { return OpenMS::PeptideAndProteinQuant::PeptideData(self); }, "memo"_a)
         .def_rw("abundances", &OpenMS::PeptideAndProteinQuant::PeptideData::abundances)
         .def_rw("psm_counts", &OpenMS::PeptideAndProteinQuant::PeptideData::psm_counts)
-        .def_prop_rw("total_abundances",
-                     [](const OpenMS::PeptideAndProteinQuant::PeptideData&)
-                     {
-                         if (PyErr_WarnEx(PyExc_DeprecationWarning,
-                                          "PeptideData.total_abundances is deprecated and no longer populated; use fraction_group_abundances instead.",
-                                          1) < 0)
-                         {
-                             throw nb::python_error();
-                         }
-                         return OpenMS::PeptideAndProteinQuant::SampleAbundances{};
-                     },
-                     [](OpenMS::PeptideAndProteinQuant::PeptideData&,
-                        const OpenMS::PeptideAndProteinQuant::SampleAbundances&)
-                     {
-                         if (PyErr_WarnEx(PyExc_DeprecationWarning,
-                                          "PeptideData.total_abundances is deprecated; assignments are ignored. Use fraction_group_abundances instead.",
-                                          1) < 0)
-                         {
-                             throw nb::python_error();
-                         }
-                     },
-                     "Deprecated compatibility property; always empty. Use fraction_group_abundances.")
         .def_rw("fraction_group_abundances", &OpenMS::PeptideAndProteinQuant::PeptideData::fraction_group_abundances)
         .def_rw("total_psm_counts", &OpenMS::PeptideAndProteinQuant::PeptideData::total_psm_counts)
         .def_rw("accessions", &OpenMS::PeptideAndProteinQuant::PeptideData::accessions)
@@ -2012,33 +1990,10 @@ CVTermList
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::PeptideAndProteinQuant::ProteinData& self) { return OpenMS::PeptideAndProteinQuant::ProteinData(self); })
         .def("__deepcopy__", [](const OpenMS::PeptideAndProteinQuant::ProteinData& self, nb::dict) { return OpenMS::PeptideAndProteinQuant::ProteinData(self); }, "memo"_a)
-        .def_rw("peptide_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_abundances)
         .def_rw("peptide_fraction_group_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_fraction_group_abundances)
         .def_rw("peptide_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_psm_counts)
         .def_rw("channel_level_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::channel_level_abundances)
         .def_rw("file_level_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::file_level_psm_counts)
-        .def_prop_rw("total_abundances",
-                     [](const OpenMS::PeptideAndProteinQuant::ProteinData&)
-                     {
-                         if (PyErr_WarnEx(PyExc_DeprecationWarning,
-                                          "ProteinData.total_abundances is deprecated and no longer populated; use fraction_group_abundances instead.",
-                                          1) < 0)
-                         {
-                             throw nb::python_error();
-                         }
-                         return OpenMS::PeptideAndProteinQuant::SampleAbundances{};
-                     },
-                     [](OpenMS::PeptideAndProteinQuant::ProteinData&,
-                        const OpenMS::PeptideAndProteinQuant::SampleAbundances&)
-                     {
-                         if (PyErr_WarnEx(PyExc_DeprecationWarning,
-                                          "ProteinData.total_abundances is deprecated; assignments are ignored. Use fraction_group_abundances instead.",
-                                          1) < 0)
-                         {
-                             throw nb::python_error();
-                         }
-                     },
-                     "Deprecated compatibility property; always empty. Use fraction_group_abundances.")
         .def_rw("fraction_group_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::fraction_group_abundances)
         .def_rw("total_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::total_psm_counts)
         .def_rw("total_distinct_peptides", &OpenMS::PeptideAndProteinQuant::ProteinData::total_distinct_peptides)

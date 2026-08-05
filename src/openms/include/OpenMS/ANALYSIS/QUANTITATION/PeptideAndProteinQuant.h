@@ -74,9 +74,6 @@ public:
     /// Quantitative and associated data for a protein
     struct ProteinData
     {
-      /// Legacy sample-grain peptide map; retained for source compatibility but no longer populated
-      std::map<std::string, SampleAbundances> peptide_abundances;
-
       /// mapping: peptide (unmodified) -> fraction group -> label/channel -> abundance
       std::map<std::string, FractionGroupAbundances> peptide_fraction_group_abundances;
 
