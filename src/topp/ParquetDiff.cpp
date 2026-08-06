@@ -113,6 +113,12 @@ protected:
     registerStringList_("ignore", "<string list>", ListUtils::create<std::string>(""),
                         "columns excluded from value comparison. They are still schema-checked.", false, true);
     registerFlag_("schema_only", "compare schemas only; do not compare values", true);
+    registerFlag_("with_ids",
+                  "also compare the QPX identity columns (feature_id/psm_id/pg_id and the "
+                  "cross-references between them). Off by default: those values are derived, and "
+                  "the spec states that identity is meaningful within a file only, so comparing "
+                  "them across two files is a join it tells you not to make. 'schema' mode checks "
+                  "instead that they are present, non-null and unique.", true);
     registerFlag_("unordered_lists", "compare list-valued cells as multisets rather than sequences", true);
     registerIntOption_("max_reported", "<int>", 25,
                        "stop listing differences of one kind after this many (0 = unlimited)", false, true);
@@ -155,6 +161,7 @@ protected:
     settings.acceptable_absdiff = getDoubleOption_("absdiff");
     settings.schema_only = getFlag_("schema_only");
     settings.unordered_lists = getFlag_("unordered_lists");
+    settings.compare_identity_columns = getFlag_("with_ids");
     settings.max_reported = static_cast<Size>(getIntOption_("max_reported"));
 
     // Drop empty entries a user may have supplied explicitly; the default is already empty.

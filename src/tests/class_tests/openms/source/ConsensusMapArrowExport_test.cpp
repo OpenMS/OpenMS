@@ -16,6 +16,8 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -1380,6 +1382,138 @@ START_SECTION(([EXTRA] duplicate identification-run identifiers are refused))
   cmap.setProteinIdentifications({a, b});
 
   TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::exportToArrow(cmap))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] feature_id is derived from the row this exporter wrote, in the declared order))
+{
+  // Re-derives every row's feature_id from the columns AS WRITTEN, passing them in the order
+  // QPXIdentity::FEATURE_COMPOSITE declares. QPXIdentity_test pins the derivation itself against
+  // the reference implementation's vectors; what this pins is the exporter's use of it -- an
+  // exporter that hashed the run name where the peptidoform belongs, or an rt it had not yet
+  // narrowed to float32, would produce ids no reader could reproduce, and neither the schema
+  // check nor a value reference would notice.
+  ConsensusMap cmap = createTestConsensusMap();
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  auto ids  = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("feature_id")->chunk(0));
+  auto run  = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  auto pf   = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("peptidoform")->chunk(0));
+  auto chg  = std::static_pointer_cast<arrow::Int16Array>(table->GetColumnByName("charge")->chunk(0));
+  auto rt   = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("rt")->chunk(0));
+  auto mz   = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("observed_mz")->chunk(0));
+  auto scan = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("scan")->chunk(0));
+  auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan->values());
+
+  std::set<Int64> seen;
+  for (int64_t r = 0; r < table->num_rows(); ++r)
+  {
+    std::vector<Int32> components;
+    for (int64_t i = 0; i < scan->value_length(r); ++i)
+    {
+      components.push_back(scan_values->Value(scan->value_offset(r) + i));
+    }
+    const std::optional<float> row_rt =
+      rt->IsNull(r) ? std::optional<float>{} : std::optional<float>{rt->Value(r)};
+
+    TEST_FALSE(ids->IsNull(r))
+    TEST_EQUAL(ids->Value(r), QPXIdentity::featureId(run->GetString(r), pf->GetString(r),
+                                                     chg->Value(r), row_rt, components, mz->Value(r)))
+    // The identity is also the view's primary key.
+    TEST_TRUE(seen.insert(ids->Value(r)).second)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the feature<->PSM cross-references resolve and agree in both directions))
+{
+  // qpx validates three things about these columns: that psm.feature_id resolves to a feature,
+  // that feature.psm_ids resolve to PSMs, and that the two directions describe the SAME edge
+  // (its "reciprocal desync" check). Producing both from one pass is what makes that hold, so
+  // this asserts the property rather than the implementation detail.
+  ConsensusMap cmap = createTestConsensusMap();
+  // The shared fixture leaves the identification run's MS run path unset and its PSMs' run
+  // identifier unlinked. Both are legitimate, but together they mean the psm view cannot resolve
+  // run_file_name -- and a PSM with no run matches no feature row, so the cross-references would
+  // come out empty and every assertion below would hold vacuously. The `total_listed > 0` guard
+  // further down is what catches that if these two lines are ever lost.
+  cmap.getProteinIdentifications()[0].setPrimaryMSRunPath({"sample1.mzML"});
+  for (auto& cf : cmap)
+  {
+    for (auto& pid : cf.getPeptideIdentifications()) { pid.setIdentifier("PI_0"); }
+  }
+
+  QPXIdentity::FeatureLinks links;
+  auto features = ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  TEST_NOT_EQUAL(features, nullptr)
+
+  PeptideIdentificationList all_pepids;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications()) { all_pepids.push_back(pid); }
+  }
+  for (const auto& pid : cmap.getUnassignedPeptideIdentifications()) { all_pepids.push_back(pid); }
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids,
+                                            /*export_all_psms=*/false, &links);
+  TEST_NOT_EQUAL(psms, nullptr)
+
+  auto feature_ids = std::static_pointer_cast<arrow::Int64Array>(features->GetColumnByName("feature_id")->chunk(0));
+  auto psm_ids_col = std::static_pointer_cast<arrow::ListArray>(features->GetColumnByName("psm_ids")->chunk(0));
+  auto psm_ids_values = std::static_pointer_cast<arrow::Int64Array>(psm_ids_col->values());
+  auto psm_id  = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("psm_id")->chunk(0));
+  auto psm_feature_id = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("feature_id")->chunk(0));
+
+  std::set<Int64> known_features;
+  for (int64_t r = 0; r < features->num_rows(); ++r) { known_features.insert(feature_ids->Value(r)); }
+  std::set<Int64> known_psms;
+  for (int64_t r = 0; r < psms->num_rows(); ++r) { known_psms.insert(psm_id->Value(r)); }
+
+  // feature.psm_ids -> psm.psm_id, and the reverse edge each one implies
+  std::map<Int64, Int64> listed_by;    // psm_id -> the feature that lists it
+  Size total_listed = 0;
+  for (int64_t r = 0; r < features->num_rows(); ++r)
+  {
+    for (int64_t i = 0; i < psm_ids_col->value_length(r); ++i)
+    {
+      const Int64 referenced = psm_ids_values->Value(psm_ids_col->value_offset(r) + i);
+      TEST_EQUAL(known_psms.count(referenced), 1)   // no dangling psm_id
+      listed_by[referenced] = feature_ids->Value(r);
+      ++total_listed;
+    }
+  }
+  TEST_TRUE(total_listed > 0)   // an assertion over an empty set proves nothing
+
+  // psm.feature_id -> feature.feature_id, and it must be the feature that lists it back
+  Size total_linked = 0;
+  for (int64_t r = 0; r < psms->num_rows(); ++r)
+  {
+    if (psm_feature_id->IsNull(r)) { continue; }   // unassigned identification: correctly unlinked
+    TEST_EQUAL(known_features.count(psm_feature_id->Value(r)), 1)  // no dangling feature_id
+    const auto back = listed_by.find(psm_id->Value(r));
+    TEST_TRUE(back != listed_by.end())
+    if (back != listed_by.end()) { TEST_EQUAL(back->second, psm_feature_id->Value(r)) }
+    ++total_linked;
+  }
+  TEST_EQUAL(total_linked, total_listed)   // the two directions describe exactly one edge set
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a psm view exported without a feature view leaves feature_id null))
+{
+  // The spec's answer for an unlinked PSM is null, not a fabricated reference. Every psm-only
+  // producer (ProSE, any search engine) takes this path.
+  ConsensusMap cmap = createTestConsensusMap();
+  PeptideIdentificationList all_pepids;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications()) { all_pepids.push_back(pid); }
+  }
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids);
+  TEST_NOT_EQUAL(psms, nullptr)
+  TEST_TRUE(psms->num_rows() > 0)
+  auto psm_feature_id = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("feature_id")->chunk(0));
+  TEST_EQUAL(psm_feature_id->null_count(), psms->num_rows())
 }
 END_SECTION
 

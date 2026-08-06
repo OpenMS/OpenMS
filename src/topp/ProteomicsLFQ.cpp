@@ -66,6 +66,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -1933,8 +1934,13 @@ protected:
         // is undone here: without the commit below, every file already written is removed.
         QPXCollectionExport::Transaction qpx_collection(out_qpx);
 
+        // Collected while the feature rows are built, then handed to the psm view so it can fill
+        // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+        QPXIdentity::FeatureLinks feature_links;
+
         // Feature-level export
-        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet",
+                                                      ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1954,7 +1960,9 @@ protected:
           all_pepids.push_back(pepid);
         }
 
-        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
+                                      out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+                                      ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;

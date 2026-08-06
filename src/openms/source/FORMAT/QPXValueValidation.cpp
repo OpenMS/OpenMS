@@ -127,6 +127,18 @@ namespace OpenMS
       return "unknown";
     }
 
+    /// The view's mandatory opaque identity column, which is also its declared primary key
+    std::string idColumnName(QPXValueValidation::View view)
+    {
+      switch (view)
+      {
+        case QPXValueValidation::View::PSM:           return QPXPSMSchema::PSM_ID;
+        case QPXValueValidation::View::FEATURE:       return QPXFeatureSchema::FEATURE_ID;
+        case QPXValueValidation::View::PROTEIN_GROUP: return QPXPgSchema::PG_ID;
+      }
+      return "";
+    }
+
     void requiredColumnsHaveValues(
       const std::shared_ptr<arrow::Table>& table,
       const std::shared_ptr<arrow::Schema>& expected,
@@ -273,6 +285,9 @@ namespace OpenMS
     View view;
     std::unordered_set<std::string> primary_keys;
     std::unordered_set<std::string> pg_run_keys;
+    /// Identities seen in earlier batches; a streaming writer validates one batch at a time,
+    /// so uniqueness has to hold across the whole file, not within a batch.
+    std::unordered_set<Int64> ids;
   };
 
   std::string QPXValueValidation::Result::toString() const
@@ -296,6 +311,7 @@ namespace OpenMS
   {
     impl_->primary_keys.clear();
     impl_->pg_run_keys.clear();
+    impl_->ids.clear();
   }
 
   QPXValueValidation::Result QPXValueValidation::validate(
@@ -327,6 +343,33 @@ namespace OpenMS
       return result;
     }
     requiredColumnsHaveValues(table, expected, result);
+
+    std::unordered_set<Int64> new_ids;
+
+    // The opaque identity column. QPX declares it non-nullable AND the view's primary key, so
+    // uniqueness is checked here rather than left to the reader: a hash collision, or a producer
+    // deriving two rows' ids from the same composite, must surface as a refusal instead of a
+    // silently unjoinable file. This runs alongside -- not instead of -- the natural-key check
+    // below: the natural key is what the id is derived FROM, so a natural-key duplicate implies
+    // an id duplicate, but the reverse would be a genuine collision worth naming separately.
+    {
+      const std::string id_column = idColumnName(impl_->view);
+      auto ids = std::static_pointer_cast<arrow::Int64Array>(combinedColumn(table, id_column, result));
+      if (!ids) { return result; }
+      for (int64_t row = 0; row < table->num_rows(); ++row)
+      {
+        if (ids->IsNull(row))
+        {
+          addError(result, "row " + std::to_string(row) + " has a null '" + id_column + "'");
+          continue;
+        }
+        if (impl_->ids.contains(ids->Value(row)) || !new_ids.insert(ids->Value(row)).second)
+        {
+          addError(result, "row " + std::to_string(row) + " repeats the QPX " + viewName(impl_->view)
+                           + " identity '" + id_column + "'");
+        }
+      }
+    }
 
     std::unordered_set<std::string> new_primary_keys;
     std::unordered_set<std::string> new_pg_run_keys;
@@ -630,6 +673,7 @@ namespace OpenMS
     {
       impl_->primary_keys.insert(new_primary_keys.begin(), new_primary_keys.end());
       impl_->pg_run_keys.insert(new_pg_run_keys.begin(), new_pg_run_keys.end());
+      impl_->ids.insert(new_ids.begin(), new_ids.end());
     }
     return result;
   }
