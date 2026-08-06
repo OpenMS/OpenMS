@@ -317,6 +317,20 @@ TOPP tools:
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
     ProteomicsLFQ:
+      - Fix: with -in_feat, every identification already attached to a feature by the incoming
+        featureXML was also written to the map's *unassigned* list, so it was present twice. The two
+        lists of a FeatureMap partition the PSMs -- that is what IDMapper and FeatureFinderIdentification
+        produce -- and consumers reading both saw each such PSM twice: mzTab reported it twice (18 of the
+        62 PSM rows in the shipped ProteomicsLFQ_in_feat_multi_out.mzTab reference were duplicates, from
+        the day the test was added), and PSM/peptide FDR, which is estimated over both lists together,
+        counted each duplicate as an extra target and reported q-values better than the data supports
+        (1/63 instead of 1/45 on that fixture; with a psmFDR cutoff between the two it decides which
+        identifications survive). The QPX psm view refuses a repeated primary key, so -in_feat together
+        with -out_qpx aborted the export entirely. The unassigned list now holds only identifications not
+        attached to a feature, matched on spectrum reference; one that shares a spectrum with a
+        feature-attached identification but assigns a different peptide is kept and warned about rather
+        than silently discarded, since that means the featureXML was not produced from these
+        identifications. Only the -in_feat path was affected (#9871)
       - Added PIP-ECHO match-between-runs via the new PipEchoAlgorithm (-pip_echo true): features are
         grouped across RT-aligned runs with a target/decoy confidence model and FDR-controlled
         identification transfer, with ion-mobility-aware matching (#9647)

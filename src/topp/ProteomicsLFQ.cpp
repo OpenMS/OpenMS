@@ -1159,7 +1159,66 @@ protected:
         {
           OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains unassigned peptide identifications. They will be overwritten.\n";
         }
-        fm.setUnassignedPeptideIdentifications(peptide_ids);
+
+        // The unassigned list means "identified, but not attached to a feature" - the two lists of a
+        // FeatureMap partition the PSMs, they do not overlap. That is what IDMapper and
+        // FeatureFinderIdentification produce, and what every consumer reading both lists assumes.
+        // The identifications are replaced rather than kept, because the ones passed in here have
+        // been through this tool's preprocessing and carry the injected run identifier; but the
+        // subset already attached to a feature by the incoming featureXML must be left out, or every
+        // such PSM is present twice. Consumers that read both lists then see it twice: the QPX psm
+        // view emits a duplicate primary key and refuses the whole export, mzTab reports the PSM
+        // twice, and - the reason this matters beyond bookkeeping - PSM/peptide FDR is estimated
+        // over both lists together, so each duplicate counts as an extra target and makes every
+        // q-value of the run look better than it is.
+        std::map<std::string, std::pair<std::string, Int>> attached_psms; // spectrum ref -> (sequence, charge)
+        for (const Feature& feature : fm)
+        {
+          for (const PeptideIdentification& pid : feature.getPeptideIdentifications())
+          {
+            // An empty reference identifies nothing, so it cannot establish that a PSM is attached.
+            // Without this guard a single feature PSM without a reference would exclude every
+            // input PSM that also lacks one.
+            const std::string& ref = pid.getSpectrumReference();
+            if (ref.empty() || pid.getHits().empty()) { continue; }
+            attached_psms.emplace(ref, std::make_pair(pid.getHits()[0].getSequence().toString(),
+                                                      pid.getHits()[0].getCharge()));
+          }
+        }
+
+        PeptideIdentificationList unassigned_pep_ids;
+        unassigned_pep_ids.reserve(peptide_ids.size());
+        Size mismatched_attached = 0;
+        for (const PeptideIdentification& pid : peptide_ids)
+        {
+          const auto attached = pid.getSpectrumReference().empty()
+                                  ? attached_psms.end()
+                                  : attached_psms.find(pid.getSpectrumReference());
+          if (attached == attached_psms.end())
+          {
+            unassigned_pep_ids.push_back(pid);
+            continue;
+          }
+          // Same spectrum, different peptide: the featureXML was not produced from these
+          // identifications. Dropping the input PSM would silently discard the current result, so
+          // keep it and say so - the duplicate this creates is the lesser of the two problems, and
+          // it is now visible rather than routine.
+          if (! pid.getHits().empty()
+              && (pid.getHits()[0].getSequence().toString() != attached->second.first
+                  || pid.getHits()[0].getCharge() != attached->second.second))
+          {
+            ++mismatched_attached;
+            unassigned_pep_ids.push_back(pid);
+          }
+        }
+        if (mismatched_attached > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << mismatched_attached << " identification(s) share a spectrum "
+                          << "with a feature-attached identification of the featureXML but assign a "
+                          << "different peptide. The featureXML does not appear to have been produced "
+                          << "from these identifications; keeping both.\n";
+        }
+        fm.setUnassignedPeptideIdentifications(unassigned_pep_ids);
 
         const std::string expected_identifier = protein_ids[0].getIdentifier();
         Size updated_feature_pid_ids = 0;

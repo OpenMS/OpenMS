@@ -4124,10 +4124,31 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
 
 # Test ProteomicsLFQ bypass with -in_feat (Multi-file)
-add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
+# -out_qpx is part of this invocation on purpose. An incoming featureXML arrives already
+# partitioned into feature-attached and unassigned identifications, and ProteomicsLFQ used to
+# replace the unassigned list with ALL identifications -- so every PSM the featureXML had attached
+# to a feature was present twice. Nothing noticed: the mzTab reference carried 18 duplicate PSM
+# rows from the day the test was added, and PSM/peptide FDR, which is estimated over both lists
+# together, counted each duplicate as an extra target (q-value 1/63 instead of 1/45 here). The QPX
+# psm view is the only consumer that refuses a repeated identity, which is what makes this a test:
+# with the duplicates back, the export aborts and the tool exits non-zero.
+# The mzTab is removed as well as the QPX directory. If the producer aborts, ctest still runs the
+# comparison, and a leftover file from a previous run makes it pass against output the tool did not
+# just write -- verified: with the defect reintroduced, this diff passed against a stale mzTab while
+# the producer was failing.
+add_test(NAME "TOPP_ProteomicsLFQ_in_feat_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
+  ${TESTS_TEMP_DIR}/BSA_in_feat_qpx_dir ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab)
+add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -out_qpx ${TESTS_TEMP_DIR}/BSA_in_feat_qpx_dir -threads 1 -proteinFDR 0.3 -test)
+set_tests_properties("TOPP_ProteomicsLFQ_in_feat" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat_clean")
 
 add_test("TOPP_ProteomicsLFQ_in_feat_out" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_multi_out.mzTab)
 set_tests_properties("TOPP_ProteomicsLFQ_in_feat_out" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat")
+# 'schema' checks primary-key uniqueness, which a row-count floor cannot: a floor is satisfied by
+# a table with duplicates in it. 44 is the number of distinct identifications in this fixture --
+# the 62 rows it used to try to write were those 44 plus 18 repeats.
+add_test("TOPP_ProteomicsLFQ_in_feat_qpx_psm" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/BSA_in_feat_qpx_dir/quantms.psm.parquet -schema psm -min_rows 44)
+set_tests_properties("TOPP_ProteomicsLFQ_in_feat_qpx_psm" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat")
 
 # Mismatch between number of mzML and featureXML inputs must fail (1 mzML, 2 featureXMLs)
 add_test("TOPP_ProteomicsLFQ_in_feat_mismatch" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_mismatch.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
