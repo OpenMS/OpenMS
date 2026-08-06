@@ -18,6 +18,8 @@
 
 #include <arrow/api.h>
 
+#include <fstream>
+#include <iterator>
 #include <limits>
 
 ///////////////////////////
@@ -577,6 +579,49 @@ START_SECTION([EXTRA] unordered numeric lists are paired by value not by canonic
   unordered.acceptable_absdiff = 0.11;
   const ParquetDiffResult r = ParquetTableComparator::compare(a, b, unordered);
   TEST_EQUAL(r.equal, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] dumpToTsv escapes the backslash, so an escape cannot be forged))
+{
+  // The dump renders a tab as the two characters '\' 't' to keep one row on one line. A value that
+  // ALREADY contains a backslash followed by 't' would then render to those same two characters,
+  // so two genuinely different tables would produce identical text and the reference comparison
+  // would accept them as equal - the exact failure a value reference exists to rule out. The
+  // backslash therefore has to be escaped first and unconditionally.
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeTable({"r1"}, {1.0}, {{"X\\tY"}}), a))   // literal backslash, then 't'
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeTable({"r1"}, {1.0}, {{"X\tY"}}), b))    // a real tab
+
+  ParquetDiffSettings key_only;
+  key_only.primary_key = {"key"};
+
+  std::string dump_a;
+  NEW_TMP_FILE_EXT(dump_a, "tsv")
+  std::string dump_b;
+  NEW_TMP_FILE_EXT(dump_b, "tsv")
+  TEST_TRUE(ParquetTableComparator::dumpToTsv(a, dump_a, key_only))
+  TEST_TRUE(ParquetTableComparator::dumpToTsv(b, dump_b, key_only))
+
+  const auto readAll = [](const std::string& path)
+  {
+    std::ifstream in(path.c_str());
+    return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+  };
+  const std::string text_a = readAll(dump_a);
+  const std::string text_b = readAll(dump_b);
+
+  // Distinct inputs must give distinct text.
+  TEST_NOT_EQUAL(text_a, text_b)
+  // And specifically: the literal backslash is doubled, the real tab is not.
+  TEST_EQUAL(text_a.find("X\\\\tY") != std::string::npos, true)
+  TEST_EQUAL(text_b.find("X\\tY") != std::string::npos, true)
+  // Neither dump may contain a raw tab inside the value, which would split the row.
+  TEST_EQUAL(text_a.find("X\tY"), std::string::npos)
+  TEST_EQUAL(text_b.find("X\tY"), std::string::npos)
 }
 END_SECTION
 

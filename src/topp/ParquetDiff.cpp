@@ -86,6 +86,13 @@ protected:
                           "instead of comparing two files, check 'in1' against the built-in QPX "
                           "schema of this view", false, false);
     setValidStrings_("schema", ListUtils::create<std::string>("psm,feature,pg"));
+    registerOutputFile_("out_tsv", "<file>", "",
+                        "instead of comparing, write 'in1' out as TSV sorted by primary key. A "
+                        "Parquet reference can only be regenerated wholesale, which hides "
+                        "unrelated drift; a text dump can be reviewed in a diff and patched line "
+                        "by line, and compared with FuzzyDiff like every other reference.",
+                        false, false);
+    setValidFormats_("out_tsv", ListUtils::create<std::string>("tsv"));
     addEmptyLine_();
 
     registerDoubleOption_("ratio", "<double>", 1, R"(acceptable relative error. Only one of 'ratio' or 'absdiff' has to be satisfied.  Use "absdiff" to deal with cases like "zero vs. epsilon".)", false, false);
@@ -134,11 +141,12 @@ protected:
     const std::string in1 = getStringOption_("in1");
     const std::string in2 = getStringOption_("in2");
     const std::string view = getStringOption_("schema");
+    const std::string out_tsv = getStringOption_("out_tsv");
     const int verbose = getIntOption_("verbose");
 
-    if (view.empty() && in2.empty())
+    if (view.empty() && in2.empty() && out_tsv.empty())
     {
-      writeLogError_("Error: 'in2' is required unless 'schema' is given.");
+      writeLogError_("Error: 'in2' is required unless 'schema' or 'out_tsv' is given.");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -157,6 +165,15 @@ protected:
     for (const auto& c : getStringList_("ignore"))
     {
       if (!c.empty()) { settings.ignore_columns.push_back(c); }
+    }
+
+    // Dump mode is a distinct job from comparing, so it returns on its own rather than falling
+    // through to a comparison that has no second file to make.
+    if (!out_tsv.empty())
+    {
+      if (!ParquetTableComparator::dumpToTsv(in1, out_tsv, settings)) { return INPUT_FILE_CORRUPT; }
+      if (verbose >= 2) { std::cout << "Wrote " << out_tsv << std::endl; }
+      return EXECUTION_OK;
     }
 
     const ParquetDiffResult result = view.empty()

@@ -962,7 +962,14 @@ Build System:
     nothing, so only file existence was asserted -- a regression emptying a table, renaming every run or
     dropping a column was invisible. They now assert the schema and a row-count floor via the new ParquetDiff
     comparator, which matches feature rows on the full five-column QPX primary key (#9864, #9877, #9878).
-    IsobaricWorkflow gained its first functional tests, incl. an -out_qpx collection (#9817)
+    IsobaricWorkflow gained its first functional tests, incl. an -out_qpx collection (#9817). The pg and
+    psm views of ProteinQuantifier and IsobaricWorkflow are now pinned against VALUE references:
+    ParquetDiff gains -out_tsv, which writes a table as text sorted by primary key, so the reference is a
+    reviewable text diff that can be patched line by line rather than a binary blob only regenerable
+    wholesale. The dump reuses the comparator's own canonical key encoding, so it cannot disagree with
+    the comparison about what a primary key is, and it escapes backslashes, tabs and newlines inside
+    values so that one row is always one line. Compared with -absdiff 0 on purpose -- QPX carries
+    q-values and PEPs in [0,1], where FuzzyDiff.ini's 0.01 would delete the assertion (#9879)
   - Tests: FuzzyStringComparator accepted any numeric comparison in which either side was NaN, so a value
     regressing to NaN was invisible to all 778 FuzzyDiff comparisons and to TEST_FILE_EQUAL; non-finite pairs
     are now decided explicitly
