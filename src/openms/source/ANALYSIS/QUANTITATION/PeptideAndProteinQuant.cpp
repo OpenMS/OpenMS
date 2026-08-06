@@ -53,9 +53,13 @@ namespace OpenMS
 
     defaults_.setSectionDescription("top", "Additional options for custom quantification using top N peptides.");
 
+    defaults_.setValue("fractions:aggregate", "sum", "How the fractions of one fraction group are combined into that group's (fraction group, label) assay values.\n- sum - add up every fraction, i.e. treat them as the parts of one separated sample that they are.\n- best - keep a single fraction per peptide and fraction group and discard the others. The fraction is chosen ONCE per peptide, ranked by the number of labels in which it has a positive abundance and then by the total of those abundances (an exact tie keeps the lowest fraction number), and ALL of its labels are then taken from it. The choice is deliberately not made per label: taking one channel from one fraction and another channel from a different fraction would mix physical aliquots and destroy the reporter-ion ratios that isobaric quantification consists of.\nOnly the assay values are affected. Per-(file, channel) quantities are per fraction by definition and always report every file.");
+    defaults_.setValidStrings("fractions:aggregate", {"sum","best"});
 
-    defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states in detailed peptide output. For protein quantification, select one charge per modified peptide globally: maximize the number of (fraction group, label) assays with a positive abundance, then break ties by total abundance; retain that charge's values in every assay and sum them over fractions.\nBy default, protein abundances are summed over all charge states.");
-    defaults_.setValidStrings("best_charge_and_fraction", true_false);
+    defaults_.setSectionDescription("fractions", "Options for combining the fractions of a fraction group.");
+
+    defaults_.setValue("best_charge", "false", "Distinguish between fraction and charge states in detailed peptide output. For protein quantification, select one charge per modified peptide globally: maximize the number of (fraction group, label) assays with a positive abundance, then break ties by total abundance; retain that charge's values in every assay.\nBy default, protein abundances are summed over all charge states. How the retained values of several fractions are combined is governed by 'fractions:aggregate', not by this flag.");
+    defaults_.setValidStrings("best_charge", true_false);
 
     defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that the median of each (fraction group, label) assay matches the overall median.\nAbundances of zero count as 'not detected' and are left out of the medians; an assay without any positive abundance takes no part in the normalization.");
     defaults_.setValidStrings("consensus:normalize", true_false);
@@ -183,6 +187,93 @@ namespace OpenMS
     }
 
     return found;
+  }
+
+  Int PeptideAndProteinQuant::selectBestFraction_(
+    const std::map<Int, std::map<UInt, double>>& fraction_abundances)
+  {
+    if (fraction_abundances.empty())
+    {
+      throw Exception::InvalidValue(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot select a fraction of a fraction group without a single observation.", "");
+    }
+
+    Int best_fraction = fraction_abundances.begin()->first;
+    Size best_label_count = 0;
+    double best_total = 0.0;
+    bool found = false;
+    for (const auto& [fraction, label_abundances] : fraction_abundances)
+    {
+      // Prevalence before intensity, the rule getBestCharge_() uses for charges. A zero is not a
+      // measurement of "no protein" - IsobaricChannelExtractor writes a reporter it could not find,
+      // or one below 'min_reporter_intensity', as 0.0 - so counting keys instead of positive values
+      // would rank a fraction that detected nothing level with one that detected everything.
+      Size label_count = 0;
+      double total = 0.0;
+      for (const auto& [label, abundance] : label_abundances)
+      {
+        (void)label;
+        if (abundance > 0.0) { ++label_count; total += abundance; }
+      }
+
+      if (!found || (label_count > best_label_count) ||
+          ((label_count == best_label_count) && (total > best_total)))
+      {
+        found = true;
+        best_fraction = fraction;
+        best_label_count = label_count;
+        best_total = total;
+      }
+      // Iteration is fraction-sorted, so an exact tie deliberately keeps the lower fraction number.
+    }
+
+    return best_fraction;
+  }
+
+  void PeptideAndProteinQuant::collapseFractions_(
+    const FractionGroupFractionAbundances& fraction_abundances,
+    FractionGroupAbundances& assay_abundances) const
+  {
+    const bool keep_one_fraction = param_.getValue("fractions:aggregate") == "best";
+
+    for (const auto& [fraction_group, per_fraction] : fraction_abundances)
+    {
+      std::map<UInt, double>& labels = assay_abundances[fraction_group];
+
+      // Every label observed in ANY fraction of this group is a cell of the group's assays,
+      // whichever fraction is kept below. Seeding those cells at 0.0 makes 'best' produce the same
+      // keys as 'sum': a label seen only in a discarded fraction still reports "not detected"
+      // instead of vanishing, which downstream code reads as "no peptide ever reached this cell".
+      for (const auto& [fraction, label_abundances] : per_fraction)
+      {
+        (void)fraction;
+        for (const auto& [label, abundance] : label_abundances)
+        {
+          (void)abundance;
+          labels.emplace(label, 0.0);
+        }
+      }
+
+      if (keep_one_fraction)
+      {
+        for (const auto& [label, abundance] : per_fraction.at(selectBestFraction_(per_fraction)))
+        {
+          labels[label] += abundance;
+        }
+      }
+      else
+      {
+        for (const auto& [fraction, label_abundances] : per_fraction)
+        {
+          (void)fraction;
+          for (const auto& [label, abundance] : label_abundances)
+          {
+            labels[label] += abundance;
+          }
+        }
+      }
+    }
   }
 
   void PeptideAndProteinQuant::buildSampleIDLookup_()
@@ -329,58 +420,48 @@ namespace OpenMS
     // number of labels/channels is constant across the design; compute once
     // (getNumberOfLabels() scans the whole MS file section on every call).
     const Size n_labels = experimental_design_.getNumberOfLabels();
+    const bool select_best_charge = param_.getValue("best_charge") == "true";
     for (auto & pep_q : pep_quant_)
     {
-      if (param_.getValue("best_charge_and_fraction") == "true")
-      { // quantify according to the best charge state only:
-        Int best_charge = 0;
+      Int best_charge = 0;
+      bool quantify = true;
+      if (select_best_charge)
+      {
         // A peptidoform without a single positive observation has no charge to select, so it stays
         // unquantified. Do not skip the rest of the loop body for it: the PSM-count aggregation
         // below is identification evidence and must not depend on the charge-selection flag - an
         // isobaric peptide whose reporters are all 0.0 (undetected or below
         // 'min_reporter_intensity') would otherwise silently lose its spectral counts, and with
         // them the protein's 'psm_count'/'distinct_peptides' in mzTab and the QPX pg row.
-        if (getBestCharge_(pep_q.second.abundances, best_charge))
-        {
-          best_charge_by_peptidoform_[pep_q.first] = best_charge;
-
-          // Retain every observation of the selected charge at the assay grain. Explicit zeros are
-          // kept but did not count as evidence when the charge was selected above.
-          for (const auto& fa : pep_q.second.abundances)
-          {
-            for (const auto& fna : fa.second)
-            {
-              auto charge_it = fna.second.find(best_charge);
-              if (charge_it == fna.second.end()) { continue; }
-              for (const auto& [channel, abundance] : charge_it->second)
-              {
-                const DesignCell& cell = getDesignCellFromFilenameAndChannel_(fna.first, channel);
-                pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
-              }
-            }
-          }
-        }
+        quantify = getBestCharge_(pep_q.second.abundances, best_charge);
+        if (quantify) { best_charge_by_peptidoform_[pep_q.first] = best_charge; }
       }
-      else
-      { // sum up assay abundances over all fractions, filenames, and charge states:
-        for (auto & fa : pep_q.second.abundances)  // for all fractions
+
+      if (quantify)
+      {
+        // Regroup the raw (fraction, file, charge, label) observations onto the assay axes while
+        // KEEPING the fraction axis, so that 'fractions:aggregate' still has something to act on.
+        // Filenames disappear here: within one fraction group a file is its fraction. Charge states
+        // are summed, or restricted to the globally selected one under 'best_charge' - explicit
+        // zeros of that charge are retained even though they did not count as evidence when it was
+        // selected.
+        FractionGroupFractionAbundances by_group_and_fraction;
+        for (const auto& [fraction, files] : pep_q.second.abundances)
         {
-          for (auto & fna : fa.second) // for all filenames
+          for (const auto& [filename, charges] : files)
           {
-            for (auto & ca : fna.second) // for all charge states
+            for (const auto& [charge, channels] : charges)
             {
-              for (auto & cha : ca.second) // for all channels
+              if (select_best_charge && (charge != best_charge)) { continue; }
+              for (const auto& [channel, abundance] : channels)
               {
-                const std::string & filename = fna.first;
-                const UInt & channel = cha.first;
-                const double & abundance = cha.second;
-                
                 const DesignCell& cell = getDesignCellFromFilenameAndChannel_(filename, channel);
-                pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
+                by_group_and_fraction[cell.fraction_group][fraction][channel] += abundance;
               }
             }
           }
         }
+        collapseFractions_(by_group_and_fraction, pep_q.second.fraction_group_abundances);
       }
 
       // NOTE: PeptideData::psm_counts is currently never populated. The idXML spectral-counting
@@ -1424,7 +1505,7 @@ namespace OpenMS
     }
 
     ProteinData& pd = prot_it->second;
-    const bool select_best_charge = param_.getValue("best_charge_and_fraction") == "true";
+    const bool select_best_charge = param_.getValue("best_charge") == "true";
 
     // Granularity note: an assay spans every fraction file of one fraction group at one label.
     // The cells computed here are per (file, channel), i.e. one assay maps to N cells, and both
@@ -1449,7 +1530,7 @@ namespace OpenMS
 
       // Contribute exactly ONE value per selected peptide and (fraction, file, channel)
       // cell, summed over all matching peptidoforms. By default all charge states contribute;
-      // with 'best_charge_and_fraction', each peptidoform contributes only the charge selected
+      // with 'best_charge', each peptidoform contributes only the charge selected
       // before normalization. This mirrors its assay-level abundance and makes 'top_n' count
       // peptides rather than letting peptidoforms or charge states occupy separate top-N slots.
       map<tuple<Int, std::string, UInt>, double> abundances_of_peptide;

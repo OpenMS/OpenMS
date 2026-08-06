@@ -2844,7 +2844,7 @@ add_test("TOPP_ProteinQuantifier_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQ
 set_tests_properties("TOPP_ProteinQuantifier_1_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
 add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_1_output2.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_1_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
-add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output2.tmp.csv -top:N 2 -top:include_all -best_charge_and_fraction -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output2.tmp.csv -top:N 2 -top:include_all -best_charge -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output1.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_2_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_2")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output2.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file" )
@@ -2892,7 +2892,7 @@ add_test("TOPP_ProteinQuantifier_16" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_16_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_16_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_16_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_16")
 
-add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
+add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -top:include_all -best_charge )
 add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
 
@@ -2958,9 +2958,18 @@ set_tests_properties("TOPP_ProteinQuantifier_27_out1" PROPERTIES DEPENDS "TOPP_P
 #     own column pair (keying the header by fraction group alone collapsed them onto the last
 #     file), and every (file, channel) cell must be written - a peptide seen in only one of the
 #     two fractions must report 0.0 for the other, not skip the cells and shift the row.
-add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge_and_fraction -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
+
+# 29: 'fractions:aggregate best' on the same fractionated design, against _26, which is the same
+#     command line at the default 'sum'. AAAAAK (fraction 1 only) and CCCCCK (fraction 2 only) are
+#     unaffected; PEPTIDEK, seen in both at 100/10 and 50/5, has equal label prevalence in the two,
+#     so the higher total keeps fraction 1 and drops 50/5. The protein therefore falls from
+#     650.0/65.0 to 600.0/60.0, and the header records the setting that did it.
+add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -top:N 0 -top:aggregate sum -fractions:aggregate best)
+add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
