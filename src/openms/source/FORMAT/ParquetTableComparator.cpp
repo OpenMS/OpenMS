@@ -621,8 +621,17 @@ namespace OpenMS
     }
     if (view == "feature")
     {
+      // 'observed_mz' belongs in the key for the sake of the unmapped rows, which QPX permits and
+      // ConsensusMapArrowExport writes with an empty peptidoform: without it the key collapses to
+      // (charge, run_file_name, rt), and 'rt' is float32 on write - one ULP is 244 us at a
+      // retention time of 3000 s - so two co-eluting unmapped features of one charge in one run
+      // collide although they are plainly different features. QPXValueValidation keys on the same
+      // five columns for exactly this reason; the two must not disagree, or a file that validation
+      // accepts is one this comparator silently drops rows from (buildKeys_ compares only the first
+      // row of a duplicate key).
       return {QPXFeatureSchema::PEPTIDOFORM, QPXFeatureSchema::CHARGE,
-              QPXFeatureSchema::RUN_FILE_NAME, QPXFeatureSchema::RT};
+              QPXFeatureSchema::RUN_FILE_NAME, QPXFeatureSchema::RT,
+              QPXFeatureSchema::OBSERVED_MZ};
     }
     if (view == "pg")
     {

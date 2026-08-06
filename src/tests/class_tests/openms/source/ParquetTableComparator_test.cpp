@@ -126,6 +126,54 @@ namespace
   {
     return ArrowIOHelpers::writeTableToParquet(table, path);
   }
+
+  /// The five QPX feature key columns and one value column, enough to exercise the key alone.
+  /// 'rt' is float32 exactly as the real schema has it, which is what makes the key fragile.
+  std::shared_ptr<arrow::Table> makeFeatureKeyTable(const std::vector<std::string>& peptidoforms,
+                                                    const std::vector<int16_t>& charges,
+                                                    const std::vector<std::string>& runs,
+                                                    const std::vector<double>& rts,
+                                                    const std::vector<double>& observed_mzs,
+                                                    const std::vector<double>& intensities)
+  {
+    arrow::StringBuilder pep_b;
+    for (const auto& p : peptidoforms) { (void)pep_b.Append(p); }
+    std::shared_ptr<arrow::Array> pep_a;
+    (void)pep_b.Finish(&pep_a);
+
+    arrow::Int16Builder charge_b;
+    for (int16_t c : charges) { (void)charge_b.Append(c); }
+    std::shared_ptr<arrow::Array> charge_a;
+    (void)charge_b.Finish(&charge_a);
+
+    arrow::StringBuilder run_b;
+    for (const auto& r : runs) { (void)run_b.Append(r); }
+    std::shared_ptr<arrow::Array> run_a;
+    (void)run_b.Finish(&run_a);
+
+    arrow::FloatBuilder rt_b;
+    for (double v : rts) { (void)rt_b.Append(static_cast<float>(v)); }
+    std::shared_ptr<arrow::Array> rt_a;
+    (void)rt_b.Finish(&rt_a);
+
+    arrow::FloatBuilder mz_b;
+    for (double v : observed_mzs) { (void)mz_b.Append(static_cast<float>(v)); }
+    std::shared_ptr<arrow::Array> mz_a;
+    (void)mz_b.Finish(&mz_a);
+
+    arrow::FloatBuilder int_b;
+    for (double v : intensities) { (void)int_b.Append(static_cast<float>(v)); }
+    std::shared_ptr<arrow::Array> int_a;
+    (void)int_b.Finish(&int_a);
+
+    auto schema = arrow::schema({arrow::field("peptidoform", arrow::utf8(), true),
+                                 arrow::field("charge", arrow::int16(), true),
+                                 arrow::field("run_file_name", arrow::utf8(), true),
+                                 arrow::field("rt", arrow::float32(), true),
+                                 arrow::field("observed_mz", arrow::float32(), true),
+                                 arrow::field("intensity", arrow::float32(), true)});
+    return arrow::Table::Make(schema, {pep_a, charge_a, run_a, rt_a, mz_a, int_a});
+  }
 }
 
 START_TEST(ParquetTableComparator, "$Id$")
@@ -316,10 +364,69 @@ START_SECTION((static std::vector<std::string> qpxPrimaryKey(const std::string& 
   TEST_STRING_EQUAL(pg[1], "grouped_runs")
   TEST_STRING_EQUAL(pg[2], "label")
 
+  // Five columns, matching QPXValueValidation. 'observed_mz' is the one that separates two
+  // co-eluting unmapped features; dropping it is what the section below detects.
   const auto feature = ParquetTableComparator::qpxPrimaryKey("feature");
-  TEST_EQUAL(feature.size(), 4)
+  TEST_EQUAL(feature.size(), 5)
+  TEST_STRING_EQUAL(feature[0], "peptidoform")
+  TEST_STRING_EQUAL(feature[1], "charge")
+  TEST_STRING_EQUAL(feature[2], "run_file_name")
+  TEST_STRING_EQUAL(feature[3], "rt")
+  TEST_STRING_EQUAL(feature[4], "observed_mz")
+
+  const auto psm = ParquetTableComparator::qpxPrimaryKey("psm");
+  TEST_EQUAL(psm.size(), 4)
+  TEST_STRING_EQUAL(psm[3], "scan")
 
   TEST_EXCEPTION(Exception::IllegalArgument, ParquetTableComparator::qpxPrimaryKey("nosuchview"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the QPX feature key separates two co-eluting unmapped features))
+{
+  // QPX permits unmapped features and ConsensusMapArrowExport writes them with an EMPTY
+  // peptidoform, so for those rows the key collapses to (charge, run_file_name, rt, observed_mz).
+  // 'rt' is float32 on write - one ULP is 244 us at a retention time of 3000 s - so without
+  // 'observed_mz' two co-eluting unmapped features of one charge in one run share a key although
+  // they are plainly different features. That is not a cosmetic mismatch: buildKeys_ compares only
+  // the FIRST row of a duplicate key, so the second row's values would never be compared at all.
+  //
+  // Both rows below sit at the same float32 retention time and differ only in observed_mz.
+  const std::vector<std::string> peptidoforms = {"", ""};
+  const std::vector<int16_t> charges = {2, 2};
+  const std::vector<std::string> runs = {"run_a", "run_a"};
+  const std::vector<double> rts = {3000.0, 3000.0};
+  const std::vector<double> mzs = {500.25, 812.5};
+
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(makeFeatureKeyTable(peptidoforms, charges, runs, rts, mzs, {10.0, 20.0}), a))
+
+  ParquetDiffSettings feature_settings;
+  feature_settings.primary_key = ParquetTableComparator::qpxPrimaryKey("feature");
+
+  // Self-comparison: both rows must be matched and compared, with no duplicate-key error.
+  ParquetDiffResult r = ParquetTableComparator::compare(a, a, feature_settings);
+  TEST_EQUAL(r.key_errors.empty(), true)
+  TEST_EQUAL(r.rows_compared, 2)
+  TEST_EQUAL(r.equal, true)
+
+  // A change confined to the SECOND of the two rows must be reported. Under the four-column key
+  // the two rows collapse onto one entry, only the first is compared, and this difference is
+  // silently lost - the failure mode that motivates the fifth column.
+  std::string b;
+  NEW_TMP_FILE_EXT(b, "parquet")
+  TEST_TRUE(writeTo(makeFeatureKeyTable(peptidoforms, charges, runs, rts, mzs, {10.0, 999.0}), b))
+  r = ParquetTableComparator::compare(a, b, feature_settings);
+  TEST_EQUAL(r.equal, false)
+  TEST_EQUAL(r.value_errors.empty(), false)
+
+  // And the four-column key really does collide on this input, so the section above is not
+  // vacuous: asking for it explicitly must produce duplicate-key errors.
+  ParquetDiffSettings four_column;
+  four_column.primary_key = {"peptidoform", "charge", "run_file_name", "rt"};
+  r = ParquetTableComparator::compare(a, a, four_column);
+  TEST_EQUAL(r.key_errors.empty(), false)
 }
 END_SECTION
 
