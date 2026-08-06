@@ -206,46 +206,28 @@ public:
     /// returns the atoms total (not absolute: negative counts for certain elements will reduce the overall count). Negative result is possible.
     SignedSize getNumberOfAtoms() const;
 
-    /// returns the charge
+    /**
+      @brief Returns the charge.
+
+      @note The charge does @b not identify a charge carrier or adduct: it is a bare
+            integer. The weight methods (getMonoWeight() / getAverageWeight()) treat it
+            as a legacy proton-mass offset (they add @c charge * PROTON_MASS_U), which is
+            unsuitable for non-protic ionization. To model an ion's composition and m/z,
+            keep the formula neutral and use AdductInfo together with
+            IsotopePatternGenerator::runIon().
+    */
     Int getCharge() const;
 
-    /// sets the charge
-    void setCharge(Int charge);
-
     /**
-      @brief Makes ionization explicit: adds @p count copies of @p adduct (default: a hydrogen atom)
-             to the formula and resets the charge to zero.
+      @brief Sets the charge.
 
-      This is the recommended, explicit replacement for relying on the implicit charge handling of the
-      isotope pattern generators (CoarseIsotopePatternGenerator / FineIsotopePatternGenerator), which
-      silently added 'charge'-many hydrogen atoms. After calling this, the formula is neutral but its
-      composition (and therefore its mass and isotope pattern) reflects the added adducts, so an isotope
-      pattern generated from the result is shifted exactly as the deprecated implicit behavior did.
-
-      Example (reproduces the old @c setCharge(q) pattern):
-      @code
-      EmpiricalFormula ef("C6H12O6");
-      ef.addChargeAdduct(2);              // add 2 H atoms, charge is now 0
-      gen.run(ef);                        // shifted pattern, no deprecation warning
-      @endcode
-
-      @note Whole hydrogen @b atoms (proton + electron) are added. For a physically exact protonated
-            @e m/z you additionally have to divide by the charge and account for the electron mass yourself.
-
-      @warning The charge is always reset to zero, regardless of @p count. When migrating a formula that
-               already carries a non-zero charge, pass that charge explicitly (e.g.
-               @c ef.addChargeAdduct(ef.getCharge()) ); passing a @p count that does not match the
-               existing charge yields a composition inconsistent with the original ion.
-      @note A negative @p count subtracts adduct atoms and may drive an element's count below zero
-            (e.g. removing an adduct the formula does not contain), mirroring EmpiricalFormula's general
-            support for negative element counts.
-
-      @param count Number of adducts to add (typically the intended charge); negative values remove adducts.
-      @param adduct The adduct added per charge, as an OpenMS formula string (default: "H").
-      @return reference to *this (for chaining)
-      @throw Exception::ParseError if @p adduct cannot be parsed as a valid formula string
+      @warning This does @b not modify the elemental composition and does not record which
+               species carries the charge. It is a legacy proton-mass offset used by the
+               weight methods; it is @b not generic ionization and is not sufficient to
+               compute an ion's @em m/z (which needs the adduct identity and division by the
+               charge). Prefer a neutral formula plus AdductInfo / runIon() for physical ions.
     */
-    EmpiricalFormula& addChargeAdduct(Int count = 1, const std::string& adduct = "H");
+    void setCharge(Int charge);
 
     /// returns the formula as a string (charges are not included)
     std::string toString() const;

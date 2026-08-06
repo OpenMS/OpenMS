@@ -116,6 +116,48 @@ START_SECTION((bool isCompatible(const EmpiricalFormula& db_entry) const))
   // a plus-only adduct subtracts nothing -> compatible with any compound
   AdductInfo na = AdductInfo::parseAdductString("M+Na;1+");
   TEST_EQUAL(na.isCompatible(EmpiricalFormula("O2")), true)
+
+  // n-mer: the adduct removes atoms from the whole cluster, not a single monomer.
+  // [2M-2H] needs 2 H total, which a molecule with a single H provides as a dimer.
+  AdductInfo dimer_2h = AdductInfo::parseAdductString("2M-2H;1-");
+  TEST_TRUE(dimer_2h.isCompatible(EmpiricalFormula("CH")))  // 2*1 H = 2 available
+  TEST_FALSE(dimer_2h.isCompatible(EmpiricalFormula("C")))  // no H at all
+}
+END_SECTION
+
+START_SECTION((EmpiricalFormula getIonComposition(const EmpiricalFormula& neutral_formula) const))
+{
+  EmpiricalFormula glucose("C6H12O6");
+
+  // proton adduct: composition gains the adduct atoms, result is neutral (charge tracked separately)
+  AdductInfo mh = AdductInfo::parseAdductString("M+H;1+");
+  EmpiricalFormula ion_mh = mh.getIonComposition(glucose);
+  TEST_EQUAL(ion_mh, EmpiricalFormula("C6H13O6"))
+  TEST_EQUAL(ion_mh.getCharge(), 0)
+
+  // chloride attachment (anionic adduct, common in lipids): gains Cl
+  AdductInfo mcl = AdductInfo::parseAdductString("M+Cl;1-");
+  TEST_EQUAL(mcl.getIonComposition(glucose), EmpiricalFormula("C6H12O6Cl"))
+
+  // proton loss: removes one H
+  AdductInfo mmh = AdductInfo::parseAdductString("M-H;1-");
+  TEST_EQUAL(mmh.getIonComposition(glucose), EmpiricalFormula("C6H11O6"))
+
+  // dimer with sodium: 2M + Na
+  AdductInfo dimer = AdductInfo::parseAdductString("2M+Na;1+");
+  TEST_EQUAL(dimer.getIonComposition(glucose), EmpiricalFormula("C12H24O12Na"))
+
+  // impossible atom removal: [M-H]- on a molecule without hydrogen must throw
+  AdductInfo mmh2 = AdductInfo::parseAdductString("M-H;1-");
+  TEST_EXCEPTION(Exception::Precondition, mmh2.getIonComposition(EmpiricalFormula("O2")))
+
+  // a charged input molecule is rejected (charge must be tracked by the adduct, not the formula)
+  EmpiricalFormula charged("C6H12O6");
+  charged.setCharge(1);
+  TEST_EXCEPTION(Exception::Precondition, mh.getIonComposition(charged))
+
+  // the input formula is not modified on failure
+  TEST_EQUAL(charged.getCharge(), 1)
 }
 END_SECTION
 

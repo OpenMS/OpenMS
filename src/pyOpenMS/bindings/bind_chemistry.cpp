@@ -307,6 +307,8 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("getMaxIsotope", [](const OpenMS::CoarseIsotopePatternGenerator& self) { return self.getMaxIsotope(); }, "Returns the currently set maximum isotope")
         .def("getRoundMasses", [](const OpenMS::CoarseIsotopePatternGenerator& self) { return self.getRoundMasses(); }, "Returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)")
         .def("run", [](const OpenMS::CoarseIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& ef) { return self.run(ef); }, "ef"_a)
+        .def("runNeutral", [](const OpenMS::CoarseIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& neutral_formula) { return self.runNeutral(neutral_formula); }, "neutral_formula"_a, "Isotope pattern of a neutral (uncharged) formula on a neutral mass axis")
+        .def("runIon", [](const OpenMS::CoarseIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& neutral_formula, const OpenMS::AdductInfo& adduct) { return self.runIon(neutral_formula, adduct); }, "neutral_formula"_a, "adduct"_a, "Isotope pattern of the ion [nM+Adduct] on an m/z axis (explicit ionization via AdductInfo)")
         .def("estimateFromPeptideWeight", [](OpenMS::CoarseIsotopePatternGenerator& self, double average_weight) { return self.estimateFromPeptideWeight(average_weight); }, "average_weight"_a, "Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported")
         .def("estimateFromPeptideWeightAndS", [](OpenMS::CoarseIsotopePatternGenerator& self, double average_weight, unsigned int S) { return self.estimateFromPeptideWeightAndS(average_weight, S); }, "average_weight"_a, "S"_a, "Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs")
         .def_static("approximateFromPeptideWeight", [](double mass, unsigned int num_peaks, unsigned int charge) { return OpenMS::CoarseIsotopePatternGenerator::approximateFromPeptideWeight(mass, num_peaks, charge); }, "mass"_a, "num_peaks"_a, "charge"_a, 
@@ -695,6 +697,8 @@ if the threshold is absolute or relative.
         .def(nb::init<>())
         .def(nb::init<double, bool, bool>())
         .def("run", [](const OpenMS::FineIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& ef) { return self.run(ef); }, "ef"_a)
+        .def("runNeutral", [](const OpenMS::FineIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& neutral_formula) { return self.runNeutral(neutral_formula); }, "neutral_formula"_a, "Isotope pattern of a neutral (uncharged) formula on a neutral mass axis")
+        .def("runIon", [](const OpenMS::FineIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& neutral_formula, const OpenMS::AdductInfo& adduct) { return self.runIon(neutral_formula, adduct); }, "neutral_formula"_a, "adduct"_a, "Isotope pattern of the ion [nM+Adduct] on an m/z axis (explicit ionization via AdductInfo)")
         .def("setThreshold", [](OpenMS::FineIsotopePatternGenerator& self, double stop_condition) { return self.setThreshold(stop_condition); }, "stop_condition"_a)
         .def("getThreshold", [](const OpenMS::FineIsotopePatternGenerator& self) { return self.getThreshold(); })
         .def("setAbsolute", [](OpenMS::FineIsotopePatternGenerator& self, bool absolute) { return self.setAbsolute(absolute); }, "absolute"_a)
@@ -2276,6 +2280,8 @@ the fixed and variable modifications given to the constructor
             "Returns the mass shift caused by this adduct")
         .def("isCompatible", &OpenMS::AdductInfo::isCompatible, "db_entry"_a,
             "Checks if adduct is compatible with the given formula")
+        .def("getIonComposition", &OpenMS::AdductInfo::getIonComposition, "neutral_formula"_a,
+            "Resolves the neutral atomic composition of the ion [nM+Adduct] (charge tracked separately via getCharge)")
         .def("getCharge", &OpenMS::AdductInfo::getCharge, "Returns the charge of the adduct")
         .def("getName", &OpenMS::AdductInfo::getName, "Returns the original name string")
         .def("getEmpiricalFormula", &OpenMS::AdductInfo::getEmpiricalFormula, "Returns the sum formula of the adduct")

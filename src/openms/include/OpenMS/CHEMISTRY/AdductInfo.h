@@ -170,6 +170,11 @@ namespace OpenMS
       those atoms. This method returns true when every element subtracted
       by the adduct is present in sufficient quantity in @p db_entry.
 
+      For n-mer adducts (@c mol_multiplier > 1) the removal is checked
+      against the whole cluster, i.e. @c mol_multiplier * db_entry, since
+      the atoms are drawn from all clustered copies (e.g. [2M-2H]- only
+      needs one hydrogen per monomer).
+
       Plus-only adducts (no atoms subtracted) are trivially compatible
       with any compound and always return true.
 
@@ -178,6 +183,29 @@ namespace OpenMS
       @return True iff @p db_entry could plausibly produce this adduct.
     */
     bool isCompatible(const EmpiricalFormula& db_entry) const;
+
+    /**
+      @brief Resolve the full atomic composition of the ion @c [nM+Adduct].
+
+      Combines @p mol_multiplier copies of the neutral molecule @p neutral_formula
+      with the adduct's (signed) atomic delta to yield the actual elemental
+      composition of the observed ion. In contrast to the ion's @em charge (see
+      #getCharge), the returned formula is @em neutral (@c getCharge() == 0): it
+      carries the atoms only. Feed it to an isotope pattern generator — most
+      conveniently via IsotopePatternGenerator::runIon, which also converts the
+      resulting neutral masses to @em m/z using this adduct's charge.
+
+      @param[in] neutral_formula Neutral EmpiricalFormula of one molecule @em M.
+                                 Must be uncharged (@c getCharge() == 0) and free
+                                 of negative element counts.
+      @return Neutral EmpiricalFormula @c mol_multiplier*neutral_formula + adduct_delta.
+      @throws Exception::Precondition if @p neutral_formula carries a charge, or
+              if any element count — in the input or in the resolved ion — is
+              negative. The latter means the adduct removes atoms the molecule
+              does not have (e.g. @c [M-H]- on a formula without hydrogen), which
+              is physically impossible.
+    */
+    EmpiricalFormula getIonComposition(const EmpiricalFormula& neutral_formula) const;
 
     /**
       @brief Signed ion charge.

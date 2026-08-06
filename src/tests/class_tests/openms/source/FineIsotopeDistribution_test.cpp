@@ -17,6 +17,8 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -440,6 +442,72 @@ START_SECTION(( void setAbsolute(bool absolute) ))
     gen.setThreshold(1e-3);
     id = gen.run(ef);
     TEST_EQUAL(id.size(), 151)
+  }
+}
+END_SECTION
+
+START_SECTION((IsotopeDistribution runNeutral(const EmpiricalFormula& neutral_formula) const))
+{
+  FineIsotopePatternGenerator gen(0.01, false, false);
+
+  EmpiricalFormula neutral("C6H12O6");
+  IsotopeDistribution id_neutral = gen.runNeutral(neutral);
+  IsotopeDistribution id_run = gen.run(neutral);
+  TEST_EQUAL(id_neutral.size(), id_run.size())
+  for (Size i = 0; i < id_neutral.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(id_neutral[i].getMZ(), id_run[i].getMZ())
+    TEST_REAL_SIMILAR(id_neutral[i].getIntensity(), id_run[i].getIntensity())
+  }
+
+  EmpiricalFormula charged("C6H12O6");
+  charged.setCharge(2);
+  TEST_EXCEPTION(Exception::Precondition, gen.runNeutral(charged))
+}
+END_SECTION
+
+START_SECTION((IsotopeDistribution runIon(const EmpiricalFormula& neutral_formula, const AdductInfo& adduct) const))
+{
+  FineIsotopePatternGenerator gen(0.01, false, false);
+  EmpiricalFormula glucose("C6H12O6");
+
+  // [M+H]+ : m/z equals the resolved neutral composition's mass minus one electron
+  {
+    AdductInfo mh = AdductInfo::parseAdductString("M+H;1+");
+    IsotopeDistribution ion = gen.runIon(glucose, mh);
+    IsotopeDistribution neutral = gen.run(EmpiricalFormula("C6H13O6"));
+    TEST_EQUAL(ion.size(), neutral.size())
+    for (Size i = 0; i < ion.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(ion[i].getMZ(), neutral[i].getMZ() - Constants::ELECTRON_MASS_U)
+      TEST_REAL_SIMILAR(ion[i].getIntensity(), neutral[i].getIntensity())
+    }
+  }
+
+  // [M+2H]2+ : divide by 2, subtract two electrons
+  {
+    AdductInfo m2h = AdductInfo::parseAdductString("M+2H;2+");
+    IsotopeDistribution ion = gen.runIon(glucose, m2h);
+    IsotopeDistribution neutral = gen.run(EmpiricalFormula("C6H14O6"));
+    TEST_EQUAL(ion.size(), neutral.size())
+    for (Size i = 0; i < ion.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(ion[i].getMZ(), (neutral[i].getMZ() - 2.0 * Constants::ELECTRON_MASS_U) / 2.0)
+    }
+  }
+
+  // [M-H]- : proton loss, negative charge adds an electron
+  {
+    AdductInfo mmh = AdductInfo::parseAdductString("M-H;1-");
+    IsotopeDistribution ion = gen.runIon(glucose, mmh);
+    IsotopeDistribution neutral = gen.run(EmpiricalFormula("C6H11O6"));
+    TEST_REAL_SIMILAR(ion[0].getMZ(), neutral[0].getMZ() + Constants::ELECTRON_MASS_U)
+  }
+
+  // impossible atom removal throws
+  {
+    AdductInfo mmh = AdductInfo::parseAdductString("M-H;1-");
+    TEST_EXCEPTION(Exception::Precondition, gen.runIon(EmpiricalFormula("O2"), mmh))
   }
 }
 END_SECTION

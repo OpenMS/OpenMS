@@ -12,6 +12,7 @@
 
 namespace OpenMS
 {
+  class AdductInfo;
   class EmpiricalFormula;
   class IsotopeDistribution;
 
@@ -51,6 +52,38 @@ namespace OpenMS
 
      */
     virtual IsotopeDistribution run(const EmpiricalFormula&) const = 0;
+
+    /**
+        @brief Isotope pattern of a neutral molecule, on a neutral @b mass axis.
+
+        Explicit, self-documenting wrapper around run() for a charge-free
+        @p neutral_formula. Always returns neutral masses (never m/z). This is the
+        recommended entry point when you have a neutral composition and want its
+        isotope pattern; unlike a bare run() on a charged formula, it never applies
+        the deprecated implicit proton shift.
+
+        @param[in] neutral_formula Uncharged EmpiricalFormula (@c getCharge() == 0).
+        @throws Exception::Precondition if @p neutral_formula carries a charge.
+    */
+    IsotopeDistribution runNeutral(const EmpiricalFormula& neutral_formula) const;
+
+    /**
+        @brief Isotope pattern of an ion @c [nM+Adduct]^z, on an @b m/z axis.
+
+        Resolves the ion's atomic composition from the neutral molecule
+        @p neutral_formula and the @p adduct (via AdductInfo::getIonComposition),
+        computes its isotope pattern, and converts every peak from neutral mass to
+        m/z as @c (mass - z*electron_mass) / |z|. Handles cations, anions and
+        multiply-charged ions; the adduct carries the charge and (for n-mers) the
+        molecular multiplier.
+
+        @param[in] neutral_formula Uncharged EmpiricalFormula of one molecule @em M.
+        @param[in] adduct Ionization rule (see AdductInfo), carrying the ion charge.
+        @throws Exception::Precondition if @p neutral_formula carries a charge or the
+                adduct removes atoms the molecule does not have.
+    */
+    IsotopeDistribution runIon(const EmpiricalFormula& neutral_formula, const AdductInfo& adduct) const;
+
     virtual ~IsotopePatternGenerator();
 
  protected:

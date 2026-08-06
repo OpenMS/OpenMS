@@ -245,16 +245,6 @@ namespace OpenMS
     return charge_;
   }
 
-  EmpiricalFormula& EmpiricalFormula::addChargeAdduct(Int count, const std::string& adduct)
-  {
-    EmpiricalFormula add(adduct);
-    add.setCharge(0);          // ignore any charge that might be encoded in the adduct string
-    add = add * count;         // scale the adduct's atoms by the (signed) count
-    *this += add;              // fold the adduct atoms into this formula (add is neutral)
-    setCharge(0);              // ionization is now explicit in the composition -> neutral formula
-    return *this;
-  }
-
   std::string EmpiricalFormula::toString() const
   {
     std::string formula;
