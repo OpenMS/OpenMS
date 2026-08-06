@@ -55,6 +55,12 @@ set(TESTS_TEMP_DIR "${PROJECT_BINARY_DIR}/tmp_path")
 file(MAKE_DIRECTORY "${TESTS_TEMP_DIR}")
 set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
+# QPX text dumps are compared with the shared relative tolerance but WITHOUT the absolute one.
+# FuzzyDiff.ini's 'absdiff' of 0.01 exists for "zero vs. epsilon" on unbounded quantities; the QPX
+# views carry q-values and posterior error probabilities that live in [0,1], where it deletes the
+# assertion outright - in one of these fixtures 68 of 104 PEPs are <= 0.01, so every one of them
+# would compare equal to every other. Relative tolerance alone still absorbs float noise.
+set(QPX_DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ratio 1.01 -absdiff 0)
 # zlib-ng produces byte-different (but functionally equivalent) compressed output.
 # When detected, whitelist mzML binary data elements so FuzzyDiff skips them.
 if(HAVE_ZLIB_NG)
@@ -242,10 +248,15 @@ add_test("TOPP_ParquetDiff_7" ${TOPP_BIN_PATH}/ParquetDiff
 set_tests_properties("TOPP_ParquetDiff_7" PROPERTIES WILL_FAIL 1)
 
 # The floor applies to BOTH inputs, not only the first: input2 holds 4 rows against input1's 5.
+# 'schema_only' is what makes this test mean that. These two tables have disjoint primary
+# keys, so without it the comparison fails on the key mismatch and would go red even if
+# 'min_rows' only ever looked at 'in1'. Skipping the value comparison leaves the row floor as
+# the only thing that can fail.
 add_test("TOPP_ParquetDiff_8" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
   -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
   -pk peptidoform precursor_charge
+  -schema_only
   -min_rows 5)
 set_tests_properties("TOPP_ParquetDiff_8" PROPERTIES WILL_FAIL 1)
 
@@ -3024,6 +3035,61 @@ set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -top:N 0 -top:aggregate sum -fractions:aggregate best)
 add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
+
+#------------------------------------------------------------------------------
+# QPX value references (#9864 Phase 0.1, phases 1-2)
+#
+# ParquetDiff -out_tsv writes the table as text sorted by primary key, and the reference is
+# that text. A committed .parquet could only ever be regenerated wholesale, which is the
+# operation that hides unrelated drift; a text reference is reviewable in a pull request and
+# patchable line by line. Compared with QPX_DIFF (relative tolerance only - see its
+# definition for why the shared absdiff would delete the q-value assertions).
+#
+# Row order is the comparator's own canonical key order, which length-prefixes each value -
+# so 'TMT126' and 'TMT131' (6 chars) both sort before 'TMT127C' (7), not in channel order.
+# It looks unsorted and is not: the encoding is deterministic and byte-comparable, which is
+# what a reference needs. Reusing that encoding is deliberate, so the dump cannot disagree
+# with the comparison about what a primary key is.
+#
+# Phase 1 value reference. This fixture reads a committed consensusXML, so there is no mzML
+# parsing, no feature finding, no alignment and no median normalization - the shortest float
+# path of any QPX producer, and the pg key is all-string. Its 48 rows are 4 fraction groups x
+# 6 TMT labels x 2 anchors with 12-entry grouped_runs lists: exactly the design melting,
+# fraction-group keying and label assignment that #9869/#9874/#9876 touched. It also VERIFIES
+# rather than assumes #9876's claim that nothing changes at the default 'fractions:aggregate'.
+add_test("TOPP_ProteinQuantifier_19_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+add_test("TOPP_ProteinQuantifier_19_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_19_qpx_pg.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_out" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx_pg_dump")
+#
+# Same, on the label-free merged-identification-run input (3 rows).
+add_test("TOPP_ProteinQuantifier_18_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+add_test("TOPP_ProteinQuantifier_18_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_18_qpx_pg.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_out" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx_pg_dump")
+#
+# Phase 2. Adds mzML reporter extraction on top of Phase 1's float path, so more exposure, but
+# the pg key is still all-string. 20 rows over 10 TMT channels.
+add_test("TOPP_IsobaricWorkflow_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test("TOPP_IsobaricWorkflow_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_qpx_pg.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg_out" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx_pg_dump")
+#
+# The psm key is string+int, still float-free. The FEATURE view is deliberately NOT pinned yet:
+# its key contains a float32 'rt' matched with zero tolerance, so it is the one view where a
+# one-ULP cross-platform drift does not degrade gracefully.
+add_test("TOPP_IsobaricWorkflow_qpx_psm_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.psm.parquet -out_tsv ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_psm.tmp.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_psm_dump" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test("TOPP_IsobaricWorkflow_qpx_psm_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_psm.tmp.tsv -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_qpx_psm.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_psm_out" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx_psm_dump")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
