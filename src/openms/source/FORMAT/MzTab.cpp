@@ -1007,15 +1007,23 @@ namespace OpenMS
 
       if (export_subfeatures)
       {
-        MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
-        opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + StringUtils::toStr(study_variable) + "]";
-        opt_global_mass_to_charge_study_variable.second = MzTabString(StringUtils::toStr(fit->getMZ()));
-        row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+        // One column per handle. Keying on the study variable is only unique while it owns a single
+        // assay; once it groups replicates, two handles would emit the same column name twice. Keep
+        // the established name in the single-assay case and fall back to the assay otherwise.
+        const bool sv_is_one_assay = study_variable_to_assays.at(study_variable).size() == 1;
+        const std::string suffix = sv_is_one_assay
+          ? "study_variable[" + StringUtils::toStr(study_variable) + "]"
+          : "assay[" + StringUtils::toStr(assay) + "]";
 
-        MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
-        opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + StringUtils::toStr(study_variable) + "]";
-        opt_global_retention_time_study_variable.second = MzTabString(StringUtils::toStr(fit->getRT()));
-        row.opt_.push_back(opt_global_retention_time_study_variable);
+        MzTabOptionalColumnEntry opt_global_mass_to_charge;
+        opt_global_mass_to_charge.first = "opt_global_mass_to_charge_" + suffix;
+        opt_global_mass_to_charge.second = MzTabString(StringUtils::toStr(fit->getMZ()));
+        row.opt_.push_back(opt_global_mass_to_charge);
+
+        MzTabOptionalColumnEntry opt_global_retention_time;
+        opt_global_retention_time.first = "opt_global_retention_time_" + suffix;
+        opt_global_retention_time.second = MzTabString(StringUtils::toStr(fit->getRT()));
+        row.opt_.push_back(opt_global_retention_time);
       }
     }
 
@@ -1344,15 +1352,32 @@ namespace OpenMS
   size_t MzTab::getQuantStudyVariables_(const ProteinIdentification& pid)
   {
     size_t quant_study_variables(0);
-    for (auto & p : pid.getIndistinguishableProteins())
+    for (const auto& p : pid.getIndistinguishableProteins())
     {
-      if (p.getFloatDataArrays().empty()
-        || p.getFloatDataArrays()[0].getName() != "abundances")
+      const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+      for (const auto& array : p.getFloatDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_abundance") { assay_abundances = &array; }
+      }
+      for (const auto& array : p.getIntegerDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_fraction_group") { fraction_groups = &array; }
+        else if (array.getName() == "fraction_group_level_label") { labels = &array; }
+      }
+
+      // The three parallel assay arrays are the explicit quantified-group marker. Their
+      // abundance count is only used as a non-zero gate by the callers; the consensus-map
+      // exporter derives the actual assay and study-variable counts from the design.
+      if (assay_abundances == nullptr || fraction_groups == nullptr || labels == nullptr
+          || assay_abundances->size() != fraction_groups->size()
+          || assay_abundances->size() != labels->size())
       {
         quant_study_variables = 0;
         break;
       }
-      quant_study_variables = p.getFloatDataArrays()[0].size();
+      quant_study_variables = assay_abundances->size();
     }
     return quant_study_variables; 
   }
@@ -1762,13 +1787,6 @@ Not sure how to handle these:
     {
       const auto& float_arrays = group.getFloatDataArrays();
 
-      // Keep the established positional "abundances" gate: consensusXML readers and older
-      // producers use this first array to signal that the group was quantified.
-      if (float_arrays.empty() || float_arrays[0].getName() != "abundances")
-      {
-        return false;
-      }
-
       const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
       const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
       const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
@@ -1794,14 +1812,14 @@ Not sure how to handle these:
       const bool any_assay_array = assay_abundances != nullptr || fraction_groups != nullptr || labels != nullptr;
       if (!any_assay_array)
       {
-        return false; // old consensusXML or another producer: keep the legacy sample-grain values
+        return false; // old consensusXML or another producer: keep any legacy abundance columns
       }
 
       const auto warnAndFallback = [&group](const std::string& reason)
       {
         const std::string accession = group.accessions.empty() ? "<unknown>" : group.accessions.front();
         OPENMS_LOG_WARN << "Cannot use assay-level protein abundances for group '" << accession
-                        << "': " << reason << ". Falling back to the sample-level 'abundances' array.\n";
+                        << "': " << reason << ". Keeping any pre-existing abundance columns.\n";
         return false;
       };
 
@@ -1817,9 +1835,13 @@ Not sure how to handle these:
       map<pair<UInt, UInt>, float> abundance_by_assay_key;
       for (Size i = 0; i < assay_abundances->size(); ++i)
       {
+        // Both keys are 1-based: MSFileSectionEntry defaults fraction_group to 1 and isValid_()
+        // requires the set to start at 1. Same boundary as the QPX sibling
+        // (ProteinGroupArrowExport_impl.h fractionGroupAbundances). A zero here means the design
+        // did not come from a canonical producer, so it is refused rather than tolerated.
         if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0)
         {
-          return warnAndFallback("a fraction group or label key is not positive");
+          return warnAndFallback("a fraction group or label key is not 1-based");
         }
         const pair<UInt, UInt> key(static_cast<UInt>((*fraction_groups)[i]),
                                    static_cast<UInt>((*labels)[i]));

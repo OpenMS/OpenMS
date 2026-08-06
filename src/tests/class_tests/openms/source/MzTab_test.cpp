@@ -239,13 +239,12 @@ START_SECTION([EXTRA] consensus-map assays use fraction-group/label grain and sa
 
   ProteinIdentification::ProteinGroup group;
   group.accessions = {"P1"};
-  group.getFloatDataArrays().resize(2);
-  group.getFloatDataArrays()[0].setName("abundances");
-  group.getFloatDataArrays()[0].push_back(30.0f);
-  group.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+  // The assay arrays themselves are the quantified-group gate; no legacy sample array is needed.
+  group.getFloatDataArrays().resize(1);
+  group.getFloatDataArrays()[0].setName("fraction_group_level_abundance");
   // Reverse the key order to verify matching through the parallel arrays, not by position.
-  group.getFloatDataArrays()[1].push_back(20.0f);
-  group.getFloatDataArrays()[1].push_back(10.0f);
+  group.getFloatDataArrays()[0].push_back(20.0f);
+  group.getFloatDataArrays()[0].push_back(10.0f);
   group.getIntegerDataArrays().resize(2);
   group.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
   group.getIntegerDataArrays()[0].push_back(2);

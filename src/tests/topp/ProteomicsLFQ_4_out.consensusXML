@@ -175,7 +175,6 @@
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.052631578947368,PH_10"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_0_abundances" value="[1.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[0.0, 1.0, 1.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -184,7 +183,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[P00761|TRYP_PIG]"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.052631578947368,PH_9"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_abundances" value="[35.0, 31.0, 25.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[19.0, 16.0, 16.0, 15.0, 15.0, 10.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[35.0, 31.0, 25.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -194,7 +192,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[P02769|ALBU_BOVIN]"/>
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0.052631578947368,PH_8"/>
 			<UserParam type="string" name="indistinguishable_proteins_3" value="0.052631578947368,PH_7"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_3_abundances" value="[0.0, 1.0, 1.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_3_file_channel_level_abundance" value="[0.0, 0.0, 0.0, 1.0, 0.0, 1.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_3_fraction_group_level_abundance" value="[0.0, 1.0, 1.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_3_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -203,7 +200,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_3_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_3_quantified_proteins" value="[sp|O46375|TTHY_BOVIN]"/>
 			<UserParam type="string" name="indistinguishable_proteins_4" value="0.052631578947368,PH_6"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_4_abundances" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_4_file_channel_level_abundance" value="[0.0, 0.0, 1.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_4_fraction_group_level_abundance" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_4_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -212,7 +208,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_4_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_4_quantified_proteins" value="[tr|A9EY18|A9EY18_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_5" value="0.052631578947368,PH_5"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_5_abundances" value="[1.0, 2.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_5_file_channel_level_abundance" value="[0.0, 1.0, 2.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_5_fraction_group_level_abundance" value="[1.0, 2.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_5_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -221,7 +216,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_5_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_5_quantified_proteins" value="[tr|A9G0B6|A9G0B6_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_6" value="0.052631578947368,PH_3"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_6_abundances" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_6_file_channel_level_abundance" value="[0.0, 0.0, 1.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_6_fraction_group_level_abundance" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_6_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -230,7 +224,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_6_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_6_quantified_proteins" value="[tr|A9G713|A9G713_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_7" value="0.052631578947368,PH_2"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_7_abundances" value="[2.0, 1.0, 1.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_7_file_channel_level_abundance" value="[2.0, 0.0, 1.0, 0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_7_fraction_group_level_abundance" value="[2.0, 1.0, 1.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_7_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -239,7 +232,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_7_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_7_quantified_proteins" value="[tr|A9GID7|A9GID7_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_8" value="0.052631578947368,PH_0"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_8_abundances" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_8_file_channel_level_abundance" value="[0.0, 0.0, 0.0, 1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_8_fraction_group_level_abundance" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_8_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -248,7 +240,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_8_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_8_quantified_proteins" value="[tr|A9GPT8|A9GPT8_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_9" value="0.052631578947368,PH_4,PH_1"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_9_abundances" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_9_file_channel_level_abundance" value="[0.0, 0.0, 0.0, 1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_9_fraction_group_level_abundance" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_9_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -257,7 +248,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_9_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_9_quantified_proteins" value="[tr|A9G4J7|A9G4J7_SORC5,tr|A9GJA3|A9GJA3_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_10" value="0.052631578947368,PH_12"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_10_abundances" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_10_file_channel_level_abundance" value="[0.0, 0.0, 1.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_10_fraction_group_level_abundance" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_10_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -266,7 +256,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_10_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_10_quantified_proteins" value="[tr|A9FCX3|A9FCX3_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_11" value="0.052631578947368,PH_11"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_11_abundances" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_11_file_channel_level_abundance" value="[0.0, 0.0, 1.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_11_fraction_group_level_abundance" value="[0.0, 1.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_11_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -275,7 +264,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_11_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_11_quantified_proteins" value="[tr|A9G8K7|A9G8K7_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_12" value="0.052631578947368,PH_14"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_12_abundances" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_12_file_channel_level_abundance" value="[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_12_fraction_group_level_abundance" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_12_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -284,7 +272,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_12_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_12_quantified_proteins" value="[tr|A9GN44|A9GN44_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_13" value="0.052631578947368,PH_13"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_13_abundances" value="[0.0, 0.0, 1.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_13_file_channel_level_abundance" value="[0.0, 0.0, 0.0, 0.0, 1.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_13_fraction_group_level_abundance" value="[0.0, 0.0, 1.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_13_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -293,7 +280,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_13_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_13_quantified_proteins" value="[tr|A9GWQ1|A9GWQ1_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_14" value="0.052631578947368,PH_17"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_14_abundances" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_14_file_channel_level_abundance" value="[0.0, 1.0, 0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_14_fraction_group_level_abundance" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_14_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -302,7 +288,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_14_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_14_quantified_proteins" value="[tr|A9FUD7|A9FUD7_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_15" value="0.052631578947368,PH_16"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_15_abundances" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_15_file_channel_level_abundance" value="[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_15_fraction_group_level_abundance" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_15_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -311,7 +296,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_15_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_15_quantified_proteins" value="[tr|A9G8G1|A9G8G1_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_16" value="0.052631578947368,PH_15"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_16_abundances" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_16_file_channel_level_abundance" value="[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_16_fraction_group_level_abundance" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_16_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>
@@ -320,7 +304,6 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_16_file_channel_level_filename" value="[BSA1_F1,BSA1_F2,BSA2_F1,BSA2_F2,BSA3_F1,BSA3_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_16_quantified_proteins" value="[tr|A9GV08|A9GV08_SORC5]"/>
 			<UserParam type="string" name="indistinguishable_proteins_17" value="0.052631578947368,PH_24,PH_23,PH_22,PH_21,PH_20,PH_19,PH_18"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_17_abundances" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_17_file_channel_level_abundance" value="[0.0, 1.0, 0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_17_fraction_group_level_abundance" value="[1.0, 0.0, 0.0]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_17_file_channel_level_channel" value="[1, 1, 1, 1, 1, 1]"/>

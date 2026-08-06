@@ -78,28 +78,28 @@ Similarly, only proteotypic peptides (i.e. those matching to exactly one protein
 
 Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
 
-<B>Output granularity: samples vs. files and channels</B>
+<B>Output granularity: assays vs. files and channels</B>
 
-By default one protein abundance is reported per @a sample. A sample is identified by a (file, label/channel) pair of the experimental design, so in a fractionated experiment a single sample spans <em>several</em> files - all fractions of its fraction group at that label - and the reported value aggregates over them.
+By default one protein and peptide abundance is reported per assay. An assay is the experimental-design pair @c (fraction_group, @c label): it spans every fraction file of that fraction group at that label, and its reported value aggregates over those files. Columns are named @c abundance_fgroupF_labelL, where F is the design's Fraction_Group and L its Label. The SampleSection remains metadata and may group several assays as technical or biological replicates; ProteinQuantifier does not sum those replicates.
 
-With @p file_and_channel_level_output the protein abundances are instead reported per (file, channel) cell. These cells are computed with the same peptide-level policy as the sample-level values (all peptidoforms are accumulated into one peptide; all charge states contribute by default, or only each peptidoform's selected charge with @p best_charge_and_fraction), but the peptide selection and the aggregation are applied <em>per file</em>. Two consequences are worth knowing:
+With @p file_and_channel_level_output the protein abundances are instead reported per (file, channel) cell. These cells are computed with the same peptide-level policy as the assay values (all peptidoforms are accumulated into one peptide; all charge states contribute by default, or only each peptidoform's selected charge with @p best_charge_and_fraction), but the peptide selection and the aggregation are applied <em>per file</em>. Two consequences are worth knowing:
 
-- The cells only decompose the sample value exactly for @p top:N 0 together with @p top:aggregate @p sum. Top-N selection, @p median, @p mean and @p weighted_mean do not commute with aggregation across fractions, so for those settings the cells of a sample neither sum nor average to the sample-level value.
-- The @p top:N requirement ("at least N peptides") is likewise enforced per file, not per sample. In a fractionated experiment this is considerably stricter than the sample-level rule: a protein can easily have N peptides in a sample while no individual fraction contains N of them, in which case the protein is quantified at the sample level but <em>all</em> of its (file, channel) cells are reported as 0. Use @p top:N 0 (optionally with @p top:aggregate @p sum) or @p top:include_all if per-file values are wanted for such data.
+- The cells only decompose the assay value exactly for @p top:N 0 together with @p top:aggregate @p sum. Top-N selection, @p median, @p mean and @p weighted_mean do not commute with aggregation across fractions, so for those settings the cells of an assay neither sum nor average to the assay value.
+- The @p top:N requirement ("at least N peptides") is likewise enforced per file, not per assay. In a fractionated experiment this is considerably stricter than the assay-level rule: a protein can easily have N peptides in an assay while no individual fraction contains N of them, in which case the protein is quantified at the assay level but <em>all</em> of its (file, channel) cells are reported as 0. Use @p top:N 0 (optionally with @p top:aggregate @p sum) or @p top:include_all if per-file values are wanted for such data.
 
-With @p best_charge_and_fraction, one charge is selected globally for each modified peptide. Charges are ranked first by the number of distinct samples with a positive abundance and then, on a tie, by total abundance across all samples (an exact tie deterministically keeps the lower charge). Every observation of the selected charge is retained and summed over fractions within a sample; the detailed peptide output still reports all observed fraction and charge combinations. The same selected-charge policy is used for sample, fraction-group/label, and file/channel protein quantities.
+With @p best_charge_and_fraction, one charge is selected globally for each modified peptide. Charges are ranked first by the number of distinct assays with a positive abundance and then, on a tie, by total abundance across all assays (an exact tie deterministically keeps the lower charge). Every observation of the selected charge is retained and summed over fractions within an assay; the detailed peptide output still reports all observed fraction and charge combinations. The same selected-charge policy is used for assay and file/channel protein quantities.
 
-The detailed @p peptide_out table that this flag produces has one row per (fraction, charge) and one abundance column per (file, channel) covering <em>every</em> file of the experimental design, so a row reports 0.0 for the files and channels its fraction does not cover. Without the flag, @p peptide_out instead writes one column per sample and one row per peptide, with @p fraction reported as "all".
+The detailed @p peptide_out table that this flag produces has one row per (fraction, charge) and one abundance column per (file, channel) covering <em>every</em> file of the experimental design, so a row reports 0.0 for the files and channels its fraction does not cover. Without the flag, @p peptide_out instead writes one column per assay and one row per peptide, with @p fraction reported as "all".
 
 <B>Input: idXML</B>
 
-Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
+Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input become distinct inferred assays; this makes it possible to quantify several related runs at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
 
 The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p aggregate @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
 
 <B>Optional input: Protein inference/grouping results</B>
 
-By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
+By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the complete data set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
 
 In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @ref TOPP_ProteinInference. 
 
@@ -126,29 +126,29 @@ The output files produced by this tool have a table format, with columns as desc
 - @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
 - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
 - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
-- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
-- @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_sample1", "abundance_sample2", etc.).
+- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
+- @b abundance_fgroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
 
 <b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
 - @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
 - @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
 - @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
 - @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
-- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_sample1", "abundance_sample2", etc.). Also for consensusXML, the reported values are already normalized if @p consensus:normalize was set.
+- @b abundance_fgroupF_labelL: Computed peptide abundance for assay @c (F, @c L). If the charge in the preceding column is 0, this is the total abundance over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, the detailed table uses file/channel columns instead). For consensusXML input, the reported values are already normalized if @p consensus:normalize was set.
 
 <B>Protein quantification examples</B>
 
-While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top:N, @p top:include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
+While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top:N, @p top:include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different assays.
 
-As an example, consider a protein with four proteotypic peptides. Each peptide is detected in a subset of three samples, as indicated in the table below. The peptides are ranked by abundance (1: highest, 4: lowest; assuming for simplicity that the order is the same in all samples).
+As an example, consider a protein with four proteotypic peptides. Each peptide is detected in a subset of three assays, as indicated in the table below. The peptides are ranked by abundance (1: highest, 4: lowest; assuming for simplicity that the order is the same in all assays).
 
 <CENTER>
     <table>
         <tr>
             <td></td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 1 </td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 2 </td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 3 </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> assay 1 </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> assay 2 </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> assay 3 </td>
         </tr>
         <tr>
             <td ALIGN="center" BGCOLOR="#EBEBEB"> peptide 1 </td>
@@ -190,9 +190,9 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center" BGCOLOR="#EBEBEB"> @p top </td>
             <td ALIGN="center" BGCOLOR="#EBEBEB"> @p include_all </td>
             <td ALIGN="center" BGCOLOR="#EBEBEB"> @p c.:fix_peptides </td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 1 </td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 2 </td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 3 </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> assay 1 </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> assay 2 </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> assay 3 </td>
         </tr>
         <tr>
             <td ALIGN="center"> 0 </td>
@@ -264,7 +264,7 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center"> 3 </td>
             <td ALIGN="center"> 3 </td>
             <td ALIGN="center"> 3 </td>
-            <td> all peptides present in every sample </td>
+            <td> all peptides present in every assay </td>
         </tr>
         <tr>
             <td ALIGN="center"> 1 </td>
@@ -273,7 +273,7 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center"> 3 </td>
             <td ALIGN="center"> 3 </td>
             <td ALIGN="center"> 3 </td>
-            <td> single peptide present in most samples </td>
+            <td> single peptide present in most assays </td>
         </tr>
         <tr>
             <td ALIGN="center"> 2 </td>
@@ -282,7 +282,7 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center"> 1, 3 </td>
             <td ALIGN="center"> (peptide 1 missing) </td>
             <td ALIGN="center"> 1, 3 </td>
-            <td> two peptides present in most samples </td>
+            <td> two peptides present in most assays </td>
         </tr>
         <tr>
             <td ALIGN="center"> 2 </td>
@@ -291,7 +291,7 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center"> 1, 3 </td>
             <td ALIGN="center"> 3 </td>
             <td ALIGN="center"> 1, 3 </td>
-            <td> two or fewer peptides present in most samples </td>
+            <td> two or fewer peptides present in most assays </td>
         </tr>
         <tr>
             <td ALIGN="center"> 3 </td>
@@ -300,7 +300,7 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center"> 1, 2, 3 </td>
             <td ALIGN="center"> (peptide 1 missing) </td>
             <td ALIGN="center"> (peptide 2 missing) </td>
-            <td> three peptides present in most samples </td>
+            <td> three peptides present in most assays </td>
         </tr>
         <tr>
             <td ALIGN="center"> 3 </td>
@@ -309,16 +309,16 @@ Different parameter combinations lead to different quantification scenarios, as 
             <td ALIGN="center"> 1, 2, 3 </td>
             <td ALIGN="center"> 2, 3 </td>
             <td ALIGN="center"> 1, 3 </td>
-            <td> three or fewer peptides present in most samples </td>
+            <td> three or fewer peptides present in most assays </td>
         </tr>
     </table>
 </CENTER>
 
 <B>Further considerations for parameter selection</B>
 
-With @p best_charge_and_fraction and the protein aggregation settings, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
-Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
-For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
+With @p best_charge_and_fraction and the protein aggregation settings, there is a trade-off between comparability of protein abundances within an assay and of abundances for the same protein across different assays.\n
+Setting @p best_charge_and_fraction may increase reproducibility between assays, but will distort the proportions of protein abundances within an assay. The reason is that ionization properties vary between peptides, but should remain constant across assays. Filtering by charge state can help to reduce the impact of feature detection differences between assays.\n
+For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some assays, the computed protein abundances for those assays may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across assays is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within an assay may become unproportional.
 
 */
 
@@ -340,7 +340,6 @@ protected:
 
   typedef PeptideAndProteinQuant::PeptideQuant PeptideQuant;
   typedef PeptideAndProteinQuant::ProteinQuant ProteinQuant;
-  typedef PeptideAndProteinQuant::SampleAbundances SampleAbundances;
   typedef PeptideAndProteinQuant::Statistics Statistics;
   typedef ProteinIdentification::ProteinGroup ProteinGroup;
 
@@ -379,7 +378,7 @@ protected:
 
     registerStringOption_("greedy_group_resolution", "<choice>", "false", "Pre-process identifications with greedy resolution of shared peptides based on the protein group probabilities. (Only works with an idXML file given as protein_groups parameter).", false);
     setValidStrings_("greedy_group_resolution", ListUtils::create<std::string>("true,false"));
-    registerStringOption_("file_and_channel_level_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.\nNote that peptide selection and aggregation are then applied per file, not per sample: 'top:N' requires N peptides in that single file (much stricter than the sample-level rule for fractionated data, where all cells of a quantified protein can end up 0), and the cells only decompose the sample-level value for 'top:N' 0 with 'top:aggregate' sum.", false);
+    registerStringOption_("file_and_channel_level_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of assay columns.\nNote that peptide selection and aggregation are then applied per file, not per assay: 'top:N' requires N peptides in that single file (much stricter than the assay-level rule for fractionated data, where all cells of a quantified protein can end up 0), and the cells only decompose the assay-level value for 'top:N' 0 with 'top:aggregate' sum.", false);
     setValidStrings_("file_and_channel_level_output", {"true","false"});
 
     registerTOPPSubsection_("format", "Output formatting options");
@@ -390,12 +389,24 @@ protected:
 
   }
 
+  /// Sorted, unique abundance-column keys at the reported (fraction group, label) grain.
+  static vector<pair<UInt, UInt>> assayKeys_(const ExperimentalDesign& ed)
+  {
+    set<pair<UInt, UInt>> keys;
+    for (const auto& row : ed.getMSFileSection())
+    {
+      keys.emplace(row.fraction_group, row.label);
+    }
+    return {keys.begin(), keys.end()};
+  }
+
   /// Write a table of peptide results.
   void writePeptideTable_(SVOutStream& out, const PeptideQuant& quant, const ExperimentalDesign& ed)
   {
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
     const bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
     const UInt n_labels = (UInt)ed.getNumberOfLabels();
+    const auto assay_keys = assayKeys_(ed);
 
     // Extract the Spectra Filepath column from the design.
     // Keyed by (fraction group, fraction) like the protein table: the detailed rows below report
@@ -403,14 +414,10 @@ protected:
     // alone collapses all fractions of a group onto whichever file the design happens to list last,
     // which drops 11 of 12 files for a 12-fraction group.
     map<UInt64, map<UInt64, std::string>> design_group_fraction_filename;
-    // The sample-level rows further below write one cell per sample instead, under the historical
-    // one-column-per-fraction-group header; keep that mapping unchanged for them.
-    map<UInt64, std::string> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
       const std::string fn = File::stemName(f.path);
       design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
-      design_filenames[f.fraction_group] = fn;
     }
 
     // write header:
@@ -430,20 +437,18 @@ protected:
     }
     else
     {
-      for (const auto& [fraction_group, filename] : design_filenames)
+      for (const auto& [fraction_group, label] : assay_keys)
       {
-        for (UInt c = 1; c <= n_labels; ++c)
-        {
-          out << "abundance|" + filename + "|ch" + StringUtils::toStr(c);
-        }
+        out << "abundance_fgroup" + StringUtils::toStr(fraction_group)
+             + "_label" + StringUtils::toStr(label);
       }
     }
 
-    out << "fraction" << endl;
+    out << "fraction" << nl;
 
     for (auto const & q : quant) // loop over sequence->peptide data
     {
-      if (q.second.total_abundances.empty())
+      if (q.second.fraction_group_abundances.empty())
       { 
         continue; // not quantified
       }
@@ -508,15 +513,22 @@ protected:
       }
       else
       {
-        // Write sample totals accumulated over fractions and either all charge states or the
-        // globally selected charge, depending on 'best_charge_and_fraction'.
+        // Write assay totals accumulated over fractions and either all charge states or the
+        // globally selected charge, depending on best_charge_and_fraction.
         out << q.first.toString() << protein << accessions.size() << 0;
 
-        for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
+        for (const auto& [fraction_group, label] : assay_keys)
         {
-          // write abundance for the sample if it exists, 0 otherwise:
-          SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
-          out << (pos != q.second.total_abundances.end() ? pos->second : 0.0);
+          double abundance = 0.0;
+          if (auto group_it = q.second.fraction_group_abundances.find(fraction_group);
+              group_it != q.second.fraction_group_abundances.end())
+          {
+            if (auto label_it = group_it->second.find(label); label_it != group_it->second.end())
+            {
+              abundance = label_it->second;
+            }
+          }
+          out << abundance;
         }
 
         out << "all" << endl;
@@ -527,6 +539,7 @@ protected:
   /// Write header for protein table based on output format options
   void writeProteinTableHeader_(SVOutStream& out, const ExperimentalDesign& ed,
                                const map<UInt64, map<UInt64, std::string>>& design_group_fraction_filename,
+                               const vector<pair<UInt, UInt>>& assay_keys,
                                UInt64 n_files, bool channel_level_output)
   {
     // write header:
@@ -551,25 +564,12 @@ protected:
         }
       }
     }
-    else if (ed.getNumberOfSamples() <= 1)
-    {
-      out << "abundance";
-    }
     else
     {
-      // Get sample condition names from experimental design sample section
-      const auto& sample_section = ed.getSampleSection();
-      
-      std::cout << "Writing protein output for " << ed.getNumberOfSamples()
-        << std::endl;
-      for (Size i = 0; i < ed.getNumberOfSamples(); ++i) // samples are 0-indexed 
+      for (const auto& [fraction_group, label] : assay_keys)
       {
-        std::string sample_condition = "unknown";
-        if (sample_section.hasFactor("MSstats_Condition"))
-        {
-          sample_condition = sample_section.getFactorValue(i, "MSstats_Condition");
-        }
-        out << "abundance_sample" + StringUtils::toStr(i+1) + "[" + sample_condition + "]";
+        out << "abundance_fgroup" + StringUtils::toStr(fraction_group)
+             + "_label" + StringUtils::toStr(label);
       }
     }
 
@@ -580,6 +580,7 @@ protected:
   void writeProteinTable_(SVOutStream& out, const ProteinQuant& quant, const ExperimentalDesign& ed)
   {
     const bool channel_level_output = (getStringOption_("file_and_channel_level_output") == "true");
+    const auto assay_keys = assayKeys_(ed);
     
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
     
@@ -594,7 +595,7 @@ protected:
     }
     
     // Write table header
-    writeProteinTableHeader_(out, ed, design_group_fraction_filename, n_files,
+    writeProteinTableHeader_(out, ed, design_group_fraction_filename, assay_keys, n_files,
                              channel_level_output);
 
     // mapping: accession of leader -> (accessions of grouped proteins, score)
@@ -615,7 +616,7 @@ protected:
 
     for (auto const & q : quant) // for each protein quantification
     {
-      if (q.second.total_abundances.empty())
+      if (q.second.fraction_group_abundances.empty())
       {
         continue; // not quantified
       }
@@ -638,7 +639,7 @@ protected:
         out << ListUtils::concatenate(group.first, "/") << group.first.size()
             << group.second;
       }
-      Size n_peptide = q.second.peptide_abundances.size();
+      Size n_peptide = q.second.peptide_fraction_group_abundances.size();
       out << n_peptide;
 
       if (channel_level_output)
@@ -686,11 +687,18 @@ protected:
       }
       else
       {
-        for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
+        for (const auto& [fraction_group, label] : assay_keys)
         {
-          // write abundance for the sample if it exists, 0 otherwise:
-          SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
-          out << (pos != q.second.total_abundances.end() ? pos->second : 0.0);
+          double abundance = 0.0;
+          if (auto group_it = q.second.fraction_group_abundances.find(fraction_group);
+              group_it != q.second.fraction_group_abundances.end())
+          {
+            if (auto label_it = group_it->second.find(label); label_it != group_it->second.end())
+            {
+              abundance = label_it->second;
+            }
+          }
+          out << abundance;
         }
       }
       out << endl;
@@ -726,7 +734,7 @@ protected:
     }
     relevant_params.push_back("best_charge_and_fraction"); // also for peptide output
 
-    if (ed.getNumberOfSamples() > 1) // flags only for consensusXML input
+    if (assayKeys_(ed).size() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
       if (proteins)
@@ -754,31 +762,45 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
+    // Name the runs behind each assay column. The column states its (fraction group, label)
+    // coordinates, but those are only meaningful against a design - and when none was given they
+    // were invented from the consensus map, so the reader has no other way to learn that
+    // 'fgroup1_label1' means these files. The detailed columns already carry the file in
+    // their own name and need no legend.
+    //
+    // This replaces a sample-keyed legend that named ONE file per sample, so a fractionated sample
+    // was represented by whichever of its fractions came last, and that was only ever printed
+    // beside the detailed columns, where no sample number appears at all.
+    const bool detailed_file_columns = proteins
+      ? getStringOption_("file_and_channel_level_output") == "true"
+      : algo_params_.getValue("best_charge_and_fraction") == "true";
+    if (!detailed_file_columns)
     {
-      std::string desc = "# Files/samples associated with abundance values below: ";
-
-      const auto& ms_section = ed.getMSFileSection();
-
-      map<std::string, std::string> sample_id_to_filename;
-      for (const auto& e : ms_section)
+      // Keyed on the fraction group alone: every label of a group is carried by the same files, so
+      // listing per assay would repeat one file list once per channel - 24 copies of 12 filenames
+      // for a 2-plex-pair, 12-fraction TMT design.
+      // Fractions in fraction order, so a fractionated group reads as its elution series.
+      map<UInt, set<pair<unsigned, std::string>>> runs_by_group;
+      for (const auto& row : ed.getMSFileSection())
       {
-        std::string ed_filename = File::stemName(e.path);
-        std::string ed_label = StringUtils::toStr(e.label);
-        std::string ed_sample = StringUtils::toStr(e.sample);
-        sample_id_to_filename[StringUtils::toStr(e.sample)] = ed_filename; // should be 0,...,n_samples-1
+        runs_by_group[row.fraction_group].emplace(row.fraction, File::stemName(row.path));
       }
-
-      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      std::string desc;
+      for (const auto& [fraction_group, runs] : runs_by_group)
       {
-        if (i > 0)
+        if (!desc.empty()) { desc += "; "; }
+        desc += "fgroup" + StringUtils::toStr(fraction_group) + ": ";
+        bool first = true;
+        for (const auto& [fraction, run] : runs)
         {
-          desc += ", ";
+          if (!first) { desc += ", "; }
+          first = false;
+          desc += "'" + run + "'";
         }
-        desc +=StringUtils::toStr(i + 1) + ": '" + sample_id_to_filename[StringUtils::toStr(i)] + "'";
       }
-      out << desc << endl;
+      if (!desc.empty()) { out << "# Runs per fraction group: " + desc << nl; }
     }
+
     out.modifyStrings(old);
   }
 
@@ -822,7 +844,7 @@ protected:
                  << " peptides";
         if (stats.n_samples > 1)
         {
-          OPENMS_LOG_INFO << " in every sample";
+          OPENMS_LOG_INFO << " in every assay";
         }
         if (include_all)
         {
@@ -1068,8 +1090,8 @@ protected:
 
       // Protein group export
       // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
-      // files aggregated into one quantity, and the design is what defines that grouping and
-      // the sample numbering the protein abundances are stored under.
+      // files aggregated into one quantity, and the design defines each fraction-group/label
+      // assay represented by the protein abundance arrays.
       if (!ProteinGroupArrowExport::exportToParquet(consensus, ed, out_qpx + "/quantms.pg.parquet"))
       {
         // Abort rather than log and continue: a partial QPX collection written with a zero

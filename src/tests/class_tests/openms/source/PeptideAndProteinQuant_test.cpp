@@ -94,14 +94,18 @@ namespace
     return quantifier;
   }
 
-  /// abundances of one peptide across all samples, sorted so the test does not depend on sample ids
+  /// Abundances of one peptide across all assays, sorted so the test does not depend on assay keys.
   std::vector<double> sortedAbundances(PeptideAndProteinQuant& q, const std::string& sequence)
   {
     const auto& pep_quant = q.getPeptideResults();
     const auto it = pep_quant.find(AASequence::fromString(sequence));
     std::vector<double> out;
     if (it == pep_quant.end()) { return out; }
-    for (const auto& sa : it->second.total_abundances) { out.push_back(sa.second); }
+    for (const auto& [fraction_group, label_abundances] : it->second.fraction_group_abundances)
+    {
+      (void)fraction_group;
+      for (const auto& label_abundance : label_abundances) { out.push_back(label_abundance.second); }
+    }
     std::sort(out.begin(), out.end());
     return out;
   }
@@ -247,10 +251,11 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, Pepti
   TEST_TRUE(seq_it != pep_quant.end());
   // the two PSMs must be spread over two different origin files (fraction 1)...
   TEST_EQUAL(seq_it->second.abundances.at(1).size(), 2);
-  // ...and end up in two distinct samples, each with a single PSM count.
-  TEST_EQUAL(seq_it->second.total_abundances.size(), 2);
-  TEST_REAL_SIMILAR(seq_it->second.total_abundances.at(0), 1);
-  TEST_REAL_SIMILAR(seq_it->second.total_abundances.at(1), 1);
+  // ...and end up in two distinct assays, each with a single spectral-count abundance.
+  TEST_EQUAL(seq_it->second.fraction_group_abundances.size(), 2);
+  // fromIdentifications numbers inferred fraction groups 1..n, like every other producer.
+  TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(1).at(1), 1);
+  TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(2).at(1), 1);
 }
 END_SECTION
 
@@ -297,7 +302,7 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
 }
 END_SECTION
 
-START_SECTION(([EXTRA] malformed experimental-design lookups are rejected before quantification))
+START_SECTION(([EXTRA] experimental-design lookups validate coordinates used by assay quantification))
 {
   FeatureMap features;
 
@@ -324,7 +329,8 @@ START_SECTION(([EXTRA] malformed experimental-design lookups are rejected before
     TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(features, design))
   }
 
-  // One (fraction_group, label) quantity cannot resolve to several samples.
+  // One assay cannot belong to several SampleSection entries: mzTab still maps each assay to one
+  // study variable even though Sample is no longer an abundance grain.
   {
     ExperimentalDesign design = uncheckedDesign({designRow("A.mzML", 1, 1, 0),
                                                  designRow("B.mzML", 1, 1, 1)}, 2);
@@ -410,9 +416,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] fraction-group/label quantities remain distinct and omit absent design runs))
 {
-  // One sample is reused in two fraction groups. The established sample abundance is their sum,
-  // while QPX 1.1 needs two independently aggregated protein quantities. A third design run is
-  // not represented by a ConsensusMap column header and must not invent another zero quantity.
+  // One sample is reused in two fraction groups. They remain two independently aggregated assays;
+  // a third design run not represented by a ConsensusMap column header must not invent a zero.
   ConsensusMap consensus;
   consensus.setExperimentType("label-free");
   for (Size i = 0; i < 2; ++i)
@@ -478,13 +483,13 @@ START_SECTION(([EXTRA] fraction-group/label quantities remain distinct and omit 
   quantifier.quantifyPeptides();
 
   const auto& peptide = quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEK"));
-  TEST_REAL_SIMILAR(peptide.total_abundances.at(0), 70.0)
+  TEST_EQUAL(peptide.fraction_group_abundances.size(), 2)
   TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(1), 30.0)
   TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(2).at(1), 40.0)
 
   quantifier.quantifyProteins(proteins);
   const auto& protein = quantifier.getProteinResults().at("PROT_A");
-  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 70.0)
+  TEST_EQUAL(protein.fraction_group_abundances.size(), 2)
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 30.0)
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(2).at(1), 40.0)
   TEST_EQUAL(protein.fraction_group_abundances.count(3), 0)
@@ -493,12 +498,12 @@ START_SECTION(([EXTRA] fraction-group/label quantities remain distinct and omit 
   const auto& annotated = proteins.getIndistinguishableProteins()[0];
   const auto& float_arrays = annotated.getFloatDataArrays();
   const auto& integer_arrays = annotated.getIntegerDataArrays();
-  TEST_STRING_EQUAL(float_arrays[4].getName(), "fraction_group_level_abundance")
+  TEST_STRING_EQUAL(float_arrays[3].getName(), "fraction_group_level_abundance")
   TEST_STRING_EQUAL(integer_arrays[2].getName(), "fraction_group_level_fraction_group")
   TEST_STRING_EQUAL(integer_arrays[3].getName(), "fraction_group_level_label")
-  TEST_EQUAL(float_arrays[4].size(), 2)
-  TEST_REAL_SIMILAR(float_arrays[4][0], 30.0)
-  TEST_REAL_SIMILAR(float_arrays[4][1], 40.0)
+  TEST_EQUAL(float_arrays[3].size(), 2)
+  TEST_REAL_SIMILAR(float_arrays[3][0], 30.0)
+  TEST_REAL_SIMILAR(float_arrays[3][1], 40.0)
   TEST_EQUAL(integer_arrays[2][0], 1)
   TEST_EQUAL(integer_arrays[2][1], 2)
   TEST_EQUAL(integer_arrays[3][0], 1)
@@ -577,8 +582,8 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   pep_data = pep_quant[AASequence::fromString("AAAAA")];
   TEST_EQUAL(pep_data.abundances.size(), 1);
   TEST_EQUAL(pep_data.abundances[1].size(), 1);
-  TEST_EQUAL(pep_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 3333);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 1);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 3333);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 2);
   pep_data = pep_quant[AASequence::fromString("CCCCC")];
@@ -588,22 +593,22 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(map_file_to_charges.second.size(), 2); // two charges
 
   
-  TEST_EQUAL(pep_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 7777);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 1);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 7777);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 2);
   pep_data = pep_quant[AASequence::fromString("EEEEE")];
   TEST_EQUAL(pep_data.abundances.size(), 0); // it is the second best hit, so it will not be counted
-  TEST_EQUAL(pep_data.total_abundances.size(), 0);
+  TEST_TRUE(pep_data.fraction_group_abundances.empty());
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("GGGGG")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one file
-  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // two charges  
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge  
 
-  TEST_EQUAL(pep_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 7777);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 1);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 7777);
   TEST_EQUAL(pep_data.accessions.size(), 2);
   TEST_EQUAL(pep_data.psm_count, 1);
 
@@ -614,9 +619,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances[1].size(), 2); // two files
   TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
 
-  TEST_EQUAL(pep_data.total_abundances.size(), 2);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 1000);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[2], 1000);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 2);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 1000);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(3).at(1), 1000);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("CCCK")];
@@ -624,9 +629,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances[1].size(), 2); // two files
   TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
 
-  TEST_EQUAL(pep_data.total_abundances.size(), 2);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 200);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 200);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 2);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 200);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(2).at(1), 200);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("EEEK")];
@@ -634,10 +639,10 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances[1].size(), 3); // three files
   TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
 
-  TEST_EQUAL(pep_data.total_abundances.size(), 3);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 30);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 30);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[2], 30);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 3);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 30);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(2).at(1), 30);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(3).at(1), 30);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("GGG")];
@@ -645,9 +650,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances[1].size(), 2); // two files
   TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
 
-  TEST_EQUAL(pep_data.total_abundances.size(), 2);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 4);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 4);
+  TEST_EQUAL(pep_data.fraction_group_abundances.size(), 2);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(1).at(1), 4);
+  TEST_REAL_SIMILAR(pep_data.fraction_group_abundances.at(2).at(1), 4);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
 }
@@ -661,25 +666,22 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   prot_quant = quantifier_features.getProteinResults();
   TEST_EQUAL(prot_quant.size(), 2);
   prot_data = prot_quant["Protein0"];
-  TEST_EQUAL(prot_data.peptide_abundances.size(), 3);
-  TEST_EQUAL(prot_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 4711);
+  TEST_EQUAL(prot_data.peptide_fraction_group_abundances.size(), 3);
   TEST_REAL_SIMILAR(prot_data.fraction_group_abundances.at(1).at(1), 4711);
   TEST_EQUAL(prot_data.psm_count, 6);
   prot_data = prot_quant["Protein1"];
-  TEST_EQUAL(prot_data.peptide_abundances.size(), 1);
-  TEST_EQUAL(prot_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 8888);
+  TEST_EQUAL(prot_data.peptide_fraction_group_abundances.size(), 1);
+  TEST_REAL_SIMILAR(prot_data.fraction_group_abundances.at(1).at(1), 8888);
   TEST_EQUAL(prot_data.psm_count, 2);
 
   prot_quant = quantifier_consensus.getProteinResults();
   TEST_EQUAL(prot_quant.size(), 1);
   prot_data = prot_quant["Protein"];
-  TEST_EQUAL(prot_data.peptide_abundances.size(), 4);
-  TEST_EQUAL(prot_data.total_abundances.size(), 3);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 200);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[1], 30);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[2], 515);
+  TEST_EQUAL(prot_data.peptide_fraction_group_abundances.size(), 4);
+  TEST_EQUAL(prot_data.fraction_group_abundances.size(), 3);
+  TEST_REAL_SIMILAR(prot_data.fraction_group_abundances.at(1).at(1), 200);
+  TEST_REAL_SIMILAR(prot_data.fraction_group_abundances.at(2).at(1), 30);
+  TEST_REAL_SIMILAR(prot_data.fraction_group_abundances.at(3).at(1), 515);
   TEST_EQUAL(prot_data.psm_count, 4);
 }
 END_SECTION
@@ -687,10 +689,9 @@ END_SECTION
 START_SECTION(([PeptideAndProteinQuant::PeptideData] PeptideData()))
 {
   PeptideAndProteinQuant::PeptideData data;
-  TEST_EQUAL(data.abundances.empty(), true);
-  TEST_EQUAL(data.total_abundances.empty(), true);
-  TEST_EQUAL(data.fraction_group_abundances.empty(), true);
-  TEST_EQUAL(data.accessions.empty(), true);
+  TEST_TRUE(data.abundances.empty());
+  TEST_TRUE(data.fraction_group_abundances.empty());
+  TEST_TRUE(data.accessions.empty());
   TEST_EQUAL(data.psm_count, 0);
 }
 END_SECTION
@@ -698,10 +699,8 @@ END_SECTION
 START_SECTION(([PeptideAndProteinQuant::ProteinData] ProteinData()))
 {
   PeptideAndProteinQuant::ProteinData data;
-  TEST_EQUAL(data.peptide_abundances.empty(), true);
-  TEST_EQUAL(data.peptide_fraction_group_abundances.empty(), true);
-  TEST_EQUAL(data.total_abundances.empty(), true);
-  TEST_EQUAL(data.fraction_group_abundances.empty(), true);
+  TEST_TRUE(data.peptide_fraction_group_abundances.empty());
+  TEST_TRUE(data.fraction_group_abundances.empty());
   TEST_EQUAL(data.psm_count, 0);
 }
 END_SECTION
@@ -741,7 +740,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 4711);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 4711);
 
   parameters.setValue("top:aggregate", "mean");
   quantifier.setParameters(parameters);
@@ -750,7 +749,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 5273.666666);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 5273.666666);
 
   parameters.setValue("top:aggregate", "weighted_mean");
   quantifier.setParameters(parameters);
@@ -759,7 +758,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 5927.82624360028);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 5927.82624360028);
 
   parameters.setValue("top:aggregate", "sum");
   quantifier.setParameters(parameters);
@@ -768,7 +767,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 15821);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 15821);
 }
 END_SECTION
 
@@ -793,9 +792,9 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   quant = quantifier.getProteinResults();
   protein = quant["Protein"];
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 308.5);
-  TEST_REAL_SIMILAR(protein.total_abundances[1], 58.5);
-  TEST_REAL_SIMILAR(protein.total_abundances[2], 257.5);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 308.5);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(2).at(1), 58.5);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(3).at(1), 257.5);
 }
 END_SECTION
 
@@ -818,7 +817,7 @@ START_SECTION(([EXTRA] normalization: a channel with mostly undetected reporters
 
   const std::vector<double> pd = sortedAbundances(q, "PEPTIDED"); // 40, 80, 90
   TEST_EQUAL(pd.size(), 3)
-  for (double v : pd) { TEST_EQUAL(std::isfinite(v), true) }
+  for (double v : pd) { TEST_TRUE(std::isfinite(v)) }
   TEST_REAL_SIMILAR(pd[0], 90.0 * 60.0 / 105.0) // ~51.43
   TEST_REAL_SIMILAR(pd[1], 80.0)                // 40 * 2
   TEST_REAL_SIMILAR(pd[2], 80.0)                // 80 * 1
@@ -828,6 +827,59 @@ START_SECTION(([EXTRA] normalization: a channel with mostly undetected reporters
   TEST_REAL_SIMILAR(pa[0], 0.0)  // stays undetected
   TEST_REAL_SIMILAR(pa[1], 20.0) // 10 * 2
   TEST_REAL_SIMILAR(pa[2], 20.0) // 20 * 1
+}
+END_SECTION
+
+START_SECTION(([EXTRA] normalization scales technical-replicate assays independently))
+{
+  // Both assays belong to one SampleSection entry. Their peptide medians are 20 and 200, so the
+  // assay-level reference is 110 and the factors are 5.5 and 0.55. Sample-level normalization
+  // would see only one sample and leave the four measurements unchanged.
+  ConsensusMap consensus;
+  consensus.setExperimentType("label-free");
+  for (Size map_index = 0; map_index < 2; ++map_index)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = map_index == 0 ? "A.mzML" : "B.mzML";
+    consensus.getColumnHeaders()[map_index] = header;
+  }
+
+  const std::vector<std::vector<double>> intensities{{10.0, 100.0}, {30.0, 300.0}};
+  for (Size peptide_index = 0; peptide_index < intensities.size(); ++peptide_index)
+  {
+    ConsensusFeature feature;
+    for (Size map_index = 0; map_index < 2; ++map_index)
+    {
+      Peak2D peak;
+      peak.setIntensity(intensities[peptide_index][map_index]);
+      feature.insert(map_index, peak, map_index);
+    }
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(peptide_index == 0 ? "PEPTIDEA" : "PEPTIDEB"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    PeptideIdentification identification;
+    identification.setHits({hit});
+    feature.setPeptideIdentifications({identification});
+    consensus.push_back(feature);
+  }
+
+  ExperimentalDesign design = uncheckedDesign({designRow("A.mzML", 1, 1, 0),
+                                                designRow("B.mzML", 1, 2, 0)}, 1);
+  PeptideAndProteinQuant quantifier;
+  Param parameters = quantifier.getParameters();
+  parameters.setValue("consensus:normalize", "true");
+  quantifier.setParameters(parameters);
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+
+  const auto& peptides = quantifier.getPeptideResults();
+  const auto& peptide_a = peptides.at(AASequence::fromString("PEPTIDEA")).fraction_group_abundances;
+  const auto& peptide_b = peptides.at(AASequence::fromString("PEPTIDEB")).fraction_group_abundances;
+  TEST_REAL_SIMILAR(peptide_a.at(1).at(1), 55.0)
+  TEST_REAL_SIMILAR(peptide_a.at(2).at(1), 55.0)
+  TEST_REAL_SIMILAR(peptide_b.at(1).at(1), 165.0)
+  TEST_REAL_SIMILAR(peptide_b.at(2).at(1), 165.0)
 }
 END_SECTION
 
@@ -847,7 +899,7 @@ START_SECTION(([EXTRA] normalization: a channel without any detected reporter do
 
   const std::vector<double> pd = sortedAbundances(q, "PEPTIDED"); // 40, 80, empty
   TEST_EQUAL(pd.size(), 3)
-  for (double v : pd) { TEST_EQUAL(std::isfinite(v), true) }
+  for (double v : pd) { TEST_TRUE(std::isfinite(v)) }
   TEST_REAL_SIMILAR(pd[0], 0.0)
   TEST_REAL_SIMILAR(pd[1], 60.0) // 40 * 1.5
   TEST_REAL_SIMILAR(pd[2], 60.0) // 80 * 0.75
@@ -860,28 +912,33 @@ START_SECTION(([EXTRA] normalization: a channel without any detected reporter do
 }
 END_SECTION
 
-START_SECTION(([EXTRA] normalization: best charge retains every sample before scaling))
+START_SECTION(([EXTRA] normalization: best charge retains every assay before scaling))
 {
   // Every reporter channel below is the same charge state. Selecting that charge must retain all
-  // four samples, so all four take part in median normalization instead of only the largest cell of
-  // each peptide being visible. Per-sample medians are 55, 110, 45, 55; their median is 55.
+  // four assays, so all four take part in median normalization instead of only the largest cell of
+  // each peptide being visible. Per-assay medians are 55, 110, 45, 55; their median is 55.
   PeptideAndProteinQuant q = makeNormalizedQuantifier({{100, 20, 30, 40},
                                                        {10, 200, 60, 70}},
                                                       /*best_charge_and_fraction=*/true);
 
   const auto& pep_quant = q.getPeptideResults();
-  const auto& p1 = pep_quant.at(AASequence::fromString("PEPTIDEA")).total_abundances;
-  const auto& p2 = pep_quant.at(AASequence::fromString("PEPTIDEB")).total_abundances;
+  const auto& p1_groups = pep_quant.at(AASequence::fromString("PEPTIDEA")).fraction_group_abundances;
+  const auto& p2_groups = pep_quant.at(AASequence::fromString("PEPTIDEB")).fraction_group_abundances;
+  TEST_EQUAL(p1_groups.size(), 1)
+  TEST_EQUAL(p2_groups.size(), 1)
+  ABORT_IF(p1_groups.empty() || p2_groups.empty())
+  const auto& p1 = p1_groups.begin()->second;
+  const auto& p2 = p2_groups.begin()->second;
   TEST_EQUAL(p1.size(), 4);
   TEST_EQUAL(p2.size(), 4);
-  TEST_REAL_SIMILAR(p1.at(0), 100.0);
-  TEST_REAL_SIMILAR(p1.at(1), 10.0);
-  TEST_REAL_SIMILAR(p1.at(2), 110.0 / 3.0);
-  TEST_REAL_SIMILAR(p1.at(3), 40.0);
-  TEST_REAL_SIMILAR(p2.at(0), 10.0);
-  TEST_REAL_SIMILAR(p2.at(1), 100.0);
-  TEST_REAL_SIMILAR(p2.at(2), 220.0 / 3.0);
-  TEST_REAL_SIMILAR(p2.at(3), 70.0);
+  TEST_REAL_SIMILAR(p1.at(1), 100.0);
+  TEST_REAL_SIMILAR(p1.at(2), 10.0);
+  TEST_REAL_SIMILAR(p1.at(3), 110.0 / 3.0);
+  TEST_REAL_SIMILAR(p1.at(4), 40.0);
+  TEST_REAL_SIMILAR(p2.at(1), 10.0);
+  TEST_REAL_SIMILAR(p2.at(2), 100.0);
+  TEST_REAL_SIMILAR(p2.at(3), 220.0 / 3.0);
+  TEST_REAL_SIMILAR(p2.at(4), 70.0);
 
   Size positive = 0, total = 0;
   for (const auto& pq : pep_quant)
@@ -892,7 +949,7 @@ START_SECTION(([EXTRA] normalization: best charge retains every sample before sc
           for (const auto& cha : ca.second)              // channels
           {
             ++total;
-            TEST_EQUAL(std::isfinite(cha.second), true)
+            TEST_TRUE(std::isfinite(cha.second))
             if (cha.second > 0.0) { ++positive; }
           }
   }
@@ -907,8 +964,8 @@ END_SECTION
 // ProteinData::channel_level_abundances is the source of the
 // "-file_and_channel_level_output true" columns of ProteinQuantifier and the named
 // file/channel arrays persisted on protein groups. It has to follow the *same*
-// peptide-level policy as ProteinData::total_abundances, which is computed from
-// the peptidoform-merged ProteinData::peptide_abundances:
+// peptide-level policy as ProteinData::fraction_group_abundances, which is computed from
+// the peptidoform-merged ProteinData::peptide_fraction_group_abundances:
 //   - all peptidoforms of an unmodified sequence are summed into one peptide,
 //   - all charge states are summed by default; with 'best_charge_and_fraction',
 //     only the globally selected charge of each peptidoform contributes,
@@ -1070,12 +1127,12 @@ auto make_fractionated_input = [](const vector<std::string>& files,
   design = ExperimentalDesign(fs, ss);
 };
 
-START_SECTION(([EXTRA] best_charge_and_fraction selects by sample prevalence and retains all selected-charge cells))
+START_SECTION(([EXTRA] best_charge_and_fraction selects by assay prevalence and retains all selected-charge cells))
 {
-  // Charge 2 is quantified in two distinct samples (channels 1 and 2), whereas the much
+  // Charge 2 is quantified in two distinct assays (channels 1 and 2), whereas the much
   // more abundant charge 3 occurs in only one (channel 3). The two fraction observations
-  // in channel 1 still count as one sample. Charge 2 must therefore win globally, and all
-  // of its fraction/sample cells - including the explicit zero in channel 3 - must survive.
+  // in channel 1 still count as one assay. Charge 2 must therefore win globally, and all
+  // of its fraction/assay cells - including the explicit zero in channel 3 - must survive.
   ConsensusMap consensus;
   ExperimentalDesign design;
   make_fractionated_input({"fileA", "fileB"}, 3,
@@ -1098,10 +1155,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects by sample prevalence and
   quantifier.quantifyPeptides();
 
   const auto& peptide = quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEK"));
-  TEST_EQUAL(peptide.total_abundances.size(), 3);
-  TEST_REAL_SIMILAR(peptide.total_abundances.at(0), 15.0);
-  TEST_REAL_SIMILAR(peptide.total_abundances.at(1), 20.0);
-  TEST_REAL_SIMILAR(peptide.total_abundances.at(2), 0.0);
+  TEST_EQUAL(peptide.fraction_group_abundances.at(1).size(), 3);
   TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(1), 15.0);
   TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(2), 20.0);
   TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(3), 0.0);
@@ -1111,9 +1165,6 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects by sample prevalence and
 
   quantifier.quantifyProteins();
   const auto& protein = quantifier.getProteinResults().at("Prot");
-  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 15.0);
-  TEST_REAL_SIMILAR(protein.total_abundances.at(1), 20.0);
-  TEST_REAL_SIMILAR(protein.total_abundances.at(2), 0.0);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 15.0);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 20.0);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 0.0);
@@ -1130,7 +1181,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects by sample prevalence and
   proteins.getIndistinguishableProteins().push_back(group);
   quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, true);
   const auto& annotated = proteins.getIndistinguishableProteins().front();
-  const auto& qpx_abundances = annotated.getFloatDataArrays().at(4);
+  const auto& qpx_abundances = annotated.getFloatDataArrays().at(3);
   const auto& qpx_fraction_groups = annotated.getIntegerDataArrays().at(2);
   const auto& qpx_labels = annotated.getIntegerDataArrays().at(3);
   TEST_STRING_EQUAL(qpx_abundances.getName(), "fraction_group_level_abundance");
@@ -1149,8 +1200,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] best_charge_and_fraction breaks equal-prevalence ties by total abundance))
 {
-  // Both charge states occur in both samples. For PEPTIDEK, charge 3 has the larger total
-  // abundance and must be retained in both samples; selection must not collapse to its largest
+  // Both charge states occur in both assays. For PEPTIDEK, charge 3 has the larger total
+  // abundance and must be retained in both assays; selection must not collapse to its largest
   // single cell. AAAAAK has an exact prevalence/abundance tie and must retain lower charge 2.
   ConsensusMap consensus;
   ExperimentalDesign design;
@@ -1176,12 +1227,12 @@ START_SECTION(([EXTRA] best_charge_and_fraction breaks equal-prevalence ties by 
   quantifier.quantifyPeptides();
 
   const auto& peptide = quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEK"));
-  TEST_EQUAL(peptide.total_abundances.size(), 2);
-  TEST_REAL_SIMILAR(peptide.total_abundances.at(0), 5.0);
-  TEST_REAL_SIMILAR(peptide.total_abundances.at(1), 40.0);
+  TEST_EQUAL(peptide.fraction_group_abundances.size(), 2);
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(1).at(1), 5.0);
+  TEST_REAL_SIMILAR(peptide.fraction_group_abundances.at(2).at(1), 40.0);
   const auto& exact_tie = quantifier.getPeptideResults().at(AASequence::fromString("AAAAAK"));
-  TEST_REAL_SIMILAR(exact_tie.total_abundances.at(0), 10.0);
-  TEST_REAL_SIMILAR(exact_tie.total_abundances.at(1), 20.0);
+  TEST_REAL_SIMILAR(exact_tie.fraction_group_abundances.at(1).at(1), 10.0);
+  TEST_REAL_SIMILAR(exact_tie.fraction_group_abundances.at(2).at(1), 20.0);
 
   quantifier.quantifyProteins();
   const auto& protein = quantifier.getProteinResults().at("Prot");
@@ -1193,7 +1244,7 @@ END_SECTION
 START_SECTION(([EXTRA] best_charge_and_fraction selects a charge independently for each peptidoform))
 {
   // The unmodified peptidoform selects charge 3 (100 > 10), while its oxidized form selects
-  // charge 2 (90 > 1). Protein-level sample and file/channel values must merge the two selected
+  // charge 2 (90 > 1). Protein-level assay and file/channel values must merge the two selected
   // peptidoform quantities, rather than selecting once per unmodified sequence or summing all cells.
   ConsensusMap consensus;
   ExperimentalDesign design;
@@ -1213,20 +1264,20 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects a charge independently f
 
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
-  TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEMK")).total_abundances.at(0), 100.0);
-  TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEM(Oxidation)K")).total_abundances.at(0), 90.0);
+  TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEMK")).fraction_group_abundances.at(1).at(1), 100.0);
+  TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEM(Oxidation)K")).fraction_group_abundances.at(1).at(1), 90.0);
 
   quantifier.quantifyProteins();
   const auto& protein = quantifier.getProteinResults().at("Prot");
-  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 190.0);
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 190.0);
   TEST_REAL_SIMILAR(protein.channel_level_abundances.at("fileA").at(1), 190.0);
 }
 END_SECTION
 
-START_SECTION((const ProteinQuant& getProteinResults() fractionated: file+channel cells decompose the sample for sum))
+START_SECTION((const ProteinQuant& getProteinResults() fractionated: file+channel cells decompose the assay for sum))
 {
-  // One sample spans two fraction files, so the (file, channel) cells are a decomposition of
-  // the sample - but only exactly so for top:N 0 with "sum", where per-file aggregation
+  // One assay spans two fraction files, so the (file, channel) cells are a decomposition of
+  // the assay - but only exactly so for top:N 0 with "sum", where per-file aggregation
   // commutes with aggregation across fractions.
   //   fileA ch1: PEPTIDEK 100 + AAAAAK 200 = 300     fileB ch1: CCCCCK 300 + PEPTIDEK 50 = 350
   //   fileA ch2: PEPTIDEK  10 + AAAAAK  20 =  30     fileB ch2: CCCCCK  30 + PEPTIDEK  5 =  35
@@ -1261,23 +1312,23 @@ START_SECTION((const ProteinQuant& getProteinResults() fractionated: file+channe
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(2), 30.0);
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(2), 35.0);
 
-  // the cells of a sample add up to that sample's value
-  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 650.0);
-  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 65.0);
+  // the cells of an assay add up to that assay's value
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 650.0);
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 65.0);
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1) +
-                    pd.channel_level_abundances.at("fileB").at(1), pd.total_abundances.at(0));
+                    pd.channel_level_abundances.at("fileB").at(1), pd.fraction_group_abundances.at(1).at(1));
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(2) +
-                    pd.channel_level_abundances.at("fileB").at(2), pd.total_abundances.at(1));
+                    pd.channel_level_abundances.at("fileB").at(2), pd.fraction_group_abundances.at(1).at(2));
 }
 END_SECTION
 
-START_SECTION((const ProteinQuant& getProteinResults() fractionated: "top:N" is enforced per file, not per sample))
+START_SECTION((const ProteinQuant& getProteinResults() fractionated: "top:N" is enforced per file, not per assay))
 {
-  // Same input, but with top:N = 3. Each sample has three peptides, so the protein IS
-  // quantified at the sample level; no individual fraction file holds three peptides, so
+  // Same input, but with top:N = 3. Each assay has three peptides, so the protein IS
+  // quantified at the assay level; no individual fraction file holds three peptides, so
   // every (file, channel) cell is dropped. This is intended - the cells are per-file values -
   // and is documented on the 'file_and_channel_level_output' parameter. It is also strictly
-  // stricter than the sample-level rule, which is why it deserves pinning.
+  // stricter than the assay-level rule, which is why it deserves pinning.
   ConsensusMap consensus;
   ExperimentalDesign design;
   make_fractionated_input({"fileA", "fileB"}, 2,
@@ -1301,11 +1352,11 @@ START_SECTION((const ProteinQuant& getProteinResults() fractionated: "top:N" is 
   const auto& quant = quantifier.getProteinResults();
   TEST_TRUE(quant.find("Prot") != quant.end());
   const auto& pd = quant.at("Prot");
-  TEST_EQUAL(pd.peptide_abundances.size(), 3);
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 3);
 
-  // quantified per sample (three peptides each) ...
-  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 650.0);
-  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 65.0);
+  // quantified per assay (three peptides each) ...
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 650.0);
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 65.0);
   // ... but no fraction file holds three peptides, so no cell survives
   TEST_TRUE(pd.channel_level_abundances.empty());
 }
@@ -1314,15 +1365,15 @@ END_SECTION
 START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins, bool remove_unquantified) isobaric: one file, N channels))
 {
   // This is the shape IsobaricAnalyzer produces and IsobaricWorkflow quantifies: ONE file
-  // whose column headers differ only in label/channel. A sample is a (file, label) pair, so
-  // here every (file, channel) cell IS exactly one sample - the two granularities are
+  // whose column headers differ only in label/channel. Here every (file, channel) cell is exactly
+  // one assay - the two granularities are
   // degenerate and cannot disagree, which is why the per-file peptide selection and
   // aggregation documented on 'file_and_channel_level_output' are harmless for unfractionated
   // isobaric data (contrast the two fractionated sections above).
   //   fileA ch1: PEPTIDEK 100, AAAAAK 200, CCCCCK 300     fileA ch2: 10, 20, 30
   // This section also covers annotateQuantificationsToProteins(), which persists the
   // file/channel arrays and the fraction-group arrays consumed by the QPX protein-group
-  // export. mzTab reads the separate sample-level abundance array.
+  // export and mzTab.
   ConsensusMap consensus;
   ExperimentalDesign design;
   make_fractionated_input({"fileA"}, 2,
@@ -1361,28 +1412,26 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
   // are present - median{100,200,300} = 200 and median{10,20,30} = 20
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 200.0);
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(2), 20.0);
-  // ... and they equal the sample-level values, because cell == sample here
-  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 200.0);
-  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 20.0);
+  // ... and they equal the assay-level values, because cell == assay here
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 200.0);
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 20.0);
 
   quantifier.annotateQuantificationsToProteins(quant, proteins, true);
 
   TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1);
   const auto& annotated = proteins.getIndistinguishableProteins()[0];
 
-  TEST_EQUAL(annotated.getFloatDataArrays().size(), 5);
+  TEST_EQUAL(annotated.getFloatDataArrays().size(), 4);
   TEST_EQUAL(annotated.getStringDataArrays().size(), 2);
   TEST_EQUAL(annotated.getIntegerDataArrays().size(), 4);
 
-  const auto& sample_abundances = annotated.getFloatDataArrays()[0];
-  const auto& cell_abundances = annotated.getFloatDataArrays()[3];
-  const auto& fraction_group_abundances = annotated.getFloatDataArrays()[4];
+  const auto& cell_abundances = annotated.getFloatDataArrays()[2];
+  const auto& fraction_group_abundances = annotated.getFloatDataArrays()[3];
   const auto& cell_filenames = annotated.getStringDataArrays()[0];
   const auto& cell_channels = annotated.getIntegerDataArrays()[0];
   const auto& fraction_groups = annotated.getIntegerDataArrays()[2];
   const auto& fraction_group_labels = annotated.getIntegerDataArrays()[3];
 
-  TEST_STRING_EQUAL(sample_abundances.getName(), "abundances");
   TEST_STRING_EQUAL(cell_abundances.getName(), "file_channel_level_abundance");
   TEST_STRING_EQUAL(cell_filenames.getName(), "file_channel_level_filename");
   TEST_STRING_EQUAL(cell_channels.getName(), "file_channel_level_channel");
@@ -1409,13 +1458,11 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
   TEST_EQUAL(fraction_group_labels[0], 1);
   TEST_EQUAL(fraction_group_labels[1], 2);
 
-  // the annotated cells carry the aggregated values, and coincide with the sample-level
-  // array element-wise - the property that makes this output well-defined for isobaric data
-  TEST_EQUAL(sample_abundances.size(), 2);
+  // The annotated cells carry the same values as the assays in this unfractionated design.
   TEST_REAL_SIMILAR(cell_abundances[0], 200.0);
   TEST_REAL_SIMILAR(cell_abundances[1], 20.0);
-  TEST_REAL_SIMILAR(cell_abundances[0], sample_abundances[0]);
-  TEST_REAL_SIMILAR(cell_abundances[1], sample_abundances[1]);
+  TEST_REAL_SIMILAR(cell_abundances[0], fraction_group_abundances[0]);
+  TEST_REAL_SIMILAR(cell_abundances[1], fraction_group_abundances[1]);
 }
 END_SECTION
 
@@ -1451,8 +1498,8 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level must s
   const auto& pd = quant.at("Prot");
 
   // protein level merges them into one peptide
-  TEST_EQUAL(pd.peptide_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 100.0);
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 1);
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 100.0);
 
   // ... and the file+channel level must agree
   TEST_TRUE(pd.channel_level_abundances.find("fileA") != pd.channel_level_abundances.end());
@@ -1466,7 +1513,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N
   // "at least N peptides" gate. In fileA only ONE of them is observed, in three
   // charge states; in fileB all three are observed once each.
   // With top:N = 3 the fileA cell must be dropped (one peptide < 3), exactly as
-  // the sample-level result for fileA is dropped. Charge states must not be
+  // the assay-level result for fileA is dropped. Charge states must not be
   // counted as separate peptides.
   ConsensusMap consensus;
   ExperimentalDesign design;
@@ -1493,11 +1540,11 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N
   const auto& quant = quantifier.getProteinResults();
   TEST_TRUE(quant.find("Prot") != quant.end());
   const auto& pd = quant.at("Prot");
-  TEST_EQUAL(pd.peptide_abundances.size(), 3); // clears the protein-level gate
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 3); // clears the protein-level gate
 
-  // sample level: fileA (sample 0) has only one peptide -> no abundance
-  TEST_TRUE(pd.total_abundances.find(0) == pd.total_abundances.end());
-  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 30.0);
+  // assay level: fileA (fraction group 1) has only one peptide -> no abundance
+  TEST_TRUE(pd.fraction_group_abundances.find(1) == pd.fraction_group_abundances.end());
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(2).at(1), 30.0);
 
   // file+channel level must make the same decision
   TEST_TRUE(pd.channel_level_abundances.find("fileA") == pd.channel_level_abundances.end());
@@ -1536,11 +1583,11 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level must n
   const auto& quant = quantifier.getProteinResults();
   TEST_TRUE(quant.find("Prot") != quant.end());
   const auto& pd = quant.at("Prot");
-  TEST_EQUAL(pd.peptide_abundances.size(), 3);
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 3);
 
-  // sample level drops fileA (sample 0)
-  TEST_TRUE(pd.total_abundances.find(0) == pd.total_abundances.end());
-  TEST_REAL_SIMILAR(pd.total_abundances.at(1), 3.0);
+  // assay level drops fileA (fraction group 1)
+  TEST_TRUE(pd.fraction_group_abundances.find(1) == pd.fraction_group_abundances.end());
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(2).at(1), 3.0);
 
   // file+channel level must drop it too, instead of reporting the raw 12.0
   TEST_TRUE(pd.channel_level_abundances.find("fileA") == pd.channel_level_abundances.end());
@@ -1580,9 +1627,9 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N
   const auto& quant = quantifier.getProteinResults();
   TEST_TRUE(quant.find("Prot") != quant.end());
   const auto& pd = quant.at("Prot");
-  TEST_EQUAL(pd.peptide_abundances.size(), 3);
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 3);
 
-  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 135.0);
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 135.0);
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 135.0);
 }
 END_SECTION
@@ -1619,7 +1666,7 @@ START_SECTION((const ProteinQuant& getProteinResults() iBAQ must also normalize 
   const auto& pd = quant.at("Prot");
 
   // (100 + 200) / 3 theoretical peptides
-  TEST_REAL_SIMILAR(pd.total_abundances.at(0), 100.0);
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 100.0);
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 100.0);
 }
 END_SECTION
@@ -1705,8 +1752,8 @@ START_SECTION((const ProteinQuant& getProteinResults() fraction group level aggr
   // one used for the file+channel level above - one file, three channels, and in channel 2 only
   // one of the protein's three peptides carries a reporter - so all three levels describe the
   // same measurement and must agree. Before this fix they did not: IsobaricWorkflow_1's reference
-  // showed the fraction-group array at exactly half the sample-level values wherever a peptide
-  // went undetected, the signature of mean(x, 0).
+  // showed the fraction-group array at half the detected-value result wherever a peptide went
+  // undetected, the signature of mean(x, 0).
   ConsensusMap consensus;
   ExperimentalDesign design;
   make_fractionated_input({"fileA"}, 3,
@@ -1716,7 +1763,7 @@ START_SECTION((const ProteinQuant& getProteinResults() fraction group level aggr
                           "Prot", consensus, design);
 
   // The helper puts every file in fraction group 1 and labels the channels 1..N, so the cells are
-  // (1, channel) and correspond one-to-one to the samples.
+  // (1, channel) and correspond one-to-one to the assays.
   {
     PeptideAndProteinQuant quantifier;
     Param p = quantifier.getDefaults();
@@ -1842,10 +1889,10 @@ auto makeIsobaricProteinInput = [](
     design = ExperimentalDesign(fs, ss);
   };
 
-START_SECTION(([EXTRA] "occurs in every sample" counts detected samples, not stored zeros))
+START_SECTION(([EXTRA] "occurs in every assay" counts detected assays, not stored zeros))
 {
-  // 'consensus:fix_peptides' with 'top:N' 0 keeps the peptides that occur in EVERY sample.
-  // quantifyFeature_ records an undetected reporter as an explicit 0.0, so the sample key of a
+  // 'consensus:fix_peptides' with 'top:N' 0 keeps the peptides that occur in EVERY assay.
+  // quantifyFeature_ records an undetected reporter as an explicit 0.0, so the assay key of a
   // peptide exists whether or not it was detected there. Counting keys makes every peptide seen
   // anywhere pass, and the filter stops filtering.
   ConsensusMap consensus;
@@ -1865,19 +1912,19 @@ START_SECTION(([EXTRA] "occurs in every sample" counts detected samples, not sto
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
 
-  // Only PEPTIDEK qualifies, so the protein is its 100 per sample. Counting the stored zeros
+  // Only PEPTIDEK qualifies, so the protein is its 100 per assay. Counting the stored zeros
   // would admit AAAAAK too and report 600, 600, 100, 100.
   const auto& protein = quantifier.getProteinResults().at("Prot");
-  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 100.0)
-  TEST_REAL_SIMILAR(protein.total_abundances.at(1), 100.0)
-  TEST_REAL_SIMILAR(protein.total_abundances.at(2), 100.0)
-  TEST_REAL_SIMILAR(protein.total_abundances.at(3), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(4), 100.0)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] top:N ranking prefers the peptide detected in more samples, not the taller one))
+START_SECTION(([EXTRA] top:N ranking prefers the peptide detected in more assays, not the taller one))
 {
-  // orderBest_ ranks by (number of samples quantified, total abundance). With stored zeros
+  // orderBest_ ranks by (number of assays quantified, total abundance). With stored zeros
   // counted, every peptide of a TMT run ties at the channel count and the tie-break by total
   // abundance decides alone - so a peptide with a big signal in 2 of 10 channels takes the
   // top:N slot from one genuinely measured in 6.
@@ -1899,13 +1946,13 @@ START_SECTION(([EXTRA] top:N ranking prefers the peptide detected in more sample
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
 
-  // BROADK is quantified in 6 samples, TALLK in 2, so BROADK takes the single slot and the
-  // protein reports 100 in the first six samples. Ranking on the stored zeros would tie all
-  // three at 10 samples and hand the slot to TALLK's larger total, giving 1000, 1000, 0, ...
+  // BROADK is quantified in 6 assays, TALLK in 2, so BROADK takes the single slot and the
+  // protein reports 100 in the first six assays. Ranking on the stored zeros would tie all
+  // three at 10 assays and hand the slot to TALLK's larger total, giving 1000, 1000, 0, ...
   const auto& protein = quantifier.getProteinResults().at("Prot");
-  TEST_REAL_SIMILAR(protein.total_abundances.at(0), 100.0)
-  TEST_REAL_SIMILAR(protein.total_abundances.at(1), 100.0)
-  TEST_REAL_SIMILAR(protein.total_abundances.at(5), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 100.0)
+  TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(6), 100.0)
 }
 END_SECTION
 
@@ -1938,9 +1985,9 @@ START_SECTION(([EXTRA] median/mean aggregate the detected peptides, not the stor
     quantifier.quantifyProteins();
 
     const auto& protein = quantifier.getProteinResults().at("Prot");
-    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 1000.0)
-    TEST_REAL_SIMILAR(protein.total_abundances.at(1), 1000.0) // was 0.0 (median) / 333.33 (mean)
-    TEST_REAL_SIMILAR(protein.total_abundances.at(2), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 1000.0) // was 0.0 (median) / 333.33 (mean)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 1000.0)
   }
 
   // 'sum' documents the opposite convention - missing values count as zero - and summing zeros
@@ -1957,9 +2004,9 @@ START_SECTION(([EXTRA] median/mean aggregate the detected peptides, not the stor
     quantifier.quantifyProteins();
 
     const auto& protein = quantifier.getProteinResults().at("Prot");
-    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 3000.0)
-    TEST_REAL_SIMILAR(protein.total_abundances.at(1), 1000.0)
-    TEST_REAL_SIMILAR(protein.total_abundances.at(2), 3000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 3000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 3000.0)
   }
 }
 END_SECTION
@@ -1987,9 +2034,10 @@ START_SECTION(([EXTRA] "enough peptides" counts the detected ones, and a dead sa
     quantifier.quantifyProteins();
 
     const auto& protein = quantifier.getProteinResults().at("Prot");
-    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 1000.0)
-    TEST_EQUAL(protein.total_abundances.find(1) == protein.total_abundances.end(), true)
-    TEST_EQUAL(protein.total_abundances.find(2) == protein.total_abundances.end(), true)
+    const auto& assays = protein.fraction_group_abundances.at(1);
+    TEST_REAL_SIMILAR(assays.at(1), 1000.0)
+    TEST_TRUE(assays.find(2) == assays.end())
+    TEST_TRUE(assays.find(3) == assays.end())
   }
 
   // With 'include_all' the gate is bypassed: sample 2 reports its one detected peptide, and
@@ -2006,9 +2054,9 @@ START_SECTION(([EXTRA] "enough peptides" counts the detected ones, and a dead sa
     quantifier.quantifyProteins();
 
     const auto& protein = quantifier.getProteinResults().at("Prot");
-    TEST_REAL_SIMILAR(protein.total_abundances.at(0), 1000.0)
-    TEST_REAL_SIMILAR(protein.total_abundances.at(1), 1000.0)
-    TEST_REAL_SIMILAR(protein.total_abundances.at(2), 0.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 1000.0)
+    TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 0.0)
   }
 }
 END_SECTION

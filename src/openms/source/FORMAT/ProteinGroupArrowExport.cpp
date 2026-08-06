@@ -706,10 +706,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   Size unattributable_groups = 0;
   for (const auto& group : groups)
   {
-    // The legacy sample abundance array identifies a quantified group and remains part of the
-    // mzTab-facing annotation. QPX must read the new fraction-group/label arrays: a sample may
-    // occur in multiple fraction groups, so its experiment-wide abundance cannot be split back
-    // into the independent quantities after protein aggregation.
+    // QPX identifies a quantified group through the fraction-group/label arrays themselves: a
+    // sample may occur in multiple fraction groups, so a legacy experiment-wide sample abundance
+    // cannot be split back into the independent quantities after protein aggregation.
     const auto* sample_abundances = sampleAbundances(group);
     const FractionGroupAbundanceData quantities = fractionGroupAbundances(group);
     const std::string annotation_error = validateQuantificationAnnotations(
@@ -722,7 +721,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       return nullptr;
     }
 
-    const bool quantified = sample_abundances != nullptr || quantities.present;
+    const bool quantified = quantities.present;
     if (quantified)
     {
       // One scalar row per label in each fraction group, matching the active QPX 1.1 primary key.

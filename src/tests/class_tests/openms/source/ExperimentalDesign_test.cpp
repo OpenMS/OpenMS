@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -884,6 +885,31 @@ START_SECTION(([EXTRA] sample names that are not stringified row indices must no
     TEST_EQUAL(p2pf.size(), 2)
     TEST_EQUAL(p2c.size(), 2)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fromIdentifications numbers fraction groups from 1, samples from 0))
+{
+  // 'sample' is a zero-based index into the sample section, a fraction group is a 1-based id.
+  // One counter used to feed both, so inferred designs were rejected by isValid_() - the class
+  // produced objects its own validator refuses - and leaked a fraction group of 0 downstream.
+  ProteinIdentification protein_id;
+  protein_id.setPrimaryMSRunPath({"a.mzML", "b.mzML", "c.mzML"});
+  const ExperimentalDesign design = ExperimentalDesign::fromIdentifications({protein_id});
+
+  const ExperimentalDesign::MSFileSection& rows = design.getMSFileSection();
+  TEST_EQUAL(rows.size(), 3)
+  for (Size i = 0; i < rows.size(); ++i)
+  {
+    TEST_EQUAL(rows[i].sample, i)             // zero-based index
+    TEST_EQUAL(rows[i].fraction_group, i + 1) // 1-based id
+  }
+
+  // The decisive invariant: an inferred design must satisfy the same validator as a loaded one.
+  // The two-argument constructor runs isValid_(), which requires the fraction-group set to be
+  // consecutive and start at 1; before the fix this threw InvalidValue.
+  ExperimentalDesign revalidated(rows, design.getSampleSection());
+  TEST_EQUAL(revalidated.getNumberOfFractionGroups(), 3)
 }
 END_SECTION
 

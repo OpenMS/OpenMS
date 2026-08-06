@@ -54,14 +54,14 @@ namespace OpenMS
     defaults_.setSectionDescription("top", "Additional options for custom quantification using top N peptides.");
 
 
-    defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states in detailed peptide output. For protein quantification, select one charge per modified peptide globally: maximize the number of samples with a positive abundance, then break ties by total abundance; retain that charge's values in every sample and sum them over fractions.\nBy default, protein abundances are summed over all charge states.");
+    defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states in detailed peptide output. For protein quantification, select one charge per modified peptide globally: maximize the number of (fraction group, label) assays with a positive abundance, then break ties by total abundance; retain that charge's values in every assay and sum them over fractions.\nBy default, protein abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
-    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that the median of each sample matches the overall median.\nAbundances of zero count as 'not detected' and are left out of the medians; a sample without any positive abundance takes no part in the normalization.");
+    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that the median of each (fraction group, label) assay matches the overall median.\nAbundances of zero count as 'not detected' and are left out of the medians; an assay without any positive abundance takes no part in the normalization.");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
-    defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
-     "all peptides that occur in every sample are considered.\nOtherwise ('N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).\nA peptide counts as occurring in a sample only where its abundance is positive: an abundance stored as zero means 'not detected' (e.g. an isobaric reporter below 'min_reporter_intensity'), not a measurement of absence.");
+    defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all (fraction group, label) assays.\nWith 'N 0',"
+     "all peptides that occur in every assay are considered.\nOtherwise ('N'), the N peptides that occur in the most assays (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).\nA peptide counts as occurring in an assay only where its abundance is positive: an abundance stored as zero means 'not detected' (e.g. an isobaric reporter below 'min_reporter_intensity'), not a measurement of absence.");
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
     defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
@@ -136,9 +136,9 @@ namespace OpenMS
     const std::map<Int, std::map<std::string, std::map<Int, std::map<UInt, double>>>>& peptide_abundances,
     Int& best_charge) const
   {
-    // Collapse every charge to sample-level abundances before ranking it. Multiple fractions,
-    // files, or channels that resolve to the same sample count only once for prevalence.
-    std::map<Int, SampleAbundances> charge_abundances;
+    // Collapse every charge to assay-level abundances before ranking it. Multiple fractions or
+    // files that resolve to the same (fraction group, label) assay count only once for prevalence.
+    std::map<Int, FractionGroupAbundances> charge_abundances;
     for (const auto& fa : peptide_abundances) // for all fractions
     {
       for (const auto& fna : fa.second) // for all filenames
@@ -148,31 +148,35 @@ namespace OpenMS
           for (const auto& cha : ca.second) // for all channels
           {
             if (cha.second <= 0.0) { continue; }
-            const Size sample = getDesignCellFromFilenameAndChannel_(fna.first, cha.first).sample;
-            charge_abundances[ca.first][sample] += cha.second;
+            const DesignCell& cell = getDesignCellFromFilenameAndChannel_(fna.first, cha.first);
+            charge_abundances[ca.first][cell.fraction_group][cha.first] += cha.second;
           }
         }
       }
     }
 
     bool found = false;
-    Size best_sample_count = 0;
+    Size best_assay_count = 0;
     double best_total_abundance = 0.0;
-    for (const auto& [charge, sample_abundances] : charge_abundances)
+    for (const auto& [charge, assay_abundances] : charge_abundances)
     {
       double total_abundance = 0.0;
-      for (const auto& sample_abundance : sample_abundances)
+      for (const auto& [fraction_group, label_abundances] : assay_abundances)
       {
-        total_abundance += sample_abundance.second;
+        (void)fraction_group;
+        for (const auto& label_abundance : label_abundances)
+        {
+          total_abundance += label_abundance.second;
+        }
       }
 
-      const Size sample_count = sample_abundances.size();
-      if (!found || sample_count > best_sample_count ||
-          (sample_count == best_sample_count && total_abundance > best_total_abundance))
+      const Size assay_count = countQuantifiedAssays_(assay_abundances);
+      if (!found || assay_count > best_assay_count ||
+          (assay_count == best_assay_count && total_abundance > best_total_abundance))
       {
         found = true;
         best_charge = charge;
-        best_sample_count = sample_count;
+        best_assay_count = assay_count;
         best_total_abundance = total_abundance;
       }
       // Iteration is charge-sorted, so an exact tie deliberately keeps the lower charge.
@@ -186,9 +190,9 @@ namespace OpenMS
     // Build the design-cell lookups once, so that per-peptide aggregation does not have to
     // linearly scan the MS file section (and recompute File::stemName) for every value.
     design_cell_lookup_.clear();
-    fraction_group_label_to_sample_.clear();
     quantification_fraction_group_labels_.clear();
     std::map<std::string, UInt> run_to_fraction_group;
+    std::map<std::pair<UInt, UInt>, Size> assay_to_sample;
     const Size n_samples = experimental_design_.getNumberOfSamples();
     for (const auto& entry : experimental_design_.getMSFileSection())
     {
@@ -226,7 +230,7 @@ namespace OpenMS
 
       const auto unit_label = std::make_pair(entry.fraction_group, entry.label);
       quantification_fraction_group_labels_.insert(unit_label);
-      auto [unit_it, unit_inserted] = fraction_group_label_to_sample_.emplace(unit_label, entry.sample);
+      auto [unit_it, unit_inserted] = assay_to_sample.emplace(unit_label, entry.sample);
       if (!unit_inserted && unit_it->second != entry.sample)
       {
         throw Exception::MissingInformation(
@@ -340,9 +344,8 @@ namespace OpenMS
         {
           best_charge_by_peptidoform_[pep_q.first] = best_charge;
 
-          // Retain every observation of the selected charge. Sample abundances span all fractions;
-          // fraction-group/label abundances retain the QPX quantification grain. Explicit zeros are
-          // kept in both maps but did not count as evidence when the charge was selected above.
+          // Retain every observation of the selected charge at the assay grain. Explicit zeros are
+          // kept but did not count as evidence when the charge was selected above.
           for (const auto& fa : pep_q.second.abundances)
           {
             for (const auto& fna : fa.second)
@@ -352,7 +355,6 @@ namespace OpenMS
               for (const auto& [channel, abundance] : charge_it->second)
               {
                 const DesignCell& cell = getDesignCellFromFilenameAndChannel_(fna.first, channel);
-                pep_q.second.total_abundances[cell.sample] += abundance;
                 pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
               }
             }
@@ -360,7 +362,7 @@ namespace OpenMS
         }
       }
       else
-      { // sum up sample abundances over all fractions, filenames, charge states, and channels:
+      { // sum up assay abundances over all fractions, filenames, and charge states:
         for (auto & fa : pep_q.second.abundances)  // for all fractions
         {
           for (auto & fna : fa.second) // for all filenames
@@ -373,10 +375,7 @@ namespace OpenMS
                 const UInt & channel = cha.first;
                 const double & abundance = cha.second;
                 
-                // Retain both grains. The sample value remains the established mzTab/API result;
-                // the fraction-group/label value is the QPX 1.1 protein-group quantification unit.
                 const DesignCell& cell = getDesignCellFromFilenameAndChannel_(filename, channel);
-                pep_q.second.total_abundances[cell.sample] += abundance;
                 pep_q.second.fraction_group_abundances[cell.fraction_group][channel] += abundance;
               }
             }
@@ -384,7 +383,10 @@ namespace OpenMS
         }
       }
 
-      // for PSM counts we cover all fractions, filenames, charge states.
+      // NOTE: PeptideData::psm_counts is currently never populated. The idXML spectral-counting
+      // path stores one count as an abundance instead, so this loop and total_psm_counts remain
+      // dormant until an upstream producer starts filling psm_counts.
+      // For PSM counts we cover all fractions, filenames, charge states.
       for (auto & fa : pep_q.second.psm_counts) // for all fractions
       {
         for (auto & fna : fa.second) // for all filenames
@@ -405,12 +407,12 @@ namespace OpenMS
       }
 
       // count quantified peptide
-      if (!pep_q.second.total_abundances.empty()) { stats_.quant_peptides++; }
+      if (!pep_q.second.fraction_group_abundances.empty()) { stats_.quant_peptides++; }
     }
 
     //////////////////////////////////////////////////////
     // normalize (optional):
-    if ((stats_.n_samples > 1) &&
+    if ((quantification_fraction_group_labels_.size() > 1) &&
        (param_.getValue("consensus:normalize") == "true"))
     {      
       normalizePeptides_();
@@ -420,10 +422,10 @@ namespace OpenMS
   void PeptideAndProteinQuant::normalizePeptides_()
   {
     /////////////////////////////////////////////////////
-    // calculate total peptide abundances 
+    // Calculate peptide abundances per (fraction group, label) assay.
     // depending on earlier options, these include:
     // - all charges or only the best charge state
-    // - all fractions (if multiple fractions are analyzed)
+    // - all fractions of the assay (if multiple fractions are analyzed)
     // Zero abundances are deliberately not collected. A zero is not a measurement of "no protein":
     // IsobaricChannelExtractor stores a reporter it could not find - or one below
     // 'min_reporter_intensity' - as 0.0, so a zero means "not detected". Counting those would give a
@@ -435,75 +437,69 @@ namespace OpenMS
     // impurity correction, and scp calls zeroIsNA() first, "to avoid artefacts in downstream steps".
     // Note this is about the zeros, not about log versus linear space - isobar and scp both divide
     // in linear space, as here, and are safe purely because no zero ever reaches the median.
-    map<UInt64, DoubleList> abundances; // positive peptide abundances by sample
-    set<UInt64> samples; // every sample seen, including ones without a single positive abundance
-    for (auto & pq : pep_quant_)
+    using Assay = pair<UInt, UInt>;
+    map<Assay, DoubleList> abundances; // positive peptide abundances by assay
+    set<Assay> assays = quantification_fraction_group_labels_; // including assays without signal
+    for (const auto& pq : pep_quant_)
     {
-      for (auto & sa : pq.second.total_abundances)
+      for (const auto& [fraction_group, label_abundances] : pq.second.fraction_group_abundances)
       {
-        samples.insert(sa.first);
-        if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
+        for (const auto& [label, abundance] : label_abundances)
+        {
+          const Assay assay{fraction_group, label};
+          assays.insert(assay);
+          if (abundance > 0.0) { abundances[assay].push_back(abundance); }
+        }
       }
     }
     if (abundances.size() <= 1)
     { // no reference to scale to - say so, rather than returning as if normalization had happened
-      OPENMS_LOG_WARN << "Warning: fewer than two samples contain a peptide with a positive abundance, "
-                      << "so there is nothing to normalize against. Abundances are left unchanged."
-                      << endl;
+      OPENMS_LOG_WARN << "Warning: fewer than two assays contain a peptide with a positive abundance, "
+                      << "so there is nothing to normalize against. Abundances are left unchanged.\n";
       return;
     }
 
     /////////////////////////////////////////////////////
-    // compute scale factors on the sample level:
-    SampleAbundances medians; // median abundance by sample
-    for (auto & ab : abundances)
+    // Compute scale factors on the assay level.
+    map<Assay, double> medians;
+    for (auto& ab : abundances)
     {
       medians[ab.first] = Math::median(ab.second.begin(), ab.second.end());
     }
 
-    // Only samples that carry signal define the reference. Letting a dead channel contribute its
+    // Only assays that carry signal define the reference. Letting a dead channel contribute its
     // median of 0 would drag the overall median down and mis-scale every other channel - quietly,
     // with no infinity and no warning to show for it.
     DoubleList all_medians;
-    for (auto & sa : medians)
+    for (const auto& assay_median : medians)
     {
-      all_medians.push_back(sa.second);
+      all_medians.push_back(assay_median.second);
     }
     double overall_median = Math::median(all_medians.begin(),
                                          all_medians.end());
-    SampleAbundances scale_factors;
-    for (UInt64 sample : samples)
+    map<Assay, double> scale_factors;
+    for (const Assay& assay : assays)
     {
-      auto med_it = medians.find(sample);
-      if (med_it == medians.end()) // not a single positive abundance in this sample
+      auto med_it = medians.find(assay);
+      if (med_it == medians.end()) // not a single positive abundance in this assay
       {
-        // Name the (file, channel) pairs behind the sample: the sample id is a design-internal index
-        // that does not appear in any input the user wrote.
-        std::string where;
-        for (const auto& lookup : design_cell_lookup_)
-        {
-          if (lookup.second.sample != sample) { continue; }
-          if (!where.empty()) { where += ", "; }
-          where += "'" + lookup.first.first + "' channel " + StringUtils::toStr(lookup.first.second);
-        }
-        OPENMS_LOG_WARN << "Warning: sample " << sample
-                        << (where.empty() ? "" : " (" + where + ")")
+        OPENMS_LOG_WARN << "Warning: fraction group " << assay.first << ", label " << assay.second
                         << " has no peptide with a positive abundance - for isobaric data, no reporter "
                         << "ion was detected for it in any quantified peptide. It does not take part in "
                         << "the normalization: it defines no reference and its values are left as they "
-                        << "are (they are all zero)." << endl;
+                        << "are (they are all zero).\n";
         continue; // no factor at all - see scaleFactorFor below
       }
       // a median over strictly positive values is itself positive, so this cannot divide by zero
-      scale_factors[sample] = overall_median / med_it->second;
+      scale_factors[assay] = overall_median / med_it->second;
     }
 
-    // Never look a factor up with operator[]: that default-constructs 0.0 for an unknown sample and
-    // would silently wipe its abundances. A sample without any positive signal has no factor but can
+    // Never look a factor up with operator[]: that default-constructs 0.0 for an unknown assay and
+    // would silently wipe its abundances. An assay without any positive signal has no factor but can
     // still reach the loops below through explicit zero observations. Leave those exactly as they are.
-    auto scaleFactorFor = [&scale_factors](size_t sample_id)
+    auto scaleFactorFor = [&scale_factors](const Assay& assay)
     {
-      auto it = scale_factors.find(sample_id);
+      auto it = scale_factors.find(assay);
       return (it == scale_factors.end()) ? 1.0 : it->second;
     };
 
@@ -511,28 +507,12 @@ namespace OpenMS
     // scale all abundance values:
     for (auto & pep_q : pep_quant_)
     {
-      // scale total abundances
-      for (auto & sta : pep_q.second.total_abundances)
-      {
-        sta.second *= scaleFactorFor(sta.first);
-      }
-
-      // Scale each fraction-group/label quantity with the factor of the sample to which that
-      // design cell resolves. This keeps a sample split across technical-replicate fraction groups
-      // on the same normalization scale without merging those independently quantified units.
+      // Scale each fraction-group/label quantity directly with its assay's factor.
       for (auto& [fraction_group, label_abundances] : pep_q.second.fraction_group_abundances)
       {
         for (auto& [label, abundance] : label_abundances)
         {
-          const auto sample_it = fraction_group_label_to_sample_.find({fraction_group, label});
-          if (sample_it == fraction_group_label_to_sample_.end())
-          {
-            throw Exception::MissingInformation(
-              __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Could not resolve fraction group " + StringUtils::toStr(fraction_group) + ", label "
-              + StringUtils::toStr(label) + " to a sample for normalization.");
-          }
-          abundance *= scaleFactorFor(sample_it->second);
+          abundance *= scaleFactorFor({fraction_group, label});
         }
       }
 
@@ -547,8 +527,8 @@ namespace OpenMS
             {
               const std::string & filename = fna.first;
               const UInt & channel = cha.first;
-              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
-              cha.second *= scaleFactorFor(sample_id);
+              const DesignCell& cell = getDesignCellFromFilenameAndChannel_(filename, channel);
+              cha.second *= scaleFactorFor({cell.fraction_group, channel});
             }
           }
         }
@@ -656,7 +636,7 @@ namespace OpenMS
       }
 
       // Check if protein has enough peptides (for statistics)
-      if ((top_n > 0) && (prot_q.second.peptide_abundances.size() < top_n))
+      if ((top_n > 0) && (prot_q.second.peptide_fraction_group_abundances.size() < top_n))
       {
         stats_.too_few_peptides++;
         if (!include_all)
@@ -670,7 +650,6 @@ namespace OpenMS
           accession, top_n, fix_peptides);
 
       // Calculate protein abundances
-      calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
       calculateFractionGroupLevelProteinAbundances_(accession, selected_peptides, aggregate,
                                                     top_n, include_all);
 
@@ -680,7 +659,7 @@ namespace OpenMS
                                           top_n, include_all, accession_to_leader, unmod_to_entries);
 
       // Update statistics
-      if (prot_q.second.total_abundances.empty())
+      if (prot_q.second.fraction_group_abundances.empty())
       {
         stats_.too_few_peptides++;
       }
@@ -783,7 +762,7 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Reading quant data: " << endl;
     OPENMS_LOG_DEBUG << "  MS files        : " << stats_.n_ms_files << endl;
     OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
-    OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
+    OPENMS_LOG_DEBUG << "  Samples         : " << stats_.n_samples << endl;
 
    
     // map filename and label of experimental design to the full experimental design entry for faster lookup
@@ -893,7 +872,7 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Reading quant data: " << endl;
     OPENMS_LOG_DEBUG << "  MS files        : " << stats_.n_ms_files << endl;
     OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
-    OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
+    OPENMS_LOG_DEBUG << "  Samples         : " << stats_.n_samples << endl;
 
     stats_.total_features = peptides.size();
     
@@ -977,7 +956,6 @@ namespace OpenMS
     best_charge_by_peptidoform_.clear();
     prot_quant_.clear();
     design_cell_lookup_.clear();
-    fraction_group_label_to_sample_.clear();
     quantification_fraction_group_labels_.clear();
   }
 
@@ -1042,7 +1020,7 @@ namespace OpenMS
       // accession of quantified protein(group)
       const std::string & acc = q.first;
 
-      if (q.second.total_abundances.empty()) 
+      if (q.second.fraction_group_abundances.empty())
       {
         //TODO maybe just count the number of unquantifiable proteins and report that?
         OPENMS_LOG_DEBUG << "Protein " << acc << " not quantified." << endl;
@@ -1055,51 +1033,42 @@ namespace OpenMS
       if (group_it != accession_to_group.end())
       {
         ProteinIdentification::ProteinGroup* id_group = group_it->second;
-        // copy abundances to float data array
-        const SampleAbundances& total_abundances = q.second.total_abundances;
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
       
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        // Keep the existing positional arrays unchanged for mzTab and older consumers. QPX unit
-        // quantities are appended and consumed by name, never by these indices.
-        id_group->getFloatDataArrays().resize(5);
+        // Protein abundances are reported only at (fraction group, label) assay grain. Every
+        // quantity array is named; the explicit assay arrays also gate mzTab and QPX output.
+        id_group->getFloatDataArrays().resize(4);
         id_group->getStringDataArrays().resize(2);
         id_group->getIntegerDataArrays().resize(4);
         
-        // Sample-level arrays (indices 0-2)
-        ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
-        Size n_samples = getStatistics().n_samples;
-        abundances.setName("abundances");
-        abundances.resize(n_samples);
-
-        auto & psm_counts = id_group->getFloatDataArrays()[1];
+        // Spectral-count metadata remains sample-indexed independently of abundance grain. Do not
+        // pre-size these arrays: psm_counts currently has no producer, and an empty array round
+        // trips without needing the removed sample-abundance array as a length anchor.
+        auto & psm_counts = id_group->getFloatDataArrays()[0];
         psm_counts.setName("psm_count");
-        psm_counts.resize(n_samples);
 
-        auto & peptide_counts = id_group->getFloatDataArrays()[2];
+        auto & peptide_counts = id_group->getFloatDataArrays()[1];
         peptide_counts.setName("distinct_peptides");
-        peptide_counts.resize(n_samples);
 
-        for (auto const & s : total_abundances)
-        {
-          abundances[s.first] = (float) s.second;
-        }
         for (auto const & s : total_psm_counts)
         {
+          if (psm_counts.size() <= s.first) { psm_counts.resize(s.first + 1, 0.0f); }
           psm_counts[s.first] = (float) s.second;
         }
         for (auto const & s : total_distinct_peptides)
         {
+          if (peptide_counts.size() <= s.first) { peptide_counts.resize(s.first + 1, 0.0f); }
           peptide_counts[s.first] = (float) s.second;
         }
 
         // QPX 1.1 protein-group quantities are keyed by the exact OpenMS fraction_group and
         // label. Materialize every cell represented by the quantification input in deterministic
         // order, using zero for a quantified protein without sufficient evidence in that cell just
-        // as the sample-level abundance array above does for an absent sample result.
-        auto& fraction_group_level_abundance = id_group->getFloatDataArrays()[4];
+        // as other table writers do for an absent assay result.
+        auto& fraction_group_level_abundance = id_group->getFloatDataArrays()[3];
         fraction_group_level_abundance.setName("fraction_group_level_abundance");
         auto& fraction_group_level_fraction_group = id_group->getIntegerDataArrays()[2];
         fraction_group_level_fraction_group.setName("fraction_group_level_fraction_group");
@@ -1122,7 +1091,7 @@ namespace OpenMS
         }
 
         // Add file/channel level abundances
-        auto& file_channel_level_abundance = id_group->getFloatDataArrays()[3];
+        auto& file_channel_level_abundance = id_group->getFloatDataArrays()[2];
         file_channel_level_abundance.setName("file_channel_level_abundance");
         auto& file_channel_level_filename = id_group->getStringDataArrays()[0];
         file_channel_level_filename.setName("file_channel_level_filename");
@@ -1242,13 +1211,8 @@ namespace OpenMS
 
       prot_quant_[leader_accession].psm_count += pep_q.second.psm_count; // total PSM count for this group of proteins (represented by the leader accession)
 
-      // transfer abundances and counts from peptides->protein
-      // summarize abundances and counts between different peptidoforms
-      for (auto const& sta : pep_q.second.total_abundances)
-      {
-        prot_quant_[leader_accession].peptide_abundances[peptide][sta.first] += sta.second;
-      }
-
+      // Transfer assay abundances and counts from peptides to proteins, summing modified
+      // peptidoforms into their unmodified peptide sequence.
       for (const auto& [fraction_group, label_abundances] : pep_q.second.fraction_group_abundances)
       {
         for (const auto& [label, abundance] : label_abundances)
@@ -1263,14 +1227,11 @@ namespace OpenMS
         prot_quant_[leader_accession].peptide_psm_counts[peptide][sta.first] += sta.second;
       }
 
-      // NOTE: "channel_level_abundances" is deliberately NOT filled here. It is the same
-      // quantity as "total_abundances" at a finer granularity (per (file, channel) rather
-      // than per sample, a 1:N relationship under fractionation) and is therefore owned
-      // exclusively by calculateFileAndChannelLevelProteinAbundances_(), just like
-      // "total_abundances" is owned by calculateProteinAbundances_(). Pre-filling it with
-      // a raw sum over all peptides/peptidoforms/charges left that un-aggregated sum in
-      // the output whenever the aggregation step later declined to quantify a cell (too
-      // few peptides for 'top:N'), i.e. exactly where the value should have been absent.
+      // NOTE: channel_level_abundances is deliberately NOT filled here. It is a finer
+      // (file, channel) quantity and is owned exclusively by
+      // calculateFileAndChannelLevelProteinAbundances_(). Pre-filling it with a raw sum over all
+      // peptides/peptidoforms/charges left that unaggregated sum in the output whenever the
+      // aggregation step later declined to quantify a cell (too few peptides for top:N).
 
       // transfer detailed PSM counts from peptide to protein
       for (auto const& fraction : pep_q.second.psm_counts)
@@ -1296,14 +1257,15 @@ namespace OpenMS
     }
   }
 
-  Size PeptideAndProteinQuant::countQuantifiedSamples_(const SampleAbundances& abundances)
+  Size PeptideAndProteinQuant::countQuantifiedAssays_(const FractionGroupAbundances& abundances)
   {
     Size n_quantified = 0;
-    for (const auto& sample_abundance : abundances)
+    for (const auto& [fraction_group, label_abundances] : abundances)
     {
-      if (sample_abundance.second > 0.0)
+      (void)fraction_group;
+      for (const auto& label_abundance : label_abundances)
       {
-        ++n_quantified;
+        if (label_abundance.second > 0.0) { ++n_quantified; }
       }
     }
     return n_quantified;
@@ -1325,24 +1287,27 @@ namespace OpenMS
 
     if (fix_peptides && (top_n == 0))
     {
-      // consider all peptides that occur in every sample:
-      for (auto const& ab : pd.peptide_abundances)
+      // consider all peptides that occur in every assay:
+      for (const auto& ab : pd.peptide_fraction_group_abundances)
       {
-        if (countQuantifiedSamples_(ab.second) == stats_.n_samples)
+        if (countQuantifiedAssays_(ab.second) == quantification_fraction_group_labels_.size())
         {
           peptides.push_back(ab.first);
         }
       }
     }
-    else if (fix_peptides && (top_n > 0) && (pd.peptide_abundances.size() > top_n))
+    else if (fix_peptides && (top_n > 0) && (pd.peptide_fraction_group_abundances.size() > top_n))
     {
-      orderBest_(pd.peptide_abundances, peptides);
-      peptides.resize(top_n);
+      orderBest_(pd.peptide_fraction_group_abundances, peptides);
+      // Truncate, never pad: the guard above counts every entry, while orderBest_ drops those with
+      // no positive abundance, so fewer than 'top_n' names can come back and resize() would append
+      // empty ones.
+      peptides.resize(std::min(top_n, peptides.size()));
     }
     else
     {
       // consider all peptides of the protein:
-      for (auto const& ab : pd.peptide_abundances)
+      for (const auto& ab : pd.peptide_fraction_group_abundances)
       {
         peptides.push_back(ab.first);
       }
@@ -1385,69 +1350,6 @@ namespace OpenMS
     }
   }
 
-  void PeptideAndProteinQuant::calculateProteinAbundances_(const std::string& protein_accession,
-                                                          const std::vector<std::string>& selected_peptides,
-                                                          const std::string& aggregate_method,
-                                                          Size top_n,
-                                                          bool include_all)
-  {
-    auto prot_it = prot_quant_.find(protein_accession);
-    if (prot_it == prot_quant_.end())
-    {
-      return;
-    }
-
-    ProteinData& pd = prot_it->second;
-
-    // Consider only the selected peptides, and within them only the samples they were actually
-    // detected in. An abundance stored as 0.0 is "not detected", not a measured absence:
-    // IsobaricChannelExtractor writes a reporter it could not find (or one below
-    // 'min_reporter_intensity') as 0.0 and inserts the handle regardless, so every peptide of an
-    // isobaric run carries an entry for every channel. Aggregating those is what this tool's own
-    // documentation says must not happen - "mean and median ignore missing cases, averaging only
-    // present values" - and it is the artefact normalizePeptides_() excludes zeros to avoid: a
-    // channel in which most of a protein's peptides went undetected gets a median of exactly 0,
-    // i.e. the protein is reported absent from a sample it was measured in.
-    // The samples are still tracked separately, so a sample whose peptides were all undetected
-    // keeps its (zero) entry under 'include_all' rather than disappearing from the output.
-    map<UInt64, DoubleList> abundances; // detected peptide abundances by sample
-    set<UInt64> samples;                // every sample the selected peptides reach
-    for (const auto& pep : selected_peptides)    // for all selected peptides
-    {
-      auto pep_it = pd.peptide_abundances.find(pep);
-      if (pep_it != pd.peptide_abundances.end())
-      {
-        for (auto& sa : pep_it->second) // copy over the abundances that are measurements
-        {
-          samples.insert(sa.first);
-          if (sa.second > 0.0) { abundances[sa.first].push_back(sa.second); }
-        }
-      }
-    }
-
-    for (UInt64 sample : samples)
-    {
-      DoubleList& values = abundances[sample]; // empty if nothing was detected in this sample
-
-      // check if the protein has enough detected peptides in this sample
-      if (!include_all && (top_n > 0) && (values.size() < top_n))
-      {
-        continue;
-      }
-
-      // if we have more than "top", reduce to the top ones
-      if ((top_n > 0) && (values.size() > top_n))
-      {
-        // sort descending:
-        sort(values.begin(), values.end(), greater<double>());
-        values.resize(top_n); // remove all but best N values
-      }
-
-      double abundance_result = aggregateAbundances_(values, aggregate_method);
-      pd.total_abundances[sample] = abundance_result;
-    }
-  }
-
   void PeptideAndProteinQuant::calculateFractionGroupLevelProteinAbundances_(
     const std::string& protein_accession,
     const std::vector<std::string>& selected_peptides,
@@ -1480,8 +1382,7 @@ namespace OpenMS
           // a reporter it could not find (or one below 'min_reporter_intensity') as 0.0 and
           // inserts the handle anyway - so counting it here would let undetected peptides satisfy
           // the 'top_n' gate and drag a median or mean of the cell towards zero. Same rule as
-          // calculateProteinAbundances_(), calculateFileAndChannelLevelProteinAbundances_() and
-          // normalizePeptides_().
+          // calculateFileAndChannelLevelProteinAbundances_() and normalizePeptides_().
           DoubleList& cell = abundances[{fraction_group, label}];
           if (abundance > 0.0) { cell.push_back(abundance); }
         }
@@ -1525,17 +1426,15 @@ namespace OpenMS
     ProteinData& pd = prot_it->second;
     const bool select_best_charge = param_.getValue("best_charge_and_fraction") == "true";
 
-    // Granularity note: a sample is a (file, label) pair of the experimental design, so in a
-    // fractionated experiment ONE sample spans SEVERAL files (all fractions of its fraction
-    // group at that label) and total_abundances aggregates over them. The cells computed here
-    // are per (file, channel), i.e. one sample maps to N cells, and both the peptide selection
-    // and the aggregation below are applied PER FILE. That is deliberate - these are per-file
-    // values - but it means:
-    //   - the cells only decompose the sample value for top_n == 0 with aggregate == "sum";
+    // Granularity note: an assay spans every fraction file of one fraction group at one label.
+    // The cells computed here are per (file, channel), i.e. one assay maps to N cells, and both
+    // peptide selection and aggregation below are applied PER FILE. That is deliberate - these
+    // are per-file values - but it means:
+    //   - the cells only decompose the assay value for top_n == 0 with aggregate == "sum";
     //     top-N/median/mean/weighted_mean do not commute with aggregation across fractions;
     //   - the "at least top_n peptides" requirement is enforced per file, which is much
-    //     stricter than the sample-level rule for fractionated data: a protein quantified at
-    //     the sample level can have ALL of its cells dropped because no single fraction
+    //     stricter than the assay-level rule for fractionated data: a protein quantified at
+    //     the assay level can have ALL of its cells dropped because no single fraction
     //     contains top_n peptides.
     // organize detailed abundances by (fraction, filename, channel) combinations
     map<tuple<Int, std::string, UInt>, DoubleList> channel_level_abundances_for_selected_peptides;
@@ -1551,7 +1450,7 @@ namespace OpenMS
       // Contribute exactly ONE value per selected peptide and (fraction, file, channel)
       // cell, summed over all matching peptidoforms. By default all charge states contribute;
       // with 'best_charge_and_fraction', each peptidoform contributes only the charge selected
-      // before normalization. This mirrors its sample-level abundance and makes 'top_n' count
+      // before normalization. This mirrors its assay-level abundance and makes 'top_n' count
       // peptides rather than letting peptidoforms or charge states occupy separate top-N slots.
       map<tuple<Int, std::string, UInt>, double> abundances_of_peptide;
 
@@ -1603,8 +1502,8 @@ namespace OpenMS
         // stored as 0.0 is "not detected" - IsobaricChannelExtractor writes a reporter it could
         // not find (or one below 'min_reporter_intensity') as 0.0 and inserts the handle anyway -
         // so counting it here would let undetected peptides satisfy the per-file 'top_n' gate and
-        // drag a median or mean of the cell towards zero. Same rule as
-        // calculateProteinAbundances_() and normalizePeptides_().
+        // drag a median or mean of the cell towards zero. Same rule as the assay-level
+        // aggregation and normalizePeptides_().
         DoubleList& cell = channel_level_abundances_for_selected_peptides[key];
         if (abundance > 0.0) { cell.push_back(abundance); }
       }
@@ -1676,10 +1575,6 @@ namespace OpenMS
           digest.digestUnmodified(hit_sequence, peptides);
           const double n_theoretical_peptides = double(peptides.size());
           ProteinData& pd = prot_quant_[hit_accession];
-          for (auto& total_abundance : pd.total_abundances)
-          {
-            total_abundance.second /= n_theoretical_peptides;
-          }
           // the file+channel level abundances are the same quantity at a finer
           // granularity, so they need the same normalization
           for (auto& file_entry : pd.channel_level_abundances)
@@ -1696,7 +1591,7 @@ namespace OpenMS
             for (auto& [label, abundance] : label_abundances)
             {
               (void)label;
-              abundance /= double(peptides.size());
+              abundance /= n_theoretical_peptides;
             }
           }
         }

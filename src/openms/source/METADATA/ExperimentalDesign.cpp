@@ -307,7 +307,11 @@ namespace OpenMS
         r.fraction = 1;
         r.sample = sample;
         r.sample_name =StringUtils::toStr(sample);
-        r.fraction_group = sample;
+        // 'sample' is a zero-based index into the sample section, a fraction group is a 1-based id
+        // (MSFileSectionEntry defaults it to 1, and isValid_() requires the set to start at 1).
+        // One counter cannot serve both: this line used to read 'sample', which silently made the
+        // fraction groups zero-based when the sample counter was moved to zero-based indexing.
+        r.fraction_group = sample + 1;
         r.label = 1;
 
         rows.push_back(r);

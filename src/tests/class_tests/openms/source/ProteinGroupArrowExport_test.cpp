@@ -686,12 +686,8 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   ProteinIdentification::ProteinGroup grp;
   grp.accessions = {"PROT_A"};
   grp.probability = 0.01;
-  // Sample-level abundances, as PeptideAndProteinQuant writes them: one entry per design sample,
-  // indexed by MSFileSectionEntry::sample. Two label-free fraction groups => two samples.
-  grp.getFloatDataArrays().resize(1);
-  grp.getFloatDataArrays()[0].setName("abundances");
-  grp.getFloatDataArrays()[0].push_back(1000.0f);
-  grp.getFloatDataArrays()[0].push_back(2000.0f);
+  // The fraction-group arrays themselves identify this as a quantified group; no legacy
+  // sample-abundance marker is required.
   setFractionGroupQuantities(grp, {{1, 1, 1000.0f}, {2, 1, 2000.0f}});
   prot.insertIndistinguishableProteins(grp);
   cmap.setProteinIdentifications({prot});
@@ -1342,6 +1338,63 @@ START_SECTION(([EXTRA] ConsensusMap overload - total_sequences counts sequences,
   TEST_EQUAL(pc_unique->Value(0), 1)   // one distinct sequence
   TEST_EQUAL(pc_total->Value(0), 1)    // peptides[] sums to 1, so total_sequences must be 1
   TEST_EQUAL(fc_total->Value(0), 2)    // two features: that is what feature_counts is for
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a group carrying only the legacy sample abundances is refused, not silently nulled))
+{
+  // A consensusXML written before the assay grain landed annotates protein groups with the
+  // sample-level "abundances" array and nothing else. That group WAS quantified, at a grain this
+  // version can no longer interpret. It must be refused: emitting it as identification-only would
+  // put the protein in the pg view with a null intensity, indistinguishable from "not quantified",
+  // and hand back a complete-looking collection with no quantities in it and exit code 0.
+  const std::vector<std::string> paths = {"/data/S1.mzML", "/data/S2.mzML"};
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = paths[m];
+    ch.label = "label-free";
+    ch.setMetaValue("fraction", 1);
+    ch.setMetaValue("fraction_group", static_cast<int>(m) + 1);
+    cmap.getColumnHeaders()[m] = ch;
+  }
+
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath(StringList(paths.begin(), paths.end()));
+  ProteinHit ph; ph.setAccession("PROT_A");
+  prot.setHits({ph});
+
+  ProteinIdentification::ProteinGroup grp;
+  grp.accessions = {"PROT_A"};
+  grp.probability = 0.01;
+  grp.getFloatDataArrays().resize(1);
+  grp.getFloatDataArrays()[0].setName("abundances");   // legacy sample grain, and ONLY that
+  grp.getFloatDataArrays()[0].push_back(1000.0f);
+  grp.getFloatDataArrays()[0].push_back(2000.0f);
+  prot.insertIndistinguishableProteins(grp);
+  cmap.setProteinIdentifications({prot});
+
+  const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(design.getNumberOfSamples(), 2)
+
+  TEST_TRUE(ProteinGroupArrowExport::exportToArrow(cmap, design) == nullptr)
+
+  // A group with no quantity annotation at all is a different case: identification-only data is
+  // exportable, and stays so.
+  ProteinIdentification id_only = prot;
+  ProteinIdentification::ProteinGroup plain;
+  plain.accessions = {"PROT_A"};
+  plain.probability = 0.01;
+  id_only.getIndistinguishableProteins().clear();
+  id_only.insertIndistinguishableProteins(plain);
+  ConsensusMap id_only_map = cmap;
+  id_only_map.setProteinIdentifications({id_only});
+  TEST_NOT_EQUAL(ProteinGroupArrowExport::exportToArrow(id_only_map, design), nullptr)
 }
 END_SECTION
 
