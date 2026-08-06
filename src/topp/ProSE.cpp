@@ -655,7 +655,10 @@ class ProSE :
           // Protein groups — independent of PSM result.
           const std::string qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
           auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
-          if (qpx_pg_table && qpx_pg_table->num_rows() > 0)
+          // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to
+          // libOpenMS' implementation, and on Windows its symbols are dllimport, so calling the
+          // member here links on Linux but not on MSVC.
+          if (qpx_pg_table && ArrowIOHelpers::tableRowCount(qpx_pg_table) > 0)
           {
             qpx_pg_tables.push_back(qpx_pg_table);
             if (!ProteinGroupArrowExport::exportToParquet(qpx_pg_table, qpx_pg_file))

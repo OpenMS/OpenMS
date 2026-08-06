@@ -43,6 +43,11 @@ std::string generateUuidV4()
   return UniqueIdGenerator::getUUID();
 }
 
+Size tableRowCount(const std::shared_ptr<arrow::Table>& table)
+{
+  return table ? static_cast<Size>(table->num_rows()) : 0;
+}
+
 namespace
 {
   arrow::Compression::type toArrowCompression(ParquetWriteConfig::Compression c)

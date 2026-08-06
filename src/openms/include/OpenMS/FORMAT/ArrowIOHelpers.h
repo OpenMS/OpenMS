@@ -53,6 +53,20 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI std::string generateUuidV4();
 
   /**
+    @brief Number of rows in an Arrow table, or 0 when it is null.
+
+    Exists so that a TOPP tool can ask "did this table come out empty?" without calling an
+    Arrow member function itself. Arrow is deliberately confined to libOpenMS' implementation
+    (see the note on ParquetTableComparator), and on Windows its symbols are @c dllimport, so a
+    tool that calls @c arrow::Table::num_rows() directly fails to link there while building
+    fine on Linux.
+
+    @param[in] table the table to measure; may be null
+    @return the row count, or 0 for a null table
+  */
+  OPENMS_DLLAPI Size tableRowCount(const std::shared_ptr<arrow::Table>& table);
+
+  /**
     @brief Write an Arrow table to a Parquet file
 
     @param[in] table The Arrow table to write (must not be null)
