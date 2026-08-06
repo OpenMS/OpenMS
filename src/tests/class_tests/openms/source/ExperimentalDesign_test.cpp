@@ -780,4 +780,61 @@ START_SECTION(([EXTRA] annotateColumnHeaders - headers that collapse onto one de
 }
 END_SECTION
 
+START_SECTION(([EXTRA] sample names that are not stringified row indices must not break the derived mappings))
+{
+  // A Sample column holds a NAME. sdrf-pipelines writes 1-based numeric names ("1", "2"), and a
+  // hand-written design may use anything ("BSA1"). MSFileSectionEntry::sample is the zero-based row
+  // index those names intern to, so a name and its index coincide only by accident - and only the
+  // designs that OpenMS infers itself (which set sample_name = toStr(sample)) make them coincide.
+  auto designWithSampleNames = [](const std::string& name_a, const std::string& name_b)
+  {
+    ExperimentalDesign::MSFileSection fs;
+    for (Size i = 0; i < 2; ++i)
+    {
+      ExperimentalDesign::MSFileSectionEntry e;
+      e.fraction_group = static_cast<unsigned>(i) + 1; // 1-based id
+      e.fraction = 1;
+      e.label = 1;
+      e.path = "/data/run_" + StringUtils::toStr(i) + ".mzML";
+      e.sample = static_cast<unsigned>(i);             // 0-based index
+      e.sample_name = (i == 0) ? name_a : name_b;
+      fs.push_back(e);
+    }
+    ExperimentalDesign::SampleSection ss;
+    ss.addSample(name_a);
+    ss.addSample(name_b);
+    return ExperimentalDesign(fs, ss);
+  };
+
+  // The sdrf-pipelines shape: names are 1-based, indices 0-based, so they never coincide.
+  const ExperimentalDesign sdrf_like = designWithSampleNames("1", "2");
+  // A hand-written design: names are not numeric at all.
+  const ExperimentalDesign named = designWithSampleNames("BSA1", "BSA2");
+
+  for (const auto& design : {sdrf_like, named})
+  {
+    const std::set<std::string> names = design.getSampleSection().getSamples();
+
+    // Both Sample* mappings are keyed by sample NAME, and cover every sample exactly once.
+    const auto s2pf = design.getSampleToPrefractionationMapping();
+    const auto s2c = design.getSampleToConditionMapping();
+    TEST_EQUAL(s2pf.size(), design.getNumberOfSamples())
+    TEST_EQUAL(s2c.size(), design.getNumberOfSamples())
+    for (const auto& name : names)
+    {
+      TEST_TRUE(s2pf.find(name) != s2pf.end())
+      TEST_TRUE(s2c.find(name) != s2c.end())
+    }
+
+    // Resolving them per (path, label) must go through the name, not the stringified index.
+    // Both of these threw a bare std::out_of_range ("map::at") for any design whose sample names
+    // are not "0", "1", ... - which is every design a user or sdrf-pipelines writes.
+    const auto p2pf = design.getPathLabelToPrefractionationMapping(false);
+    const auto p2c = design.getPathLabelToConditionMapping(false);
+    TEST_EQUAL(p2pf.size(), 2)
+    TEST_EQUAL(p2c.size(), 2)
+  }
+}
+END_SECTION
+
 END_TEST

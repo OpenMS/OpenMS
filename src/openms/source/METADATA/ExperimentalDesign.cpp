@@ -353,6 +353,19 @@ namespace OpenMS
       return rowContent2RowIdx;
     }
 
+    /// sample row index -> sample name, reversing SampleSection's name->row store.
+    /// SampleSection::getSampleName() cannot serve this: it reads the "Sample" COLUMN of the
+    /// content, which a section built with addSample() (or inferred from a map) does not have.
+    map<Size, std::string> ExperimentalDesign::sampleRowToName_() const
+    {
+      map<Size, std::string> res;
+      for (const auto& name : sample_section_.getSamples())
+      {
+        res[sample_section_.getSampleRow(name)] = name;
+      }
+      return res;
+    }
+
     map<std::string, unsigned> ExperimentalDesign::getSampleToPrefractionationMapping() const
     {
       map<std::string, unsigned> res;
@@ -421,22 +434,28 @@ namespace OpenMS
       // without additional Experimental Design file
       if (sample_section_.getFactors().empty())
       {
-        // no information about the origin of the samples -> assume uniqueness of all
-        unsigned nr(getNumberOfSamples());
-        for (unsigned i(0); i <= nr; ++i)
+        // no information about the origin of the samples -> assume uniqueness of all.
+        // Key by sample NAME, like getSampleToPrefractionationMapping(): the previous version
+        // enumerated stringified row indices, which only matched a design whose sample names
+        // happen to be "0", "1", ... - i.e. one OpenMS inferred itself. It also ran to
+        // i <= getNumberOfSamples(), reporting one sample more than the section holds.
+        Size i(0);
+        for (const auto& name : sample_section_.getSamples())
         {
-          res[StringUtils::toStr(i)] = i;
+          res[name] = i;
+          ++i;
         }
       }
       else
       {
         const map<vector<std::string>, set<unsigned>>& rowContent2RowIdx = getConditionToSampleMapping();
+        const auto row_to_name = sampleRowToName_();
         Size s(0);
         for (const auto &condition : rowContent2RowIdx)
         {
           for (auto &sample : condition.second)
           {
-            res.emplace(StringUtils::toStr(sample), s);
+            res.emplace(row_to_name.at(sample), s);
           }
           ++s;
         }
@@ -476,11 +495,13 @@ namespace OpenMS
     map<pair< std::string, unsigned >, unsigned> ExperimentalDesign::getPathLabelToPrefractionationMapping(const bool basename) const
     {
       const auto& sToPreFrac = getSampleToPrefractionationMapping();
+      const auto row_to_name = sampleRowToName_();
       const auto& pToS = getPathLabelToSampleMapping(basename);
       map<pair<std::string, unsigned>, unsigned> ret;
       for (const auto& entry : pToS)
       {
-        ret.emplace(entry.first, sToPreFrac.at(StringUtils::toStr(entry.second)));
+        // entry.second is the zero-based sample ROW; sToPreFrac is keyed by sample NAME.
+        ret.emplace(entry.first, sToPreFrac.at(row_to_name.at(entry.second)));
       }
       return ret;
     }
@@ -488,11 +509,13 @@ namespace OpenMS
     map<pair<std::string, unsigned>, unsigned> ExperimentalDesign::getPathLabelToConditionMapping(const bool basename) const
     {
       const auto& sToC = getSampleToConditionMapping();
+      const auto row_to_name = sampleRowToName_();
       const auto& pToS = getPathLabelToSampleMapping(basename);
       map<pair<std::string, unsigned>, unsigned> ret;
       for (const auto& entry : pToS)
       {
-        ret.emplace(entry.first, sToC.at(StringUtils::toStr(entry.second)));
+        // entry.second is the zero-based sample ROW; sToC is keyed by sample NAME.
+        ret.emplace(entry.first, sToC.at(row_to_name.at(entry.second)));
       }
       return ret;
     }

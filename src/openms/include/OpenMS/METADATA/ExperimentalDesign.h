@@ -209,7 +209,8 @@ namespace OpenMS
     std::map<std::vector<std::string>, std::set<std::string>> getUniqueSampleRowToSampleMapping() const;
 
     /// uses getUniqueSampleRowToSampleMapping to get the reversed map
-    /// mapping sample ID to a real unique sample
+    /// mapping sample ID to a real unique sample.
+    /// Keyed by sample NAME (the Sample column value), not by the zero-based sample row index.
     std::map<std::string, unsigned> getSampleToPrefractionationMapping() const;
 
     /// return fraction index to file paths (ordered by fraction_group)
@@ -239,6 +240,8 @@ namespace OpenMS
 
     /// return Sample name to condition mapping (a condition is a unique combination of all columns in the
     /// sample section, except for replicates. Numbering of conditions is alphabetical due to map.
+    /// Keyed by sample NAME, like getSampleToPrefractionationMapping(); it previously used the
+    /// stringified zero-based sample row index, which only matched designs OpenMS inferred itself.
     std::map<std::string, unsigned> getSampleToConditionMapping() const;
 
     /// return <file_path, label> to sample index mapping
@@ -250,7 +253,9 @@ namespace OpenMS
     /// return <file_path, label> to fraction_group mapping
     std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool use_basename_only) const;
 
-    // @return the number of samples measured (= highest sample index)
+    // @return the number of samples measured (= number of rows in the sample section).
+    // NOT the highest sample index: MSFileSectionEntry::sample is zero-based, so the highest
+    // index is one less than this.
     unsigned getNumberOfSamples() const;
 
     // @return the number of fractions (= highest fraction index)
@@ -311,6 +316,9 @@ namespace OpenMS
     //TODO create another overload here, that takes two enums outerVec and innerVec with entries Replicate, Fraction, Sample
 
     private:
+    // sample row index -> sample name; the reverse of SampleSection's name->row store
+    std::map<Size, std::string> sampleRowToName_() const;
+
     // MS filename column, optionally trims to basename
     std::vector< std::string > getFileNames_(bool basename) const;
 
