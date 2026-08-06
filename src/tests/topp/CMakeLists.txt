@@ -4019,15 +4019,23 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
   # Each of the three QPX files is validated against the built-in schema for its view and must
   # meet a row-count floor. ParquetDiff compares schema and values, not file metadata, so the
   # per-run uuid/creation_date that made these files non-reproducible byte-wise do not matter.
-  # Floors are minima, not equalities: they catch row LOSS while tolerating gain.
+  #
+  # Unlike the ProteinQuantifier/IsobaricWorkflow floors, these sit WELL BELOW the counts
+  # actually produced (60/104/35 here). ProteomicsLFQ finds features in mzML rather than
+  # reading a committed consensusXML, and feature counts legitimately differ a little between
+  # compilers and architectures - CI covers five. A floor tight enough to pin the count would
+  # report that as a regression. These floors are therefore set at roughly three quarters of
+  # the observed count. The floor's job is to catch collapse, which is what an existence check
+  # could not do at all; pinning the count is the job of a value reference, deliberately a
+  # later phase.
   add_test("TOPP_ProteomicsLFQ_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 60)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 45)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
   add_test("TOPP_ProteomicsLFQ_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet -schema psm -min_rows 104)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet -schema psm -min_rows 80)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
   add_test("TOPP_ProteomicsLFQ_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 35)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 28)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
 # QPX Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
@@ -4075,13 +4083,13 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
   # written -- ParquetDiff then fails to open the file. The row-count floor additionally catches
   # a table that was written but is empty, which existence alone cannot.
   add_test("TOPP_ProteomicsLFQ_qpx_seeds_features" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet -schema feature -min_rows 298)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet -schema feature -min_rows 230)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
   add_test("TOPP_ProteomicsLFQ_qpx_seeds_psms" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet -schema psm -min_rows 115)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet -schema psm -min_rows 90)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
   add_test("TOPP_ProteomicsLFQ_qpx_seeds_pg" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet -schema pg -min_rows 32)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet -schema pg -min_rows 25)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
 
 # Test ProteomicsLFQ bypass with -in_feat (Multi-file)
