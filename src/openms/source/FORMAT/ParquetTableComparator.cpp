@@ -928,10 +928,15 @@ namespace OpenMS
         bool ok = false;
         auto scalar = cellAt_(table, c, r, ok);
         // Tabs and newlines inside a value would break the one-row-per-line shape the text
-        // comparison relies on, so render them escaped rather than literally.
+        // comparison relies on, so render them escaped rather than literally. The backslash has to
+        // be escaped FIRST and unconditionally: otherwise a value containing a literal backslash
+        // followed by 't' renders to the same bytes as a value containing an actual tab, and two
+        // genuinely different tables would compare equal - the exact failure this reference exists
+        // to rule out.
         for (char ch : displayValue_(scalar))
         {
-          if (ch == '\t') { line += "\\t"; }
+          if (ch == '\\') { line += "\\\\"; }
+          else if (ch == '\t') { line += "\\t"; }
           else if (ch == '\n') { line += "\\n"; }
           else if (ch == '\r') { line += "\\r"; }
           else { line += ch; }

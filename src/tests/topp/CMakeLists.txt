@@ -248,10 +248,15 @@ add_test("TOPP_ParquetDiff_7" ${TOPP_BIN_PATH}/ParquetDiff
 set_tests_properties("TOPP_ParquetDiff_7" PROPERTIES WILL_FAIL 1)
 
 # The floor applies to BOTH inputs, not only the first: input2 holds 4 rows against input1's 5.
+# 'schema_only' is what makes this test mean that. These two tables have disjoint primary
+# keys, so without it the comparison fails on the key mismatch and would go red even if
+# 'min_rows' only ever looked at 'in1'. Skipping the value comparison leaves the row floor as
+# the only thing that can fail.
 add_test("TOPP_ParquetDiff_8" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
   -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
   -pk peptidoform precursor_charge
+  -schema_only
   -min_rows 5)
 set_tests_properties("TOPP_ParquetDiff_8" PROPERTIES WILL_FAIL 1)
 
@@ -3041,7 +3046,7 @@ set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_P
 # definition for why the shared absdiff would delete the q-value assertions).
 #
 # Row order is the comparator's own canonical key order, which length-prefixes each value -
-# so 'TMT126' sorts before 'TMT127C' before 'TMT131' rather than in natural channel order.
+# so 'TMT126' and 'TMT131' (6 chars) both sort before 'TMT127C' (7), not in channel order.
 # It looks unsorted and is not: the encoding is deterministic and byte-comparable, which is
 # what a reference needs. Reusing that encoding is deliberate, so the dump cannot disagree
 # with the comparison about what a primary key is.
