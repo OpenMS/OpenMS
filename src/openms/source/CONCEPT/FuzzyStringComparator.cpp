@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <istream>
@@ -329,6 +330,40 @@ namespace OpenMS
             {
               continue;
             }
+
+            // Decide the non-finite cases here, because the tests below cannot: every comparison
+            // against NaN is false, so 'absdiff > absdiff_max_', 'ratio < 0', 'ratio < 1' and
+            // finally 'ratio > ratio_max_' - the sole gate to reportFailure_ - are all false, and
+            // the pair falls through to the end of the branch and is accepted. A value that
+            // regressed to NaN was therefore invisible to every file comparison in the test suite,
+            // whatever the other file held.
+            // Only the cases the code below gets WRONG are intercepted. An infinity against a
+            // finite number is ordered and is already reported correctly (by the ratio test for
+            // +inf, by the sign test for -inf), so it keeps its existing path and message.
+            if (std::isnan(element_1_.number) || std::isnan(element_2_.number))
+            {
+              // A reference may legitimately contain 'nan'; two of them are equal. (They do not
+              // reach the equality test above, since NaN != NaN.)
+              if (std::isnan(element_1_.number) && std::isnan(element_2_.number))
+              {
+                continue;
+              }
+              reportFailure_("one value is NaN and the other is not");
+              continue;
+            }
+            if (std::isinf(element_1_.number) || std::isinf(element_2_.number))
+            {
+              if (std::isinf(element_1_.number) && std::isinf(element_2_.number))
+              {
+                reportFailure_("infinities have different signs");
+              }
+              else
+              {
+                reportFailure_("one value is infinite and the other is not");
+              }
+              continue;
+            }
+
             // check if absolute difference is small
             double absdiff = element_1_.number - element_2_.number;
             if (absdiff < 0)
