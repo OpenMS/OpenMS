@@ -127,6 +127,31 @@ namespace OpenMS
                                       const ParquetDiffSettings& settings);
 
     /**
+      @brief Write a Parquet table out as TSV, one row per line, sorted by primary key.
+
+      A Parquet file cannot be reviewed in a diff or patched by hand, so a committed binary
+      reference can only ever be regenerated wholesale - which is exactly the operation that hides
+      unrelated drift. Dumping to text puts Parquet output back on the same footing as every other
+      reference in the suite: readable in a pull request, comparable with @ref TOPP_FuzzyDiff, and
+      editable line by line.
+
+      Rows are emitted in primary-key order rather than file order, so the dump does not depend on
+      the order the producer happened to write - the same property that makes the comparison
+      order-insensitive. List- and struct-valued cells are rendered in full; nulls print as
+      @c null, which is distinct from an empty string or a zero.
+
+      @param[in] file the Parquet file to read
+      @param[in] out_file destination TSV path
+      @param[in] settings only ParquetDiffSettings::primary_key is used; when empty the key is
+                 derived from the file's QPX @c file_type metadata, and failing that rows are
+                 emitted in file order
+      @return true when the file was read and written successfully
+    */
+    static bool dumpToTsv(const std::string& file,
+                          const std::string& out_file,
+                          const ParquetDiffSettings& settings);
+
+    /**
       @brief The primary key of a QPX view.
 
       @param[in] view one of @c psm, @c feature, @c pg
