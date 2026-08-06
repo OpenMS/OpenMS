@@ -113,6 +113,7 @@ namespace OpenMS
     tools_map["MaRaClusterAdapter"] = Internal::ToolDescription("MaRaClusterAdapter", cat_signal_proc_misc);
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", cat_ID_search);
     tools_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", cat_misc);
+    tools_map["MassErrorEstimator"]= Internal::ToolDescription("MassErrorEstimator",cat_calibration);
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", cat_quant);
     tools_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", cat_quant);
     tools_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", cat_ID_MTX);

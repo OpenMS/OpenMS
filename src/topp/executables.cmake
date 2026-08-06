@@ -70,6 +70,7 @@ MapStatistics
 MaRaClusterAdapter
 MascotAdapterOnline
 MassCalculator
+MassErrorEstimator
 MassTraceExtractor
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
@@ -134,7 +135,6 @@ SpectraSTSearchAdapter
 StaticModification
 TICCalculator
 TextExporter
-TOPPMassErrorEstimator
 TriqlerConverter
 XFDR
 XMLValidator
