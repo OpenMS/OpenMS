@@ -224,6 +224,31 @@ add_test("TOPP_ParquetDiff_5" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet)
 set_tests_properties("TOPP_ParquetDiff_5" PROPERTIES WILL_FAIL 1)
 
+# 'min_rows' is satisfied: input1 holds 5 rows.
+add_test("TOPP_ParquetDiff_6" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -min_rows 5)
+
+# 'min_rows' is violated by one row, so an otherwise-equal comparison must still fail. This is
+# what the row-count floor buys over a schema check: identical tables compare equal however few
+# rows they hold.
+add_test("TOPP_ParquetDiff_7" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -min_rows 6)
+set_tests_properties("TOPP_ParquetDiff_7" PROPERTIES WILL_FAIL 1)
+
+# The floor applies to BOTH inputs, not only the first: input2 holds 4 rows against input1's 5.
+add_test("TOPP_ParquetDiff_8" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -min_rows 5)
+set_tests_properties("TOPP_ParquetDiff_8" PROPERTIES WILL_FAIL 1)
+
 # .idparquet rip: split the merged .idparquet from TOPP_IDMerger_idparquet back into
 # per-run .idparquet directories.  -numeric_filenames + -split_ident_runs make output
 # names deterministic (merged_<ident_run_idx>_<file_origin_idx>.idparquet) so the diff
@@ -1067,9 +1092,14 @@ add_test("TOPP_IsobaricWorkflow_2_no_preceding_ms1" ${TOPP_BIN_PATH}/IsobaricWor
 
 # QPX Parquet export. IsobaricWorkflow is the only -out_qpx producer that uses the STREAMING
 # feature and PSM writers, and the only one whose pg export runs after two large streamed files
-# -- so it is the one where a late refusal would leave a partial collection behind. Only the
-# existence of the three files is checked: the content carries a fresh uuid and creation_date per
-# run and is therefore not byte-reproducible.
+# -- so it is the one where a late refusal would leave a partial collection behind.
+#
+# These checked existence only, on the grounds that a fresh uuid and creation_date per run make
+# the files non-reproducible. That is true byte-wise but irrelevant here: ParquetDiff compares
+# schema and values, not file metadata. Each now validates the file against the built-in QPX
+# schema for its view and requires a row-count floor. The floor is the point -- an empty table
+# satisfies any schema, so a schema check alone cannot tell a correct table from a correctly
+# shaped nothing. Floors are minima, not equalities: they catch row LOSS while tolerating gain.
 add_test("TOPP_IsobaricWorkflow_qpx" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
          -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
          -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
@@ -1078,11 +1108,14 @@ add_test("TOPP_IsobaricWorkflow_qpx" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
          -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx.tmp.consensusXML
          -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx.tmp.mzTab
          -out_qpx ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir)
-add_test(NAME "TOPP_IsobaricWorkflow_qpx_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.feature.parquet)
+add_test("TOPP_IsobaricWorkflow_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.feature.parquet -schema feature -min_rows 5)
 set_tests_properties("TOPP_IsobaricWorkflow_qpx_features" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
-add_test(NAME "TOPP_IsobaricWorkflow_qpx_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.psm.parquet)
+add_test("TOPP_IsobaricWorkflow_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.psm.parquet -schema psm -min_rows 4)
 set_tests_properties("TOPP_IsobaricWorkflow_qpx_psms" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
-add_test(NAME "TOPP_IsobaricWorkflow_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet)
+add_test("TOPP_IsobaricWorkflow_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet -schema pg -min_rows 20)
 set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
 
 #add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML)
@@ -2901,19 +2934,25 @@ set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_P
 # the other QPX TOPP tests these only assert that the files are produced - there is no QPX Parquet
 # reader in the tree, so the per-PSM run_file_name values are asserted in QPXFile_test instead.
 add_test("TOPP_ProteinQuantifier_18_qpx" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv -out_qpx ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir -top:N 0 -top:aggregate sum)
-add_test(NAME "TOPP_ProteinQuantifier_18_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.psm.parquet)
+add_test("TOPP_ProteinQuantifier_18_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.psm.parquet -schema psm -min_rows 4)
 set_tests_properties("TOPP_ProteinQuantifier_18_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
-add_test(NAME "TOPP_ProteinQuantifier_18_qpx_feature_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.feature.parquet)
+add_test("TOPP_ProteinQuantifier_18_qpx_feature_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.feature.parquet -schema feature -min_rows 9)
 set_tests_properties("TOPP_ProteinQuantifier_18_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
-add_test(NAME "TOPP_ProteinQuantifier_18_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.pg.parquet)
+add_test("TOPP_ProteinQuantifier_18_qpx_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.pg.parquet -schema pg -min_rows 3)
 set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
 
 add_test("TOPP_ProteinQuantifier_19_qpx" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -out_qpx ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir -top:include_all)
-add_test(NAME "TOPP_ProteinQuantifier_19_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.psm.parquet)
+add_test("TOPP_ProteinQuantifier_19_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.psm.parquet -schema psm -min_rows 2)
 set_tests_properties("TOPP_ProteinQuantifier_19_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
-add_test(NAME "TOPP_ProteinQuantifier_19_qpx_feature_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.feature.parquet)
+add_test("TOPP_ProteinQuantifier_19_qpx_feature_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.feature.parquet -schema feature -min_rows 2)
 set_tests_properties("TOPP_ProteinQuantifier_19_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
-add_test(NAME "TOPP_ProteinQuantifier_19_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet)
+add_test("TOPP_ProteinQuantifier_19_qpx_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet -schema pg -min_rows 48)
 set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
 # NOTE: numbering continues at 23 - 18 and 19 are already taken by the "_qpx" tests above,
 # which write ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv and
@@ -3460,24 +3499,46 @@ add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
 
-# Test 3b: QPX directory output (smoke test — check files exist)
+# Test 3b: QPX directory output.
+#
+# The pg tables here hold ZERO rows, and deliberately so: pg rows come only from
+# getIndistinguishableProteins(), ProSE runs inference either behind 'FDR:protein > 0' with decoys
+# or on the merged path with more than one input, and this invocation opens neither gate --
+# ProSE_1.ini sets 'decoys=ignore' and leaves 'FDR:protein' at 0, and a single '-in' is passed.
+# So 'min_rows 0' below is not a placeholder; it records that this configuration is expected to
+# produce an empty pg. Whether ProSE should write a 0-row pg file at all (it already warns) is a
+# contract question, filed rather than silently pinned here.
+#
+# This is exactly the case that motivated replacing the sha256sum checks: an empty table satisfies
+# a schema check AND a hash-of-an-existing-file check, so neither could distinguish "wrote a
+# correct table" from "wrote a correctly shaped nothing".
 add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test(NAME "TOPP_ProSE_3_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet)
+add_test("TOPP_ProSE_3_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
-add_test(NAME "TOPP_ProSE_3_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
+add_test("TOPP_ProSE_3_qpx_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet -schema pg -min_rows 0)
 set_tests_properties("TOPP_ProSE_3_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
-add_test(NAME "TOPP_ProSE_3_qpx_merged_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet)
+add_test("TOPP_ProSE_3_qpx_merged_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet -schema psm -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_merged_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
-add_test(NAME "TOPP_ProSE_3_qpx_merged_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.pg.parquet)
+add_test("TOPP_ProSE_3_qpx_merged_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.pg.parquet -schema pg -min_rows 0)
 set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+
+# Merging a single run must be the identity. Four checks above cover only two distinct artefacts
+# -- the per-run and merged tables are byte-identical here -- so assert that relationship instead
+# of leaving it as an unstated coincidence. Produced-vs-produced, so it needs no reference file
+# and cannot churn when the numbers legitimately change.
+add_test("TOPP_ProSE_3_qpx_merged_identity" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet
+  -in2 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet
+  -min_rows 3)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_identity" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -3955,12 +4016,18 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -proteinFDR 0.3
            -test
            )
-  # Verify all three QPX files were created (sha256sum fails if file is missing)
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet)
+  # Each of the three QPX files is validated against the built-in schema for its view and must
+  # meet a row-count floor. ParquetDiff compares schema and values, not file metadata, so the
+  # per-run uuid/creation_date that made these files non-reproducible byte-wise do not matter.
+  # Floors are minima, not equalities: they catch row LOSS while tolerating gain.
+  add_test("TOPP_ProteomicsLFQ_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 60)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet)
+  add_test("TOPP_ProteomicsLFQ_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet -schema psm -min_rows 104)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet)
+  add_test("TOPP_ProteomicsLFQ_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 35)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
 # QPX Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
@@ -4003,13 +4070,18 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -test
            -debug 0
            )
-  # All three files must exist: a refused table aborts the tool, and the export is transactional,
-  # so a failure leaves the directory empty rather than partially written (sha256sum then fails).
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet)
+  # All three files must exist AND be non-degenerate: a refused table aborts the tool, and the
+  # export is transactional, so a failure leaves the directory empty rather than partially
+  # written -- ParquetDiff then fails to open the file. The row-count floor additionally catches
+  # a table that was written but is empty, which existence alone cannot.
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds_features" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet -schema feature -min_rows 298)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet)
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds_psms" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet -schema psm -min_rows 115)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet)
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds_pg" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet -schema pg -min_rows 32)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
 
 # Test ProteomicsLFQ bypass with -in_feat (Multi-file)

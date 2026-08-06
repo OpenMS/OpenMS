@@ -43,6 +43,13 @@ With 'schema' the tool takes a single input and checks it against the built-in Q
 that view instead of comparing two files; this reports missing or extra columns, wrong Arrow
 types, wrong nullability, and duplicate primary keys.
 
+'min_rows' requires every input to hold at least that many rows, and is checked in both modes.
+It closes a gap neither of them covers: two empty tables compare equal, and an empty table
+satisfies any schema, so a producer that wrote a correctly shaped nothing passes both. Combining
+@p schema with @p min_rows therefore asserts something about a single file without needing a
+reference at all - useful where a reference would only add churn. '0' is accepted and always
+passes; use it to record deliberately that a table is expected to be empty.
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ParquetDiff.cli
 <B>INI file documentation of this tool:</B>
@@ -85,6 +92,15 @@ protected:
     setMinFloat_("ratio", 1);
     registerDoubleOption_("absdiff", "<double>", 0, "acceptable absolute difference. Only one of 'ratio' or 'absdiff' has to be satisfied. ", false, false);
     setMinFloat_("absdiff", 0);
+    addEmptyLine_();
+
+    registerIntOption_("min_rows", "<int>", -1,
+                       "require every input to hold at least this many rows ('-1' does not check). "
+                       "A schema check alone is satisfied by an empty table, so this is what "
+                       "distinguishes 'the tool wrote a correct table' from 'the tool wrote a "
+                       "correctly shaped nothing'. '0' is accepted and always passes: use it to "
+                       "record that a table is expected to be empty.", false, false);
+    setMinInt_("min_rows", -1);
     addEmptyLine_();
 
     registerStringList_("ignore", "<string list>", ListUtils::create<std::string>(""),
@@ -147,6 +163,26 @@ protected:
       ? ParquetTableComparator::compare(in1, in2, settings)
       : ParquetTableComparator::validate(in1, view, settings);
 
+    // Row-count floor. Deliberately independent of 'equal': two empty tables compare equal, and an
+    // empty table satisfies any schema, so neither mode notices that the producer wrote nothing.
+    const int min_rows = getIntOption_("min_rows");
+    bool too_few_rows = false;
+    if (min_rows >= 0)
+    {
+      const auto report = [&](const std::string& file, Size rows)
+      {
+        if (static_cast<Int64>(rows) >= min_rows) { return; }
+        too_few_rows = true;
+        if (verbose >= 1)
+        {
+          std::cout << "Row count: '" << file << "' holds " << rows << " row(s), at least "
+                    << min_rows << " required" << std::endl;
+        }
+      };
+      report(in1, result.rows_1);
+      if (view.empty()) { report(in2, result.rows_2); }
+    }
+
     if (!result.equal || verbose >= 2)
     {
       printSection_(verbose, "Schema differences", result.schema_errors);
@@ -178,10 +214,11 @@ protected:
         std::cout << "  " << result.suppressed
                   << " further difference(s) not shown (see 'max_reported')" << std::endl;
       }
-      std::cout << (result.equal ? "  RESULT: equal" : "  RESULT: differ") << std::endl;
+      std::cout << ((result.equal && !too_few_rows) ? "  RESULT: equal" : "  RESULT: differ")
+                << std::endl;
     }
 
-    return result.equal ? EXECUTION_OK : INCOMPATIBLE_INPUT_DATA;
+    return (result.equal && !too_few_rows) ? EXECUTION_OK : INCOMPATIBLE_INPUT_DATA;
   }
 
 };
