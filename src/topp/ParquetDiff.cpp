@@ -43,6 +43,12 @@ With 'schema' the tool takes a single input and checks it against the built-in Q
 that view instead of comparing two files; this reports missing or extra columns, wrong Arrow
 types, wrong nullability, and duplicate primary keys.
 
+With 'out_tsv' the tool takes a single input and, instead of comparing or validating, writes
+'in1' out as TSV sorted by primary key (file order when no key can be derived). A committed
+Parquet reference can only be regenerated wholesale, which hides unrelated drift; the TSV dump
+can be reviewed in a pull request and patched line by line, and is compared against a committed
+reference with @ref TOPP_FuzzyDiff like any other text reference in the test suite.
+
 'min_rows' requires every input to hold at least that many rows, and is checked in both modes.
 It closes a gap neither of them covers: two empty tables compare equal, and an empty table
 satisfies any schema, so a producer that wrote a correctly shaped nothing passes both. Combining
