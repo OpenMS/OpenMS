@@ -82,12 +82,15 @@ Peptides with the same sequence, but with different modifications are quantified
 
 By default one protein and peptide abundance is reported per assay. An assay is the experimental-design pair @c (fraction_group, @c label): it spans every fraction file of that fraction group at that label, and its reported value aggregates over those files. Columns are named @c abundance_fgroupF_labelL, where F is the design's Fraction_Group and L its Label. The SampleSection remains metadata and may group several assays as technical or biological replicates; ProteinQuantifier does not sum those replicates.
 
-With @p file_and_channel_level_output the protein abundances are instead reported per (file, channel) cell. These cells are computed with the same peptide-level policy as the assay values (all peptidoforms are accumulated into one peptide; all charge states contribute by default, or only each peptidoform's selected charge with @p best_charge_and_fraction), but the peptide selection and the aggregation are applied <em>per file</em>. Two consequences are worth knowing:
+How the fractions of a group are combined into its assay values is controlled by @p fractions:aggregate. The default @p sum adds them up, treating them as the parts of one separated sample that they are. @p best instead keeps one fraction per peptide and fraction group and discards the rest: the fraction with the most labels at a positive abundance wins, ties are broken by the total of those abundances and then by the lower fraction number. The choice is made once for the whole fraction group and never per label - taking one channel from one fraction and another channel from a different fraction would mix physical aliquots and destroy the reporter-ion ratios that isobaric quantification consists of. Note that @p best reports a fraction of the material rather than all of it, which matters for LFQ, where the value is an absolute intensity, more than for isobaric data, where quantification is relative within a run and any single fraction preserves the ratios.
+
+With @p file_and_channel_level_output the protein abundances are instead reported per (file, channel) cell. These cells are computed with the same peptide-level policy as the assay values (all peptidoforms are accumulated into one peptide; all charge states contribute by default, or only each peptidoform's selected charge with @p best_charge), but the peptide selection and the aggregation are applied <em>per file</em>. Two consequences are worth knowing:
 
 - The cells only decompose the assay value exactly for @p top:N 0 together with @p top:aggregate @p sum. Top-N selection, @p median, @p mean and @p weighted_mean do not commute with aggregation across fractions, so for those settings the cells of an assay neither sum nor average to the assay value.
 - The @p top:N requirement ("at least N peptides") is likewise enforced per file, not per assay. In a fractionated experiment this is considerably stricter than the assay-level rule: a protein can easily have N peptides in an assay while no individual fraction contains N of them, in which case the protein is quantified at the assay level but <em>all</em> of its (file, channel) cells are reported as 0. Use @p top:N 0 (optionally with @p top:aggregate @p sum) or @p top:include_all if per-file values are wanted for such data.
+- @p fractions:aggregate does not apply to them. A (file, channel) cell is one fraction by definition, so every file is always reported, even under @p best where the assay value comes from a single fraction. The two granularities then describe the data at different completeness on purpose.
 
-With @p best_charge_and_fraction, one charge is selected globally for each modified peptide. Charges are ranked first by the number of distinct assays with a positive abundance and then, on a tie, by total abundance across all assays (an exact tie deterministically keeps the lower charge). Every observation of the selected charge is retained and summed over fractions within an assay; the detailed peptide output still reports all observed fraction and charge combinations. The same selected-charge policy is used for assay and file/channel protein quantities.
+With @p best_charge, one charge is selected globally for each modified peptide. Charges are ranked first by the number of distinct assays with a positive abundance and then, on a tie, by total abundance across all assays (an exact tie deterministically keeps the lower charge). Every observation of the selected charge is retained and then combined over the fractions of an assay according to @p fractions:aggregate; the detailed peptide output still reports all observed fraction and charge combinations. The same selected-charge policy is used for assay and file/channel protein quantities.
 
 The detailed @p peptide_out table that this flag produces has one row per (fraction, charge) and one abundance column per (file, channel) covering <em>every</em> file of the experimental design, so a row reports 0.0 for the files and channels its fraction does not cover. Without the flag, @p peptide_out instead writes one column per assay and one row per peptide, with @p fraction reported as "all".
 
@@ -129,11 +132,11 @@ The output files produced by this tool have a table format, with columns as desc
 - @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
 - @b abundance_fgroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
 
-<b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
+<b>Peptide output</b> (one peptide or - if @p best_charge is set - one charge state and fraction of a peptide per line):
 - @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
 - @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
 - @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
-- @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
+- @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge was set.
 - @b abundance_fgroupF_labelL: Computed peptide abundance for assay @c (F, @c L). If the charge in the preceding column is 0, this is the total abundance over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, the detailed table uses file/channel columns instead). For consensusXML input, the reported values are already normalized if @p consensus:normalize was set.
 
 <B>Protein quantification examples</B>
@@ -316,8 +319,8 @@ Different parameter combinations lead to different quantification scenarios, as 
 
 <B>Further considerations for parameter selection</B>
 
-With @p best_charge_and_fraction and the protein aggregation settings, there is a trade-off between comparability of protein abundances within an assay and of abundances for the same protein across different assays.\n
-Setting @p best_charge_and_fraction may increase reproducibility between assays, but will distort the proportions of protein abundances within an assay. The reason is that ionization properties vary between peptides, but should remain constant across assays. Filtering by charge state can help to reduce the impact of feature detection differences between assays.\n
+With @p best_charge and the protein aggregation settings, there is a trade-off between comparability of protein abundances within an assay and of abundances for the same protein across different assays.\n
+Setting @p best_charge may increase reproducibility between assays, but will distort the proportions of protein abundances within an assay. The reason is that ionization properties vary between peptides, but should remain constant across assays. Filtering by charge state can help to reduce the impact of feature detection differences between assays.\n
 For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some assays, the computed protein abundances for those assays may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across assays is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within an assay may become unproportional.
 
 */
@@ -404,7 +407,7 @@ protected:
   void writePeptideTable_(SVOutStream& out, const PeptideQuant& quant, const ExperimentalDesign& ed)
   {
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
-    const bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
+    const bool best_charge = algo_params_.getValue("best_charge") == "true";
     const UInt n_labels = (UInt)ed.getNumberOfLabels();
     const auto assay_keys = assayKeys_(ed);
 
@@ -422,7 +425,7 @@ protected:
 
     // write header:
     out << "peptide" << "protein" << "n_proteins" << "charge";
-    if (best_charge_and_fraction)
+    if (best_charge)
     {
       for (const auto& [fraction_group, fraction_to_filename] : design_group_fraction_filename)
       {
@@ -459,7 +462,7 @@ protected:
       }
       std::string protein = ListUtils::concatenate(accessions, "/");
 
-      if (best_charge_and_fraction)
+      if (best_charge)
       {
         // write individual abundances (one line for each charge state and fraction):
         for (auto const & fa : q.second.abundances) // loop over fractions
@@ -514,7 +517,7 @@ protected:
       else
       {
         // Write assay totals accumulated over fractions and either all charge states or the
-        // globally selected charge, depending on best_charge_and_fraction.
+        // globally selected charge, depending on best_charge.
         out << q.first.toString() << protein << accessions.size() << 0;
 
         for (const auto& [fraction_group, label] : assay_keys)
@@ -732,7 +735,14 @@ protected:
         }
       }
     }
-    relevant_params.push_back("best_charge_and_fraction"); // also for peptide output
+    relevant_params.push_back("best_charge"); // also for peptide output
+
+    // Only worth a line when it actually did something: the assay values of an unfractionated
+    // experiment are one fraction either way, and 'sum' is what every earlier version did.
+    if ((algo_params_.getValue("fractions:aggregate") != "sum") && (ed.getNumberOfFractions() > 1))
+    {
+      relevant_params.push_back("fractions:aggregate");
+    }
 
     if (assayKeys_(ed).size() > 1) // flags only for consensusXML input
     {
@@ -773,7 +783,7 @@ protected:
     // beside the detailed columns, where no sample number appears at all.
     const bool detailed_file_columns = proteins
       ? getStringOption_("file_and_channel_level_output") == "true"
-      : algo_params_.getValue("best_charge_and_fraction") == "true";
+      : algo_params_.getValue("best_charge") == "true";
     if (!detailed_file_columns)
     {
       // Keyed on the fraction group alone: every label of a group is carried by the same files, so

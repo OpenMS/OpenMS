@@ -32,7 +32,7 @@ using namespace std;
 namespace
 {
   PeptideAndProteinQuant makeNormalizedQuantifier(const std::vector<std::vector<double>>& intensities,
-                                                 bool best_charge_and_fraction = false)
+                                                 bool best_charge = false)
   {
     const Size n_channels = intensities.front().size();
 
@@ -87,7 +87,7 @@ namespace
     PeptideAndProteinQuant quantifier;
     Param p = quantifier.getParameters();
     p.setValue("consensus:normalize", "true");
-    if (best_charge_and_fraction) { p.setValue("best_charge_and_fraction", "true"); }
+    if (best_charge) { p.setValue("best_charge", "true"); }
     quantifier.setParameters(p);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
@@ -123,6 +123,124 @@ namespace
     row.sample = sample;
     row.sample_name = "S" + std::to_string(sample + 1);
     return row;
+  }
+
+  // Builds a FRACTIONATED isobaric ConsensusMap: one fraction group, several fraction files, several
+  // labels. `intensities[p][f][c]` is the reporter intensity of peptide p in fraction f, channel c;
+  // a NEGATIVE value means no sub-feature at all for that cell, as opposed to 0.0, which is the
+  // reporter IsobaricChannelExtractor writes when it found none. Every peptide maps to PROT_A.
+  PeptideAndProteinQuant makeFractionatedQuantifier(
+    const std::vector<std::vector<std::vector<double>>>& intensities,
+    const std::string& fractions_aggregate)
+  {
+    const Size n_fractions = intensities.front().size();
+    const Size n_channels = intensities.front().front().size();
+
+    ConsensusMap consensus;
+    consensus.setExperimentType("labeled_MS2");
+    // Column (f * n_channels + c) is fraction f at channel c.
+    for (Size f = 0; f < n_fractions; ++f)
+    {
+      for (Size c = 0; c < n_channels; ++c)
+      {
+        ConsensusMap::ColumnHeader h;
+        h.filename = "A_f" + std::to_string(f + 1) + ".mzML";
+        h.label = "ch" + std::to_string(c + 1);
+        h.setMetaValue("channel_id", (int)c); // label = channel_id + 1
+        consensus.getColumnHeaders()[f * n_channels + c] = h;
+      }
+    }
+
+    ProteinIdentification proteins;
+    proteins.setIdentifier("run");
+    ProteinHit protein_hit;
+    protein_hit.setAccession("PROT_A");
+    proteins.setHits({protein_hit});
+    ProteinIdentification::ProteinGroup group;
+    group.accessions = {"PROT_A"};
+    proteins.insertIndistinguishableProteins(group);
+    consensus.setProteinIdentifications({proteins});
+
+    for (Size p = 0; p < intensities.size(); ++p)
+    {
+      PeptideIdentification pid;
+      pid.setIdentifier("run");
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(std::string("PEPTIDE") + char('A' + p)));
+      hit.setCharge(2);
+      hit.setScore(1.0);
+      PeptideEvidence evidence;
+      evidence.setProteinAccession("PROT_A");
+      hit.setPeptideEvidences({evidence});
+      pid.setHits({hit});
+
+      // One consensus feature per (peptide, fraction): a peptide's fractions are separate LC-MS
+      // runs and are never linked into one feature.
+      for (Size f = 0; f < n_fractions; ++f)
+      {
+        ConsensusFeature cf;
+        bool any = false;
+        for (Size c = 0; c < n_channels; ++c)
+        {
+          if (intensities[p][f][c] < 0.0) { continue; } // cell not observed at all
+          Peak2D peak;
+          peak.setIntensity(intensities[p][f][c]);
+          peak.setRT(1.0 + p);
+          peak.setMZ(400.0 + p);
+          cf.insert(f * n_channels + c, peak, f * n_channels + c);
+          any = true;
+        }
+        if (!any) { continue; }
+        cf.setPeptideIdentifications({pid});
+        consensus.push_back(cf);
+      }
+    }
+
+    ExperimentalDesign::MSFileSection fs;
+    for (Size f = 0; f < n_fractions; ++f)
+    {
+      for (Size c = 0; c < n_channels; ++c)
+      {
+        ExperimentalDesign::MSFileSectionEntry r;
+        r.path = "/tmp/A_f" + std::to_string(f + 1) + ".mzML";
+        r.label = c + 1;
+        r.fraction = f + 1;
+        r.fraction_group = 1; // all fractions belong to ONE group - that is what fractionation is
+        r.sample = c;
+        r.sample_name = "S" + std::to_string(c + 1);
+        fs.push_back(r);
+      }
+    }
+    ExperimentalDesign::SampleSection ss;
+    for (Size c = 0; c < n_channels; ++c) { ss.addSample("S" + std::to_string(c + 1)); }
+    ExperimentalDesign design(fs, ss);
+
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("fractions:aggregate", fractions_aggregate);
+    p.setValue("top:N", 0);              // every peptide contributes
+    p.setValue("top:aggregate", "sum");  // so a protein is exactly the sum of its peptides
+    p.setValue("top:include_all", "true");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins(proteins);
+    return quantifier;
+  }
+
+  /// Abundances of one peptide in fraction group 1, by label. Absent labels are reported as -1.
+  std::vector<double> assayAbundances(const PeptideAndProteinQuant::FractionGroupAbundances& abundances,
+                                      const std::vector<UInt>& labels)
+  {
+    std::vector<double> out;
+    const auto group_it = abundances.find(1);
+    for (UInt label : labels)
+    {
+      if (group_it == abundances.end()) { out.push_back(-1.0); continue; }
+      const auto label_it = group_it->second.find(label);
+      out.push_back(label_it == group_it->second.end() ? -1.0 : label_it->second);
+    }
+    return out;
   }
 
   // Use the setters deliberately: these malformed designs must reach PeptideAndProteinQuant's
@@ -508,6 +626,190 @@ START_SECTION(([EXTRA] fraction-group/label quantities remain distinct and omit 
   TEST_EQUAL(integer_arrays[2][1], 2)
   TEST_EQUAL(integer_arrays[3][0], 1)
   TEST_EQUAL(integer_arrays[3][1], 1)
+}
+END_SECTION
+
+// One fraction group, two fractions, three channels. Each peptide probes one aspect of
+// 'fractions:aggregate'; the values are chosen so that 'sum' and 'best' cannot be confused, and so
+// that a per-CHANNEL choice of fraction would give a visibly different answer from the per-fraction
+// one that isobaric data requires.
+//
+//            fraction 1                fraction 2
+// PEPTIDEA   500  400    0             900    0    0     prevalence beats intensity
+// PEPTIDEB   100  100    0             300  300    0     equal prevalence -> higher total
+// PEPTIDEC    60   40    0              40   60    0     equal prevalence and total -> lower fraction
+// PEPTIDED   500  400   (-)            (-)  (-)  700     a label seen only in the discarded fraction
+const std::vector<std::vector<std::vector<double>>> fractionated_intensities = {
+  {{500.0, 400.0, 0.0}, {900.0, 0.0, 0.0}},
+  {{100.0, 100.0, 0.0}, {300.0, 300.0, 0.0}},
+  {{ 60.0,  40.0, 0.0}, { 40.0, 60.0, 0.0}},
+  {{500.0, 400.0, -1.0}, {-1.0, -1.0, 700.0}}};
+
+START_SECTION(([EXTRA] fractions:aggregate 'sum' adds every fraction of a fraction group))
+{
+  PeptideAndProteinQuant quantifier = makeFractionatedQuantifier(fractionated_intensities, "sum");
+  const auto& pep_quant = quantifier.getPeptideResults();
+  const std::vector<UInt> labels = {1, 2, 3};
+
+  std::vector<double> a = assayAbundances(
+    pep_quant.at(AASequence::fromString("PEPTIDEA")).fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(a[0], 1400.0) // 500 + 900
+  TEST_REAL_SIMILAR(a[1], 400.0)
+  TEST_REAL_SIMILAR(a[2], 0.0)
+
+  std::vector<double> d = assayAbundances(
+    pep_quant.at(AASequence::fromString("PEPTIDED")).fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(d[0], 500.0)
+  TEST_REAL_SIMILAR(d[1], 400.0)
+  TEST_REAL_SIMILAR(d[2], 700.0) // contributed by fraction 2 alone
+
+  // protein = sum over its peptides, per assay ('top:N' 0, 'top:aggregate' sum)
+  std::vector<double> prot = assayAbundances(
+    quantifier.getProteinResults().at("PROT_A").fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(prot[0], 2400.0) // 1400 + 400 + 100 + 500
+  TEST_REAL_SIMILAR(prot[1], 1300.0) // 400 + 400 + 100 + 400
+  TEST_REAL_SIMILAR(prot[2], 700.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fractions:aggregate 'best' keeps one fraction per peptide, with all its labels))
+{
+  PeptideAndProteinQuant quantifier = makeFractionatedQuantifier(fractionated_intensities, "best");
+  const auto& pep_quant = quantifier.getPeptideResults();
+  const std::vector<UInt> labels = {1, 2, 3};
+
+  // Fraction 1 has two labels with signal against fraction 2's one, although both total 900.
+  // Prevalence wins, so the whole of fraction 1 is kept - including its channel 1 value of 500.
+  // Choosing per channel instead would have taken 900 from fraction 2 for channel 1 and 400 from
+  // fraction 1 for channel 2, mixing two physical aliquots and changing the reporter ratio from
+  // 500:400 to 900:400. That is the failure this section exists to catch.
+  std::vector<double> a = assayAbundances(
+    pep_quant.at(AASequence::fromString("PEPTIDEA")).fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(a[0], 500.0)
+  TEST_REAL_SIMILAR(a[1], 400.0)
+  TEST_REAL_SIMILAR(a[2], 0.0)
+
+  // Equal prevalence (two labels each), so the higher total decides: fraction 2 with 600 over 200.
+  std::vector<double> b = assayAbundances(
+    pep_quant.at(AASequence::fromString("PEPTIDEB")).fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(b[0], 300.0)
+  TEST_REAL_SIMILAR(b[1], 300.0)
+  TEST_REAL_SIMILAR(b[2], 0.0)
+
+  // Equal prevalence AND equal total (100 each): the lower fraction number wins deterministically,
+  // which the swapped 60/40 makes observable.
+  std::vector<double> c = assayAbundances(
+    pep_quant.at(AASequence::fromString("PEPTIDEC")).fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(c[0], 60.0)
+  TEST_REAL_SIMILAR(c[1], 40.0)
+  TEST_REAL_SIMILAR(c[2], 0.0)
+
+  // Channel 3 exists ONLY in the discarded fraction 2. Its cell must survive as an explicit 0.0
+  // ("not detected") rather than disappearing, so that 'best' and 'sum' report the same assays and
+  // downstream code cannot mistake a discarded measurement for a peptide that never reached the cell.
+  std::vector<double> d = assayAbundances(
+    pep_quant.at(AASequence::fromString("PEPTIDED")).fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(d[0], 500.0)
+  TEST_REAL_SIMILAR(d[1], 400.0)
+  TEST_REAL_SIMILAR(d[2], 0.0)
+  TEST_EQUAL(pep_quant.at(AASequence::fromString("PEPTIDED")).fraction_group_abundances.at(1).size(), 3)
+
+  std::vector<double> prot = assayAbundances(
+    quantifier.getProteinResults().at("PROT_A").fraction_group_abundances, labels);
+  TEST_REAL_SIMILAR(prot[0], 1360.0) // 500 + 300 + 60 + 500
+  TEST_REAL_SIMILAR(prot[1], 1140.0) // 400 + 300 + 40 + 400
+  TEST_REAL_SIMILAR(prot[2], 0.0)    // every peptide undetected here once fraction 2 is discarded
+}
+END_SECTION
+
+START_SECTION(([EXTRA] best_charge picks the charge first, fractions:aggregate then picks among its fractions))
+{
+  // One fraction group, two fractions, one label. PEPTIDEK is seen as charge 3 in fraction 1 (900)
+  // and as both charge 2 (800) and charge 3 (300) in fraction 2.
+  //
+  // The documented order is charge first: charge 3 totals 1200 against charge 2's 800 and wins, and
+  // 'best' then ranks only ITS fractions - 900 in fraction 1 against 300 in fraction 2 - so
+  // fraction 1 survives and the peptide reports 900. Selecting the fraction first would instead
+  // compare the all-charge totals, 900 against 1100, keep fraction 2, and report 300.
+  ConsensusMap consensus;
+  consensus.setExperimentType("label-free");
+  for (Size i = 0; i < 2; ++i)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = (i == 0) ? "/data/frac1.mzML" : "/data/frac2.mzML";
+    header.label = "label-free";
+    consensus.getColumnHeaders()[i] = header;
+  }
+
+  auto add_feature = [&consensus](Size column, double intensity, Int charge)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("run");
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setCharge(charge);
+    hit.setScore(1.0);
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("PROT_A");
+    hit.setPeptideEvidences({evidence});
+    pid.setHits({hit});
+
+    ConsensusFeature feature;
+    BaseFeature handle;
+    handle.setIntensity(intensity);
+    feature.insert(column, handle);
+    feature.setPeptideIdentifications({pid});
+    consensus.push_back(feature);
+  };
+  add_feature(0, 900.0, 3); // fraction 1
+  add_feature(1, 800.0, 2); // fraction 2
+  add_feature(1, 300.0, 3); // fraction 2
+
+  ExperimentalDesign::MSFileSection files;
+  for (Size i = 0; i < 2; ++i)
+  {
+    ExperimentalDesign::MSFileSectionEntry entry;
+    entry.path = (i == 0) ? "/data/frac1.mzML" : "/data/frac2.mzML";
+    entry.label = 1;
+    entry.fraction = static_cast<UInt>(i) + 1;
+    entry.fraction_group = 1;
+    entry.sample = 0;
+    entry.sample_name = "S1";
+    files.push_back(entry);
+  }
+  ExperimentalDesign::SampleSection samples;
+  samples.addSample("S1");
+  ExperimentalDesign design(files, samples);
+
+  auto quantify = [&consensus, &design](const std::string& fractions_aggregate)
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getParameters();
+    p.setValue("best_charge", "true");
+    p.setValue("fractions:aggregate", fractions_aggregate);
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    return quantifier.getPeptideResults()
+      .at(AASequence::fromString("PEPTIDEK")).fraction_group_abundances.at(1).at(1);
+  };
+
+  TEST_REAL_SIMILAR(quantify("best"), 900.0) // charge 3 of fraction 1, NOT 300
+  TEST_REAL_SIMILAR(quantify("sum"), 1200.0) // charge 3 of both fractions; charge 2's 800 excluded
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fractions:aggregate leaves the per-(file, channel) quantities alone))
+{
+  // A (file, channel) cell IS one fraction, so 'best' has nothing to select there. Every fraction
+  // file keeps reporting its own measurement even when the assay value comes from just one of them.
+  PeptideAndProteinQuant quantifier = makeFractionatedQuantifier(fractionated_intensities, "best");
+  const auto& channel_level = quantifier.getProteinResults().at("PROT_A").channel_level_abundances;
+
+  TEST_EQUAL(channel_level.size(), 2) // both fraction files present
+  TEST_REAL_SIMILAR(channel_level.at("A_f1").at(1), 1160.0) // 500 + 100 + 60 + 500
+  TEST_REAL_SIMILAR(channel_level.at("A_f2").at(1), 1240.0) // 900 + 300 + 40, fraction discarded above
+  TEST_REAL_SIMILAR(channel_level.at("A_f2").at(3), 700.0)  // still reported, unlike the assay
 }
 END_SECTION
 
@@ -919,7 +1221,7 @@ START_SECTION(([EXTRA] normalization: best charge retains every assay before sca
   // each peptide being visible. Per-assay medians are 55, 110, 45, 55; their median is 55.
   PeptideAndProteinQuant q = makeNormalizedQuantifier({{100, 20, 30, 40},
                                                        {10, 200, 60, 70}},
-                                                      /*best_charge_and_fraction=*/true);
+                                                      /*best_charge=*/true);
 
   const auto& pep_quant = q.getPeptideResults();
   const auto& p1_groups = pep_quant.at(AASequence::fromString("PEPTIDEA")).fraction_group_abundances;
@@ -967,7 +1269,7 @@ END_SECTION
 // peptide-level policy as ProteinData::fraction_group_abundances, which is computed from
 // the peptidoform-merged ProteinData::peptide_fraction_group_abundances:
 //   - all peptidoforms of an unmodified sequence are summed into one peptide,
-//   - all charge states are summed by default; with 'best_charge_and_fraction',
+//   - all charge states are summed by default; with 'best_charge',
 //     only the globally selected charge of each peptidoform contributes,
 //   - "top:N" therefore counts peptides, not peptidoforms and not charge states,
 //   - a (file, channel) cell that does not reach "top:N" peptides is absent,
@@ -1127,7 +1429,7 @@ auto make_fractionated_input = [](const vector<std::string>& files,
   design = ExperimentalDesign(fs, ss);
 };
 
-START_SECTION(([EXTRA] best_charge_and_fraction selects by assay prevalence and retains all selected-charge cells))
+START_SECTION(([EXTRA] best_charge selects by assay prevalence and retains all selected-charge cells))
 {
   // Charge 2 is quantified in two distinct assays (channels 1 and 2), whereas the much
   // more abundant charge 3 occurs in only one (channel 3). The two fraction observations
@@ -1145,7 +1447,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects by assay prevalence and 
 
   PeptideAndProteinQuant quantifier;
   Param p = quantifier.getDefaults();
-  p.setValue("best_charge_and_fraction", "true");
+  p.setValue("best_charge", "true");
   p.setValue("top:N", 0);
   p.setValue("top:aggregate", "sum");
   p.setValue("top:include_all", "true");
@@ -1198,7 +1500,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects by assay prevalence and 
 }
 END_SECTION
 
-START_SECTION(([EXTRA] best_charge_and_fraction breaks equal-prevalence ties by total abundance))
+START_SECTION(([EXTRA] best_charge breaks equal-prevalence ties by total abundance))
 {
   // Both charge states occur in both assays. For PEPTIDEK, charge 3 has the larger total
   // abundance and must be retained in both assays; selection must not collapse to its largest
@@ -1218,7 +1520,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction breaks equal-prevalence ties by 
 
   PeptideAndProteinQuant quantifier;
   Param p = quantifier.getDefaults();
-  p.setValue("best_charge_and_fraction", "true");
+  p.setValue("best_charge", "true");
   p.setValue("top:N", 0);
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);
@@ -1241,7 +1543,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction breaks equal-prevalence ties by 
 }
 END_SECTION
 
-START_SECTION(([EXTRA] best_charge_and_fraction selects a charge independently for each peptidoform))
+START_SECTION(([EXTRA] best_charge selects a charge independently for each peptidoform))
 {
   // The unmodified peptidoform selects charge 3 (100 > 10), while its oxidized form selects
   // charge 2 (90 > 1). Protein-level assay and file/channel values must merge the two selected
@@ -1257,7 +1559,7 @@ START_SECTION(([EXTRA] best_charge_and_fraction selects a charge independently f
 
   PeptideAndProteinQuant quantifier;
   Param p = quantifier.getDefaults();
-  p.setValue("best_charge_and_fraction", "true");
+  p.setValue("best_charge", "true");
   p.setValue("top:N", 0);
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);

@@ -238,7 +238,7 @@ private:
     /// Peptide quantification data
     PeptideQuant pep_quant_;
 
-    /// Charge selected per modified peptide when @p best_charge_and_fraction is enabled.
+    /// Charge selected per modified peptide when @p best_charge is enabled.
     /// Kept separately so detailed peptide output can retain all observed charge states.
     std::map<AASequence, Int> best_charge_by_peptidoform_;
 
@@ -299,6 +299,39 @@ private:
     bool getBestCharge_(
       const std::map<Int, std::map<std::string, std::map<Int, std::map<UInt, double>>>>& peptide_abundances,
       Int& best_charge) const;
+
+    /// Mapping: fraction group -> fraction -> label/channel -> abundance
+    typedef std::map<UInt, std::map<Int, std::map<UInt, double>>> FractionGroupFractionAbundances;
+
+    /**
+         @brief Select the fraction to keep for one fraction group, see 'fractions:aggregate' 'best'.
+
+         Ranked by the number of labels with a positive abundance, then by the total of those
+         abundances. An exact tie keeps the lowest fraction number. The choice is made for the
+         fraction group as a whole and never per label: taking one channel from one fraction and
+         another channel from a different fraction would mix physical aliquots and destroy the
+         reporter-ion ratios that isobaric quantification consists of.
+
+         @param[in] fraction_abundances Mapping fraction -> label -> abundance of one fraction group
+         @return Key of the winning fraction
+         @exception Exception::InvalidValue if @p fraction_abundances is empty
+    */
+    static Int selectBestFraction_(const std::map<Int, std::map<UInt, double>>& fraction_abundances);
+
+    /**
+         @brief Combine the fractions of every fraction group into assay abundances.
+
+         Applies 'fractions:aggregate': 'sum' adds all fractions up, 'best' keeps the single
+         fraction chosen by selectBestFraction_() and discards the others. Either way every label
+         observed in @em any fraction of a group becomes a cell of that group's assays, so that the
+         two settings produce the same set of keys and a label seen only in a discarded fraction
+         reports "not detected" rather than disappearing.
+
+         @param[in] fraction_abundances Mapping fraction group -> fraction -> label -> abundance
+         @param[out] assay_abundances Mapping fraction group -> label -> abundance
+    */
+    void collapseFractions_(const FractionGroupFractionAbundances& fraction_abundances,
+                            FractionGroupAbundances& assay_abundances) const;
 
     /**
          @brief Number of assays in which @p abundances is actually quantified
