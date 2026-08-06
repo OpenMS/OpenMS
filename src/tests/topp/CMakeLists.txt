@@ -4064,6 +4064,61 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
     -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 28)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
+# Requesting an MSstats or Triqler file must not change any other output.
+# It used to: a median scaling ran over the consensus features unless -out_msstats or -out_triqler
+# was given, so the very same input written to the same -out_qpx directory held normalized or raw
+# intensities depending on whether an unrelated output file had been asked for -- and neither the
+# Parquet nor the mzTab recorded which. On this design the two differed by a median factor of 5.3
+# and a maximum of 12.0. ProteomicsLFQ no longer normalizes at all, and this test is what stops a
+# flag from quietly acquiring the second meaning "and rescale everything" again.
+# Same invocation as TOPP_ProteomicsLFQ_qpx above, plus the two exporters.
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_flags_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir)
+  add_test("TOPP_ProteomicsLFQ_qpx_flags" ${TOPP_BIN_PATH}/ProteomicsLFQ
+           -in
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+           -ids
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+           -design
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+           -Alignment:align_algorithm:max_rt_shift 0
+           -fasta
+           ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+           -targeted_only true
+           -mass_recalibration false
+           -out ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab
+           -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir
+           -out_msstats ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.csv
+           -out_triqler ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.tsv
+           -threads 1
+           -proteinFDR 0.3
+           -test
+           )
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_flags_clean")
+  # Exact comparison on purpose: the two runs perform the same computation, so any tolerance here
+  # would be tolerance for a transform that is not supposed to exist.
+  add_test("TOPP_ProteomicsLFQ_qpx_flags_feature" ${TOPP_BIN_PATH}/ParquetDiff
+           -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.feature.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_feature" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
+  add_test("TOPP_ProteomicsLFQ_qpx_flags_pg" ${TOPP_BIN_PATH}/ParquetDiff
+           -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.pg.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
+  # mzTab is the other value-compared surface, and unlike the Parquet views it has a reference here.
+  add_test("TOPP_ProteomicsLFQ_qpx_flags_mztab" ${DIFF}
+           -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value"
+           -in1 ${TESTS_TEMP_DIR}/BSA_qpx.tmp.mzTab
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_mztab" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
+
 # QPX Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
 # The test above runs -targeted_only true, whose consensus features are all identified: 0 of its 60
 # feature rows are unmapped. Seeding makes unmapped features the majority -- 210 of 298 rows here --
