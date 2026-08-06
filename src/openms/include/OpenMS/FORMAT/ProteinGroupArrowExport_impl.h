@@ -380,8 +380,18 @@ inline std::string validateQuantificationAnnotations(
          + " samples, so the design does not belong to this quantification";
   }
 
-  const bool quantified = quantities.present;
+  // A group carrying only the removed sample-level "abundances" array was quantified, by a version
+  // of OpenMS that wrote a grain this one can no longer interpret. Refuse it rather than treating
+  // it as identification-only: that would put the protein in the pg view with a null intensity,
+  // which is indistinguishable from "not quantified" and would hand back a complete-looking
+  // collection with no quantities in it, exit code 0. Re-quantify the map instead.
+  const bool quantified = sample_abundances != nullptr || quantities.present;
   if (!quantified) { return {}; }
+  if (!quantities.present)
+  {
+    return "carries only the legacy sample-level abundances of an older OpenMS; the QPX "
+           "quantification unit is (fraction group, label), so this map has to be re-quantified";
+  }
   if (units.empty())
   {
     return "carries fraction-group abundances, but the experimental design yields no matching "
