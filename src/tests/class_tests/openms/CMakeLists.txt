@@ -250,6 +250,14 @@ if (TARGET ArrowIOHelpers_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+# Builds its fixture tables with arrow::*Builder rather than through an exporter, so it needs
+# Arrow itself, not just what OpenMS re-exports -- the same reason QPXValueValidation_test does.
+if (TARGET ParquetTableComparator_test)
+  target_link_libraries(ParquetTableComparator_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 if (TARGET ParquetFile_test)
   target_link_libraries(ParquetFile_test
     ${OPENMS_ARROW_TARGET}

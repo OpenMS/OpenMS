@@ -72,6 +72,7 @@ ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
+ParquetTableComparator.cpp
 PEFFFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp

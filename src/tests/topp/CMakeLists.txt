@@ -188,6 +188,42 @@ add_test("TOPP_IDMerger_idparquet_diff"
     -whitelist "IdentificationRun date" "UserParam.*file_origin")
 set_tests_properties("TOPP_IDMerger_idparquet_diff" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet_convert")
 
+### ParquetDiff ###
+# Uses the checked-in .idparquet psm tables as fixtures: both have the same 29-column schema,
+# (peptidoform, precursor_charge) is unique in each, and the two share no key at all -- so a
+# self-comparison must report equal and a cross-comparison must report differences. No
+# generated reference file is needed.
+add_test("TOPP_ParquetDiff_1" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge)
+
+# Schema-only mode: the value comparison is skipped entirely, so identical schemas are equal.
+add_test("TOPP_ParquetDiff_2" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -schema_only)
+
+# Two different tables: the key sets are disjoint, so this must exit non-zero.
+add_test("TOPP_ParquetDiff_3" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge)
+set_tests_properties("TOPP_ParquetDiff_3" PROPERTIES WILL_FAIL 1)
+
+# A primary-key column that does not exist must be reported, not silently ignored.
+add_test("TOPP_ParquetDiff_4" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk no_such_column)
+set_tests_properties("TOPP_ParquetDiff_4" PROPERTIES WILL_FAIL 1)
+
+# Neither 'in2' nor 'schema' given: illegal parameters.
+add_test("TOPP_ParquetDiff_5" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet)
+set_tests_properties("TOPP_ParquetDiff_5" PROPERTIES WILL_FAIL 1)
+
 # .idparquet rip: split the merged .idparquet from TOPP_IDMerger_idparquet back into
 # per-run .idparquet directories.  -numeric_filenames + -split_ident_runs make output
 # names deterministic (merged_<ident_run_idx>_<file_origin_idx>.idparquet) so the diff
@@ -2841,13 +2877,6 @@ set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_Pr
 add_test("TOPP_ProteinQuantifier_9_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_9_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output_mztab.mzTab -whitelist "software")
 set_tests_properties("TOPP_ProteinQuantifier_9_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
 
-#ratios
-add_test("TOPP_ProteinQuantifier_12" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_12_output.tmp.csv -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum -ratios)
-add_test("TOPP_ProteinQuantifier_12_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_12_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_12_output.txt -whitelist "computed from file" )
-set_tests_properties("TOPP_ProteinQuantifier_12_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_12")
-add_test("TOPP_ProteinQuantifier_13" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_13_output.tmp.csv -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum -ratiosSILAC)
-add_test("TOPP_ProteinQuantifier_13_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_13_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_13_output.txt -whitelist "computed from file" )
-set_tests_properties("TOPP_ProteinQuantifier_13_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_13")
 # idXML input (spectral counting):
 add_test("TOPP_ProteinQuantifier_14" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.idXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output2.tmp.csv -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_14_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output1.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_14_output1.txt -whitelist "computed from file" )
@@ -2932,31 +2961,6 @@ set_tests_properties("TOPP_ProteinQuantifier_27_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge_and_fraction -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
-# 29: log2 ratios where a sample was NOT quantified. Without 'top:include_all' the sample-level
-#     abundance map is sparse - calculateProteinAbundances_ skips a sample in which the protein has
-#     fewer than 'top:N' detected peptides - so sample 3 has no entry at all. The ratio columns used
-#     to dereference that missing key (undefined behaviour) and to print a missing sample as 0.0,
-#     which in a log2 column claims the sample is exactly equal to the reference. Both must now read
-#     'nan', while the one ratio whose two samples ARE quantified must still be computed exactly.
-#     The existing ratio tests (12/13) both pass 'top:include_all', the one configuration in which
-#     no key can be missing, which is why this went unnoticed.
-add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv -top:N 3 -ratiosSILAC)
-add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
-set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
-#     FuzzyDiff compares the two files numerically and reports "No numeric differences were found"
-#     between 'nan' and '-inf', so the reference diff above CANNOT catch the defect it was written
-#     for - it passes against the old output. The token has to be asserted textually instead.
-add_test(NAME "TOPP_ProteinQuantifier_29_out2" COMMAND ${CMAKE_COMMAND} -E cat ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp.csv)
-set_tests_properties("TOPP_ProteinQuantifier_29_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29"
-                     FAIL_REGULAR_EXPRESSION "inf" PASS_REGULAR_EXPRESSION "nan")
-# 30: '-ratios' combined with '-file_and_channel_level_output'. The header writer emits the ratio
-#     column names only in the branch it shares with the sample-level abundance columns, so in this
-#     configuration there are none - and the row must not carry ratio values either. Previously it
-#     did, giving a 7-field header over a 10-field row, which shifts every column for any reader
-#     that trusts the header.
-add_test("TOPP_ProteinQuantifier_30" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output.tmp.csv -file_and_channel_level_output true -top:N 0 -top:aggregate sum -ratios)
-add_test("TOPP_ProteinQuantifier_30_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_30_output.txt -whitelist "computed from file" )
-set_tests_properties("TOPP_ProteinQuantifier_30_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_30")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)

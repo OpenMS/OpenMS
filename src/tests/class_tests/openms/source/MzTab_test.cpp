@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 START_TEST(MzTab, "$Id$")
 
@@ -200,6 +201,104 @@ START_SECTION([EXTRA] MzTabBoolean setNull / isNull polarity)
   TEST_EQUAL(b.toCellString(), "null")
   b.setNull(false);
   TEST_EQUAL(b.isNull(), false)
+}
+END_SECTION
+
+START_SECTION([EXTRA] consensus-map assays use fraction-group/label grain and samples are study variables)
+{
+  ConsensusMap consensus_map;
+  consensus_map.setExperimentType("label-free");
+
+  // One sample owns two fraction groups. The first assay has two measured fractions.
+  const vector<string> paths{"sample_f1.mzML", "sample_f2.mzML", "sample_replicate.mzML"};
+  ConsensusMap::ColumnHeaders headers;
+  for (Size i = 0; i < paths.size(); ++i)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = paths[i];
+    header.label = "label-free";
+    header.setMetaValue("fraction_group", i < 2 ? 1 : 2);
+    header.setMetaValue("fraction", i < 2 ? i + 1 : 1);
+    header.setMetaValue("sample_name", "sample_A");
+    headers[i] = header;
+  }
+  consensus_map.setColumnHeaders(headers);
+
+  ConsensusFeature feature;
+  feature.insert(FeatureHandle(0, Peak2D({10.0, 500.0}, 2.0), 1));
+  feature.insert(FeatureHandle(1, Peak2D({11.0, 500.0}, 3.0), 2));
+  feature.insert(FeatureHandle(2, Peak2D({12.0, 500.0}, 7.0), 3));
+  consensus_map.push_back(feature);
+
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("run_0");
+  protein_id.setPrimaryMSRunPath(paths);
+  ProteinHit protein_hit;
+  protein_hit.setAccession("P1");
+  protein_id.setHits({protein_hit});
+
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"P1"};
+  group.getFloatDataArrays().resize(2);
+  group.getFloatDataArrays()[0].setName("abundances");
+  group.getFloatDataArrays()[0].push_back(30.0f);
+  group.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+  // Reverse the key order to verify matching through the parallel arrays, not by position.
+  group.getFloatDataArrays()[1].push_back(20.0f);
+  group.getFloatDataArrays()[1].push_back(10.0f);
+  group.getIntegerDataArrays().resize(2);
+  group.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+  group.getIntegerDataArrays()[0].push_back(2);
+  group.getIntegerDataArrays()[0].push_back(1);
+  group.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+  group.getIntegerDataArrays()[1].push_back(1);
+  group.getIntegerDataArrays()[1].push_back(1);
+  protein_id.insertIndistinguishableProteins(group);
+  consensus_map.setProteinIdentifications({protein_id});
+
+  const MzTab mz_tab = MzTab::exportConsensusMapToMzTab(
+    consensus_map,
+    "test.consensusXML",
+    /* first_run_inference_only */ false,
+    /* export_unidentified_features */ true,
+    /* export_unassigned_ids */ false,
+    /* export_subfeatures */ false);
+
+  const MzTabMetaData& meta = mz_tab.getMetaData();
+  TEST_EQUAL(meta.assay.size(), 2)
+  if (meta.assay.size() == 2)
+  {
+    TEST_EQUAL(meta.assay.at(1).ms_run_ref.size(), 2)
+    TEST_EQUAL(meta.assay.at(1).ms_run_ref[0], 1)
+    TEST_EQUAL(meta.assay.at(1).ms_run_ref[1], 2)
+    TEST_EQUAL(meta.assay.at(2).ms_run_ref.size(), 1)
+    TEST_EQUAL(meta.assay.at(2).ms_run_ref[0], 3)
+  }
+  TEST_EQUAL(meta.study_variable.size(), 1)
+  TEST_EQUAL(meta.study_variable.at(1).assay_refs.size(), 2)
+  if (meta.study_variable.at(1).assay_refs.size() == 2)
+  {
+    TEST_EQUAL(meta.study_variable.at(1).assay_refs[0], 1)
+    TEST_EQUAL(meta.study_variable.at(1).assay_refs[1], 2)
+  }
+
+  const MzTabProteinSectionRow& protein_row = mz_tab.getProteinSectionRows().back();
+  TEST_EQUAL(protein_row.protein_abundance_assay.size(), 2)
+  if (protein_row.protein_abundance_assay.size() == 2)
+  {
+    TEST_REAL_SIMILAR(protein_row.protein_abundance_assay.at(1).get(), 10.0)
+    TEST_REAL_SIMILAR(protein_row.protein_abundance_assay.at(2).get(), 20.0)
+  }
+  TEST_TRUE(protein_row.protein_abundance_study_variable.at(1).isNull())
+
+  const MzTabPeptideSectionRow& peptide_row = mz_tab.getPeptideSectionRows().front();
+  TEST_EQUAL(peptide_row.peptide_abundance_assay.size(), 2)
+  if (peptide_row.peptide_abundance_assay.size() == 2)
+  {
+    TEST_REAL_SIMILAR(peptide_row.peptide_abundance_assay.at(1).get(), 5.0)
+    TEST_REAL_SIMILAR(peptide_row.peptide_abundance_assay.at(2).get(), 7.0)
+  }
+  TEST_TRUE(peptide_row.peptide_abundance_study_variable.at(1).isNull())
 }
 END_SECTION
 
