@@ -780,6 +780,56 @@ START_SECTION(([EXTRA] annotateColumnHeaders - headers that collapse onto one de
 }
 END_SECTION
 
+START_SECTION(([EXTRA] getSampleName works whether the section came from a file or from addSample))
+{
+  // A parsed design file fills the content table and a column called "Sample"; a section built
+  // with addSample() - which is how fromConsensusMap() and fromIdentifications() build theirs -
+  // fills only the name->row store and pushes an empty content row. Reading only the column threw
+  // std::out_of_range for every inferred design.
+  ExperimentalDesign::SampleSection added;
+  added.addSample("BSA1");
+  added.addSample("BSA2");
+  TEST_STRING_EQUAL(added.getSampleName(0), "BSA1")
+  TEST_STRING_EQUAL(added.getSampleName(1), "BSA2")
+  TEST_EQUAL(added.getSampleRow("BSA2"), 1)
+
+  // The content-backed form keeps answering from the column, as before.
+  ExperimentalDesign::SampleSection from_file(
+    {{"S_a", "control"}, {"S_b", "treated"}},
+    {{"S_a", 0}, {"S_b", 1}},
+    {{"Sample", 0}, {"MSstats_Condition", 1}});
+  TEST_STRING_EQUAL(from_file.getSampleName(0), "S_a")
+  TEST_STRING_EQUAL(from_file.getSampleName(1), "S_b")
+
+  // Both report a missing row / unknown name as an OpenMS exception, not a bare std::out_of_range.
+  TEST_EXCEPTION(Exception::ElementNotFound, added.getSampleName(7))
+  TEST_EXCEPTION(Exception::ElementNotFound, added.getSampleRow("nope"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] an inferred design annotates sample_name onto consensus map headers))
+{
+  // Consequence of the above: fromConsensusMap() builds its sample section with addSample(), so
+  // annotateColumnHeaders() can now supply the name it previously had to drop.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeaders headers;
+  for (Size i = 0; i < 2; ++i)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = "/data/run_" + StringUtils::toStr(i) + ".mzML";
+    h.label = "label-free";
+    headers[i] = h;
+  }
+  cmap.setColumnHeaders(headers);
+
+  const ExperimentalDesign inferred = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(inferred.annotateColumnHeaders(cmap), 0)
+  TEST_TRUE(cmap.getColumnHeaders().at(0).metaValueExists("sample_name"))
+  TEST_TRUE(cmap.getColumnHeaders().at(1).metaValueExists("sample_name"))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] sample names that are not stringified row indices must not break the derived mappings))
 {
   // A Sample column holds a NAME. sdrf-pipelines writes 1-based numeric names ("1", "2"), and a

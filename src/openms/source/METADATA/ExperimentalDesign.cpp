@@ -82,12 +82,14 @@ namespace OpenMS
         auto sa = pl2s.find(key);
         if (sa != pl2s.end())
         {
-          // A design inferred by fromConsensusMap() has sample rows but no "Sample" COLUMN, so
-          // getSampleName() throws std::out_of_range on its internal column lookup. The name is
-          // optional decoration here -- fraction and fraction_group are what callers group on --
-          // so a design that cannot supply one must not cost them the annotation entirely.
+          // getSampleName() used to read only the "Sample" COLUMN of the content, which a design
+          // inferred by fromConsensusMap() does not have, so this threw and the name was dropped.
+          // It now falls back to the name->row store and answers for those designs too, which is
+          // why an inferred design annotates a sample_name where it previously annotated none.
+          // The catch stays as a backstop -- the name is optional decoration here, and fraction
+          // and fraction_group are what callers group on.
           try { header.setMetaValue("sample_name", getSampleSection().getSampleName(sa->second)); }
-          catch (const std::exception&) { /* no Sample column; fraction data above still stands */ }
+          catch (const std::exception&) { /* unnamed sample; fraction data above still stands */ }
         }
       }
       return unannotated;
@@ -199,12 +201,41 @@ namespace OpenMS
 
     std::string ExperimentalDesign::SampleSection::getSampleName(unsigned sample_row) const
     {
-      return content_.at(sample_row).at(columnname_to_columnindex_.at("Sample"));
+      // A sample name lives in two places, and which one is filled depends on how the section was
+      // built. A parsed design file fills the content table and knows a column called "Sample"; a
+      // section assembled with addSample() - which is how fromConsensusMap() and
+      // fromIdentifications() build theirs - fills only the name->row store and pushes an empty
+      // content row. Reading just the column therefore threw std::out_of_range for every inferred
+      // design, which callers worked around by catching it.
+      if (const auto col = columnname_to_columnindex_.find("Sample"); col != columnname_to_columnindex_.end()
+          && sample_row < content_.size() && col->second < content_[sample_row].size())
+      {
+        return content_[sample_row][col->second];
+      }
+
+      // The name->row store is populated by every construction path, so it answers when the
+      // content cannot. Linear because the map is keyed the other way round; sample sections are
+      // small, and callers needing this in bulk should invert the map once instead.
+      for (const auto& [name, row] : sample_to_rowindex_)
+      {
+        if (row == sample_row) { return name; }
+      }
+
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "No sample in row " + StringUtils::toStr(sample_row)
+                                       + " of the sample section (it holds "
+                                       + StringUtils::toStr(sample_to_rowindex_.size()) + " sample(s)).");
     }
 
     unsigned ExperimentalDesign::SampleSection::getSampleRow(const std::string& sample) const
     {
-      return sample_to_rowindex_.at(sample);
+      const auto it = sample_to_rowindex_.find(sample);
+      if (it == sample_to_rowindex_.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "The sample section has no sample named '" + sample + "'.");
+      }
+      return it->second;
     }
 
     ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
