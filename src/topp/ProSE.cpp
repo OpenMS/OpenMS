@@ -113,7 +113,7 @@ class ProSE :
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
-      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet.", false, true);
+      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet. The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
 
       registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
 
@@ -655,7 +655,7 @@ class ProSE :
           // Protein groups — independent of PSM result.
           const std::string qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
           auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
-          if (qpx_pg_table)
+          if (qpx_pg_table && qpx_pg_table->num_rows() > 0)
           {
             qpx_pg_tables.push_back(qpx_pg_table);
             if (!ProteinGroupArrowExport::exportToParquet(qpx_pg_table, qpx_pg_file))
@@ -663,6 +663,19 @@ class ProSE :
               OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << qpx_pg_file << endl;
               input_failed = true;
             }
+          }
+          else if (qpx_pg_table)
+          {
+            // No protein groups, so no pg file. Rows come only from getIndistinguishableProteins(),
+            // and ProSE infers proteins in just two places: single-file finalization, which needs
+            // 'FDR:protein' > 0 AND decoys, and the merged path, which needs '-out_merged' with more
+            // than one input. Identification-only runs open neither, so an empty table is the normal
+            // outcome rather than a failure. Writing it anyway produced a schema-valid file saying
+            // "no protein groups", which a consumer cannot tell apart from "inference ran and found
+            // none" - so the file is omitted and the reason logged instead.
+            OPENMS_LOG_INFO << "No protein groups inferred for " << in_file << " — not writing "
+                            << qpx_pg_file << ". Protein inference requires 'FDR:protein' > 0 with "
+                            << "decoys, or '-out_merged' with several inputs." << endl;
           }
           else
           {
@@ -785,7 +798,9 @@ class ProSE :
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
             qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", ParquetWriteConfig{}, psm_meta) && merged_ok;
         }
-        if (pg_meta)
+        // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
+        // an empty merged table would be indistinguishable from an inference that found nothing.
+        if (pg_meta && !qpx_pg_tables.empty())
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
             qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
