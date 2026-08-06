@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -862,6 +863,113 @@ namespace OpenMS
 
     result.equal = result.schema_errors.empty() && result.key_errors.empty();
     return result;
+  }
+
+  bool ParquetTableComparator::dumpToTsv(const std::string& file,
+                                         const std::string& out_file,
+                                         const ParquetDiffSettings& settings)
+  {
+    auto table = readTable_(file);
+    if (!table)
+    {
+      OPENMS_LOG_ERROR << "ParquetDiff: cannot dump '" << file << "'" << std::endl;
+      return false;
+    }
+
+    // Same key resolution as compare(): explicit setting first, then the file's own QPX file_type.
+    // An unkeyable file is still dumpable - it just keeps file order, which is worth saying out
+    // loud, because a reference built from it would then be sensitive to the producer's row order.
+    std::vector<std::string> key_columns = settings.primary_key;
+    if (key_columns.empty())
+    {
+      const std::string view = viewFromFileType(metadataValue_(table, "file_type"));
+      if (!view.empty()) { key_columns = qpxPrimaryKey(view); }
+      else
+      {
+        OPENMS_LOG_WARN << "ParquetDiff: '" << file << "' carries no recognised QPX 'file_type' "
+                        << "metadata and no 'pk' was given; dumping in file order, which makes the "
+                        << "output sensitive to how the producer ordered its rows." << std::endl;
+      }
+    }
+
+    const auto& schema = table->schema();
+    std::vector<int> key_idx;
+    for (const auto& k : key_columns)
+    {
+      const int i = schema->GetFieldIndex(k);
+      if (i < 0)
+      {
+        OPENMS_LOG_ERROR << "ParquetDiff: primary-key column '" << k << "' is not in '" << file
+                         << "'" << std::endl;
+        return false;
+      }
+      key_idx.push_back(i);
+    }
+
+    // (sort key, rendered row). The sort key reuses canonicalKey_, so list-valued key columns are
+    // canonicalised the same way the comparison canonicalises them and the two cannot disagree.
+    std::vector<std::pair<std::string, std::string>> rows;
+    rows.reserve(static_cast<size_t>(table->num_rows()));
+    for (int64_t r = 0; r < table->num_rows(); ++r)
+    {
+      std::string sort_key;
+      for (int i : key_idx)
+      {
+        bool ok = false;
+        auto scalar = cellAt_(table, i, r, ok);
+        bool key_ok = true;
+        sort_key += canonicalKey_(scalar, key_ok);
+      }
+
+      std::string line;
+      for (int c = 0; c < schema->num_fields(); ++c)
+      {
+        if (c != 0) { line += "\t"; }
+        bool ok = false;
+        auto scalar = cellAt_(table, c, r, ok);
+        // Tabs and newlines inside a value would break the one-row-per-line shape the text
+        // comparison relies on, so render them escaped rather than literally. The backslash has to
+        // be escaped FIRST and unconditionally: otherwise a value containing a literal backslash
+        // followed by 't' renders to the same bytes as a value containing an actual tab, and two
+        // genuinely different tables would compare equal - the exact failure this reference exists
+        // to rule out.
+        for (char ch : displayValue_(scalar))
+        {
+          if (ch == '\\') { line += "\\\\"; }
+          else if (ch == '\t') { line += "\\t"; }
+          else if (ch == '\n') { line += "\\n"; }
+          else if (ch == '\r') { line += "\\r"; }
+          else { line += ch; }
+        }
+      }
+      rows.emplace_back(std::move(sort_key), std::move(line));
+    }
+    if (!key_idx.empty())
+    {
+      std::stable_sort(rows.begin(), rows.end(),
+                       [](const auto& a, const auto& b) { return a.first < b.first; });
+    }
+
+    std::ofstream out(out_file.c_str());
+    if (!out)
+    {
+      OPENMS_LOG_ERROR << "ParquetDiff: cannot write '" << out_file << "'" << std::endl;
+      return false;
+    }
+    for (int c = 0; c < schema->num_fields(); ++c)
+    {
+      if (c != 0) { out << "\t"; }
+      out << schema->field(c)->name();
+    }
+    out << "\n";
+    for (const auto& row : rows) { out << row.second << "\n"; }
+    out.flush();
+    if (!out)
+    {
+      OPENMS_LOG_ERROR << "ParquetDiff: failed while writing '" << out_file << "'" << std::endl;
+      return false;
+    }
+    return true;
   }
 
 } // namespace OpenMS
