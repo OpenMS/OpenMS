@@ -80,7 +80,7 @@ Peptides with the same sequence, but with different modifications are quantified
 
 <B>Output granularity: assays vs. files and channels</B>
 
-By default one protein and peptide abundance is reported per assay. An assay is the experimental-design pair @c (fraction_group, @c label): it spans every fraction file of that fraction group at that label, and its reported value aggregates over those files. Columns are named @c abundance_fractiongroupF_labelL with the exact identifiers from the design. The SampleSection remains metadata and may group several assays as technical or biological replicates; ProteinQuantifier does not sum those replicates.
+By default one protein and peptide abundance is reported per assay. An assay is the experimental-design pair @c (fraction_group, @c label): it spans every fraction file of that fraction group at that label, and its reported value aggregates over those files. Columns are named @c abundance_fgroupF_labelL, where F is the design's Fraction_Group and L its Label. The SampleSection remains metadata and may group several assays as technical or biological replicates; ProteinQuantifier does not sum those replicates.
 
 With @p file_and_channel_level_output the protein abundances are instead reported per (file, channel) cell. These cells are computed with the same peptide-level policy as the assay values (all peptidoforms are accumulated into one peptide; all charge states contribute by default, or only each peptidoform's selected charge with @p best_charge_and_fraction), but the peptide selection and the aggregation are applied <em>per file</em>. Two consequences are worth knowing:
 
@@ -127,14 +127,14 @@ The output files produced by this tool have a table format, with columns as desc
 - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
 - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
 - @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
-- @b abundance_fractiongroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
+- @b abundance_fgroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
 
 <b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
 - @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
 - @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
 - @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
 - @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
-- @b abundance_fractiongroupF_labelL: Computed peptide abundance for assay @c (F, @c L). If the charge in the preceding column is 0, this is the total abundance over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, the detailed table uses file/channel columns instead). For consensusXML input, the reported values are already normalized if @p consensus:normalize was set.
+- @b abundance_fgroupF_labelL: Computed peptide abundance for assay @c (F, @c L). If the charge in the preceding column is 0, this is the total abundance over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, the detailed table uses file/channel columns instead). For consensusXML input, the reported values are already normalized if @p consensus:normalize was set.
 
 <B>Protein quantification examples</B>
 
@@ -439,7 +439,7 @@ protected:
     {
       for (const auto& [fraction_group, label] : assay_keys)
       {
-        out << "abundance_fractiongroup" + StringUtils::toStr(fraction_group)
+        out << "abundance_fgroup" + StringUtils::toStr(fraction_group)
              + "_label" + StringUtils::toStr(label);
       }
     }
@@ -568,7 +568,7 @@ protected:
     {
       for (const auto& [fraction_group, label] : assay_keys)
       {
-        out << "abundance_fractiongroup" + StringUtils::toStr(fraction_group)
+        out << "abundance_fgroup" + StringUtils::toStr(fraction_group)
              + "_label" + StringUtils::toStr(label);
       }
     }
@@ -762,12 +762,44 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    // No sample->file legend. Every column now names its own coordinates - the assay columns as
-    // 'abundance_fractiongroup<F>_label<L>', the detailed ones as 'abundance|<file>|ch<n>' - so a
-    // legend mapping sample numbers has nothing left to explain. It was also only ever printed
-    // alongside the detailed columns, where no sample number appears at all, and it kept one
-    // arbitrary file per sample, so a fractionated sample was represented by whichever of its
-    // fractions came last.
+    // Name the runs behind each assay column. The column states its (fraction group, label)
+    // coordinates, but those are only meaningful against a design - and when none was given they
+    // were invented from the consensus map, so the reader has no other way to learn that
+    // 'fgroup1_label1' means these files. The detailed columns already carry the file in
+    // their own name and need no legend.
+    //
+    // This replaces a sample-keyed legend that named ONE file per sample, so a fractionated sample
+    // was represented by whichever of its fractions came last, and that was only ever printed
+    // beside the detailed columns, where no sample number appears at all.
+    const bool detailed_file_columns = proteins
+      ? getStringOption_("file_and_channel_level_output") == "true"
+      : algo_params_.getValue("best_charge_and_fraction") == "true";
+    if (!detailed_file_columns)
+    {
+      // Keyed on the fraction group alone: every label of a group is carried by the same files, so
+      // listing per assay would repeat one file list once per channel - 24 copies of 12 filenames
+      // for a 2-plex-pair, 12-fraction TMT design.
+      // Fractions in fraction order, so a fractionated group reads as its elution series.
+      map<UInt, set<pair<unsigned, std::string>>> runs_by_group;
+      for (const auto& row : ed.getMSFileSection())
+      {
+        runs_by_group[row.fraction_group].emplace(row.fraction, File::stemName(row.path));
+      }
+      std::string desc;
+      for (const auto& [fraction_group, runs] : runs_by_group)
+      {
+        if (!desc.empty()) { desc += "; "; }
+        desc += "fgroup" + StringUtils::toStr(fraction_group) + ": ";
+        bool first = true;
+        for (const auto& [fraction, run] : runs)
+        {
+          if (!first) { desc += ", "; }
+          first = false;
+          desc += "'" + run + "'";
+        }
+      }
+      if (!desc.empty()) { out << "# Runs per fraction group: " + desc << nl; }
+    }
 
     out.modifyStrings(old);
   }
