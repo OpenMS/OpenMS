@@ -674,7 +674,7 @@ OpenMS Library:
       ProteinIdentification::ProteinGroup data arrays; previously ProteomicsLFQ -out_cxml and
       IsobaricWorkflow -out silently dropped them, so MzTabExporter on a stored consensusXML produced no
       protein abundances at all. Each non-empty data array is written as one typed UserParam list and
-      restored into the same positional layout
+      restored into the same positional layout (#9844)
     - TOPPExternalToolBase: tools that shell out to an external executable (search engine adapters, ...)
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
@@ -781,7 +781,7 @@ Fixes:
   - Fix: Parquet writers left a partial file behind when a write failed -- arrow::io::FileOutputStream::Open
     truncates the file up front, so a later failure leaves a fragment with no footer that reads as corrupt.
     ProteinIdentificationArrowIO, FeatureMapArrowIO, ConsensusMapArrowIO, ParquetFile::writeTable and the
-    QPX streaming writer now remove the incomplete output
+    QPX streaming writer now remove the incomplete output (#9862)
   - Fix: IDFilter::updateProteinGroups rebuilt each protein group from scratch, keeping only accessions and
     probability and discarding the data arrays, so any tool filtering after quantification (Epifany,
     ProteinInference, FalseDiscoveryRate, PercolatorAdapter, ProteomicsLFQ) threw the protein quantities
@@ -972,7 +972,7 @@ Build System:
     q-values and PEPs in [0,1], where FuzzyDiff.ini's 0.01 would delete the assertion (#9879)
   - Tests: FuzzyStringComparator accepted any numeric comparison in which either side was NaN, so a value
     regressing to NaN was invisible to all 778 FuzzyDiff comparisons and to TEST_FILE_EQUAL; non-finite pairs
-    are now decided explicitly
+    are now decided explicitly (#9859, #9861)
   - OpenMP SIMD: when the OpenMP runtime is absent (e.g. macOS without libomp), CMake falls back to
     -fopenmp-simd so `#pragma omp simd` still enables auto-vectorisation (#9267); OpenMP validation fails
     configuration if requested but not found (#8368)
