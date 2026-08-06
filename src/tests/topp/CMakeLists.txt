@@ -4150,6 +4150,40 @@ add_test("TOPP_ProteomicsLFQ_in_feat_qpx_psm" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/BSA_in_feat_qpx_dir/quantms.psm.parquet -schema psm -min_rows 44)
 set_tests_properties("TOPP_ProteomicsLFQ_in_feat_qpx_psm" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat")
 
+# -out_feat writes what -in_feat consumes: a split run must reproduce the single-shot run.
+# Feature detection is the expensive per-file step, so being able to run it separately (and in
+# parallel) and feed the result back is only useful if the two paths agree -- this asserts that they
+# do, on all three QPX views. ParquetDiff matches rows by primary key, which is what makes the
+# assertion possible at all: the mzTab PSM section of the two runs holds the same rows in a
+# different order, and consensus feature unique ids are drawn per run, so a positional text diff
+# would report differences that mean nothing.
+# 'ratio 1.01' rather than an exact comparison: writing a feature to featureXML and reading it back
+# is a decimal text round trip, which moves search engine scores in the last bit (6 values here,
+# absdiff ~1e-16). Verified that the comparison is live rather than vacuous: at the default exact
+# tolerance it reports exactly those 6 differences, at 1.01 none.
+add_test(NAME "TOPP_ProteomicsLFQ_out_feat_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
+  ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_a ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_b
+  ${TESTS_TEMP_DIR}/BSA_out_feat_1.tmp.featureXML ${TESTS_TEMP_DIR}/BSA_out_feat_2.tmp.featureXML)
+add_test("TOPP_ProteomicsLFQ_out_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_out_feat_a.tmp.mzTab -out_feat ${TESTS_TEMP_DIR}/BSA_out_feat_1.tmp.featureXML ${TESTS_TEMP_DIR}/BSA_out_feat_2.tmp.featureXML -out_qpx ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_a -threads 1 -proteinFDR 0.3 -test)
+set_tests_properties("TOPP_ProteomicsLFQ_out_feat" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_out_feat_clean")
+add_test("TOPP_ProteomicsLFQ_out_feat_roundtrip" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_out_feat_b.tmp.mzTab -in_feat ${TESTS_TEMP_DIR}/BSA_out_feat_1.tmp.featureXML ${TESTS_TEMP_DIR}/BSA_out_feat_2.tmp.featureXML -out_qpx ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_b -threads 1 -proteinFDR 0.3 -test)
+set_tests_properties("TOPP_ProteomicsLFQ_out_feat_roundtrip" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_out_feat")
+add_test("TOPP_ProteomicsLFQ_out_feat_pg" ${TOPP_BIN_PATH}/ParquetDiff -ratio 1.01
+  -in1 ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_a/quantms.pg.parquet
+  -in2 ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_b/quantms.pg.parquet)
+set_tests_properties("TOPP_ProteomicsLFQ_out_feat_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_out_feat_roundtrip")
+add_test("TOPP_ProteomicsLFQ_out_feat_psm" ${TOPP_BIN_PATH}/ParquetDiff -ratio 1.01
+  -in1 ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_a/quantms.psm.parquet
+  -in2 ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_b/quantms.psm.parquet)
+set_tests_properties("TOPP_ProteomicsLFQ_out_feat_psm" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_out_feat_roundtrip")
+# The feature view additionally asserts that the split reproduces the feature identities themselves:
+# its primary key contains rt and observed_mz, so a single differing feature shows up as unmatched
+# rows rather than as a value difference.
+add_test("TOPP_ProteomicsLFQ_out_feat_feature" ${TOPP_BIN_PATH}/ParquetDiff -ratio 1.01
+  -in1 ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_a/quantms.feature.parquet
+  -in2 ${TESTS_TEMP_DIR}/BSA_out_feat_qpx_b/quantms.feature.parquet)
+set_tests_properties("TOPP_ProteomicsLFQ_out_feat_feature" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_out_feat_roundtrip")
+
 # Mismatch between number of mzML and featureXML inputs must fail (1 mzML, 2 featureXMLs)
 add_test("TOPP_ProteomicsLFQ_in_feat_mismatch" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_mismatch.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
 set_tests_properties("TOPP_ProteomicsLFQ_in_feat_mismatch" PROPERTIES WILL_FAIL 1)

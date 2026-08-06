@@ -128,6 +128,30 @@ Biosaur2 defaults are tuned for ProteomicsLFQ (mini=500, minlh=3, pasefminlh=2).
 On HeLa 50ng 5-min timsTOF gradient: 34k seeds, 80% model fit success, 2,809
 peptides quantified (Spearman r=0.62 vs Sage LFQ), 75s runtime, 1.3 GB memory.
 
+Splitting feature detection from quantification: @n
+Feature detection is the expensive per-file part of the workflow and is independent between files,
+while alignment, linking, inference and quantification need all files at once. Writing the detected
+features with -out_feat and reading them back with -in_feat splits the run at exactly that seam,
+so the per-file half can be distributed:
+
+  1. Per file (in parallel): ProteomicsLFQ -in run1.mzML -ids run1.idXML -out_feat run1.featureXML ...
+  2. Once, over everything: ProteomicsLFQ -in run1.mzML run2.mzML -ids run1.idXML run2.idXML
+     -in_feat run1.featureXML run2.featureXML ...
+
+The second step never reads the mzML files - it skips centroiding, FWHM estimation, seeding and
+feature detection - but they must still be present, because the file list identifies the runs.
+-in_feat and -out_feat are positional: the i-th featureXML belongs to the i-th -in file.
+
+The featureXML must carry its identifications attached to features, which is what -out_feat and
+@ref TOPP_FeatureFinderIdentification produce; a featureXML from a feature finder that does not
+assign identifications yields features nothing is identified on. -mass_recalibration cannot be
+combined with -in_feat, since recalibration precedes feature detection.
+
+-out_feat also records the chromatographic FWHM the run measured, because it cannot be recomputed
+without the mzML and because it does more than size the feature detector: it also widens the
+retention time tolerance used when linking features across runs. A featureXML from another source
+does not carry it, which the tool warns about.
+
 Normalization: @n
   - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
     to the consensus features (using simple median scaling).
@@ -173,6 +197,12 @@ protected:
     ));
     registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
     setValidFormats_("in_feat", ListUtils::create<std::string>("featureXML"));
+    registerOutputFileList_("out_feat", "<files>", StringList(),
+      "Optional output featureXML files holding the features detected for each '-in' file, in the same order. "
+      "They are written in exactly the state '-in_feat' expects, so the per-file feature detection - the "
+      "expensive part - can be run separately (and in parallel) and its result fed back for alignment, "
+      "linking and quantification. Must match the number of '-in' files.", false, false);
+    setValidFormats_("out_feat", ListUtils::create<std::string>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
@@ -968,6 +998,7 @@ protected:
     const Size fraction = ms_files.first;
 
     const StringList in_feat_list = getStringList_("in_feat");
+    const StringList out_feat_list = getStringList_("out_feat");
     const StringList in_list = getStringList_("in");
 
     writeDebug_("Processing fraction number: " + StringUtils::toStr(fraction) + "\nFiles: ",  1);
@@ -1133,6 +1164,24 @@ protected:
         Size file_idx = static_cast<Size>(std::distance(in_list.begin(), it));
 
         FileHandler().loadFeatures(in_feat_list[file_idx], fm, {FileTypes::FEATUREXML}, log_type_);
+
+        // Recover the FWHM the producing run measured. It is not only a feature-detection setting:
+        // link_() sizes the linker's RT tolerance with it, so leaving it at 0 - which is what
+        // happens without this, since the mzML is never read here - links with a narrower window
+        // than the run that produced these features used. featureXML written by anything else does
+        // not carry it, hence the warning rather than a silent 0.
+        if (fm.metaValueExists(median_fwhm_meta_key_))
+        {
+          median_fwhm = static_cast<double>(fm.getMetaValue(median_fwhm_meta_key_));
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "Warning: '" << in_feat_list[file_idx] << "' does not record the "
+                          << "chromatographic FWHM (write it with ProteomicsLFQ '-out_feat'). "
+                          << "Feature linking will use a retention time tolerance that does not "
+                          << "account for peak width, which may differ from a run that performs its "
+                          << "own feature detection.\n";
+        }
 
         StringList run_paths;
         fm.getPrimaryMSRunPath(run_paths);
@@ -1423,6 +1472,24 @@ protected:
 
       feature_maps.emplace_back(std::move(fm));
 
+      // Hand the detected features out for reuse with '-in_feat', in the state that path expects:
+      // identifications attached to their features, the rest unassigned, primary MS run path set.
+      // The FWHM this run estimated from the mzML is stamped onto the map because it cannot be
+      // recomputed later - '-in_feat' never reads the mzML - and because it does more than size the
+      // feature detector: link_() derives the linker's RT tolerance from it. Without carrying it,
+      // a split run would link with a different tolerance than the single-shot run it reproduces.
+      if (! out_feat_list.empty())
+      {
+        const auto it = std::find(in_list.begin(), in_list.end(), mz_file);
+        if (it == in_list.end())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Current mzML file not found in the -in list.");
+        }
+        const Size out_idx = static_cast<Size>(std::distance(in_list.begin(), it));
+        feature_maps.back().setMetaValue(median_fwhm_meta_key_, median_fwhm);
+        FileHandler().storeFeatures(out_feat_list[out_idx], feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
+      }
+
       if (debug_level_ > 666)
       {
         FileHandler().storeFeatures("debug_fraction_" + StringUtils::toStr(ms_files.first) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
@@ -1643,11 +1710,20 @@ protected:
     std::string in_db = getStringOption_("fasta");
     StringList in_feat = getStringList_("in_feat");
 
+    StringList out_feat = getStringList_("out_feat");
+
     // Validate parameters
     if (! in_feat.empty() && in_feat.size() != in.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Number of featureXML files (-in_feat, " + StringUtils::toStr(in_feat.size()) +
+        ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
+    }
+    // Positional, like -in_feat: the i-th file describes the i-th '-in' file.
+    if (! out_feat.empty() && out_feat.size() != in.size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of output featureXML files (-out_feat, " + StringUtils::toStr(out_feat.size()) +
         ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
     }
     if (in.size() != in_ids.size())
@@ -2077,6 +2153,10 @@ protected:
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
   ExperimentalDesign design_;
+
+  /// Map-level meta value carrying the chromatographic FWHM a run estimated from the mzML, so that
+  /// '-out_feat' -> '-in_feat' reproduces the linker RT tolerance of the run that wrote the features.
+  static constexpr const char* median_fwhm_meta_key_ = "ProteomicsLFQ_median_fwhm";
 };
 
 int main(int argc, const char** argv)

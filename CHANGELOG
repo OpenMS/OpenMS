@@ -317,6 +317,17 @@ TOPP tools:
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
     ProteomicsLFQ:
+      - New '-out_feat': writes the features detected for each '-in' file, in exactly the state
+        '-in_feat' reads. Feature detection is the expensive per-file step and is independent between
+        files, while alignment, linking, inference and quantification need all files at once, so this
+        splits the workflow at that seam: detect per file (in parallel, on separate machines), then
+        combine. The combining run never reads the mzML files -- centroiding, FWHM estimation, seeding
+        and feature detection are all skipped -- though they must still be present, since the file list
+        identifies the runs. '-out_feat' also records the chromatographic FWHM the run measured: it
+        cannot be recomputed without the mzML, and it does more than size the feature detector, since
+        the feature linker derives its retention time tolerance from it (a featureXML from another
+        source does not carry it, which is now warned about). A round-trip test asserts that the split
+        run reproduces the single-shot run on all three QPX views (#9871)
       - Fix: with -in_feat, every identification already attached to a feature by the incoming
         featureXML was also written to the map's *unassigned* list, so it was present twice. The two
         lists of a FeatureMap partition the PSMs -- that is what IDMapper and FeatureFinderIdentification
