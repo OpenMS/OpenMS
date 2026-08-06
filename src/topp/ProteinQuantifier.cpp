@@ -762,27 +762,12 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    // Detailed label-free output still names its columns by file. Preserve the existing
-    // sample-to-file legend there; assay-column output is self-describing and needs no legend.
-    const bool detailed_file_columns = proteins
-      ? getStringOption_("file_and_channel_level_output") == "true"
-      : algo_params_.getValue("best_charge_and_fraction") == "true";
-    if (detailed_file_columns && ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
-    {
-      std::string desc = "# Files/samples associated with abundance values below: ";
-      const auto& ms_section = ed.getMSFileSection();
-      map<std::string, std::string> sample_id_to_filename;
-      for (const auto& e : ms_section)
-      {
-        sample_id_to_filename[StringUtils::toStr(e.sample)] = File::stemName(e.path);
-      }
-      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
-      {
-        if (i > 0) { desc += ", "; }
-        desc += StringUtils::toStr(i + 1) + ": '" + sample_id_to_filename[StringUtils::toStr(i)] + "'";
-      }
-      out << desc << endl;
-    }
+    // No sample->file legend. Every column now names its own coordinates - the assay columns as
+    // 'abundance_fractiongroup<F>_label<L>', the detailed ones as 'abundance|<file>|ch<n>' - so a
+    // legend mapping sample numbers has nothing left to explain. It was also only ever printed
+    // alongside the detailed columns, where no sample number appears at all, and it kept one
+    // arbitrary file per sample, so a fractionated sample was represented by whichever of its
+    // fractions came last.
 
     out.modifyStrings(old);
   }
