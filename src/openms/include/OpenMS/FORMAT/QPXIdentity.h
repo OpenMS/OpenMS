@@ -54,11 +54,12 @@ namespace QPXIdentity
   /**
     @brief The feature&harr;PSM edge of one QPX collection, as @c psm_id &rarr; @c feature_id
 
-    Built by ConsensusMapArrowExport::featurePsmLinks() and handed to the psm exporter, which
-    fills @c psm.feature_id from it. Keying on the <i>id</i> rather than on a pointer or a row
-    index is what keeps the two directions consistent: both views derive the key from the same
-    four persisted columns, so they agree by construction rather than by both happening to walk
-    the identifications in the same order.
+    Collected by ConsensusMapArrowExport::exportToArrow() / exportToParquet() /
+    exportToParquetStreaming() through their @c out_links parameter, then handed to the psm
+    exporter, which fills @c psm.feature_id from it. Keying on the <i>id</i> rather than on a
+    pointer or a row index is what keeps the two directions consistent: both views derive the key
+    from the same four persisted columns, so they agree by construction rather than by both
+    happening to walk the identifications in the same order.
   */
   using FeatureLinks = std::unordered_map<Int64, Int64>;
 

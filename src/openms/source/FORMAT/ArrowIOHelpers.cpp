@@ -473,8 +473,16 @@ std::vector<Int32> qpxScanComponents(const std::string& spectrum_reference)
   if (spectrum_reference.empty()) { return {}; }
   const std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_reference);
   if (regex_str.empty()) { return {}; }
-  const boost::regex scan_regex(regex_str);
-  const Int scan = SpectrumNativeIDParser::extractScanNumber(spectrum_reference, scan_regex, true);
+
+  // getRegExFromNativeID() maps every native-ID convention onto one of a handful of fixed
+  // patterns, but compiling a boost::regex parses the pattern each time -- and this runs once per
+  // exported row. Cached per thread rather than shared: the exporters call it from inside an
+  // OpenMP region, where one shared cache would need a lock and reintroduce the cost it saves.
+  thread_local std::map<std::string, boost::regex> compiled;
+  auto entry = compiled.find(regex_str);
+  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, boost::regex(regex_str)).first; }
+
+  const Int scan = SpectrumNativeIDParser::extractScanNumber(spectrum_reference, entry->second, true);
   if (scan < 0) { return {}; }
   return {static_cast<Int32>(scan)};
 }

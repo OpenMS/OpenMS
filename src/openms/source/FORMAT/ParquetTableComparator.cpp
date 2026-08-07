@@ -899,7 +899,11 @@ namespace OpenMS
       {
         const std::string& id_column = identity.front(); // the id itself, not the cross-references
         const int idx = actual->GetFieldIndex(id_column);
-        if (idx >= 0)
+        // Only read the column when it really is int64. A type mismatch has already been reported
+        // above, and validate() runs on whatever file the caller passes: continuing here would
+        // static_cast a scalar of some other dynamic type to Int64Scalar, which is undefined
+        // behaviour rather than a second error message.
+        if (idx >= 0 && actual->field(idx)->type()->id() == arrow::Type::INT64)
         {
           std::map<Int64, int64_t> seen;
           for (int64_t r = 0; r < table->num_rows(); ++r)

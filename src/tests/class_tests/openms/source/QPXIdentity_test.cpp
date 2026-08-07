@@ -15,6 +15,8 @@
 
 ///////////////////////////
 
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 

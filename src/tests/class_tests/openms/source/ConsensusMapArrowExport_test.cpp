@@ -1517,4 +1517,93 @@ START_SECTION(([EXTRA] a psm view exported without a feature view leaves feature
 }
 END_SECTION
 
+START_SECTION(([EXTRA] two feature rows cannot deliver a PSM claimed by both))
+{
+  // Both directions of the cross-reference are built from one loop, so they agree per row. The
+  // remaining way they could disagree is ACROSS rows: two consensus features in one run whose
+  // identifications share all four psm-key columns derive the same psm_id, so both rows list it
+  // while psm.feature_id can name only one of them -- the "reciprocal desync" qpx checks for.
+  //
+  // That state cannot reach disk, and this pins the reason: the same two identifications are
+  // exactly a repeated psm primary key, which the psm view refuses. The feature view is written
+  // first, so the refusal arrives after feature.parquet exists -- which is what QPXCollectionExport's
+  // transaction is for, and why this is a refusal rather than a silently inconsistent collection.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/runA.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("PI_0");
+  prot.setPrimaryMSRunPath({"/data/runA.mzML"});
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.01;
+  group.accessions = {"PROT_A"};
+  prot.insertProteinGroup(group);
+  ProteinHit ph;
+  ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  cmap.setProteinIdentifications({prot});
+
+  // One identification, two consensus features. Same run, scan, peptidoform and charge -> same
+  // psm_id; different rt and m/z -> two distinct feature rows, both listing it.
+  const auto make_id = []()
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("PI_0");
+    pid.setSpectrumReference("scan=1234");
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDE"));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    pid.setHits({hit});
+    return pid;
+  };
+
+  PeptideIdentificationList all_pepids;
+  for (int i = 0; i < 2; ++i)
+  {
+    ConsensusFeature cf;
+    cf.setMZ(500.0 + i);
+    cf.setRT(100.0 + i);
+    cf.setCharge(2);
+    BaseFeature bf;
+    bf.setIntensity(1000.0f);
+    bf.setMZ(500.0 + i);
+    bf.setRT(100.0 + i);
+    bf.setCharge(2);
+    cf.insert(0, bf);
+    cf.setPeptideIdentifications({make_id()});
+    cmap.push_back(cf);
+    all_pepids.push_back(make_id());
+  }
+
+  QPXIdentity::FeatureLinks links;
+  auto features = ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  TEST_NOT_EQUAL(features, nullptr)
+  TEST_EQUAL(features->num_rows(), 2)
+
+  // The premise: the two rows really do claim one psm_id, so this is not vacuous.
+  auto psm_ids_col = std::static_pointer_cast<arrow::ListArray>(features->GetColumnByName("psm_ids")->chunk(0));
+  auto psm_ids_values = std::static_pointer_cast<arrow::Int64Array>(psm_ids_col->values());
+  TEST_EQUAL(psm_ids_col->value_length(0), 1)
+  TEST_EQUAL(psm_ids_col->value_length(1), 1)
+  TEST_EQUAL(psm_ids_values->Value(psm_ids_col->value_offset(0)),
+             psm_ids_values->Value(psm_ids_col->value_offset(1)))
+  TEST_EQUAL(links.size(), 1)   // one psm_id, so one entry however the two writes are resolved
+
+  // And the refusal: the psm view sees the same two identifications as one repeated key.
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids,
+                                            /*export_all_psms=*/false, &links);
+  TEST_NOT_EQUAL(psms, nullptr)
+  TEST_EQUAL(psms->num_rows(), 2)
+  QPXValueValidation psm_validator(QPXValueValidation::View::PSM);
+  const auto verdict = psm_validator.validate(psms);
+  TEST_FALSE(verdict.valid)
+  TEST_TRUE(verdict.toString().find("repeats the QPX psm identity") != std::string::npos)
+}
+END_SECTION
+
 END_TEST

@@ -1621,7 +1621,13 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
     {
       for (int t = 0; t < W; ++t)
       {
-        if (!errs[t]) { out_links->insert(part_links[t].begin(), part_links[t].end()); }
+        // Assigned, not insert()ed. A psm_id claimed by two feature rows cannot reach disk -- the
+        // psm view refuses the repeated primary key those two identifications would produce, and
+        // the collection is rolled back -- but insert() keeps the FIRST value while the one-shot
+        // path's operator[] keeps the last, so the two paths would disagree on a map that is
+        // documented to be independent of the thread count.
+        if (errs[t]) { continue; }
+        for (const auto& [psm_id, feature_id] : part_links[t]) { (*out_links)[psm_id] = feature_id; }
       }
     }
 

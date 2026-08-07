@@ -62,11 +62,11 @@ public:
      * round-trips, this method produces a QPXPSMSchema table optimized for
      * cross-tool exchange (quantms format).
      *
-     * @param protein_identifications  Protein identifications (for file name lookup)
-     * @param peptide_identifications  Peptide identifications to export
-     * @param export_all_psms  If true, export all PSM hits; if false, only best hit per spectrum
-     * @param feature_links  Optional psm_id -> feature_id map for the feature view of the same
-     *        collection, from ConsensusMapArrowExport::featurePsmLinks(). Fills the optional
+     * @param[in] protein_identifications  Protein identifications (for file name lookup)
+     * @param[in] peptide_identifications  Peptide identifications to export
+     * @param[in] export_all_psms  If true, export all PSM hits; if false, only best hit per spectrum
+     * @param[in] feature_links  Optional psm_id -> feature_id map for the feature view of the
+     *        same collection, collected by ConsensusMapArrowExport's @c out_links. Fills the optional
      *        @c feature_id cross-reference; without it every row's @c feature_id is null, which
      *        is the correct answer for a psm-only producer.
      * @return Arrow table with QPXPSMSchema columns, or nullptr on failure
