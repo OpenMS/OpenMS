@@ -53,8 +53,10 @@ public:
                 Pass it to the psm exporter to fill @c psm.feature_id. Producing it here rather
                 than in a second pass is what keeps the two directions reciprocal -- qpx
                 validates that a PSM pointing at a feature is listed back by that feature's
-                @c psm_ids.
+                @c psm_ids. The export refuses a @c psm_id claimed by two different feature
+                rows instead of silently choosing one owner.
     @return Shared pointer to Arrow Table, or nullptr on error
+    @throws Exception::InvalidValue if one PSM identity is claimed by different feature rows
   */
   static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
                                                      QPXIdentity::FeatureLinks* out_links = nullptr);
@@ -112,6 +114,7 @@ public:
     @param[in] config Parquet writing options
     @param[out] out_links Optional feature&harr;PSM linkage, see exportToArrow()
     @return true on success, false on error
+    @throws Exception::InvalidValue if one PSM identity is claimed by different feature rows
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,

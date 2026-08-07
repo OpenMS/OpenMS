@@ -334,6 +334,16 @@ bool topHitPsmIdentity(const PeptideIdentification& pid,
   return true;
 }
 
+/// Record one reciprocal feature-to-PSM edge without hiding an ambiguous owner.
+std::string insertFeatureLink(QPXIdentity::FeatureLinks& links, Int64 psm_id, Int64 feature_id)
+{
+  const auto [existing, inserted] = links.emplace(psm_id, feature_id);
+  if (inserted || existing->second == feature_id) { return {}; }
+
+  return "QPX psm_id " + std::to_string(psm_id) + " is claimed by feature_id "
+         + std::to_string(existing->second) + " and feature_id " + std::to_string(feature_id);
+}
+
 /// Build a QPXFeatureSchema Arrow table for the half-open feature range
 /// [range_begin, range_end) of @p cmap. @p id_lut holds the prebuilt per-map
 /// protein-group/gene lookups. Each row is independent (no cross-row state), so
@@ -971,7 +981,16 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
         (void)psm_ids_val_b->Append(psm_id);
         // Both directions come from this one loop, which is what keeps them reciprocal: qpx
         // validates that a psm pointing at a feature is listed back by it.
-        if (out_links != nullptr) { (*out_links)[psm_id] = feature_id; }
+        if (out_links != nullptr)
+        {
+          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          if (!conflict.empty())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "ConsensusMapArrowExport: " + conflict
+              + ". A QPX PSM can reference only one feature row.", std::to_string(psm_id));
+          }
+        }
       }
     }
 
@@ -1617,20 +1636,6 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
       }
     }
 
-    if (out_links != nullptr)
-    {
-      for (int t = 0; t < W; ++t)
-      {
-        // Assigned, not insert()ed. A psm_id claimed by two feature rows cannot reach disk -- the
-        // psm view refuses the repeated primary key those two identifications would produce, and
-        // the collection is rolled back -- but insert() keeps the FIRST value while the one-shot
-        // path's operator[] keeps the last, so the two paths would disagree on a map that is
-        // documented to be independent of the thread count.
-        if (errs[t]) { continue; }
-        for (const auto& [psm_id, feature_id] : part_links[t]) { (*out_links)[psm_id] = feature_id; }
-      }
-    }
-
     // Surface any worker exception as a logged failure (convert to the bool error contract).
     for (int t = 0; t < W; ++t)
     {
@@ -1640,6 +1645,25 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
         catch (const std::exception& ex) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw: " << ex.what() << std::endl; }
         catch (...)                      { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw (unknown exception)" << std::endl; }
         return false;
+      }
+    }
+
+    if (out_links != nullptr)
+    {
+      // Merge in feature-row order. insertFeatureLink() retains the first owner and refuses a
+      // conflicting one, including conflicts split across workers or streaming batches.
+      for (int t = 0; t < W; ++t)
+      {
+        for (const auto& [psm_id, feature_id] : part_links[t])
+        {
+          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          if (!conflict.empty())
+          {
+            OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " << conflict
+                             << ". A QPX PSM can reference only one feature row." << std::endl;
+            return false;
+          }
+        }
       }
     }
 

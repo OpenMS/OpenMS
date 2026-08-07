@@ -1517,17 +1517,16 @@ START_SECTION(([EXTRA] a psm view exported without a feature view leaves feature
 }
 END_SECTION
 
-START_SECTION(([EXTRA] two feature rows cannot deliver a PSM claimed by both))
+START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link collection))
 {
   // Both directions of the cross-reference are built from one loop, so they agree per row. The
   // remaining way they could disagree is ACROSS rows: two consensus features in one run whose
   // identifications share all four psm-key columns derive the same psm_id, so both rows list it
   // while psm.feature_id can name only one of them -- the "reciprocal desync" qpx checks for.
   //
-  // That state cannot reach disk, and this pins the reason: the same two identifications are
-  // exactly a repeated psm primary key, which the psm view refuses. The feature view is written
-  // first, so the refusal arrives after feature.parquet exists -- which is what QPXCollectionExport's
-  // transaction is for, and why this is a refusal rather than a silently inconsistent collection.
+  // Refuse that ambiguity while collecting the links. Waiting for the psm view's repeated-key
+  // validation would leave exportToArrow() itself returning a feature table whose two rows claim
+  // one PSM while its out_links map can name only one owner.
   ConsensusMap cmap;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
@@ -1562,7 +1561,6 @@ START_SECTION(([EXTRA] two feature rows cannot deliver a PSM claimed by both))
     return pid;
   };
 
-  PeptideIdentificationList all_pepids;
   for (int i = 0; i < 2; ++i)
   {
     ConsensusFeature cf;
@@ -1577,32 +1575,37 @@ START_SECTION(([EXTRA] two feature rows cannot deliver a PSM claimed by both))
     cf.insert(0, bf);
     cf.setPeptideIdentifications({make_id()});
     cmap.push_back(cf);
-    all_pepids.push_back(make_id());
   }
 
   QPXIdentity::FeatureLinks links;
-  auto features = ConsensusMapArrowExport::exportToArrow(cmap, &links);
-  TEST_NOT_EQUAL(features, nullptr)
-  TEST_EQUAL(features->num_rows(), 2)
+  bool conflict_reported = false;
+  try
+  {
+    (void)ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    const std::string message = e.what();
+    conflict_reported = message.find("QPX psm_id") != std::string::npos
+                        && message.find("is claimed by feature_id") != std::string::npos;
+  }
+  TEST_TRUE(conflict_reported)
 
-  // The premise: the two rows really do claim one psm_id, so this is not vacuous.
-  auto psm_ids_col = std::static_pointer_cast<arrow::ListArray>(features->GetColumnByName("psm_ids")->chunk(0));
-  auto psm_ids_values = std::static_pointer_cast<arrow::Int64Array>(psm_ids_col->values());
-  TEST_EQUAL(psm_ids_col->value_length(0), 1)
-  TEST_EQUAL(psm_ids_col->value_length(1), 1)
-  TEST_EQUAL(psm_ids_values->Value(psm_ids_col->value_offset(0)),
-             psm_ids_values->Value(psm_ids_col->value_offset(1)))
-  TEST_EQUAL(links.size(), 1)   // one psm_id, so one entry however the two writes are resolved
+  // The first association remains intact; the conflicting feature never overwrites it.
+  const Int64 psm_id = QPXIdentity::psmId("runA", {1234}, "PEPTIDE", 2);
+  const Int64 first_feature_id = QPXIdentity::featureId("runA", "PEPTIDE", 2, 100.0f,
+                                                        {1234}, 500.0f);
+  TEST_EQUAL(links.size(), 1)
+  TEST_EQUAL(links.at(psm_id), first_feature_id)
 
-  // And the refusal: the psm view sees the same two identifications as one repeated key.
-  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids,
-                                            /*export_all_psms=*/false, &links);
-  TEST_NOT_EQUAL(psms, nullptr)
-  TEST_EQUAL(psms->num_rows(), 2)
-  QPXValueValidation psm_validator(QPXValueValidation::View::PSM);
-  const auto verdict = psm_validator.validate(psms);
-  TEST_FALSE(verdict.valid)
-  TEST_TRUE(verdict.toString().find("repeats the QPX psm identity") != std::string::npos)
+  // The streaming merge must detect the same conflict even when the two rows are split between
+  // worker-local maps, and its bool error contract must not leave an incomplete file behind.
+  String tmp_file;
+  NEW_TMP_FILE(tmp_file)
+  QPXIdentity::FeatureLinks streaming_links;
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(
+    cmap, tmp_file, 2, ParquetWriteConfig{}, 2, &streaming_links))
+  TEST_FALSE(File::exists(tmp_file))
 }
 END_SECTION
 
