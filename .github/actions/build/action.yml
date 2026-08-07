@@ -115,7 +115,15 @@ runs:
         path: .ccache
         key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-        # Restoring: From current branch/PR, otherwise from develop, otherwise from any branch.
+        # Restoring: from the current branch/PR, otherwise from develop, otherwise from any branch.
+        #
+        # develop, not nightly, deliberately.  GitHub scopes caches by ref: a run may restore only
+        # from its own ref, its base branch and the default branch.  nightly is a sibling of
+        # develop (the default branch) -- its commit is an ancestor, but that does not matter, the
+        # scope is the ref -- so a cache written by a push to nightly is unreachable from a pull
+        # request and falling back to it would never match.  develop is the default branch, so its
+        # cache is the only one every pull request can read, and the daily workflow_dispatch on
+        # develop keeps it fresh now that saving works at all.
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-
           ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop-
