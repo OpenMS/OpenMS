@@ -201,6 +201,9 @@ TOPP tools:
         feature.psm_ids. A consensus feature emits one row per run, so its identifications are
         distributed to the row of their own run; an unassigned identification keeps feature_id null.
         Both directions are produced in one pass, so they always describe the same edge (#9864)
+      - Fix: a psm_id claimed by two different feature rows is now refused with
+        Exception::InvalidValue (one-shot export) or a logged, failed export (streaming), instead of
+        silently keeping whichever owner was written last (#9864, #9884)
       - exports are validated and transactional: required values, primary-key uniqueness, channel-label
         agreement across runs, resolvable identification runs and the experimental-design contract are
         checked before the first file is opened, and a refused or failed export leaves no partial file or
