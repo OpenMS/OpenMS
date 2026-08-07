@@ -109,6 +109,7 @@ runs:
     # below always uploads a freshly populated cache, while the restore-keys
     # ladder still finds the most recent cache by prefix.
     - name: Try to Fetch Existing Build Cache
+      id: ccache-restore
       uses: actions/cache/restore@v5
       with:
         path: .ccache
@@ -122,6 +123,7 @@ runs:
 
     ############################################################################
     - name: Configure Build Caching
+      id: ccache-configure
       shell: bash
       env:
         # A full build produces ~1900 objects.  MSVC objects (built with
@@ -149,6 +151,7 @@ runs:
     # Reset the hit/miss counters (not the cached objects) so the statistics
     # printed after the build describe this run only.
     - name: Reset ccache Statistics
+      id: ccache-reset
       shell: bash
       run: |
         ccache --version
@@ -190,7 +193,7 @@ runs:
     # Hit rate and cache size for this run.  Without this there is no way to
     # tell from a build log whether compiler caching is working at all.
     - name: Report ccache Statistics
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && steps.ccache-configure.outcome == 'success' && steps.ccache-reset.outcome == 'success' }}
       shell: bash
       run: ccache --show-stats --verbose
 
@@ -213,9 +216,17 @@ runs:
     # develop's cache is fresh.  Keeping it fresh needs test.yml to run on
     # develop regularly (a push trigger or a nightly schedule); until then a
     # PR's first run still pays for a cold build.
+    #
+    # Both this step and the statistics above additionally require the cache
+    # setup itself to have succeeded.  `!cancelled()` is true after a *failed*
+    # step too, so without this a failure in "Configure Build Caching" would
+    # still upload a practically empty .ccache under this run's key -- and
+    # because the restore-keys ladder picks the most recent prefix match, that
+    # empty entry would then shadow a perfectly good older cache.
     - name: Save Build Cache
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && steps.ccache-configure.outcome == 'success' && steps.ccache-reset.outcome == 'success' }}
       uses: actions/cache/save@v5
       with:
         path: .ccache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+        # Reuse the restore step's primary key so the two can never drift apart.
+        key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
