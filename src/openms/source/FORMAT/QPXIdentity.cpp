@@ -283,7 +283,7 @@ namespace
 
 const char* const FEATURE_COMPOSITE = "run_file_name,peptidoform,charge,rt,scan,observed_mz";
 const char* const PSM_COMPOSITE     = "run_file_name,scan,peptidoform,charge";
-const char* const PG_COMPOSITE      = "anchor_protein,grouped_runs,label";
+const char* const PG_COMPOSITE      = "pg_accessions,grouped_runs,label";
 
 std::string formatFloat(float value)
 {
@@ -374,18 +374,30 @@ std::string canonical(const std::vector<Value>& values,
                            != unordered_list_indices.end();
     if (unordered && std::holds_alternative<std::vector<std::string>>(values[i]))
     {
-      // A set-valued field: qpx sorts its elements by their JSON encoding before hashing, so
-      // that two producers listing the same runs in a different order agree on the identity.
-      auto sorted = std::get<std::vector<std::string>>(values[i]);
-      std::sort(sorted.begin(), sorted.end(),
-                [](const std::string& a, const std::string& b)
-                {
-                  std::string encoded_a, encoded_b;
-                  encodeString(a, encoded_a);
-                  encodeString(b, encoded_b);
-                  return encoded_a < encoded_b;
-                });
-      encodeValue(Value{std::move(sorted)}, out);
+      // A set-valued field. qpx builds a dict keyed by each element's JSON encoding and then
+      // walks the sorted keys (qpx/core/data/identity.py), so equal elements collapse to one
+      // and the survivors are ordered by their encoded form -- a set, not just a sorted list.
+      // Sorting without deduplicating agrees with qpx on every list that happens to have no
+      // repeat and disagrees on exactly the ones that do.
+      const auto& raw = std::get<std::vector<std::string>>(values[i]);
+      std::vector<std::pair<std::string, const std::string*>> keyed;
+      keyed.reserve(raw.size());
+      for (const auto& element : raw)
+      {
+        std::string encoded;
+        encodeString(element, encoded);
+        keyed.emplace_back(std::move(encoded), &element);
+      }
+      std::sort(keyed.begin(), keyed.end(),
+                [](const auto& a, const auto& b) { return a.first < b.first; });
+      keyed.erase(std::unique(keyed.begin(), keyed.end(),
+                              [](const auto& a, const auto& b) { return a.first == b.first; }),
+                  keyed.end());
+
+      std::vector<std::string> as_set;
+      as_set.reserve(keyed.size());
+      for (const auto& entry : keyed) { as_set.push_back(*entry.second); }
+      encodeValue(Value{std::move(as_set)}, out);
     }
     else
     {
@@ -424,14 +436,17 @@ Int64 psmId(const std::string& run_file_name,
   return deriveId({Value{run_file_name}, Value{scan}, Value{peptidoform}, Value{charge}});
 }
 
-Int64 pgId(const std::string& anchor_protein,
+Int64 pgId(const std::vector<std::string>& pg_accessions,
            const std::vector<std::string>& grouped_runs,
            const std::optional<std::string>& label)
 {
-  return deriveId({Value{anchor_protein},
+  // Both lists are sets. qpx picks the unordered positions by field name -- `grouped_runs` and
+  // `pg_accessions` -- rather than by index (writers/base.py), so the two happen to be positions
+  // 0 and 1 of this composite.
+  return deriveId({Value{pg_accessions},
                    Value{grouped_runs},
                    label.has_value() ? Value{*label} : Value{Null{}}},
-                  /*unordered_list_indices=*/{1});
+                  /*unordered_list_indices=*/{0, 1});
 }
 
 } // namespace QPXIdentity

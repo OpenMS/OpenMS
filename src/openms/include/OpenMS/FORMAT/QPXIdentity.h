@@ -185,15 +185,21 @@ namespace QPXIdentity
   /**
     @brief @c pg_id from a protein-group row's persisted column values
 
-    Composite: <tt>(anchor_protein, grouped_runs, label)</tt>, with @c grouped_runs sorted --
-    it is the set of raw files aggregated into one quantity, and its order is not part of the
+    Composite: <tt>(pg_accessions, grouped_runs, label)</tt>. Both lists are treated as sets --
+    deduplicated and sorted by their JSON encoding -- because neither the order in which a group
+    lists its members nor the order of the runs aggregated into one quantity is part of the
     group's identity.
 
-    @param[in] anchor_protein Leading protein of the group
+    The FULL membership keys the id, not the leading protein alone. Two distinct groups that
+    happen to share a leader (@c P1;P2 and @c P1;P3) would otherwise derive the same @c pg_id,
+    and since the id is this view's primary key, that collision is a refused export rather than
+    a merely inaccurate value.
+
+    @param[in] pg_accessions Every accession in the group, in any order
     @param[in] grouped_runs Raw files of this quantification unit, in any order
     @param[in] label Channel label, or @c nullopt for an identification-only group
   */
-  OPENMS_DLLAPI Int64 pgId(const std::string& anchor_protein,
+  OPENMS_DLLAPI Int64 pgId(const std::vector<std::string>& pg_accessions,
                            const std::vector<std::string>& grouped_runs,
                            const std::optional<std::string>& label);
 

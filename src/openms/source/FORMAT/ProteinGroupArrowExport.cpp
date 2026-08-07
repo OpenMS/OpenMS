@@ -456,8 +456,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)anchor_protein_builder.Append(anchor);
 
     // pg_id -- derived from the three columns that make up this view's identity. No floats in
-    // this composite, so a pg identity is stable across platforms.
-    (void)pg_id_builder.Append(QPXIdentity::pgId(anchor, runs, label));
+    // this composite, so a pg identity is stable across platforms. Keyed on the whole membership
+    // rather than on `anchor`: two groups sharing a leading protein would otherwise collide, and
+    // pg_id is this view's primary key.
+    (void)pg_id_builder.Append(QPXIdentity::pgId(group.accessions, runs, label));
 
     // grouped_runs -- the raw files aggregated into this quantity.
     // Deliberately no File::stemName() here: the values are already QPX run names, and
@@ -1186,7 +1188,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
 
         // pg_id -- an identification-only row carries no quantity, so its label is null, and
         // that null is part of the key rather than a missing value.
-        (void)pg_id_builder.Append(QPXIdentity::pgId(anchor, {run_file}, std::nullopt));
+        (void)pg_id_builder.Append(QPXIdentity::pgId(group.accessions, {run_file}, std::nullopt));
 
         // grouped_runs
         (void)grouped_runs_builder.Append();

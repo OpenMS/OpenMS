@@ -183,7 +183,7 @@ TOPP tools:
         ProSE additionally writes per-input <basename>.psm/.pg.parquet (#8973, #8974, #9146)
       - all three views now follow the QPX 1.1 contract and are joinable: long format (one row per
         entity and run), run_file_name as the bare spectrum file stem, and a pg view keyed on
-        (anchor_protein, grouped_runs, label) with scalar label/intensity columns replacing the former
+        (pg_accessions, grouped_runs, label) with scalar label/intensity columns replacing the former
         nested intensities column. grouped_runs maps exactly to ExperimentalDesign::fraction_group, so
         samples reused across technical-replicate fraction groups no longer join those groups
         (#9816, #9818, #9825, #9843)
@@ -191,7 +191,12 @@ TOPP tools:
         non-null, the view's primary key), derived exactly as the qpx reference implementation derives
         it -- BLAKE2b-64 over the canonical JSON of a footer-declared identity_composite. Matching it
         byte for byte is what lets a collection survive `qpxc convert openms`, which re-derives
-        feature_id but does not rewrite the psm.feature_id pointing at it (#9864)
+        feature_id but does not rewrite the psm.feature_id pointing at it. The pg identity keys on the
+        group's FULL membership, (pg_accessions, grouped_runs, label), not on its leading protein:
+        two distinct groups sharing a leader would otherwise derive one pg_id, and since that column
+        is the view's primary key the collision refuses the export rather than merely mislabelling a
+        row. Both list members are hashed as sets -- deduplicated and ordered by their JSON encoding
+        -- so inference order and design order do not enter the identity (#9864)
       - the feature and psm views are now explicitly cross-referenced: psm.feature_id and
         feature.psm_ids. A consensus feature emits one row per run, so its identifications are
         distributed to the row of their own run; an unassigned identification keeps feature_id null.

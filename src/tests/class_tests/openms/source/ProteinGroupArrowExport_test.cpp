@@ -501,9 +501,10 @@ END_SECTION
 
 START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows under one key))
 {
-  // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the
-  // (anchor_protein, grouped_runs, label) primary key. The in-memory builder keeps both so callers
-  // can inspect the source conflict; the Parquet writer's shared value validator refuses them.
+  // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the pg natural
+  // key (anchor_protein, grouped_runs, label) -- and, since the groups are identical, on pg_id too.
+  // The in-memory builder keeps both so callers can inspect the source conflict; the Parquet
+  // writer's shared value validator refuses them.
   auto prot_a = makeIdOnlyRun({"/a/run.mzML"});
   auto prot_b = makeIdOnlyRun({"/b/run.mzML"});
   prot_b.setIdentifier("PI_1");
@@ -659,8 +660,9 @@ END_SECTION
 
 START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap&, const ExperimentalDesign&)))
 {
-  // QPX 1.1 keys the pg view on (anchor_protein, grouped_runs, label). Two fraction groups of two
-  // fractions each therefore give two LFQ rows of two runs, not four rows of one.
+  // QPX 1.1 keys the pg view on pg_id, derived from (pg_accessions, grouped_runs, label). Two
+  // fraction groups of two fractions each therefore give two LFQ rows of two runs, not four rows
+  // of one.
   const std::vector<std::string> paths = {"/data/S1_F1.mzML", "/data/S1_F2.mzML",
                                           "/data/S2_F1.mzML", "/data/S2_F2.mzML"};
   ConsensusMap cmap;

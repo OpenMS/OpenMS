@@ -179,25 +179,53 @@ START_SECTION((Int64 psmId(const std::string& run_file_name, const std::vector<I
 }
 END_SECTION
 
-START_SECTION((Int64 pgId(const std::string& anchor_protein, const std::vector<std::string>& grouped_runs, const std::optional<std::string>& label)))
+START_SECTION((Int64 pgId(const std::vector<std::string>& pg_accessions, const std::vector<std::string>& grouped_runs, const std::optional<std::string>& label)))
 {
-  // qpx: derive_id(["P02769", ["BSA1_F1", "BSA1_F2"], "LFQ"], unordered_list_indices=(1,))
-  TEST_EQUAL(QPXIdentity::pgId("P02769", {"BSA1_F1", "BSA1_F2"}, std::string("LFQ")),
-             Int64(-3984318991531137877))
+  // Values computed with qpx's own derivation:
+  //   derive_id([["P02769"], ["BSA1_F1", "BSA1_F2"], "LFQ"], unordered_list_indices=(0, 1))
+  // qpx selects the unordered positions by field NAME -- grouped_runs and pg_accessions --
+  // so for this composite both leading positions are sets (qpx/writers/base.py).
+  TEST_EQUAL(QPXIdentity::pgId({"P02769"}, {"BSA1_F1", "BSA1_F2"}, std::string("LFQ")),
+             Int64(4537562256413832418))
 
   // grouped_runs is a set: the order the design happens to list the fractions in must not
   // change the group's identity.
-  TEST_EQUAL(QPXIdentity::pgId("P02769", {"BSA1_F2", "BSA1_F1"}, std::string("LFQ")),
-             Int64(-3984318991531137877))
+  TEST_EQUAL(QPXIdentity::pgId({"P02769"}, {"BSA1_F2", "BSA1_F1"}, std::string("LFQ")),
+             Int64(4537562256413832418))
+
+  // pg_accessions is a set too: inference order must not change the identity either.
+  TEST_EQUAL(QPXIdentity::pgId({"P02769", "P00761"}, {"BSA1_F1"}, std::string("LFQ")),
+             Int64(7169929772723875882))
+  TEST_EQUAL(QPXIdentity::pgId({"P00761", "P02769"}, {"BSA1_F1"}, std::string("LFQ")),
+             Int64(7169929772723875882))
+
+  // A set collapses repeats. qpx keys a dict on each element's encoding before sorting, so a
+  // list that names one accession twice hashes as if it named it once; sorting alone would not.
+  TEST_EQUAL(QPXIdentity::pgId({"P02769", "P02769"}, {"BSA1_F1"}, std::string("LFQ")),
+             Int64(-3038322759200455733))
+  TEST_EQUAL(QPXIdentity::pgId({"P02769"}, {"BSA1_F1"}, std::string("LFQ")),
+             Int64(-3038322759200455733))
+
+  // The whole point of keying on membership rather than on the leading protein: two distinct
+  // groups that share a leader must not collide. Under the old (anchor_protein, ...) composite
+  // both of these derived -1371905184718538057, and since pg_id is the view's primary key, that
+  // is a refused export rather than a merely inaccurate value.
+  TEST_NOT_EQUAL(QPXIdentity::pgId({"P1", "P2"}, {"r"}, std::string("LFQ")),
+                 QPXIdentity::pgId({"P1", "P3"}, {"r"}, std::string("LFQ")))
 
   // An identification-only group carries no quantity; its null label is part of the key.
-  TEST_EQUAL(QPXIdentity::pgId("P02769", {"BSA1_F1"}, std::nullopt), Int64(6696460256469222492))
-  TEST_NOT_EQUAL(QPXIdentity::pgId("P02769", {"BSA1_F1"}, std::string("")),
-                 QPXIdentity::pgId("P02769", {"BSA1_F1"}, std::nullopt))
+  TEST_EQUAL(QPXIdentity::pgId({"P02769"}, {"BSA1_F1"}, std::nullopt),
+             Int64(-6310942379590911755))
+  TEST_NOT_EQUAL(QPXIdentity::pgId({"P02769"}, {"BSA1_F1"}, std::string("")),
+                 QPXIdentity::pgId({"P02769"}, {"BSA1_F1"}, std::nullopt))
 
-  // Different membership, different group -- even when the runs are a subset.
-  TEST_NOT_EQUAL(QPXIdentity::pgId("P02769", {"BSA1_F1"}, std::string("LFQ")),
-                 QPXIdentity::pgId("P02769", {"BSA1_F1", "BSA1_F2"}, std::string("LFQ")))
+  // Different runs, different quantification unit -- even when one set contains the other.
+  TEST_NOT_EQUAL(QPXIdentity::pgId({"P02769"}, {"BSA1_F1"}, std::string("LFQ")),
+                 QPXIdentity::pgId({"P02769"}, {"BSA1_F1", "BSA1_F2"}, std::string("LFQ")))
+
+  // A group with no accessions at all is still keyed, as an empty list rather than as "".
+  TEST_EQUAL(QPXIdentity::pgId({}, {"BSA1_F1"}, std::string("LFQ")),
+             Int64(-1719918802529113715))
 }
 END_SECTION
 
@@ -208,7 +236,7 @@ START_SECTION([EXTRA] identity_composite footer declarations)
   TEST_STRING_EQUAL(QPXIdentity::FEATURE_COMPOSITE,
                     "run_file_name,peptidoform,charge,rt,scan,observed_mz")
   TEST_STRING_EQUAL(QPXIdentity::PSM_COMPOSITE, "run_file_name,scan,peptidoform,charge")
-  TEST_STRING_EQUAL(QPXIdentity::PG_COMPOSITE, "anchor_protein,grouped_runs,label")
+  TEST_STRING_EQUAL(QPXIdentity::PG_COMPOSITE, "pg_accessions,grouped_runs,label")
 }
 END_SECTION
 

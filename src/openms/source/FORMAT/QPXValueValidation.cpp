@@ -645,8 +645,14 @@ namespace OpenMS
         appendNullableString(key, label_value);
         if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
         {
+          // Stricter than the pg identity, deliberately. pg_id keys on the group's full
+          // membership (QPXIdentity::PG_COMPOSITE), so two groups sharing a leader get distinct
+          // ids; this guard still refuses them, because OpenMS builds pg rows from
+          // getIndistinguishableProteins(), whose groups partition the accessions -- a repeated
+          // leader there means the group list was assembled wrongly, not that two real groups
+          // coincided.
           addError(result, "row " + std::to_string(row)
-                           + " repeats the QPX pg primary key "
+                           + " repeats the pg natural key "
                              "(anchor_protein, grouped_runs, label)");
         }
 
