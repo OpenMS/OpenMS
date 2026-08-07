@@ -200,14 +200,21 @@ runs:
       run: ctest --parallel --output-on-failure --test-dir build
 
     ############################################################################
-    # Only written outside of pull requests.  Caches created by a PR run are
-    # visible to that PR alone, so saving them would burn the shared 10 GB
-    # repository budget (and evict the contrib cache) without helping anyone
-    # else.  PRs restore from develop instead, which is refreshed by every push
-    # to it.  Saved even when the build or the tests failed: the objects that
+    # Saved on every event, including pull requests.  A cache written by a PR
+    # run is scoped to that PR, so it only speeds up later pushes to the same
+    # PR -- but that is precisely the loop developers iterate in, and this
+    # workflow has no push trigger for develop (only nightly and release/*), so
+    # gating on non-PR events would mean the cache is effectively never written
+    # at all.  Saved even when the build or the tests failed: the objects that
     # did compile are still worth keeping.
+    #
+    # NOTE: caches created on develop (the default branch) are the only ones
+    # readable by *every* PR, so a first CI run on a new PR is only fast if
+    # develop's cache is fresh.  Keeping it fresh needs test.yml to run on
+    # develop regularly (a push trigger or a nightly schedule); until then a
+    # PR's first run still pays for a cold build.
     - name: Save Build Cache
-      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+      if: ${{ !cancelled() }}
       uses: actions/cache/save@v5
       with:
         path: .ccache
