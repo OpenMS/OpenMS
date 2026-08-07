@@ -501,10 +501,10 @@ END_SECTION
 
 START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows under one key))
 {
-  // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the pg natural
-  // key (anchor_protein, grouped_runs, label) -- and, since the groups are identical, on pg_id too.
-  // The in-memory builder keeps both so callers can inspect the source conflict; the Parquet
-  // writer's shared value validator refuses them.
+  // '/a/run.mzML' and '/b/run.mzML' both stem to 'run', so the two rows collide on the pg identity
+  // (pg_accessions, grouped_runs, label) -- same group, same runs, same label, hence the same
+  // pg_id. The in-memory builder keeps both so callers can inspect the source conflict; the
+  // Parquet writer's shared value validator refuses them.
   auto prot_a = makeIdOnlyRun({"/a/run.mzML"});
   auto prot_b = makeIdOnlyRun({"/b/run.mzML"});
   prot_b.setIdentifier("PI_1");
@@ -518,6 +518,58 @@ START_SECTION(([EXTRA] exportToArrow - two runs sharing a stem keep both rows un
   TEST_STRING_EQUAL(names[1], "run")
   auto anchors = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("anchor_protein")->chunk(0));
   TEST_STRING_EQUAL(anchors->GetString(0), anchors->GetString(1))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] two groups sharing a leading protein are distinct rows, not a duplicate key))
+{
+  // pg_id keys on the group's FULL membership, so PROT_A;PROT_B and PROT_A;PROT_C are two
+  // different groups even though both lead with PROT_A. Keying on the leader alone -- which the
+  // pg view did before -- derived one id for both and made the value validator refuse the export
+  // as a repeated primary key. Both must survive, with distinct ids.
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("PI_0");
+  prot_id.setScoreType("q-value");
+  prot_id.setHigherScoreBetter(false);
+  prot_id.setPrimaryMSRunPath({"/data/SimpleSearchEngine_1.mzML"});
+
+  std::vector<ProteinHit> hits;
+  for (const std::string& acc : {"PROT_A", "PROT_B", "PROT_C"})
+  {
+    ProteinHit ph;
+    ph.setAccession(acc);
+    ph.setScore(0.01);
+    ph.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+    hits.push_back(ph);
+  }
+  prot_id.setHits(hits);
+
+  ProteinIdentification::ProteinGroup shared_leader_1;
+  shared_leader_1.accessions = {"PROT_A", "PROT_B"};
+  shared_leader_1.probability = 0.01;
+  prot_id.insertIndistinguishableProteins(shared_leader_1);
+
+  ProteinIdentification::ProteinGroup shared_leader_2;
+  shared_leader_2.accessions = {"PROT_A", "PROT_C"};
+  shared_leader_2.probability = 0.01;
+  prot_id.insertIndistinguishableProteins(shared_leader_2);
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  auto anchors = std::static_pointer_cast<arrow::StringArray>(
+    table->GetColumnByName("anchor_protein")->chunk(0));
+  TEST_STRING_EQUAL(anchors->GetString(0), anchors->GetString(1)) // same leader ...
+
+  auto ids = std::static_pointer_cast<arrow::Int64Array>(
+    table->GetColumnByName("pg_id")->chunk(0));
+  TEST_NOT_EQUAL(ids->Value(0), ids->Value(1))                    // ... different identity
+
+  // And the value validator agrees with the identity rather than refusing the pair.
+  QPXValueValidation validator(QPXValueValidation::View::PROTEIN_GROUP);
+  const auto validation = validator.validate(table);
+  TEST_TRUE(validation.valid)
 }
 END_SECTION
 

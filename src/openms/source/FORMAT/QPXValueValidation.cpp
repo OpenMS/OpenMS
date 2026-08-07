@@ -562,18 +562,54 @@ namespace OpenMS
     {
       auto anchor = std::static_pointer_cast<arrow::StringArray>(
         combinedColumn(table, QPXPgSchema::ANCHOR_PROTEIN, result));
+      auto pg_accessions = std::static_pointer_cast<arrow::ListArray>(
+        combinedColumn(table, QPXPgSchema::PG_ACCESSIONS, result));
       auto grouped_runs = std::static_pointer_cast<arrow::ListArray>(
         combinedColumn(table, QPXPgSchema::GROUPED_RUNS, result));
       auto label = std::static_pointer_cast<arrow::StringArray>(
         combinedColumn(table, QPXPgSchema::LABEL, result));
       auto intensity = std::static_pointer_cast<arrow::FloatArray>(
         combinedColumn(table, QPXPgSchema::INTENSITY, result));
-      if (!anchor || !grouped_runs || !label || !intensity) { return result; }
+      if (!anchor || !pg_accessions || !grouped_runs || !label || !intensity) { return result; }
       const auto run_values = std::static_pointer_cast<arrow::StringArray>(grouped_runs->values());
+      const auto accession_values =
+        std::static_pointer_cast<arrow::StringArray>(pg_accessions->values());
 
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
+        // anchor_protein is non-nullable in the schema, so it is still required -- but it is a
+        // descriptive field, not part of the key. What identifies the group is its membership.
         bool key_valid = nonEmptyString(anchor, row, QPXPgSchema::ANCHOR_PROTEIN, result);
+
+        // The group's membership, canonicalized the way pg_id keys on it
+        // (QPXIdentity::PG_COMPOSITE): a set, so neither the order inference happens to list the
+        // accessions in nor a repeated accession makes two rows look distinct to this check when
+        // the identity calls them the same row.
+        std::vector<std::string> accessions;
+        if (pg_accessions->IsNull(row) || pg_accessions->value_length(row) == 0)
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has an empty 'pg_accessions' primary-key value");
+          key_valid = false;
+        }
+        else
+        {
+          accessions.reserve(static_cast<size_t>(pg_accessions->value_length(row)));
+          for (int64_t i = 0; i < pg_accessions->value_length(row); ++i)
+          {
+            const int64_t index = pg_accessions->value_offset(row) + i;
+            if (accession_values->IsNull(index) || isBlank(accession_values->GetString(index)))
+            {
+              addError(result, "row " + std::to_string(row)
+                               + " has an empty member in pg_accessions");
+              key_valid = false;
+              continue;
+            }
+            accessions.push_back(accession_values->GetString(index));
+          }
+          std::sort(accessions.begin(), accessions.end());
+          accessions.erase(std::unique(accessions.begin(), accessions.end()), accessions.end());
+        }
         std::vector<std::string> runs;
         std::unordered_set<std::string> row_runs;
         if (grouped_runs->IsNull(row) || grouped_runs->value_length(row) == 0)
@@ -638,36 +674,36 @@ namespace OpenMS
         std::sort(runs.begin(), runs.end());
         if (!key_valid) { continue; }
 
-        std::string key;
-        appendString(key, anchor->GetString(row));
+        // Built from the same three values pg_id hashes, so this check and the identity agree on
+        // what "the same pg row" means. Keying on anchor_protein instead would refuse two
+        // legitimately distinct groups that happen to share a leading protein -- rows the
+        // identity gives distinct pg_ids.
+        std::string membership;
+        appendInteger(membership, accessions.size());
+        for (const auto& accession : accessions) { appendString(membership, accession); }
+
+        std::string key = membership;
         appendInteger(key, runs.size());
         for (const auto& run_name : runs) { appendString(key, run_name); }
         appendNullableString(key, label_value);
         if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
         {
-          // Stricter than the pg identity, deliberately. pg_id keys on the group's full
-          // membership (QPXIdentity::PG_COMPOSITE), so two groups sharing a leader get distinct
-          // ids; this guard still refuses them, because OpenMS builds pg rows from
-          // getIndistinguishableProteins(), whose groups partition the accessions -- a repeated
-          // leader there means the group list was assembled wrongly, not that two real groups
-          // coincided.
           addError(result, "row " + std::to_string(row)
-                           + " repeats the pg natural key "
-                             "(anchor_protein, grouped_runs, label)");
+                           + " repeats the QPX pg identity "
+                             "(pg_accessions, grouped_runs, label)");
         }
 
-        // One raw file may contribute to at most one protein quantity at this
-        // (anchor_protein, label). Otherwise the same measurement is double-counted.
+        // One raw file may contribute to at most one protein quantity of the same group at this
+        // label. Otherwise the same measurement is double-counted.
         for (const auto& run_name : runs)
         {
-          std::string run_key;
-          appendString(run_key, anchor->GetString(row));
+          std::string run_key = membership;
           appendNullableString(run_key, label_value);
           appendString(run_key, run_name);
           if (impl_->pg_run_keys.contains(run_key) || !new_pg_run_keys.insert(run_key).second)
           {
             addError(result, "row " + std::to_string(row) + " reuses run '" + run_name
-                             + "' in another pg row with the same (anchor_protein, label)");
+                             + "' in another pg row with the same (pg_accessions, label)");
           }
         }
       }
