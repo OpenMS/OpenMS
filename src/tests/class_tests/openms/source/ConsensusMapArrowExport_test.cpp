@@ -1600,7 +1600,7 @@ START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link 
 
   // The streaming merge must detect the same conflict even when the two rows are split between
   // worker-local maps, and its bool error contract must not leave an incomplete file behind.
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   QPXIdentity::FeatureLinks streaming_links;
   TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(
