@@ -446,6 +446,23 @@ TOPP tools:
       - Fix: -id:add_usi now populates the USI column for idXML/consensusXML by resolving the MS run from
         the run's spectra_data via the merge index, instead of the never-populated per-ID base_name
         (#9657, fixes #8470)
+    MzTabExporter:
+      - BREAKING: an assay is now a (fraction_group, label) unit covering all of that group's fractions,
+        and study_variable lists a sample's assays as its replicates. n_assays was previously
+        ExperimentalDesign::getNumberOfSamples(), so a sample measured in several fraction groups
+        collapsed onto a single assay and the replicate axis had nowhere to live -- the opposite of the
+        mzTab spec, which defines an assay as one measurement and study_variable as the grouping level
+        above it. Assay abundances are read from PeptideAndProteinQuant's fraction_group_level_abundance
+        array matched by (fraction_group, label) key rather than by position, so a mismatched or
+        duplicated key warns and falls back to the previous sample-grain value instead of emitting a
+        wrong number. A sample split across several assays reports each assay's own value with a null
+        study_variable abundance, since no across-replicate aggregator has been agreed on, rather than
+        silently picking one of them. This also fixes peptide_abundance_assay[i] being assigned rather
+        than summed -- only ill-defined before, when an assay was forced 1:1 with a study variable, and
+        now a genuine sum over the ms_runs an assay spans. One shipped reference moves,
+        ProteomicsLFQ_1_subset_out.mzTab, whose design splits one sample's fractions across two fraction
+        groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
+        and is byte-identical (#9868, part of #9864)
     IDMerger:
       - Fix: merged output preserves input file order; IdentificationRuns were previously sorted
         alphabetically by run identifier (#9240)
@@ -505,6 +522,17 @@ TOPP tools:
     - OpenSwathPercolatorScoring: scores OpenSwathWorkflow results with Percolator (#9695)
     - OpenSwathPeakMapExtractor: extracts full peakmap points from mzML via targeted extraction (#9684)
     - TransitionListEvidenceFilter: filters transition lists by preliminary evidence from mzML (#9161)
+    - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
+      bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
+      surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
+      metadata or given explicitly via -pk for any table; matched rows are compared cell-by-cell recursing
+      into list/struct columns, and schema drift (added/removed/retyped columns) is reported separately
+      from value drift. Tolerance mirrors FuzzyStringComparator -- either -ratio or -absdiff must hold, so
+      a zero-vs-epsilon comparison stays expressible -- and two NaNs compare equal. List-valued key columns
+      (e.g. QPX's grouped_runs) are canonicalized by sorting before matching, and a duplicate primary key
+      is reported as an error in its own right. -schema validates a single file against a named QPX view
+      instead of diffing two files. Exit code is EXECUTION_OK when equal and INCOMPATIBLE_INPUT_DATA
+      otherwise, so it drops into CTest the way FuzzyDiff does (#9865, part of #9864)
   Removed tools:
     - GenericWrapper (#8981), QPXConverter (#9693)
 
