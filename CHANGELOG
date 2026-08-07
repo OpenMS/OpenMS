@@ -350,9 +350,11 @@ TOPP tools:
         (1/63 instead of 1/45 on that fixture; with a psmFDR cutoff between the two it decides which
         identifications survive). The QPX psm view refuses a repeated primary key, so -in_feat together
         with -out_qpx aborted the export entirely. The unassigned list now holds only identifications not
-        attached to a feature, matched on spectrum reference; one that shares a spectrum with a
-        feature-attached identification but assigns a different peptide is kept and warned about rather
-        than silently discarded, since that means the featureXML was not produced from these
+        attached to a feature, matched on spectrum reference, sequence and charge -- all of the
+        identifications attached to a spectrum, so a chimeric spectrum or overlapping isolation windows
+        do not leave the second one behind. One that shares a spectrum with feature-attached
+        identifications but assigns a peptide none of them do is kept and warned about rather than
+        silently discarded, since that means the featureXML was not produced from these
         identifications. Only the -in_feat path was affected (#9871)
       - Added PIP-ECHO match-between-runs via the new PipEchoAlgorithm (-pip_echo true): features are
         grouped across RT-aligned runs with a target/decoy confidence model and FDR-controlled

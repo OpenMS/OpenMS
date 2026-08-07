@@ -1035,14 +1035,8 @@ protected:
 
       MSExperiment ms_centroided;
       bool is_im_peak_data = false;
+      // Rejected together with '-in_feat' in main_(), before any file is read.
       const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
-
-      if (! in_feat_list.empty() && mass_recalibration)
-      {
-        throw Exception::InvalidParameter(
-          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Option '-mass_recalibration' is not supported together with '-in_feat' because pre-computed features bypass internal feature finding.");
-      }
 
       const bool requires_ms_data = in_feat_list.empty();
 
@@ -1229,7 +1223,12 @@ protected:
         // twice, and - the reason this matters beyond bookkeeping - PSM/peptide FDR is estimated
         // over both lists together, so each duplicate counts as an extra target and makes every
         // q-value of the run look better than it is.
-        std::map<std::string, std::pair<std::string, Int>> attached_psms; // spectrum ref -> (sequence, charge)
+        // All of them, not just the first per spectrum: one spectrum can carry more than one
+        // attached identification - two features whose isolation windows overlap it, or a
+        // chimeric spectrum interpreted as two peptides. Keeping only the first would leave the
+        // others unmatched below, and every one of those is a PSM this partition is supposed to
+        // exclude that ends up duplicated in the unassigned list instead.
+        std::map<std::string, std::set<std::pair<std::string, Int>>> attached_psms; // spectrum ref -> {(sequence, charge)}
         for (const Feature& feature : fm)
         {
           for (const PeptideIdentification& pid : feature.getPeptideIdentifications())
@@ -1239,8 +1238,8 @@ protected:
             // input PSM that also lacks one.
             const std::string& ref = pid.getSpectrumReference();
             if (ref.empty() || pid.getHits().empty()) { continue; }
-            attached_psms.emplace(ref, std::make_pair(pid.getHits()[0].getSequence().toString(),
-                                                      pid.getHits()[0].getCharge()));
+            attached_psms[ref].emplace(pid.getHits()[0].getSequence().toString(),
+                                       pid.getHits()[0].getCharge());
           }
         }
 
@@ -1257,13 +1256,13 @@ protected:
             unassigned_pep_ids.push_back(pid);
             continue;
           }
-          // Same spectrum, different peptide: the featureXML was not produced from these
-          // identifications. Dropping the input PSM would silently discard the current result, so
-          // keep it and say so - the duplicate this creates is the lesser of the two problems, and
-          // it is now visible rather than routine.
+          // Same spectrum, but none of the peptides attached to it: the featureXML was not
+          // produced from these identifications. Dropping the input PSM would silently discard the
+          // current result, so keep it and say so - the duplicate this creates is the lesser of the
+          // two problems, and it is now visible rather than routine.
           if (! pid.getHits().empty()
-              && (pid.getHits()[0].getSequence().toString() != attached->second.first
-                  || pid.getHits()[0].getCharge() != attached->second.second))
+              && attached->second.count({pid.getHits()[0].getSequence().toString(),
+                                         pid.getHits()[0].getCharge()}) == 0)
           {
             ++mismatched_attached;
             unassigned_pep_ids.push_back(pid);
@@ -1738,6 +1737,15 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Number of output featureXML files (-out_feat, " + StringUtils::toStr(out_feat.size()) +
         ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
+    }
+    // Here rather than in the per-file loop: recalibration precedes feature detection, which
+    // '-in_feat' skips entirely, so the combination is decided by the parameters alone. Checking it
+    // per file would first load and re-index the first file's identifications against the FASTA
+    // database, then abort on a conflict that was knowable before any of that work.
+    if (! in_feat.empty() && getStringOption_("mass_recalibration") == "true")
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Option '-mass_recalibration' is not supported together with '-in_feat' because pre-computed features bypass internal feature finding.");
     }
     if (in.size() != in_ids.size())
     {
