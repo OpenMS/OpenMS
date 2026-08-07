@@ -14,7 +14,6 @@
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
@@ -153,11 +152,21 @@ retention time tolerance used when linking features across runs. A featureXML fr
 does not carry it, which the tool warns about.
 
 Normalization: @n
-  - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
-    to the consensus features (using simple median scaling).
-  - Normalization is DISABLED when MSstats output (-out_msstats) or Triqler output (-out_triqler) is requested,
-    as these tools perform their own normalization.
-  - Normalization is also DISABLED for spectral counting quantification.
+  - ProteomicsLFQ does NOT normalize. Every output - mzTab, consensusXML, QPX Parquet, MSstats and
+    Triqler - reports the same un-normalized abundances, whatever combination of output files is
+    requested. Earlier versions applied median scaling to the consensus features unless
+    -out_msstats or -out_triqler was given, which made the meaning of an intensity depend on which
+    other output file happened to be requested, and recorded nothing about the transform in any of
+    them.
+  - Choosing a normalization is a separate, explicit step. Three routes, in increasing distance
+    from this tool: @n
+    - @ref TOPP_ConsensusMapNormalizer on -out_cxml (median, quantile, robust regression or
+      thresholded scaling); @n
+    - the ProteinQuantification:consensus:normalize parameter, which scales peptide abundances so
+      that the median of each (fraction group, label) assay matches the overall median - i.e. it
+      normalizes at the assay level rather than per fraction; @n
+    - the downstream tool itself. MSstats, Triqler and comparable consumers normalize their input
+      by design.
 
 Output:
   - mzTab file with analysis results
@@ -1538,10 +1547,14 @@ protected:
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
-    if (getStringOption_("out_msstats").empty() && getStringOption_("out_triqler").empty())
-    {
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, "", "");
-    }
+    // No normalization here, deliberately. A median scaling used to run at this point unless
+    // -out_msstats or -out_triqler was requested, which meant the same input written to the same
+    // -out_qpx directory held normalized or raw intensities depending on whether an unrelated
+    // output file was also asked for - and neither the Parquet nor the mzTab recorded which.
+    // Normalizing per fraction and then summing across fractions (PeptideAndProteinQuant.cpp) is
+    // also not well defined: it is only ratio-preserving when the reference is the same sample in
+    // every fraction, which a non-rectangular design does not guarantee. See the tool
+    // documentation above for the three supported ways to normalize.
 
     return EXECUTION_OK;
   }
