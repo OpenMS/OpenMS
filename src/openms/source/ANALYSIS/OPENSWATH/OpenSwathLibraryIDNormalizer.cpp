@@ -16,6 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -54,12 +55,9 @@ namespace OpenMS
 
   void OpenSwathLibraryIDNormalizer::normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp)
   {
-    std::vector<std::string> source_compound_ids;
-    source_compound_ids.reserve(exp.compounds.size());
-
-    std::unordered_set<std::string> seen_compound_ids;
-    seen_compound_ids.reserve(exp.compounds.size());
-
+    // Validate source compound identifiers before constructing the operational subset.
+    std::unordered_set<std::string> known_compound_ids;
+    known_compound_ids.reserve(exp.compounds.size());
     for (const auto& compound : exp.compounds)
     {
       const std::string source_id = compound.id;
@@ -67,13 +65,37 @@ namespace OpenMS
       {
         throwInvalidID_("Source compound ID must not be empty", source_id);
       }
-      if (!seen_compound_ids.insert(source_id).second)
+      if (!known_compound_ids.insert(source_id).second)
       {
         throwInvalidID_("Source compound IDs must be unique", source_id);
       }
-      source_compound_ids.push_back(source_id);
     }
 
+    // Only compounds referenced by transitions participate in the operational OpenSWATH
+    // precursor ID space. Unreferenced source records cannot provide an extraction coordinate
+    // and must not shift the canonical IDs of extractable precursor groups.
+    std::unordered_set<std::string> referenced_compound_ids;
+    referenced_compound_ids.reserve(exp.transitions.size());
+    for (const auto& transition : exp.transitions)
+    {
+      const std::string source_ref = transition.peptide_ref;
+      if (source_ref.empty())
+      {
+        throwInvalidID_("Transition precursor reference must not be empty", source_ref);
+      }
+      if (!known_compound_ids.contains(source_ref))
+      {
+        throwInvalidID_("Transition references an unknown source compound ID", source_ref);
+      }
+      referenced_compound_ids.insert(source_ref);
+    }
+
+    std::vector<std::string> source_compound_ids;
+    source_compound_ids.reserve(referenced_compound_ids.size());
+    for (const auto& source_id : referenced_compound_ids)
+    {
+      source_compound_ids.push_back(source_id);
+    }
     std::sort(source_compound_ids.begin(), source_compound_ids.end());
 
     std::unordered_map<std::string, std::string> precursor_id_map;
@@ -83,23 +105,37 @@ namespace OpenMS
       precursor_id_map.emplace(source_compound_ids[i], StringUtils::toStr(static_cast<int64_t>(i)));
     }
 
-    for (auto& compound : exp.compounds)
-    {
-      compound.id = precursor_id_map.at(std::string(compound.id));
-    }
+    // Build a fresh experiment instead of mutating compound IDs in place. LightTargetedExperiment
+    // maintains an internal compound-reference lookup cache; rebuilding the object guarantees that
+    // no cache entries keyed by pre-normalization source IDs survive canonicalization.
+    OpenSwath::LightTargetedExperiment normalized;
+    normalized.proteins = exp.proteins;
+    normalized.compounds.reserve(referenced_compound_ids.size());
+    normalized.transitions = exp.transitions;
 
-    for (Size i = 0; i < exp.transitions.size(); ++i)
+    for (const auto& source_compound : exp.compounds)
     {
-      auto& transition = exp.transitions[i];
-      const std::string source_ref = transition.peptide_ref;
-      if (source_ref.empty())
+      const std::string source_id = source_compound.id;
+      const auto precursor_it = precursor_id_map.find(source_id);
+      if (precursor_it == precursor_id_map.end())
       {
-        throwInvalidID_("Transition precursor reference must not be empty", source_ref);
+        continue;
       }
 
+      OpenSwath::LightCompound compound = source_compound;
+      compound.id = precursor_it->second;
+      normalized.compounds.push_back(std::move(compound));
+    }
+
+    for (Size i = 0; i < normalized.transitions.size(); ++i)
+    {
+      auto& transition = normalized.transitions[i];
+      const std::string source_ref = transition.peptide_ref;
       const auto precursor_it = precursor_id_map.find(source_ref);
       if (precursor_it == precursor_id_map.end())
       {
+        // The source-reference validation above makes this unreachable unless the experiment
+        // is modified concurrently while normalization is running.
         throwInvalidID_("Transition references an unknown source compound ID", source_ref);
       }
 
@@ -107,7 +143,8 @@ namespace OpenMS
       transition.transition_name = StringUtils::toStr(static_cast<int64_t>(i));
     }
 
-    validateCanonicalIDs(exp);
+    validateCanonicalIDs(normalized);
+    exp = std::move(normalized);
   }
 
   void OpenSwathLibraryIDNormalizer::validateCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp)

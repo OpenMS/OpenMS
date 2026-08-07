@@ -37,10 +37,16 @@ namespace OpenMS
     /**
       @brief Replace arbitrary source precursor/transition identifiers with deterministic canonical IDs.
 
-      Precursor IDs are assigned by lexicographically sorting the unique source compound IDs
-      and numbering them from zero. Transition IDs are assigned from their order in
-      @p exp.transitions, also starting at zero. Existing transition @c peptide_ref values are
-      rewritten to the new precursor IDs.
+      Only compounds referenced by at least one transition participate in the operational precursor
+      ID space; unreferenced source compounds are omitted so they cannot shift the IDs of extractable
+      precursor groups. Referenced precursor IDs are assigned by lexicographically sorting their
+      unique source compound IDs and numbering them from zero. Transition IDs are assigned from their
+      order in @p exp.transitions, also starting at zero. Existing transition @c peptide_ref values
+      are rewritten to the new precursor IDs.
+
+      Normalization rebuilds the LightTargetedExperiment rather than changing compound IDs in place,
+      ensuring that its internal compound-reference lookup cache cannot retain source-ID keys after
+      canonicalization.
 
       This function is intended for source-oriented formats such as TSV and TraML. It must not
       be used to renumber libraries that already contain persistent canonical IDs.

@@ -26,7 +26,7 @@ START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment&
 {
   OpenSwath::LightTargetedExperiment exp;
 
-  for (const std::string& id : {"490", "A", "0", "2"})
+  for (const char* id : {"490", "A", "0", "2"})
   {
     OpenSwath::LightCompound compound;
     compound.id = id;
@@ -70,6 +70,78 @@ START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment&
 }
 END_SECTION
 
+START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp) -- removes unreferenced compounds without shifting active IDs)
+{
+  OpenSwath::LightTargetedExperiment exp;
+
+  // PEPTIDEA_Extra sorts between the two active IDs but is not referenced by any transition.
+  // It must therefore not participate in the operational precursor-ID space.
+  for (const char* id : {"PEPTIDEA", "PEPTIDEA_Extra", "PEPTIDEB"})
+  {
+    OpenSwath::LightCompound compound;
+    compound.id = id;
+    exp.compounds.push_back(compound);
+  }
+
+  OpenSwath::LightTransition tr_a;
+  tr_a.transition_name = "tr_a";
+  tr_a.peptide_ref = "PEPTIDEA";
+  exp.transitions.push_back(tr_a);
+
+  OpenSwath::LightTransition tr_b;
+  tr_b.transition_name = "tr_b";
+  tr_b.peptide_ref = "PEPTIDEB";
+  exp.transitions.push_back(tr_b);
+
+  OpenSwathLibraryIDNormalizer::normalizeSourceIDs(exp);
+
+  TEST_EQUAL(exp.compounds.size(), 2)
+  TEST_EQUAL(exp.compounds[0].id, "0")
+  TEST_EQUAL(exp.compounds[1].id, "1")
+  TEST_EQUAL(exp.transitions[0].transition_name, "0")
+  TEST_EQUAL(exp.transitions[0].peptide_ref, "0")
+  TEST_EQUAL(exp.transitions[1].transition_name, "1")
+  TEST_EQUAL(exp.transitions[1].peptide_ref, "1")
+
+  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(exp);
+}
+END_SECTION
+
+START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp) -- rebuilds a primed compound-reference cache)
+{
+  OpenSwath::LightTargetedExperiment exp;
+
+  OpenSwath::LightCompound compound_a;
+  compound_a.id = "PEPTIDEA";
+  exp.compounds.push_back(compound_a);
+
+  OpenSwath::LightCompound compound_b;
+  compound_b.id = "PEPTIDEB";
+  exp.compounds.push_back(compound_b);
+
+  OpenSwath::LightTransition tr_a;
+  tr_a.transition_name = "tr_a";
+  tr_a.peptide_ref = "PEPTIDEA";
+  exp.transitions.push_back(tr_a);
+
+  OpenSwath::LightTransition tr_b;
+  tr_b.transition_name = "tr_b";
+  tr_b.peptide_ref = "PEPTIDEB";
+  exp.transitions.push_back(tr_b);
+
+  // Prime LightTargetedExperiment's internal reference lookup before normalization.
+  TEST_EQUAL(exp.getCompoundByRef("PEPTIDEA").id, "PEPTIDEA")
+
+  OpenSwathLibraryIDNormalizer::normalizeSourceIDs(exp);
+
+  // A stale source-ID lookup cache used to make this dereference invalid during MS1 extraction.
+  TEST_EQUAL(exp.getCompoundByRef("0").id, "0")
+  TEST_EQUAL(exp.getCompoundByRef("1").id, "1")
+  TEST_EQUAL(exp.transitions[0].peptide_ref, "0")
+  TEST_EQUAL(exp.transitions[1].peptide_ref, "1")
+}
+END_SECTION
+
 START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp) -- invalid source references)
 {
   OpenSwath::LightTargetedExperiment duplicate_compounds;
@@ -97,7 +169,7 @@ START_SECTION(static void validateCanonicalIDs(const OpenSwath::LightTargetedExp
 {
   // Sparse canonical IDs are valid and must not be renumbered after filtering.
   OpenSwath::LightTargetedExperiment valid;
-  for (const std::string& id : {"0", "7", "15"})
+  for (const char* id : {"0", "7", "15"})
   {
     OpenSwath::LightCompound compound;
     compound.id = id;
