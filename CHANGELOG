@@ -317,6 +317,9 @@ TOPP tools:
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
     ProteomicsLFQ:
+      - The mzTab output (-out) is optional when another output is requested; -out_cxml, -out_qpx,
+        -out_msstats, or -out_triqler can now be the sole output. Invocations without any output still
+        fail during parameter validation (#9866)
       - BREAKING: no normalization is applied, under any combination of output flags. A median scaling
         used to run over each fraction's consensus map unless -out_msstats or -out_triqler was requested,
         so the same input written to the same -out_qpx directory held normalized or raw intensities
@@ -362,6 +365,9 @@ TOPP tools:
       - Fix: mzTab export no longer aborts when search settings contain non-string DataValues (e.g.
         integer missed_cleavages) (#9666)
     IsobaricWorkflow:
+      - The consensusXML (-out), mzTab (-out_mzTab), and QPX (-out_qpx) outputs are optional
+        individually; any one can now be the sole output. Invocations without an output still fail
+        during parameter validation (#9866)
       - Added TMT 32-plex and 35-plex quantitation; the isotope correction matrix defaults to identity
         until calibrated values are provided (#9003)
       - Optional SPS match counting (-count_sps_matches): counts, per identified PSM, how many
