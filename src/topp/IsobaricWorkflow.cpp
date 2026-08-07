@@ -83,6 +83,7 @@ using namespace std;
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one identified PSM together with its reporter ions.
+  At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
   Unlike @ref TOPP_IsobaricAnalyzer, this tool does NOT filter quantification scans by activation method (@p extraction:select_activation is ignored),
   because SPS-MS3 reporter scans are frequently labelled as plain CID rather than HCD; selection is therefore based on the MS-level structure alone.
@@ -189,12 +190,12 @@ protected:
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
-    registerOutputFile_("out", "<file>", "", "output consensusXML file");
+    registerOutputFile_("out", "<file>", "", "Optional output consensusXML file. At least one output must be specified.", false, false);
     setValidFormats_("out", {"consensusXML"});
-    registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
+    registerOutputFile_("out_mzTab", "<file>", "", "Optional output mzTab file with quantitative information. At least one output must be specified.", false, false);
     setValidFormats_("out_mzTab", {"mzTab"});
 
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     registerFlag_("count_sps_matches", "For SPS-MS3: count how many of the co-isolated MS3 precursors (SPS ions) match a b/y fragment ion of the identified peptide. The count is stored as meta value 'sps_matched_ions' on the consensus feature. Off by default.", true);
     registerDoubleOption_("sps_fragment_mass_tolerance", "<tolerance>", 20.0, "Mass tolerance for matching MS3 SPS precursors to theoretical b/y fragment ions of the identified peptide (only used with 'count_sps_matches').", false, true);
@@ -481,8 +482,16 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    std::string out = getStringOption_("out");
-    std::string exp_design = getStringOption_("exp_design");
+    const std::string out = getStringOption_("out");
+    const std::string out_mzTab = getStringOption_("out_mzTab");
+    const std::string out_qpx = getOutputDirOption("out_qpx");
+    if (out.empty() && out_mzTab.empty() && out_qpx.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                 "out/out_mzTab/out_qpx");
+    }
+
+    const std::string exp_design = getStringOption_("exp_design");
     bool bayesian = getStringOption_("inference_method") == "bayesian";
     
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
@@ -982,7 +991,6 @@ protected:
       protein_quants, inferred_proteins, true);
 
     {
-      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
@@ -1066,10 +1074,12 @@ protected:
       }
     }
 
-    FileHandler().storeConsensusFeatures(out, cmap);
-    
-    std::string out_mzTab = getStringOption_("out_mzTab");
-    if (! out_mzTab.empty()) 
+    if (!out.empty())
+    {
+      FileHandler().storeConsensusFeatures(out, cmap);
+    }
+
+    if (!out_mzTab.empty())
     {
       const bool report_unidentified_features(false);
       const bool report_unmapped(true);
