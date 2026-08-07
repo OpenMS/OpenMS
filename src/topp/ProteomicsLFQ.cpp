@@ -30,7 +30,6 @@
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>
@@ -128,30 +127,6 @@ Biosaur2 defaults are tuned for ProteomicsLFQ (mini=500, minlh=3, pasefminlh=2).
 On HeLa 50ng 5-min timsTOF gradient: 34k seeds, 80% model fit success, 2,809
 peptides quantified (Spearman r=0.62 vs Sage LFQ), 75s runtime, 1.3 GB memory.
 
-Splitting feature detection from quantification: @n
-Feature detection is the expensive per-file part of the workflow and is independent between files,
-while alignment, linking, inference and quantification need all files at once. Writing the detected
-features with -out_feat and reading them back with -in_feat splits the run at exactly that seam,
-so the per-file half can be distributed:
-
-  1. Per file (in parallel): ProteomicsLFQ -in run1.mzML -ids run1.idXML -out_feat run1.featureXML ...
-  2. Once, over everything: ProteomicsLFQ -in run1.mzML run2.mzML -ids run1.idXML run2.idXML
-     -in_feat run1.featureXML run2.featureXML ...
-
-The second step never reads the mzML files - it skips centroiding, FWHM estimation, seeding and
-feature detection - but they must still be present, because the file list identifies the runs.
--in_feat and -out_feat are positional: the i-th featureXML belongs to the i-th -in file.
-
-The featureXML must carry its identifications attached to features, which is what -out_feat and
-@ref TOPP_FeatureFinderIdentification produce; a featureXML from a feature finder that does not
-assign identifications yields features nothing is identified on. -mass_recalibration cannot be
-combined with -in_feat, since recalibration precedes feature detection.
-
--out_feat also records the chromatographic FWHM the run measured, because it cannot be recomputed
-without the mzML and because it does more than size the feature detector: it also widens the
-retention time tolerance used when linking features across runs. A featureXML from another source
-does not carry it, which the tool warns about.
-
 Normalization: @n
   - ProteomicsLFQ does NOT normalize. Every output - mzTab, consensusXML, QPX Parquet, MSstats and
     Triqler - reports the same un-normalized abundances, whatever combination of output files is
@@ -207,14 +182,6 @@ protected:
       ",raw"
 #endif
     ));
-    registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
-    setValidFormats_("in_feat", ListUtils::create<std::string>("featureXML"));
-    registerOutputFileList_("out_feat", "<files>", StringList(),
-      "Optional output featureXML files holding the features detected for each '-in' file, in the same order. "
-      "They are written in exactly the state '-in_feat' expects, so the per-file feature detection - the "
-      "expensive part - can be run separately (and in parallel) and its result fed back for alignment, "
-      "linking and quantification. Must match the number of '-in' files.", false, false);
-    setValidFormats_("out_feat", ListUtils::create<std::string>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
@@ -1009,10 +976,6 @@ protected:
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
 
-    const StringList in_feat_list = getStringList_("in_feat");
-    const StringList out_feat_list = getStringList_("out_feat");
-    const StringList in_list = getStringList_("in");
-
     writeDebug_("Processing fraction number: " + StringUtils::toStr(fraction) + "\nFiles: ",  1);
     for (std::string const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
@@ -1040,40 +1003,30 @@ protected:
       bool is_im_peak_data = false;
       const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
 
-      if (! in_feat_list.empty() && mass_recalibration)
-      {
-        throw Exception::InvalidParameter(
-          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Option '-mass_recalibration' is not supported together with '-in_feat' because pre-computed features bypass internal feature finding.");
-      }
-
-      const bool requires_ms_data = in_feat_list.empty();
-
-      if (requires_ms_data)
       {
         ExitCodes e = loadAndPreprocess_(mz_file, ms_centroided, is_im_peak_data);
         if (e != EXECUTION_OK) { return e; }
-
-        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
-
-        if (is_im_peak_data && mass_recalibration)
-        {
-          OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
-        }
-
-        if (mass_recalibration && !is_im_peak_data)
-        {
-          std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
-          DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
-        }
-
-        if (!is_im_peak_data)
-        {
-          median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
-          OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
-        }
-        // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
       }
+
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+
+      if (is_im_peak_data && mass_recalibration)
+      {
+        OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
+      }
+
+      if (mass_recalibration && !is_im_peak_data)
+      {
+        std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
+        DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
+      }
+
+      if (!is_im_peak_data)
+      {
+        median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
+      }
+      // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
 
       // For .d/IM_PEAK + targeted_only: no Biosaur2 seeds to estimate FWHM from, use default
       if (is_im_peak_data && median_fwhm == 0.0)
@@ -1091,7 +1044,7 @@ protected:
 
       const bool targeted_only = getStringOption_("targeted_only") != "false";
 
-      if (! targeted_only && in_feat_list.empty())
+      if (! targeted_only)
       {
         std::string seeding_algorithm = getStringOption_("Seeding:algorithm");
 
@@ -1161,283 +1114,141 @@ protected:
       }
 
       /////////////////////////////////////////////////
-      // Feature detection or loading pre-computed features
+      // Feature detection
       FeatureMap fm;
 
-      if (! in_feat_list.empty())
+      // Run FeatureFinderIdentification
+      FeatureFinderIdentificationAlgorithm ffi;
+      ffi.getMSData().swap(ms_centroided);
+      ffi.getProgressLogger().setLogType(log_type_);
+
+      Param ffi_param = getParam_().copy("PeptideQuantification:", true);
+      ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+      ffi_param.setValue("debug", debug_level_); // pass down debug level
+
+      // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
+      // observed isotope envelope against the donor peptide's theoretical
+      // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
+      // (enough for a meaningful correlation) only on the pip_echo path. More
+      // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
+      // direct quantifications, so 3 is the sweet spot. The default linker path
+      // (and its TOPP reference outputs) is untouched.
+      if (getStringOption_("pip_echo") == "true")
       {
-        OPENMS_LOG_INFO << "Bypassing FeatureFinderIdentification. Loading pre-computed features...\n";
+        ffi_param.setValue("extract:n_isotopes", 3);
+      }
 
-        auto it = std::find(in_list.begin(), in_list.end(), mz_file);
-        if (it == in_list.end())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Current mzML file not found in the -in list.");
-        }
-        Size file_idx = static_cast<Size>(std::distance(in_list.begin(), it));
+      // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
+      // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
+      // default IM_window=0.06 is appropriate for matching centroided IM positions.
 
-        FileHandler().loadFeatures(in_feat_list[file_idx], fm, {FileTypes::FEATUREXML}, log_type_);
+      double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
+      double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
+      const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only || (feature_without_id_min_score > 0.0));
 
-        // Recover the FWHM the producing run measured. It is not only a feature-detection setting:
-        // link_() sizes the linker's RT tolerance with it, so leaving it at 0 - which is what
-        // happens without this, since the mzML is never read here - links with a narrower window
-        // than the run that produced these features used. featureXML written by anything else does
-        // not carry it, hence the warning rather than a silent 0.
-        if (fm.metaValueExists(median_fwhm_meta_key_))
-        {
-          median_fwhm = static_cast<double>(fm.getMetaValue(median_fwhm_meta_key_));
-        }
-        else
-        {
-          OPENMS_LOG_WARN << "Warning: '" << in_feat_list[file_idx] << "' does not record the "
-                          << "chromatographic FWHM (write it with ProteomicsLFQ '-out_feat'). "
-                          << "Feature linking will use a retention time tolerance that does not "
-                          << "account for peak width, which may differ from a run that performs its "
-                          << "own feature detection.\n";
-        }
+      if (filter_by_quant_scores)
+      {
+        OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
+        ffi_param.setValue("add_mass_offset_peptides", 10.005);
+      }
 
-        StringList run_paths;
-        fm.getPrimaryMSRunPath(run_paths);
-        if (run_paths.empty()) { fm.setPrimaryMSRunPath({mz_file}); }
-        else if (FileHandler::stripExtension(File::basename(run_paths[0])) != FileHandler::stripExtension(File::basename(mz_file)))
-        {
-          fm.setPrimaryMSRunPath({mz_file});
-        }
-        else if (File::stemName(run_paths[0]) !=
-                 File::stemName(mz_file))
-        {
-          OPENMS_LOG_WARN << "Primary MS run path in featureXML (" << run_paths[0]
-                          << ") does not match the mzML at the same position (" << mz_file
-                          << "). Keeping featureXML annotation.\n";
-        }
+      ffi.setParameters(ffi_param);
+      writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-        if (! fm.getProteinIdentifications().empty())
-        {
-          OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains protein identifications. They will be overwritten.\n";
-        }
-        fm.setProteinIdentifications(protein_ids);
+      {
+        vector<ProteinIdentification> ext_protein_ids;
+        PeptideIdentificationList ext_peptide_ids;
 
-        if (! fm.getUnassignedPeptideIdentifications().empty())
-        {
-          OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains unassigned peptide identifications. They will be overwritten.\n";
-        }
+        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids,
+                fm, // fills fm
+                seeds, mz_file);
+      }
 
-        // The unassigned list means "identified, but not attached to a feature" - the two lists of a
-        // FeatureMap partition the PSMs, they do not overlap. That is what IDMapper and
-        // FeatureFinderIdentification produce, and what every consumer reading both lists assumes.
-        // The identifications are replaced rather than kept, because the ones passed in here have
-        // been through this tool's preprocessing and carry the injected run identifier; but the
-        // subset already attached to a feature by the incoming featureXML must be left out, or every
-        // such PSM is present twice. Consumers that read both lists then see it twice: the QPX psm
-        // view emits a duplicate primary key and refuses the whole export, mzTab reports the PSM
-        // twice, and - the reason this matters beyond bookkeeping - PSM/peptide FDR is estimated
-        // over both lists together, so each duplicate counts as an extra target and makes every
-        // q-value of the run look better than it is.
-        std::map<std::string, std::pair<std::string, Int>> attached_psms; // spectrum ref -> (sequence, charge)
-        for (const Feature& feature : fm)
+      if (filter_by_quant_scores)
+      {
+        SimpleSVM::PredictorMap predictors;
+        map<Size, double> labels;
+        size_t current_row = 0;
+        size_t quant_target {}, quant_decoy {};
+
+        Math::RandomShuffler shuffler;
+        std::vector<size_t> randomized_indices(fm.size());
+        std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
+
+        for (auto& i : randomized_indices)
         {
-          for (const PeptideIdentification& pid : feature.getPeptideIdentifications())
+          const auto& f = fm[i];
+          predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
+          predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
+          predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
+          predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
+
+          bool is_offset = f.metaValueExists("OffsetPeptide");
+          bool has_id = ! f.getPeptideIdentifications().empty();
+          if (is_offset)
           {
-            // An empty reference identifies nothing, so it cannot establish that a PSM is attached.
-            // Without this guard a single feature PSM without a reference would exclude every
-            // input PSM that also lacks one.
-            const std::string& ref = pid.getSpectrumReference();
-            if (ref.empty() || pid.getHits().empty()) { continue; }
-            attached_psms.emplace(ref, std::make_pair(pid.getHits()[0].getSequence().toString(),
-                                                      pid.getHits()[0].getCharge()));
-          }
-        }
-
-        PeptideIdentificationList unassigned_pep_ids;
-        unassigned_pep_ids.reserve(peptide_ids.size());
-        Size mismatched_attached = 0;
-        for (const PeptideIdentification& pid : peptide_ids)
-        {
-          const auto attached = pid.getSpectrumReference().empty()
-                                  ? attached_psms.end()
-                                  : attached_psms.find(pid.getSpectrumReference());
-          if (attached == attached_psms.end())
-          {
-            unassigned_pep_ids.push_back(pid);
-            continue;
-          }
-          // Same spectrum, different peptide: the featureXML was not produced from these
-          // identifications. Dropping the input PSM would silently discard the current result, so
-          // keep it and say so - the duplicate this creates is the lesser of the two problems, and
-          // it is now visible rather than routine.
-          if (! pid.getHits().empty()
-              && (pid.getHits()[0].getSequence().toString() != attached->second.first
-                  || pid.getHits()[0].getCharge() != attached->second.second))
-          {
-            ++mismatched_attached;
-            unassigned_pep_ids.push_back(pid);
-          }
-        }
-        if (mismatched_attached > 0)
-        {
-          OPENMS_LOG_WARN << "Warning: " << mismatched_attached << " identification(s) share a spectrum "
-                          << "with a feature-attached identification of the featureXML but assign a "
-                          << "different peptide. The featureXML does not appear to have been produced "
-                          << "from these identifications; keeping both.\n";
-        }
-        fm.setUnassignedPeptideIdentifications(unassigned_pep_ids);
-
-        const std::string expected_identifier = protein_ids[0].getIdentifier();
-        Size updated_feature_pid_ids = 0;
-        for (Feature& feature : fm)
-        {
-          auto f_pids = feature.getPeptideIdentifications();
-          bool updated = false;
-          for (auto& pid : f_pids)
-          {
-            if (pid.getIdentifier() != expected_identifier)
+            if (quant_decoy < 1000)
             {
-              pid.setIdentifier(expected_identifier);
-              ++updated_feature_pid_ids;
-              updated = true;
+              labels[current_row] = 0.0;
+              ++quant_decoy;
             }
           }
-          if (updated) feature.setPeptideIdentifications(f_pids);
-        }
-        if (updated_feature_pid_ids > 0)
-        {
-          OPENMS_LOG_WARN << "Updated " << updated_feature_pid_ids << " feature-level peptide identifiers to match injected run identifier.\n";
-        }
-      }
-      else
-      {
-        // Run FeatureFinderIdentification
-        FeatureFinderIdentificationAlgorithm ffi;
-        ffi.getMSData().swap(ms_centroided);
-        ffi.getProgressLogger().setLogType(log_type_);
-
-        Param ffi_param = getParam_().copy("PeptideQuantification:", true);
-        ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-        ffi_param.setValue("debug", debug_level_); // pass down debug level
-
-        // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
-        // observed isotope envelope against the donor peptide's theoretical
-        // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
-        // (enough for a meaningful correlation) only on the pip_echo path. More
-        // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
-        // direct quantifications, so 3 is the sweet spot. The default linker path
-        // (and its TOPP reference outputs) is untouched.
-        if (getStringOption_("pip_echo") == "true")
-        {
-          ffi_param.setValue("extract:n_isotopes", 3);
+          else
+          {
+            if (has_id && quant_target < 1000)
+            {
+              labels[current_row] = 1.0;
+              ++quant_target;
+            }
+          }
+          ++current_row;
         }
 
-        // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
-        // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
-        // default IM_window=0.06 is appropriate for matching centroided IM positions.
-
-        double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
-        double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
-        const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only || (feature_without_id_min_score > 0.0));
-
-        if (filter_by_quant_scores)
+        if (quant_decoy > 4 && quant_target > 4)
         {
-          OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
-          ffi_param.setValue("add_mass_offset_peptides", 10.005);
-        }
+          SimpleSVM svm;
+          Param svm_param = svm.getParameters();
+          svm_param.setValue("kernel", "linear");
+          svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
+          svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
 
-        ffi.setParameters(ffi_param);
-        writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
+          svm.setParameters(svm_param);
+          svm.setup(predictors, labels);
+          vector<SimpleSVM::Prediction> predictions;
+          OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
+          svm.predict(predictions);
+          std::map<std::string, double> feature_weights;
+          svm.getFeatureWeights(feature_weights);
 
-        {
-          vector<ProteinIdentification> ext_protein_ids;
-          PeptideIdentificationList ext_peptide_ids;
-
-          ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids,
-                  fm, // fills fm
-                  seeds, mz_file);
-        }
-
-        if (filter_by_quant_scores)
-        {
-          SimpleSVM::PredictorMap predictors;
-          map<Size, double> labels;
-          size_t current_row = 0;
-          size_t quant_target {}, quant_decoy {};
-
-          Math::RandomShuffler shuffler;
-          std::vector<size_t> randomized_indices(fm.size());
-          std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
-
+          size_t current_row_pred {};
           for (auto& i : randomized_indices)
           {
-            const auto& f = fm[i];
-            predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
-            predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
-            predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
-            predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
-
-            bool is_offset = f.metaValueExists("OffsetPeptide");
-            bool has_id = ! f.getPeptideIdentifications().empty();
-            if (is_offset)
-            {
-              if (quant_decoy < 1000)
-              {
-                labels[current_row] = 0.0;
-                ++quant_decoy;
-              }
-            }
-            else
-            {
-              if (has_id && quant_target < 1000)
-              {
-                labels[current_row] = 1.0;
-                ++quant_target;
-              }
-            }
-            ++current_row;
-          }
-
-          if (quant_decoy > 4 && quant_target > 4)
-          {
-            SimpleSVM svm;
-            Param svm_param = svm.getParameters();
-            svm_param.setValue("kernel", "linear");
-            svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
-            svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
-
-            svm.setParameters(svm_param);
-            svm.setup(predictors, labels);
-            vector<SimpleSVM::Prediction> predictions;
-            OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
-            svm.predict(predictions);
-            std::map<std::string, double> feature_weights;
-            svm.getFeatureWeights(feature_weights);
-
-            size_t current_row_pred {};
-            for (auto& i : randomized_indices)
-            {
-              auto& f = fm[i];
-              f.setMetaValue("p_quant", (double)predictions[current_row_pred].probabilities[1]);
-              ++current_row_pred;
-            }
-          }
-
-          if (quant_decoy > 4 && quant_target > 4)
-          {
-            fm.erase(std::remove_if(fm.begin(), fm.end(),
-                                    [&](const Feature& f) {
-                                      double quant_score = f.getMetaValue("p_quant");
-                                      bool is_offset = f.metaValueExists("OffsetPeptide");
-                                      bool has_id = ! f.getPeptideIdentifications().empty();
-                                      bool untargeted_feature = ! is_offset && ! has_id;
-                                      bool is_feature_with_id = ! is_offset && has_id;
-
-                                      if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
-                                      if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
-                                      if (is_offset && quant_score < feature_without_id_min_score) return true;
-                                      return false;
-                                    }),
-                     fm.end());
-
-            fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
+            auto& f = fm[i];
+            f.setMetaValue("p_quant", (double)predictions[current_row_pred].probabilities[1]);
+            ++current_row_pred;
           }
         }
-      } // <--- END OF ELSE BLOCK
+
+        if (quant_decoy > 4 && quant_target > 4)
+        {
+          fm.erase(std::remove_if(fm.begin(), fm.end(),
+                                  [&](const Feature& f) {
+                                    double quant_score = f.getMetaValue("p_quant");
+                                    bool is_offset = f.metaValueExists("OffsetPeptide");
+                                    bool has_id = ! f.getPeptideIdentifications().empty();
+                                    bool untargeted_feature = ! is_offset && ! has_id;
+                                    bool is_feature_with_id = ! is_offset && has_id;
+
+                                    if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
+                                    if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
+                                    if (is_offset && quant_score < feature_without_id_min_score) return true;
+                                    return false;
+                                  }),
+                   fm.end());
+
+          fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
+        }
+      }
 
       // "IM" and "n_scans" are written by Biosaur2 (ion-mobility value and true
       // MS1 scan count); kept for forward compatibility with a direct-Biosaur2
@@ -1483,24 +1294,6 @@ protected:
       IDConflictResolverAlgorithm::resolve(fm, getStringOption_("keep_feature_top_psm_only") == "false");
 
       feature_maps.emplace_back(std::move(fm));
-
-      // Hand the detected features out for reuse with '-in_feat', in the state that path expects:
-      // identifications attached to their features, the rest unassigned, primary MS run path set.
-      // The FWHM this run estimated from the mzML is stamped onto the map because it cannot be
-      // recomputed later - '-in_feat' never reads the mzML - and because it does more than size the
-      // feature detector: link_() derives the linker's RT tolerance from it. Without carrying it,
-      // a split run would link with a different tolerance than the single-shot run it reproduces.
-      if (! out_feat_list.empty())
-      {
-        const auto it = std::find(in_list.begin(), in_list.end(), mz_file);
-        if (it == in_list.end())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Current mzML file not found in the -in list.");
-        }
-        const Size out_idx = static_cast<Size>(std::distance(in_list.begin(), it));
-        feature_maps.back().setMetaValue(median_fwhm_meta_key_, median_fwhm);
-        FileHandler().storeFeatures(out_feat_list[out_idx], feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
-      }
 
       if (debug_level_ > 666)
       {
@@ -1732,24 +1525,7 @@ protected:
     StringList in_ids = getStringList_("ids");
     std::string design_file = getStringOption_("design");
     std::string in_db = getStringOption_("fasta");
-    StringList in_feat = getStringList_("in_feat");
-
-    StringList out_feat = getStringList_("out_feat");
-
     // Validate parameters
-    if (! in_feat.empty() && in_feat.size() != in.size())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of featureXML files (-in_feat, " + StringUtils::toStr(in_feat.size()) +
-        ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
-    }
-    // Positional, like -in_feat: the i-th file describes the i-th '-in' file.
-    if (! out_feat.empty() && out_feat.size() != in.size())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of output featureXML files (-out_feat, " + StringUtils::toStr(out_feat.size()) +
-        ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
-    }
     if (in.size() != in_ids.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -2186,10 +1962,6 @@ protected:
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
   ExperimentalDesign design_;
-
-  /// Map-level meta value carrying the chromatographic FWHM a run estimated from the mzML, so that
-  /// '-out_feat' -> '-in_feat' reproduces the linker RT tolerance of the run that wrote the features.
-  static constexpr const char* median_fwhm_meta_key_ = "ProteomicsLFQ_median_fwhm";
 };
 
 int main(int argc, const char** argv)

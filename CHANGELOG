@@ -346,31 +346,6 @@ TOPP tools:
         and FlashLFQ fit the fraction coefficients jointly with the summation). Normalizing is now an
         explicit step: ConsensusMapNormalizer on -out_cxml, the ProteinQuantification:consensus:normalize
         parameter, or the downstream tool's own normalization (#9864, #9880)
-      - New '-out_feat': writes the features detected for each '-in' file, in exactly the state
-        '-in_feat' reads. Feature detection is the expensive per-file step and is independent between
-        files, while alignment, linking, inference and quantification need all files at once, so this
-        splits the workflow at that seam: detect per file (in parallel, on separate machines), then
-        combine. The combining run never reads the mzML files -- centroiding, FWHM estimation, seeding
-        and feature detection are all skipped -- though they must still be present, since the file list
-        identifies the runs. '-out_feat' also records the chromatographic FWHM the run measured: it
-        cannot be recomputed without the mzML, and it does more than size the feature detector, since
-        the feature linker derives its retention time tolerance from it (a featureXML from another
-        source does not carry it, which is now warned about). A round-trip test asserts that the split
-        run reproduces the single-shot run on all three QPX views (#9871)
-      - Fix: with -in_feat, every identification already attached to a feature by the incoming
-        featureXML was also written to the map's *unassigned* list, so it was present twice. The two
-        lists of a FeatureMap partition the PSMs -- that is what IDMapper and FeatureFinderIdentification
-        produce -- and consumers reading both saw each such PSM twice: mzTab reported it twice (18 of the
-        62 PSM rows in the shipped ProteomicsLFQ_in_feat_multi_out.mzTab reference were duplicates, from
-        the day the test was added), and PSM/peptide FDR, which is estimated over both lists together,
-        counted each duplicate as an extra target and reported q-values better than the data supports
-        (1/63 instead of 1/45 on that fixture; with a psmFDR cutoff between the two it decides which
-        identifications survive). The QPX psm view refuses a repeated primary key, so -in_feat together
-        with -out_qpx aborted the export entirely. The unassigned list now holds only identifications not
-        attached to a feature, matched on spectrum reference; one that shares a spectrum with a
-        feature-attached identification but assigns a different peptide is kept and warned about rather
-        than silently discarded, since that means the featureXML was not produced from these
-        identifications. Only the -in_feat path was affected (#9871)
       - Added PIP-ECHO match-between-runs via the new PipEchoAlgorithm (-pip_echo true): features are
         grouped across RT-aligned runs with a target/decoy confidence model and FDR-controlled
         identification transfer, with ion-mobility-aware matching (#9647)
@@ -391,8 +366,6 @@ TOPP tools:
       - Perf: new PipEcho:max_training_points (default 50000, 0=unlimited) caps the transfer-FDR SVM
         training set per fold via a deterministic stratified subsample; prediction and q-values still
         cover all transfers, so FDR estimates stay unbiased (#9669)
-      - Added -in_feat to accept pre-computed featureXML files, bypassing internal feature finding
-        (#8796)
       - Added Bruker TimsTOF .d input with Biosaur2-based seed generation (IM_PEAK path with automatic
         FWHM estimation), new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance (default 5.0 s, advanced) to
