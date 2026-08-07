@@ -100,21 +100,38 @@ runs:
       run: echo "name=${{ github.event.pull_request && github.event.number || github.ref_name }}" >>$GITHUB_OUTPUT
 
     ############################################################################
+    # NOTE: restore/save are deliberately split instead of using the combined
+    # actions/cache action.  The combined action only writes the cache in its
+    # post step when the *primary* key missed, so a static key (as used here
+    # before) is written exactly once and then frozen forever -- every later
+    # run restored a stale cache and recompiled everything from scratch.
+    # Making the primary key unique per run guarantees a miss, so the save step
+    # below always uploads a freshly populated cache, while the restore-keys
+    # ladder still finds the most recent cache by prefix.
     - name: Try to Fetch Existing Build Cache
-      uses: actions/cache@v5
+      uses: actions/cache/restore@v5
       with:
         path: .ccache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-        # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
+        # Restoring: From current branch/PR, otherwise from develop, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop-
           ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-
 
     ############################################################################
     - name: Configure Build Caching
       shell: bash
+      env:
+        # A full build produces ~1900 objects.  MSVC objects (built with
+        # /bigobj) are considerably larger than the gcc/clang ones, and 1G was
+        # not enough to hold a whole build -- the cache evicted itself while it
+        # was still being filled, so it could never warm up.  Kept platform
+        # specific because the total GitHub Actions cache budget is 10 GB per
+        # repository and it has to cover five build jobs plus the ~1.6 GB
+        # Windows contrib cache.
+        maxsize: ${{ runner.os == 'Windows' && '2G' || '1G' }}
       run: |
         mkdir -p "$GITHUB_WORKSPACE/.ccache"
 
@@ -122,11 +139,20 @@ runs:
           echo "CCACHE_COMPRESS=true"
           echo "CCACHE_COMPRESSLEVEL=6"
           echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache"
-          echo "CCACHE_MAXSIZE=1G"
+          echo "CCACHE_MAXSIZE=$maxsize"
           echo "CMAKE_C_COMPILER_LAUNCHER=ccache"
           echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache"
 
         } >>"$GITHUB_ENV"
+
+    ############################################################################
+    # Reset the hit/miss counters (not the cached objects) so the statistics
+    # printed after the build describe this run only.
+    - name: Reset ccache Statistics
+      shell: bash
+      run: |
+        ccache --version
+        ccache --zero-stats
 
     ############################################################################
     # The actual commands to build OpenMS.
@@ -161,6 +187,28 @@ runs:
         ninja --verbose
 
     ############################################################################
+    # Hit rate and cache size for this run.  Without this there is no way to
+    # tell from a build log whether compiler caching is working at all.
+    - name: Report ccache Statistics
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: ccache --show-stats --verbose
+
+    ############################################################################
     - name: Test
       shell: bash
       run: ctest --parallel --output-on-failure --test-dir build
+
+    ############################################################################
+    # Only written outside of pull requests.  Caches created by a PR run are
+    # visible to that PR alone, so saving them would burn the shared 10 GB
+    # repository budget (and evict the contrib cache) without helping anyone
+    # else.  PRs restore from develop instead, which is refreshed by every push
+    # to it.  Saved even when the build or the tests failed: the objects that
+    # did compile are still worth keeping.
+    - name: Save Build Cache
+      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+      uses: actions/cache/save@v5
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
