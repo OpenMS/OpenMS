@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport_impl.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -312,6 +314,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   // -- Simple column builders --
   arrow::StringBuilder anchor_protein_builder;
+  arrow::Int64Builder pg_id_builder;
   auto grouped_runs_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder grouped_runs_builder(arrow::default_memory_pool(), grouped_runs_vb);
   arrow::DoubleBuilder global_qvalue_builder, pg_qvalue_builder, gg_qvalue_builder;
@@ -451,6 +454,12 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
     // anchor_protein
     (void)anchor_protein_builder.Append(anchor);
+
+    // pg_id -- derived from the three columns that make up this view's identity. No floats in
+    // this composite, so a pg identity is stable across platforms. Keyed on the whole membership
+    // rather than on `anchor`: two groups sharing a leading protein would otherwise collide, and
+    // pg_id is this view's primary key.
+    (void)pg_id_builder.Append(QPXIdentity::pgId(group.accessions, runs, label));
 
     // grouped_runs -- the raw files aggregated into this quantity.
     // Deliberately no File::stemName() here: the values are already QPX run names, and
@@ -817,6 +826,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: molecular_weight Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = additional_scores_builder.Finish(&arr_add_scores);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: additional_scores Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_pg_id;
+  status = pg_id_builder.Finish(&arr_pg_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: pg_id Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = cv_params_builder.Finish(&arr_cv_params);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: cv_params Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
@@ -825,6 +837,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // registry anyway, and Table::Make + Validate() below catches any type the builders emit that
   // the registry does not declare.
   auto table = arrow::Table::Make(QPXPgSchema::schema(), {
+    arr_pg_id,
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
     arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,
@@ -939,6 +952,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   // one quantity: every grouped_runs list holds exactly the one run that keyed the row -- the
   // single-element form the QPX 1.1 schema documents for unfractionated input.
   arrow::StringBuilder anchor_protein_builder;
+  arrow::Int64Builder pg_id_builder;
   auto grouped_runs_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder grouped_runs_builder(arrow::default_memory_pool(), grouped_runs_vb,
                                           QPXPgSchema::groupedRunsType());
@@ -1172,6 +1186,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         // anchor_protein
         (void)anchor_protein_builder.Append(anchor);
 
+        // pg_id -- an identification-only row carries no quantity, so its label is null, and
+        // that null is part of the key rather than a missing value.
+        (void)pg_id_builder.Append(QPXIdentity::pgId(group.accessions, {run_file}, std::nullopt));
+
         // grouped_runs
         (void)grouped_runs_builder.Append();
         (void)grouped_runs_vb->Append(run_file);
@@ -1380,10 +1398,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): molecular_weight Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = additional_scores_builder.Finish(&arr_add_scores);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): additional_scores Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_pg_id;
+  status = pg_id_builder.Finish(&arr_pg_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: pg_id Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = cv_params_builder.Finish(&arr_cv_params);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): cv_params Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   auto table = arrow::Table::Make(target_schema, {
+    arr_pg_id,
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
     arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,

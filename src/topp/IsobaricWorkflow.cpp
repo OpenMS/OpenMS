@@ -45,6 +45,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -1012,10 +1013,14 @@ protected:
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
         // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        // Collected while the feature rows are built, then handed to the psm view so it can fill
+        // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+        QPXIdentity::FeatureLinks feature_links;
         if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet",
                                                                /*batch_size=*/1000000,
                                                                ParquetWriteConfig{},
-                                                               /*n_threads=*/0))
+                                                               /*n_threads=*/0,
+                                                               &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1048,7 +1053,8 @@ protected:
                                                /*export_all_psms=*/false,
                                                /*batch_size=*/1000000,
                                                ParquetWriteConfig{},
-                                               /*n_threads=*/0))
+                                               /*n_threads=*/0,
+                                               &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;

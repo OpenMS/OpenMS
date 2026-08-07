@@ -171,44 +171,49 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
   // Verify number of rows (should equal number of peptide identifications, not hits)
   TEST_EQUAL(table->num_rows(), 3)
 
-  // Verify schema column names and count (24 columns in QPXPSMSchema)
+  // Verify schema column names and count (26 columns in QPXPSMSchema)
   auto schema = table->schema();
-  TEST_EQUAL(table->num_columns(), 24)
+  TEST_EQUAL(table->num_columns(), 26)
 
-  TEST_EQUAL(schema->field(0)->name(), "sequence")
-  TEST_EQUAL(schema->field(1)->name(), "peptidoform")
-  TEST_EQUAL(schema->field(2)->name(), "modifications")
-  TEST_EQUAL(schema->field(3)->name(), "charge")
-  TEST_EQUAL(schema->field(4)->name(), "posterior_error_probability")
-  TEST_EQUAL(schema->field(5)->name(), "is_decoy")
-  TEST_EQUAL(schema->field(6)->name(), "calculated_mz")
-  TEST_EQUAL(schema->field(7)->name(), "observed_mz")
-  TEST_EQUAL(schema->field(8)->name(), "mass_error_ppm")
-  TEST_EQUAL(schema->field(9)->name(), "additional_scores")
-  TEST_EQUAL(schema->field(10)->name(), "predicted_rt")
-  TEST_EQUAL(schema->field(11)->name(), "run_file_name")
-  TEST_EQUAL(schema->field(12)->name(), "cv_params")
-  TEST_EQUAL(schema->field(13)->name(), "scan")
-  TEST_EQUAL(schema->field(14)->name(), "rt")
-  TEST_EQUAL(schema->field(15)->name(), "ion_mobility")
-  TEST_EQUAL(schema->field(16)->name(), "missed_cleavages")
-  TEST_EQUAL(schema->field(17)->name(), "protein_accessions")
-  TEST_EQUAL(schema->field(18)->name(), "cross_links")
-  TEST_EQUAL(schema->field(19)->name(), "mz_array")
-  TEST_EQUAL(schema->field(20)->name(), "intensity_array")
-  TEST_EQUAL(schema->field(21)->name(), "charge_array")
-  TEST_EQUAL(schema->field(22)->name(), "ion_type_array")
-  TEST_EQUAL(schema->field(23)->name(), "ion_mobility_array")
+  // psm_id first, feature_id last: the mandatory identity and the optional cross-reference.
+  TEST_EQUAL(schema->field(0)->name(), "psm_id")
+  TEST_EQUAL(schema->field(1)->name(), "sequence")
+  TEST_EQUAL(schema->field(2)->name(), "peptidoform")
+  TEST_EQUAL(schema->field(3)->name(), "modifications")
+  TEST_EQUAL(schema->field(4)->name(), "charge")
+  TEST_EQUAL(schema->field(5)->name(), "posterior_error_probability")
+  TEST_EQUAL(schema->field(6)->name(), "is_decoy")
+  TEST_EQUAL(schema->field(7)->name(), "calculated_mz")
+  TEST_EQUAL(schema->field(8)->name(), "observed_mz")
+  TEST_EQUAL(schema->field(9)->name(), "mass_error_ppm")
+  TEST_EQUAL(schema->field(10)->name(), "additional_scores")
+  TEST_EQUAL(schema->field(11)->name(), "predicted_rt")
+  TEST_EQUAL(schema->field(12)->name(), "run_file_name")
+  TEST_EQUAL(schema->field(13)->name(), "cv_params")
+  TEST_EQUAL(schema->field(14)->name(), "scan")
+  TEST_EQUAL(schema->field(15)->name(), "rt")
+  TEST_EQUAL(schema->field(16)->name(), "ion_mobility")
+  TEST_EQUAL(schema->field(17)->name(), "missed_cleavages")
+  TEST_EQUAL(schema->field(18)->name(), "protein_accessions")
+  TEST_EQUAL(schema->field(19)->name(), "cross_links")
+  TEST_EQUAL(schema->field(20)->name(), "mz_array")
+  TEST_EQUAL(schema->field(21)->name(), "intensity_array")
+  TEST_EQUAL(schema->field(22)->name(), "charge_array")
+  TEST_EQUAL(schema->field(23)->name(), "ion_type_array")
+  TEST_EQUAL(schema->field(24)->name(), "ion_mobility_array")
+  TEST_EQUAL(schema->field(25)->name(), "feature_id")
 
   // Verify data types for key columns
-  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::INT16)   // charge is int16
-  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::DOUBLE)  // PEP is float64
-  TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::FLOAT)   // calculated_mz is float32
-  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::FLOAT)   // observed_mz is float32
-  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::FLOAT)   // mass_error_ppm is float32
-  TEST_EQUAL(schema->field(13)->type()->id(), arrow::Type::LIST)   // scan is list<int32>
-  TEST_EQUAL(schema->field(17)->type()->id(), arrow::Type::LIST)   // protein_accessions is list
-  TEST_EQUAL(schema->field(2)->type()->id(), arrow::Type::LIST)    // modifications is list
+  TEST_EQUAL(schema->field(0)->type()->id(), arrow::Type::INT64)   // psm_id is int64
+  TEST_EQUAL(schema->field(25)->type()->id(), arrow::Type::INT64)  // feature_id is int64
+  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::INT16)   // charge is int16
+  TEST_EQUAL(schema->field(5)->type()->id(), arrow::Type::DOUBLE)  // PEP is float64
+  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::FLOAT)   // calculated_mz is float32
+  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::FLOAT)   // observed_mz is float32
+  TEST_EQUAL(schema->field(9)->type()->id(), arrow::Type::FLOAT)   // mass_error_ppm is float32
+  TEST_EQUAL(schema->field(14)->type()->id(), arrow::Type::LIST)   // scan is list<int32>
+  TEST_EQUAL(schema->field(18)->type()->id(), arrow::Type::LIST)   // protein_accessions is list
+  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::LIST)    // modifications is list
 
   // Verify sequence values
   auto seq_col = table->GetColumnByName("sequence");
@@ -445,7 +450,7 @@ START_SECTION(static bool exportToParquet(...))
   TEST_EQUAL(read_status.ok(), true)
 
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 24)
+  TEST_EQUAL(table->num_columns(), 26)
 
   // Verify modifications column has structured data for modified peptide
   auto mod_col = table->GetColumnByName("modifications");
@@ -611,7 +616,7 @@ END_SECTION
 START_SECTION(QPXPgSchema::schema())
 {
   auto schema = QPXPgSchema::schema();
-  TEST_EQUAL(schema->num_fields(), 21)
+  TEST_EQUAL(schema->num_fields(), 22)
 
   // Required (non-nullable) fields
   TEST_EQUAL(schema->GetFieldByName("pg_accessions")->nullable(), false)
@@ -665,7 +670,7 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 21)
+  TEST_EQUAL(table->num_columns(), 22)
 
   // Verify grouped_runs is derived from ProteinIdentification, without path or extension.
   // Identification input has no design to aggregate over, so the list holds exactly one run.
@@ -733,7 +738,7 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
-  TEST_EQUAL(table->num_columns(), 21)
+  TEST_EQUAL(table->num_columns(), 22)
 }
 END_SECTION
 
@@ -1284,7 +1289,7 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
   auto st_table = read_combined(stream_file);
   TEST_NOT_EQUAL(st_table, nullptr)
   TEST_EQUAL(st_table->num_rows(), (int64_t)M)
-  TEST_EQUAL(st_table->num_columns(), 24)
+  TEST_EQUAL(st_table->num_columns(), 26)
 
   // --- QPX metadata must survive the streaming/metadata-Open path ---
   {
@@ -1343,7 +1348,7 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
     auto e_table = read_combined(empty_file);
     TEST_NOT_EQUAL(e_table, nullptr)
     TEST_EQUAL(e_table->num_rows(), 0)
-    TEST_EQUAL(e_table->num_columns(), 24)
+    TEST_EQUAL(e_table->num_columns(), 26)
   }
 
   // --- Edge case: M=1 with batch_size=1 ---
@@ -1532,7 +1537,7 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
     auto tbl = read_combined(f);
     TEST_NOT_EQUAL(tbl, nullptr)
     TEST_EQUAL(tbl->num_rows(), 0)
-    TEST_EQUAL(tbl->num_columns(), 24)
+    TEST_EQUAL(tbl->num_columns(), 26)
   }
 
   // --- Edge cases with parallelism: M=0, M=1, rows < threads ---

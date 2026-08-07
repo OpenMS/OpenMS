@@ -4174,15 +4174,20 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -test
            )
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_flags_clean")
-  # Exact comparison on purpose: the two runs perform the same computation, so any tolerance here
-  # would be tolerance for a transform that is not supposed to exist.
+  # These are independent ProteomicsLFQ executions, which CTest may run concurrently. MSVC shows
+  # low-order integration drift between them (1.4e-4 relative on this fixture), so bit-exactness is
+  # not an honest contract. A 1e-3 relative tolerance still sits orders of magnitude below the
+  # accidental median rescaling this test guards against (factors of 5.3 to 12), while absdiff 0
+  # keeps a zero-to-nonzero change observable.
   add_test("TOPP_ProteomicsLFQ_qpx_flags_feature" ${TOPP_BIN_PATH}/ParquetDiff
            -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet
-           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.feature.parquet)
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.feature.parquet
+           -ratio 1.001 -absdiff 0)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_feature" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
   add_test("TOPP_ProteomicsLFQ_qpx_flags_pg" ${TOPP_BIN_PATH}/ParquetDiff
            -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet
-           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.pg.parquet)
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.pg.parquet
+           -ratio 1.001 -absdiff 0)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
   # mzTab is the other value-compared surface, and unlike the Parquet views it has a reference here.
   add_test("TOPP_ProteomicsLFQ_qpx_flags_mztab" ${DIFF}

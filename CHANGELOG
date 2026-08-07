@@ -183,10 +183,24 @@ TOPP tools:
         ProSE additionally writes per-input <basename>.psm/.pg.parquet (#8973, #8974, #9146)
       - all three views now follow the QPX 1.1 contract and are joinable: long format (one row per
         entity and run), run_file_name as the bare spectrum file stem, and a pg view keyed on
-        (anchor_protein, grouped_runs, label) with scalar label/intensity columns replacing the former
+        (pg_accessions, grouped_runs, label) with scalar label/intensity columns replacing the former
         nested intensities column. grouped_runs maps exactly to ExperimentalDesign::fraction_group, so
         samples reused across technical-replicate fraction groups no longer join those groups
         (#9816, #9818, #9825, #9843)
+      - all three views now carry the mandatory QPX identity column (feature_id / psm_id / pg_id, int64,
+        non-null, the view's primary key), derived exactly as the qpx reference implementation derives
+        it -- BLAKE2b-64 over the canonical JSON of a footer-declared identity_composite. Matching it
+        byte for byte is what lets a collection survive `qpxc convert openms`, which re-derives
+        feature_id but does not rewrite the psm.feature_id pointing at it. The pg identity keys on the
+        group's FULL membership, (pg_accessions, grouped_runs, label), not on its leading protein:
+        two distinct groups sharing a leader would otherwise derive one pg_id, and since that column
+        is the view's primary key the collision refuses the export rather than merely mislabelling a
+        row. Both list members are hashed as sets -- deduplicated and ordered by their JSON encoding
+        -- so inference order and design order do not enter the identity (#9864)
+      - the feature and psm views are now explicitly cross-referenced: psm.feature_id and
+        feature.psm_ids. A consensus feature emits one row per run, so its identifications are
+        distributed to the row of their own run; an unassigned identification keeps feature_id null.
+        Both directions are produced in one pass, so they always describe the same edge (#9864)
       - exports are validated and transactional: required values, primary-key uniqueness, channel-label
         agreement across runs, resolvable identification runs and the experimental-design contract are
         checked before the first file is opened, and a refused or failed export leaves no partial file or
@@ -975,7 +989,13 @@ Build System:
     wholesale. The dump reuses the comparator's own canonical key encoding, so it cannot disagree with
     the comparison about what a primary key is, and it escapes backslashes, tabs and newlines inside
     values so that one row is always one line. Compared with -absdiff 0 on purpose -- QPX carries
-    q-values and PEPs in [0,1], where FuzzyDiff.ini's 0.01 would delete the assertion (#9879)
+    q-values and PEPs in [0,1], where FuzzyDiff.ini's 0.01 would delete the assertion (#9879).
+    ParquetDiff leaves the QPX identity and cross-reference columns out of both the comparison and
+    the dump (-with_ids opts back in) and asserts in -schema mode instead that they are present,
+    non-null and unique: the spec states identity is meaningful within a file only, and feature_id
+    hashes rt and observed_mz, so one ULP of platform drift would turn a tolerable numeric
+    difference into every row missing on both sides. Rows are still matched on the natural key,
+    which degrades gracefully where a hash cannot (#9864)
   - Tests: FuzzyStringComparator accepted any numeric comparison in which either side was NaN, so a value
     regressing to NaN was invisible to all 778 FuzzyDiff comparisons and to TEST_FILE_EQUAL; non-finite pairs
     are now decided explicitly
