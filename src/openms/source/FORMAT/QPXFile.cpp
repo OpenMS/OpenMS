@@ -21,6 +21,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -51,20 +52,6 @@ namespace OpenMS
 
 namespace // anonymous
 {
-  /// Try to extract a scan number from a native ID string.
-  /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
-  /// Returns -1 on failure.
-  Int extractScan(const std::string& native_id)
-  {
-    std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
-    if (regex_str.empty())
-    {
-      return -1;
-    }
-    boost::regex scan_regex(regex_str);
-    return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
-  }
-
   /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
   /// The MetaInfoRegistry::getName() lookup takes an `omp critical` lock, so caching
   /// by index means the lock is paid at most once per unique key for the whole export
@@ -596,15 +583,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       else
       {
         (void)spectrum_reference_builder.Append(spec_ref);
-        Int scan_num = extractScan(spec_ref);
-        if (scan_num >= 0)
-        {
-          (void)scan_builder.Append(scan_num);
-        }
-        else
-        {
-          (void)scan_builder.AppendNull();
-        }
+        const auto scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);
+        // This internal schema stores a scalar scan, so an unrecognized reference is null here
+        // rather than the empty list the QPX view writes.
+        if (!scan_components.empty()) { (void)scan_builder.Append(scan_components.front()); }
+        else                          { (void)scan_builder.AppendNull(); }
       }
 
       // === rt ===
@@ -868,13 +851,17 @@ namespace // anonymous
 /// @param[out] unattributable_psms Incremented per PSM whose origin file could not be resolved,
 ///             so the caller can report it once. Written only through the caller's own slot --
 ///             this runs inside an OpenMP region (see exportToParquetStreaming).
+/// @param[in] feature_links Optional psm_id -> feature_id map for the feature view of the same
+///            collection; null when there is no feature view, which leaves feature_id null on
+///            every row. Read-only, so it is safe to share across the OpenMP workers.
 std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   const IdentifierMSRunMapper& mapper,
   const std::vector<const PeptideIdentification*>& pep_ptrs,
   size_t range_begin,
   size_t range_end,
   bool export_all_psms,
-  size_t& unattributable_psms)
+  size_t& unattributable_psms,
+  const QPXIdentity::FeatureLinks* feature_links)
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder;
@@ -885,6 +872,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   arrow::FloatBuilder mass_error_ppm_builder;
   arrow::FloatBuilder rt_builder, ion_mobility_builder, predicted_rt_builder;
   arrow::DoubleBuilder pep_builder;
+  arrow::Int64Builder psm_id_builder, feature_id_builder;
 
   // -- protein_accessions list<utf8> --
   auto pa_vb = std::make_shared<arrow::StringBuilder>();
@@ -1012,6 +1000,10 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = missed_cleavages_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: missed_cleavages_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_id_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_id_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = feature_id_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: feature_id_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Metavalue keys excluded from additional_scores (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs = {
@@ -1038,8 +1030,9 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   const UInt idx_ion_mobility        = mreg.getIndex("ion_mobility");
   const UInt idx_IM                  = mreg.getIndex("IM");
   const UInt idx_missed_cleavages    = mreg.getIndex("missed_cleavages");
-  const UInt idx_reference_file_name = mreg.getIndex("reference_file_name");
-  const UInt idx_run_file_name       = mreg.getIndex("run_file_name");
+  // Resolved once for the whole range, like every other metavalue key here: looking one up by
+  // name takes the MetaInfoRegistry's `omp critical` lock, and this runs inside a parallel build.
+  const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -1085,8 +1078,11 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       (void)sequence_builder.Append(seq.toUnmodifiedString());
 
       // === peptidoform (ProForma canonical, non-nullable) ===
+      // Kept in a local: it is also one of the four columns psm_id is derived from, and the id
+      // must hash the value that is actually written, not a second rendering of the sequence.
       auto pf = ProForma::fromAASequence(seq);
-      (void)peptidoform_builder.Append(ProForma::toString(pf, ProForma::WriteMode::CANONICAL));
+      const std::string peptidoform = ProForma::toString(pf, ProForma::WriteMode::CANONICAL);
+      (void)peptidoform_builder.Append(peptidoform);
 
       // === modifications (structured with int32 position and amino_acid) ===
       (void)modifications_builder.Append();
@@ -1182,8 +1178,10 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       // else: empty modifications list (Append() already called)
 
       // === charge (int16, non-nullable) ===
-      int charge = hit.getCharge();
-      (void)charge_builder.Append(static_cast<int16_t>(charge));
+      // Narrowed once and reused: psm_id hashes the charge AS PERSISTED, so deriving the id from
+      // the unnarrowed int would disagree with any reader that re-derives it from the column.
+      const int16_t charge = static_cast<int16_t>(hit.getCharge());
+      (void)charge_builder.Append(charge);
 
       // === posterior_error_probability (float64, nullable) ===
       if (pep_result.is_main_score_type)
@@ -1276,52 +1274,44 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       }
 
       // === run_file_name (non-nullable) ===
-      // Prefer per-hit or per-PeptideIdentification file reference, fall back to identifier-level path
-      {
-        std::string run_file;
-        if (metaHas(hit, idx_reference_file_name))
-        {
-          run_file = hit.getMetaValue(idx_reference_file_name).toString();
-        }
-        else if (metaHas(hit, idx_run_file_name))
-        {
-          run_file = hit.getMetaValue(idx_run_file_name).toString();
-        }
-        else if (metaHas(pep_id, idx_reference_file_name))
-        {
-          run_file = pep_id.getMetaValue(idx_reference_file_name).toString();
-        }
-        if (run_file.empty())
-        {
-          run_file = resolved_run_file;
-        }
-        // QPX defines run_file_name as the spectrum file name without path or extension. Stem
-        // every source of the value, not just this fallback, so the column is a usable join key
-        // across the psm/feature/pg tables no matter which branch above supplied it.
-        const std::string run_stem = File::stemName(run_file);
-        // QPX makes run_file_name a non-nullable primary-key component, but an empty string is
-        // not null -- it satisfies Arrow while violating the spec, and consumers key on it to
-        // join psm against feature and pg. Emit the row (a PSM is a primary record; dropping it
-        // would discard an identification) but count it, so a collection that cannot be joined
-        // is not handed over silently.
-        if (run_stem.empty()) { ++unattributable_psms; }
-        (void)run_file_name_builder.Append(run_stem);
-      }
+      // Prefers a per-hit or per-PeptideIdentification file reference over the identifier-level
+      // path, then stems it. Shared with the feature view, which has to reproduce this exactly to
+      // work out which of its rows a PSM belongs to.
+      const std::string run_stem =
+        ArrowIOHelpers::qpxPsmRunFileName(hit, pep_id, resolved_run_file, run_file_name_keys);
+      // QPX makes run_file_name a non-nullable primary-key component, but an empty string is
+      // not null -- it satisfies Arrow while violating the spec, and consumers key on it to
+      // join psm against feature and pg. Emit the row (a PSM is a primary record; dropping it
+      // would discard an identification) but count it, so a collection that cannot be joined
+      // is not handed over silently.
+      if (run_stem.empty()) { ++unattributable_psms; }
+      (void)run_file_name_builder.Append(run_stem);
 
       // === cv_params (list<struct>, nullable - null for now) ===
       (void)cv_params_builder.AppendNull();
 
       // === scan (list<int32>, non-nullable) ===
+      const std::vector<Int32> scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);
       (void)scan_builder.Append();
-      if (!spec_ref.empty())
+      for (const Int32 component : scan_components) { (void)scan_value_b->Append(component); }
+
+      // === psm_id (int64, non-nullable) and feature_id (int64, nullable) ===
+      // Derived from the four columns just written, so the identity is a function of the row as
+      // persisted. feature_id is looked up by psm_id rather than by pointer or position: the
+      // linkage is built from the same composite by the feature exporter, so the two views agree
+      // by construction instead of by both walking the identifications in the same order.
+      const Int64 psm_id = QPXIdentity::psmId(run_stem, scan_components, peptidoform, charge);
+      (void)psm_id_builder.Append(psm_id);
+      if (feature_links != nullptr)
       {
-        Int scan_num = extractScan(spec_ref);
-        if (scan_num >= 0)
-        {
-          (void)scan_value_b->Append(scan_num);
-        }
+        const auto linked = feature_links->find(psm_id);
+        if (linked != feature_links->end()) { (void)feature_id_builder.Append(linked->second); }
+        else { (void)feature_id_builder.AppendNull(); } // unassigned identification: no feature
       }
-      // else: empty list (Append() already called for the list start)
+      else
+      {
+        (void)feature_id_builder.AppendNull(); // caller supplied no feature view to link against
+      }
 
       // === rt (float32, nullable) ===
       double rt = pep_id.getRT();
@@ -1410,7 +1400,12 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   std::shared_ptr<arrow::Array> arr_cv_params, arr_scan, arr_rt, arr_ion_mobility;
   std::shared_ptr<arrow::Array> arr_missed_cleavages;
   std::shared_ptr<arrow::Array> arr_protein_acc;
+  std::shared_ptr<arrow::Array> arr_psm_id, arr_feature_id;
 
+  status = psm_id_builder.Finish(&arr_psm_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = feature_id_builder.Finish(&arr_feature_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: feature_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = sequence_builder.Finish(&arr_sequence);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: sequence_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = peptidoform_builder.Finish(&arr_peptidoform);
@@ -1484,6 +1479,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   auto schema = QPXPSMSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
+    arr_psm_id,
     arr_sequence, arr_peptidoform, arr_modifications,
     arr_charge, arr_pep, arr_is_decoy,
     arr_calc_mz, arr_obs_mz, arr_mass_error_ppm,
@@ -1492,7 +1488,8 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
     arr_missed_cleavages, arr_protein_acc,
     arr_cross_links,
     arr_mz_array, arr_intensity_array, arr_charge_array,
-    arr_ion_type_array, arr_ion_mobility_array
+    arr_ion_type_array, arr_ion_mobility_array,
+    arr_feature_id
   });
 
   // Validate table against registry schema (strict -- write path must match exactly)
@@ -1511,7 +1508,8 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
 std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
-  bool export_all_psms)
+  bool export_all_psms,
+  const QPXIdentity::FeatureLinks* feature_links)
 {
   const IdentifierMSRunMapper mapper = buildRunMapper(protein_identifications);
   validateMergeIndices(mapper, peptide_identifications); // refuse merged input we cannot resolve
@@ -1520,7 +1518,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   ptrs.reserve(peptide_identifications.size());
   for (const auto& pep_id : peptide_identifications) { ptrs.push_back(&pep_id); }
   size_t unattributable = 0;
-  auto table = buildQPXPSMTableRange(mapper, ptrs, 0, ptrs.size(), export_all_psms, unattributable);
+  auto table = buildQPXPSMTableRange(mapper, ptrs, 0, ptrs.size(), export_all_psms, unattributable,
+                                    feature_links);
   if (unattributable > 0)
   {
     OPENMS_LOG_WARN << "QPXFile: " << unattributable << " PSM(s) have no resolvable origin file, "
@@ -1598,9 +1597,11 @@ bool QPXFile::exportToParquet(
   const PeptideIdentificationList& peptide_identifications,
   const std::string& filename,
   bool export_all_psms,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const QPXIdentity::FeatureLinks* feature_links)
 {
-  auto table = exportPSMsToQPXArrow(protein_identifications, peptide_identifications, export_all_psms);
+  auto table = exportPSMsToQPXArrow(protein_identifications, peptide_identifications, export_all_psms,
+                                    feature_links);
   if (!table)
   {
     OPENMS_LOG_ERROR << "QPXFile: Failed to create Arrow table" << std::endl;
@@ -1650,7 +1651,8 @@ bool QPXFile::exportToParquetStreaming(
   bool export_all_psms,
   size_t batch_size,
   const ParquetWriteConfig& config,
-  int n_threads)
+  int n_threads,
+  const QPXIdentity::FeatureLinks* feature_links)
 {
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
@@ -1739,7 +1741,8 @@ bool QPXFile::exportToParquetStreaming(
         const size_t base = rows / W, rem = rows % W;
         const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
         const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
-        parts[t] = buildQPXPSMTableRange(mapper, peptide_identification_ptrs, sb, se, export_all_psms, unattr[t]);
+        parts[t] = buildQPXPSMTableRange(mapper, peptide_identification_ptrs, sb, se, export_all_psms,
+                                         unattr[t], feature_links);
       }
       catch (...)
       {

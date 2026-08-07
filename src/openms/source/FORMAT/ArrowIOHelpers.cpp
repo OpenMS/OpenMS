@@ -14,9 +14,13 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -142,6 +146,15 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
   std::vector<std::string> keys{
     "qpx_version", "file_type", "creator", "software_provider", "creation_date",
     "compression_format", "uuid"};
+  // The identity declaration belongs to the view, so it is stamped here rather than by each
+  // exporter: a producer that forgot it would emit ids no reader could re-derive. qpxc reads
+  // identity_composite back to re-derive the ids on conversion (its _source_identity_composite),
+  // which is what lets an OpenMS collection survive a round trip with its cross-references intact.
+  std::string primary_key;
+  std::string identity_composite;
+  if      (file_type == "feature_file") { primary_key = QPXFeatureSchema::FEATURE_ID; identity_composite = QPXIdentity::FEATURE_COMPOSITE; }
+  else if (file_type == "psm_file")     { primary_key = QPXPSMSchema::PSM_ID;         identity_composite = QPXIdentity::PSM_COMPOSITE; }
+  else if (file_type == "pg_file")      { primary_key = QPXPgSchema::PG_ID;           identity_composite = QPXIdentity::PG_COMPOSITE; }
   std::vector<std::string> values{
     // QPX 1.1 (bigbio/qpx#220): the pg view is re-keyed from a scalar run_file_name onto
     // grouped_runs (list<string>). Breaking, but shipped as a minor under the spec's pre-2.0
@@ -154,6 +167,14 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
     DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ"),
     compression,
     generateUuidV4()};
+
+  if (!primary_key.empty())
+  {
+    keys.push_back("primary_key");
+    values.push_back(primary_key);
+    keys.push_back("identity_composite");
+    values.push_back(identity_composite);
+  }
 
   for (const auto& [k, v] : extra)
   {
@@ -445,6 +466,61 @@ std::string qpxRunFileName(const std::string& ms_run_path)
 {
   // File::stemName() already maps "" -> "".
   return File::stemName(ms_run_path);
+}
+
+std::vector<Int32> qpxScanComponents(const std::string& spectrum_reference)
+{
+  if (spectrum_reference.empty()) { return {}; }
+  const std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_reference);
+  if (regex_str.empty()) { return {}; }
+
+  // getRegExFromNativeID() maps every native-ID convention onto one of a handful of fixed
+  // patterns, but compiling a boost::regex parses the pattern each time -- and this runs once per
+  // exported row. Cached per thread rather than shared: the exporters call it from inside an
+  // OpenMP region, where one shared cache would need a lock and reintroduce the cost it saves.
+  thread_local std::map<std::string, boost::regex> compiled;
+  auto entry = compiled.find(regex_str);
+  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, boost::regex(regex_str)).first; }
+
+  const Int scan = SpectrumNativeIDParser::extractScanNumber(spectrum_reference, entry->second, true);
+  if (scan < 0) { return {}; }
+  return {static_cast<Int32>(scan)};
+}
+
+QPXRunFileNameKeys::QPXRunFileNameKeys() :
+  reference_file_name(MetaInfo::registry().getIndex("reference_file_name")),
+  run_file_name(MetaInfo::registry().getIndex("run_file_name"))
+{
+}
+
+std::string qpxPsmRunFileName(const MetaInfoInterface& hit,
+                              const MetaInfoInterface& identification,
+                              const std::string& resolved_run_file,
+                              const QPXRunFileNameKeys& keys)
+{
+  // UInt(-1) is guarded explicitly: the index overload of metaValueExists() does not special-case
+  // the "not registered" sentinel the way the string overload does.
+  const auto has = [](const MetaInfoInterface& meta, UInt index)
+  { return index != static_cast<UInt>(-1) && meta.metaValueExists(index); };
+
+  std::string run_file;
+  if (has(hit, keys.reference_file_name))
+  {
+    run_file = hit.getMetaValue(keys.reference_file_name).toString();
+  }
+  else if (has(hit, keys.run_file_name))
+  {
+    run_file = hit.getMetaValue(keys.run_file_name).toString();
+  }
+  else if (has(identification, keys.reference_file_name))
+  {
+    run_file = identification.getMetaValue(keys.reference_file_name).toString();
+  }
+  if (run_file.empty()) { run_file = resolved_run_file; }
+
+  // Stem every source of the value, not just the fallback, so the column is a usable join key
+  // across the psm, feature and pg tables no matter which branch above supplied it.
+  return qpxRunFileName(run_file);
 }
 
 bool qpxWarnOnRunNameCollisions(const std::string& context,

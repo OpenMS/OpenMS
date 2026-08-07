@@ -1078,6 +1078,11 @@ set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPE
 
 #------------------------------------------------------------------------------
 # IsobaricWorkflow tests
+# The three functional runs below request consensusXML, mzTab, and QPX individually. This guards
+# that every output is optional on its own while the separate parameter test keeps one output required.
+add_test("TOPP_IsobaricWorkflow_requires_output" ${TOPP_BIN_PATH}/IsobaricWorkflow -test)
+set_tests_properties("TOPP_IsobaricWorkflow_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_mzTab/out_qpx")
+
 # TMT-10plex, one file, 10 channels/samples. The consensusXML check covers the protein-group
 # quantities: with remove_unquantified=true every group that survives carries data arrays, so this
 # is the path where dropping them on store is most visible.
@@ -1085,8 +1090,7 @@ add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type
   -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
   -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
-  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML
-  -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.mzTab)
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML)
 add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
 
@@ -1098,7 +1102,6 @@ add_test("TOPP_IsobaricWorkflow_2_no_preceding_ms1" ${TOPP_BIN_PATH}/IsobaricWor
          -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
          -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_2_input.idXML
          -type tmt10plex
-         -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_2_output.tmp.consensusXML
          -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_2_output.tmp.mzTab)
 
 # QPX Parquet export. IsobaricWorkflow is the only -out_qpx producer that uses the STREAMING
@@ -1120,8 +1123,6 @@ add_test("TOPP_IsobaricWorkflow_qpx" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
          -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
          -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
          -type tmt10plex
-         -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx.tmp.consensusXML
-         -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx.tmp.mzTab
          -out_qpx ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir)
 set_tests_properties("TOPP_IsobaricWorkflow_qpx" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx_clean")
 add_test("TOPP_IsobaricWorkflow_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
@@ -4038,6 +4039,11 @@ add_test("TOPP_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 add_test("TOPP_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+# ProteomicsLFQ rejects an invocation without outputs; existing functional runs below exercise
+# mzTab plus alternate-only consensusXML and QPX output paths.
+add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
+set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_triqler/out_cxml/out_qpx")
+
 # ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
 add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
@@ -4168,15 +4174,20 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -test
            )
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_flags_clean")
-  # Exact comparison on purpose: the two runs perform the same computation, so any tolerance here
-  # would be tolerance for a transform that is not supposed to exist.
+  # These are independent ProteomicsLFQ executions, which CTest may run concurrently. MSVC shows
+  # low-order integration drift between them (1.4e-4 relative on this fixture), so bit-exactness is
+  # not an honest contract. A 1e-3 relative tolerance still sits orders of magnitude below the
+  # accidental median rescaling this test guards against (factors of 5.3 to 12), while absdiff 0
+  # keeps a zero-to-nonzero change observable.
   add_test("TOPP_ProteomicsLFQ_qpx_flags_feature" ${TOPP_BIN_PATH}/ParquetDiff
            -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet
-           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.feature.parquet)
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.feature.parquet
+           -ratio 1.001 -absdiff 0)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_feature" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
   add_test("TOPP_ProteomicsLFQ_qpx_flags_pg" ${TOPP_BIN_PATH}/ParquetDiff
            -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet
-           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.pg.parquet)
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.pg.parquet
+           -ratio 1.001 -absdiff 0)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
   # mzTab is the other value-compared surface, and unlike the Parquet views it has a reference here.
   add_test("TOPP_ProteomicsLFQ_qpx_flags_mztab" ${DIFF}
@@ -4185,7 +4196,7 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_mztab" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
 
-# QPX Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
+# QPX-only Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
 # The test above runs -targeted_only true, whose consensus features are all identified: 0 of its 60
 # feature rows are unmapped. Seeding makes unmapped features the majority -- 210 of 298 rows here --
 # and those carry an empty peptidoform, so they lean on the rest of the QPX feature primary key to
@@ -4222,7 +4233,6 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -targeted_only false
            -mass_recalibration false
            -PeptideQuantification:seed_apex_rt_tolerance 0
-           -out ${TESTS_TEMP_DIR}/BSA_qpx_seeds.tmp.mzTab
            -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir
            -threads 1
            -proteinFDR 0.3
@@ -4715,7 +4725,6 @@ add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -mass_recalibration false
          -Seeding:algorithm biosaur2
          -out_cxml ${TESTS_TEMP_DIR}/BSA_biosaur2_seeds.tmp.consensusXML
-         -out ${TESTS_TEMP_DIR}/BSA_biosaur2_seeds.tmp.mzTab
          -threads 1
          -proteinFDR 0.8
          -test

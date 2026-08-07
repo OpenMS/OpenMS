@@ -466,6 +466,8 @@ namespace OpenMS
   std::shared_ptr<arrow::Schema> QPXPSMSchema::schema()
   {
     return arrow::schema({
+      // The primary key comes first, as it does in the spec's own schema listing.
+      arrow::field(PSM_ID, arrow::int64(), /*nullable=*/false),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/false),
       arrow::field(PEPTIDOFORM, arrow::utf8(), /*nullable=*/false),
       arrow::field(MODIFICATIONS, modificationsType()),
@@ -490,6 +492,10 @@ namespace OpenMS
       arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
       arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
       arrow::field(ION_MOBILITY_ARRAY, arrow::list(arrow::float32())),
+      // Optional cross-reference. Null is a legitimate value, not missing data: a PSM that was
+      // never assigned to a feature (an unassigned identification, or any psm-only producer such
+      // as ProSE) genuinely maps to no feature.
+      arrow::field(FEATURE_ID, arrow::int64()),
     });
   }
 
@@ -552,6 +558,7 @@ namespace OpenMS
   std::shared_ptr<arrow::Schema> QPXPgSchema::schema()
   {
     return arrow::schema({
+      arrow::field(PG_ID, arrow::int64(), /*nullable=*/false),
       arrow::field(PG_ACCESSIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
       arrow::field(PG_NAMES, arrow::list(arrow::utf8())),
       arrow::field(GG_ACCESSIONS, arrow::list(arrow::utf8())),
@@ -637,6 +644,7 @@ namespace OpenMS
   std::shared_ptr<arrow::Schema> QPXFeatureSchema::schema()
   {
     return arrow::schema({
+      arrow::field(FEATURE_ID, arrow::int64(), /*nullable=*/false),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/false),
       arrow::field(PEPTIDOFORM, arrow::utf8(), /*nullable=*/false),
       arrow::field(MODIFICATIONS, modificationsType()),
@@ -670,6 +678,9 @@ namespace OpenMS
       arrow::field(ID_RUN_FILE_NAME, arrow::utf8()),
       arrow::field(RT_START, arrow::float32()),
       arrow::field(RT_STOP, arrow::float32()),
+      // Optional cross-reference: the PSMs this feature was quantified from. Null for an
+      // unidentified feature, which has no identifications to point at.
+      arrow::field(PSM_IDS, arrow::list(arrow::int64())),
     });
   }
 
