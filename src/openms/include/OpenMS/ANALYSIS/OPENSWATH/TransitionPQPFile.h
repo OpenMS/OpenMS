@@ -233,7 +233,9 @@ private:
      *
      * @param[in] filename The input file
      * @param[out] exp The output LightTargetedExperiment
-     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     * @param[in] legacy_traml_id If false (default), use canonical PQP PRECURSOR.ID /
+     * TRANSITION.ID values for OpenSWATH processing. If true, restore legacy TRAML_ID
+     * values for compatibility/conversion workflows.
      *
     */
     void streamPQPToLightTargetedExperiment_(const char* filename, OpenSwath::LightTargetedExperiment& exp, bool legacy_traml_id = false);
@@ -284,7 +286,9 @@ public:
      *
      * @param[out] filename The input file
      * @param[out] targeted_exp The output targeted experiment
-     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     * @param[in] legacy_traml_id If false (default), use canonical PQP PRECURSOR.ID /
+     * TRANSITION.ID values for OpenSWATH processing. If true, restore legacy TRAML_ID
+     * values for compatibility/conversion workflows.
      *
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id = false);

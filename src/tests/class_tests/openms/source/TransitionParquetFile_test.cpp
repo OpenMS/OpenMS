@@ -20,6 +20,7 @@
 #include <parquet/arrow/writer.h>
 
 #include <map>
+#include <set>
 #include <vector>
 
 using namespace OpenMS;
@@ -282,14 +283,26 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
   TEST_EQUAL(out_exp.compounds.size(), compound_count)
   TEST_EQUAL(out_exp.transitions.size(), transitions.size())
 
-  std::map<std::string, int> compound_refs;
+  // OSWPQ persistent numeric IDs define operational identity on read. traml_id
+  // remains source/provenance metadata and must not replace those foreign keys.
+  std::set<std::string> expected_precursor_ids;
+  for (const auto& entry : compound_to_precursor)
+  {
+    expected_precursor_ids.insert(std::to_string(entry.second));
+  }
+
+  std::set<std::string> compound_refs;
   for (const auto& compound : out_exp.compounds)
   {
-    compound_refs[compound.id] = 1;
+    TEST_EQUAL(expected_precursor_ids.count(compound.id), 1)
+    compound_refs.insert(compound.id);
   }
-  for (const auto& transition : out_exp.transitions)
+  for (Size i = 0; i < out_exp.transitions.size(); ++i)
   {
-    TEST_EQUAL(compound_refs.find(transition.peptide_ref) != compound_refs.end(), true)
+    TEST_EQUAL(out_exp.transitions[i].transition_name, std::to_string(i + 1))
+    TEST_EQUAL(out_exp.transitions[i].peptide_ref,
+               std::to_string(compound_to_precursor[transitions[i].peptide_ref]))
+    TEST_EQUAL(compound_refs.count(out_exp.transitions[i].peptide_ref), 1)
   }
 }
 END_SECTION
@@ -340,20 +353,12 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
     TEST_EQUAL(roundtrip_compound_ids.count(transition.peptide_ref) > 0, true)
   }
 
-  // Verify transition product_mz values are preserved
-  // Build a map from transition name -> product_mz for the original
-  std::map<std::string, double> orig_transition_mz;
-  for (const auto& tr : light_exp.transitions)
+  // The current writer assigns persistent transition IDs in row order. The
+  // reader must expose those IDs rather than restoring transition traml_id.
+  for (Size i = 0; i < roundtrip_exp.transitions.size(); ++i)
   {
-    orig_transition_mz[tr.transition_name] = tr.product_mz;
-  }
-  for (const auto& tr : roundtrip_exp.transitions)
-  {
-    auto it = orig_transition_mz.find(tr.transition_name);
-    if (it != orig_transition_mz.end())
-    {
-      TEST_REAL_SIMILAR(tr.product_mz, it->second)
-    }
+    TEST_EQUAL(roundtrip_exp.transitions[i].transition_name, std::to_string(i + 1))
+    TEST_REAL_SIMILAR(roundtrip_exp.transitions[i].product_mz, light_exp.transitions[i].product_mz)
   }
 }
 END_SECTION

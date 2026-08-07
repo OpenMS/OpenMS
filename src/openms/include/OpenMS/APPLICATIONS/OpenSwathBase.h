@@ -66,8 +66,9 @@ namespace OpenMS
       - prepareChromOutput() / prepareMobilogramOutput() — install the output @ref Interfaces::IMSDataConsumer
         for chromatograms (sqMass / mzML+numpress / Parquet @c .xic) and the optional Parquet
         mobilogram writer.
-      - loadTransitionList() — read the spectral library from TraML / TSV / PQP into an
-        @ref OpenSwath::LightTargetedExperiment.
+      - loadTransitionList() — read the spectral library from TraML / TSV / PQP / OSWPQ into an
+        @ref OpenSwath::LightTargetedExperiment and establish canonical numeric precursor and
+        transition identifiers before returning it to the workflow.
 
     The @ref CalibrationResult inner struct is the return-channel for the per-run RT / m/z /
     IM calibration step run by the consuming tool (see @ref CalibrationWorkflow).
@@ -201,7 +202,13 @@ namespace OpenMS
                   const std::string& source_file);
 
     /**
-     * @brief Loads transition list from TraML / TSV or PQP
+     * @brief Loads and canonicalizes a transition list from TraML / TSV / PQP / OSWPQ
+     *
+     * The returned LightTargetedExperiment has a format-independent identifier contract:
+     * compound.id and transition.transition_name are canonical non-negative integer IDs
+     * encoded as decimal strings, and transition.peptide_ref references compound.id.
+     * TraML/TSV source IDs are normalized once at this boundary; PQP/OSWPQ IDs are
+     * preserved and validated.
      *
      * @param[in] tr_type Input file type
      * @param[in] tr_file Input file name

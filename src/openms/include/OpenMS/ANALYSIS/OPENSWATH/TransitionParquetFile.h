@@ -115,6 +115,12 @@ namespace OpenMS
       @p targeted_exp is **reset** to an empty @ref OpenSwath::LightTargetedExperiment at the
       start of the call — pre-existing contents are discarded rather than appended to.
 
+      The persistent @c precursor_id and @c transition_id columns define operational identity
+      in the returned experiment. They are converted to decimal strings for
+      @c LightCompound.id / @c LightTransition.transition_name, and transition
+      @c peptide_ref values use the corresponding @c precursor_id. Optional @c traml_id
+      columns remain source/provenance metadata and do not replace those canonical IDs.
+
       @param[in]  oswpq_dir    Path to a @c .oswpq archive or to an already-extracted directory containing @c library/.
       @param[out] targeted_exp Populated targeted experiment; cleared before being filled.
       @throws Exception::MissingInformation If a required parquet entry (precursors / transitions) cannot be located inside @p oswpq_dir.

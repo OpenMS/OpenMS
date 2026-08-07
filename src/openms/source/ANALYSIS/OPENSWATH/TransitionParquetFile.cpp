@@ -153,7 +153,6 @@ namespace
     double drift_time = -1.0;
     int charge = 0;
     bool decoy = false;
-    std::string traml_id;
     std::string modified_sequence;
     std::string unmodified_sequence;
     std::vector<std::string> protein_accessions;
@@ -252,7 +251,6 @@ namespace OpenMS
     auto charge_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::CHARGE);
     auto library_rt_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::LIBRARY_RT);
     auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::LIBRARY_DRIFT_TIME);
-    auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::TRAML_ID);
     auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::DECOY);
     auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::MODIFIED_SEQUENCE);
     auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::UNMODIFIED_SEQUENCE);
@@ -270,7 +268,6 @@ namespace OpenMS
       info.library_rt = ParquetFile::getDouble(library_rt_col, row, 0.0, true);
       info.drift_time = ParquetFile::getDouble(drift_time_col, row, -1.0, true);
       info.decoy = ParquetFile::getBool(decoy_col, row, false, true);
-      info.traml_id = ParquetFile::getString(traml_id_col, row);
       info.modified_sequence = ParquetFile::getString(modified_sequence_col, row);
       info.unmodified_sequence = ParquetFile::getString(unmodified_sequence_col, row);
       info.protein_accessions = ParquetFile::getStringList(protein_accessions_col, row);
@@ -278,9 +275,7 @@ namespace OpenMS
       precursor_map.emplace(precursor_id, std::move(info));
     }
 
-    std::unordered_map<std::string, int> compound_map;
     std::unordered_map<std::string, int> protein_map;
-    compound_map.reserve(precursor_map.size());
 
     for (const auto& entry : precursor_map)
     {
@@ -288,11 +283,10 @@ namespace OpenMS
       const PrecursorInfo& info = entry.second;
       const std::string precursor_id_str = StringUtils::toStr(precursor_id);
 
-    OpenSwath::LightCompound compound;
-    // Preserve source traml_id when available to maintain round-trip identity
-    // fidelity. If traml_id is empty, fall back to the numeric precursor id.
-    const std::string compound_id = info.traml_id.empty() ? precursor_id_str : std::string(info.traml_id);
-    compound.id = compound_id;
+      OpenSwath::LightCompound compound;
+      // OSWPQ precursor_id is the persistent operational identifier. traml_id is
+      // provenance metadata and must not replace the canonical foreign key.
+      compound.id = precursor_id_str;
       compound.drift_time = info.drift_time;
       compound.rt = info.library_rt;
       compound.charge = info.charge;
@@ -304,7 +298,6 @@ namespace OpenMS
       }
 
       targeted_exp.compounds.push_back(std::move(compound));
-      compound_map[precursor_id_str] = 0;
 
       for (const auto& accession : info.protein_accessions)
       {
@@ -320,7 +313,6 @@ namespace OpenMS
     }
 
     auto transition_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TRANSITION_ID);
-    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::TRAML_ID);
     auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRECURSOR_ID);
     auto product_mz_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRODUCT_MZ);
     auto fragment_charge_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::CHARGE);
@@ -333,10 +325,6 @@ namespace OpenMS
     auto transition_intensity_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::LIBRARY_INTENSITY);
     auto transition_decoy_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DECOY);
 
-    std::unordered_set<std::string> used_transition_names;
-    used_transition_names.reserve(transitions_table->num_rows());
-    bool warned_duplicate_transition = false;
-
     for (int64_t row = 0; row < transitions_table->num_rows(); ++row)
     {
       const int64_t precursor_id = ParquetFile::getInt64(transition_precursor_id_col, row, 0, false);
@@ -348,31 +336,14 @@ namespace OpenMS
       }
 
       const int64_t transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
-      const std::string traml_id = ParquetFile::getString(transition_traml_id_col, row);
-      std::string transition_name = traml_id.empty() ? StringUtils::toStr(transition_id) : std::string(traml_id);
-      if (!used_transition_names.insert(transition_name).second)
-      {
-        if (!warned_duplicate_transition)
-        {
-          OPENMS_LOG_WARN << "Duplicate transition nativeID detected in Parquet library. "
-                          << "Falling back to transition_id for uniqueness." << std::endl;
-          warned_duplicate_transition = true;
-        }
-        transition_name =StringUtils::toStr(transition_id);
-        if (!used_transition_names.insert(transition_name).second)
-        {
-          transition_name += "_" + std::to_string(row);
-          used_transition_names.insert(transition_name);
-        }
-      }
+      const std::string transition_name = StringUtils::toStr(transition_id);
       const std::string fragment_type = ParquetFile::getString(fragment_type_col, row);
       const std::string annotation = ParquetFile::getString(fragment_annotation_col, row);
 
       OpenSwath::LightTransition transition;
+      // OSWPQ transition_id/precursor_id are the canonical operational keys.
       transition.transition_name = transition_name;
-      // Use precursor traml_id as peptide_ref when present to preserve source IDs
-      const std::string peptide_ref = precursor_it->second.traml_id.empty() ? StringUtils::toStr(precursor_id) : std::string(precursor_it->second.traml_id);
-      transition.peptide_ref = peptide_ref;
+      transition.peptide_ref = StringUtils::toStr(precursor_id);
       transition.library_intensity = ParquetFile::getDouble(transition_intensity_col, row, 0.0, true);
       transition.precursor_mz = precursor_it->second.precursor_mz;
       transition.product_mz = ParquetFile::getDouble(product_mz_col, row, 0.0, false);

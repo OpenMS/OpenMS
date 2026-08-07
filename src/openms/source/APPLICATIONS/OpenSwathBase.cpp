@@ -16,6 +16,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
@@ -468,6 +469,19 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Provide valid TraML, TSV, PQP or OSWPQ transition file." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
+
+    // OpenSWATH uses one operational precursor/transition ID space independent of
+    // library format. Source-oriented formats carry arbitrary identifiers and are
+    // normalized once here; database-backed formats already carry persistent IDs.
+    if (tr_type == FileTypes::TRAML || tr_type == FileTypes::TSV)
+    {
+      OpenSwathLibraryIDNormalizer::normalizeSourceIDs(transition_exp);
+    }
+    else
+    {
+      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(transition_exp);
+    }
+
     return transition_exp;
   }
 } //  end NS OpenMS

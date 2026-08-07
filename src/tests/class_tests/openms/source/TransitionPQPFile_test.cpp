@@ -139,6 +139,19 @@ START_SECTION([EXTRA] test reading PQP with empty GENE table (issue #8687))
   TEST_EQUAL(light_exp.transitions.size(), 1)
   TEST_EQUAL(light_exp.compounds.size(), 1)
   TEST_EQUAL(light_exp.proteins.size(), 1)
+  TEST_EQUAL(light_exp.compounds[0].id, "precursor_1")
+  TEST_EQUAL(light_exp.transitions[0].transition_name, "transition_1")
+  TEST_EQUAL(light_exp.transitions[0].peptide_ref, "precursor_1")
+
+  // Default OpenSWATH processing uses persistent PQP IDs, not TRAML_ID.
+  OpenSwath::LightTargetedExperiment canonical_light_exp;
+  pqp_reader.convertPQPToTargetedExperiment(temp_file.c_str(), canonical_light_exp);
+
+  TEST_EQUAL(canonical_light_exp.transitions.size(), 1)
+  TEST_EQUAL(canonical_light_exp.compounds.size(), 1)
+  TEST_EQUAL(canonical_light_exp.compounds[0].id, "0")
+  TEST_EQUAL(canonical_light_exp.transitions[0].transition_name, "0")
+  TEST_EQUAL(canonical_light_exp.transitions[0].peptide_ref, "0")
 
 }
 END_SECTION
