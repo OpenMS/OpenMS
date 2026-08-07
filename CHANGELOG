@@ -317,6 +317,18 @@ TOPP tools:
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
     ProteomicsLFQ:
+      - BREAKING: no normalization is applied, under any combination of output flags. A median scaling
+        used to run over each fraction's consensus map unless -out_msstats or -out_triqler was requested,
+        so the same input written to the same -out_qpx directory held normalized or raw intensities
+        depending on whether an unrelated output file was also asked for, and nothing recorded which.
+        Normalizing per fraction and then summing across fractions is only ratio-preserving when the
+        reference is the same sample in every fraction, which a non-rectangular design does not
+        guarantee: on BSA_design_onetable_nonconsec.tsv the scaling moved feature intensities by a
+        median factor of 5.3 and a maximum of 12.0. No comparable tool normalizes per fraction against a
+        per-fraction reference run (MSstats equalizeMedians and DIA-NN target a global median; MaxQuant
+        and FlashLFQ fit the fraction coefficients jointly with the summation). Normalizing is now an
+        explicit step: ConsensusMapNormalizer on -out_cxml, the ProteinQuantification:consensus:normalize
+        parameter, or the downstream tool's own normalization (#9864, #9880)
       - New '-out_feat': writes the features detected for each '-in' file, in exactly the state
         '-in_feat' reads. Feature detection is the expensive per-file step and is independent between
         files, while alignment, linking, inference and quantification need all files at once, so this
