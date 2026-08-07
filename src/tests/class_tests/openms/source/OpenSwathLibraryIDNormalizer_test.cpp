@@ -70,12 +70,13 @@ START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment&
 }
 END_SECTION
 
-START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp) -- removes unreferenced compounds without shifting active IDs)
+START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp) -- removes unreferenced compounds without compressing canonical IDs)
 {
   OpenSwath::LightTargetedExperiment exp;
 
   // PEPTIDEA_Extra sorts between the two active IDs but is not referenced by any transition.
-  // It must therefore not participate in the operational precursor-ID space.
+  // It reserves canonical ID 1 before being removed from the operational experiment, so
+  // PEPTIDEB keeps ID 2 exactly as it would after a source-to-PQP round-trip.
   for (const char* id : {"PEPTIDEA", "PEPTIDEA_Extra", "PEPTIDEB"})
   {
     OpenSwath::LightCompound compound;
@@ -97,11 +98,11 @@ START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment&
 
   TEST_EQUAL(exp.compounds.size(), 2)
   TEST_EQUAL(exp.compounds[0].id, "0")
-  TEST_EQUAL(exp.compounds[1].id, "1")
+  TEST_EQUAL(exp.compounds[1].id, "2")
   TEST_EQUAL(exp.transitions[0].transition_name, "0")
   TEST_EQUAL(exp.transitions[0].peptide_ref, "0")
   TEST_EQUAL(exp.transitions[1].transition_name, "1")
-  TEST_EQUAL(exp.transitions[1].peptide_ref, "1")
+  TEST_EQUAL(exp.transitions[1].peptide_ref, "2")
 
   OpenSwathLibraryIDNormalizer::validateCanonicalIDs(exp);
 }

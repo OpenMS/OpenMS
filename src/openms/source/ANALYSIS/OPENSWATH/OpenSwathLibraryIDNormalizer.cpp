@@ -71,9 +71,29 @@ namespace OpenMS
       }
     }
 
-    // Only compounds referenced by transitions participate in the operational OpenSWATH
-    // precursor ID space. Unreferenced source records cannot provide an extraction coordinate
-    // and must not shift the canonical IDs of extractable precursor groups.
+    // Assign canonical precursor IDs from the complete source compound set before constructing
+    // the operational subset. This mirrors the persistent PQP convention: an unreferenced source
+    // compound may later be omitted from the LightTargetedExperiment, but its assigned ID remains
+    // reserved so surviving precursor IDs are stable across direct source loading and source->PQP
+    // round-trips. Sparse canonical precursor IDs are therefore expected and valid.
+    std::vector<std::string> source_compound_ids;
+    source_compound_ids.reserve(exp.compounds.size());
+    for (const auto& compound : exp.compounds)
+    {
+      source_compound_ids.emplace_back(compound.id);
+    }
+    std::sort(source_compound_ids.begin(), source_compound_ids.end());
+
+    std::unordered_map<std::string, std::string> precursor_id_map;
+    precursor_id_map.reserve(source_compound_ids.size());
+    for (Size i = 0; i < source_compound_ids.size(); ++i)
+    {
+      precursor_id_map.emplace(source_compound_ids[i], StringUtils::toStr(static_cast<int64_t>(i)));
+    }
+
+    // Only compounds referenced by transitions are retained in the operational OpenSWATH
+    // experiment. Their IDs are not compressed after filtering; they keep the values assigned
+    // from the complete source compound set above.
     std::unordered_set<std::string> referenced_compound_ids;
     referenced_compound_ids.reserve(exp.transitions.size());
     for (const auto& transition : exp.transitions)
@@ -90,21 +110,6 @@ namespace OpenMS
       referenced_compound_ids.insert(source_ref);
     }
 
-    std::vector<std::string> source_compound_ids;
-    source_compound_ids.reserve(referenced_compound_ids.size());
-    for (const auto& source_id : referenced_compound_ids)
-    {
-      source_compound_ids.push_back(source_id);
-    }
-    std::sort(source_compound_ids.begin(), source_compound_ids.end());
-
-    std::unordered_map<std::string, std::string> precursor_id_map;
-    precursor_id_map.reserve(source_compound_ids.size());
-    for (Size i = 0; i < source_compound_ids.size(); ++i)
-    {
-      precursor_id_map.emplace(source_compound_ids[i], StringUtils::toStr(static_cast<int64_t>(i)));
-    }
-
     // Build a fresh experiment instead of mutating compound IDs in place. LightTargetedExperiment
     // maintains an internal compound-reference lookup cache; rebuilding the object guarantees that
     // no cache entries keyed by pre-normalization source IDs survive canonicalization.
@@ -116,10 +121,16 @@ namespace OpenMS
     for (const auto& source_compound : exp.compounds)
     {
       const std::string source_id = source_compound.id;
+      if (!referenced_compound_ids.contains(source_id))
+      {
+        continue;
+      }
+
       const auto precursor_it = precursor_id_map.find(source_id);
       if (precursor_it == precursor_id_map.end())
       {
-        continue;
+        // All source compounds were inserted into precursor_id_map above.
+        throwInvalidID_("Source compound is missing from the canonical precursor map", source_id);
       }
 
       OpenSwath::LightCompound compound = source_compound;

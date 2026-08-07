@@ -37,10 +37,11 @@ namespace OpenMS
     /**
       @brief Replace arbitrary source precursor/transition identifiers with deterministic canonical IDs.
 
-      Only compounds referenced by at least one transition participate in the operational precursor
-      ID space; unreferenced source compounds are omitted so they cannot shift the IDs of extractable
-      precursor groups. Referenced precursor IDs are assigned by lexicographically sorting their
-      unique source compound IDs and numbering them from zero. Transition IDs are assigned from their
+      Precursor IDs are assigned by lexicographically sorting all unique source compound IDs and
+      numbering them from zero, matching the persistent PQP convention. Compounds that are not
+      referenced by any transition are then omitted from the operational LightTargetedExperiment
+      without compressing the remaining IDs, so sparse precursor IDs are expected. This keeps direct
+      source loading consistent with source-to-PQP round-trips. Transition IDs are assigned from their
       order in @p exp.transitions, also starting at zero. Existing transition @c peptide_ref values
       are rewritten to the new precursor IDs.
 
