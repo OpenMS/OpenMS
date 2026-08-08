@@ -134,7 +134,11 @@ namespace OpenMS
         if (!consistent)
         {
           ++report.inconsistent_score_direction;
-          surviving_here += group_end - group;
+          // Counted as ONE, like the reduced branch: this group is a single peptidoform that
+          // could not be reduced, not evidence that the spectrum carries several. Counting its
+          // members individually would push multiply_identified_spectra above 1 and report the
+          // spectrum as chimeric, which is the opposite of what happened.
+          ++surviving_here;
           group = group_end;
           continue;
         }

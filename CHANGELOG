@@ -330,13 +330,6 @@ TOPP tools:
         in-process path, which previously produced different output than the subprocess path (#9240)
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
-    IsobaricWorkflow:
-      - Identifications are now reduced to one per (spectrum, peptidoform, charge), as for
-        ProteomicsLFQ. This tool builds one consensus feature per identification and all
-        identifications of one spectrum read the same MS2/MS3 scan, so a repeated identification
-        contributed the same reporter intensities twice to every abundance derived from them
-        (measured: +37% on a protein abundance from a single duplicated identification) (#9871)
-
     ProteomicsLFQ:
       - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
         carries several of them -- the shape produced by concatenating search engine results rather
@@ -393,6 +386,11 @@ TOPP tools:
       - Fix: mzTab export no longer aborts when search settings contain non-string DataValues (e.g.
         integer missed_cleavages) (#9666)
     IsobaricWorkflow:
+      - Identifications are now reduced to one per (spectrum, peptidoform, charge), as for
+        ProteomicsLFQ. This tool builds one consensus feature per identification and all
+        identifications of one spectrum read the same MS2/MS3 scan, so a repeated identification
+        contributed the same reporter intensities twice to every abundance derived from them
+        (measured: +37% on a protein abundance from a single duplicated identification) (#9871)
       - The consensusXML (-out), mzTab (-out_mzTab), and QPX (-out_qpx) outputs are optional
         individually; any one can now be the sole output. Invocations without an output still fail
         during parameter validation (#9866)

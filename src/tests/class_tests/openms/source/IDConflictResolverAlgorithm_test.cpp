@@ -298,6 +298,9 @@ START_SECTION((static UnresolvedIdentifications reduceToOnePerSpectrum(PeptideId
     TEST_EQUAL(report.removed, 0)
     TEST_EQUAL(ids.size(), 2)
     TEST_EQUAL(report.inconsistent_score_direction, 1)
+    // ...and it must NOT also be reported as a chimeric spectrum: the group is one peptidoform
+    // that could not be reduced, not two peptidoforms.
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
   }
 
   // (7) Different spectra are never merged, and survivors keep their input order.
