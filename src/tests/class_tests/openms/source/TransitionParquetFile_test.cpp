@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -297,6 +298,8 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
     TEST_EQUAL(expected_precursor_ids.count(compound.id), 1)
     compound_refs.insert(compound.id);
   }
+  TEST_EQUAL(compound_refs.size(), expected_precursor_ids.size())
+
   for (Size i = 0; i < out_exp.transitions.size(); ++i)
   {
     TEST_EQUAL(out_exp.transitions[i].transition_name, std::to_string(i + 1))
@@ -337,6 +340,10 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
   TransitionParquetFile reader;
   OpenSwath::LightTargetedExperiment roundtrip_exp;
   reader.convertParquetToTargetedExperiment(out_dir, roundtrip_exp);
+
+  // The persisted OSWPQ IDs must remain valid canonical operational IDs after
+  // the writer -> reader round trip.
+  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(roundtrip_exp);
 
   TEST_EQUAL(roundtrip_exp.compounds.size(), light_exp.compounds.size())
   TEST_EQUAL(roundtrip_exp.transitions.size(), light_exp.transitions.size())
