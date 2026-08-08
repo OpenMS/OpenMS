@@ -366,8 +366,6 @@ TOPP tools:
       - Perf: new PipEcho:max_training_points (default 50000, 0=unlimited) caps the transfer-FDR SVM
         training set per fold via a deterministic stratified subsample; prediction and q-values still
         cover all transfers, so FDR estimates stay unbiased (#9669)
-      - Added -in_feat to accept pre-computed featureXML files, bypassing internal feature finding
-        (#8796)
       - Added Bruker TimsTOF .d input with Biosaur2-based seed generation (IM_PEAK path with automatic
         FWHM estimation), new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance (default 5.0 s, advanced) to
