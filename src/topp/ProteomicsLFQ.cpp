@@ -90,6 +90,16 @@ Input: @n
     3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)
     4. IDFilter (pep:score = 0.01) to filter PSMs at 1% FDR
 
+   Exactly one identification run per ID file is required, and merged ID runs are not supported.
+   One identification per spectrum is expected as well: ProteomicsLFQ measures one value per
+   (spectrum, peptidoform, charge), so where several identifications of one spectrum agree on
+   all three, only the best-scoring one is kept and the reduction is reported. The others would
+   otherwise count the same measurement more than once, in the PSM-level FDR and in every output.
+   Results from several search engines must therefore be combined - with @ref TOPP_ConsensusID
+   (@p -algorithm best @p -keep_old_scores, which preserves each engine's score) - rather than
+   simply concatenated. Identifications of one spectrum that name *different* peptidoforms are
+   left alone: a chimeric spectrum yields two distinct measurements.
+
   - An experimental design file: @n
    (see @ref OpenMS::ExperimentalDesign "ExperimentalDesign" for details) @n
   - A protein database in with appended decoy sequences in FASTA format @n
@@ -190,7 +200,11 @@ protected:
       "2. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
       "3. IDFilter (pep:score = 0.05)\n"
       "To obtain well calibrated PEPs and an initial reduction of PSMs\n"
-      "ID files must be provided in same order as spectra files.");
+      "ID files must be provided in same order as spectra files.\n"
+      "One identification per spectrum is expected: where several identifications of one\n"
+      "spectrum agree on peptidoform and charge, only the best-scoring one is kept, since\n"
+      "the others would count the same measurement more than once. Combine results from\n"
+      "several search engines with ConsensusID rather than concatenating them.");
     setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -928,7 +942,58 @@ protected:
       SpectrumMetaDataLookup::addMissingSpectrumReferences(peptide_ids, mz_file_abs_path, true);
     }
 
+    // Deliberately last, i.e. after the spectrum-reference repair above: an identification with
+    // no reference cannot be keyed at all, so reducing any earlier would silently skip exactly
+    // the files whose references had to be reannotated.
+    reduceToOnePerSpectrum_(peptide_ids, id_file_abs_path);
+
     return EXECUTION_OK;
+  }
+
+  /**
+    @brief Reduce identifications this tool cannot tell apart to one per spectrum.
+
+    ProteomicsLFQ measures one value per (spectrum, peptidoform, charge). Input that carries
+    several identifications of that same triple - two search engines concatenated rather than
+    combined, for instance - leaves it undecided which of them owns the measurement, and keeping
+    all of them counts one identification several times in the PSM-level FDR and repeats it in
+    every output. Keep the best-scoring one and say what went.
+  **/
+  void reduceToOnePerSpectrum_(PeptideIdentificationList& peptide_ids,
+                               const std::string& id_file_abs_path)
+  {
+    const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(peptide_ids);
+
+    if (report.removed > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: " << report.removed << " identification(s) in " << id_file_abs_path
+                      << " repeat a (spectrum, peptidoform, charge) already claimed by another"
+                         " identification, e.g. " << report.example << ".\n"
+                         "Kept the best-scoring one of each group; the others would have counted"
+                         " the same measurement more than once. To control this upstream, combine"
+                         " search engine results with ConsensusID (-algorithm best"
+                         " -keep_old_scores) rather than concatenating them." << endl;
+    }
+    if (report.inconsistent_score_direction > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: " << report.inconsistent_score_direction << " group(s) of"
+                         " repeated identifications in " << id_file_abs_path << " disagree on"
+                         " whether a higher score is better, so no best one could be chosen."
+                         " They were left as they are and will be counted more than once." << endl;
+    }
+    if (report.without_spectrum_reference > 0)
+    {
+      OPENMS_LOG_INFO << report.without_spectrum_reference << " identification(s) in "
+                      << id_file_abs_path << " carry no spectrum reference and were therefore not"
+                         " checked for repeats." << endl;
+    }
+    if (report.multiply_identified_spectra > 0)
+    {
+      OPENMS_LOG_INFO << report.multiply_identified_spectra << " spectra in " << id_file_abs_path
+                      << " carry more than one identification naming different peptidoforms"
+                         " (a chimeric spectrum, or search engines that disagree). Each is"
+                         " quantified separately." << endl;
+    }
   }
 
 
