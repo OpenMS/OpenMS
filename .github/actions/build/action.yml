@@ -168,6 +168,7 @@ runs:
     ############################################################################
     # The actual commands to build OpenMS.
     - name: Build
+      id: build
       shell: bash
       env:
         # Official variables that need to be set to build OpenMS:
@@ -211,28 +212,26 @@ runs:
       run: ctest --parallel --output-on-failure --test-dir build
 
     ############################################################################
-    # Saved on every event, including pull requests.  A cache written by a PR
-    # run is scoped to that PR, so it only speeds up later pushes to the same
-    # PR -- but that is precisely the loop developers iterate in, and this
-    # workflow has no push trigger for develop (only nightly and release/*), so
-    # gating on non-PR events would mean the cache is effectively never written
-    # at all.  Saved even when the build or the tests failed: the objects that
-    # did compile are still worth keeping.
+    # Saved on every event, including pull requests.  A cache written by a pull
+    # request run is scoped to that pull request, so it only speeds up later
+    # runs of the same one -- but that is precisely the loop developers iterate
+    # in.
     #
-    # NOTE: caches created on develop (the default branch) are the only ones
-    # readable by *every* PR, so a first CI run on a new PR is only fast if
-    # develop's cache is fresh.  Keeping it fresh needs test.yml to run on
-    # develop regularly (a push trigger or a nightly schedule); until then a
-    # PR's first run still pays for a cold build.
+    # Only saved when the build SUCCEEDED, which is what makes this safe.  The
+    # save key shares its prefix with the restore-keys ladder, and that ladder
+    # takes the most *recent* match, so whatever this step uploads becomes what
+    # every later run on this branch restores.  Uploading after a failed build
+    # would therefore pin a partial cache -- and when the restore itself had
+    # missed (a new compiler major, or a new pull request before develop has a
+    # cache) that pinned entry is practically empty and permanently shadows the
+    # develop and any-branch rungs below it, leaving the branch cold for good.
+    # Requiring the build to have succeeded guarantees the cache is complete;
+    # on failure nothing is written and the previous good entry stays newest.
     #
-    # Both this step and the statistics above additionally require the cache
-    # setup itself to have succeeded.  `!cancelled()` is true after a *failed*
-    # step too, so without this a failure in "Configure Build Caching" would
-    # still upload a practically empty .ccache under this run's key -- and
-    # because the restore-keys ladder picks the most recent prefix match, that
-    # empty entry would then shadow a perfectly good older cache.
+    # Test failures still save: the build was complete by then, so the cache is
+    # too, and a red test says nothing about the objects.
     - name: Save Build Cache
-      if: ${{ !cancelled() && steps.ccache-configure.outcome == 'success' && steps.ccache-reset.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.build.outcome == 'success' }}
       uses: actions/cache/save@v5
       with:
         path: .ccache
