@@ -2672,11 +2672,20 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         "Export PSM data to Apache Arrow/Parquet format following QPX PSM schema")
         .def(nb::init<>())
         .def_static("exportToParquet",
-            static_cast<bool (*)(const std::vector<OpenMS::ProteinIdentification>&,
-                                 const OpenMS::PeptideIdentificationList&,
-                                 const std::string&,
-                                 bool,
-                                 const OpenMS::ParquetWriteConfig&)>(&OpenMS::QPXFile::exportToParquet),
+            // Forwarded through a lambda rather than bound directly: the C++ overload also takes
+            // an optional feature<->PSM linkage, which is not exposed. Building one needs the
+            // feature exporter, and without it every row's feature_id is null -- the correct
+            // value for the psm-only export this entry point produces.
+            [](const std::vector<OpenMS::ProteinIdentification>& protein_identifications,
+               const OpenMS::PeptideIdentificationList& peptide_identifications,
+               const std::string& filename,
+               bool export_all_psms,
+               const OpenMS::ParquetWriteConfig& config)
+            {
+              return OpenMS::QPXFile::exportToParquet(protein_identifications,
+                                                      peptide_identifications, filename,
+                                                      export_all_psms, config);
+            },
             "protein_identifications"_a, "peptide_identifications"_a,
             "filename"_a, "export_all_psms"_a = false,
             "config"_a = OpenMS::ParquetWriteConfig{},

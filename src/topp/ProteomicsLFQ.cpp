@@ -66,6 +66,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -144,10 +145,12 @@ Normalization: @n
     - the downstream tool itself. MSstats, Triqler and comparable consumers normalize their input
       by design.
 
-Output:
-  - mzTab file with analysis results
-  - MSstats file with analysis results for statistical downstream analysis in MSstats
-  - ConsensusXML file for visualization and further processing in OpenMS
+Output (at least one required; each output is optional individually):
+  - mzTab file with analysis results (@p out)
+  - MSstats file with analysis results for statistical downstream analysis in MSstats (@p out_msstats)
+  - Triqler input file (@p out_triqler)
+  - consensusXML file for visualization and further processing in OpenMS (@p out_cxml)
+  - QPX Parquet collection (@p out_qpx)
 
 
 Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
@@ -199,19 +202,19 @@ protected:
     registerInputFile_("fasta", "<file>", "", "fasta file", false);
     setValidFormats_("fasta", ListUtils::create<std::string>("fasta"));
 
-    registerOutputFile_("out", "<file>", "", "output mzTab file");
+    registerOutputFile_("out", "<file>", "", "Optional output mzTab file. At least one output must be specified.", false, false);
     setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
 
-    registerOutputFile_("out_msstats", "<file>", "", "output MSstats input file", false, false);
+    registerOutputFile_("out_msstats", "<file>", "", "Optional output MSstats input file. At least one output must be specified.", false, false);
     setValidFormats_("out_msstats", ListUtils::create<std::string>("csv"));
 
-    registerOutputFile_("out_triqler", "<file>", "", "output Triqler input file", false, false);
+    registerOutputFile_("out_triqler", "<file>", "", "Optional output Triqler input file. At least one output must be specified.", false, false);
     setValidFormats_("out_triqler", ListUtils::create<std::string>("tsv"));
 
-    registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
+    registerOutputFile_("out_cxml", "<file>", "", "Optional output consensusXML file. At least one output must be specified.", false, false);
     setValidFormats_("out_cxml", ListUtils::create<std::string>("consensusXML"));
 
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -1588,10 +1591,18 @@ protected:
     //-------------------------------------------------------------
 
     // Read tool parameters
+    const std::string out = getStringOption_("out");
+    const std::string out_msstats = getStringOption_("out_msstats");
+    const std::string out_triqler = getStringOption_("out_triqler");
+    const std::string out_cxml = getStringOption_("out_cxml");
+    const std::string out_qpx = getOutputDirOption("out_qpx");
+    if (out.empty() && out_msstats.empty() && out_triqler.empty() && out_cxml.empty() && out_qpx.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                 "out/out_msstats/out_triqler/out_cxml/out_qpx");
+    }
+
     StringList in = getStringList_("in");
-    std::string out = getStringOption_("out");
-    std::string out_msstats = getStringOption_("out_msstats");
-    std::string out_triqler = getStringOption_("out_triqler");
     StringList in_ids = getStringList_("ids");
     std::string design_file = getStringOption_("design");
     std::string in_db = getStringOption_("fasta");
@@ -1916,7 +1927,6 @@ protected:
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
 
     {
-      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
@@ -1933,8 +1943,13 @@ protected:
         // is undone here: without the commit below, every file already written is removed.
         QPXCollectionExport::Transaction qpx_collection(out_qpx);
 
+        // Collected while the feature rows are built, then handed to the psm view so it can fill
+        // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+        QPXIdentity::FeatureLinks feature_links;
+
         // Feature-level export
-        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet",
+                                                      ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1954,7 +1969,9 @@ protected:
           all_pepids.push_back(pepid);
         }
 
-        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
+                                      out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+                                      ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1974,24 +1991,27 @@ protected:
       }
     }
 
-    if (!getStringOption_("out_cxml").empty())
+    if (!out_cxml.empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // (they are nevertheless stored and passed to mzTab for proper export)
-      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML}, log_type_);
+      FileHandler().storeConsensusFeatures(out_cxml, consensus, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
-    // Fill MzTab with meta data and quants annotated in identification data structure
-    const bool report_unidentified_features(false);
-    const bool report_unmapped(true); // TODO we should make a distinction from unassigned after conflict resolution and unassigned because unmappable
-    const bool report_subfeatures(false);
-    const bool report_unidentified_spectra(false);
-    const bool report_not_only_best_psm_per_spectrum(false);
+    if (!out.empty())
+    {
+      // Fill mzTab with meta data and quants annotated in identification data structure
+      const bool report_unidentified_features(false);
+      const bool report_unmapped(true); // TODO we should make a distinction from unassigned after conflict resolution and unassigned because unmappable
+      const bool report_subfeatures(false);
+      const bool report_unidentified_spectra(false);
+      const bool report_not_only_best_psm_per_spectrum(false);
 
-    MzTabFile().store(out, consensus,
-                      false, // first run is inference but also a properly merged run, so we don't need the hack
-                      report_unidentified_features, report_unmapped, report_subfeatures, report_unidentified_spectra,
-                      report_not_only_best_psm_per_spectrum);
+      MzTabFile().store(out, consensus,
+                        false, // first run is inference but also a properly merged run, so we don't need the hack
+                        report_unidentified_features, report_unmapped, report_subfeatures, report_unidentified_spectra,
+                        report_not_only_best_psm_per_spectrum);
+    }
 
     if (! out_msstats.empty())
     {

@@ -39,6 +39,21 @@ namespace OpenMS
     bool unordered_lists = false;
     /// Stop collecting messages of any one category after this many (0 = unlimited).
     Size max_reported = 25;
+    /**
+      Compare (and dump) the QPX identity and cross-reference columns as ordinary values.
+
+      Off by default, and the default is the correct one for a reference comparison. The spec is
+      explicit that "identity is meaningful within a file only; distinct QPX files must not be
+      joined on @c feature_id alone" -- and comparing a file against a committed reference is
+      exactly that join. The values are also hostile to it: @c feature_id hashes @c rt and
+      @c observed_mz, so one ULP of platform drift does not shift a digit, it produces a wholly
+      different int64 and turns a tolerable numeric difference into "row missing on both sides".
+
+      What is asserted about the ids instead is stronger and portable: @c -schema mode checks that
+      they are present, non-null and unique, and QPXIdentity_test pins the derivation itself
+      against the reference implementation's own vectors.
+    */
+    bool compare_identity_columns = false;
   };
 
   /**
@@ -159,6 +174,20 @@ namespace OpenMS
       @exception Exception::IllegalArgument if @p view is not a known view name
     */
     static std::vector<std::string> qpxPrimaryKey(const std::string& view);
+
+    /**
+      @brief The opaque identity and cross-reference columns of a QPX view
+
+      @c feature_id / @c psm_id / @c pg_id, plus the optional references between the views. They
+      are derived from the other columns rather than measured, so a difference in one is always a
+      difference in something else that is reported anyway -- see
+      ParquetDiffSettings::compare_identity_columns for why comparing them across files is wrong
+      rather than merely redundant.
+
+      @param[in] view @c "psm", @c "feature" or @c "pg"
+      @return The column names, or empty for an unknown view
+    */
+    static std::vector<std::string> qpxIdentityColumns(const std::string& view);
 
     /**
       @brief Map a QPX @c file_type metadata value to a view name.

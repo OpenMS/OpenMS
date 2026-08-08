@@ -337,6 +337,7 @@ endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
   ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
   XICParquetFile_test

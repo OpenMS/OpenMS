@@ -611,10 +611,37 @@ namespace OpenMS
     return "";
   }
 
+  std::vector<std::string> ParquetTableComparator::qpxIdentityColumns(const std::string& view)
+  {
+    if (view == "psm")     { return {QPXPSMSchema::PSM_ID, QPXPSMSchema::FEATURE_ID}; }
+    if (view == "feature") { return {QPXFeatureSchema::FEATURE_ID, QPXFeatureSchema::PSM_IDS}; }
+    if (view == "pg")      { return {QPXPgSchema::PG_ID}; }
+    return {};
+  }
+
+  namespace
+  {
+    /// ignore_columns plus, unless the caller asked for them, the view's identity columns
+    std::vector<std::string> effectiveIgnoreColumns_(const ParquetDiffSettings& settings,
+                                                     const std::string& view)
+    {
+      std::vector<std::string> ignored = settings.ignore_columns;
+      if (!settings.compare_identity_columns)
+      {
+        const auto identity = ParquetTableComparator::qpxIdentityColumns(view);
+        ignored.insert(ignored.end(), identity.begin(), identity.end());
+      }
+      return ignored;
+    }
+  }
+
   std::vector<std::string> ParquetTableComparator::qpxPrimaryKey(const std::string& view)
   {
-    // The keys OpenMS currently emits. QPX >= the identity-id change additionally defines a
-    // single surrogate key per view; pass -pk explicitly when comparing such files.
+    // Rows are matched on the NATURAL key, not on the view's declared surrogate primary key. The
+    // surrogate is a hash of columns that include floats, so a platform that computes rt one ULP
+    // differently would not report a slightly different rt -- every row would be missing on both
+    // sides at once. Matching on the natural key degrades gracefully instead, and the tolerance
+    // then applies where it means something.
     if (view == "psm")
     {
       return {QPXPSMSchema::PEPTIDOFORM, QPXPSMSchema::CHARGE,
@@ -666,11 +693,13 @@ namespace OpenMS
       return result;
     }
 
-    // Resolve the primary key: explicit setting first, then the file's QPX file_type.
+    // Resolve the primary key: explicit setting first, then the file's QPX file_type. The view
+    // is resolved either way, because it also names the identity columns to leave out of the
+    // value comparison.
+    const std::string view = viewFromFileType(metadataValue_(t1, "file_type"));
     std::vector<std::string> key_columns = settings.primary_key;
     if (key_columns.empty())
     {
-      const std::string view = viewFromFileType(metadataValue_(t1, "file_type"));
       if (view.empty())
       {
         result.key_errors.push_back(
@@ -737,10 +766,11 @@ namespace OpenMS
     // contradict that by reporting a reordered grouped_runs as a difference.
     std::vector<std::pair<int, int>> columns;
     std::vector<std::string> column_names;
+    const auto ignored_columns = effectiveIgnoreColumns_(settings, view);
     for (const auto& field : t1->schema()->fields())
     {
-      if (std::find(settings.ignore_columns.begin(), settings.ignore_columns.end(), field->name())
-          != settings.ignore_columns.end())
+      if (std::find(ignored_columns.begin(), ignored_columns.end(), field->name())
+          != ignored_columns.end())
       {
         continue;
       }
@@ -859,6 +889,45 @@ namespace OpenMS
       result.primary_key_used = key_columns;
       bool ok = false;
       (void)buildKeys_(table, key_columns, File::basename(file), settings, result, ok);
+
+      // The view's opaque identity is its declared primary key, and a text reference deliberately
+      // does not pin its values (see ParquetDiffSettings::compare_identity_columns). That makes
+      // this the only place the ids are checked at all, so check what actually matters about
+      // them: present, never null, never repeated.
+      const auto identity = qpxIdentityColumns(view);
+      if (!identity.empty())
+      {
+        const std::string& id_column = identity.front(); // the id itself, not the cross-references
+        const int idx = actual->GetFieldIndex(id_column);
+        // Only read the column when it really is int64. A type mismatch has already been reported
+        // above, and validate() runs on whatever file the caller passes: continuing here would
+        // static_cast a scalar of some other dynamic type to Int64Scalar, which is undefined
+        // behaviour rather than a second error message.
+        if (idx >= 0 && actual->field(idx)->type()->id() == arrow::Type::INT64)
+        {
+          std::map<Int64, int64_t> seen;
+          for (int64_t r = 0; r < table->num_rows(); ++r)
+          {
+            bool cell_ok = false;
+            auto scalar = cellAt_(table, idx, r, cell_ok);
+            if (!cell_ok || !scalar || !scalar->is_valid)
+            {
+              report_(result.key_errors, settings.max_reported, result.suppressed,
+                      "row " + std::to_string(r) + ": '" + id_column
+                        + "' is null, but QPX declares it non-nullable and the view's primary key");
+              continue;
+            }
+            const Int64 value = static_cast<const arrow::Int64Scalar&>(*scalar).value;
+            const auto inserted = seen.emplace(value, r);
+            if (!inserted.second)
+            {
+              report_(result.key_errors, settings.max_reported, result.suppressed,
+                      "rows " + std::to_string(inserted.first->second) + " and " + std::to_string(r)
+                        + " share the identity '" + id_column + "' " + std::to_string(value));
+            }
+          }
+        }
+      }
     }
 
     result.equal = result.schema_errors.empty() && result.key_errors.empty();
@@ -879,10 +948,10 @@ namespace OpenMS
     // Same key resolution as compare(): explicit setting first, then the file's own QPX file_type.
     // An unkeyable file is still dumpable - it just keeps file order, which is worth saying out
     // loud, because a reference built from it would then be sensitive to the producer's row order.
+    const std::string view = viewFromFileType(metadataValue_(table, "file_type"));
     std::vector<std::string> key_columns = settings.primary_key;
     if (key_columns.empty())
     {
-      const std::string view = viewFromFileType(metadataValue_(table, "file_type"));
       if (!view.empty()) { key_columns = qpxPrimaryKey(view); }
       else
       {
@@ -906,6 +975,20 @@ namespace OpenMS
       key_idx.push_back(i);
     }
 
+    // Dump exactly the columns compare() would look at. Emitting more would put values into a
+    // committed reference that no comparison ever reads -- and for the identity columns it would
+    // pin a cross-file join the spec says not to make (see ParquetDiffSettings).
+    const auto ignored_columns = effectiveIgnoreColumns_(settings, view);
+    std::vector<int> dumped_idx;
+    for (int c = 0; c < schema->num_fields(); ++c)
+    {
+      if (std::find(ignored_columns.begin(), ignored_columns.end(), schema->field(c)->name())
+          == ignored_columns.end())
+      {
+        dumped_idx.push_back(c);
+      }
+    }
+
     // (sort key, rendered row). The sort key reuses canonicalKey_, so list-valued key columns are
     // canonicalised the same way the comparison canonicalises them and the two cannot disagree.
     std::vector<std::pair<std::string, std::string>> rows;
@@ -922,9 +1005,10 @@ namespace OpenMS
       }
 
       std::string line;
-      for (int c = 0; c < schema->num_fields(); ++c)
+      for (size_t ci = 0; ci < dumped_idx.size(); ++ci)
       {
-        if (c != 0) { line += "\t"; }
+        const int c = dumped_idx[ci];
+        if (ci != 0) { line += "\t"; }
         bool ok = false;
         auto scalar = cellAt_(table, c, r, ok);
         // Tabs and newlines inside a value would break the one-row-per-line shape the text
@@ -956,10 +1040,10 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "ParquetDiff: cannot write '" << out_file << "'" << std::endl;
       return false;
     }
-    for (int c = 0; c < schema->num_fields(); ++c)
+    for (size_t ci = 0; ci < dumped_idx.size(); ++ci)
     {
-      if (c != 0) { out << "\t"; }
-      out << schema->field(c)->name();
+      if (ci != 0) { out << "\t"; }
+      out << schema->field(dumped_idx[ci])->name();
     }
     out << "\n";
     for (const auto& row : rows) { out << row.second << "\n"; }

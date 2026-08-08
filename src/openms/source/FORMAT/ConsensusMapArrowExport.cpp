@@ -48,20 +48,6 @@ namespace OpenMS
 
 namespace // anonymous
 {
-  /// Try to extract a scan number from a native ID string.
-  /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
-  /// Returns -1 on failure.
-  Int extractScan(const std::string& native_id)
-  {
-    std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
-    if (regex_str.empty())
-    {
-      return -1;
-    }
-    boost::regex scan_regex(regex_str);
-    return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
-  }
-
   /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
   /// MetaInfoRegistry::getName() takes an `omp critical` lock, so caching by index pays
   /// that lock at most once per unique key for the whole range instead of once per
@@ -315,23 +301,75 @@ std::shared_ptr<parquet::WriterProperties> makeFeatureWriterProperties(const Par
   return builder.build();
 }
 
+/// The @c run_file_name and @c psm_id the psm view writes for one identification's top hit.
+///
+/// This is how the feature view works out which of its rows a PSM belongs to, and it must agree
+/// with QPXFile exactly or the collection's cross-references stop resolving. Both go through the
+/// same ArrowIOHelpers derivations, so the agreement is structural rather than a coincidence of
+/// two copies staying in sync.
+///
+/// Only the TOP hit is linked. The psm view writes hits[0] per identification by default, and a
+/// lower-ranked hit names a different peptide than the one the feature was quantified for -- it
+/// is not evidence for this feature.
+///
+/// @return false when the identification carries no hits and therefore no psm row
+bool topHitPsmIdentity(const PeptideIdentification& pid,
+                       const IdentifierMSRunMapper& mapper,
+                       const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                       std::string& run_file_name,
+                       Int64& psm_id)
+{
+  const auto& hits = pid.getHits();
+  if (hits.empty()) { return false; }
+  const PeptideHit& hit = hits.front();
+  run_file_name = ArrowIOHelpers::qpxPsmRunFileName(hit, pid, mapper.getPrimaryMSRunPath(pid),
+                                                    run_file_name_keys);
+  // The psm view reads the spectrum reference from the member only, with no metavalue fallback;
+  // matching that matters because `scan` is part of the key.
+  const auto scan = ArrowIOHelpers::qpxScanComponents(pid.getSpectrumReference());
+  const auto pf = ProForma::fromAASequence(hit.getSequence());
+  psm_id = QPXIdentity::psmId(run_file_name, scan,
+                              ProForma::toString(pf, ProForma::WriteMode::CANONICAL),
+                              static_cast<int16_t>(hit.getCharge()));
+  return true;
+}
+
+/// Record one reciprocal feature-to-PSM edge without hiding an ambiguous owner.
+std::string insertFeatureLink(QPXIdentity::FeatureLinks& links, Int64 psm_id, Int64 feature_id)
+{
+  const auto [existing, inserted] = links.emplace(psm_id, feature_id);
+  if (inserted || existing->second == feature_id) { return {}; }
+
+  return "QPX psm_id " + std::to_string(psm_id) + " is claimed by feature_id "
+         + std::to_string(existing->second) + " and feature_id " + std::to_string(feature_id);
+}
+
 /// Build a QPXFeatureSchema Arrow table for the half-open feature range
 /// [range_begin, range_end) of @p cmap. @p id_lut holds the prebuilt per-map
 /// protein-group/gene lookups. Each row is independent (no cross-row state), so
 /// any contiguous sub-range yields a self-contained, schema-valid table; this is
 /// what lets exportToParquetStreaming() flush one batch at a time. Shared by
 /// exportToArrow() (whole map) and exportToParquetStreaming() (one batch per call).
+/// @param[out] out_links Optional psm_id -> feature_id map for this range, for the psm view's
+///             feature_id column. One slot per caller: the streaming path runs this inside an
+///             OpenMP region, so a shared map would be a data race.
 std::shared_ptr<arrow::Table> buildFeatureTableRange(
   const ConsensusMap& cmap,
   const FeatureIdLookups& id_lut,
   size_t range_begin,
-  size_t range_end)
+  size_t range_end,
+  QPXIdentity::FeatureLinks* out_links = nullptr)
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder, anchor_protein_builder;
   arrow::StringBuilder run_file_name_builder, id_run_file_name_builder;
   arrow::Int16Builder charge_builder, missed_cleavages_builder;
   arrow::BooleanBuilder is_decoy_builder, unique_builder;
+  arrow::Int64Builder feature_id_builder;
+
+  // -- psm_ids list<int64> --
+  auto psm_ids_val_b = std::make_shared<arrow::Int64Builder>();
+  arrow::ListBuilder psm_ids_builder(arrow::default_memory_pool(), psm_ids_val_b);
   arrow::FloatBuilder calculated_mz_builder, observed_mz_builder, rt_builder;
   arrow::FloatBuilder mass_error_ppm_builder;
   arrow::FloatBuilder rt_start_builder, rt_stop_builder;
@@ -604,6 +642,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   const UInt idx_stop_ion_mobility  = mreg.getIndex("stop_ion_mobility");
   const UInt idx_rt_start           = mreg.getIndex("rt_start");
   const UInt idx_rt_stop            = mreg.getIndex("rt_stop");
+  // Same reason as the indices above: resolving a metavalue key by name takes the
+  // MetaInfoRegistry's `omp critical` lock, and the psm identities are derived per row.
+  const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -614,6 +655,11 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   {
     const auto& cf = cmap[row.feat_idx];
     const auto& pep_ids = cf.getPeptideIdentifications();
+
+    // The six columns feature_id is derived from, filled as each is written below. They are
+    // collected rather than recomputed so the id is a function of what the row actually holds.
+    std::string peptidoform;                // stays empty for an unidentified feature
+    std::vector<Int32> scan_components;     // ditto
 
     // The feature's identity: the best-scoring hit across ALL of its identifications, not
     // pep_ids[0].getHits()[0]. The positional pick discarded a feature's identity whenever its
@@ -657,7 +703,8 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       const auto& seq = best_hit->getSequence();
       (void)sequence_builder.Append(seq.toUnmodifiedString());
       auto pf = ProForma::fromAASequence(seq);
-      (void)peptidoform_builder.Append(ProForma::toString(pf, ProForma::WriteMode::CANONICAL));
+      peptidoform = ProForma::toString(pf, ProForma::WriteMode::CANONICAL);
+      (void)peptidoform_builder.Append(peptidoform);
 
       // calculated_mz
       int charge = row_charge;
@@ -777,7 +824,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     else
     {
       (void)sequence_builder.Append("");
-      (void)peptidoform_builder.Append("");
+      (void)peptidoform_builder.Append(""); // unidentified: only rt/observed_mz identify this row
       (void)calculated_mz_builder.Append(static_cast<float>(row_mz));
       (void)mass_error_ppm_builder.AppendNull();
       // empty modifications list
@@ -786,9 +833,14 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
 
     // Quantitative coordinates: this run's handle for label-free, the consensus centroid for
     // isobaric (whose handles carry reporter-ion m/z and the quantification scan's RT).
-    (void)charge_builder.Append(static_cast<int16_t>(row_charge));
-    (void)observed_mz_builder.Append(static_cast<float>(row_mz));
-    (void)rt_builder.Append(static_cast<float>(row_rt));
+    // Narrowed once and reused for feature_id: the identity hashes the columns AS PERSISTED, so
+    // deriving it from the wider values would disagree with any reader that re-derives it.
+    const int16_t row_charge16 = static_cast<int16_t>(row_charge);
+    const float row_mz32 = static_cast<float>(row_mz);
+    const float row_rt32 = static_cast<float>(row_rt);
+    (void)charge_builder.Append(row_charge16);
+    (void)observed_mz_builder.Append(row_mz32);
+    (void)rt_builder.Append(row_rt32);
 
     // === PEP ===
     if (has_id)
@@ -899,13 +951,45 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
         }
       }
 
+      scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);
       (void)scan_builder.Append();
-      if (!spec_ref.empty())
+      for (const Int32 component : scan_components) { (void)scan_val_b->Append(component); }
+    }
+
+    // === feature_id (int64, non-nullable) and psm_ids (list<int64>, nullable) ===
+    // Every component of the composite has been written by now, so the id is derived from the
+    // row as persisted rather than from a second reading of the ConsensusFeature.
+    const Int64 feature_id = QPXIdentity::featureId(row.run, peptidoform, row_charge16,
+                                                    row_rt32, scan_components, row_mz32);
+    (void)feature_id_builder.Append(feature_id);
+    {
+      // A consensus feature spans runs but emits one row per run, so its identifications have to
+      // be distributed to the row of their OWN run -- listing all of them on every row would
+      // claim a PSM as evidence for a quantity measured in a different file.
+      (void)psm_ids_builder.Append();
+      std::vector<Int64> linked;
+      for (const auto& pid : pep_ids)
       {
-        Int scan_num = extractScan(spec_ref);
-        if (scan_num >= 0)
+        std::string psm_run;
+        Int64 psm_id = 0;
+        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, psm_run, psm_id)) { continue; }
+        if (psm_run != row.run) { continue; }
+        // Two identifications of one feature can agree on all four key columns; the psm view
+        // stores one row for them, so this must list it once.
+        if (std::find(linked.begin(), linked.end(), psm_id) != linked.end()) { continue; }
+        linked.push_back(psm_id);
+        (void)psm_ids_val_b->Append(psm_id);
+        // Both directions come from this one loop, which is what keeps them reciprocal: qpx
+        // validates that a psm pointing at a feature is listed back by it.
+        if (out_links != nullptr)
         {
-          (void)scan_val_b->Append(scan_num);
+          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          if (!conflict.empty())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "ConsensusMapArrowExport: " + conflict
+              + ". A QPX PSM can reference only one feature row.", std::to_string(psm_id));
+          }
         }
       }
     }
@@ -1213,6 +1297,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   FINISH_OR_FAIL(id_run_file_name_builder, arr_id_run_file)
   FINISH_OR_FAIL(rt_start_builder, arr_rt_start)
   FINISH_OR_FAIL(rt_stop_builder, arr_rt_stop)
+  std::shared_ptr<arrow::Array> arr_feature_id, arr_psm_ids;
+  FINISH_OR_FAIL(feature_id_builder, arr_feature_id)
+  FINISH_OR_FAIL(psm_ids_builder, arr_psm_ids)
 
   #undef FINISH_OR_FAIL
 
@@ -1220,6 +1307,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   auto schema = QPXFeatureSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
+    arr_feature_id,
     arr_sequence, arr_peptidoform, arr_modifications,
     arr_charge, arr_pep, arr_is_decoy,
     arr_calc_mz, arr_obs_mz, arr_mass_error_ppm,
@@ -1231,6 +1319,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     arr_pg_positions, arr_im_start, arr_im_stop,
     arr_gg_acc, arr_gg_names, arr_id_run_file,
     arr_rt_start, arr_rt_stop,
+    arr_psm_ids,
   });
 
   // Validate table against registry schema (strict — write path must match exactly)
@@ -1346,7 +1435,8 @@ void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& cmap)
   requireResolvableIdRunsWith(cmap, mapper);
 }
 
-std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
+std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap,
+                                                                     QPXIdentity::FeatureLinks* out_links)
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   const auto id_lut = buildFeatureIdLookups(cmap);
@@ -1354,16 +1444,17 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   // A channel QPX cannot name would be written into intensities[].label, a documented join
   // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
   if (id_lut.has_unlabelable_channel) { return nullptr; }
-  return buildFeatureTableRange(cmap, id_lut, 0, cmap.size());
+  return buildFeatureTableRange(cmap, id_lut, 0, cmap.size(), out_links);
 }
 
 
 bool ConsensusMapArrowExport::exportToParquet(
   const ConsensusMap& cmap,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  QPXIdentity::FeatureLinks* out_links)
 {
-  auto table = exportToArrow(cmap);
+  auto table = exportToArrow(cmap, out_links);
   if (!table)
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to create Arrow table" << std::endl;
@@ -1439,7 +1530,8 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   const std::string& filename,
   size_t batch_size,
   const ParquetWriteConfig& config,
-  int n_threads)
+  int n_threads,
+  QPXIdentity::FeatureLinks* out_links)
 {
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
@@ -1523,6 +1615,9 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
     const int W = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(rows, 1)));
     std::vector<std::shared_ptr<arrow::Table>> parts(W);
     std::vector<std::exception_ptr> errs(W);
+    // One links slot per worker; a shared map would be a data race. Merged below in index
+    // order, so the result does not depend on the thread count.
+    std::vector<QPXIdentity::FeatureLinks> part_links(out_links != nullptr ? W : 0);
 
     #pragma omp parallel for num_threads(W) schedule(static)
     for (int t = 0; t < W; ++t)
@@ -1532,7 +1627,8 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
         const size_t base = rows / W, rem = rows % W;
         const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
         const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
-        parts[t] = buildFeatureTableRange(cmap, id_lut, sb, se);
+        parts[t] = buildFeatureTableRange(cmap, id_lut, sb, se,
+                                          out_links != nullptr ? &part_links[t] : nullptr);
       }
       catch (...)
       {
@@ -1549,6 +1645,25 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
         catch (const std::exception& ex) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw: " << ex.what() << std::endl; }
         catch (...)                      { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw (unknown exception)" << std::endl; }
         return false;
+      }
+    }
+
+    if (out_links != nullptr)
+    {
+      // Merge in feature-row order. insertFeatureLink() retains the first owner and refuses a
+      // conflicting one, including conflicts split across workers or streaming batches.
+      for (int t = 0; t < W; ++t)
+      {
+        for (const auto& [psm_id, feature_id] : part_links[t])
+        {
+          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          if (!conflict.empty())
+          {
+            OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " << conflict
+                             << ". A QPX PSM can reference only one feature row." << std::endl;
+            return false;
+          }
+        }
       }
     }
 
