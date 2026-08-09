@@ -15,14 +15,15 @@ using namespace OpenMS;
 
 START_TEST(TriqlerFile, "$Id$")
 
-START_SECTION(void OpenMS::TriqlerFile::storeLFQ( const std::string &filename, 
-                                                  ConsensusMap &consensus_map,
-                                                  const OpenMS::ExperimentalDesign& design, 
+START_SECTION(void OpenMS::TriqlerFile::storeLFQ( const std::string &filename,
+                                                  const ConsensusMap &consensus_map,
+                                                  const OpenMS::ExperimentalDesign& design,
                                                   const StringList& reannotate_filenames,
-                                                  const std::string& condition,
-                                                  const std::string& retention_time_summarization_method))
+                                                  const std::string& condition))
 {
-  // tested via TriqlerConverter tool
+  // exercised via ProteomicsLFQ -out_triqler (TOPP_ProteomicsLFQ_*), which is the only
+  // caller since the TriqlerConverter tool was removed. Note those tests write the Triqler
+  // output but never diff it, so no value assertion covers this method yet.
 }
 END_SECTION
 

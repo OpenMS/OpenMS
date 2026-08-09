@@ -496,6 +496,15 @@ TOPP tools:
       - Added -remove_shared_peptides (default true) to explicitly control whether shared peptides are
         removed; this filtering was previously silent and hardcoded, and a warning now reports how many
         hits were dropped (#9068)
+    TriqlerConverter:
+      - BREAKING: the tool was removed. It had never worked: since it was introduced in #5066 (2020) it
+        read two parameters -- 'method' and 'retention_time_summarization_method' -- that were never
+        registered, so every invocation aborted with "Internal error: Request for unregistered
+        parameter 'method'" and produced no output. The defect survived because the tool had no test.
+        Neither parameter was ever usable (an unregistered parameter never reaches the CLI, INI or CTD),
+        and neither had an effect to restore: TriqlerFile has no ISO path to dispatch 'method' on, and
+        storeLFQ takes no RT-summarization argument. Use ProteomicsLFQ -out_triqler, which calls the
+        same TriqlerFile::storeLFQ and is unaffected; the export API remains available (#9898)
     MetaboliteAdductDecharger:
       - Added multimer detection (dimers, trimers, ...) with new max_multimer and multimer_log_penalty
         parameters; features are annotated with [nM+adduct]+ style strings (#8888)
@@ -549,7 +558,7 @@ TOPP tools:
     - OpenSwathPeakMapExtractor: extracts full peakmap points from mzML via targeted extraction (#9684)
     - TransitionListEvidenceFilter: filters transition lists by preliminary evidence from mzML (#9161)
   Removed tools:
-    - GenericWrapper (#8981), QPXConverter (#9693)
+    - GenericWrapper (#8981), QPXConverter (#9693), TriqlerConverter (#9898)
 
 GUI tools:
   - TOPPView and TOPPAS now forward generic Qt command line options (-style, -stylesheet, -platform, ...)
