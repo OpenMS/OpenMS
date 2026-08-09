@@ -274,8 +274,6 @@ public:
      *
       @param[in] filename The output file
       @param[in] targeted_exp The canonical targeted experiment (Light structure)
-      @param[in] source_ids Optional source-ID provenance. When supplied, PRECURSOR.TRAML_ID
-                 stores the original/source identifier while PRECURSOR.ID remains canonical.
      *
     */
     /// Compatibility overload: preserves canonical input as-is, otherwise canonicalizes a source-style Light experiment once before writing.
@@ -283,7 +281,13 @@ public:
       const char* filename,
       const OpenSwath::LightTargetedExperiment& targeted_exp);
 
-    /// Canonical writer path with optional source precursor provenance.
+    /** @brief Write a canonical LightTargetedExperiment into a PQP file with optional source precursor provenance.
+     *
+     * @param[in] filename The output file
+     * @param[in] targeted_exp The canonical targeted experiment (Light structure)
+     * @param[in] source_ids Optional source-ID provenance. When supplied, PRECURSOR.TRAML_ID
+     *            stores the original/source identifier while PRECURSOR.ID remains canonical.
+     */
     void convertLightTargetedExperimentToPQP(
       const char* filename,
       const OpenSwath::LightTargetedExperiment& targeted_exp,

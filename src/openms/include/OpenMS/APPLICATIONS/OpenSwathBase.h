@@ -214,9 +214,6 @@ namespace OpenMS
      * @param[in] tr_type Input file type
      * @param[in] tr_file Input file name
      * @param[in] tsv_reader_param Parameters on how to interpret spectral data
-     * @param[out] source_ids Optional source-precursor provenance mapping. For TraML/TSV
-     *             this is captured during canonicalization; for PQP/OSWPQ it is reconstructed
-     *             from persistent TRAML_ID metadata when available.
      *
      */
     /// Compatibility overload retaining the existing three-argument API.
@@ -225,7 +222,16 @@ namespace OpenMS
       const std::string& tr_file,
       const Param& tsv_reader_param);
 
-    /// Canonical-loading path that additionally returns source-ID provenance.
+    /**
+     * @brief Loads and canonicalizes a transition list and additionally returns source-ID provenance.
+     *
+     * @param[in] tr_type Input file type
+     * @param[in] tr_file Input file name
+     * @param[in] tsv_reader_param Parameters on how to interpret spectral data
+     * @param[out] source_ids Optional source-precursor provenance mapping. For TraML/TSV
+     *             this is captured during canonicalization; for PQP/OSWPQ it is reconstructed
+     *             from persistent TRAML_ID metadata when available.
+     */
     OpenSwath::LightTargetedExperiment loadTransitionList(
       const FileTypes::Type& tr_type,
       const std::string& tr_file,
