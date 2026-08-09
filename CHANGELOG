@@ -496,6 +496,16 @@ TOPP tools:
       - Added -remove_shared_peptides (default true) to explicitly control whether shared peptides are
         removed; this filtering was previously silent and hardcoded, and a warning now reports how many
         hits were dropped (#9068)
+      - MSstatsConverter and ProteomicsLFQ -out_msstats now warn when one MSstats_BioReplicate value
+        occurs under more than one MSstats_Condition. That encodes a paired / repeated-measures
+        design, which MSstats models differently from an unpaired one; sdrf-pipelines assigns a
+        globally unique id per source name, so a recurrence usually means a hand-written design. It
+        is a legitimate encoding when intended, so this warns rather than refuses (#9864)
+    Epifany:
+      - Fix: -exp_design was documented as "(Currently unused)" but has always been used. On
+        consensusXML input it merges protein identifications across the fractions and replicates of
+        each sample; without it every ID run is merged into one. The description now says so, and
+        notes that the parameter is ignored for idXML input (#9864)
     MetaboliteAdductDecharger:
       - Added multimer detection (dimers, trimers, ...) with new max_multimer and multimer_log_penalty
         parameters; features are annotated with [nM+adduct]+ style strings (#8888)
@@ -722,6 +732,12 @@ OpenMS Library:
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
   Changes:
+    - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
+      longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
+      they use the native schemas and file_type tokens such as consensus_features / features /
+      proteins -- and ArrowIOHelpers treats the mere presence of that key as "this table is QPX", so
+      claiming it was both misleading and stale (they said 1.0 while the real QPX views say 1.1). The
+      QPX exporters are unchanged (#9864)
     - BREAKING: Matrix<T> no longer inherits from Eigen and uses std::vector<T> for storage; Eigen moved
       from PUBLIC to PRIVATE linking, so downstream users no longer need Eigen headers (#8511)
     - BREAKING: the immutable singleton databases return a const pointer from getInstance():
