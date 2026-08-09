@@ -318,14 +318,16 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
     }
   }
 
-  // sort by run_id, precursor_id, exp_rt: produce an index permutation and apply to all vectors
+  // Match the SQLite OSW reader ordering so downstream Percolator subsampling
+  // and CV splitting remain reproducible across OSW and OSWPQ inputs.
   const size_t N = feature_id_v.size();
   std::vector<size_t> idx(N);
   for (size_t i = 0; i < N; ++i) idx[i] = i;
   std::sort(idx.begin(), idx.end(), [&](size_t a, size_t b){
     if (run_id_v[a] != run_id_v[b]) return run_id_v[a] < run_id_v[b];
     if (precursor_id_v[a] != precursor_id_v[b]) return precursor_id_v[a] < precursor_id_v[b];
-    return exp_rt_v[a] < exp_rt_v[b];
+    if (exp_rt_v[a] != exp_rt_v[b]) return exp_rt_v[a] < exp_rt_v[b];
+    return feature_id_v[a] < feature_id_v[b];
   });
 
   auto permute = [&](auto &vec)
@@ -845,6 +847,5 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
 
   return result;
 }
-
 
 

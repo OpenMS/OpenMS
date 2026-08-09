@@ -151,6 +151,7 @@
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
   - @subpage TOPP_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
+  - @subpage TOPP_OpenDIA - High-level DIA workflow front-end built on the OpenSWATH stack.
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathAssayGenerator - Generates filtered and optimized assays using TraML files.
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.

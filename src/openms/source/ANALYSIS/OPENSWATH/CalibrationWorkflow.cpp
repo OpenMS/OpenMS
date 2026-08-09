@@ -25,6 +25,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <iomanip>
+#include <sstream>
+
 namespace OpenMS
 {
   CalibrationWorkflow::CalibrationWorkflow() :
@@ -413,11 +416,13 @@ namespace OpenMS
         [](const MSChromatogram& c) { return c.empty(); });
       Size nr_total = irt_chromatograms.size();
       Size nr_nonempty = nr_total - nr_empty;
+      std::ostringstream nonempty_pct;
+      nonempty_pct << std::fixed << std::setprecision(1)
+                   << (nr_total > 0 ? (100.0 * nr_nonempty / nr_total) : 0.0);
       if (nr_total > 0 && nr_empty > nr_total / 2)
       {
         OPENMS_LOG_WARN << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
-                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
-                        << (100.0 * nr_nonempty / nr_total) << "%). "
+                        << nr_total << " non-empty (" << nonempty_pct.str() << "%). "
                         << "Over half are empty - iRT calibration may fail. "
                         << "Common causes: wrong SWATH boundaries, poor data quality, "
                         << "or unsorted m/z peaks in the input spectra." << std::endl;
@@ -425,8 +430,7 @@ namespace OpenMS
       else if (nr_total > 0)
       {
         OPENMS_LOG_INFO << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
-                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
-                        << (100.0 * nr_nonempty / nr_total) << "%)" << std::endl;
+                        << nr_total << " non-empty (" << nonempty_pct.str() << "%)" << std::endl;
       }
     }
 

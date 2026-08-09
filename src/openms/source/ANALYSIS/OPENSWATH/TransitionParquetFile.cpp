@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include "OpenSwathCanonicalLibraryMappingHelper.h"
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
@@ -293,6 +294,7 @@ namespace OpenMS
     // fidelity. If traml_id is empty, fall back to the numeric precursor id.
     const std::string compound_id = info.traml_id.empty() ? precursor_id_str : std::string(info.traml_id);
     compound.id = compound_id;
+      compound.setDecoy(info.decoy);
       compound.drift_time = info.drift_time;
       compound.rt = info.library_rt;
       compound.charge = info.charge;
@@ -410,73 +412,10 @@ namespace OpenMS
       library_name = "openms_library";
     }
 
-    std::unordered_map<std::string, int64_t> compound_to_precursor;
-    compound_to_precursor.reserve(targeted_exp.compounds.size());
-
-    std::unordered_map<std::string, bool> compound_decoy;
-    compound_decoy.reserve(targeted_exp.compounds.size());
-    for (const auto& transition : targeted_exp.transitions)
-    {
-      if (transition.getDecoy())
-      {
-        compound_decoy[transition.peptide_ref] = true;
-      }
-    }
+    const auto canonical_mapping = Internal::buildOpenSwathCanonicalLibraryMapping(targeted_exp);
+    const auto& compound_to_precursor = canonical_mapping.compound_to_precursor;
 
     OpenMSLibraryStats stats;
-
-    int64_t next_precursor_id = 1;
-    std::unordered_set<int64_t> used_precursor_ids;
-    for (const auto& compound : targeted_exp.compounds)
-    {
-      if (compound_to_precursor.contains(compound.id))
-      {
-        continue;
-      }
-
-      int64_t precursor_id = 0;
-      bool parsed_numeric = false;
-      try
-      {
-        precursor_id = StringUtils::toInt64(compound.id);
-        parsed_numeric = true;
-      }
-      catch (OpenMS::Exception::ConversionError&)
-      {
-        // will assign auto id below
-      }
-
-      if (parsed_numeric)
-      {
-        if (precursor_id <= 0 || used_precursor_ids.contains(precursor_id))
-        {
-          precursor_id = next_precursor_id++;
-        }
-        else
-        {
-          if (precursor_id >= next_precursor_id)
-          {
-            next_precursor_id = precursor_id + 1;
-          }
-        }
-      }
-      else
-      {
-        precursor_id = next_precursor_id++;
-      }
-
-      used_precursor_ids.insert(precursor_id);
-      compound_to_precursor[compound.id] = precursor_id;
-    }
-
-    std::unordered_map<std::string, double> precursor_mz;
-    for (const auto& transition : targeted_exp.transitions)
-    {
-      if (!precursor_mz.contains(transition.peptide_ref))
-      {
-        precursor_mz[transition.peptide_ref] = transition.precursor_mz;
-      }
-    }
 
     arrow::Int64Builder precursor_id_builder;
     arrow::DoubleBuilder precursor_mz_builder;
@@ -491,9 +430,9 @@ namespace OpenMS
 
     for (const auto& compound : targeted_exp.compounds)
     {
-      const int64_t precursor_id = compound_to_precursor[compound.id];
-      const bool is_decoy = compound_decoy[compound.id] ||
-        StringUtils::hasPrefix(compound.id, "DECOY_");
+      const int64_t precursor_id = compound_to_precursor.at(compound.id);
+      const auto decoy_it = canonical_mapping.precursor_decoy_by_id.find(precursor_id);
+      const bool is_decoy = decoy_it != canonical_mapping.precursor_decoy_by_id.end() ? decoy_it->second : false;
       stats.compounds_total++;
       stats.precursors_total++;
       if (compound.isPeptide())
@@ -515,11 +454,8 @@ namespace OpenMS
         stats.precursor_charge_counts_target[compound.charge]++;
       }
       ParquetFile::appendOrThrow(precursor_id_builder.Append(precursor_id), "precursor_id");
-      // Guard lookup in precursor_mz: using operator[] would insert a default
-      // 0.0 value if the key is missing. Instead, ensure the value exists and
-      // report a clear error if a compound has no matched transition.
-      auto mz_it = precursor_mz.find(compound.id);
-      if (mz_it == precursor_mz.end())
+      auto mz_it = canonical_mapping.precursor_mz_by_id.find(precursor_id);
+      if (mz_it == canonical_mapping.precursor_mz_by_id.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "No precursor_mz found for compound '" + std::string(compound.id) + "'");
@@ -596,9 +532,9 @@ namespace OpenMS
     arrow::DoubleBuilder transition_intensity_builder;
     arrow::BooleanBuilder transition_decoy_builder;
 
-    int64_t transition_id = 1;
-    for (const auto& transition : targeted_exp.transitions)
+    for (Size i = 0; i < targeted_exp.transitions.size(); ++i)
     {
+      const auto& transition = targeted_exp.transitions[i];
       auto precursor_it = compound_to_precursor.find(transition.peptide_ref);
       if (precursor_it == compound_to_precursor.end())
       {
@@ -606,7 +542,7 @@ namespace OpenMS
                                             "Transition references unknown peptide_ref '" + std::string(transition.peptide_ref) + "'");
       }
       const int64_t precursor_ref = precursor_it->second;
-      ParquetFile::appendOrThrow(transition_id_builder.Append(transition_id++), "transition_id");
+      ParquetFile::appendOrThrow(transition_id_builder.Append(static_cast<int64_t>(i)), "transition_id");
       ParquetFile::appendOrThrow(transition_precursor_id_builder.Append(precursor_ref), "precursor_id");
       ParquetFile::appendOrThrow(transition_traml_id_builder.Append(transition.transition_name), "traml_id");
       ParquetFile::appendOrThrow(product_mz_builder.Append(transition.product_mz), "product_mz");

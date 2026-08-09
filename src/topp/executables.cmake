@@ -91,6 +91,7 @@ OpenMSDatabasesInfo
 OpenMSInfo
 OpenNuXL
 OpenPepXL
+OpenDIA
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -73,6 +74,32 @@ namespace OpenMS
     void write(const std::string& output_path,
                const OpenSwath::LightTargetedExperiment& assay_library,
                const FeatureMap& feature_map,
+               UInt64 run_id,
+               const std::string& input_filename,
+               bool enable_uis_scoring) const;
+
+    /**
+      @brief Write an OSW parquet directory or zip archive from canonical OSW rows.
+
+      This overload consumes the same normalized row model that the SQLite OSW
+      writer uses. It is the preferred path when callers already hold canonical
+      OSW rows and want parquet output without a secondary feature-map specific
+      reconstruction step.
+
+      @param[in] output_path       Path to the output directory (.oswpq)
+      @param[in] assay_library     The transition library used for extraction
+      @param[in] osw_output        Canonical OSW rows for a single run
+      @param[in] run_id            Unique identifier for this run
+      @param[in] input_filename    Original input filename (stored in metadata)
+      @param[in] enable_uis_scoring Whether UIS (identification) transitions are included
+
+      @throws Exception::MissingFeature if built without Parquet support
+      @throws Exception::MissingInformation if required OSW rows or identifiers are missing
+      @throws Exception::InvalidValue if a run_id already exists in the output or rows reference unknown library identifiers
+    */
+    void write(const std::string& output_path,
+               const OpenSwath::LightTargetedExperiment& assay_library,
+               const OpenSwathOSWWriter::OSWData& osw_output,
                UInt64 run_id,
                const std::string& input_filename,
                bool enable_uis_scoring) const;

@@ -988,6 +988,20 @@ namespace OpenMS
     run_id_ = Internal::SqliteHelper::clearSignBit(run_id);
   }
 
+  void OpenSwathOSWWriter::setCanonicalLibraryMapping(
+    const std::unordered_map<std::string, Int64>& precursor_ids_by_ref,
+    const std::unordered_map<std::string, Int64>& transition_ids_by_ref)
+  {
+    canonical_precursor_ids_ = precursor_ids_by_ref;
+    canonical_transition_ids_ = transition_ids_by_ref;
+  }
+
+  void OpenSwathOSWWriter::clearCanonicalLibraryMapping()
+  {
+    canonical_precursor_ids_.clear();
+    canonical_transition_ids_.clear();
+  }
+
   std::string OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
     return oswValueToString(oswValue(cachedMetaValue(feature, score_name)));
@@ -1049,6 +1063,33 @@ namespace OpenMS
     for (const auto& feature_it : output)
     {
       const OSWValue feature_id = oswValue(Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()));
+      OSWValue precursor_id = oswValue(id);
+      if (!canonical_precursor_ids_.empty())
+      {
+        const auto precursor_it = canonical_precursor_ids_.find(id);
+        if (precursor_it == canonical_precursor_ids_.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Canonical OSW precursor mapping is missing transition group identifier '" + id + "'.");
+        }
+        precursor_id = OSWValue(precursor_it->second);
+      }
+      const auto resolve_transition_id = [this](const OSWValue& transition_ref_value) -> OSWValue
+      {
+        if (canonical_transition_ids_.empty())
+        {
+          return transition_ref_value;
+        }
+
+        const std::string transition_ref = oswValueToString(transition_ref_value);
+        const auto transition_it = canonical_transition_ids_.find(transition_ref);
+        if (transition_it == canonical_transition_ids_.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Canonical OSW transition mapping is missing transition identifier '" + transition_ref + "'.");
+        }
+        return OSWValue(transition_it->second);
+      };
 
       const ScoreValueList masserror_ppm(feature_it, "masserror_ppm");
 
@@ -1063,7 +1104,7 @@ namespace OpenMS
           OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, ms2_subordinate_index); // masserror_ppm is not guaranteed to be set
 
           FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
-          transition_row[1] = oswValue(cachedMetaValue(sub_it, "native_id"));
+          transition_row[1] = resolve_transition_id(oswValue(cachedMetaValue(sub_it, "native_id")));
           transition_row[2] = oswValue(sub_it.getIntensity());
           transition_row[3] = oswValue(cachedMetaValue(sub_it, "total_xic"));
           transition_row[4] = oswValue(cachedMetaValue(sub_it, "peak_apex_position"));
@@ -1112,7 +1153,7 @@ namespace OpenMS
       rows.feature_rows.push_back({
         feature_id,
         oswValue(run_id_),
-        oswValue(id),
+        precursor_id,
         oswValue(feature_it.getRT()),
         oswValue(cachedMetaValue(feature_it, "im_drift")),
         oswValue(norm_rt),
@@ -1254,7 +1295,7 @@ namespace OpenMS
           for (int i = 0; i < target_transition_count; ++i)
           {
             FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
-            transition_row[1] = oswValueAt(id_target_transition_names, i);
+            transition_row[1] = resolve_transition_id(oswValueAt(id_target_transition_names, i));
             transition_row[2] = oswValueAt(id_target_area_intensity, i);
             transition_row[3] = oswValueAt(id_target_total_area_intensity, i);
             transition_row[4] = oswValueAt(id_target_peak_apex_position, i);
@@ -1362,7 +1403,7 @@ namespace OpenMS
           for (int i = 0; i < decoy_transition_count; ++i)
           {
             FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
-            transition_row[1] = oswValueAt(id_decoy_transition_names, i);
+            transition_row[1] = resolve_transition_id(oswValueAt(id_decoy_transition_names, i));
             transition_row[2] = oswValueAt(id_decoy_area_intensity, i);
             transition_row[3] = oswValueAt(id_decoy_total_area_intensity, i);
             transition_row[4] = oswValueAt(id_decoy_peak_apex_position, i);

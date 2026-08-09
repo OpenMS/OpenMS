@@ -358,4 +358,52 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
 }
 END_SECTION
 
+START_SECTION([EXTRA] convertLightTargetedExperimentToParquet preserves explicit precursor decoy annotations)
+{
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "precursor_1";
+  compound.sequence = "PEPTIDE";
+  compound.charge = 2;
+  compound.rt = 100.0;
+  compound.setDecoy(true);
+  compound.protein_refs.push_back("P1");
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightProtein protein;
+  protein.id = "P1";
+  light_exp.proteins.push_back(protein);
+
+  OpenSwath::LightTransition transition;
+  transition.transition_name = "transition_1";
+  transition.peptide_ref = "precursor_1";
+  transition.precursor_mz = 500.0;
+  transition.product_mz = 300.0;
+  transition.fragment_charge = 1;
+  transition.fragment_nr = 3;
+  transition.setFragmentType("y");
+  transition.setDetectingTransition(true);
+  transition.setDecoy(false);
+  light_exp.transitions.push_back(transition);
+
+  File::TempDir tmp_dir;
+  const std::string out_dir = tmp_dir.getPath() + "/explicit_decoy.oswpq";
+  File::makeDir(out_dir);
+
+  TransitionParquetFile writer;
+  writer.convertLightTargetedExperimentToParquet(out_dir, light_exp);
+
+  TransitionParquetFile reader;
+  OpenSwath::LightTargetedExperiment roundtrip_exp;
+  reader.convertParquetToTargetedExperiment(out_dir, roundtrip_exp);
+
+  TEST_EQUAL(roundtrip_exp.compounds.size(), 1)
+  TEST_EQUAL(roundtrip_exp.transitions.size(), 1)
+  TEST_TRUE(roundtrip_exp.compounds[0].hasDecoy())
+  TEST_TRUE(roundtrip_exp.compounds[0].getDecoy())
+  TEST_FALSE(roundtrip_exp.transitions[0].getDecoy())
+}
+END_SECTION
+
 END_TEST
