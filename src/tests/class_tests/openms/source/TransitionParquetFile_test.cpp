@@ -330,12 +330,27 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
      drift_time_array, decoy_array, traml_id_array, modified_sequence_array,
      unmodified_sequence_array, protein_accessions_array});
 
+  // Keep all transition foreign keys valid so the duplicated precursor ID is the
+  // only invariant violated by this fixture.
+  arrow::Int64Builder duplicate_transition_precursor_id_builder;
+  for (Size i = 0; i < transitions.size(); ++i)
+  {
+    appendOk_(duplicate_transition_precursor_id_builder, static_cast<int64_t>(1));
+  }
+  auto duplicate_transition_precursor_id_array = finishArray_(duplicate_transition_precursor_id_builder);
+  auto duplicate_transitions_table = arrow::Table::Make(
+    transition_schema,
+    {transition_id_array, duplicate_transition_precursor_id_array, transition_traml_id_array,
+     product_mz_array, fragment_charge_array, fragment_type_array, annotation_array,
+     ordinal_array, detecting_array, identifying_array, quantifying_array,
+     transition_intensity_array, transition_decoy_array});
+
   const std::string duplicate_dir = tmp_dir.getPath() + "/duplicate.oswpq";
   const std::string duplicate_library_dir = duplicate_dir + "/library";
   File::makeDir(duplicate_dir);
   File::makeDir(duplicate_library_dir);
   TEST_EQUAL(writeParquetTable_(duplicate_precursors_table, duplicate_library_dir + "/precursors.parquet").ok(), true)
-  TEST_EQUAL(writeParquetTable_(transitions_table, duplicate_library_dir + "/transitions.parquet").ok(), true)
+  TEST_EQUAL(writeParquetTable_(duplicate_transitions_table, duplicate_library_dir + "/transitions.parquet").ok(), true)
 
   OpenSwath::LightTargetedExperiment duplicate_out;
   TEST_EXCEPTION(Exception::InvalidValue,
@@ -414,6 +429,15 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
     TEST_EQUAL(roundtrip_exp.transitions[i].transition_name, std::to_string(i))
     TEST_REAL_SIMILAR(roundtrip_exp.transitions[i].product_mz, light_exp.transitions[i].product_mz)
   }
+
+  // A canonical-looking but malformed experiment must be rejected instead of being
+  // silently renumbered by the compatibility writer.
+  TEST_EQUAL(light_exp.transitions.size() > 1, true)
+  OpenSwath::LightTargetedExperiment malformed = light_exp;
+  malformed.transitions[1].transition_name = malformed.transitions[0].transition_name;
+  const std::string malformed_out = tmp_dir.getPath() + "/malformed.oswpq";
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 writer.convertLightTargetedExperimentToParquet(malformed_out, malformed))
 }
 END_SECTION
 

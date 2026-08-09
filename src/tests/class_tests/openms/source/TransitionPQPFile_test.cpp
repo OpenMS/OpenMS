@@ -309,6 +309,20 @@ START_SECTION([EXTRA] Light PQP writer preserves canonical zero/sparse IDs and p
   const auto transition_current_to_source = writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "TRANSITION");
   TEST_EQUAL(transition_current_to_source.at("3"), "source_tr_A")
   TEST_EQUAL(transition_current_to_source.at("100"), "DECOY_source_tr_B")
+
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 writer.getPQPIDToTraMLIDMap(pqp_file.c_str(), "PRECURSOR; DROP TABLE PRECURSOR"))
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "INVALID"))
+
+  // A canonical-looking but malformed experiment must be rejected instead of being
+  // silently renumbered by the compatibility writer.
+  OpenSwath::LightTargetedExperiment malformed = canonical;
+  malformed.transitions[1].transition_name = malformed.transitions[0].transition_name;
+  std::string malformed_pqp_file;
+  NEW_TMP_FILE(malformed_pqp_file);
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 writer.convertLightTargetedExperimentToPQP(malformed_pqp_file.c_str(), malformed))
 }
 END_SECTION
 

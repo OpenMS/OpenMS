@@ -419,19 +419,23 @@ namespace OpenMS
     const std::string& oswpq_path,
     const OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
-    try
+    if (OpenSwathLibraryIDNormalizer::hasCanonicalIDs(targeted_exp))
     {
-      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
       convertLightTargetedExperimentToParquet(oswpq_path, targeted_exp, nullptr);
       return;
     }
-    catch (const Exception::InvalidValue&)
+
+    if (OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(targeted_exp))
     {
-      // Compatibility for direct callers that still pass source/native Light IDs.
-      // Canonical OpenSWATH workflows use the overload below and therefore preserve
-      // zero/sparse operational IDs exactly.
+      // The input already uses canonical decimal syntax, so a failed invariant is
+      // malformed canonical data rather than source-style IDs. Preserve the error
+      // instead of silently renumbering the caller's operational ID domain.
+      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
     }
 
+    // Compatibility for direct callers that still pass source/native Light IDs.
+    // Canonical OpenSWATH workflows use the overload below and therefore preserve
+    // zero/sparse operational IDs exactly.
     OpenSwath::LightTargetedExperiment normalized = targeted_exp;
     auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(normalized);
     convertLightTargetedExperimentToParquet(oswpq_path, normalized, &source_ids);

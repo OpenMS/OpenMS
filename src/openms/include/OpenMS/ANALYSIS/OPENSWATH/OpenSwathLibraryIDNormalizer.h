@@ -78,6 +78,9 @@ namespace OpenMS
       This function is intended for source-oriented formats such as TSV and TraML. It must not
       be used to renumber libraries that already contain persistent canonical IDs.
 
+      @param[in,out] exp Source-oriented experiment to canonicalize in place.
+      @return Source-ID provenance for the canonicalized experiment. The precursor maps cover
+              every source compound, including compounds omitted from the operational @p exp.
       @throws Exception::InvalidValue If a compound ID is empty/duplicated or a transition
               references an unknown/empty compound ID.
     */
@@ -118,12 +121,34 @@ namespace OpenMS
       const std::string& decoy_prefix);
 
     /**
+      @brief Report whether a LightTargetedExperiment satisfies the canonical-ID invariant.
+
+      @param[in] exp Experiment to inspect.
+      @return True if @c validateCanonicalIDs() would accept @p exp.
+    */
+    static bool hasCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp);
+
+    /**
+      @brief Report whether all operational ID fields use canonical decimal syntax.
+
+      This checks only the textual ID representation. It deliberately does not check uniqueness
+      or whether transition precursor references resolve. Writer compatibility overloads use it
+      to distinguish source-style identifiers from malformed canonical-looking input.
+
+      @param[in] exp Experiment to inspect.
+      @return True if every compound ID, transition ID and transition precursor reference is a
+              non-negative Int64 in canonical decimal form.
+    */
+    static bool hasCanonicalIDFormat(const OpenSwath::LightTargetedExperiment& exp) noexcept;
+
+    /**
       @brief Validate that a LightTargetedExperiment already uses canonical numeric IDs.
 
       IDs must be unique, non-negative Int64 values written in canonical decimal form
       (e.g. @c "7", not @c "007" or @c "+7"). IDs may be sparse; filtering must not force
       renumbering. Every transition @c peptide_ref must exactly match an existing compound ID.
 
+      @param[in] exp Experiment to validate.
       @throws Exception::InvalidValue If any canonical-ID invariant is violated.
     */
     static void validateCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp);

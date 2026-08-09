@@ -247,6 +247,44 @@ START_SECTION(static SourceIDMapping normalizeSourceIDs(...) -- preserves source
 }
 END_SECTION
 
+START_SECTION(static bool hasCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp))
+{
+  OpenSwath::LightTargetedExperiment valid;
+
+  OpenSwath::LightCompound c0;
+  c0.id = "0";
+  valid.compounds.push_back(c0);
+
+  OpenSwath::LightCompound c7;
+  c7.id = "7";
+  valid.compounds.push_back(c7);
+
+  OpenSwath::LightTransition t0;
+  t0.transition_name = "3";
+  t0.peptide_ref = "0";
+  valid.transitions.push_back(t0);
+
+  OpenSwath::LightTransition t1;
+  t1.transition_name = "100";
+  t1.peptide_ref = "7";
+  valid.transitions.push_back(t1);
+
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(valid), true)
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(valid), true)
+
+  OpenSwath::LightTargetedExperiment duplicate_transition = valid;
+  duplicate_transition.transitions[1].transition_name = "3";
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(duplicate_transition), false)
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(duplicate_transition), true)
+
+  OpenSwath::LightTargetedExperiment source_style = valid;
+  source_style.compounds[0].id = "PEPTIDEA";
+  source_style.transitions[0].peptide_ref = "PEPTIDEA";
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(source_style), false)
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(source_style), false)
+}
+END_SECTION
+
 START_SECTION(static void validateCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp))
 {
   // Sparse canonical IDs are valid and must not be renumbered after filtering.

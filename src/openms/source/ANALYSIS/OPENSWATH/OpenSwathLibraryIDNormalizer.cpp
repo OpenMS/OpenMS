@@ -12,8 +12,10 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
+#include <charconv>
 #include <cstdint>
 #include <string>
+#include <system_error>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -33,28 +35,30 @@ namespace OpenMS
       return id.rfind("DECOY", 0) == 0 || id.rfind("Decoy", 0) == 0 || id.rfind("decoy", 0) == 0;
     }
 
-    int64_t parseCanonicalID_(const std::string& text, const std::string& entity)
+    bool hasCanonicalIDFormat_(const std::string& text) noexcept
+    {
+      if (text.empty() || (text.size() > 1 && text.front() == '0'))
+      {
+        return false;
+      }
+
+      int64_t value = -1;
+      const char* begin = text.data();
+      const char* end = begin + text.size();
+      const auto [ptr, ec] = std::from_chars(begin, end, value);
+      return ec == std::errc{} && ptr == end && value >= 0;
+    }
+
+    void validateCanonicalIDFormat_(const std::string& text, const std::string& entity)
     {
       if (text.empty())
       {
         throwInvalidID_(entity + " ID must not be empty", text);
       }
-
-      int64_t value = -1;
-      try
-      {
-        value = StringUtils::toInt64(text);
-      }
-      catch (Exception::ConversionError&)
+      if (!hasCanonicalIDFormat_(text))
       {
         throwInvalidID_(entity + " ID must be a non-negative Int64 in canonical decimal form", text);
       }
-
-      if (value < 0 || StringUtils::toStr(value) != text)
-      {
-        throwInvalidID_(entity + " ID must be a non-negative Int64 in canonical decimal form", text);
-      }
-      return value;
     }
   } // namespace
 
@@ -259,6 +263,57 @@ namespace OpenMS
     return std::nullopt;
   }
 
+  bool OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(const OpenSwath::LightTargetedExperiment& exp) noexcept
+  {
+    for (const auto& compound : exp.compounds)
+    {
+      if (!hasCanonicalIDFormat_(compound.id))
+      {
+        return false;
+      }
+    }
+
+    for (const auto& transition : exp.transitions)
+    {
+      if (!hasCanonicalIDFormat_(transition.transition_name) ||
+          !hasCanonicalIDFormat_(transition.peptide_ref))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool OpenSwathLibraryIDNormalizer::hasCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp)
+  {
+    if (!hasCanonicalIDFormat(exp))
+    {
+      return false;
+    }
+
+    std::unordered_set<std::string> precursor_ids;
+    precursor_ids.reserve(exp.compounds.size());
+    for (const auto& compound : exp.compounds)
+    {
+      if (!precursor_ids.insert(compound.id).second)
+      {
+        return false;
+      }
+    }
+
+    std::unordered_set<std::string> transition_ids;
+    transition_ids.reserve(exp.transitions.size());
+    for (const auto& transition : exp.transitions)
+    {
+      if (!transition_ids.insert(transition.transition_name).second ||
+          !precursor_ids.contains(transition.peptide_ref))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void OpenSwathLibraryIDNormalizer::validateCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp)
   {
     std::unordered_set<std::string> precursor_ids;
@@ -267,7 +322,7 @@ namespace OpenMS
     for (const auto& compound : exp.compounds)
     {
       const std::string id = compound.id;
-      parseCanonicalID_(id, "Precursor");
+      validateCanonicalIDFormat_(id, "Precursor");
       if (!precursor_ids.insert(id).second)
       {
         throwInvalidID_("Canonical precursor IDs must be unique", id);
@@ -280,14 +335,14 @@ namespace OpenMS
     for (const auto& transition : exp.transitions)
     {
       const std::string transition_id = transition.transition_name;
-      parseCanonicalID_(transition_id, "Transition");
+      validateCanonicalIDFormat_(transition_id, "Transition");
       if (!transition_ids.insert(transition_id).second)
       {
         throwInvalidID_("Canonical transition IDs must be unique", transition_id);
       }
 
       const std::string precursor_ref = transition.peptide_ref;
-      parseCanonicalID_(precursor_ref, "Transition precursor reference");
+      validateCanonicalIDFormat_(precursor_ref, "Transition precursor reference");
       if (!precursor_ids.contains(precursor_ref))
       {
         throwInvalidID_("Transition references an unknown canonical precursor ID", precursor_ref);

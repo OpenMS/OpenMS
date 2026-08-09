@@ -495,15 +495,19 @@ namespace OpenMS
       if (source_ids != nullptr && tr_type == FileTypes::PQP)
       {
         TransitionPQPFile pqp_reader;
-        loaded_source_ids.precursor_canonical_to_source =
+        const auto precursor_provenance =
           pqp_reader.getPQPCurrentIDToTraMLIDMap(tr_file.c_str(), "PRECURSOR");
-        loaded_source_ids.precursor_source_to_canonical.reserve(loaded_source_ids.precursor_canonical_to_source.size());
-        for (const auto& [canonical_id, source_id] : loaded_source_ids.precursor_canonical_to_source)
+        loaded_source_ids.precursor_canonical_to_source.reserve(precursor_provenance.size());
+        loaded_source_ids.precursor_source_to_canonical.reserve(precursor_provenance.size());
+        for (const auto& [canonical_id, source_id] : precursor_provenance)
         {
+          // An empty TRAML_ID carries no provenance. Keeping it would replace a valid
+          // canonical precursor ID with "" in consumers that resolve source IDs.
           if (source_id.empty())
           {
             continue;
           }
+          loaded_source_ids.precursor_canonical_to_source.emplace(canonical_id, source_id);
           const auto [it, inserted] = loaded_source_ids.precursor_source_to_canonical.emplace(source_id, canonical_id);
           if (!inserted && it->second != canonical_id)
           {

@@ -313,10 +313,11 @@ public:
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
-    /** @brief Creates an undordered map between the traml_id and the pqp id
-     * 
+    /** @brief Creates an unordered map between the TRAML_ID and the persistent PQP ID.
+     *
      * @param[in] filename The input file
-     * @param[in] tableName The name of the table (can be "PRECURSOR" or "TRANSITION" since theses are the only tables that have a TRAML_ID)
+     * @param[in] tableName The table to query; must be @c PRECURSOR or @c TRANSITION
+     * @throws Exception::IllegalArgument If @p tableName is not @c PRECURSOR or @c TRANSITION
      */
     std::unordered_map<std::string, std::string> getPQPIDToTraMLIDMap(const char* filename, std::string tableName);
 
@@ -327,7 +328,8 @@ public:
      * identifiers. Empty TRAML_ID values are returned as empty strings.
      *
      * @param[in] filename The input file
-     * @param[in] tableName PRECURSOR or TRANSITION
+     * @param[in] tableName The table to query; must be @c PRECURSOR or @c TRANSITION
+     * @throws Exception::IllegalArgument If @p tableName is not @c PRECURSOR or @c TRANSITION
      */
     std::unordered_map<std::string, std::string> getPQPCurrentIDToTraMLIDMap(
       const char* filename,

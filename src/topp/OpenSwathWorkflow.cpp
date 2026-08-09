@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/config.h>
 #include <filesystem>
+#include <system_error>
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -1159,9 +1160,15 @@ protected:
       {
         // A PQP input already carries the canonical operational ID domain.
         // Copy it so the OSW result tables are appended to the same library.
-        std::ifstream src(tr_file.c_str(), std::ios::binary);
-        std::ofstream dst(out_features.c_str(), std::ios::binary | std::ios::trunc);
-        dst << src.rdbuf();
+        std::error_code copy_error;
+        std::filesystem::copy_file(tr_file, out_features,
+                                   std::filesystem::copy_options::overwrite_existing,
+                                   copy_error);
+        if (copy_error)
+        {
+          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           out_features + " (" + copy_error.message() + ")");
+        }
       }
       else if (tr_type == FileTypes::TSV || tr_type == FileTypes::OSWPQ)
       {

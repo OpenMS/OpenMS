@@ -37,6 +37,15 @@ namespace OpenMS
     constexpr Size max_protein_reserve = 100000;
     constexpr Size stable_stream_order_transition_limit = 100000;
 
+    void validateTraMLIDTableName_(const std::string& table_name)
+    {
+      if (table_name != "PRECURSOR" && table_name != "TRANSITION")
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "tableName must be PRECURSOR or TRANSITION");
+      }
+    }
+
     Size estimatePrecursorCountFromTransitions_(Size num_transitions)
     {
       return num_transitions / default_transitions_per_precursor + 1;
@@ -1097,6 +1106,8 @@ namespace OpenMS
   // public methods
   std::unordered_map<std::string, std::string> TransitionPQPFile::getPQPIDToTraMLIDMap(const char* filename, std::string tableName)
   {
+    validateTraMLIDTableName_(tableName);
+
     sqlite3 *db;
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
@@ -1135,6 +1146,8 @@ namespace OpenMS
     const char* filename,
     const std::string& tableName)
   {
+    validateTraMLIDTableName_(tableName);
+
     SqliteConnector conn(filename);
     sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
     sqlite3_stmt* stmt = nullptr;
@@ -1186,19 +1199,23 @@ namespace OpenMS
     const char* filename,
     const OpenSwath::LightTargetedExperiment& targeted_exp)
   {
-    try
+    if (OpenSwathLibraryIDNormalizer::hasCanonicalIDs(targeted_exp))
     {
-      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
       convertLightTargetedExperimentToPQP(filename, targeted_exp, nullptr);
       return;
     }
-    catch (const Exception::InvalidValue&)
+
+    if (OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(targeted_exp))
     {
-      // Compatibility for direct callers that still pass source/native Light IDs.
-      // Canonical OpenSWATH workflows use the overload below and therefore never
-      // allocate a second ID domain at the writer boundary.
+      // The input already uses canonical decimal syntax, so a failed invariant is
+      // malformed canonical data rather than source-style IDs. Preserve the error
+      // instead of silently renumbering the caller's operational ID domain.
+      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
     }
 
+    // Compatibility for direct callers that still pass source/native Light IDs.
+    // Canonical OpenSWATH workflows use the overload below and therefore never
+    // allocate a second ID domain at the writer boundary.
     OpenSwath::LightTargetedExperiment normalized = targeted_exp;
     auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(normalized);
     convertLightTargetedExperimentToPQP(filename, normalized, &source_ids);
