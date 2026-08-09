@@ -1094,6 +1094,22 @@ add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type
 add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
 
+# Same run as TOPP_IsobaricWorkflow_1, but one identification appears twice (same spectrum,
+# peptidoform and charge; the copy scored worse). IsobaricWorkflow builds one ConsensusFeature
+# per identification and all of a spectrum's identifications read the same MS2/MS3 scan, so
+# without the reduction that scan's reporter intensities would enter the quantification twice.
+# Diffed against IsobaricWorkflow_1's OWN reference on purpose: the assertion is that the
+# duplicate changed nothing.
+add_test("TOPP_IsobaricWorkflow_duplicate_psm" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_duplicate_psm_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML)
+# An identical output could also mean the reduction never ran, so require that it reported.
+set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm" PROPERTIES PASS_REGULAR_EXPRESSION "repeat a .spectrum, peptidoform, charge. already claimed")
+add_test("TOPP_IsobaricWorkflow_duplicate_psm_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_duplicate_psm")
+
 # An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
 # TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made
 # MSExperiment::getPrecursorSpectrum() return -1 and PrecursorPurity index before the start of
@@ -4292,6 +4308,52 @@ add_test("TOPP_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 add_test("TOPP_ProteomicsLFQ_1_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.tsv )
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
+
+# Identical to TOPP_ProteomicsLFQ_1, except that BSA1_F1's identifications carry one
+# PeptideIdentification twice (same spectrum, peptidoform and charge; the copy scored worse).
+# ProteomicsLFQ reduces those to one at load, so every output must come out identical to the
+# un-duplicated run above -- the SAME reference files are reused deliberately, since "the
+# duplicate changed no number" is exactly what needs asserting.
+add_test("TOPP_ProteomicsLFQ_duplicate_psm" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_TOPP}/ProteomicsLFQ_duplicate_psm_1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv
+         -out ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab
+         -out_triqler ${TESTS_TEMP_DIR}/BSA_dup.tmp.tsv
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+# The reduction must actually have fired -- an identical output could also mean it never ran.
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm" PROPERTIES PASS_REGULAR_EXPRESSION "repeat a .spectrum, peptidoform, charge. already claimed")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.consensusXML )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_2" ${DIFF} -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.tsv )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
 
 # regression test (decoys in ID files)
 add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ

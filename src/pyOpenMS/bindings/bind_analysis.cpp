@@ -559,6 +559,15 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // IDConflictResolverAlgorithm
     // -----------------------------------------------------------------------
+    nb::class_<OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications>(
+            m, "UnresolvedIdentifications", "What IDConflictResolverAlgorithm.reduceToOnePerSpectrum did")
+        .def(nb::init<>())
+        .def_ro("removed", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::removed)
+        .def_ro("multiply_identified_spectra", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::multiply_identified_spectra)
+        .def_ro("without_spectrum_reference", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::without_spectrum_reference)
+        .def_ro("inconsistent_score_direction", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::inconsistent_score_direction)
+        .def_ro("example", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::example);
+
     nb::class_<OpenMS::IDConflictResolverAlgorithm>(m, "IDConflictResolverAlgorithm", "OpenMS class IDConflictResolverAlgorithm")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IDConflictResolverAlgorithm &>())
@@ -566,6 +575,18 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def("__deepcopy__", [](const OpenMS::IDConflictResolverAlgorithm& self, nb::dict) { return OpenMS::IDConflictResolverAlgorithm(self); }, "memo"_a)
         .def_static("resolve", [](OpenMS::FeatureMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
         .def_static("resolve", [](OpenMS::ConsensusMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
+        .def_static("reduceToOnePerSpectrum", [](OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids); }, "ids"_a,
+            R"doc(
+Reduce identifications a quantification workflow cannot tell apart to one per spectrum.
+
+Keeps the best-scoring identification of each (spectrum reference, top-hit peptidoform,
+top-hit charge) group and removes the rest. Identifications are keyed on the top hit as
+stored; hits are never re-sorted. Identifications of one spectrum naming different
+peptidoforms are left alone, as are those without a spectrum reference or without hits.
+
+:param ids: one identification run's peptide identifications (modified in-place)
+:returns: an UnresolvedIdentifications report of what was found and removed
+)doc")
         .def_static("resolveAllHitRankAggregation", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveAllHitRankAggregation(features); }, "features"_a,
             R"doc(
 Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
