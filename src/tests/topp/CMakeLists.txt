@@ -4742,17 +4742,13 @@ set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalcul
 
 #------------------------------------------------------------------------------
 # PSMFeatureExtractor
-add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:" "MS-GF+:" "db=" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
+add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
+add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
 set_tests_properties("TOPP_PSMFeatureExtractor_1_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_1")
 
-add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid)
+add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type mzid -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid)
 add_test("TOPP_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "creationDate=" "SearchDatabase" "MSGFPlusAdapter:1:" "MS-GF+:" "db=" "activityDate=" "version=" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
 set_tests_properties("TOPP_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_2")
-
-add_test("TOPP_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_3_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
-set_tests_properties("TOPP_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_3")
 
 
 #------------------------------------------------------------------------------

@@ -2237,23 +2237,14 @@ percolator result into the set of Identifications
         .def(nb::init<const OpenMS::PercolatorFeatureSetHelper &>())
         .def("__copy__", [](const OpenMS::PercolatorFeatureSetHelper& self) { return OpenMS::PercolatorFeatureSetHelper(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorFeatureSetHelper& self, nb::dict) { return OpenMS::PercolatorFeatureSetHelper(self); }, "memo"_a)
-        .def_static("concatMULTISEPeptideIds", [](OpenMS::PeptideIdentificationList& all_peptide_ids, OpenMS::PeptideIdentificationList& new_peptide_ids, const std::string& search_engine) { return OpenMS::PercolatorFeatureSetHelper::concatMULTISEPeptideIds(all_peptide_ids, new_peptide_ids, search_engine); }, "all_peptide_ids"_a, "new_peptide_ids"_a, "search_engine"_a)
-        .def_static("mergeMULTISEPeptideIds", [](OpenMS::PeptideIdentificationList& all_peptide_ids, OpenMS::PeptideIdentificationList& new_peptide_ids, const std::string& search_engine) { return OpenMS::PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(all_peptide_ids, new_peptide_ids, search_engine); }, "all_peptide_ids"_a, "new_peptide_ids"_a, "search_engine"_a, 
-            R"doc(
-Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine)
-:param all_peptide_ids: PeptideIdentification vector to append to
-:param new_peptide_ids: PeptideIdentification vector to be appended
-:param search_engine: Search engine to depend on for feature creation
-)doc")
         .def_static("mergeMULTISEProteinIds", [](std::vector<OpenMS::ProteinIdentification> all_protein_ids, std::vector<OpenMS::ProteinIdentification> new_protein_ids) {
             OpenMS::PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, new_protein_ids);
             return nb::make_tuple(all_protein_ids, new_protein_ids);
         }, "all_protein_ids"_a, "new_protein_ids"_a,
             R"doc(
-Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration
-:param all_peptide_idsL: PeptideIdentification vector to be merged into
-:param new_peptide_idsL: PeptideIdentification vector to merge
-:param search_engineL: Search engine to create features from their scores
+Merges a ProteinIdentification run into another: takes over the search parameters of the first run, sets the search engine to "multiple" once runs from differing search engines are combined, and unions the ProteinHits by accession
+:param all_protein_ids: ProteinIdentification vector to be merged into
+:param new_protein_ids: ProteinIdentification vector to merge
 :returns: Tuple of (updated all_protein_ids, updated new_protein_ids)
 )doc")
         .def_static("addMSGFFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<std::string> feature_set) {
@@ -2261,9 +2252,9 @@ Merges a vector of PeptideIdentification into another and prepares the merged Me
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration
-:param all_protein_ids: ProteinIdentification vector to be merged into
-:param new_protein_ids: ProteinIdentification vector to merge
+Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled
+:param peptide_ids: PeptideIdentification vector to create Percolator features in
+:param feature_set: Register of added features
 :returns: Updated feature_set
 )doc")
         .def_static("addXTANDEMFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<std::string> feature_set) {
@@ -2271,7 +2262,7 @@ Concatenates SearchParameter of multiple search engine runs and merges PeptideEv
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled
+Creates and adds X!Tandem specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
 :returns: Updated feature_set
@@ -2281,7 +2272,7 @@ Creates and adds MSGF+ specific Percolator features and registers them in featur
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Creates and adds X!Tandem specific Percolator features and registers them in feature_set
+Creates and adds Comet specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
 :returns: Updated feature_set
@@ -2291,32 +2282,9 @@ Creates and adds X!Tandem specific Percolator features and registers them in fea
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Creates and adds Comet specific Percolator features and registers them in feature_set
-:param peptide_ids: PeptideIdentification vector to create Percolator features in
-:param feature_set: Register of added features
-:returns: Updated feature_set
-)doc")
-        .def_static("addMULTISEFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<std::string> search_engines_used, std::vector<std::string> feature_set, bool complete_only, bool limits_imputation) {
-            OpenMS::PercolatorFeatureSetHelper::addMULTISEFeatures(peptide_ids, search_engines_used, feature_set, complete_only, limits_imputation);
-            return feature_set;
-        }, "peptide_ids"_a, "search_engines_used"_a, "feature_set"_a, "complete_only"_a, "limits_imputation"_a,
-            R"doc(
 Creates and adds Mascot specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
-:returns: Updated feature_set
-)doc")
-        .def_static("addCONCATSEFeatures", [](OpenMS::PeptideIdentificationList& peptide_id_list, std::vector<std::string> search_engines_used, std::vector<std::string> feature_set) {
-            OpenMS::PercolatorFeatureSetHelper::addCONCATSEFeatures(peptide_id_list, search_engines_used, feature_set);
-            return feature_set;
-        }, "peptide_id_list"_a, "search_engines_used"_a, "feature_set"_a,
-            R"doc(
-Adds multiple search engine specific Percolator features and registers them in feature_set
-:param peptide_ids: PeptideIdentification vector to create Percolator features in
-:param search_engines_used: The list of search engines to be considered
-:param feature_set: Register of added features
-:param complete_only: Will only add features for PeptideIdentifications where all given search engines identified something
-:param limits_imputation: Uses C++ numeric limits as imputed values instead of min/max of that feature
 :returns: Updated feature_set
 )doc")
         .def_static("checkExtraFeatures", [](const std::vector<OpenMS::PeptideHit>& psms, std::vector<std::string> extra_features) {
@@ -2324,11 +2292,9 @@ Adds multiple search engine specific Percolator features and registers them in f
             return extra_features;
         }, "psms"_a, "extra_features"_a,
             R"doc(
-Adds multiple search engine specific Percolator features and registers them in feature_set
-This struct can be used to store both peak or feature indices
-:param peptide_ids: PeptideIdentification vector to create Percolator features in
-:param search_engines_used: The list of search engines to be considered
-:param feature_set: Register of added features
+Checks the requested extra Percolator features and removes those that are not available on all given PSMs
+:param psms: The vector of PeptideHit to be checked
+:param extra_features: The list of requested extra features
 :returns: Updated extra_features with unavailable features removed
 )doc")
         ;
