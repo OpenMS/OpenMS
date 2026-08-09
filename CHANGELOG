@@ -1015,7 +1015,10 @@ Build System:
   - CI: the Docker image build fetches the Arrow APT source from packages.apache.org and appends Arrow's
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
-    pyOpenMS wheel builds exclude pyarrow 25.0.0, which segfaults on cp310-macosx_arm64 (#9196, #9726)
+    pyOpenMS wheel builds exclude pyarrow 25.0.0, which segfaults on cp310-macosx_arm64 (#9196, #9726);
+    the library stage's libarrow/libparquet install is now pinned to v23 as well, matching the base
+    stage's dev-lib pin -- the APT source's .deb defaults to Arrow 25.0.0, which broke the unpinned
+    runtime install (#9890, #9891)
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
