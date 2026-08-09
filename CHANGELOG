@@ -220,7 +220,7 @@ TOPP tools:
         on a BSA design. CSV columns are now abundance_fgroup<F>_label<L>; the consensusXML/idXML
         'indistinguishable_proteins_<N>_abundances' UserParam and the total_abundances /
         peptide_abundances members (incl. their pyOpenMS bindings) are removed in favour of
-        fraction_group_abundances / peptide_fraction_group_abundances. MSstats, Triqler and QPX pg
+        fraction_group_abundances / peptide_fraction_group_abundances. MSstats and QPX pg
         values are unchanged, as they already read per-run or per-assay data (#9864, #9869)
       - BREAKING: how the fractions of a fraction group are combined is now a choice,
         'fractions:aggregate'. The default 'sum' is what every earlier version did (and what MaxQuant and
@@ -341,10 +341,10 @@ TOPP tools:
         naming different peptidoforms (a chimeric spectrum) are left alone. Combine search engine
         results with ConsensusID (-algorithm best -keep_old_scores) to control this upstream (#9871)
       - The mzTab output (-out) is optional when another output is requested; -out_cxml, -out_qpx,
-        -out_msstats, or -out_triqler can now be the sole output. Invocations without any output still
+        or -out_msstats can now be the sole output. Invocations without any output still
         fail during parameter validation (#9866)
       - BREAKING: no normalization is applied, under any combination of output flags. A median scaling
-        used to run over each fraction's consensus map unless -out_msstats or -out_triqler was requested,
+        used to run over each fraction's consensus map unless -out_msstats was requested,
         so the same input written to the same -out_qpx directory held normalized or raw intensities
         depending on whether an unrelated output file was also asked for, and nothing recorded which.
         Normalizing per fraction and then summing across fractions is only ratio-preserving when the
@@ -496,6 +496,23 @@ TOPP tools:
       - Added -remove_shared_peptides (default true) to explicitly control whether shared peptides are
         removed; this filtering was previously silent and hardcoded, and a warning now reports how many
         hits were dropped (#9068)
+    Triqler support removed:
+      - BREAKING: Triqler export was removed from OpenMS entirely -- the TriqlerConverter tool, the
+        ProteomicsLFQ -out_triqler output, and the TriqlerFile library class and its test.
+      - The TriqlerConverter tool had never worked. Since it was introduced in #5066 (2020) it read two
+        parameters -- 'method' and 'retention_time_summarization_method' -- that were never registered,
+        so every invocation aborted with "Internal error: Request for unregistered parameter 'method'"
+        and produced no output. The defect survived because the tool had no test. Neither parameter was
+        ever usable (an unregistered parameter never reaches the CLI, INI or CTD) and neither had an
+        effect to restore.
+      - -out_triqler did work, but had no known consumer: quantms, the main downstream pipeline, does
+        not pass it (it requests -out_cxml, -out, -out_qpx and -out_msstats), and no other caller was
+        found. It also carried two unresolved defects -- runs were keyed per (file, fraction) rather
+        than per sample, so fractions of one sample were split across Triqler runs, and rows differing
+        only in search score compared equal and silently collapsed to the first one inserted.
+      - Migration: use -out_msstats, or -out_cxml / -out_qpx and convert downstream. Existing INIs and
+        command lines passing -out_triqler now fail with an unknown-parameter error rather than
+        silently dropping the output (#9898)
     MetaboliteAdductDecharger:
       - Added multimer detection (dimers, trimers, ...) with new max_multimer and multimer_log_penalty
         parameters; features are annotated with [nM+adduct]+ style strings (#8888)
@@ -549,7 +566,8 @@ TOPP tools:
     - OpenSwathPeakMapExtractor: extracts full peakmap points from mzML via targeted extraction (#9684)
     - TransitionListEvidenceFilter: filters transition lists by preliminary evidence from mzML (#9161)
   Removed tools:
-    - GenericWrapper (#8981), QPXConverter (#9693)
+    - GenericWrapper (#8981), QPXConverter (#9693), TriqlerConverter (#9898; Triqler export removed
+      from ProteomicsLFQ and the library too)
 
 GUI tools:
   - TOPPView and TOPPAS now forward generic Qt command line options (-style, -stylesheet, -platform, ...)

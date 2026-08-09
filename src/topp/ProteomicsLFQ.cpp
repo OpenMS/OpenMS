@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -138,10 +137,10 @@ On HeLa 50ng 5-min timsTOF gradient: 34k seeds, 80% model fit success, 2,809
 peptides quantified (Spearman r=0.62 vs Sage LFQ), 75s runtime, 1.3 GB memory.
 
 Normalization: @n
-  - ProteomicsLFQ does NOT normalize. Every output - mzTab, consensusXML, QPX Parquet, MSstats and
-    Triqler - reports the same un-normalized abundances, whatever combination of output files is
+  - ProteomicsLFQ does NOT normalize. Every output - mzTab, consensusXML, QPX Parquet and MSstats -
+    reports the same un-normalized abundances, whatever combination of output files is
     requested. Earlier versions applied median scaling to the consensus features unless
-    -out_msstats or -out_triqler was given, which made the meaning of an intensity depend on which
+    -out_msstats was given, which made the meaning of an intensity depend on which
     other output file happened to be requested, and recorded nothing about the transform in any of
     them.
   - Choosing a normalization is a separate, explicit step. Three routes, in increasing distance
@@ -151,13 +150,12 @@ Normalization: @n
     - the ProteinQuantification:consensus:normalize parameter, which scales peptide abundances so
       that the median of each (fraction group, label) assay matches the overall median - i.e. it
       normalizes at the assay level rather than per fraction; @n
-    - the downstream tool itself. MSstats, Triqler and comparable consumers normalize their input
+    - the downstream tool itself. MSstats and comparable consumers normalize their input
       by design.
 
 Output (at least one required; each output is optional individually):
   - mzTab file with analysis results (@p out)
   - MSstats file with analysis results for statistical downstream analysis in MSstats (@p out_msstats)
-  - Triqler input file (@p out_triqler)
   - consensusXML file for visualization and further processing in OpenMS (@p out_cxml)
   - QPX Parquet collection (@p out_qpx)
 
@@ -219,8 +217,6 @@ protected:
     registerOutputFile_("out_msstats", "<file>", "", "Optional output MSstats input file. At least one output must be specified.", false, false);
     setValidFormats_("out_msstats", ListUtils::create<std::string>("csv"));
 
-    registerOutputFile_("out_triqler", "<file>", "", "Optional output Triqler input file. At least one output must be specified.", false, false);
-    setValidFormats_("out_triqler", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_cxml", "<file>", "", "Optional output consensusXML file. At least one output must be specified.", false, false);
     setValidFormats_("out_cxml", ListUtils::create<std::string>("consensusXML"));
@@ -1409,7 +1405,7 @@ protected:
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
     // No normalization here, deliberately. A median scaling used to run at this point unless
-    // -out_msstats or -out_triqler was requested, which meant the same input written to the same
+    // -out_msstats was requested, which meant the same input written to the same
     // -out_qpx directory held normalized or raw intensities depending on whether an unrelated
     // output file was also asked for - and neither the Parquet nor the mzTab recorded which.
     // Normalizing per fraction and then summing across fractions (PeptideAndProteinQuant.cpp) is
@@ -1577,13 +1573,12 @@ protected:
     // Read tool parameters
     const std::string out = getStringOption_("out");
     const std::string out_msstats = getStringOption_("out_msstats");
-    const std::string out_triqler = getStringOption_("out_triqler");
     const std::string out_cxml = getStringOption_("out_cxml");
     const std::string out_qpx = getOutputDirOption("out_qpx");
-    if (out.empty() && out_msstats.empty() && out_triqler.empty() && out_cxml.empty() && out_qpx.empty())
+    if (out.empty() && out_msstats.empty() && out_cxml.empty() && out_qpx.empty())
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                 "out/out_msstats/out_triqler/out_cxml/out_qpx");
+                                                 "out/out_msstats/out_cxml/out_qpx");
     }
 
     StringList in = getStringList_("in");
@@ -1602,11 +1597,6 @@ protected:
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "MSstats export for spectral counting data not supported. Please remove output file.");
-      }
-      if (! out_triqler.empty())
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Triqler export for spectral counting data not supported. Please remove output file.");
       }
     }
 
@@ -2005,22 +1995,6 @@ protected:
                        "MSstats_BioReplicate", "MSstats_Condition", "max");
     }
 
-
-    if (! out_triqler.empty())
-    {
-      TriqlerFile tf;
-
-      // shrink protein runs to the one containing the inference data
-      consensus.getProteinIdentifications().resize(1);
-
-      IDScoreSwitcherAlgorithm switcher;
-      Size c = 0;
-      switcher.switchToGeneralScoreType(consensus, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
-
-      tf.storeLFQ(out_triqler, consensus, design_, StringList(),
-                  "MSstats_Condition" // TODO: choose something more generic like "Condition" for both MSstats and Triqler export
-      );
-    }
 
     return EXECUTION_OK;
   }
