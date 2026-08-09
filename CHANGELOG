@@ -331,6 +331,15 @@ TOPP tools:
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
     ProteomicsLFQ:
+      - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
+        carries several of them -- the shape produced by concatenating search engine results rather
+        than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or
+        PercolatorAdapter at its default -score:fdr 1.0, which retains PSMs it marked as not
+        identified). The best-scoring one is kept and the reduction is reported. Keeping all of them
+        counted one measurement several times: in the PSM-level FDR, in the mzTab PSM rows, and, with
+        -out_qpx, as a duplicate psm_id that the QPX writers refuse. Identifications of one spectrum
+        naming different peptidoforms (a chimeric spectrum) are left alone. Combine search engine
+        results with ConsensusID (-algorithm best -keep_old_scores) to control this upstream (#9871)
       - The mzTab output (-out) is optional when another output is requested; -out_cxml, -out_qpx,
         -out_msstats, or -out_triqler can now be the sole output. Invocations without any output still
         fail during parameter validation (#9866)
@@ -377,6 +386,11 @@ TOPP tools:
       - Fix: mzTab export no longer aborts when search settings contain non-string DataValues (e.g.
         integer missed_cleavages) (#9666)
     IsobaricWorkflow:
+      - Identifications are now reduced to one per (spectrum, peptidoform, charge), as for
+        ProteomicsLFQ. This tool builds one consensus feature per identification and all
+        identifications of one spectrum read the same MS2/MS3 scan, so a repeated identification
+        contributed the same reporter intensities twice to every abundance derived from them
+        (measured: +37% on a protein abundance from a single duplicated identification) (#9871)
       - The consensusXML (-out), mzTab (-out_mzTab), and QPX (-out_qpx) outputs are optional
         individually; any one can now be the sole output. Invocations without an output still fail
         during parameter validation (#9866)
