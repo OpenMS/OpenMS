@@ -22,6 +22,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -213,11 +214,23 @@ namespace OpenMS
      * @param[in] tr_type Input file type
      * @param[in] tr_file Input file name
      * @param[in] tsv_reader_param Parameters on how to interpret spectral data
+     * @param[out] source_ids Optional source-precursor provenance mapping. For TraML/TSV
+     *             this is captured during canonicalization; for PQP/OSWPQ it is reconstructed
+     *             from persistent TRAML_ID metadata when available.
      *
      */
-    OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
-                                                          const std::string& tr_file,
-                                                          const Param& tsv_reader_param);
+    /// Compatibility overload retaining the existing three-argument API.
+    OpenSwath::LightTargetedExperiment loadTransitionList(
+      const FileTypes::Type& tr_type,
+      const std::string& tr_file,
+      const Param& tsv_reader_param);
+
+    /// Canonical-loading path that additionally returns source-ID provenance.
+    OpenSwath::LightTargetedExperiment loadTransitionList(
+      const FileTypes::Type& tr_type,
+      const std::string& tr_file,
+      const Param& tsv_reader_param,
+      OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids);
 
   private:
     void loadSwathFiles_(const StringList& file_list,

@@ -11,6 +11,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <optional>
+#include <string>
+#include <unordered_map>
+
 namespace OpenMS
 {
   /**
@@ -35,6 +39,28 @@ namespace OpenMS
   {
   public:
     /**
+      @brief Source-to-canonical precursor provenance captured during library loading.
+
+      The operational LightTargetedExperiment contains only canonical numeric IDs.
+      This mapping retains the original precursor identifiers long enough for callers
+      that still need source-ID semantics (for example configurable target/decoy
+      pairing) without reusing source identifiers as operational foreign keys.
+    */
+    struct SourceIDMapping
+    {
+      /// Original/source precursor ID -> canonical operational precursor ID.
+      std::unordered_map<std::string, std::string> precursor_source_to_canonical;
+
+      /// Canonical operational precursor ID -> original/source precursor ID.
+      std::unordered_map<std::string, std::string> precursor_canonical_to_source;
+
+      /// Canonical operational transition ID -> original/source transition ID.
+      /// Source transition IDs are not required to be unique, so only the canonical-to-source
+      /// direction is retained.
+      std::unordered_map<std::string, std::string> transition_canonical_to_source;
+    };
+
+    /**
       @brief Replace arbitrary source precursor/transition identifiers with deterministic canonical IDs.
 
       Precursor IDs are assigned by lexicographically sorting all unique source compound IDs and
@@ -55,7 +81,41 @@ namespace OpenMS
       @throws Exception::InvalidValue If a compound ID is empty/duplicated or a transition
               references an unknown/empty compound ID.
     */
-    static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp);
+    static SourceIDMapping normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp);
+
+    /**
+      @brief Materialize decoy flags from a configurable source precursor prefix.
+
+      Canonicalization replaces source precursor references and transition names with numeric
+      IDs. This helper uses the provenance returned by normalizeSourceIDs() (or reconstructed
+      by a persistent-format reader) to preserve prefix-based decoy semantics before filtering.
+      A configured prefix on either the source precursor ID or source transition ID materializes
+      the explicit transition decoy flag. Existing explicit decoy flags are retained.
+
+      @param[in,out] exp Canonical experiment whose transition decoy flags may be updated.
+      @param[in] source_ids Source precursor/transition provenance for the canonical experiment.
+      @param[in] decoy_prefix Configured source precursor decoy prefix. Empty disables
+                 additional prefix materialization.
+    */
+    static void materializeDecoyPrefix(OpenSwath::LightTargetedExperiment& exp,
+                                       const SourceIDMapping& source_ids,
+                                       const std::string& decoy_prefix);
+
+    /**
+      @brief Resolve the canonical target precursor paired with a source-prefix decoy.
+
+      @p decoy_ref is normally a canonical precursor ID. The source precursor ID is
+      recovered from @p source_ids, @p decoy_prefix is removed there, and the matching
+      target source ID is mapped back to its canonical operational ID. If no provenance
+      mapping is available, source-ID input is supported as a compatibility path.
+
+      @return The matching target precursor ID in the same operational domain as the
+              loaded experiment, or std::nullopt if the decoy cannot be paired.
+    */
+    static std::optional<std::string> canonicalTargetForDecoyPrecursor(
+      const std::string& decoy_ref,
+      const SourceIDMapping& source_ids,
+      const std::string& decoy_prefix);
 
     /**
       @brief Validate that a LightTargetedExperiment already uses canonical numeric IDs.

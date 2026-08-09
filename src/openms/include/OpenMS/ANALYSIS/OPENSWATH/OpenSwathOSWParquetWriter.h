@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenSwath
@@ -65,17 +66,28 @@ namespace OpenMS
       @param[in] run_id            Unique identifier for this run
       @param[in] input_filename    Original input filename (stored in metadata)
       @param[in] enable_uis_scoring Whether UIS (identification) transitions are included
+      @param[in] source_ids Optional source-ID provenance for the persisted library traml_id.
 
       @throws Exception::MissingFeature if built without Parquet support
       @throws Exception::MissingInformation if a feature is missing required meta values
       @throws Exception::InvalidValue if a run_id already exists in the output
     */
+    /// Compatibility overload retaining the existing writer API.
     void write(const std::string& output_path,
                const OpenSwath::LightTargetedExperiment& assay_library,
                const FeatureMap& feature_map,
                UInt64 run_id,
                const std::string& input_filename,
                bool enable_uis_scoring) const;
+
+    /// Canonical writer path that additionally persists source-ID provenance.
+    void write(const std::string& output_path,
+               const OpenSwath::LightTargetedExperiment& assay_library,
+               const FeatureMap& feature_map,
+               UInt64 run_id,
+               const std::string& input_filename,
+               bool enable_uis_scoring,
+               const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const;
 
     /**
      * @brief Set whether the writer should preserve (append) existing archives.

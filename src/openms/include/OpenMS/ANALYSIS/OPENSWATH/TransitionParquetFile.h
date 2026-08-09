@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
@@ -123,10 +125,21 @@ namespace OpenMS
 
       @param[in]  oswpq_dir    Path to a @c .oswpq archive or to an already-extracted directory containing @c library/.
       @param[out] targeted_exp Populated targeted experiment; cleared before being filled.
+      @param[out] source_ids Optional source-precursor provenance. When provided, non-empty
+                  precursor @c traml_id values are mapped to their canonical @c precursor_id.
       @throws Exception::MissingInformation If a required parquet entry (precursors / transitions) cannot be located inside @p oswpq_dir.
       @throws Exception::InvalidValue If a loaded parquet table fails schema validation against the precursor / transition schema, or if any other required row-level field is missing during materialisation.
     */
-    void convertParquetToTargetedExperiment(const std::string& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    /// Compatibility overload retaining the existing two-argument API.
+    void convertParquetToTargetedExperiment(
+      const std::string& oswpq_dir,
+      OpenSwath::LightTargetedExperiment& targeted_exp) const;
+
+    /// Reader path that additionally returns source-ID provenance when requested.
+    void convertParquetToTargetedExperiment(
+      const std::string& oswpq_dir,
+      OpenSwath::LightTargetedExperiment& targeted_exp,
+      OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const;
 
     /**
       @brief Write a @ref OpenSwath::LightTargetedExperiment to a @c .oswpq library.
@@ -137,12 +150,24 @@ namespace OpenMS
       @p oswpq_path via a @c .tmp staging archive that is renamed into place once complete.
 
       @param[in] oswpq_path  Destination — existing directory or zip-file path.
-      @param[in] targeted_exp Library to serialise.
+      @param[in] targeted_exp Canonical library to serialise. Precursor and transition IDs
+                 are preserved exactly, including zero and sparse values.
+      @param[in] source_ids Optional source-ID provenance. When supplied, precursor traml_id
+                 stores the original/source identifier while precursor_id remains canonical.
       @throws Exception::FileNotWritable If a generated file inside the staging area cannot be written.
       @throws Exception::MissingInformation If required per-row data (e.g. a transition lacking a peptide ref) is missing from @p targeted_exp.
       @throws Exception::InvalidValue If row-level invariants are violated (e.g. duplicate precursor ids, schema-incompatible values).
     */
-    void convertLightTargetedExperimentToParquet(const std::string& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    /// Compatibility overload: preserves canonical input as-is, otherwise canonicalizes a source-style Light experiment once before writing.
+    void convertLightTargetedExperimentToParquet(
+      const std::string& oswpq_path,
+      const OpenSwath::LightTargetedExperiment& targeted_exp) const;
+
+    /// Canonical writer path with optional source precursor provenance.
+    void convertLightTargetedExperimentToParquet(
+      const std::string& oswpq_path,
+      const OpenSwath::LightTargetedExperiment& targeted_exp,
+      const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const;
   };
 
 } // namespace OpenMS

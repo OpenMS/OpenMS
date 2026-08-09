@@ -99,7 +99,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
   OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
 
   Size compound_count = std::min<Size>(2, light_exp.compounds.size());
-  TEST_EQUAL(compound_count > 0, true)
+  TEST_EQUAL(compound_count, 2)
 
   std::map<std::string, int64_t> compound_to_precursor;
   int64_t precursor_id = 1;
@@ -279,7 +279,8 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
 
   TransitionParquetFile reader;
   OpenSwath::LightTargetedExperiment out_exp;
-  reader.convertParquetToTargetedExperiment(base_dir, out_exp);
+  OpenSwathLibraryIDNormalizer::SourceIDMapping source_ids;
+  reader.convertParquetToTargetedExperiment(base_dir, out_exp, &source_ids);
 
   TEST_EQUAL(out_exp.compounds.size(), compound_count)
   TEST_EQUAL(out_exp.transitions.size(), transitions.size())
@@ -290,6 +291,13 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
   for (const auto& entry : compound_to_precursor)
   {
     expected_precursor_ids.insert(std::to_string(entry.second));
+  }
+
+  for (const auto& entry : compound_to_precursor)
+  {
+    const std::string canonical_id = std::to_string(entry.second);
+    TEST_EQUAL(source_ids.precursor_source_to_canonical.at(entry.first), canonical_id)
+    TEST_EQUAL(source_ids.precursor_canonical_to_source.at(canonical_id), entry.first)
   }
 
   std::set<std::string> compound_refs;
@@ -307,6 +315,31 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
                std::to_string(compound_to_precursor[transitions[i].peptide_ref]))
     TEST_EQUAL(compound_refs.count(out_exp.transitions[i].peptide_ref), 1)
   }
+
+  // Reader-boundary regression: duplicate persistent precursor IDs must be
+  // rejected before unordered_map materialization can silently discard one row.
+  arrow::Int64Builder duplicate_precursor_id_builder;
+  for (Size i = 0; i < compound_count; ++i)
+  {
+    appendOk_(duplicate_precursor_id_builder, static_cast<int64_t>(1));
+  }
+  auto duplicate_precursor_id_array = finishArray_(duplicate_precursor_id_builder);
+  auto duplicate_precursors_table = arrow::Table::Make(
+    precursor_schema,
+    {duplicate_precursor_id_array, precursor_mz_array, precursor_charge_array, library_rt_array,
+     drift_time_array, decoy_array, traml_id_array, modified_sequence_array,
+     unmodified_sequence_array, protein_accessions_array});
+
+  const std::string duplicate_dir = tmp_dir.getPath() + "/duplicate.oswpq";
+  const std::string duplicate_library_dir = duplicate_dir + "/library";
+  File::makeDir(duplicate_dir);
+  File::makeDir(duplicate_library_dir);
+  TEST_EQUAL(writeParquetTable_(duplicate_precursors_table, duplicate_library_dir + "/precursors.parquet").ok(), true)
+  TEST_EQUAL(writeParquetTable_(transitions_table, duplicate_library_dir + "/transitions.parquet").ok(), true)
+
+  OpenSwath::LightTargetedExperiment duplicate_out;
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 reader.convertParquetToTargetedExperiment(duplicate_dir, duplicate_out))
 }
 END_SECTION
 
@@ -328,8 +361,10 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
   const std::string out_dir = tmp_dir.getPath() + "/roundtrip.oswpq";
   File::makeDir(out_dir);
 
+  const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(light_exp);
+
   TransitionParquetFile writer;
-  writer.convertLightTargetedExperimentToParquet(out_dir, light_exp);
+  writer.convertLightTargetedExperimentToParquet(out_dir, light_exp, &source_ids);
 
   // Verify library files exist
   TEST_EQUAL(File::exists(out_dir + "/library/precursors.parquet"), true)
@@ -339,7 +374,19 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
   // --- Read back and compare ---
   TransitionParquetFile reader;
   OpenSwath::LightTargetedExperiment roundtrip_exp;
-  reader.convertParquetToTargetedExperiment(out_dir, roundtrip_exp);
+  OpenSwathLibraryIDNormalizer::SourceIDMapping roundtrip_source_ids;
+  reader.convertParquetToTargetedExperiment(out_dir, roundtrip_exp, &roundtrip_source_ids);
+
+  TEST_EQUAL(roundtrip_source_ids.precursor_source_to_canonical.size(), source_ids.precursor_source_to_canonical.size())
+  for (const auto& [source_id, canonical_id] : source_ids.precursor_source_to_canonical)
+  {
+    TEST_EQUAL(roundtrip_source_ids.precursor_source_to_canonical.at(source_id), canonical_id)
+  }
+  TEST_EQUAL(roundtrip_source_ids.transition_canonical_to_source.size(), source_ids.transition_canonical_to_source.size())
+  for (const auto& [canonical_id, source_id] : source_ids.transition_canonical_to_source)
+  {
+    TEST_EQUAL(roundtrip_source_ids.transition_canonical_to_source.at(canonical_id), source_id)
+  }
 
   // The persisted OSWPQ IDs must remain valid canonical operational IDs after
   // the writer -> reader round trip.
@@ -360,11 +407,11 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
     TEST_EQUAL(roundtrip_compound_ids.count(transition.peptide_ref) > 0, true)
   }
 
-  // The current writer assigns persistent transition IDs in row order. The
-  // reader must expose those IDs rather than restoring transition traml_id.
+  // Source normalization assigned canonical transition IDs in row order. The
+  // writer preserves them exactly and the reader must not restore transition traml_id.
   for (Size i = 0; i < roundtrip_exp.transitions.size(); ++i)
   {
-    TEST_EQUAL(roundtrip_exp.transitions[i].transition_name, std::to_string(i + 1))
+    TEST_EQUAL(roundtrip_exp.transitions[i].transition_name, std::to_string(i))
     TEST_REAL_SIMILAR(roundtrip_exp.transitions[i].product_mz, light_exp.transitions[i].product_mz)
   }
 }

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
@@ -24,6 +25,7 @@
 #include <future>
 #include <limits>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <filesystem>
@@ -307,6 +309,19 @@ namespace OpenMS
                                         const std::string& input_filename,
                                         bool enable_uis_scoring) const
   {
+    write(output_path, assay_library, feature_map, run_id, input_filename, enable_uis_scoring, nullptr);
+  }
+
+  void OpenSwathOSWParquetWriter::write(const std::string& output_path,
+                                        const OpenSwath::LightTargetedExperiment& assay_library,
+                                        const FeatureMap& feature_map,
+                                        UInt64 run_id,
+                                        const std::string& input_filename,
+                                        bool enable_uis_scoring,
+                                        const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const
+  {
+    OpenSwathLibraryIDNormalizer::validateCanonicalIDs(assay_library);
+
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
     std::unique_ptr<File::TempDir> temp_dir;
@@ -343,35 +358,65 @@ namespace OpenMS
     const std::string precursors_path = library_dir + "/precursors.parquet";
     const std::string transitions_path = library_dir + "/transitions.parquet";
     const bool library_ready = File::exists(precursors_path) && File::exists(transitions_path);
-    // If library files exist, perform a basic compatibility check to avoid
-    // silently reusing an incompatible library when appending runs. A mismatch
-    // between the existing library tables and the provided `assay_library`
-    // (counts differ) is a strong signal of incompatibility and can create
-    // broken foreign-key relationships between run-level files and the
-    // library tables. Fail fast with a clear error message.
+    // Existing output may have been produced by an older writer that allocated a
+    // different numeric ID domain. Counts alone are not sufficient: the same number
+    // of rows can still map a given integer to a different precursor/transition.
+    // Compare the complete operational foreign-key domain before appending a run.
     if (library_ready)
     {
-      const int64_t existing_precursors = getParquetRowCount_(precursors_path);
-      const int64_t existing_transitions = getParquetRowCount_(transitions_path);
-      // Use deduplicated counts from the provided assay_library (unique compound ids
-      // and unique transition names) to compare against existing parquet tables. The
-      // writer deduplicates compounds/transitions when generating the library, so a
-      // direct comparison to raw vector sizes can give false incompatibility errors.
-      std::unordered_set<std::string> unique_compounds;
-      unique_compounds.reserve(assay_library.compounds.size());
-      for (const auto& c : assay_library.compounds) unique_compounds.insert(c.id);
-      const int64_t expected_precursors = static_cast<int64_t>(unique_compounds.size());
+      std::unordered_set<int64_t> expected_precursor_ids;
+      expected_precursor_ids.reserve(assay_library.compounds.size());
+      for (const auto& compound : assay_library.compounds)
+      {
+        expected_precursor_ids.insert(StringUtils::toInt64(compound.id));
+      }
 
-      std::unordered_set<std::string> unique_transitions;
-      unique_transitions.reserve(assay_library.transitions.size());
-      for (const auto& t : assay_library.transitions) unique_transitions.insert(t.transition_name);
-      const int64_t expected_transitions = static_cast<int64_t>(unique_transitions.size());
+      std::unordered_map<int64_t, int64_t> expected_transition_refs;
+      expected_transition_refs.reserve(assay_library.transitions.size());
+      for (const auto& transition : assay_library.transitions)
+      {
+        expected_transition_refs.emplace(StringUtils::toInt64(transition.transition_name),
+                                         StringUtils::toInt64(transition.peptide_ref));
+      }
 
-      if (existing_precursors != expected_precursors || existing_transitions != expected_transitions)
+      auto existing_precursor_table = ParquetFile::readTable(precursors_path);
+      auto existing_precursor_id_col = ParquetFile::getColumn(existing_precursor_table, OSWPrecursorSchema::PRECURSOR_ID);
+      std::unordered_set<int64_t> existing_precursor_ids;
+      existing_precursor_ids.reserve(static_cast<size_t>(existing_precursor_table->num_rows()));
+      for (int64_t row = 0; row < existing_precursor_table->num_rows(); ++row)
+      {
+        const int64_t id = ParquetFile::getInt64(existing_precursor_id_col, row, -1, false);
+        if (!existing_precursor_ids.insert(id).second)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Existing OSWPQ library contains duplicate precursor_id",
+                                        StringUtils::toStr(id));
+        }
+      }
+
+      auto existing_transition_table = ParquetFile::readTable(transitions_path);
+      auto existing_transition_id_col = ParquetFile::getColumn(existing_transition_table, OSWTransitionSchema::TRANSITION_ID);
+      auto existing_transition_precursor_col = ParquetFile::getColumn(existing_transition_table, OSWTransitionSchema::PRECURSOR_ID);
+      std::unordered_map<int64_t, int64_t> existing_transition_refs;
+      existing_transition_refs.reserve(static_cast<size_t>(existing_transition_table->num_rows()));
+      for (int64_t row = 0; row < existing_transition_table->num_rows(); ++row)
+      {
+        const int64_t transition_id = ParquetFile::getInt64(existing_transition_id_col, row, -1, false);
+        const int64_t precursor_id = ParquetFile::getInt64(existing_transition_precursor_col, row, -1, false);
+        if (!existing_transition_refs.emplace(transition_id, precursor_id).second)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Existing OSWPQ library contains duplicate transition_id",
+                                        StringUtils::toStr(transition_id));
+        }
+      }
+
+      if (existing_precursor_ids != expected_precursor_ids ||
+          existing_transition_refs != expected_transition_refs)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Existing library at '" + library_dir + "' appears incompatible with provided assay_library. Please rebuild the library or use a different output path.",
-                                      "existing_precursors=" + StringUtils::toStr(existing_precursors) + ", expected_precursors=" + StringUtils::toStr(expected_precursors));
+                                      "Existing OSWPQ library uses a different canonical precursor/transition ID domain. Please rebuild the archive or use a different output path.",
+                                      library_dir);
       }
     }
     if (!library_ready)
@@ -387,7 +432,7 @@ namespace OpenMS
       }
       File::makeDir(library_tmp_dir);
       File::makeDir(library_dir);
-      TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library);
+      TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library, source_ids);
       File::copyDirRecursively(library_tmp_dir + "/library", library_dir);
       File::removeDirRecursively(library_tmp_dir);
     }
@@ -400,68 +445,25 @@ namespace OpenMS
     }
     File::makeDir(run_path);
 
-    // Map compound.id -> precursor_id (int64). We must avoid collisions
-    // between numeric ids present in the source library and auto-assigned ids
-    // generated here (next_precursor_id). If a numeric id duplicates a
-    // previously-assigned id, prefer to auto-assign a fresh id to ensure
-    // uniqueness and preserve the original string id in the library's
-    // traml_id column for round-tripping.
+    // The assay library has already crossed the canonical OpenSWATH ID boundary.
+    // Preserve precursor and transition IDs exactly for run-level foreign keys;
+    // downstream result writers must never allocate a second library ID domain.
     std::unordered_map<std::string, int64_t> compound_to_precursor;
     compound_to_precursor.reserve(assay_library.compounds.size());
-    std::unordered_set<int64_t> used_precursor_ids;
-    int64_t next_precursor_id = 1;
     for (const auto& compound : assay_library.compounds)
     {
-      if (compound_to_precursor.contains(compound.id))
-      {
-        continue;
-      }
-
-      int64_t precursor_id = 0;
-      bool parsed_numeric = false;
-      try
-      {
-        precursor_id =StringUtils::toInt64(std::string(compound.id));
-        parsed_numeric = true;
-      }
-      catch (Exception::ConversionError&)
-      {
-        // fall through - we'll assign an auto id below
-      }
-
-      if (parsed_numeric)
-      {
-        // If numeric id collides with an already-used id, reject the numeric
-        // value and fall back to auto-assigning. This prevents accidental
-        // collisions between user-provided numeric ids and our auto ids.
-        if (used_precursor_ids.contains(precursor_id) || precursor_id <= 0)
-        {
-          precursor_id = next_precursor_id++;
-        }
-        else
-        {
-          // accept the numeric id and ensure next_precursor_id moves past it
-          if (precursor_id >= next_precursor_id)
-          {
-            next_precursor_id = precursor_id + 1;
-          }
-        }
-      }
-      else
-      {
-        precursor_id = next_precursor_id++;
-      }
-
-      used_precursor_ids.insert(precursor_id);
-      compound_to_precursor[compound.id] = precursor_id;
+      compound_to_precursor.emplace(compound.id, StringUtils::toInt64(compound.id));
     }
 
     std::unordered_map<std::string, int64_t> transition_to_id;
     transition_to_id.reserve(assay_library.transitions.size());
-    int64_t transition_id = 1;
+    std::unordered_set<int64_t> valid_transition_ids;
+    valid_transition_ids.reserve(assay_library.transitions.size());
     for (const auto& transition : assay_library.transitions)
     {
-      transition_to_id[transition.transition_name] = transition_id++;
+      const int64_t transition_id = StringUtils::toInt64(transition.transition_name);
+      transition_to_id.emplace(transition.transition_name, transition_id);
+      valid_transition_ids.insert(transition_id);
     }
 
     arrow::Int64Builder feature_id_builder;
@@ -726,11 +728,9 @@ namespace OpenMS
           }
           const std::string native_id = StringUtils::toStr(sub_it.getMetaValue("native_id"));
           int64_t transition_id_value = 0;
-          // Prefer explicit name lookup in the library mapping. Only use the
-          // numeric fallback when the native_id is numeric and the id falls
-          // inside the valid id domain (1..transition_id-1). This prevents
-          // accidental acceptance of arbitrary numeric strings that are not
-          // actually present in the library table.
+          // Prefer exact canonical-name lookup. Retain a numeric fallback for legacy
+          // feature metadata only when that numeric ID is actually present in the
+          // canonical library; zero and sparse transition IDs are valid.
           auto it = transition_to_id.find(native_id);
           if (it != transition_to_id.end())
           {
@@ -738,8 +738,7 @@ namespace OpenMS
           }
           else if (parseOptionalInt64_(native_id, transition_id_value))
           {
-            // numeric fallback is only valid if present in library id domain
-            if (transition_id_value <= 0 || transition_id_value >= transition_id)
+            if (!valid_transition_ids.contains(transition_id_value))
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "Transition references unknown numeric id", native_id);

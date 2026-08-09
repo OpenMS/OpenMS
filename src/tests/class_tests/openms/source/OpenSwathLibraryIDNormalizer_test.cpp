@@ -47,7 +47,20 @@ START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment&
     exp.transitions.push_back(transition);
   }
 
-  OpenSwathLibraryIDNormalizer::normalizeSourceIDs(exp);
+  const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(exp);
+
+  TEST_EQUAL(source_ids.precursor_source_to_canonical.at("0"), "0")
+  TEST_EQUAL(source_ids.precursor_source_to_canonical.at("2"), "1")
+  TEST_EQUAL(source_ids.precursor_source_to_canonical.at("490"), "2")
+  TEST_EQUAL(source_ids.precursor_source_to_canonical.at("A"), "3")
+  TEST_EQUAL(source_ids.precursor_canonical_to_source.at("0"), "0")
+  TEST_EQUAL(source_ids.precursor_canonical_to_source.at("1"), "2")
+  TEST_EQUAL(source_ids.precursor_canonical_to_source.at("2"), "490")
+  TEST_EQUAL(source_ids.precursor_canonical_to_source.at("3"), "A")
+  TEST_EQUAL(source_ids.transition_canonical_to_source.at("0"), "2292")
+  TEST_EQUAL(source_ids.transition_canonical_to_source.at("1"), "transition_A")
+  TEST_EQUAL(source_ids.transition_canonical_to_source.at("2"), "12")
+  TEST_EQUAL(source_ids.transition_canonical_to_source.at("3"), "0")
 
   // Source precursor IDs are sorted lexicographically: 0, 2, 490, A.
   TEST_EQUAL(exp.compounds[0].id, "2")
@@ -163,6 +176,74 @@ START_SECTION(static void normalizeSourceIDs(OpenSwath::LightTargetedExperiment&
   missing_ref.transitions.push_back(tr);
   TEST_EXCEPTION(Exception::InvalidValue,
                  OpenSwathLibraryIDNormalizer::normalizeSourceIDs(missing_ref))
+}
+END_SECTION
+
+START_SECTION(static SourceIDMapping normalizeSourceIDs(...) -- preserves source-prefix decoy semantics)
+{
+  OpenSwath::LightTargetedExperiment exp;
+
+  for (const char* id : {"PEPTIDE", "DECOY_PEPTIDE", "REV_PEPTIDE"})
+  {
+    OpenSwath::LightCompound compound;
+    compound.id = id;
+    exp.compounds.push_back(compound);
+  }
+
+  OpenSwath::LightTransition target;
+  target.transition_name = "target_y7";
+  target.peptide_ref = "PEPTIDE";
+  exp.transitions.push_back(target);
+
+  OpenSwath::LightTransition conventional_decoy;
+  conventional_decoy.transition_name = "decoy_y7";
+  conventional_decoy.peptide_ref = "DECOY_PEPTIDE";
+  exp.transitions.push_back(conventional_decoy);
+
+  OpenSwath::LightTransition custom_decoy;
+  custom_decoy.transition_name = "rev_y7";
+  custom_decoy.peptide_ref = "REV_PEPTIDE";
+  exp.transitions.push_back(custom_decoy);
+
+  OpenSwath::LightTransition custom_transition_decoy;
+  custom_transition_decoy.transition_name = "REV_transition_y8";
+  custom_transition_decoy.peptide_ref = "PEPTIDE";
+  exp.transitions.push_back(custom_transition_decoy);
+
+  const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(exp);
+
+  // Conventional DECOY*/Decoy*/decoy* semantics are materialized while the
+  // source IDs are still available. The custom prefix is materialized through
+  // retained provenance before downstream filtering.
+  TEST_EQUAL(exp.transitions[0].getDecoy(), false)
+  TEST_EQUAL(exp.transitions[1].getDecoy(), true)
+  TEST_EQUAL(exp.transitions[2].getDecoy(), false)
+  TEST_EQUAL(exp.transitions[3].getDecoy(), false)
+
+  OpenSwathLibraryIDNormalizer::materializeDecoyPrefix(exp, source_ids, "REV_");
+  TEST_EQUAL(exp.transitions[2].getDecoy(), true)
+  TEST_EQUAL(exp.transitions[3].getDecoy(), true)
+  TEST_EQUAL(source_ids.transition_canonical_to_source.at("3"), "REV_transition_y8")
+
+  const std::string canonical_decoy = source_ids.precursor_source_to_canonical.at("DECOY_PEPTIDE");
+  TEST_EQUAL(source_ids.precursor_canonical_to_source.at(canonical_decoy), "DECOY_PEPTIDE")
+  const std::string canonical_custom_decoy = source_ids.precursor_source_to_canonical.at("REV_PEPTIDE");
+  TEST_EQUAL(source_ids.precursor_canonical_to_source.at(canonical_custom_decoy), "REV_PEPTIDE")
+
+  const std::string canonical_target = source_ids.precursor_source_to_canonical.at("PEPTIDE");
+  const auto paired_target = OpenSwathLibraryIDNormalizer::canonicalTargetForDecoyPrecursor(
+    canonical_decoy, source_ids, "DECOY_");
+  TEST_EQUAL(paired_target.has_value(), true)
+  TEST_EQUAL(*paired_target, canonical_target)
+
+  const auto paired_custom_target = OpenSwathLibraryIDNormalizer::canonicalTargetForDecoyPrecursor(
+    canonical_custom_decoy, source_ids, "REV_");
+  TEST_EQUAL(paired_custom_target.has_value(), true)
+  TEST_EQUAL(*paired_custom_target, canonical_target)
+
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::canonicalTargetForDecoyPrecursor(
+               canonical_target, source_ids, "DECOY_").has_value(),
+             false)
 }
 END_SECTION
 
