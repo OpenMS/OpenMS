@@ -431,6 +431,17 @@ TOPP tools:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
         Comet/MSGF+/MSFragger (#9643)
+      - BREAKING: removed the multi-search-engine mode, i.e. the flags -multiple_search_engines,
+        -concat, -skip_db_check, -impute and -limit_imputation; -in now takes a single file. Both
+        code paths were unusable: -concat aborted while writing X!Tandem input (it read a
+        never-written "XTandem_score" MetaValue) and produced NaN CONCAT:lnEvalue for MS-GF+ (it
+        took the log of the raw score instead of the E-value), while the default merge path keyed
+        spectra on a scan number parsed only from "scan="/"index=" native IDs and silently collapsed
+        every PSM into one spectrum for the widespread "spectrum=" (MS:1000777), Sciex "sample=" and
+        "file=" formats. Combine results from several search engines with ConsensusID instead.
+        The correspondingly unused PercolatorFeatureSetHelper methods concatMULTISEPeptideIds,
+        mergeMULTISEPeptideIds, addMULTISEFeatures and addCONCATSEFeatures were removed from the
+        library and from pyOpenMS; mergeMULTISEProteinIds stays (PercolatorAdapter uses it)
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
       - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform
         mzML files along with the alignment (#8536)
