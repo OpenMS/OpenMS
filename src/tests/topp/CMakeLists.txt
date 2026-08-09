@@ -4058,7 +4058,7 @@ add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 # ProteomicsLFQ rejects an invocation without outputs; existing functional runs below exercise
 # mzTab plus alternate-only consensusXML and QPX output paths.
 add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
-set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_triqler/out_cxml/out_qpx")
+set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
 
 # ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
 add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4084,7 +4084,6 @@ add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_subset.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_subset.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4095,8 +4094,6 @@ add_test("TOPP_ProteomicsLFQ_1_subset_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 add_test("TOPP_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
-add_test("TOPP_ProteomicsLFQ_1_subset_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 
 # QPX Parquet export test (reuses subset test input data)
   # Clear the output directory first. ctest never cleans tmp_path, so without this a
@@ -4152,14 +4149,14 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
     -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 28)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
-# Requesting an MSstats or Triqler file must not change any other output.
-# It used to: a median scaling ran over the consensus features unless -out_msstats or -out_triqler
+# Requesting an MSstats file must not change any other output.
+# It used to: a median scaling ran over the consensus features unless -out_msstats
 # was given, so the very same input written to the same -out_qpx directory held normalized or raw
 # intensities depending on whether an unrelated output file had been asked for -- and neither the
 # Parquet nor the mzTab recorded which. On this design the two differed by a median factor of 5.3
 # and a maximum of 12.0. ProteomicsLFQ no longer normalizes at all, and this test is what stops a
 # flag from quietly acquiring the second meaning "and rescale everything" again.
-# Same invocation as TOPP_ProteomicsLFQ_qpx above, plus the two exporters.
+# Same invocation as TOPP_ProteomicsLFQ_qpx above, plus the exporter.
   add_test(NAME "TOPP_ProteomicsLFQ_qpx_flags_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir)
   add_test("TOPP_ProteomicsLFQ_qpx_flags" ${TOPP_BIN_PATH}/ProteomicsLFQ
            -in
@@ -4184,7 +4181,6 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -out ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab
            -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir
            -out_msstats ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.csv
-           -out_triqler ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.tsv
            -threads 1
            -proteinFDR 0.3
            -test
@@ -4295,7 +4291,6 @@ add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4306,8 +4301,6 @@ add_test("TOPP_ProteomicsLFQ_1_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 add_test("TOPP_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
-add_test("TOPP_ProteomicsLFQ_1_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_1_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 
 # Identical to TOPP_ProteomicsLFQ_1, except that BSA1_F1's identifications carry one
 # PeptideIdentification twice (same spectrum, peptidoform and charge; the copy scored worse).
@@ -4339,7 +4332,6 @@ add_test("TOPP_ProteomicsLFQ_duplicate_psm" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_dup.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4352,8 +4344,6 @@ add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_2" ${DIFF} -whitelist "software" 
 set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
 add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
-add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
 
 # regression test (decoys in ID files)
 add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4381,7 +4371,6 @@ add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4392,8 +4381,6 @@ add_test("TOPP_ProteomicsLFQ_2_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_2_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
 add_test("TOPP_ProteomicsLFQ_2_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
-add_test("TOPP_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
 
 add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
@@ -4422,7 +4409,6 @@ add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4434,8 +4420,6 @@ add_test("TOPP_ProteomicsLFQ_3_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_3_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
 add_test("TOPP_ProteomicsLFQ_3_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_3_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
-add_test("TOPP_ProteomicsLFQ_3_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_3_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
 
 # spectral counting
 add_test("TOPP_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4496,7 +4480,6 @@ add_test("TOPP_ProteomicsLFQ_5" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_decoys.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_decoys.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_decoys.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_decoys.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4507,8 +4490,6 @@ add_test("TOPP_ProteomicsLFQ_5_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_5_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
 add_test("TOPP_ProteomicsLFQ_5_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_decoys.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_5_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
-add_test("TOPP_ProteomicsLFQ_5_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_decoys.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_5_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
 
 # spectral counting (regression test with target + decoys)
 add_test("TOPP_ProteomicsLFQ_6" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4559,7 +4540,6 @@ add_test("TOPP_ProteomicsLFQ_7" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4570,8 +4550,6 @@ add_test("TOPP_ProteomicsLFQ_7_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_7_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
 add_test("TOPP_ProteomicsLFQ_7_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_7_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
-add_test("TOPP_ProteomicsLFQ_7_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_7_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
 
 # test empty id
 add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4591,7 +4569,6 @@ add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4602,8 +4579,6 @@ add_test("TOPP_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 add_test("TOPP_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
-add_test("TOPP_ProteomicsLFQ_8_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_8_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 
 # test single file, no experimental design (regression)
 add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4620,7 +4595,6 @@ add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4631,8 +4605,6 @@ add_test("TOPP_ProteomicsLFQ_9_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 add_test("TOPP_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
-add_test("TOPP_ProteomicsLFQ_9_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 
 # Variant of TOPP_ProteomicsLFQ_3 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
 add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4662,7 +4634,6 @@ add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4674,8 +4645,6 @@ add_test("TOPP_ProteomicsLFQ_3_seedRT_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
 add_test("TOPP_ProteomicsLFQ_3_seedRT_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
-add_test("TOPP_ProteomicsLFQ_3_seedRT_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
 
 # Variant of TOPP_ProteomicsLFQ_9 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
 add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4692,7 +4661,6 @@ add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4703,8 +4671,6 @@ add_test("TOPP_ProteomicsLFQ_9_seedRT_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 add_test("TOPP_ProteomicsLFQ_9_seedRT_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
-add_test("TOPP_ProteomicsLFQ_9_seedRT_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 
 # biosaur2 seeding algorithm smoke test (mzML input, verifies pipeline completes)
 add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
