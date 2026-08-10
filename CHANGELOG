@@ -506,6 +506,12 @@ TOPP tools:
         consensusXML input it merges protein identifications across the fractions and replicates of
         each sample; without it every ID run is merged into one. The description now says so, and
         notes that the parameter is ignored for idXML input (#9864)
+      - Fix: an input file whose type could not be determined crashed the tool (SIGABRT) instead of
+        returning an error. fatalErrorIf_ threw an int while main_ catches ExitCodes; exception
+        matching does not convert an int to an enum and TOPPBase has no catch-all, so the throw
+        escaped main(). It now returns ILLEGAL_PARAMETERS. Present since the tool was merged in
+        #3485 (2018); only reachable with an input unidentifiable by both extension and content,
+        since a recognized-but-wrong format is rejected before main_ runs (#9901)
     Triqler support removed:
       - BREAKING: Triqler export was removed from OpenMS entirely -- the TriqlerConverter tool, the
         ProteomicsLFQ -out_triqler output, and the TriqlerFile library class and its test.
