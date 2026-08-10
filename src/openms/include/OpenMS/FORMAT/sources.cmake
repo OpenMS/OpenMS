@@ -99,7 +99,6 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
-TriqlerFile.h
 UnimodXMLFile.h
 UniProtXMLFile.h
 XMLFile.h
