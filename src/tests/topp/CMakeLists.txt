@@ -1615,6 +1615,18 @@ set_tests_properties("TOPP_MetaboliteAdductDecharger_2_out2" PROPERTIES DEPENDS 
 
 #------------------------------------------------------------------------------
 # MSstatsConverter tests
+# An input whose type cannot be determined must return ILLEGAL_PARAMETERS (6), not abort.
+# fatalErrorIf_ used to throw an int while main_ catches ExitCodes, and TOPPBase has no
+# catch-all, so the throw escaped main() and the process died with SIGABRT (exit 134).
+# The exact code is the assertion: WILL_FAIL treats a crash and a clean error alike, and
+# PASS_REGULAR_EXPRESSION ignores the exit code (the FATAL line is printed in both cases).
+# Only an input that is unidentifiable by BOTH extension and content reaches this path --
+# a recognized-but-wrong format is rejected by TOPPBase before main_ runs.
+add_test(NAME "TOPP_MSstatsConverter_unknown_input_type" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/MSstatsConverter;-test;-in;${DATA_DIR_TOPP}/MSstatsConverter_unknown_type_in.dat;-in_design;${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv;-out;${TESTS_TEMP_DIR}/MSstatsConverter_unknown_type_out.tmp.csv"
+  -DEXPECTED_CODE=6
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
 add_test("TOPP_MSstatsConverter_1" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_1_in.consensusXML -retention_time_summarization_method max -in_design ${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv -out ${TESTS_TEMP_DIR}/MSstatsConverter_1_out.tmp.csv)
 add_test("TOPP_MSstatsConverter_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_1_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_1_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_1_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_1")
