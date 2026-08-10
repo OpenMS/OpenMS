@@ -10,8 +10,8 @@ This document defines the guarantee made by the pyOpenMS binding layer. General 
 
 Unless an individual OpenMS API explicitly documents stronger guarantees, follow these rules:
 
-- Do not call pyOpenMS methods concurrently on the same object. (Exception: read-only calls that neither mutate the object nor return a writable alias into it are safe to run concurrently on the same object. This does not apply if any thread is also writing.)
-- Do not read or mutate an input, output, or object reachable from either while a GIL-releasing call is using it. This includes objects obtained through reference-returning accessors and writable NumPy, memoryview, or Arrow views.
+- Do not call pyOpenMS methods concurrently on the same object unless the type or API documents concurrent read-only access. The object must be fully initialized, and no thread may write to it or receive a writable alias into it.
+- Do not read or mutate an input, output, or object reachable from either concurrently with a GIL-releasing call that can modify it or expose writable aliased storage.
 - Give each worker its own algorithm and data objects. Use copies or explicit synchronization when data must cross worker boundaries.
 - Python callbacks routed through the streaming consumer caster (used by APIs like ImzMLFile.load with a Python consumer object) reacquire the GIL before entering Python. Not all streaming-style APIs use this caster; check the specific binding's docstring.
 
@@ -35,6 +35,7 @@ When adding a GIL-releasing binding, document any API-specific concurrency guara
 ## Avoiding OpenMP oversubscription
 - Many OpenMS algorithms are internally OpenMP-parallelized, invisible from Python.
 - Combining that with your own Python-level thread pool multiplies thread count (N Python workers × M OpenMP threads per call).
-- Check current cap: `OpenMSBuildInfo.getOpenMPMaxNumThreads()` .
-- Set it: `OpenMSBuildInfo.setOpenMPNumThreads(n)` , takes precedence over `OMP_NUM_THREADS` .
-- Rule of thumb: If running P Python workers concurrently, set OpenMP threads to roughly `total_cores // P` (or 1) before spinning up the pool. This only matters when you're doing your own Python-level threading or multiprocessing, a single-threaded script calling OpenMS functions has nothing to worry about and doesn't need to touch setOpenMPNumThreads at all.
+- Check current cap: `OpenMSBuildInfo.getOpenMPMaxNumThreads()`.
+- If you need to cap oversubscription, call `OpenMSBuildInfo.setOpenMPNumThreads(n)` before entering OpenMS-parallel work. This is a task-scoped override for the current worker/context, not a single worker-global setting that automatically applies everywhere.
+- After unsetting `OMP_NUM_THREADS`, each Python worker that will do OpenMS-parallel work should call `setOpenMPNumThreads(n)` itself; setting it only in the parent process does not propagate independently to workers.
+- Rule of thumb: If running P Python workers concurrently, set OpenMP threads to roughly `total_cores // P` (or 1) in each worker before it starts OpenMS work. This only matters when you're doing your own Python-level threading or multiprocessing; a single-threaded script calling OpenMS functions has nothing to worry about and doesn't need to touch `setOpenMPNumThreads()`.
