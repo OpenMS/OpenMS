@@ -145,7 +145,7 @@ namespace OpenMS
       @brief Validate that a LightTargetedExperiment already uses canonical numeric IDs.
 
       IDs must be unique, non-negative Int64 values written in canonical decimal form
-      (e.g. @c "7", not @c "007" or @c "+7"). IDs may be sparse; filtering must not force
+      (e.g. @c "7", not @c "007", @c "+7", or @c "-0"). IDs may be sparse; filtering must not force
       renumbering. Every transition @c peptide_ref must exactly match an existing compound ID.
 
       @param[in] exp Experiment to validate.

@@ -37,7 +37,8 @@ namespace OpenMS
 
     bool hasCanonicalIDFormat_(const std::string& text) noexcept
     {
-      if (text.empty() || (text.size() > 1 && text.front() == '0'))
+      if (text.empty() || text.front() == '-' || text.front() == '+' ||
+          (text.size() > 1 && text.front() == '0'))
       {
         return false;
       }

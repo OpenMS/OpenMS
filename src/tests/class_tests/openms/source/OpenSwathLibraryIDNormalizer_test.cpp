@@ -282,6 +282,25 @@ START_SECTION(static bool hasCanonicalIDs(const OpenSwath::LightTargetedExperime
   source_style.transitions[0].peptide_ref = "PEPTIDEA";
   TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(source_style), false)
   TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(source_style), false)
+
+  // Signed zero is numerically non-negative, but it is not canonical decimal syntax.
+  OpenSwath::LightTargetedExperiment negative_zero = valid;
+  negative_zero.compounds[0].id = "-0";
+  negative_zero.transitions[0].peptide_ref = "-0";
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(negative_zero), false)
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(negative_zero), false)
+
+  OpenSwath::LightTargetedExperiment negative_leading_zero = valid;
+  negative_leading_zero.compounds[0].id = "-00";
+  negative_leading_zero.transitions[0].peptide_ref = "-00";
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(negative_leading_zero), false)
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(negative_leading_zero), false)
+
+  OpenSwath::LightTargetedExperiment positive_zero = valid;
+  positive_zero.compounds[0].id = "+0";
+  positive_zero.transitions[0].peptide_ref = "+0";
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(positive_zero), false)
+  TEST_EQUAL(OpenSwathLibraryIDNormalizer::hasCanonicalIDs(positive_zero), false)
 }
 END_SECTION
 
@@ -316,6 +335,12 @@ START_SECTION(static void validateCanonicalIDs(const OpenSwath::LightTargetedExp
   negative.transitions[0].transition_name = "-1";
   TEST_EXCEPTION(Exception::InvalidValue,
                  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(negative))
+
+  OpenSwath::LightTargetedExperiment signed_zero = valid;
+  signed_zero.compounds[0].id = "-0";
+  signed_zero.transitions[0].peptide_ref = "-0";
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 OpenSwathLibraryIDNormalizer::validateCanonicalIDs(signed_zero))
 
   OpenSwath::LightTargetedExperiment duplicate_transition = valid;
   duplicate_transition.transitions[1].transition_name = "3";
