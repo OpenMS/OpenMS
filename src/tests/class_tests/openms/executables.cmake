@@ -731,6 +731,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     PeakMapExtractor_test
     OpenSwathHelper_test
+    OpenSwathLibraryIDNormalizer_test
     OpenSwathOSWWriter_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test

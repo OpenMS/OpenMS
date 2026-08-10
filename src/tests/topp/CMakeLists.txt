@@ -1884,6 +1884,38 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     -Algorithm:min_supported_precursors 1
     -test)
 
+  # Regression for source-prefix-only decoys after canonicalization. The fixture deliberately
+  # has no explicit Decoy column. keep_matching must recover DECOY_PEPTIDEA -> PEPTIDEA from
+  # source provenance even though the operational precursor IDs have become numeric.
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy" ${TOPP_BIN_PATH}/TransitionListEvidenceFilter
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/TransitionListEvidenceFilter_prefixed_decoy_input.tsv
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.pqp
+    -out_type pqp
+    -decoy_handling keep_matching
+    -decoy_prefix DECOY_
+    -mz_extraction_window_ms1 100000
+    -mz_extraction_window_ms1_unit ppm
+    -mz_extraction_window_ms2 100
+    -mz_extraction_window_ms2_unit Th
+    -Algorithm:ms2_min_fragment_hits 1
+    -Algorithm:min_supported_precursors 1
+    -test)
+
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv" ${TOPP_BIN_PATH}/TargetedFileConverter
+    -test
+    -in ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.pqp
+    -in_type pqp
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.tsv
+    -out_type tsv)
+  set_tests_properties("TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv" PROPERTIES
+    DEPENDS "TOPP_TransitionListEvidenceFilter_prefixed_decoy")
+
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy_out1"
+    bash -c "awk -F '\t' 'NR == 1 { for (i = 1; i <= NF; ++i) if ($i == \"Decoy\") decoy_col = i; next } decoy_col && $decoy_col == 0 { ++targets } decoy_col && $decoy_col == 1 { ++decoys } END { exit !(decoy_col && targets == 4 && decoys == 4) }' '${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.tsv'")
+  set_tests_properties("TOPP_TransitionListEvidenceFilter_prefixed_decoy_out1" PROPERTIES
+    DEPENDS "TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv")
+
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.TraML -out ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output.mzML)
   set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_1")
@@ -2221,6 +2253,77 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_21_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
   set_tests_properties("TOPP_OpenSwathWorkflow_21_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
   # set_tests_properties("TOPP_OpenSwathWorkflow_21_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
+
+  # Regression for canonical numeric source IDs when TSV input is used with OSW output.
+  # OpenSwathWorkflow used to canonicalize the TSV and then apply the legacy
+  # TraML->PQP remapping a second time only for OSW output. Numeric source IDs
+  # could therefore collapse (e.g. source 1/2 -> canonical 0/1 -> remapped 0/0).
+  # Compare XIC written from the same numeric-ID TSV through featureXML and OSW
+  # output paths; the operational precursor/transition identities must be identical.
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_numeric_source_ids_input.tsv
+    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML
+    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.featureXML
+    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic
+    -Calibration:auto_irt:enabled false
+    -Calibration:windows:estimate_rt false
+    -Calibration:windows:estimate_mz false
+    -Calibration:windows:estimate_im false
+    -Calibration:RTNormalization:lowess:auto_span false
+    -Calibration:RTNormalization:lowess:span 0.6666666666666667
+    -test
+    -mz_extraction_window 0.05
+    -mz_extraction_window_unit Th
+    -ms1_isotopes 0
+    -Scoring:Scores:use_total_mi_score
+    -Scoring:Scores:use_ms1_mi false
+    -Scoring:TransitionGroupPicker:compute_peak_quality)
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_numeric_source_ids_input.tsv
+    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML
+    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids.tmp.osw
+    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic
+    -Calibration:auto_irt:enabled false
+    -Calibration:windows:estimate_rt false
+    -Calibration:windows:estimate_mz false
+    -Calibration:windows:estimate_im false
+    -Calibration:RTNormalization:lowess:auto_span false
+    -Calibration:RTNormalization:lowess:span 0.6666666666666667
+    -test
+    -mz_extraction_window 0.05
+    -mz_extraction_window_unit Th
+    -ms1_isotopes 0
+    -Scoring:Scores:use_total_mi_score
+    -Scoring:Scores:use_ms1_mi false
+    -Scoring:TransitionGroupPicker:compute_peak_quality)
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text" ${TOPP_BIN_PATH}/TextExporter
+    -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic
+    -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic.tsv
+    -out_type tsv
+    -xic:mode summary)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic")
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text" ${TOPP_BIN_PATH}/TextExporter
+    -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic
+    -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic.tsv
+    -out_type tsv
+    -xic:mode summary)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_osw_xic")
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_identity" ${DIFF}
+    -sort
+    -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic.tsv
+    -in2 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic.tsv)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_osw_identity" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text;TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text")
 
   # Test PRM workflow
   add_test("TOPP_OpenSwathWorkflow_22" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.tsv -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_22.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_22.tmp.featureXML -readOptions workingInMemory -matching_window_only "true" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false"

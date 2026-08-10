@@ -468,6 +468,10 @@ TOPP tools:
       - Fix: the OSW RUN.ID column is stored as INTEGER instead of BLOB; the BLOB type made JOINs between
         the FEATURE and RUN tables return 0 rows (#9190)
       - Fix: duplicate TLS initialization symbol for PickerPoolShared on macOS arm64/clang (#9223)
+      - Library precursor and transition identifiers are canonicalized to numeric IDs at load time
+        and preserved across chromatogram, featureXML and OSW/OSWPQ outputs. PQP/OSWPQ inputs keep
+        their stored IDs; TraML/TSV inputs are renumbered, so operational IDs for those inputs may
+        differ from earlier releases. Source identifiers are retained as provenance (#9888)
     PeakPickerIM:
       - Built-in Sage IM centroiding via bruker:ms1_centroid_mz_ppm and bruker:ms1_centroid_im_pct; when
         both are set, centroiding runs on raw gridded TOF data and the IM picking step is skipped.
