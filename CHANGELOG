@@ -146,6 +146,10 @@ PyOpenMS:
   - Fix: audit of all 108 nb::enum_ registrations against their C++ definitions found 4 enums with
     missing enumerators (NASequence::NASFragmentType, ProteomicsPkaScale, OSWHierarchy::Level,
     LPWrapper::SOLVER); existing bound values were unaffected (#9705)
+  - New src/pyOpenMS/THREAD_SAFETY.md documents the binding layer's thread-safety contract: releasing
+    the GIL around a call is not a thread-safety guarantee, the concurrency rules callers must follow,
+    an inventory of the 62 nb::gil_scoped_release sites, and how to avoid OpenMP oversubscription when
+    combining Python-level threading/multiprocessing with OpenMS' internal parallelism (#9792, #9857)
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720); backward
     compatibility restored for the file I/O methods of IdXMLFile, PepXMLFile and MzIdentMLFile (#8553);
     getAAFrequencies() loop bug in the AASequence addon (#8502)
