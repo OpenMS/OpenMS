@@ -224,6 +224,18 @@ class TestImzMLFile(unittest.TestCase):
         finally:
             od.close()
 
+    def test_get_options_returns_live_reference(self):
+        # getOptions() must hand out a reference, not a copy: the usual
+        # `obj.getOptions().setX(...)` idiom has to stick.
+        od = pyopenms.OnDiscImzMLExperiment()
+        self.assertFalse(od.getOptions().getStrictImagingGeometry())
+        od.getOptions().setStrictImagingGeometry(True)
+        self.assertTrue(od.getOptions().getStrictImagingGeometry())
+
+        f = pyopenms.ImzMLFile()
+        f.getOptions().setStrictImagingGeometry(True)
+        self.assertTrue(f.getOptions().getStrictImagingGeometry())
+
     def test_store_round_trip(self):
         import tempfile
 
@@ -311,7 +323,7 @@ class TestImzMLFile(unittest.TestCase):
             if os.path.isfile(out_path):
                 os.remove(out_path)
 
-    def test_store_rejects_duplicate_pixel_coordinates(self):
+    def test_store_rejects_duplicate_pixel_coordinates_when_strict(self):
         import tempfile
 
         exp = pyopenms.MSExperiment()
@@ -321,11 +333,37 @@ class TestImzMLFile(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
         try:
+            f = pyopenms.ImzMLFile()
+            f.getOptions().setStrictImagingGeometry(True)
             with self.assertRaises(Exception):
-                pyopenms.ImzMLFile().store(out_path, exp)
+                f.store(out_path, exp)
         finally:
             if os.path.isfile(out_path):
                 os.remove(out_path)
+
+    def test_store_tolerates_duplicate_pixel_coordinates_by_default(self):
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 100.0, 1000.0))
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 101.0, 900.0))
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        ibd_path = out_path[: -len(".imzML")] + ".ibd"
+        try:
+            f = pyopenms.ImzMLFile()
+            f.store(out_path, exp)
+
+            # Both spectra are written; only the first claims the shared pixel on re-read.
+            img = pyopenms.MSImagingExperiment()
+            f.load(out_path, img)
+            self.assertEqual(img.getMSExperiment().getNrSpectra(), 2)
+            self.assertEqual(img.getGeometry().getNumberOfPixels(), 1)
+        finally:
+            for p in (out_path, ibd_path):
+                if os.path.isfile(p):
+                    os.remove(p)
 
     def test_store_rejects_incompatible_continuous_mode(self):
         import tempfile
@@ -344,13 +382,23 @@ class TestImzMLFile(unittest.TestCase):
             if os.path.isfile(out_path):
                 os.remove(out_path)
 
-    def test_build_imaging_geometry_rejects_duplicate_pixels(self):
+    def test_build_imaging_geometry_rejects_duplicate_pixels_when_strict(self):
         exp = pyopenms.MSExperiment()
         exp.addSpectrum(self._make_pixel_spectrum(1, 1, 100.0, 1000.0))
         exp.addSpectrum(self._make_pixel_spectrum(1, 1, 101.0, 900.0))
         geom = pyopenms.MSImagingGeometry()
         with self.assertRaises(Exception):
-            pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
+            pyopenms.ImzMLFile.buildImagingGeometry(exp, geom, True)
+
+    def test_build_imaging_geometry_tolerates_duplicate_pixels_by_default(self):
+        exp = pyopenms.MSExperiment()
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 100.0, 1000.0))
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 101.0, 900.0))
+        exp.addSpectrum(self._make_pixel_spectrum(2, 1, 102.0, 800.0))
+        geom = pyopenms.MSImagingGeometry()
+        pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
+        self.assertEqual(geom.getNumberOfPixels(), 2)
+        self.assertEqual(geom.getSpectrumIndex(0, 0), 0)
 
     def test_store_applies_mz_range_filter(self):
         import tempfile

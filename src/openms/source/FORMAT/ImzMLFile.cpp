@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ImzMLFile.h>
@@ -230,14 +230,14 @@ void ImzMLFile::load(const std::string& filename, MSImagingExperiment& exp)
   // not by reading imzml:x/y MetaValues back off the spectra. index[i] corresponds to
   // spectrum i in ms_exp (both driven by the same delivery order).
   MSImagingGeometry geom;
-  buildImagingGeometry(index, meta, geom);
+  buildImagingGeometry(index, meta, geom, options_.getStrictImagingGeometry());
 
   exp.setMSExperiment(std::move(ms_exp));
   exp.setGeometry(std::move(geom));
   exp.validate();
 }
 
-void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom)
+void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom, const bool strict)
 {
   geom.clear();
 
@@ -258,6 +258,7 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
 
   UInt max_x = 0;
   UInt max_y = 0;
+  std::vector<Size> duplicate_spectra;  // spectrum indices dropped from the geometry
   const Size n_spectra = exp.getNrSpectra();
   for (Size i = 0; i < n_spectra; ++i)
   {
@@ -304,7 +305,43 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
     }
     max_x = std::max(max_x, x);
     max_y = std::max(max_y, y);
-    geom.addPixel(x, y, i); // still throws Exception::InvalidValue on duplicate coordinates
+    if (geom.hasPixel(x, y))
+    {
+      if (strict) // throw only when strict == True, otherwise the spectrum is just not in geom
+      {
+        throw Exception::InvalidValue(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,
+          "duplicate imzML pixel coordinates",
+          "x=" + StringUtils::toStr(x_imz) + ",y=" + StringUtils::toStr(y_imz));
+      }
+      duplicate_spectra.push_back(i);
+      continue;
+    }
+    geom.addPixel(x, y, i);
+  }
+  if (!duplicate_spectra.empty())
+  {
+    // Cap the listing: an experiment where every spectrum shares one pixel must not produce
+    // a multi-megabyte log line.
+    const Size max_listed = 20;
+    const Size listed = std::min(max_listed, duplicate_spectra.size());
+    std::string indices;
+    for (Size k = 0; k < listed; ++k)
+    {
+      if (k > 0) { indices += ", "; }
+      const MSSpectrum& d = exp[duplicate_spectra[k]];
+      indices += StringUtils::toStr(duplicate_spectra[k])
+                 + " (x=" + d.getMetaValue("imzml:x").toString()
+                 + ",y=" + d.getMetaValue("imzml:y").toString() + ")";
+    }
+    if (listed < duplicate_spectra.size())
+    {
+      indices += ", ... and " + StringUtils::toStr(duplicate_spectra.size() - listed) + " more";
+    }
+    OPENMS_LOG_WARN << "imzML: " << duplicate_spectra.size() << " of " << n_spectra
+                    << " spectra reuse a pixel coordinate already taken by an earlier spectrum. "
+                    << "Only the first spectrum per pixel is mapped into the imaging geometry; "
+                    << "all spectra remain reachable by index. Affected spectra: "
+                    << indices << "." << std::endl;
   }
 
   if (width == 0 && (max_x > 0 || geom.getNumberOfPixels() > 0))
@@ -331,7 +368,8 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
 
 void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index,
                                      const ImzMLMeta& meta,
-                                     MSImagingGeometry& geom)
+                                     MSImagingGeometry& geom,
+                                     const bool strict)
 {
   // Source-of-truth geometry builder: coordinates come straight from the parsed index
   // (1-based imzML), not from imzml:x/y MetaValues. Shared by ImzMLFile::load(MSImagingExperiment&)
@@ -347,6 +385,7 @@ void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& inde
 
   UInt max_x = 0;
   UInt max_y = 0;
+  std::vector<Size> duplicate_spectra;  // spectrum indices dropped from the geometry
   for (Size i = 0; i < index.size(); ++i)
   {
     const ImzMLSpectrumIndex& e = index[i];
@@ -377,9 +416,42 @@ void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& inde
     }
     max_x = std::max(max_x, x);
     max_y = std::max(max_y, y);
-    geom.addPixel(x, y, i); // throws Exception::InvalidValue on duplicate coordinates
+    if (geom.hasPixel(x, y))
+    {
+      if (strict) // throw only when strict == True, otherwise spectrum is loaded but not in geom
+      {
+        throw Exception::InvalidValue(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,
+          "duplicate imzML pixel coordinates",
+          "x=" + StringUtils::toStr(x+1) + ",y=" + StringUtils::toStr(y+1));
+      }
+      duplicate_spectra.push_back(i);
+      continue;
+    }
+    geom.addPixel(x, y, i);
   }
-
+  if (!duplicate_spectra.empty())
+  {
+    // A broken converter can put every spectrum on the same pixel, so cap the listing.
+    const Size max_listed = 20;
+    const Size listed = std::min(max_listed, duplicate_spectra.size());
+    std::string indices;
+    for (Size k = 0; k < listed; ++k)
+    {
+      if (k > 0) { indices += ", "; }
+      const ImzMLSpectrumIndex& d = index[duplicate_spectra[k]];
+      indices += StringUtils::toStr(duplicate_spectra[k]) + " (x=" + StringUtils::toStr(d.x)
+                 + ",y=" + StringUtils::toStr(d.y) + ")";
+    }
+    if (listed < duplicate_spectra.size())
+    {
+      indices += ", ... and " + StringUtils::toStr(duplicate_spectra.size() - listed) + " more";
+    }
+    OPENMS_LOG_WARN << "imzML: " << duplicate_spectra.size() << " of " << index.size()
+                    << " spectra reuse a pixel coordinate already taken by an earlier spectrum. "
+                    << "Only the first spectrum per pixel is mapped into the imaging geometry; "
+                    << "all spectra remain reachable by index. Affected spectra: "
+                    << indices << "." << std::endl;
+  }
   if (width == 0 && (max_x > 0 || geom.getNumberOfPixels() > 0))
   {
     width = max_x + 1;

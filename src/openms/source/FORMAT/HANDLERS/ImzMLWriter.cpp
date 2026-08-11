@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
@@ -81,7 +82,10 @@ namespace
     return p;
   }
 
-  void validatePixelMetadataForStore_(const MSExperiment& exp)
+  /// Validate the per-spectrum imzML pixel MetaValues. Duplicate coordinates abort the
+  /// store only in @p strict mode; otherwise they are written out with a warning, mirroring
+  /// what the reader accepts (a file that loads must be storable again).
+  void validatePixelMetadataForStore_(const MSExperiment& exp, bool strict)
   {
     struct PixelKey
     {
@@ -108,6 +112,7 @@ namespace
 
     std::unordered_set<PixelKey, PixelKeyHash> seen;
     seen.reserve(exp.size());
+    std::vector<Size> duplicate_spectra; // spectrum indices reusing an earlier pixel
 
     for (Size i = 0; i < exp.size(); ++i)
     {
@@ -144,10 +149,40 @@ namespace
                           static_cast<uint32_t>(z_imz)};
       if (!seen.emplace(key).second)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Duplicate pixel coordinate",
-                                      "(" + OpenMS::StringConversions::toString(x_imz) + "," + OpenMS::StringConversions::toString(y_imz) + "," + OpenMS::StringConversions::toString(z_imz) + ") at spectrum " + OpenMS::StringConversions::toString(i));
+        if (strict)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Duplicate pixel coordinate",
+                                        "(" + OpenMS::StringConversions::toString(x_imz) + "," + OpenMS::StringConversions::toString(y_imz) + "," + OpenMS::StringConversions::toString(z_imz) + ") at spectrum " + OpenMS::StringConversions::toString(i));
+        }
+        duplicate_spectra.push_back(i);
       }
+    }
+
+    if (!duplicate_spectra.empty())
+    {
+      // Cap the listing: a file where every spectrum shares one pixel must not produce a
+      // multi-megabyte log line.
+      const Size max_listed = 20;
+      const Size listed = std::min(max_listed, duplicate_spectra.size());
+      std::string indices;
+      for (Size k = 0; k < listed; ++k)
+      {
+        if (k > 0) { indices += ", "; }
+        const MSSpectrum& spec = exp[duplicate_spectra[k]];
+        indices += OpenMS::StringConversions::toString(duplicate_spectra[k])
+                   + " (x=" + spec.getMetaValue("imzml:x").toString()
+                   + ",y=" + spec.getMetaValue("imzml:y").toString() + ")";
+      }
+      if (listed < duplicate_spectra.size())
+      {
+        indices += ", ... and " + OpenMS::StringConversions::toString(duplicate_spectra.size() - listed) + " more";
+      }
+      OPENMS_LOG_WARN << "imzML: " << duplicate_spectra.size() << " of " << exp.size()
+                      << " spectra reuse a pixel coordinate already taken by an earlier spectrum. "
+                      << "They are written out as-is, but readers will map only the first spectrum "
+                      << "per pixel into the imaging geometry. Affected spectra: "
+                      << indices << "." << std::endl;
     }
   }
 
@@ -1125,7 +1160,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
                                         "Cannot store empty MSExperiment as imzML (all spectra removed by PeakFileOptions filters?)");
   }
 
-  validatePixelMetadataForStore_(work);
+  validatePixelMetadataForStore_(work, options.getStrictImagingGeometry());
 
   ImzMLMeta meta = extractMeta_(work);
   const bool continuous = isContinuousMode_(work, meta);

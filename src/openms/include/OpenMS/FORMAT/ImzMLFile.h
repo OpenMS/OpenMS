@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -107,7 +107,9 @@ namespace OpenMS
       @p loadSpectraIndex and @p OnDiscImzMLExperiment. Coordinates are converted
       from imzML's 1-based convention to zero-based pixel indices; only spectra
       with z = 1 are indexed (2-D datasets). Out-of-grid or &lt; 1 coordinates
-      are skipped with a warning; duplicates raise Exception::InvalidValue.
+      are skipped with a warning, and so are duplicate coordinates (only the first
+      spectrum per pixel enters the geometry) unless
+      @p PeakFileOptions::setStrictImagingGeometry(true) was set.
 
       Use @p MSImagingExperiment::getSpectrum(x, y) to fetch spectra by pixel
       without re-reading the @c .ibd file.
@@ -117,7 +119,8 @@ namespace OpenMS
 
       @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
       @throws Exception::ParseError   if the XML is malformed.
-      @throws Exception::InvalidValue if pixel coordinates are duplicate.
+      @throws Exception::InvalidValue if pixel coordinates are duplicate and
+              @p PeakFileOptions::getStrictImagingGeometry() is @c true.
     */
     void load(const std::string& filename, MSImagingExperiment& exp);
 
@@ -128,7 +131,10 @@ namespace OpenMS
       present and registers each spectrum that carries @p imzml:x/y (and
       @p imzml:z = 1). Coordinates are converted from imzML's 1-based convention
       to zero-based geometry indices. Out-of-grid or &lt; 1 coordinates are
-      warned and skipped; duplicates raise Exception::InvalidValue.
+      warned and skipped. Duplicate coordinates are likewise warned and dropped
+      from the geometry (only the first spectrum per pixel is mapped; every
+      spectrum stays reachable by index) unless @p strict is set, matching what
+      the loaders accept for the same dataset.
 
       Prefer the index-based overload when a spectrum index is available (used
       by the loaders). This MetaValue-based path is for experiments already
@@ -136,10 +142,11 @@ namespace OpenMS
 
       @param[in] exp  Experiment previously loaded from imzML (e.g. via @p load or @p FileHandler).
       @param[out] geom Geometry to populate (cleared first).
+      @param[in] strict Abort on duplicate pixel coordinates instead of warning and dropping them.
 
-      @throws Exception::InvalidValue on duplicate pixel coordinates.
+      @throws Exception::InvalidValue on duplicate pixel coordinates if @p strict is set.
     */
-    static void buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom);
+    static void buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom, bool strict = false);
 
     /**
       @brief Build @p MSImagingGeometry directly from a parsed imzML spectrum index.
@@ -149,17 +156,22 @@ namespace OpenMS
       @p imzml:x/y MetaValues), mirroring how BrukerTimsImagingFile populates its geometry.
       Each index entry's 1-based (x, y) with z = 1 is registered as a zero-based pixel bound
       to that spectrum; dimensions and pixel size come from @p meta. Out-of-grid or < 1
-      coordinates are warned and skipped; duplicates raise Exception::InvalidValue.
+      coordinates are warned and skipped.
 
       @param[in]  index Per-spectrum index entries (e.g. from @p loadSpectraIndex or the loader).
       @param[in]  meta  Dataset metadata (grid dimensions, pixel size).
       @param[out] geom  Geometry to populate (cleared first).
+      @param[in]  strict If @p true, a duplicate pixel coordinate raises
+                         Exception::InvalidValue. If @p false, duplicates are warned about and
+                         only the first spectrum per pixel enters the geometry; all spectra stay
+                         reachable by linear index. See @p PeakFileOptions::setStrictImagingGeometry.
 
-      @throws Exception::InvalidValue on duplicate pixel coordinates.
+      @throws Exception::InvalidValue on duplicate pixel coordinates (only if @p strict).
     */
     static void buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index,
                                      const ImzMLMeta& meta,
-                                     MSImagingGeometry& geom);
+                                     MSImagingGeometry& geom,
+                                     bool strict = false);
 
     /**
       @brief Stream-load an imzML file into a consumer.
@@ -222,11 +234,15 @@ namespace OpenMS
       written when present. @p PeakFileOptions control binary precision and
       optional spectrum/peak filtering during export.
 
+      Spectra sharing a pixel coordinate are written out as-is with a warning, matching
+      what @p load accepts for the same dataset. Set
+      @p getOptions().setStrictImagingGeometry(true) to abort the store instead.
+
       @param[in] filename Path to the output @c .imzML file.
       @param[in] exp      Experiment with spectra and optional imzML MetaValues.
 
       @throws Exception::MissingInformation if @p exp has no spectra or lacks imzml:x/y.
-      @throws Exception::InvalidValue if pixel coordinates are invalid or duplicate.
+      @throws Exception::InvalidValue if pixel coordinates are invalid, or duplicate under strict imaging geometry.
       @throws Exception::InvalidParameter if continuous export is requested but spectra are incompatible.
       @throws Exception::UnableToCreateFile if output files cannot be written.
       @throws Exception::ParseError if binary array serialization fails.
@@ -248,7 +264,8 @@ namespace OpenMS
       @param[in] exp      Imaging experiment to store.
 
       @throws Exception::InvalidValue if a geometry pixel references a spectrum index outside
-              the experiment, or pixel coordinates are invalid or duplicate.
+              the experiment, if pixel coordinates are invalid, or if they are duplicate under
+              strict imaging geometry.
       @throws Exception::UnableToCreateFile if output files cannot be written.
     */
     void store(const std::string& filename, const MSImagingExperiment& exp) const;
