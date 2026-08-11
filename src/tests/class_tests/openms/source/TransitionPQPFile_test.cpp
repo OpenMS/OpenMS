@@ -16,8 +16,12 @@
 
 #include <boost/assign/std/vector.hpp>
 
+#include <map>
+#include <set>
+
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -139,6 +143,19 @@ START_SECTION([EXTRA] test reading PQP with empty GENE table (issue #8687))
   TEST_EQUAL(light_exp.transitions.size(), 1)
   TEST_EQUAL(light_exp.compounds.size(), 1)
   TEST_EQUAL(light_exp.proteins.size(), 1)
+  TEST_EQUAL(light_exp.compounds[0].id, "precursor_1")
+  TEST_EQUAL(light_exp.transitions[0].transition_name, "transition_1")
+  TEST_EQUAL(light_exp.transitions[0].peptide_ref, "precursor_1")
+
+  // Default OpenSWATH processing uses persistent PQP IDs, not TRAML_ID.
+  OpenSwath::LightTargetedExperiment canonical_light_exp;
+  pqp_reader.convertPQPToTargetedExperiment(temp_file.c_str(), canonical_light_exp);
+
+  TEST_EQUAL(canonical_light_exp.transitions.size(), 1)
+  TEST_EQUAL(canonical_light_exp.compounds.size(), 1)
+  TEST_EQUAL(canonical_light_exp.compounds[0].id, "0")
+  TEST_EQUAL(canonical_light_exp.transitions[0].transition_name, "0")
+  TEST_EQUAL(canonical_light_exp.transitions[0].peptide_ref, "0")
 
 }
 END_SECTION
@@ -202,6 +219,176 @@ START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not dupl
   }
   TEST_EQUAL(transition_group.getTransitions().size(), 1)
   TEST_EQUAL(transition_group.hasTransition("transition_1"), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Light PQP writer preserves canonical zero/sparse IDs and precursor provenance)
+{
+  OpenSwath::LightTargetedExperiment canonical;
+
+  OpenSwath::LightProtein protein;
+  protein.id = "ProteinA";
+  canonical.proteins.push_back(protein);
+
+  OpenSwath::LightCompound a;
+  a.id = "0";
+  a.sequence = "PEPTIDEA";
+  a.charge = 2;
+  a.rt = 10.0;
+  a.protein_refs.push_back("ProteinA");
+  canonical.compounds.push_back(a);
+
+  OpenSwath::LightCompound b;
+  b.id = "7";
+  b.sequence = "PEPTIDEB";
+  b.charge = 3;
+  b.rt = 20.0;
+  b.protein_refs.push_back("ProteinA");
+  canonical.compounds.push_back(b);
+
+  OpenSwath::LightTransition t0;
+  t0.transition_name = "3";
+  t0.peptide_ref = "0";
+  t0.precursor_mz = 500.0;
+  t0.product_mz = 300.0;
+  t0.setDetectingTransition(true);
+  canonical.transitions.push_back(t0);
+
+  OpenSwath::LightTransition t1;
+  t1.transition_name = "100";
+  t1.peptide_ref = "7";
+  t1.precursor_mz = 600.0;
+  t1.product_mz = 400.0;
+  t1.setDetectingTransition(true);
+  canonical.transitions.push_back(t1);
+
+  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(canonical);
+
+  OpenSwathLibraryIDNormalizer::SourceIDMapping source_ids;
+  source_ids.precursor_source_to_canonical = {{"source_A", "0"}, {"DECOY_source_B", "7"}};
+  source_ids.precursor_canonical_to_source = {{"0", "source_A"}, {"7", "DECOY_source_B"}};
+  source_ids.transition_canonical_to_source = {{"3", "source_tr_A"}, {"100", "DECOY_source_tr_B"}};
+
+  std::string pqp_file;
+  NEW_TMP_FILE(pqp_file);
+
+  TransitionPQPFile writer;
+  writer.convertLightTargetedExperimentToPQP(pqp_file.c_str(), canonical, &source_ids);
+
+  OpenSwath::LightTargetedExperiment roundtrip;
+  writer.convertPQPToTargetedExperiment(pqp_file.c_str(), roundtrip);
+  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(roundtrip);
+
+  TEST_EQUAL(roundtrip.compounds.size(), 2)
+  TEST_EQUAL(roundtrip.transitions.size(), 2)
+
+  std::set<std::string> precursor_ids;
+  for (const auto& compound : roundtrip.compounds) precursor_ids.insert(compound.id);
+  TEST_EQUAL(precursor_ids.count("0"), 1)
+  TEST_EQUAL(precursor_ids.count("7"), 1)
+
+  std::map<std::string, std::string> transition_to_precursor;
+  for (const auto& transition : roundtrip.transitions)
+  {
+    transition_to_precursor[transition.transition_name] = transition.peptide_ref;
+  }
+  TEST_EQUAL(transition_to_precursor.at("3"), "0")
+  TEST_EQUAL(transition_to_precursor.at("100"), "7")
+
+  const auto provenance = writer.getPQPIDToTraMLIDMap(pqp_file.c_str(), "PRECURSOR");
+  TEST_EQUAL(provenance.at("source_A"), "0")
+  TEST_EQUAL(provenance.at("DECOY_source_B"), "7")
+
+  const auto transition_provenance = writer.getPQPIDToTraMLIDMap(pqp_file.c_str(), "TRANSITION");
+  TEST_EQUAL(transition_provenance.at("source_tr_A"), "3")
+  TEST_EQUAL(transition_provenance.at("DECOY_source_tr_B"), "100")
+
+  const auto precursor_current_to_source = writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "PRECURSOR");
+  TEST_EQUAL(precursor_current_to_source.at("0"), "source_A")
+  TEST_EQUAL(precursor_current_to_source.at("7"), "DECOY_source_B")
+  const auto transition_current_to_source = writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "TRANSITION");
+  TEST_EQUAL(transition_current_to_source.at("3"), "source_tr_A")
+  TEST_EQUAL(transition_current_to_source.at("100"), "DECOY_source_tr_B")
+
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 writer.getPQPIDToTraMLIDMap(pqp_file.c_str(), "PRECURSOR; DROP TABLE PRECURSOR"))
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "INVALID"))
+
+  // A canonical-looking but malformed experiment must be rejected instead of being
+  // silently renumbered by the compatibility writer.
+  OpenSwath::LightTargetedExperiment malformed = canonical;
+  malformed.transitions[1].transition_name = malformed.transitions[0].transition_name;
+  std::string malformed_pqp_file;
+  NEW_TMP_FILE(malformed_pqp_file);
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 writer.convertLightTargetedExperimentToPQP(malformed_pqp_file.c_str(), malformed))
+}
+END_SECTION
+
+START_SECTION([EXTRA] numeric source IDs remain distinct through canonicalization and PQP/OSW library preparation)
+{
+  // Regression for the former TSV -> OSW remap collision. Source precursor IDs
+  // "1" and "2" normalize to canonical IDs "0" and "1". The persistent Light
+  // writer must preserve those canonical values rather than interpreting "1"
+  // again as a source TRAML_ID and collapsing both precursors onto ID 0.
+  OpenSwath::LightTargetedExperiment source_exp;
+
+  OpenSwath::LightProtein protein;
+  protein.id = "ProteinA";
+  source_exp.proteins.push_back(protein);
+
+  OpenSwath::LightCompound c1;
+  c1.id = "1";
+  c1.sequence = "PEPTIDEA";
+  c1.charge = 2;
+  c1.protein_refs.push_back("ProteinA");
+  source_exp.compounds.push_back(c1);
+
+  OpenSwath::LightCompound c2;
+  c2.id = "2";
+  c2.sequence = "PEPTIDEB";
+  c2.charge = 2;
+  c2.protein_refs.push_back("ProteinA");
+  source_exp.compounds.push_back(c2);
+
+  OpenSwath::LightTransition t1;
+  t1.transition_name = "1";
+  t1.peptide_ref = "1";
+  t1.precursor_mz = 500.0;
+  t1.product_mz = 300.0;
+  source_exp.transitions.push_back(t1);
+
+  OpenSwath::LightTransition t2;
+  t2.transition_name = "2";
+  t2.peptide_ref = "2";
+  t2.precursor_mz = 600.0;
+  t2.product_mz = 400.0;
+  source_exp.transitions.push_back(t2);
+
+  const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(source_exp);
+  TEST_EQUAL(source_ids.precursor_source_to_canonical.at("1"), "0")
+  TEST_EQUAL(source_ids.precursor_source_to_canonical.at("2"), "1")
+  TEST_EQUAL(source_exp.transitions[0].peptide_ref, "0")
+  TEST_EQUAL(source_exp.transitions[1].peptide_ref, "1")
+
+  std::string pqp_file;
+  NEW_TMP_FILE(pqp_file);
+  TransitionPQPFile writer;
+  writer.convertLightTargetedExperimentToPQP(pqp_file.c_str(), source_exp, &source_ids);
+
+  OpenSwath::LightTargetedExperiment roundtrip;
+  writer.convertPQPToTargetedExperiment(pqp_file.c_str(), roundtrip);
+  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(roundtrip);
+
+  std::set<std::string> precursor_ids;
+  for (const auto& compound : roundtrip.compounds) precursor_ids.insert(compound.id);
+  TEST_EQUAL(precursor_ids.size(), 2)
+  TEST_EQUAL(precursor_ids.count("0"), 1)
+  TEST_EQUAL(precursor_ids.count("1"), 1)
+
+  TEST_EQUAL(roundtrip.transitions.size(), 2)
+  TEST_EQUAL(roundtrip.transitions[0].peptide_ref == roundtrip.transitions[1].peptide_ref, false)
 }
 END_SECTION
 

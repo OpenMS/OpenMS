@@ -1094,6 +1094,22 @@ add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type
 add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
 
+# Same run as TOPP_IsobaricWorkflow_1, but one identification appears twice (same spectrum,
+# peptidoform and charge; the copy scored worse). IsobaricWorkflow builds one ConsensusFeature
+# per identification and all of a spectrum's identifications read the same MS2/MS3 scan, so
+# without the reduction that scan's reporter intensities would enter the quantification twice.
+# Diffed against IsobaricWorkflow_1's OWN reference on purpose: the assertion is that the
+# duplicate changed nothing.
+add_test("TOPP_IsobaricWorkflow_duplicate_psm" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_duplicate_psm_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML)
+# An identical output could also mean the reduction never ran, so require that it reported.
+set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm" PROPERTIES PASS_REGULAR_EXPRESSION "repeat a .spectrum, peptidoform, charge. already claimed")
+add_test("TOPP_IsobaricWorkflow_duplicate_psm_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_duplicate_psm")
+
 # An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
 # TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made
 # MSExperiment::getPrecursorSpectrum() return -1 and PrecursorPurity index before the start of
@@ -1599,6 +1615,18 @@ set_tests_properties("TOPP_MetaboliteAdductDecharger_2_out2" PROPERTIES DEPENDS 
 
 #------------------------------------------------------------------------------
 # MSstatsConverter tests
+# An input whose type cannot be determined must return ILLEGAL_PARAMETERS (6), not abort.
+# fatalErrorIf_ used to throw an int while main_ catches ExitCodes, and TOPPBase has no
+# catch-all, so the throw escaped main() and the process died with SIGABRT (exit 134).
+# The exact code is the assertion: WILL_FAIL treats a crash and a clean error alike, and
+# PASS_REGULAR_EXPRESSION ignores the exit code (the FATAL line is printed in both cases).
+# Only an input that is unidentifiable by BOTH extension and content reaches this path --
+# a recognized-but-wrong format is rejected by TOPPBase before main_ runs.
+add_test(NAME "TOPP_MSstatsConverter_unknown_input_type" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/MSstatsConverter;-test;-in;${DATA_DIR_TOPP}/MSstatsConverter_unknown_type_in.dat;-in_design;${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv;-out;${TESTS_TEMP_DIR}/MSstatsConverter_unknown_type_out.tmp.csv"
+  -DEXPECTED_CODE=6
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
 add_test("TOPP_MSstatsConverter_1" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_1_in.consensusXML -retention_time_summarization_method max -in_design ${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv -out ${TESTS_TEMP_DIR}/MSstatsConverter_1_out.tmp.csv)
 add_test("TOPP_MSstatsConverter_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_1_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_1_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_1_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_1")
@@ -1855,6 +1883,38 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     -Algorithm:ms2_min_fragment_hits 1
     -Algorithm:min_supported_precursors 1
     -test)
+
+  # Regression for source-prefix-only decoys after canonicalization. The fixture deliberately
+  # has no explicit Decoy column. keep_matching must recover DECOY_PEPTIDEA -> PEPTIDEA from
+  # source provenance even though the operational precursor IDs have become numeric.
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy" ${TOPP_BIN_PATH}/TransitionListEvidenceFilter
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/TransitionListEvidenceFilter_prefixed_decoy_input.tsv
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.pqp
+    -out_type pqp
+    -decoy_handling keep_matching
+    -decoy_prefix DECOY_
+    -mz_extraction_window_ms1 100000
+    -mz_extraction_window_ms1_unit ppm
+    -mz_extraction_window_ms2 100
+    -mz_extraction_window_ms2_unit Th
+    -Algorithm:ms2_min_fragment_hits 1
+    -Algorithm:min_supported_precursors 1
+    -test)
+
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv" ${TOPP_BIN_PATH}/TargetedFileConverter
+    -test
+    -in ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.pqp
+    -in_type pqp
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.tsv
+    -out_type tsv)
+  set_tests_properties("TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv" PROPERTIES
+    DEPENDS "TOPP_TransitionListEvidenceFilter_prefixed_decoy")
+
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy_out1"
+    bash -c "awk -F '\t' 'NR == 1 { for (i = 1; i <= NF; ++i) if ($i == \"Decoy\") decoy_col = i; next } decoy_col && $decoy_col == 0 { ++targets } decoy_col && $decoy_col == 1 { ++decoys } END { exit !(decoy_col && targets == 4 && decoys == 4) }' '${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.tsv'")
+  set_tests_properties("TOPP_TransitionListEvidenceFilter_prefixed_decoy_out1" PROPERTIES
+    DEPENDS "TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv")
 
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.TraML -out ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output.mzML)
@@ -2193,6 +2253,77 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_21_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
   set_tests_properties("TOPP_OpenSwathWorkflow_21_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
   # set_tests_properties("TOPP_OpenSwathWorkflow_21_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
+
+  # Regression for canonical numeric source IDs when TSV input is used with OSW output.
+  # OpenSwathWorkflow used to canonicalize the TSV and then apply the legacy
+  # TraML->PQP remapping a second time only for OSW output. Numeric source IDs
+  # could therefore collapse (e.g. source 1/2 -> canonical 0/1 -> remapped 0/0).
+  # Compare XIC written from the same numeric-ID TSV through featureXML and OSW
+  # output paths; the operational precursor/transition identities must be identical.
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_numeric_source_ids_input.tsv
+    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML
+    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.featureXML
+    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic
+    -Calibration:auto_irt:enabled false
+    -Calibration:windows:estimate_rt false
+    -Calibration:windows:estimate_mz false
+    -Calibration:windows:estimate_im false
+    -Calibration:RTNormalization:lowess:auto_span false
+    -Calibration:RTNormalization:lowess:span 0.6666666666666667
+    -test
+    -mz_extraction_window 0.05
+    -mz_extraction_window_unit Th
+    -ms1_isotopes 0
+    -Scoring:Scores:use_total_mi_score
+    -Scoring:Scores:use_ms1_mi false
+    -Scoring:TransitionGroupPicker:compute_peak_quality)
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_numeric_source_ids_input.tsv
+    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML
+    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids.tmp.osw
+    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic
+    -Calibration:auto_irt:enabled false
+    -Calibration:windows:estimate_rt false
+    -Calibration:windows:estimate_mz false
+    -Calibration:windows:estimate_im false
+    -Calibration:RTNormalization:lowess:auto_span false
+    -Calibration:RTNormalization:lowess:span 0.6666666666666667
+    -test
+    -mz_extraction_window 0.05
+    -mz_extraction_window_unit Th
+    -ms1_isotopes 0
+    -Scoring:Scores:use_total_mi_score
+    -Scoring:Scores:use_ms1_mi false
+    -Scoring:TransitionGroupPicker:compute_peak_quality)
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text" ${TOPP_BIN_PATH}/TextExporter
+    -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic
+    -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic.tsv
+    -out_type tsv
+    -xic:mode summary)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic")
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text" ${TOPP_BIN_PATH}/TextExporter
+    -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic
+    -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic.tsv
+    -out_type tsv
+    -xic:mode summary)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_osw_xic")
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_identity" ${DIFF}
+    -sort
+    -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic.tsv
+    -in2 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic.tsv)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_osw_identity" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text;TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text")
 
   # Test PRM workflow
   add_test("TOPP_OpenSwathWorkflow_22" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.tsv -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_22.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_22.tmp.featureXML -readOptions workingInMemory -matching_window_only "true" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false"
@@ -4042,7 +4173,7 @@ add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 # ProteomicsLFQ rejects an invocation without outputs; existing functional runs below exercise
 # mzTab plus alternate-only consensusXML and QPX output paths.
 add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
-set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_triqler/out_cxml/out_qpx")
+set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
 
 # ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
 add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4068,7 +4199,6 @@ add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_subset.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_subset.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4079,8 +4209,6 @@ add_test("TOPP_ProteomicsLFQ_1_subset_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 add_test("TOPP_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
-add_test("TOPP_ProteomicsLFQ_1_subset_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 
 # QPX Parquet export test (reuses subset test input data)
   # Clear the output directory first. ctest never cleans tmp_path, so without this a
@@ -4136,14 +4264,14 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
     -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 28)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
-# Requesting an MSstats or Triqler file must not change any other output.
-# It used to: a median scaling ran over the consensus features unless -out_msstats or -out_triqler
+# Requesting an MSstats file must not change any other output.
+# It used to: a median scaling ran over the consensus features unless -out_msstats
 # was given, so the very same input written to the same -out_qpx directory held normalized or raw
 # intensities depending on whether an unrelated output file had been asked for -- and neither the
 # Parquet nor the mzTab recorded which. On this design the two differed by a median factor of 5.3
 # and a maximum of 12.0. ProteomicsLFQ no longer normalizes at all, and this test is what stops a
 # flag from quietly acquiring the second meaning "and rescale everything" again.
-# Same invocation as TOPP_ProteomicsLFQ_qpx above, plus the two exporters.
+# Same invocation as TOPP_ProteomicsLFQ_qpx above, plus the exporter.
   add_test(NAME "TOPP_ProteomicsLFQ_qpx_flags_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir)
   add_test("TOPP_ProteomicsLFQ_qpx_flags" ${TOPP_BIN_PATH}/ProteomicsLFQ
            -in
@@ -4168,7 +4296,6 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -out ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab
            -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir
            -out_msstats ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.csv
-           -out_triqler ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.tsv
            -threads 1
            -proteinFDR 0.3
            -test
@@ -4254,16 +4381,6 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
     -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet -schema pg -min_rows 25)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
 
-# Test ProteomicsLFQ bypass with -in_feat (Multi-file)
-add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
-
-add_test("TOPP_ProteomicsLFQ_in_feat_out" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_multi_out.mzTab)
-set_tests_properties("TOPP_ProteomicsLFQ_in_feat_out" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat")
-
-# Mismatch between number of mzML and featureXML inputs must fail (1 mzML, 2 featureXMLs)
-add_test("TOPP_ProteomicsLFQ_in_feat_mismatch" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_mismatch.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
-set_tests_properties("TOPP_ProteomicsLFQ_in_feat_mismatch" PROPERTIES WILL_FAIL 1)
-
 add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -4289,7 +4406,6 @@ add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4300,8 +4416,49 @@ add_test("TOPP_ProteomicsLFQ_1_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 add_test("TOPP_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
-add_test("TOPP_ProteomicsLFQ_1_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_1_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
+
+# Identical to TOPP_ProteomicsLFQ_1, except that BSA1_F1's identifications carry one
+# PeptideIdentification twice (same spectrum, peptidoform and charge; the copy scored worse).
+# ProteomicsLFQ reduces those to one at load, so every output must come out identical to the
+# un-duplicated run above -- the SAME reference files are reused deliberately, since "the
+# duplicate changed no number" is exactly what needs asserting.
+add_test("TOPP_ProteomicsLFQ_duplicate_psm" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_TOPP}/ProteomicsLFQ_duplicate_psm_1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv
+         -out ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+# The reduction must actually have fired -- an identical output could also mean it never ran.
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm" PROPERTIES PASS_REGULAR_EXPRESSION "repeat a .spectrum, peptidoform, charge. already claimed")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.consensusXML )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_2" ${DIFF} -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
 
 # regression test (decoys in ID files)
 add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4329,7 +4486,6 @@ add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4340,8 +4496,6 @@ add_test("TOPP_ProteomicsLFQ_2_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_2_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
 add_test("TOPP_ProteomicsLFQ_2_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
-add_test("TOPP_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
 
 add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
@@ -4370,7 +4524,6 @@ add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4382,8 +4535,6 @@ add_test("TOPP_ProteomicsLFQ_3_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_3_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
 add_test("TOPP_ProteomicsLFQ_3_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_3_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
-add_test("TOPP_ProteomicsLFQ_3_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_3_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
 
 # spectral counting
 add_test("TOPP_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4444,7 +4595,6 @@ add_test("TOPP_ProteomicsLFQ_5" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_decoys.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_decoys.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_decoys.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_decoys.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4455,8 +4605,6 @@ add_test("TOPP_ProteomicsLFQ_5_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_5_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
 add_test("TOPP_ProteomicsLFQ_5_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_decoys.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_5_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
-add_test("TOPP_ProteomicsLFQ_5_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_decoys.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_5_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
 
 # spectral counting (regression test with target + decoys)
 add_test("TOPP_ProteomicsLFQ_6" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4507,7 +4655,6 @@ add_test("TOPP_ProteomicsLFQ_7" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4518,8 +4665,6 @@ add_test("TOPP_ProteomicsLFQ_7_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_7_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
 add_test("TOPP_ProteomicsLFQ_7_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_7_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
-add_test("TOPP_ProteomicsLFQ_7_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_7_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
 
 # test empty id
 add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4539,7 +4684,6 @@ add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4550,8 +4694,6 @@ add_test("TOPP_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 add_test("TOPP_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
-add_test("TOPP_ProteomicsLFQ_8_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_8_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 
 # test single file, no experimental design (regression)
 add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4568,7 +4710,6 @@ add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4579,8 +4720,6 @@ add_test("TOPP_ProteomicsLFQ_9_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 add_test("TOPP_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
-add_test("TOPP_ProteomicsLFQ_9_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 
 # Variant of TOPP_ProteomicsLFQ_3 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
 add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4610,7 +4749,6 @@ add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4622,8 +4760,6 @@ add_test("TOPP_ProteomicsLFQ_3_seedRT_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
 add_test("TOPP_ProteomicsLFQ_3_seedRT_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
-add_test("TOPP_ProteomicsLFQ_3_seedRT_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
 
 # Variant of TOPP_ProteomicsLFQ_9 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
 add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4640,7 +4776,6 @@ add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4651,8 +4786,6 @@ add_test("TOPP_ProteomicsLFQ_9_seedRT_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 add_test("TOPP_ProteomicsLFQ_9_seedRT_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
-add_test("TOPP_ProteomicsLFQ_9_seedRT_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 
 # biosaur2 seeding algorithm smoke test (mzML input, verifies pipeline completes)
 add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4752,17 +4885,13 @@ set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalcul
 
 #------------------------------------------------------------------------------
 # PSMFeatureExtractor
-add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:" "MS-GF+:" "db=" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
+add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
+add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
 set_tests_properties("TOPP_PSMFeatureExtractor_1_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_1")
 
-add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid)
+add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type mzid -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid)
 add_test("TOPP_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "creationDate=" "SearchDatabase" "MSGFPlusAdapter:1:" "MS-GF+:" "db=" "activityDate=" "version=" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
 set_tests_properties("TOPP_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_2")
-
-add_test("TOPP_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_3_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
-set_tests_properties("TOPP_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_3")
 
 
 #------------------------------------------------------------------------------

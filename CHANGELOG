@@ -220,7 +220,7 @@ TOPP tools:
         on a BSA design. CSV columns are now abundance_fgroup<F>_label<L>; the consensusXML/idXML
         'indistinguishable_proteins_<N>_abundances' UserParam and the total_abundances /
         peptide_abundances members (incl. their pyOpenMS bindings) are removed in favour of
-        fraction_group_abundances / peptide_fraction_group_abundances. MSstats, Triqler and QPX pg
+        fraction_group_abundances / peptide_fraction_group_abundances. MSstats and QPX pg
         values are unchanged, as they already read per-run or per-assay data (#9864, #9869)
       - BREAKING: how the fractions of a fraction group are combined is now a choice,
         'fractions:aggregate'. The default 'sum' is what every earlier version did (and what MaxQuant and
@@ -331,11 +331,20 @@ TOPP tools:
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
     ProteomicsLFQ:
+      - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
+        carries several of them -- the shape produced by concatenating search engine results rather
+        than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or
+        PercolatorAdapter at its default -score:fdr 1.0, which retains PSMs it marked as not
+        identified). The best-scoring one is kept and the reduction is reported. Keeping all of them
+        counted one measurement several times: in the PSM-level FDR, in the mzTab PSM rows, and, with
+        -out_qpx, as a duplicate psm_id that the QPX writers refuse. Identifications of one spectrum
+        naming different peptidoforms (a chimeric spectrum) are left alone. Combine search engine
+        results with ConsensusID (-algorithm best -keep_old_scores) to control this upstream (#9871)
       - The mzTab output (-out) is optional when another output is requested; -out_cxml, -out_qpx,
-        -out_msstats, or -out_triqler can now be the sole output. Invocations without any output still
+        or -out_msstats can now be the sole output. Invocations without any output still
         fail during parameter validation (#9866)
       - BREAKING: no normalization is applied, under any combination of output flags. A median scaling
-        used to run over each fraction's consensus map unless -out_msstats or -out_triqler was requested,
+        used to run over each fraction's consensus map unless -out_msstats was requested,
         so the same input written to the same -out_qpx directory held normalized or raw intensities
         depending on whether an unrelated output file was also asked for, and nothing recorded which.
         Normalizing per fraction and then summing across fractions is only ratio-preserving when the
@@ -366,8 +375,6 @@ TOPP tools:
       - Perf: new PipEcho:max_training_points (default 50000, 0=unlimited) caps the transfer-FDR SVM
         training set per fold via a deterministic stratified subsample; prediction and q-values still
         cover all transfers, so FDR estimates stay unbiased (#9669)
-      - Added -in_feat to accept pre-computed featureXML files, bypassing internal feature finding
-        (#8796)
       - Added Bruker TimsTOF .d input with Biosaur2-based seed generation (IM_PEAK path with automatic
         FWHM estimation), new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance (default 5.0 s, advanced) to
@@ -379,6 +386,11 @@ TOPP tools:
       - Fix: mzTab export no longer aborts when search settings contain non-string DataValues (e.g.
         integer missed_cleavages) (#9666)
     IsobaricWorkflow:
+      - Identifications are now reduced to one per (spectrum, peptidoform, charge), as for
+        ProteomicsLFQ. This tool builds one consensus feature per identification and all
+        identifications of one spectrum read the same MS2/MS3 scan, so a repeated identification
+        contributed the same reporter intensities twice to every abundance derived from them
+        (measured: +37% on a protein abundance from a single duplicated identification) (#9871)
       - The consensusXML (-out), mzTab (-out_mzTab), and QPX (-out_qpx) outputs are optional
         individually; any one can now be the sole output. Invocations without an output still fail
         during parameter validation (#9866)
@@ -419,6 +431,17 @@ TOPP tools:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
         Comet/MSGF+/MSFragger (#9643)
+      - BREAKING: removed the multi-search-engine mode, i.e. the flags -multiple_search_engines,
+        -concat, -skip_db_check, -impute and -limit_imputation; -in now takes a single file. Both
+        code paths were unusable: -concat aborted while writing X!Tandem input (it read a
+        never-written "XTandem_score" MetaValue) and produced NaN CONCAT:lnEvalue for MS-GF+ (it
+        took the log of the raw score instead of the E-value), while the default merge path keyed
+        spectra on a scan number parsed only from "scan="/"index=" native IDs and silently collapsed
+        every PSM into one spectrum for the widespread "spectrum=" (MS:1000777), Sciex "sample=" and
+        "file=" formats. Combine results from several search engines with ConsensusID instead.
+        The correspondingly unused PercolatorFeatureSetHelper methods concatMULTISEPeptideIds,
+        mergeMULTISEPeptideIds, addMULTISEFeatures and addCONCATSEFeatures were removed from the
+        library and from pyOpenMS; mergeMULTISEProteinIds stays (PercolatorAdapter uses it)
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
       - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform
         mzML files along with the alignment (#8536)
@@ -445,6 +468,10 @@ TOPP tools:
       - Fix: the OSW RUN.ID column is stored as INTEGER instead of BLOB; the BLOB type made JOINs between
         the FEATURE and RUN tables return 0 rows (#9190)
       - Fix: duplicate TLS initialization symbol for PickerPoolShared on macOS arm64/clang (#9223)
+      - Library precursor and transition identifiers are canonicalized to numeric IDs at load time
+        and preserved across chromatogram, featureXML and OSW/OSWPQ outputs. PQP/OSWPQ inputs keep
+        their stored IDs; TraML/TSV inputs are renumbered, so operational IDs for those inputs may
+        differ from earlier releases. Source identifiers are retained as provenance (#9888)
     PeakPickerIM:
       - Built-in Sage IM centroiding via bruker:ms1_centroid_mz_ppm and bruker:ms1_centroid_im_pct; when
         both are set, centroiding runs on raw gridded TOF data and the IM picking step is skipped.
@@ -473,6 +500,39 @@ TOPP tools:
       - Added -remove_shared_peptides (default true) to explicitly control whether shared peptides are
         removed; this filtering was previously silent and hardcoded, and a warning now reports how many
         hits were dropped (#9068)
+      - MSstatsConverter and ProteomicsLFQ -out_msstats now warn when one MSstats_BioReplicate value
+        occurs under more than one MSstats_Condition. That encodes a paired / repeated-measures
+        design, which MSstats models differently from an unpaired one; sdrf-pipelines assigns a
+        globally unique id per source name, so a recurrence usually means a hand-written design. It
+        is a legitimate encoding when intended, so this warns rather than refuses (#9864)
+    Epifany:
+      - Fix: -exp_design was documented as "(Currently unused)" but has always been used. On
+        consensusXML input it merges protein identifications across the fractions and replicates of
+        each sample; without it every ID run is merged into one. The description now says so, and
+        notes that the parameter is ignored for idXML input (#9864)
+      - Fix: an input file whose type could not be determined crashed the tool (SIGABRT) instead of
+        returning an error. fatalErrorIf_ threw an int while main_ catches ExitCodes; exception
+        matching does not convert an int to an enum and TOPPBase has no catch-all, so the throw
+        escaped main(). It now returns ILLEGAL_PARAMETERS. Present since the tool was merged in
+        #3485 (2018); only reachable with an input unidentifiable by both extension and content,
+        since a recognized-but-wrong format is rejected before main_ runs (#9901)
+    Triqler support removed:
+      - BREAKING: Triqler export was removed from OpenMS entirely -- the TriqlerConverter tool, the
+        ProteomicsLFQ -out_triqler output, and the TriqlerFile library class and its test.
+      - The TriqlerConverter tool had never worked. Since it was introduced in #5066 (2020) it read two
+        parameters -- 'method' and 'retention_time_summarization_method' -- that were never registered,
+        so every invocation aborted with "Internal error: Request for unregistered parameter 'method'"
+        and produced no output. The defect survived because the tool had no test. Neither parameter was
+        ever usable (an unregistered parameter never reaches the CLI, INI or CTD) and neither had an
+        effect to restore.
+      - -out_triqler did work, but had no known consumer: quantms, the main downstream pipeline, does
+        not pass it (it requests -out_cxml, -out, -out_qpx and -out_msstats), and no other caller was
+        found. It also carried two unresolved defects -- runs were keyed per (file, fraction) rather
+        than per sample, so fractions of one sample were split across Triqler runs, and rows differing
+        only in search score compared equal and silently collapsed to the first one inserted.
+      - Migration: use -out_msstats, or -out_cxml / -out_qpx and convert downstream. Existing INIs and
+        command lines passing -out_triqler now fail with an unknown-parameter error rather than
+        silently dropping the output (#9898)
     MetaboliteAdductDecharger:
       - Added multimer detection (dimers, trimers, ...) with new max_multimer and multimer_log_penalty
         parameters; features are annotated with [nM+adduct]+ style strings (#8888)
@@ -526,7 +586,8 @@ TOPP tools:
     - OpenSwathPeakMapExtractor: extracts full peakmap points from mzML via targeted extraction (#9684)
     - TransitionListEvidenceFilter: filters transition lists by preliminary evidence from mzML (#9161)
   Removed tools:
-    - GenericWrapper (#8981), QPXConverter (#9693)
+    - GenericWrapper (#8981), QPXConverter (#9693), TriqlerConverter (#9898; Triqler export removed
+      from ProteomicsLFQ and the library too)
 
 GUI tools:
   - TOPPView and TOPPAS now forward generic Qt command line options (-style, -stylesheet, -platform, ...)
@@ -699,6 +760,12 @@ OpenMS Library:
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
   Changes:
+    - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
+      longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
+      they use the native schemas and file_type tokens such as consensus_features / features /
+      proteins -- and ArrowIOHelpers treats the mere presence of that key as "this table is QPX", so
+      claiming it was both misleading and stale (they said 1.0 while the real QPX views say 1.1). The
+      QPX exporters are unchanged (#9864)
     - BREAKING: Matrix<T> no longer inherits from Eigen and uses std::vector<T> for storage; Eigen moved
       from PUBLIC to PRIVATE linking, so downstream users no longer need Eigen headers (#8511)
     - BREAKING: the immutable singleton databases return a const pointer from getInstance():
@@ -975,6 +1042,10 @@ Build System:
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
     pyOpenMS wheel builds exclude pyarrow 25.0.0, which segfaults on cp310-macosx_arm64 (#9196, #9726)
+  - Fix: the Dockerfile's library stage installed libarrow2300/libparquet2300 without the Arrow/Parquet
+    apt pin the base stage applies before the same install, so a new upstream Arrow release (25.0.0)
+    made the unpinned SONAME packages unresolvable and broke the nightly container build on arm64. The
+    library stage now applies the identical pin (#9890, #9891)
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)

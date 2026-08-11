@@ -216,6 +216,9 @@ RUN apt-get update \
   # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
   # fails the RUN on a bad download, so no extra guard is needed here.
   && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
+  # Pin Arrow/Parquet to v23 so these runtime libs match the build-time dev libs
+  # installed by the same pin in the base stage (see #9890)
+  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     libarrow2300 \
     libparquet2300 \

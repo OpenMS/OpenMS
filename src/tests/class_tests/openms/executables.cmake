@@ -301,7 +301,6 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
-  TriqlerFile_test
   UnimodXMLFile_test
   UniProtXMLFile_test
   XMassFile_test
@@ -732,6 +731,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     PeakMapExtractor_test
     OpenSwathHelper_test
+    OpenSwathLibraryIDNormalizer_test
     OpenSwathOSWWriter_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test

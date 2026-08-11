@@ -95,7 +95,6 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
-TriqlerFile.cpp
 UnimodXMLFile.cpp
 UniProtXMLFile.cpp
 XMassFile.cpp

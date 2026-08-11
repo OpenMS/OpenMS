@@ -561,6 +561,10 @@ START_SECTION(exportProteinsToParquet())
   int idx = metadata->FindKey("file_type");
   TEST_EQUAL(idx >= 0, true)
   TEST_EQUAL(metadata->value(idx), "proteins")
+  // This is an OpenMS-native round-trip file, not a QPX exchange view: it uses the native schema
+  // and a file_type outside psm_file/feature_file/pg_file. It must not claim a qpx_version --
+  // ArrowIOHelpers uses the mere presence of that key to decide a table is QPX (#9864 C4).
+  TEST_EQUAL(metadata->FindKey("qpx_version"), -1)
 }
 END_SECTION
 
@@ -608,6 +612,8 @@ START_SECTION(exportProteinGroupsToParquet())
   int idx = metadata->FindKey("file_type");
   TEST_EQUAL(idx >= 0, true)
   TEST_EQUAL(metadata->value(idx), "protein_groups")
+  // Native round-trip file, not a QPX pg_file -- must not claim a qpx_version (#9864 C4).
+  TEST_EQUAL(metadata->FindKey("qpx_version"), -1)
 }
 END_SECTION
 
