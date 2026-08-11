@@ -943,6 +943,9 @@ Fixes:
     parsing instead of creating a separate indistinguishable group for each. Those spurious singleton groups
     made ProteinQuantifier discard shared peptides, quantifying most proteins in only one TMT plex (#8960,
     fixes #6038)
+  - Fix: imzML duplicate pixel coordinates no longer abort the load or store; they are reported as a warning
+    and only the first spectrum per pixel enters the imaging geometry, while every spectrum stays reachable
+    by index. Set PeakFileOptions::setStrictImagingGeometry(true) to restore the hard error (#9903)
   - Fix: ChromatogramExtractor::prepare_coordinates (TargetedExperiment overload) honours the ms1_isotopes
     parameter again; a `&& false` guard introduced in 2018 silently disabled the isotope-coordinate block
     (#7284, #9270)
