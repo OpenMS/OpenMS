@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <string>
 #include <vector>
@@ -45,6 +46,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -82,6 +84,18 @@ using namespace std;
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one identified PSM together with its reporter ions.
+
+  Because a consensus feature is created per identification, and all identifications of one
+  spectrum read the same MS2/MS3 scan, the input is expected to carry one identification per
+  spectrum. Where several of them agree on peptidoform and charge, only the best-scoring one is
+  kept and the reduction is reported; the others would otherwise contribute the same reporter
+  intensities a second time to every abundance derived from them. Results from several search
+  engines must therefore be combined - with @ref TOPP_ConsensusID (@p -algorithm best
+  @p -keep_old_scores, which preserves each engine's score) - rather than simply concatenated.
+  Identifications of one spectrum naming *different* peptidoforms are left alone and each
+  quantified separately.
+
+  At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
   Unlike @ref TOPP_IsobaricAnalyzer, this tool does NOT filter quantification scans by activation method (@p extraction:select_activation is ignored),
   because SPS-MS3 reporter scans are frequently labelled as plain CID rather than HCD; selection is therefore based on the MS-level structure alone.
@@ -184,16 +198,22 @@ protected:
 
     registerInputFileList_("in", "<file>", {}, "input centroided spectrum files");
     setValidFormats_("in", {"mzML"});
-    registerInputFileList_("in_id", "<file>", {}, "corresponding input PSMs");
+    registerInputFileList_("in_id", "<file>", {},
+      "corresponding input PSMs.\n"
+      "One identification per spectrum is expected: this tool quantifies one consensus feature\n"
+      "per identification, so several identifications of one spectrum agreeing on peptidoform\n"
+      "and charge would contribute the same reporter intensities more than once. Only the\n"
+      "best-scoring one of such a group is kept. Combine results from several search engines\n"
+      "with ConsensusID rather than concatenating them.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
-    registerOutputFile_("out", "<file>", "", "output consensusXML file");
+    registerOutputFile_("out", "<file>", "", "Optional output consensusXML file. At least one output must be specified.", false, false);
     setValidFormats_("out", {"consensusXML"});
-    registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
+    registerOutputFile_("out_mzTab", "<file>", "", "Optional output mzTab file with quantitative information. At least one output must be specified.", false, false);
     setValidFormats_("out_mzTab", {"mzTab"});
 
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     registerFlag_("count_sps_matches", "For SPS-MS3: count how many of the co-isolated MS3 precursors (SPS ions) match a b/y fragment ion of the identified peptide. The count is stored as meta value 'sps_matched_ions' on the consensus feature. Off by default.", true);
     registerDoubleOption_("sps_fragment_mass_tolerance", "<tolerance>", 20.0, "Mass tolerance for matching MS3 SPS precursors to theoretical b/y fragment ions of the identified peptide (only used with 'count_sps_matches').", false, true);
@@ -480,8 +500,16 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    std::string out = getStringOption_("out");
-    std::string exp_design = getStringOption_("exp_design");
+    const std::string out = getStringOption_("out");
+    const std::string out_mzTab = getStringOption_("out_mzTab");
+    const std::string out_qpx = getOutputDirOption("out_qpx");
+    if (out.empty() && out_mzTab.empty() && out_qpx.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                 "out/out_mzTab/out_qpx");
+    }
+
+    const std::string exp_design = getStringOption_("exp_design");
     bool bayesian = getStringOption_("inference_method") == "bayesian";
     
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
@@ -608,7 +636,40 @@ protected:
         OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
-      
+
+      // This tool quantifies one ConsensusFeature per identification (see the resize below), and
+      // all identifications of one spectrum read the same MS2/MS3 scan. Two of them agreeing on
+      // peptidoform and charge would therefore contribute the SAME reporter intensities twice,
+      // to every abundance derived from them. Keep the best-scoring one of each such group.
+      {
+        const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(pep_ids);
+        if (report.removed > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << report.removed << " identification(s) in " << id_file
+                          << " repeat a (spectrum, peptidoform, charge) already claimed by another"
+                             " identification, e.g. " << report.example << ".\n"
+                             "Kept the best-scoring one of each group; the others would have"
+                             " contributed the same reporter intensities a second time. To control"
+                             " this upstream, combine search engine results with ConsensusID"
+                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                          << endl;
+        }
+        if (report.inconsistent_score_direction > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << report.inconsistent_score_direction << " group(s) of"
+                             " repeated identifications in " << id_file << " disagree on whether a"
+                             " higher score is better, so no best one could be chosen. They were"
+                             " left as they are and their reporter intensities will be counted"
+                             " more than once." << endl;
+        }
+        if (report.without_spectrum_reference > 0)
+        {
+          OPENMS_LOG_INFO << report.without_spectrum_reference << " identification(s) in " << id_file
+                          << " carry no spectrum reference and were therefore not checked for"
+                             " repeats. They cannot be quantified either." << endl;
+        }
+      }
+
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
 
       std::vector<ChannelQC> qc;
@@ -981,7 +1042,6 @@ protected:
       protein_quants, inferred_proteins, true);
 
     {
-      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
@@ -1004,10 +1064,14 @@ protected:
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
         // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        // Collected while the feature rows are built, then handed to the psm view so it can fill
+        // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+        QPXIdentity::FeatureLinks feature_links;
         if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet",
                                                                /*batch_size=*/1000000,
                                                                ParquetWriteConfig{},
-                                                               /*n_threads=*/0))
+                                                               /*n_threads=*/0,
+                                                               &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1040,7 +1104,8 @@ protected:
                                                /*export_all_psms=*/false,
                                                /*batch_size=*/1000000,
                                                ParquetWriteConfig{},
-                                               /*n_threads=*/0))
+                                               /*n_threads=*/0,
+                                               &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1060,10 +1125,12 @@ protected:
       }
     }
 
-    FileHandler().storeConsensusFeatures(out, cmap);
-    
-    std::string out_mzTab = getStringOption_("out_mzTab");
-    if (! out_mzTab.empty()) 
+    if (!out.empty())
+    {
+      FileHandler().storeConsensusFeatures(out, cmap);
+    }
+
+    if (!out_mzTab.empty())
     {
       const bool report_unidentified_features(false);
       const bool report_unmapped(true);

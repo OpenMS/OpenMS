@@ -117,7 +117,6 @@ namespace // anonymous
     std::string uuid_str(buf);
 
     auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", file_type},
       {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},

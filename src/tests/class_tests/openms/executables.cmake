@@ -301,7 +301,6 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
-  TriqlerFile_test
   UnimodXMLFile_test
   UniProtXMLFile_test
   XMassFile_test
@@ -337,6 +336,7 @@ endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
   ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
   XICParquetFile_test
@@ -731,6 +731,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     PeakMapExtractor_test
     OpenSwathHelper_test
+    OpenSwathLibraryIDNormalizer_test
     OpenSwathOSWWriter_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test

@@ -95,7 +95,6 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
-TriqlerFile.cpp
 UnimodXMLFile.cpp
 UniProtXMLFile.cpp
 XMassFile.cpp
@@ -119,6 +118,7 @@ list(APPEND sources_list ConsensusMapArrowExport.cpp)
 list(APPEND sources_list ParquetFile.cpp)
 list(APPEND sources_list ParquetFilter.cpp)
 list(APPEND sources_list QPXFile.cpp)
+list(APPEND sources_list QPXIdentity.cpp)
 list(APPEND sources_list XICParquetFile.cpp)
 list(APPEND sources_list XIMParquetFile.cpp)
 list(APPEND sources_list XIPMParquetFile.cpp)

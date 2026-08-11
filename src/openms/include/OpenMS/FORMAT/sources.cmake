@@ -99,7 +99,6 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
-TriqlerFile.h
 UnimodXMLFile.h
 UniProtXMLFile.h
 XMLFile.h
@@ -130,6 +129,7 @@ list(APPEND sources_list_h XICParquetFile.h)
 list(APPEND sources_list_h XIMParquetFile.h)
 list(APPEND sources_list_h XIPMParquetFile.h)
 list(APPEND sources_list_h QPXFile.h)
+list(APPEND sources_list_h QPXIdentity.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
 list(APPEND sources_list_h QPXCollectionExport.h)
 list(APPEND sources_list_h QPXValueValidation.h)

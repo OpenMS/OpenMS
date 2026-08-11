@@ -195,7 +195,6 @@ namespace OpenMS
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
     tools_map["TransitionListEvidenceFilter"] = Internal::ToolDescription("TransitionListEvidenceFilter", cat_targeted);
-    tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["UniPEFF"] = Internal::ToolDescription("UniPEFF", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
