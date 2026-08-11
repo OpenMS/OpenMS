@@ -1042,6 +1042,10 @@ Build System:
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
     pyOpenMS wheel builds exclude pyarrow 25.0.0, which segfaults on cp310-macosx_arm64 (#9196, #9726)
+  - Fix: the Dockerfile's library stage installed libarrow2300/libparquet2300 without the Arrow/Parquet
+    apt pin the base stage applies before the same install, so a new upstream Arrow release (25.0.0)
+    made the unpinned SONAME packages unresolvable and broke the nightly container build on arm64. The
+    library stage now applies the identical pin (#9890, #9891)
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
