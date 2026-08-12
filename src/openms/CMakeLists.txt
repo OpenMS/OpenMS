@@ -99,6 +99,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Quadtree
   SIMDe
   SQLiteCpp
+  ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
   libzip::zip
   nlohmann_json::nlohmann_json
@@ -112,12 +113,48 @@ option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 if(WITH_ONNX)
   if(OPENMS_USE_VCPKG)
     list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES onnxruntime::onnxruntime)
+
+    #vcpkg's onnxruntime::onnxruntime imported target does not set IMPORTED_LOCATION. Without the fallback,
+    #ORT_LIB_PATH silently resolves to NOTFOUND, the install(PROGRAMS ...) step below silently never fires, and cmake
+    #only able to find libonnxruntime for build OpenMS library by the proximity to the built tree. An installed build
+    #would likely fail at runtime with missing shared library error. Only relevant to dynamic triplets i.e., Linux and Mac.
+    #For windows onnxruntime is directly liked to onnxruntime.dll
     get_target_property(ORT_LIB_PATH onnxruntime::onnxruntime IMPORTED_LOCATION)
+    if(NOT ORT_LIB_PATH)
+      message(STATUS "onnxruntime::onnxruntime has no IMPORTED_LOCATION, falling back to vcpkg installed lib path")
+      if(APPLE)
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libonnxruntime*.dylib")
+      elseif(UNIX)
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libonnxruntime.so*")
+      elseif(WIN32)
+        #Added for symmetry. Current openms build using vcpkg uses a static library linkage triplet so this branch never
+        #fires but if in future a dyanmic lib linkage windows triplet is used then this branch will be useful to locate
+        #onnxruntime.dll
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/onnxruntime.dll")
+      endif()
+      if(ORT_LIB_PATH)
+        list(GET ORT_LIB_PATH 0 ORT_LIB_PATH)
+      endif()
+    endif()
+
+    #On most triplets, INTERFACE_INCLUDE_DIRECTORIES is populated correctly by vcpkg and this fallback is never used. On
+    #Windows triplet(x64-windows-static-md-relsease) it comes back empty, which is error "onnxruntime_cxx_api.h: No such file or directory"
+    #on Windows CI.
+    get_target_property(ORT_INCLUDE_DIRS onnxruntime::onnxruntime INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT ORT_INCLUDE_DIRS)
+      message(STATUS "onnxruntime::onnxruntime has no INTERFACE_INCLUDE_DIRECTORIES, falling back to vcpkg installed include path")
+      set(ORT_INCLUDE_DIRS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/onnxruntime")
+    endif()
+    message(STATUS "ORT_INCLUDE_DIRS: ${ORT_INCLUDE_DIRS}")
   else() 
     list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
     # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
     # This avoids the read-only TYPE property error completely.
     get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+  endif()
+
+  if(ORT_INCLUDE_DIRS)
+    list(APPEND OPENMS_ONNX_PRIVATE_INCLUDES ${ORT_INCLUDE_DIRS})
   endif()
 
   if(ORT_LIB_PATH)
@@ -262,7 +299,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES
+                   PRIVATE_INCLUDES ${OPENMS_ONNX_PRIVATE_INCLUDES}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}

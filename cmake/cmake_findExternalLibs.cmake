@@ -354,45 +354,55 @@ option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" 
 set(WNETALIGN_INCLUDE_DIRS "")
 
 if(WITH_WNETALIGN)
-  include(FetchContent)
+  if(OPENMS_USE_VCPKG)
 
-  # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
-  # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
-  # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
-  FetchContent_Declare(
-    pylmcf
-    GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
-    GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
-    GIT_SHALLOW    TRUE
-    SOURCE_SUBDIR  _no_cmake
-  )
-  FetchContent_Declare(
-    wnet
-    GIT_REPOSITORY https://github.com/michalsta/wnet.git
-    GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
-    GIT_SHALLOW    TRUE
-    SOURCE_SUBDIR  _no_cmake
-  )
-  FetchContent_Declare(
-    wnetalign
-    GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
-    GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
-    GIT_SHALLOW    TRUE
-    SOURCE_SUBDIR  _no_cmake
-  )
+    find_path(WNETALIGN_INC NAMES aligner.hpp PATH_SUFFIXES wnetalign)
+    find_path(WNET_INC NAMES graph_elements.hpp PATH_SUFFIXES wnet)
+    find_path(PYLMCF_INC NAMES lmcf.hpp PATH_SUFFIXES pylmcf)
 
-  # MakeAvailable populates source dirs without running the top-level
-  # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
-  # nanobind Python modules are never configured.
-  FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+    set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
 
-  set(WNETALIGN_INCLUDE_DIRS
-    "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
-    "${wnet_SOURCE_DIR}/src/wnet/cpp"
-    "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
-  )
+  else()
+    include(FetchContent)
 
-  message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+    # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+    # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+    # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
+    FetchContent_Declare(
+      pylmcf
+      GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+      GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+    FetchContent_Declare(
+      wnet
+      GIT_REPOSITORY https://github.com/michalsta/wnet.git
+      GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+    FetchContent_Declare(
+      wnetalign
+      GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+      GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+
+    # MakeAvailable populates source dirs without running the top-level
+    # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
+    # nanobind Python modules are never configured.
+    FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+    set(WNETALIGN_INCLUDE_DIRS
+      "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+      "${wnet_SOURCE_DIR}/src/wnet/cpp"
+      "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+    )
+
+    message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -492,12 +502,30 @@ if (WITH_OPENTIMS)
     # package), INTERFACE_COMPILE_DEFINITIONS may not be set; in that case we
     # conservatively inject sqlite3 because we cannot know how it was built.
     get_target_property(_opentims_defs opentims::opentims_cpp INTERFACE_COMPILE_DEFINITIONS)
+    set(_opentims_needs_sqlite FALSE)
     if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY"
        OR ((_opentims_defs MATCHES "NOTFOUND" OR _opentims_defs STREQUAL "") AND NOT opentims_FOUND))
-      target_include_directories(opentims::opentims_cpp INTERFACE
-        "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
-      target_link_libraries(opentims::opentims_cpp INTERFACE sqlite3)
-      message(STATUS "opentims: injecting OpenMS sqlite3 (library was built with static sqlite)")
+      set(_opentims_needs_sqlite TRUE)
+    endif()
+
+    if(_opentims_needs_sqlite)
+      #Deferred because unofficial::sqlite3::sqlite3 or SQLite::SQLite3 or SQLiteCpp doesn't exist yet,
+      #they are created inside add_subdirectory(src).
+      function(_openms_inject_opentims_sqlite)
+        if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+          target_link_libraries(opentims::opentims_cpp INTERFACE unofficial::sqlite3::sqlite3)
+          message(STATUS "opentims: injected sqlite3 (unofficial::sqlite3::sqlite3 via vcpkg)")
+        elseif(TARGET SQLite::SQLite3)
+          target_link_libraries(opentims::opentims_cpp INTERFACE SQLite::SQLite3)
+          message(STATUS "opentims: injected sqlite3 (SQLite::SQLite3)")
+        elseif(TARGET SQLiteCpp)
+          target_link_libraries(opentims::opentims_cpp INTERFACE SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+          message(STATUS "opentims: injected sqlite3 (SQLiteCpp)")
+        else()
+          message(FATAL_ERROR "opentims requires sqlite3 symbols but no suitable target is available.")
+        endif()
+      endfunction()
+      cmake_language(DEFER CALL _openms_inject_opentims_sqlite)
     endif()
   else()
     # No system install found — fetch and build from source.

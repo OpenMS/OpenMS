@@ -49,7 +49,7 @@
             "hidden": true,
             "inherits": "linux-base",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic-vcrel"
+                "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
             }
         },
         {
@@ -106,16 +106,22 @@
             "hidden": true,
             "cacheVariables": {
                 "WITH_GUI": "OFF",
+                "BUILD_TOPP_TOOLS": "OFF",
                 "WITH_THERMORAWFILEPARSER_TEST": "ON",
                 "ENABLE_TUTORIALS": "OFF",
                 "WITH_ONNX": "ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
-                "WITH_WNETALIGN": "OFF",
-                "USE_EXTERNAL_JSON": "OFF",
-                "USE_EXTERNAL_SQLITECPP": "OFF",
-                "USE_EXTERNAL_ISOSPEC":"OFF",
-                "USE_EXTERNAL_EOLBSPLINE":"OFF",
-                "WITH_HDF5": "OFF"
+                "WITH_WNETALIGN": "ON",
+                "WITH_OPENTIMS":"ON",
+                "WITH_THERMO_RAW":"ON",
+                "USE_EXTERNAL_JSON": "ON",
+                "USE_EXTERNAL_SQLITECPP": "ON",
+                "USE_EXTERNAL_SIMDE": "ON",
+                "USE_EXTERNAL_ISOSPEC":"ON",
+                "USE_EXTERNAL_EOLBSPLINE":"ON",
+                "WITH_HDF5": "OFF",
+                "PYOPENMS":"OFF",
+                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims;onnxruntime"
             }
         },
         {
