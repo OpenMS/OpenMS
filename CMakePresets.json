@@ -107,7 +107,7 @@
             "cacheVariables": {
                 "WITH_GUI": "OFF",
                 "BUILD_TOPP_TOOLS": "OFF",
-                "WITH_THERMORAWFILEPARSER_TEST": "ON",
+                "ENABLE_THERMO_RAW_TESTS": "ON",
                 "ENABLE_TUTORIALS": "OFF",
                 "WITH_ONNX": "ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
