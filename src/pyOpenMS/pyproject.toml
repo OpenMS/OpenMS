@@ -129,6 +129,7 @@ include = [
     "bindings/bind_*.cpp",
     "bindings/main_module.cpp",
     "bindings/arrow_zerocopy.cpp",
+    "bindings/*.h",
     "bindings/type_casters/*.h",
     "fix_stubs.py",
     "stubs.patch",

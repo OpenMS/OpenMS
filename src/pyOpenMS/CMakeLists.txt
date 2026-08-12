@@ -520,7 +520,7 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # Split pyopenms tests into separate CTest entries for better CDash reporting.
   # Use -q (quiet) and --tb=short to avoid cluttering CDash with verbose passing output.
   # Override pyproject.toml's addopts which uses -v (verbose).
-  set(_PYTEST_ARGS -m pytest -o addopts=-q\ --tb=short)
+  set(_PYTEST_ARGS -m pytest)
 
   # On Windows, when NO_DEPENDENCIES=ON the OpenMS runtime libraries are not
   # copied next to the compiled extension modules. Python >= 3.8 does not search

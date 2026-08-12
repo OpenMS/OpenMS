@@ -14,7 +14,6 @@
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
@@ -31,13 +30,11 @@
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -66,6 +63,8 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -89,6 +88,16 @@ Input: @n
     2. PSMFeatureExtractor to annotate percolator features.
     3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)
     4. IDFilter (pep:score = 0.01) to filter PSMs at 1% FDR
+
+   Exactly one identification run per ID file is required, and merged ID runs are not supported.
+   One identification per spectrum is expected as well: ProteomicsLFQ measures one value per
+   (spectrum, peptidoform, charge), so where several identifications of one spectrum agree on
+   all three, only the best-scoring one is kept and the reduction is reported. The others would
+   otherwise count the same measurement more than once, in the PSM-level FDR and in every output.
+   Results from several search engines must therefore be combined - with @ref TOPP_ConsensusID
+   (@p -algorithm best @p -keep_old_scores, which preserves each engine's score) - rather than
+   simply concatenated. Identifications of one spectrum that name *different* peptidoforms are
+   left alone: a chimeric spectrum yields two distinct measurements.
 
   - An experimental design file: @n
    (see @ref OpenMS::ExperimentalDesign "ExperimentalDesign" for details) @n
@@ -128,16 +137,27 @@ On HeLa 50ng 5-min timsTOF gradient: 34k seeds, 80% model fit success, 2,809
 peptides quantified (Spearman r=0.62 vs Sage LFQ), 75s runtime, 1.3 GB memory.
 
 Normalization: @n
-  - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
-    to the consensus features (using simple median scaling).
-  - Normalization is DISABLED when MSstats output (-out_msstats) or Triqler output (-out_triqler) is requested,
-    as these tools perform their own normalization.
-  - Normalization is also DISABLED for spectral counting quantification.
+  - ProteomicsLFQ does NOT normalize. Every output - mzTab, consensusXML, QPX Parquet and MSstats -
+    reports the same un-normalized abundances, whatever combination of output files is
+    requested. Earlier versions applied median scaling to the consensus features unless
+    -out_msstats was given, which made the meaning of an intensity depend on which
+    other output file happened to be requested, and recorded nothing about the transform in any of
+    them.
+  - Choosing a normalization is a separate, explicit step. Three routes, in increasing distance
+    from this tool: @n
+    - @ref TOPP_ConsensusMapNormalizer on -out_cxml (median, quantile, robust regression or
+      thresholded scaling); @n
+    - the ProteinQuantification:consensus:normalize parameter, which scales peptide abundances so
+      that the median of each (fraction group, label) assay matches the overall median - i.e. it
+      normalizes at the assay level rather than per fraction; @n
+    - the downstream tool itself. MSstats and comparable consumers normalize their input
+      by design.
 
-Output:
-  - mzTab file with analysis results
-  - MSstats file with analysis results for statistical downstream analysis in MSstats
-  - ConsensusXML file for visualization and further processing in OpenMS
+Output (at least one required; each output is optional individually):
+  - mzTab file with analysis results (@p out)
+  - MSstats file with analysis results for statistical downstream analysis in MSstats (@p out_msstats)
+  - consensusXML file for visualization and further processing in OpenMS (@p out_cxml)
+  - QPX Parquet collection (@p out_qpx)
 
 
 Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
@@ -170,8 +190,6 @@ protected:
       ",raw"
 #endif
     ));
-    registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
-    setValidFormats_("in_feat", ListUtils::create<std::string>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
@@ -180,7 +198,11 @@ protected:
       "2. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
       "3. IDFilter (pep:score = 0.05)\n"
       "To obtain well calibrated PEPs and an initial reduction of PSMs\n"
-      "ID files must be provided in same order as spectra files.");
+      "ID files must be provided in same order as spectra files.\n"
+      "One identification per spectrum is expected: where several identifications of one\n"
+      "spectrum agree on peptidoform and charge, only the best-scoring one is kept, since\n"
+      "the others would count the same measurement more than once. Combine results from\n"
+      "several search engines with ConsensusID rather than concatenating them.");
     setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -189,19 +211,17 @@ protected:
     registerInputFile_("fasta", "<file>", "", "fasta file", false);
     setValidFormats_("fasta", ListUtils::create<std::string>("fasta"));
 
-    registerOutputFile_("out", "<file>", "", "output mzTab file");
+    registerOutputFile_("out", "<file>", "", "Optional output mzTab file. At least one output must be specified.", false, false);
     setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
 
-    registerOutputFile_("out_msstats", "<file>", "", "output MSstats input file", false, false);
+    registerOutputFile_("out_msstats", "<file>", "", "Optional output MSstats input file. At least one output must be specified.", false, false);
     setValidFormats_("out_msstats", ListUtils::create<std::string>("csv"));
 
-    registerOutputFile_("out_triqler", "<file>", "", "output Triqler input file", false, false);
-    setValidFormats_("out_triqler", ListUtils::create<std::string>("tsv"));
 
-    registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
+    registerOutputFile_("out_cxml", "<file>", "", "Optional output consensusXML file. At least one output must be specified.", false, false);
     setValidFormats_("out_cxml", ListUtils::create<std::string>("consensusXML"));
 
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -918,7 +938,58 @@ protected:
       SpectrumMetaDataLookup::addMissingSpectrumReferences(peptide_ids, mz_file_abs_path, true);
     }
 
+    // Deliberately last, i.e. after the spectrum-reference repair above: an identification with
+    // no reference cannot be keyed at all, so reducing any earlier would silently skip exactly
+    // the files whose references had to be reannotated.
+    reduceToOnePerSpectrum_(peptide_ids, id_file_abs_path);
+
     return EXECUTION_OK;
+  }
+
+  /**
+    @brief Reduce identifications this tool cannot tell apart to one per spectrum.
+
+    ProteomicsLFQ measures one value per (spectrum, peptidoform, charge). Input that carries
+    several identifications of that same triple - two search engines concatenated rather than
+    combined, for instance - leaves it undecided which of them owns the measurement, and keeping
+    all of them counts one identification several times in the PSM-level FDR and repeats it in
+    every output. Keep the best-scoring one and say what went.
+  **/
+  void reduceToOnePerSpectrum_(PeptideIdentificationList& peptide_ids,
+                               const std::string& id_file_abs_path)
+  {
+    const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(peptide_ids);
+
+    if (report.removed > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: " << report.removed << " identification(s) in " << id_file_abs_path
+                      << " repeat a (spectrum, peptidoform, charge) already claimed by another"
+                         " identification, e.g. " << report.example << ".\n"
+                         "Kept the best-scoring one of each group; the others would have counted"
+                         " the same measurement more than once. To control this upstream, combine"
+                         " search engine results with ConsensusID (-algorithm best"
+                         " -keep_old_scores) rather than concatenating them." << endl;
+    }
+    if (report.inconsistent_score_direction > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: " << report.inconsistent_score_direction << " group(s) of"
+                         " repeated identifications in " << id_file_abs_path << " disagree on"
+                         " whether a higher score is better, so no best one could be chosen."
+                         " They were left as they are and will be counted more than once." << endl;
+    }
+    if (report.without_spectrum_reference > 0)
+    {
+      OPENMS_LOG_INFO << report.without_spectrum_reference << " identification(s) in "
+                      << id_file_abs_path << " carry no spectrum reference and were therefore not"
+                         " checked for repeats." << endl;
+    }
+    if (report.multiply_identified_spectra > 0)
+    {
+      OPENMS_LOG_INFO << report.multiply_identified_spectra << " spectra in " << id_file_abs_path
+                      << " carry more than one identification naming different peptidoforms"
+                         " (a chimeric spectrum, or search engines that disagree). Each is"
+                         " quantified separately." << endl;
+    }
   }
 
 
@@ -966,9 +1037,6 @@ protected:
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
 
-    const StringList in_feat_list = getStringList_("in_feat");
-    const StringList in_list = getStringList_("in");
-
     writeDebug_("Processing fraction number: " + StringUtils::toStr(fraction) + "\nFiles: ",  1);
     for (std::string const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
@@ -996,40 +1064,30 @@ protected:
       bool is_im_peak_data = false;
       const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
 
-      if (! in_feat_list.empty() && mass_recalibration)
-      {
-        throw Exception::InvalidParameter(
-          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Option '-mass_recalibration' is not supported together with '-in_feat' because pre-computed features bypass internal feature finding.");
-      }
-
-      const bool requires_ms_data = in_feat_list.empty();
-
-      if (requires_ms_data)
       {
         ExitCodes e = loadAndPreprocess_(mz_file, ms_centroided, is_im_peak_data);
         if (e != EXECUTION_OK) { return e; }
-
-        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
-
-        if (is_im_peak_data && mass_recalibration)
-        {
-          OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
-        }
-
-        if (mass_recalibration && !is_im_peak_data)
-        {
-          std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
-          DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
-        }
-
-        if (!is_im_peak_data)
-        {
-          median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
-          OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
-        }
-        // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
       }
+
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+
+      if (is_im_peak_data && mass_recalibration)
+      {
+        OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
+      }
+
+      if (mass_recalibration && !is_im_peak_data)
+      {
+        std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
+        DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
+      }
+
+      if (!is_im_peak_data)
+      {
+        median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
+      }
+      // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
 
       // For .d/IM_PEAK + targeted_only: no Biosaur2 seeds to estimate FWHM from, use default
       if (is_im_peak_data && median_fwhm == 0.0)
@@ -1047,7 +1105,7 @@ protected:
 
       const bool targeted_only = getStringOption_("targeted_only") != "false";
 
-      if (! targeted_only && in_feat_list.empty())
+      if (! targeted_only)
       {
         std::string seeding_algorithm = getStringOption_("Seeding:algorithm");
 
@@ -1117,206 +1175,141 @@ protected:
       }
 
       /////////////////////////////////////////////////
-      // Feature detection or loading pre-computed features
+      // Feature detection
       FeatureMap fm;
 
-      if (! in_feat_list.empty())
+      // Run FeatureFinderIdentification
+      FeatureFinderIdentificationAlgorithm ffi;
+      ffi.getMSData().swap(ms_centroided);
+      ffi.getProgressLogger().setLogType(log_type_);
+
+      Param ffi_param = getParam_().copy("PeptideQuantification:", true);
+      ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+      ffi_param.setValue("debug", debug_level_); // pass down debug level
+
+      // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
+      // observed isotope envelope against the donor peptide's theoretical
+      // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
+      // (enough for a meaningful correlation) only on the pip_echo path. More
+      // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
+      // direct quantifications, so 3 is the sweet spot. The default linker path
+      // (and its TOPP reference outputs) is untouched.
+      if (getStringOption_("pip_echo") == "true")
       {
-        OPENMS_LOG_INFO << "Bypassing FeatureFinderIdentification. Loading pre-computed features...\n";
+        ffi_param.setValue("extract:n_isotopes", 3);
+      }
 
-        auto it = std::find(in_list.begin(), in_list.end(), mz_file);
-        if (it == in_list.end())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Current mzML file not found in the -in list.");
-        }
-        Size file_idx = static_cast<Size>(std::distance(in_list.begin(), it));
+      // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
+      // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
+      // default IM_window=0.06 is appropriate for matching centroided IM positions.
 
-        FileHandler().loadFeatures(in_feat_list[file_idx], fm, {FileTypes::FEATUREXML}, log_type_);
+      double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
+      double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
+      const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only || (feature_without_id_min_score > 0.0));
 
-        StringList run_paths;
-        fm.getPrimaryMSRunPath(run_paths);
-        if (run_paths.empty()) { fm.setPrimaryMSRunPath({mz_file}); }
-        else if (FileHandler::stripExtension(File::basename(run_paths[0])) != FileHandler::stripExtension(File::basename(mz_file)))
-        {
-          fm.setPrimaryMSRunPath({mz_file});
-        }
-        else if (File::stemName(run_paths[0]) !=
-                 File::stemName(mz_file))
-        {
-          OPENMS_LOG_WARN << "Primary MS run path in featureXML (" << run_paths[0]
-                          << ") does not match the mzML at the same position (" << mz_file
-                          << "). Keeping featureXML annotation.\n";
-        }
+      if (filter_by_quant_scores)
+      {
+        OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
+        ffi_param.setValue("add_mass_offset_peptides", 10.005);
+      }
 
-        if (! fm.getProteinIdentifications().empty())
-        {
-          OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains protein identifications. They will be overwritten.\n";
-        }
-        fm.setProteinIdentifications(protein_ids);
+      ffi.setParameters(ffi_param);
+      writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-        if (! fm.getUnassignedPeptideIdentifications().empty())
-        {
-          OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains unassigned peptide identifications. They will be overwritten.\n";
-        }
-        fm.setUnassignedPeptideIdentifications(peptide_ids);
+      {
+        vector<ProteinIdentification> ext_protein_ids;
+        PeptideIdentificationList ext_peptide_ids;
 
-        const std::string expected_identifier = protein_ids[0].getIdentifier();
-        Size updated_feature_pid_ids = 0;
-        for (Feature& feature : fm)
+        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids,
+                fm, // fills fm
+                seeds, mz_file);
+      }
+
+      if (filter_by_quant_scores)
+      {
+        SimpleSVM::PredictorMap predictors;
+        map<Size, double> labels;
+        size_t current_row = 0;
+        size_t quant_target {}, quant_decoy {};
+
+        Math::RandomShuffler shuffler;
+        std::vector<size_t> randomized_indices(fm.size());
+        std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
+
+        for (auto& i : randomized_indices)
         {
-          auto f_pids = feature.getPeptideIdentifications();
-          bool updated = false;
-          for (auto& pid : f_pids)
+          const auto& f = fm[i];
+          predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
+          predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
+          predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
+          predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
+
+          bool is_offset = f.metaValueExists("OffsetPeptide");
+          bool has_id = ! f.getPeptideIdentifications().empty();
+          if (is_offset)
           {
-            if (pid.getIdentifier() != expected_identifier)
+            if (quant_decoy < 1000)
             {
-              pid.setIdentifier(expected_identifier);
-              ++updated_feature_pid_ids;
-              updated = true;
+              labels[current_row] = 0.0;
+              ++quant_decoy;
             }
           }
-          if (updated) feature.setPeptideIdentifications(f_pids);
-        }
-        if (updated_feature_pid_ids > 0)
-        {
-          OPENMS_LOG_WARN << "Updated " << updated_feature_pid_ids << " feature-level peptide identifiers to match injected run identifier.\n";
-        }
-      }
-      else
-      {
-        // Run FeatureFinderIdentification
-        FeatureFinderIdentificationAlgorithm ffi;
-        ffi.getMSData().swap(ms_centroided);
-        ffi.getProgressLogger().setLogType(log_type_);
-
-        Param ffi_param = getParam_().copy("PeptideQuantification:", true);
-        ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-        ffi_param.setValue("debug", debug_level_); // pass down debug level
-
-        // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
-        // observed isotope envelope against the donor peptide's theoretical
-        // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
-        // (enough for a meaningful correlation) only on the pip_echo path. More
-        // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
-        // direct quantifications, so 3 is the sweet spot. The default linker path
-        // (and its TOPP reference outputs) is untouched.
-        if (getStringOption_("pip_echo") == "true")
-        {
-          ffi_param.setValue("extract:n_isotopes", 3);
+          else
+          {
+            if (has_id && quant_target < 1000)
+            {
+              labels[current_row] = 1.0;
+              ++quant_target;
+            }
+          }
+          ++current_row;
         }
 
-        // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
-        // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
-        // default IM_window=0.06 is appropriate for matching centroided IM positions.
-
-        double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
-        double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
-        const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only || (feature_without_id_min_score > 0.0));
-
-        if (filter_by_quant_scores)
+        if (quant_decoy > 4 && quant_target > 4)
         {
-          OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
-          ffi_param.setValue("add_mass_offset_peptides", 10.005);
-        }
+          SimpleSVM svm;
+          Param svm_param = svm.getParameters();
+          svm_param.setValue("kernel", "linear");
+          svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
+          svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
 
-        ffi.setParameters(ffi_param);
-        writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
+          svm.setParameters(svm_param);
+          svm.setup(predictors, labels);
+          vector<SimpleSVM::Prediction> predictions;
+          OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
+          svm.predict(predictions);
+          std::map<std::string, double> feature_weights;
+          svm.getFeatureWeights(feature_weights);
 
-        {
-          vector<ProteinIdentification> ext_protein_ids;
-          PeptideIdentificationList ext_peptide_ids;
-
-          ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids,
-                  fm, // fills fm
-                  seeds, mz_file);
-        }
-
-        if (filter_by_quant_scores)
-        {
-          SimpleSVM::PredictorMap predictors;
-          map<Size, double> labels;
-          size_t current_row = 0;
-          size_t quant_target {}, quant_decoy {};
-
-          Math::RandomShuffler shuffler;
-          std::vector<size_t> randomized_indices(fm.size());
-          std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
-
+          size_t current_row_pred {};
           for (auto& i : randomized_indices)
           {
-            const auto& f = fm[i];
-            predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
-            predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
-            predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
-            predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
-
-            bool is_offset = f.metaValueExists("OffsetPeptide");
-            bool has_id = ! f.getPeptideIdentifications().empty();
-            if (is_offset)
-            {
-              if (quant_decoy < 1000)
-              {
-                labels[current_row] = 0.0;
-                ++quant_decoy;
-              }
-            }
-            else
-            {
-              if (has_id && quant_target < 1000)
-              {
-                labels[current_row] = 1.0;
-                ++quant_target;
-              }
-            }
-            ++current_row;
-          }
-
-          if (quant_decoy > 4 && quant_target > 4)
-          {
-            SimpleSVM svm;
-            Param svm_param = svm.getParameters();
-            svm_param.setValue("kernel", "linear");
-            svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
-            svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
-
-            svm.setParameters(svm_param);
-            svm.setup(predictors, labels);
-            vector<SimpleSVM::Prediction> predictions;
-            OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
-            svm.predict(predictions);
-            std::map<std::string, double> feature_weights;
-            svm.getFeatureWeights(feature_weights);
-
-            size_t current_row_pred {};
-            for (auto& i : randomized_indices)
-            {
-              auto& f = fm[i];
-              f.setMetaValue("p_quant", (double)predictions[current_row_pred].probabilities[1]);
-              ++current_row_pred;
-            }
-          }
-
-          if (quant_decoy > 4 && quant_target > 4)
-          {
-            fm.erase(std::remove_if(fm.begin(), fm.end(),
-                                    [&](const Feature& f) {
-                                      double quant_score = f.getMetaValue("p_quant");
-                                      bool is_offset = f.metaValueExists("OffsetPeptide");
-                                      bool has_id = ! f.getPeptideIdentifications().empty();
-                                      bool untargeted_feature = ! is_offset && ! has_id;
-                                      bool is_feature_with_id = ! is_offset && has_id;
-
-                                      if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
-                                      if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
-                                      if (is_offset && quant_score < feature_without_id_min_score) return true;
-                                      return false;
-                                    }),
-                     fm.end());
-
-            fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
+            auto& f = fm[i];
+            f.setMetaValue("p_quant", (double)predictions[current_row_pred].probabilities[1]);
+            ++current_row_pred;
           }
         }
-      } // <--- END OF ELSE BLOCK
+
+        if (quant_decoy > 4 && quant_target > 4)
+        {
+          fm.erase(std::remove_if(fm.begin(), fm.end(),
+                                  [&](const Feature& f) {
+                                    double quant_score = f.getMetaValue("p_quant");
+                                    bool is_offset = f.metaValueExists("OffsetPeptide");
+                                    bool has_id = ! f.getPeptideIdentifications().empty();
+                                    bool untargeted_feature = ! is_offset && ! has_id;
+                                    bool is_feature_with_id = ! is_offset && has_id;
+
+                                    if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
+                                    if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
+                                    if (is_offset && quant_score < feature_without_id_min_score) return true;
+                                    return false;
+                                  }),
+                   fm.end());
+
+          fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
+        }
+      }
 
       // "IM" and "n_scans" are written by Biosaur2 (ion-mobility value and true
       // MS1 scan count); kept for forward compatibility with a direct-Biosaur2
@@ -1411,10 +1404,14 @@ protected:
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
-    if (getStringOption_("out_msstats").empty() && getStringOption_("out_triqler").empty())
-    {
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, "", "");
-    }
+    // No normalization here, deliberately. A median scaling used to run at this point unless
+    // -out_msstats was requested, which meant the same input written to the same
+    // -out_qpx directory held normalized or raw intensities depending on whether an unrelated
+    // output file was also asked for - and neither the Parquet nor the mzTab recorded which.
+    // Normalizing per fraction and then summing across fractions (PeptideAndProteinQuant.cpp) is
+    // also not well defined: it is only ratio-preserving when the reference is the same sample in
+    // every fraction, which a non-rectangular design does not guarantee. See the tool
+    // documentation above for the three supported ways to normalize.
 
     return EXECUTION_OK;
   }
@@ -1574,22 +1571,21 @@ protected:
     //-------------------------------------------------------------
 
     // Read tool parameters
+    const std::string out = getStringOption_("out");
+    const std::string out_msstats = getStringOption_("out_msstats");
+    const std::string out_cxml = getStringOption_("out_cxml");
+    const std::string out_qpx = getOutputDirOption("out_qpx");
+    if (out.empty() && out_msstats.empty() && out_cxml.empty() && out_qpx.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                 "out/out_msstats/out_cxml/out_qpx");
+    }
+
     StringList in = getStringList_("in");
-    std::string out = getStringOption_("out");
-    std::string out_msstats = getStringOption_("out_msstats");
-    std::string out_triqler = getStringOption_("out_triqler");
     StringList in_ids = getStringList_("ids");
     std::string design_file = getStringOption_("design");
     std::string in_db = getStringOption_("fasta");
-    StringList in_feat = getStringList_("in_feat");
-
     // Validate parameters
-    if (! in_feat.empty() && in_feat.size() != in.size())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of featureXML files (-in_feat, " + StringUtils::toStr(in_feat.size()) +
-        ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
-    }
     if (in.size() != in_ids.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1601,11 +1597,6 @@ protected:
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "MSstats export for spectral counting data not supported. Please remove output file.");
-      }
-      if (! out_triqler.empty())
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Triqler export for spectral counting data not supported. Please remove output file.");
       }
     }
 
@@ -1902,13 +1893,29 @@ protected:
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
 
     {
-      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
 
+        // Validate the whole collection before the first write. Each view refuses input it
+        // cannot represent, but only before its OWN file, so a refusal in the psm or pg view
+        // would leave the earlier files behind as a partial collection.
+        if (!QPXCollectionExport::requireExportable(consensus, design_))
+        {
+          return CANNOT_WRITE_OUTPUT_FILE; // already logged
+        }
+
+        // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error -
+        // is undone here: without the commit below, every file already written is removed.
+        QPXCollectionExport::Transaction qpx_collection(out_qpx);
+
+        // Collected while the feature rows are built, then handed to the psm view so it can fill
+        // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+        QPXIdentity::FeatureLinks feature_links;
+
         // Feature-level export
-        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet",
+                                                      ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1928,39 +1935,49 @@ protected:
           all_pepids.push_back(pepid);
         }
 
-        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
+                                      out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+                                      ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
         // Protein group export
-        if (!ProteinGroupArrowExport::exportToParquet(consensus, out_qpx + "/quantms.pg.parquet"))
+        // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
+        // files aggregated into one quantity, and the design is what defines that grouping and
+        // the sample numbering the protein abundances are stored under.
+        if (!ProteinGroupArrowExport::exportToParquet(consensus, design_, out_qpx + "/quantms.pg.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
+
+        qpx_collection.commit(); // all three views written
       }
     }
 
-    if (!getStringOption_("out_cxml").empty())
+    if (!out_cxml.empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // (they are nevertheless stored and passed to mzTab for proper export)
-      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML}, log_type_);
+      FileHandler().storeConsensusFeatures(out_cxml, consensus, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
-    // Fill MzTab with meta data and quants annotated in identification data structure
-    const bool report_unidentified_features(false);
-    const bool report_unmapped(true); // TODO we should make a distinction from unassigned after conflict resolution and unassigned because unmappable
-    const bool report_subfeatures(false);
-    const bool report_unidentified_spectra(false);
-    const bool report_not_only_best_psm_per_spectrum(false);
+    if (!out.empty())
+    {
+      // Fill mzTab with meta data and quants annotated in identification data structure
+      const bool report_unidentified_features(false);
+      const bool report_unmapped(true); // TODO we should make a distinction from unassigned after conflict resolution and unassigned because unmappable
+      const bool report_subfeatures(false);
+      const bool report_unidentified_spectra(false);
+      const bool report_not_only_best_psm_per_spectrum(false);
 
-    MzTabFile().store(out, consensus,
-                      false, // first run is inference but also a properly merged run, so we don't need the hack
-                      report_unidentified_features, report_unmapped, report_subfeatures, report_unidentified_spectra,
-                      report_not_only_best_psm_per_spectrum);
+      MzTabFile().store(out, consensus,
+                        false, // first run is inference but also a properly merged run, so we don't need the hack
+                        report_unidentified_features, report_unmapped, report_subfeatures, report_unidentified_spectra,
+                        report_not_only_best_psm_per_spectrum);
+    }
 
     if (! out_msstats.empty())
     {
@@ -1978,22 +1995,6 @@ protected:
                        "MSstats_BioReplicate", "MSstats_Condition", "max");
     }
 
-
-    if (! out_triqler.empty())
-    {
-      TriqlerFile tf;
-
-      // shrink protein runs to the one containing the inference data
-      consensus.getProteinIdentifications().resize(1);
-
-      IDScoreSwitcherAlgorithm switcher;
-      Size c = 0;
-      switcher.switchToGeneralScoreType(consensus, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
-
-      tf.storeLFQ(out_triqler, consensus, design_, StringList(),
-                  "MSstats_Condition" // TODO: choose something more generic like "Condition" for both MSstats and Triqler export
-      );
-    }
 
     return EXECUTION_OK;
   }

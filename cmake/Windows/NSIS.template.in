@@ -141,6 +141,11 @@ Var EnvVarUpdateLoc
 !define MUI_FINISHPAGE_SHOWREADME $INSTDIR\ReleaseNotes.txt
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
+# Add survey link at the end of the installer
+!define MUI_FINISHPAGE_LINK "Join the community - complete our user survey"
+!define MUI_FINISHPAGE_LINK_LOCATION "https://tally.so/r/pbV6Qq"
+!define MUI_FINISHPAGE_LINK_COLOR "0066CC"
+
 # Remember the installer language
 !define UMUI_LANGUAGE_REGISTRY_ROOT SHCTX
 !define UMUI_LANGUAGE_REGISTRY_KEY ${PRODUCT_UNINST_KEY}
@@ -449,16 +454,11 @@ Section "-PathInst" SEC_PathRegister
     done:
       FindClose $0
 
-    # Create OPENMS_DATA_PATH environment variable (for shared xml files etc)
+    # Note: OPENMS_DATA_PATH is intentionally NOT written anymore. OpenMS now resolves its
+    # shared data deterministically relative to the executable (see File::getOpenMSDataPath),
+    # so a stale value from an old or side-by-side install can no longer hijack data resolution.
 
-    # Set variable
-    ${If} $MultiUser.InstallMode == "AllUsers"
-        WriteRegExpandStr ${env_hklm} "OPENMS_DATA_PATH" "$INSTDIR\share\OpenMS"
-    ${Else}
-        WriteRegExpandStr ${env_hkcu} "OPENMS_DATA_PATH" "$INSTDIR\share\OpenMS"
-    ${EndIf}
-
-    # Make sure windows knows about the change
+    # Make sure windows knows about the change (PATH edits above still require this broadcast)
     SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
 SectionEnd

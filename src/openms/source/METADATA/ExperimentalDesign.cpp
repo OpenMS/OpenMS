@@ -48,6 +48,53 @@ namespace OpenMS
       isValid_();
     }
 
+    Size ExperimentalDesign::annotateColumnHeaders(ConsensusMap& cmap) const
+    {
+      const auto& pl2fg = getPathLabelToFractionGroupMapping(true);
+      const auto& pl2f = getPathLabelToFractionMapping(true);
+      const auto& pl2s = getPathLabelToSampleMapping(true);
+
+      // Two headers of one file that resolve to the same design row cannot both be that row.
+      // ColumnHeader::getLabelAsUInt() returns 1 for any header without a 'channel_id' -- which
+      // is what the Multiplex tools emit, carrying the channel in 'label' instead -- so a
+      // light/heavy pair collapses onto label 1 and would otherwise both be stamped with the
+      // first channel's sample.
+      std::map<std::pair<std::string, unsigned>, Size> key_uses;
+      for (const auto& [map_index, header] : cmap.getColumnHeaders())
+      {
+        ++key_uses[{File::basename(header.filename), header.getLabelAsUInt(cmap.getExperimentType())}];
+      }
+
+      Size unannotated = 0;
+      for (auto& [map_index, header] : cmap.getColumnHeaders())
+      {
+        // The design is keyed on (file, label); a column header carries the file and, for a
+        // multiplexed map, the 1-based channel that getLabelAsUInt() returns.
+        const std::pair<std::string, unsigned> key(File::basename(header.filename),
+                                                   header.getLabelAsUInt(cmap.getExperimentType()));
+        auto fg = pl2fg.find(key);
+        if (fg == pl2fg.end()) { ++unannotated; continue; }
+        if (key_uses[key] > 1) { ++unannotated; continue; } // ambiguous: several headers, one row
+
+        header.setMetaValue("fraction_group", fg->second);
+        auto fr = pl2f.find(key);
+        if (fr != pl2f.end()) { header.setMetaValue("fraction", fr->second); }
+        auto sa = pl2s.find(key);
+        if (sa != pl2s.end())
+        {
+          // getSampleName() used to read only the "Sample" COLUMN of the content, which a design
+          // inferred by fromConsensusMap() does not have, so this threw and the name was dropped.
+          // It now falls back to the name->row store and answers for those designs too, which is
+          // why an inferred design annotates a sample_name where it previously annotated none.
+          // The catch stays as a backstop -- the name is optional decoration here, and fraction
+          // and fraction_group are what callers group on.
+          try { header.setMetaValue("sample_name", getSampleSection().getSampleName(sa->second)); }
+          catch (const std::exception&) { /* unnamed sample; fraction data above still stands */ }
+        }
+      }
+      return unannotated;
+    }
+
     ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
     {
       ExperimentalDesign experimental_design;
@@ -154,12 +201,41 @@ namespace OpenMS
 
     std::string ExperimentalDesign::SampleSection::getSampleName(unsigned sample_row) const
     {
-      return content_.at(sample_row).at(columnname_to_columnindex_.at("Sample"));
+      // A sample name lives in two places, and which one is filled depends on how the section was
+      // built. A parsed design file fills the content table and knows a column called "Sample"; a
+      // section assembled with addSample() - which is how fromConsensusMap() and
+      // fromIdentifications() build theirs - fills only the name->row store and pushes an empty
+      // content row. Reading just the column therefore threw std::out_of_range for every inferred
+      // design, which callers worked around by catching it.
+      if (const auto col = columnname_to_columnindex_.find("Sample"); col != columnname_to_columnindex_.end()
+          && sample_row < content_.size() && col->second < content_[sample_row].size())
+      {
+        return content_[sample_row][col->second];
+      }
+
+      // The name->row store is populated by every construction path, so it answers when the
+      // content cannot. Linear because the map is keyed the other way round; sample sections are
+      // small, and callers needing this in bulk should invert the map once instead.
+      for (const auto& [name, row] : sample_to_rowindex_)
+      {
+        if (row == sample_row) { return name; }
+      }
+
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "No sample in row " + StringUtils::toStr(sample_row)
+                                       + " of the sample section (it holds "
+                                       + StringUtils::toStr(sample_to_rowindex_.size()) + " sample(s)).");
     }
 
     unsigned ExperimentalDesign::SampleSection::getSampleRow(const std::string& sample) const
     {
-      return sample_to_rowindex_.at(sample);
+      const auto it = sample_to_rowindex_.find(sample);
+      if (it == sample_to_rowindex_.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "The sample section has no sample named '" + sample + "'.");
+      }
+      return it->second;
     }
 
     ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
@@ -231,7 +307,11 @@ namespace OpenMS
         r.fraction = 1;
         r.sample = sample;
         r.sample_name =StringUtils::toStr(sample);
-        r.fraction_group = sample;
+        // 'sample' is a zero-based index into the sample section, a fraction group is a 1-based id
+        // (MSFileSectionEntry defaults it to 1, and isValid_() requires the set to start at 1).
+        // One counter cannot serve both: this line used to read 'sample', which silently made the
+        // fraction groups zero-based when the sample counter was moved to zero-based indexing.
+        r.fraction_group = sample + 1;
         r.label = 1;
 
         rows.push_back(r);
@@ -308,6 +388,19 @@ namespace OpenMS
       return rowContent2RowIdx;
     }
 
+    /// sample row index -> sample name, reversing SampleSection's name->row store.
+    /// SampleSection::getSampleName() cannot serve this: it reads the "Sample" COLUMN of the
+    /// content, which a section built with addSample() (or inferred from a map) does not have.
+    map<Size, std::string> ExperimentalDesign::sampleRowToName_() const
+    {
+      map<Size, std::string> res;
+      for (const auto& name : sample_section_.getSamples())
+      {
+        res[sample_section_.getSampleRow(name)] = name;
+      }
+      return res;
+    }
+
     map<std::string, unsigned> ExperimentalDesign::getSampleToPrefractionationMapping() const
     {
       map<std::string, unsigned> res;
@@ -376,22 +469,28 @@ namespace OpenMS
       // without additional Experimental Design file
       if (sample_section_.getFactors().empty())
       {
-        // no information about the origin of the samples -> assume uniqueness of all
-        unsigned nr(getNumberOfSamples());
-        for (unsigned i(0); i <= nr; ++i)
+        // no information about the origin of the samples -> assume uniqueness of all.
+        // Key by sample NAME, like getSampleToPrefractionationMapping(): the previous version
+        // enumerated stringified row indices, which only matched a design whose sample names
+        // happen to be "0", "1", ... - i.e. one OpenMS inferred itself. It also ran to
+        // i <= getNumberOfSamples(), reporting one sample more than the section holds.
+        Size i(0);
+        for (const auto& name : sample_section_.getSamples())
         {
-          res[StringUtils::toStr(i)] = i;
+          res[name] = i;
+          ++i;
         }
       }
       else
       {
         const map<vector<std::string>, set<unsigned>>& rowContent2RowIdx = getConditionToSampleMapping();
+        const auto row_to_name = sampleRowToName_();
         Size s(0);
         for (const auto &condition : rowContent2RowIdx)
         {
           for (auto &sample : condition.second)
           {
-            res.emplace(StringUtils::toStr(sample), s);
+            res.emplace(row_to_name.at(sample), s);
           }
           ++s;
         }
@@ -431,11 +530,13 @@ namespace OpenMS
     map<pair< std::string, unsigned >, unsigned> ExperimentalDesign::getPathLabelToPrefractionationMapping(const bool basename) const
     {
       const auto& sToPreFrac = getSampleToPrefractionationMapping();
+      const auto row_to_name = sampleRowToName_();
       const auto& pToS = getPathLabelToSampleMapping(basename);
       map<pair<std::string, unsigned>, unsigned> ret;
       for (const auto& entry : pToS)
       {
-        ret.emplace(entry.first, sToPreFrac.at(StringUtils::toStr(entry.second)));
+        // entry.second is the zero-based sample ROW; sToPreFrac is keyed by sample NAME.
+        ret.emplace(entry.first, sToPreFrac.at(row_to_name.at(entry.second)));
       }
       return ret;
     }
@@ -443,11 +544,13 @@ namespace OpenMS
     map<pair<std::string, unsigned>, unsigned> ExperimentalDesign::getPathLabelToConditionMapping(const bool basename) const
     {
       const auto& sToC = getSampleToConditionMapping();
+      const auto row_to_name = sampleRowToName_();
       const auto& pToS = getPathLabelToSampleMapping(basename);
       map<pair<std::string, unsigned>, unsigned> ret;
       for (const auto& entry : pToS)
       {
-        ret.emplace(entry.first, sToC.at(StringUtils::toStr(entry.second)));
+        // entry.second is the zero-based sample ROW; sToC is keyed by sample NAME.
+        ret.emplace(entry.first, sToC.at(row_to_name.at(entry.second)));
       }
       return ret;
     }

@@ -8,6 +8,10 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
+#include <algorithm>
+#include <optional>
+#include <stdexcept>
+#include <string>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
@@ -214,4 +218,142 @@ void def_CVTermList(Class& cls)
             return self.empty();
         })
         ;
+}
+
+/// Trailing paragraph shared by the six set_peaks() docstrings, appended by literal concatenation.
+#define PYOPENMS_SET_PEAKS_METADATA_DOC                                                                        \
+    "\n\nThe binary data arrays are not resized. ``metadata`` decides what happens when the new peak count "    \
+    "would leave a non-empty float, string or integer data array mis-sized: ``error`` (the default) raises "    \
+    "and leaves the container untouched, ``clear`` drops the arrays that no longer fit, and ``keep`` keeps "    \
+    "them, leaving the container internally inconsistent. Arrays that are already the right length, and empty " \
+    "ones, are kept in every case, so replacing peaks with an equally long set never touches them."
+
+/// Trailing paragraph for the two MSSpectrum set_peaks() docstrings, which also accept ion mobility.
+#define PYOPENMS_SET_PEAKS_IM_DOC                                                                                \
+    "\n\n``ion_mobility`` sets the per-peak ion mobility array in the same call, replacing any existing one; "    \
+    "it must have one entry per peak. ``ion_mobility_unit`` names the array through the PSI-MS controlled "       \
+    "vocabulary and may be omitted only when the spectrum already has an ion mobility array to inherit the "      \
+    "unit from. Only ``DriftTimeUnit.MILLISECOND`` (drift time) and ``DriftTimeUnit.VSSC`` (1/K0) have a CV "     \
+    "term for this, so other units are rejected. Because the ion mobility array is replaced rather than "         \
+    "stranded, it is exempt from the ``metadata`` check above."
+
+/// What set_peaks() should do with binary data arrays that the new peak count leaves mis-sized.
+enum class PeakMetadataPolicy
+{
+    Error, ///< refuse the call and leave the container untouched
+    Clear, ///< drop all float/string/integer data arrays
+    Keep   ///< keep them as they are, leaving the container internally inconsistent
+};
+
+/// Translate the Python-facing `metadata=` string into a PeakMetadataPolicy.
+/// @throws std::invalid_argument (ValueError in Python) for any other string.
+inline PeakMetadataPolicy parsePeakMetadataPolicy(const std::string& policy)
+{
+    if (policy == "error") return PeakMetadataPolicy::Error;
+    if (policy == "clear") return PeakMetadataPolicy::Clear;
+    if (policy == "keep") return PeakMetadataPolicy::Keep;
+    throw std::invalid_argument("Invalid metadata policy '" + policy + "'. Must be 'error', 'clear' or 'keep'.");
+}
+
+/// Is @p array still usable as a per-peak annotation for a peak count of @p n?
+///
+/// An empty array carries no per-peak association and so can never be mis-associated; it is
+/// exempt, matching the `!arrays[i].empty()` guard in MSChromatogram::checkDataArraySizes_().
+template <typename ArrayT>
+inline bool peakMetadataArrayIsAligned(const ArrayT& array, size_t n)
+{
+    return array.empty() || array.size() == n;
+}
+
+/// Reject a set_peaks() that would strand a data array. Only PeakMetadataPolicy::Error throws.
+///
+/// Call this *before* the peak storage is resized, so that a rejected call leaves the container
+/// exactly as it was. @p n is therefore the new, incoming count -- checking against self.size()
+/// would compare the arrays against the count they are already aligned with and accept everything.
+///
+/// The predicate is the one MSChromatogram::checkDataArraySizes_() applies, so this moves the
+/// core's own rejection to the call that causes it rather than adding a stricter rule. That helper
+/// cannot be reused directly: it is protected, MSSpectrum does not have it, and it can only check
+/// against the current count.
+///
+/// Works for any container exposing get{Float,String,Integer}DataArrays(). @p container is the
+/// lowercase noun used in the message ("spectrum", "chromatogram", "mobilogram").
+///
+/// @p replaced_float_index, when set, names a float array the caller is about to overwrite --
+/// set_peaks(..., ion_mobility=...) replaces the ion mobility array wholesale. Its current length
+/// is therefore irrelevant: you cannot strand an array you are overwriting, and rejecting the call
+/// would leave no way to swap peaks and their ion mobilities in one step.
+template <typename Container>
+void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPolicy policy, const char* container,
+                                std::optional<size_t> replaced_float_index = std::nullopt)
+{
+    if (policy != PeakMetadataPolicy::Error) return;
+
+    auto check = [n, container, replaced_float_index](const auto& arrays, const char* what,
+                                                      bool honour_replacement = false) {
+        for (size_t i = 0; i < arrays.size(); ++i)
+        {
+            if (honour_replacement && replaced_float_index && *replaced_float_index == i) continue;
+            if (!peakMetadataArrayIsAligned(arrays[i], n))
+            {
+                throw std::runtime_error(std::string(what) + "[" + std::to_string(i) + "] size (" +
+                                         std::to_string(arrays[i].size()) + ") does not match the new " + container +
+                                         " size (" + std::to_string(n) +
+                                         "). set_peaks() does not resize binary data arrays; pass metadata='clear' to "
+                                         "drop them or metadata='keep' to keep them and realign them yourself.");
+            }
+        }
+    };
+    check(self.getFloatDataArrays(), "FloatDataArray", /* honour_replacement = */ true);
+    check(self.getStringDataArrays(), "StringDataArray");
+    check(self.getIntegerDataArrays(), "IntegerDataArray");
+}
+
+/// Drop the data arrays that a peak count of @p n stranded. Only PeakMetadataPolicy::Clear acts.
+///
+/// Call this *after* the peaks have been written, never before. The incoming intensity/position
+/// arrays may alias the very storage this releases -- FloatDataArray.get_data_view() hands out a
+/// zero-copy view into a data array, and getFloatDataArrays() exposes the container's own arrays
+/// by reference -- so releasing it up front would leave the fill loop reading freed memory.
+/// Deferring also means a throwing resize() cannot leave the arrays already dropped.
+///
+/// Arrays that still fit, and empty ones, are kept: they remain valid annotations, and the
+/// docstring promises as much. Dropping rather than resizing to @p n is deliberate, since padding
+/// would fabricate annotations that nothing marks as made up.
+template <typename Container>
+void dropStrandedPeakMetadata(Container& self, size_t n, PeakMetadataPolicy policy)
+{
+    if (policy != PeakMetadataPolicy::Clear) return;
+
+    auto drop = [n](auto& arrays) {
+        arrays.erase(std::remove_if(arrays.begin(), arrays.end(),
+                                    [n](const auto& array) { return !peakMetadataArrayIsAligned(array, n); }),
+                     arrays.end());
+    };
+    drop(self.getFloatDataArrays());
+    drop(self.getStringDataArrays());
+    drop(self.getIntegerDataArrays());
+}
+
+/// Replace the peaks of @p self with @p n new ones, honouring @p policy for the data arrays.
+///
+/// This exists so the ordering below is written down once instead of once per set_peaks()
+/// overload. Every step is load-bearing and none of them commute:
+///
+///  - the alignment check runs against the *incoming* count and before resize(), so a rejected
+///    call is a strict no-op rather than leaving the peaks already replaced;
+///  - @p fill runs after resize() and is the only container-specific part (m/z, RT or mobility);
+///  - the stranded-array drop runs after @p fill, because the caller's arrays may alias the very
+///    storage it releases -- see dropStrandedPeakMetadata().
+///
+/// Callers are responsible for validating their own inputs first, and for anything that has to
+/// happen after the peaks exist (installing a replacement ion mobility array, for instance).
+template <typename Container, typename Fill>
+void writePeaksWithPolicy(Container& self, size_t n, PeakMetadataPolicy policy, const char* container,
+                          Fill fill, std::optional<size_t> replaced_float_index = std::nullopt)
+{
+    checkPeakMetadataAlignment(self, n, policy, container, replaced_float_index);
+    self.resize(n);
+    fill(self, n);
+    dropStrandedPeakMetadata(self, n, policy);
 }

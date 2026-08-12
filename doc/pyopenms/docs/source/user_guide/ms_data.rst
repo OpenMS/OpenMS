@@ -17,6 +17,16 @@ displayed.
 
 First we create a mass spectrum and insert peaks with descending mass-to-charge ratios:
 
+.. note::
+
+   Common scalar attributes of :py:class:`~.MSSpectrum` and :py:class:`~.Peak1D`
+   are available as *snake_case properties*, e.g. ``spectrum.rt``,
+   ``spectrum.ms_level``, ``spectrum.drift_time``, ``peak.mz`` and
+   ``peak.intensity``. They are equivalent to the corresponding
+   ``getX()`` / ``setX()`` methods (e.g. ``spectrum.rt = 205.2`` is the same as
+   ``spectrum.setRT(205.2)``), which remain available. Use whichever style you
+   prefer; the examples below use the property form where possible.
+
 .. code-block:: python
     :linenos:
 
@@ -32,10 +42,10 @@ First we create a mass spectrum and insert peaks with descending mass-to-charge 
 
     # Iterate over spectrum of those peaks
     for p in spectrum:
-        print(p.getMZ(), p.getIntensity())
+        print(p.mz, p.intensity)
 
     # Access a peak by index
-    print("\nFirst peak: ", spectrum[0].getMZ(), spectrum[0].getIntensity())
+    print("\nFirst peak: ", spectrum[0].mz, spectrum[0].intensity)
 
 
 .. code-block:: output
@@ -101,9 +111,9 @@ We now set several of these properties in a current :py:class:`~.MSSpectrum`:
 
     # create spectrum and set properties
     spectrum = oms.MSSpectrum()
-    spectrum.setDriftTime(25)  # 25 ms
-    spectrum.setRT(205.2)  # 205.2 s
-    spectrum.setMSLevel(3)  # MS3
+    spectrum.drift_time = 25  # 25 ms
+    spectrum.rt = 205.2  # 205.2 s
+    spectrum.ms_level = 3  # MS3
 
     # Add peak(s) to spectrum
     spectrum.set_peaks(([401.5], [900]))

@@ -1,0 +1,247 @@
+name: "Build OpenMS"
+description: "Action for automating the OpenMS build process"
+inputs:
+  compiler:
+    description: "The name of the compiler to use"
+    required: true
+  macosx_deployment_target:
+    description: "Used to override -macos-version-min on macOS"
+    default: 14.0
+outputs:
+  version:
+    description: "The discovered compiler version number"
+    value: ${{ steps.compiler.outputs.ver }}
+runs:
+  using: "composite"
+  steps:
+
+    ############################################################################
+    # NOTE: x64 is hardcoded. No support for 32bit.
+    - name: Emulate a Visual Studio shell (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      uses: egor-tensin/vs-shell@v2
+      with: { arch: x64 }
+
+    ############################################################################
+    - name: Install Dependencies
+      id: deps
+      uses: ./.github/actions/dependencies
+      with:
+        compiler: ${{ inputs.compiler }}
+
+    ############################################################################
+    - name: Compute the Compiler Version
+      id: compiler
+      env:
+        compiler: ${{ inputs.compiler }}
+      shell: bash
+      run: |
+        case ${compiler:-gcc} in
+        clang*)
+          ver=$(clang -dumpversion)
+          name=$(type -p clang++)
+          ;;
+
+        cl*)
+          ver=$(cl.exe 2>&1 |
+            grep -E 'Version [0-9.]+' |
+            sed -E 's/^.* Version ([0-9.]+) .*$/\1/')
+          name=$compiler
+          ;;
+
+        gcc | g++)
+          ver=$(gcc -dumpversion)
+          name=$(type -p g++)
+          ;;
+
+        xcode)
+          ver=$(clang -dumpversion)
+          name=$(xcrun -f clang++)
+          ;;
+
+        *)
+          ver="0.0"
+          name=$compiler
+          ;;
+        esac
+
+        major=$(cut -d. -f1 <<<"$ver")
+
+        {
+          echo "ver=$ver"
+          echo "major=$major"
+          echo "name=$name"
+        } >>"$GITHUB_OUTPUT"
+
+        {
+          # All remaining steps should use this compiler.
+          echo "CXX=$name"
+        } >>"$GITHUB_ENV"
+
+    ############################################################################
+    # These are variables that don't need to be set for normal
+    # (non-CI) builds.
+    - name: Set CI-specific Environment Variables
+      shell: bash
+      run: |
+        {
+          # During building and testing several Qt apps are run.  This
+          # is needed so they can start without having a graphical
+          # environment:
+          echo "QT_QPA_PLATFORM=offscreen"
+
+        } >>"$GITHUB_ENV"
+
+    ############################################################################
+    # This is only really needed so we can set cache keys.
+    - name: Extract the PR Number or Branch Name
+      id: pr
+      shell: bash
+      run: echo "name=${{ github.event.pull_request && github.event.number || github.ref_name }}" >>$GITHUB_OUTPUT
+
+    ############################################################################
+    # NOTE: restore/save are deliberately split instead of using the combined
+    # actions/cache action.  The combined action only writes the cache in its
+    # post step when the *primary* key missed, so a static key (as used here
+    # before) is written exactly once and then frozen forever -- every later
+    # run restored a stale cache and recompiled everything from scratch.
+    # Making the primary key unique per run guarantees a miss, so the save step
+    # below always uploads a freshly populated cache, while the restore-keys
+    # ladder still finds the most recent cache by prefix.
+    - name: Try to Fetch Existing Build Cache
+      id: ccache-restore
+      uses: actions/cache/restore@v5
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+        # Restoring: from the current branch/PR, otherwise from develop, otherwise the newest
+        # other cache that is still in scope -- not "any branch", see below.
+        #
+        # develop, not nightly, deliberately.  GitHub scopes caches by ref: a run may restore only
+        # from its own ref, its base branch and the default branch.  nightly is a sibling of
+        # develop (the default branch) -- its commit is an ancestor, but that does not matter, the
+        # scope is the ref -- so a cache written by a push to nightly is unreachable from a pull
+        # request and falling back to it would never match.  develop is the default branch, so its
+        # cache is the only one every pull request can read, and the daily workflow_dispatch on
+        # develop keeps it fresh now that saving works at all.
+        restore-keys: |
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-
+
+    ############################################################################
+    - name: Configure Build Caching
+      id: ccache-configure
+      shell: bash
+      env:
+        # A full build produces ~1900 objects.  MSVC objects (built with
+        # /bigobj) are considerably larger than the gcc/clang ones, and 1G was
+        # not enough to hold a whole build -- the cache evicted itself while it
+        # was still being filled, so it could never warm up.  Kept platform
+        # specific because the total GitHub Actions cache budget is 10 GB per
+        # repository and it has to cover five build jobs plus the ~1.6 GB
+        # Windows contrib cache.
+        maxsize: ${{ runner.os == 'Windows' && '2G' || '1G' }}
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/.ccache"
+
+        {
+          echo "CCACHE_COMPRESS=true"
+          echo "CCACHE_COMPRESSLEVEL=6"
+          echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache"
+          echo "CCACHE_MAXSIZE=$maxsize"
+          echo "CMAKE_C_COMPILER_LAUNCHER=ccache"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache"
+
+        } >>"$GITHUB_ENV"
+
+    ############################################################################
+    # Reset the hit/miss counters (not the cached objects) so the statistics
+    # printed after the build describe this run only.
+    - name: Reset ccache Statistics
+      id: ccache-reset
+      shell: bash
+      run: |
+        ccache --version
+        ccache --zero-stats
+
+    ############################################################################
+    # The actual commands to build OpenMS.
+    - name: Build
+      id: build
+      shell: bash
+      env:
+        # Official variables that need to be set to build OpenMS:
+        CMAKE_PREFIX_PATH: "${{ steps.deps.outputs.cmake_prefix }}"
+        OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contrib/build"
+        SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
+        BOOST_USE_STATIC: ${{ runner.os == 'Windows' && 'ON' || 'OFF' }}
+
+        # FIXME: Do we actually need this?
+        MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
+
+      run: |
+        set -ex
+
+        mkdir -p build
+        cd build
+
+        cmake \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
+          -DOPENMS_CONTRIB_LIBS="$OPENMS_CONTRIB_LIBS" \
+          -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
+          -DPYOPENMS=ON \
+          -DBOOST_USE_STATIC="$BOOST_USE_STATIC" \
+          ..
+
+        ninja --verbose
+
+    ############################################################################
+    # Hit rate and cache size for this run.  Without this there is no way to
+    # tell from a build log whether compiler caching is working at all.
+    #
+    # continue-on-error because this is a diagnostic and must never decide the
+    # fate of the job.  Steps without an `if` carry an implicit success(), so a
+    # failure here would skip "Test" entirely and report a red job that never
+    # ran the suite.  That is not hypothetical: --verbose needs ccache >= 4.4,
+    # so an older ccache on some runner image would silently swallow the tests.
+    - name: Report ccache Statistics
+      if: ${{ !cancelled() && steps.ccache-configure.outcome == 'success' && steps.ccache-reset.outcome == 'success' }}
+      continue-on-error: true
+      shell: bash
+      run: ccache --show-stats --verbose
+
+    ############################################################################
+    - name: Test
+      shell: bash
+      run: ctest --parallel --output-on-failure --test-dir build
+
+    ############################################################################
+    # Saved on every event, including pull requests.  A cache written by a pull
+    # request run is scoped to that pull request, so it only speeds up later
+    # runs of the same one -- but that is precisely the loop developers iterate
+    # in.
+    #
+    # Only saved when the build SUCCEEDED, which is what makes this safe.  The
+    # save key shares its prefix with the restore-keys ladder, and that ladder
+    # takes the most *recent* match, so whatever this step uploads becomes what
+    # every later run on this branch restores.  Uploading after a failed build
+    # would therefore pin a partial cache -- and when the restore itself had
+    # missed (a new compiler major, or a new pull request before develop has a
+    # cache) that pinned entry is practically empty and permanently shadows the
+    # develop and any-branch rungs below it, leaving the branch cold for good.
+    # Requiring the build to have succeeded guarantees the cache is complete;
+    # on failure nothing is written and the previous good entry stays newest.
+    #
+    # Test failures still save: the build was complete by then, so the cache is
+    # too, and a red test says nothing about the objects.
+    - name: Save Build Cache
+      if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      uses: actions/cache/save@v5
+      with:
+        path: .ccache
+        # Reuse the restore step's primary key so the two can never drift apart.
+        key: ${{ steps.ccache-restore.outputs.cache-primary-key }}

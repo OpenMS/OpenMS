@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -116,7 +117,6 @@ namespace // anonymous
     std::string uuid_str(buf);
 
     auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", file_type},
       {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
@@ -177,11 +177,34 @@ namespace // anonymous
       *table, arrow::default_memory_pool(), outfile,
       config.row_group_size, writer_props, arrow_props);
 
+    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+    // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+    // removing: on Windows an open handle blocks the unlink.
+    const auto abandon = [&](const std::string& what)
+    {
+      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: " << what << std::endl;
+      (void)outfile->Close();
+      if (!File::remove(filename))
+      {
+        OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to remove incomplete output "
+                         << filename << std::endl;
+      }
+      return false;
+    };
+
     if (!write_status.ok())
     {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to write Parquet: "
-                       << write_status.ToString() << std::endl;
-      return false;
+      return abandon("Failed to write Parquet: " + write_status.ToString());
+    }
+
+    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+    // final flush is where a full disk surfaces, and reporting success there would hand back a
+    // truncated file.
+    auto close_status = outfile->Close();
+    if (!close_status.ok())
+    {
+      return abandon("Failed to close " + filename + ": " + close_status.ToString());
     }
 
     return true;

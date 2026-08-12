@@ -92,6 +92,34 @@ START_SECTION(void store(const std::string& filename, const std::vector<ProteinI
   TEST_EQUAL(peptide_id_vector[279].getHits()[0].getSequence().toString(), "MASGSCQGCEEDEETLKK")
   TEST_EQUAL(peptide_id_vector[279].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE), "NTEGTQKQK")
 
+  // XFDR attributes must survive both the initial load and the store/load round trip.
+  // The fixture carries xprophet_f and fdr_type on exactly one hit; it is located by its
+  // OpenPepXL:id rather than by index, so these assertions do not silently depend on the
+  // order in which XQuestResultXMLFile::load groups hits into identifications.
+  const std::string tagged_id = "LTEIISHDPNIELHKK-VEGCPKHPK-a15-b6";
+  // [0] = direct load of the fixture, [1] = after the store/load round trip
+  std::vector<const PeptideIdentificationList*> id_sets{&peptide_ids, &peptide_id_vector};
+  for (const PeptideIdentificationList* ids : id_sets)
+  {
+    Size matches = 0;
+    for (const PeptideIdentification& pep_id : *ids)
+    {
+      for (const PeptideHit& hit : pep_id.getHits())
+      {
+        if (!hit.metaValueExists("OpenPepXL:id") || hit.getMetaValue("OpenPepXL:id").toString() != tagged_id)
+        {
+          continue;
+        }
+        ++matches;
+        TEST_TRUE(hit.metaValueExists("XFDR:used_for_FDR"))
+        TEST_EQUAL(hit.getMetaValue("XFDR:used_for_FDR"), 1)
+        TEST_TRUE(hit.metaValueExists("XFDR:fdr_type"))
+        TEST_EQUAL(hit.getMetaValue("XFDR:fdr_type"), "q-value")
+      }
+    }
+    TEST_EQUAL(matches, 1)
+  }
+
 END_SECTION
 
 END_TEST

@@ -237,12 +237,12 @@ def to_psm_df(self, export_all_hits=True, include_modifications=True, include_pe
 
 
 @addon("PeptideIdentificationList")
-def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
+def to_qpx(self, qpx_version="1.1", creator="pyOpenMS", software_provider="OpenMS",
            scan_format="scan", **kwargs):
     """
     **EXPERIMENTAL**: Export PSMs as QPX format structure with file metadata and PSMs array.
 
-    :param qpx_version: Version of the QPX format. Default "1.0".
+    :param qpx_version: Version of the QPX format. Default "1.1".
     :param creator: Name of the tool or person who created the file.
     :param software_provider: Name of the software provider.
     :param scan_format: Controls the scan column format.
