@@ -218,9 +218,15 @@ Usage:
         .def("sortByIntensity", [](OpenMS::MSSpectrum& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, "Sorts the peaks by intensity (ascending if reverse is False, descending if True)")
         .def("sortByPosition", [](OpenMS::MSSpectrum& self) { return self.sortByPosition(); }, "Sorts the peaks by m/z position")
         .def("isSorted", [](const OpenMS::MSSpectrum& self) { return self.isSorted(); }, "Returns True if the spectrum is sorted by m/z")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz) { return self.findNearest(mz); }, "mz"_a, "Returns the index of the closest peak in m/z")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance) { return self.findNearest(mz, tolerance); }, "mz"_a, "tolerance"_a, "Returns the index of the closest peak in the provided +/- m/z tolerance window (-1 if none match)")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findNearest(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the closest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)")
+        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz) { return self.findNearest(mz); }, "mz"_a,
+            "Returns the index of the closest peak in m/z. The spectrum must be sorted with respect to m/z, "
+            "otherwise the result is undefined. Raises an exception if the spectrum is empty.")
+        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance) { return self.findNearest(mz, tolerance); }, "mz"_a, "tolerance"_a,
+            "Returns the index of the closest peak in the provided +/- m/z tolerance window (-1 if none match). "
+            "The spectrum must be sorted with respect to m/z, otherwise the result is undefined.")
+        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findNearest(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a,
+            "Returns the index of the closest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match). "
+            "The spectrum must be sorted with respect to m/z, otherwise the result is undefined.")
         .def("containsIMData", [](const OpenMS::MSSpectrum& self) { return self.containsIMData(); }, "Returns whether the spectrum contains ion mobility data")
         .def("clear", [](OpenMS::MSSpectrum& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clears all data (and meta data if clear_meta_data is True)")
         .def("getType", [](const OpenMS::MSSpectrum& self, bool query_data) { return self.getType(query_data); }, "query_data"_a = false, "Returns the spectrum type (centroided, profile or unknown). If SpectrumSettings and DataProcessing information are not sufficient and query_data is True, the data will be queried (potentially expensive)")
@@ -340,6 +346,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             },
             nb::rv_policy::reference_internal,
             "Returns zero-copy structured array with fields 'mz' (float64) and 'intensity' (float32)."
+            PYOPENMS_GET_PEAKS_STRUCT_DOC
         )
 
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
@@ -376,7 +383,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
         }, "mz"_a, "intensity"_a, "metadata"_a = "error", "ion_mobility"_a = nb::none(),
            "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
            "Set peaks from mz and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC
-           PYOPENMS_SET_PEAKS_IM_DOC)
+           PYOPENMS_SET_PEAKS_IM_DOC PYOPENMS_SET_PEAKS_INVARIANT_DOC)
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq, const std::string& metadata,
                              nb::object ion_mobility, OpenMS::DriftTimeUnit ion_mobility_unit) {
             // policy parsed before the shape check so that a bad policy is reported at the same
@@ -389,7 +396,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
         }, "peaks"_a, nb::kw_only(), "metadata"_a = "error", "ion_mobility"_a = nb::none(),
            "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
            "Set peaks from a tuple of (mz_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC
-           PYOPENMS_SET_PEAKS_IM_DOC)
+           PYOPENMS_SET_PEAKS_IM_DOC PYOPENMS_SET_PEAKS_INVARIANT_DOC)
 
         .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
             self.push_back(p);
@@ -407,7 +414,9 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets peak at index i")
-        .def("findHighestInWindow", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findHighestInWindow(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the highest peak in the provided abs. m/z tolerance window (-1 if none match)")
+        .def("findHighestInWindow", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findHighestInWindow(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a,
+            "Returns the index of the highest peak in the provided abs. m/z tolerance window (-1 if none match). "
+            "The spectrum must be sorted with respect to m/z, otherwise the result is undefined.")
         .def("select", [](OpenMS::MSSpectrum& self, const std::vector<size_t>& indices) -> OpenMS::MSSpectrum& { return self.select(indices); }, nb::rv_policy::reference_internal, "indices"_a, "Selects peaks by indices, removing all others")
 
         .def("getMinMZ", &OpenMS::MSSpectrum::getMinMZ, "Returns minimum m/z value")

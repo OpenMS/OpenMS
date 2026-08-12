@@ -207,6 +207,7 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
             },
             nb::rv_policy::reference_internal,
             "Returns zero-copy structured array with fields 'rt' (float64) and 'intensity' (float32)."
+            PYOPENMS_GET_PEAKS_STRUCT_DOC
         )
     
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj, const std::string& metadata) {
@@ -234,7 +235,7 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
                                      }
                                  });
         }, "rt"_a, "intensity"_a, "metadata"_a = "error",
-           "Set peaks from rt and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+           "Set peaks from rt and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC PYOPENMS_SET_PEAKS_INVARIANT_DOC)
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq, const std::string& metadata) {
             const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             if (nb::len(peaks_seq) != 2) {
@@ -256,7 +257,7 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
                                      }
                                  });
         }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
-           "Set peaks from a tuple/list of (rt_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC)
+           "Set peaks from a tuple/list of (rt_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC PYOPENMS_SET_PEAKS_INVARIANT_DOC)
 
         .def("size", [](const OpenMS::MSChromatogram& self) {
             return self.size();

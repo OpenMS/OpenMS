@@ -237,6 +237,23 @@ void def_CVTermList(Class& cls)
     "term for this, so other units are rejected. Because the ion mobility array is replaced rather than "         \
     "stranded, it is exempt from the ``metadata`` check above."
 
+/// Trailing paragraph shared by the six set_peaks() docstrings, documenting the two invariants the
+/// core does not maintain automatically -- and that set_peaks() therefore does not maintain either
+/// (inherited core contract, not a binding gap; see #9792 R-7.1).
+#define PYOPENMS_SET_PEAKS_INVARIANT_DOC                                                                         \
+    "\n\nSetting new peaks does not update the cached min/max position and intensity ranges -- call "            \
+    "``updateRanges()`` afterwards if you rely on them -- and does not require, or check, that the position "    \
+    "array is sorted, even though ``findNearest()``/``findHighestInWindow()`` assume ascending order and "       \
+    "return an undefined index otherwise."
+
+/// Trailing paragraph shared by the three get_peaks_struct() docstrings (#9792 R-7.1, R-7.3).
+#define PYOPENMS_GET_PEAKS_STRUCT_DOC                                                                            \
+    "\n\nThe array is writable and aliases the container's internal storage, so edits through it are not "       \
+    "copies: they leave the cached min/max ranges stale until ``updateRanges()`` is called, and are not "        \
+    "checked for sortedness even though ``findNearest()``/``findHighestInWindow()`` assume ascending order. "    \
+    "On an empty container the returned array is a freshly allocated, detached copy rather than a view, so it "  \
+    "does not alias any storage the container acquires afterwards."
+
 /// What set_peaks() should do with binary data arrays that the new peak count leaves mis-sized.
 enum class PeakMetadataPolicy
 {

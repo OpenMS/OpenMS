@@ -1625,9 +1625,15 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets peak at index i")
-        .def("findNearest", [](const OpenMS::Mobilogram& self, double mb) { return self.findNearest(mb); }, "mb"_a, "Returns the index of the closest peak in mobility")
-        .def("findNearest", [](const OpenMS::Mobilogram& self, double mb, double tolerance) { return self.findNearest(mb, tolerance); }, "mb"_a, "tolerance"_a, "Returns the index of the closest peak in the provided tolerance window (-1 if none match)")
-        .def("findNearest", [](const OpenMS::Mobilogram& self, double mb, double tolerance_left, double tolerance_right) { return self.findNearest(mb, tolerance_left, tolerance_right); }, "mb"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the closest peak in the provided tolerance window (-1 if none match)")
+        .def("findNearest", [](const OpenMS::Mobilogram& self, double mb) { return self.findNearest(mb); }, "mb"_a,
+            "Returns the index of the closest peak in mobility. The mobilogram must be sorted with respect to "
+            "mobility, otherwise the result is undefined. Raises an exception if the mobilogram is empty.")
+        .def("findNearest", [](const OpenMS::Mobilogram& self, double mb, double tolerance) { return self.findNearest(mb, tolerance); }, "mb"_a, "tolerance"_a,
+            "Returns the index of the closest peak in the provided tolerance window (-1 if none match). The "
+            "mobilogram must be sorted with respect to mobility, otherwise the result is undefined.")
+        .def("findNearest", [](const OpenMS::Mobilogram& self, double mb, double tolerance_left, double tolerance_right) { return self.findNearest(mb, tolerance_left, tolerance_right); }, "mb"_a, "tolerance_left"_a, "tolerance_right"_a,
+            "Returns the index of the closest peak in the provided tolerance window (-1 if none match). The "
+            "mobilogram must be sorted with respect to mobility, otherwise the result is undefined.")
         .def("getStringDataArrays", [](OpenMS::Mobilogram& self) -> OpenMS::Mobilogram::StringDataArrays& { return self.getStringDataArrays(); }, nb::rv_policy::reference_internal, "Returns a reference to the string data arrays")
         .def("setStringDataArrays", [](OpenMS::Mobilogram& self, const OpenMS::Mobilogram::StringDataArrays& sda) { return self.setStringDataArrays(sda); }, "sda"_a, "Sets the string data arrays")
         .def("getIntegerDataArrays", [](OpenMS::Mobilogram& self) -> OpenMS::Mobilogram::IntegerDataArrays& { return self.getIntegerDataArrays(); }, nb::rv_policy::reference_internal, "Returns a reference to the integer data arrays")
@@ -1701,6 +1707,7 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
             },
             nb::rv_policy::reference_internal,
             "Returns zero-copy structured array with fields 'mobility' (float64) and 'intensity' (float32)."
+            PYOPENMS_GET_PEAKS_STRUCT_DOC
         )
 
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj, const std::string& metadata) {
@@ -1726,7 +1733,7 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
                                      }
                                  });
         }, "mob"_a, "intensity"_a, "metadata"_a = "error",
-           "Set mobility and intensity from numpy arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+           "Set mobility and intensity from numpy arrays" PYOPENMS_SET_PEAKS_METADATA_DOC PYOPENMS_SET_PEAKS_INVARIANT_DOC)
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq, const std::string& metadata) {
             // parsed above the tuple/list branch so that a bad policy is reported at the same
             // point as in the other five set_peaks overloads
@@ -1755,7 +1762,7 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
                                      }
                                  });
         }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
-           "Set peaks from [mobility_array, intensity_array]" PYOPENMS_SET_PEAKS_METADATA_DOC)
+           "Set peaks from [mobility_array, intensity_array]" PYOPENMS_SET_PEAKS_METADATA_DOC PYOPENMS_SET_PEAKS_INVARIANT_DOC)
 
         .def("getFloatDataArrays", [](const OpenMS::Mobilogram& self) {
             return self.getFloatDataArrays();
