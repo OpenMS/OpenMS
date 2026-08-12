@@ -107,13 +107,13 @@
             "cacheVariables": {
                 "WITH_GUI": "OFF",
                 "BUILD_TOPP_TOOLS": "OFF",
+                "WITH_THERMO_RAW":"ON",
                 "ENABLE_THERMO_RAW_TESTS": "ON",
                 "ENABLE_TUTORIALS": "OFF",
                 "WITH_ONNX": "ON",
+                "WITH_OPENTIMS":"ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
                 "WITH_WNETALIGN": "ON",
-                "WITH_OPENTIMS":"ON",
-                "WITH_THERMO_RAW":"ON",
                 "USE_EXTERNAL_JSON": "ON",
                 "USE_EXTERNAL_SQLITECPP": "ON",
                 "USE_EXTERNAL_SIMDE": "ON",
@@ -252,7 +252,9 @@
                 "ci-base"
             ],
             "cacheVariables": {
-                "ENABLE_DOCS": "OFF"
+                "ENABLE_DOCS": "OFF",
+                "WITH_THERMO_RAW":"OFF",
+                "ENABLE_THERMO_RAW_TESTS": "OFF"
             }
         },
         {
