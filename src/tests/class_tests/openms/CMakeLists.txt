@@ -223,8 +223,17 @@ if (TARGET OpenSwathPercolatorScoring_test)
   target_link_libraries(OpenSwathPercolatorScoring_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
-    sqlite3
   )
+  #Test calls sqlite3 directly, so linkage required.
+  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test unofficial::sqlite3::sqlite3)
+  elseif(TARGET SQLite::SQLite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test SQLite::SQLite3)
+  elseif(TARGET SQLiteCpp)
+    target_link_libraries(OpenSwathPercolatorScoring_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+  elseif(TARGET sqlite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test sqlite3)
+  endif()
 endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
@@ -266,7 +275,16 @@ if (TARGET ParquetFile_test)
 endif()
 
 if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
-  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp sqlite3)
+  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp)
+  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    target_link_libraries(BrukerTimsFile_test unofficial::sqlite3::sqlite3)
+  elseif(TARGET SQLite::SQLite3)
+    target_link_libraries(BrukerTimsFile_test SQLite::SQLite3)
+  elseif(TARGET SQLiteCpp)
+    target_link_libraries(BrukerTimsFile_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+  elseif(TARGET sqlite3)
+    target_link_libraries(BrukerTimsFile_test sqlite3)
+  endif()
 endif()
 
 if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)

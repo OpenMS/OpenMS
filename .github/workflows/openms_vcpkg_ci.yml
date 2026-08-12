@@ -108,15 +108,6 @@ jobs:
               ccache
           fi
 
-      - name: Install Qt (Windows)
-        if: runner.os == 'Windows'
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          arch: 'win64_msvc2022_64'
-          cache: 'false'
-          archives: 'qtsvg qtimageformats qtbase'
-
       - name: Add Homebrew to PATH
         if: runner.os == 'macOS'
         shell: bash
