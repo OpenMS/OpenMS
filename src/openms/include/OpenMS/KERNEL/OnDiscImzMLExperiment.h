@@ -12,7 +12,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
-#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cstddef>
@@ -90,25 +89,14 @@ namespace OpenMS
       A UUID-header mismatch between the .ibd and the XML's IMS:1000080, an out-of-grid
       pixel, a <1 coordinate, or a duplicate pixel coordinate are reported as warnings
       (the dataset still loads; of duplicates, only the first spectrum per pixel enters
-      the geometry). Use @p PeakFileOptions::setStrictImagingGeometry(true) to turn
-      duplicates back into a hard error.
+      the geometry).
 
       @param imzml_path  Path to the .imzML file.
       @param ibd_path    Optional override for the .ibd path.
       @throws Exception::FileNotFound if either file cannot be opened.
       @throws Exception::ParseError   on malformed XML.
-      @throws Exception::InvalidValue if the dataset has duplicate pixel coordinates and
-              @p PeakFileOptions::getStrictImagingGeometry() was set to @c true.
     */
     void open(const std::string& imzml_path, const std::string& ibd_path = "");
-
-    /// Mutable access to the options used when opening a dataset (only the imaging-geometry
-    /// strictness is honoured here; set it before calling @p open())
-    PeakFileOptions& getOptions();
-    /// Non-mutable access to the options used when opening a dataset
-    const PeakFileOptions& getOptions() const;
-    /// Set the options used when opening a dataset (must be set before @p open())
-    void setOptions(const PeakFileOptions& options);
 
     /**
       @brief Close the companion .ibd file and release on-disc resources.

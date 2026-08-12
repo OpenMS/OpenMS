@@ -82,10 +82,10 @@ namespace
     return p;
   }
 
-  /// Validate the per-spectrum imzML pixel MetaValues. Duplicate coordinates abort the
-  /// store only in @p strict mode; otherwise they are written out with a warning, mirroring
-  /// what the reader accepts (a file that loads must be storable again).
-  void validatePixelMetadataForStore_(const MSExperiment& exp, bool strict)
+  /// Validate the per-spectrum imzML pixel MetaValues. Duplicate coordinates are written
+  /// out with a warning, mirroring what the reader accepts (a file that loads must be
+  /// storable again).
+  void validatePixelMetadataForStore_(const MSExperiment& exp)
   {
     struct PixelKey
     {
@@ -149,12 +149,6 @@ namespace
                           static_cast<uint32_t>(z_imz)};
       if (!seen.emplace(key).second)
       {
-        if (strict)
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Duplicate pixel coordinate",
-                                        "(" + OpenMS::StringConversions::toString(x_imz) + "," + OpenMS::StringConversions::toString(y_imz) + "," + OpenMS::StringConversions::toString(z_imz) + ") at spectrum " + OpenMS::StringConversions::toString(i));
-        }
         duplicate_spectra.push_back(i);
       }
     }
@@ -1160,7 +1154,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
                                         "Cannot store empty MSExperiment as imzML (all spectra removed by PeakFileOptions filters?)");
   }
 
-  validatePixelMetadataForStore_(work, options.getStrictImagingGeometry());
+  validatePixelMetadataForStore_(work);
 
   ImzMLMeta meta = extractMeta_(work);
   const bool continuous = isContinuousMode_(work, meta);

@@ -827,10 +827,10 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
             nb::gil_scoped_release release;
             self.load(filename, exp);
         }, "filename"_a, "exp"_a, "Load an imzML file into an MSImagingExperiment with pixel lookup")
-        .def_static("buildImagingGeometry", [](const OpenMS::MSExperiment& exp, OpenMS::MSImagingGeometry& geom, bool strict) {
-            OpenMS::ImzMLFile::buildImagingGeometry(exp, geom, strict);
-        }, "exp"_a, "geom"_a, "strict"_a = false,
-           "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues). Duplicate pixel coordinates are dropped from the geometry with a warning unless strict is set")
+        .def_static("buildImagingGeometry", [](const OpenMS::MSExperiment& exp, OpenMS::MSImagingGeometry& geom) {
+            OpenMS::ImzMLFile::buildImagingGeometry(exp, geom);
+        }, "exp"_a, "geom"_a,
+           "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues). Duplicate pixel coordinates are dropped from the geometry with a warning")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, nb::object consumer) {
             NanobindMSDataConsumer wrapper(consumer);
             nb::gil_scoped_release release;
@@ -1683,8 +1683,6 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("getMaxDataPoolSize", [](const OpenMS::PeakFileOptions& self) { return self.getMaxDataPoolSize(); }, "Returns maximal size of the data pool")
         .def("setMaxDataPoolSize", [](OpenMS::PeakFileOptions& self, size_t size) { return self.setMaxDataPoolSize(size); }, "size"_a, "Sets maximal size of the data pool")
         .def("hasFilters", [](const OpenMS::PeakFileOptions& self) { return self.hasFilters(); })
-        .def("setStrictImagingGeometry", [](OpenMS::PeakFileOptions& self, bool strict) { return self.setStrictImagingGeometry(strict); }, "strict"_a, "[imzML only!] Sets whether duplicate pixel coordinates abort the load/store, or (default) are dropped from the imaging geometry with a warning")
-        .def("getStrictImagingGeometry", [](const OpenMS::PeakFileOptions& self) { return self.getStrictImagingGeometry(); }, "[imzML only!] Returns whether duplicate pixel coordinates abort the load/store, or (default) are dropped from the imaging geometry with a warning")
         ;
 
 

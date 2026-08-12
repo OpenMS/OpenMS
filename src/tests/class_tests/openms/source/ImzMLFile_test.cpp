@@ -656,21 +656,6 @@ START_SECTION(void store rejects missing pixel coordinates)
 END_SECTION
 
 
-START_SECTION(void store rejects duplicate pixel coordinates with strict imaging geometry)
-{
-  MSExperiment exp;
-  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
-  exp.addSpectrum(makePixelSpectrum_(1, 1, 101.0, 900.0));
-
-  ImzMLFile f;
-  f.getOptions().setStrictImagingGeometry(true);
-  std::string tmp_imzml;
-  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
-  TEST_EXCEPTION(Exception::InvalidValue, f.store(tmp_imzml, exp))
-}
-END_SECTION
-
-
 START_SECTION(void store tolerates duplicate pixel coordinates by default)
 {
   // The reader accepts duplicate coordinates by default, so the writer must too:
@@ -718,18 +703,6 @@ START_SECTION(void store rejects incompatible continuous mode)
 END_SECTION
 
 
-START_SECTION(void buildImagingGeometry rejects duplicate pixels when strict)
-{
-  MSExperiment exp;
-  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
-  exp.addSpectrum(makePixelSpectrum_(1, 1, 101.0, 900.0));
-
-  MSImagingGeometry geom;
-  TEST_EXCEPTION(Exception::InvalidValue, ImzMLFile::buildImagingGeometry(exp, geom, true))
-}
-END_SECTION
-
-
 START_SECTION(void buildImagingGeometry tolerates duplicate pixels by default)
 {
   // Must agree with the loaders: an experiment that loaded fine cannot fail here.
@@ -769,32 +742,6 @@ START_SECTION(void load rejects spectrum missing pixel coordinates)
 END_SECTION
 
 
-START_SECTION(OnDiscImzMLExperiment rejects duplicate pixel coordinates with strict imaging geometry)
-{
-  std::string tmp_imzml;
-  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
-  writeDuplicatePixelImzML_(tmp_imzml);
-
-  // The imaging geometry is built during open(), so a duplicate-coordinate dataset
-  // is rejected there (fail-fast) rather than on the first coordinate query.
-  OnDiscImzMLExperiment od;
-  PeakFileOptions opts = od.getOptions();
-  opts.setStrictImagingGeometry(true);
-  od.setOptions(opts); // must be set before open(), which builds the geometry
-  TEST_EXCEPTION(Exception::InvalidValue, od.open(tmp_imzml))
-
-  std::string ibd_path = tmp_imzml;
-  std::string lower = tmp_imzml;
-  StringUtils::toLower(lower);
-  if (StringUtils::hasSuffix(lower, ".imzml"))
-  {
-    ibd_path = tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd";
-  }
-  remove(ibd_path.c_str());
-}
-END_SECTION
-
-
 START_SECTION(void load tolerates duplicate pixel coordinates by default)
 {
   std::string tmp_imzml;
@@ -810,29 +757,6 @@ START_SECTION(void load tolerates duplicate pixel coordinates by default)
   TEST_EQUAL(img.getMSExperiment().getNrSpectra(), 2u)
   TEST_EQUAL(img.getGeometry().getNumberOfPixels(), 1u)
   TEST_EQUAL(img.getGeometry().getSpectrumIndex(0, 0), 0u)
-
-  std::string ibd_path = tmp_imzml;
-  std::string lower = tmp_imzml;
-  StringUtils::toLower(lower);
-  if (StringUtils::hasSuffix(lower, ".imzml"))
-  {
-    ibd_path = tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd";
-  }
-  remove(ibd_path.c_str());
-}
-END_SECTION
-
-
-START_SECTION(void load rejects duplicate pixel coordinates with strict imaging geometry)
-{
-  std::string tmp_imzml;
-  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
-  writeDuplicatePixelImzML_(tmp_imzml);
-
-  ImzMLFile f;
-  f.getOptions().setStrictImagingGeometry(true);
-  MSImagingExperiment img;
-  TEST_EXCEPTION(Exception::InvalidValue, f.load(tmp_imzml, img))
 
   std::string ibd_path = tmp_imzml;
   std::string lower = tmp_imzml;

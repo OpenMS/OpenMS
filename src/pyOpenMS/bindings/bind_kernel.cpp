@@ -1913,11 +1913,6 @@ This is an alias for getChromatogramByNativeId().
             "Extract a single-mass ion image restricted to one region, decoding each pixel from the .ibd on demand")
         .def("gridWidth", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridWidth(); })
         .def("gridHeight", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridHeight(); })
-        .def("getOptions", [](OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::PeakFileOptions& { return self.getOptions(); },
-            nb::rv_policy::reference_internal,
-            "Returns the options used when opening a dataset (mutate before open())")
-        .def("setOptions", [](OpenMS::OnDiscImzMLExperiment& self, const OpenMS::PeakFileOptions& options) { self.setOptions(options); },
-            "options"_a, "Set the options used when opening a dataset (must be set before open())")
         ;
 
     // -----------------------------------------------------------------------

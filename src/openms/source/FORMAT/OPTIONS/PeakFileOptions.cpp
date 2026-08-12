@@ -311,14 +311,4 @@ namespace OpenMS
     return skip_chromatograms_;
   }
 
-  void PeakFileOptions::setStrictImagingGeometry(bool strict)
-  {
-    strict_imaging_geometry_ = strict;
-  }
-
-  bool PeakFileOptions::getStrictImagingGeometry() const
-  {
-    return strict_imaging_geometry_;
-  }
-
 } // namespace OpenMS

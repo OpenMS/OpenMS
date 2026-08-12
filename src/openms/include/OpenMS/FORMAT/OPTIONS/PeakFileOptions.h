@@ -219,11 +219,6 @@ public:
     void setSkipChromatograms(bool skip);
     bool getSkipChromatograms() const;
 
-    /// [imzML only!] Set whether duplicate pixel coordinates abort the load/store, or (default) are dropped from the imaging geometry with a warning
-    void setStrictImagingGeometry(bool strict);
-    /// [imzML only!] Whether duplicate pixel coordinates abort the load/store, or (default) are dropped from the imaging geometry with a warning
-    bool getStrictImagingGeometry() const;
-
 private:
     bool metadata_only_ = false;                ///< only load header information, no spectra lists / chromatograms
     bool force_maxquant_compatibility_ = false; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
@@ -253,7 +248,6 @@ private:
     Size maximal_data_pool_size_ = 100;
     bool precursor_mz_selected_ion_ = true;
     bool skip_chromatograms_ = false;
-    bool strict_imaging_geometry_ = false;      ///< for imzML only: reject duplicate pixel coordinates instead of warning (on both read and write)
   };
 
 } // namespace OpenMS

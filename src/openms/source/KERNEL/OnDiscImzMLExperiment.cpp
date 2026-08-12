@@ -32,12 +32,9 @@ struct OnDiscImzMLExperiment::Impl
   // the in-memory path. Built eagerly in open(): it is an in-memory O(n) pass over
   // the already-parsed index (no .ibd reads), negligible next to the XML parse open()
   // already performs — only peak decoding is worth deferring. Building it at open()
-  // also surfaces a structurally broken coordinate grid (duplicate / <1 coords) there:
-  // duplicates throw only with PeakFileOptions::setStrictImagingGeometry(true), otherwise
-  // they are warned about.
+  // also surfaces a structurally broken coordinate grid (duplicate / <1 coords) there;
+  // both are always warned about, never thrown.
   MSImagingGeometry geometry_;
-
-  PeakFileOptions options_; // options for strict duplicate handling
 
   bool is_open_ {false};
   std::string ibd_path_;
@@ -55,7 +52,7 @@ struct OnDiscImzMLExperiment::Impl
   // ImzMLFile, so the on-disc and in-memory paths cannot diverge.
   void buildGeometry_()
   {
-    ImzMLFile::buildImagingGeometry(index_, meta_, geometry_, options_.getStrictImagingGeometry());
+    ImzMLFile::buildImagingGeometry(index_, meta_, geometry_);
   }
 
   MSSpectrum decodeSpectrum(std::size_t i) const
@@ -142,9 +139,7 @@ OnDiscImzMLExperiment& OnDiscImzMLExperiment::operator=(OnDiscImzMLExperiment&& 
 
 void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::string& ibd_path_override)
 {
-  PeakFileOptions options = pimpl_->options_; // survives the Impl reset below
   pimpl_ = std::make_unique<Impl>();
-  pimpl_->options_ = options;
 
   ImzMLFile f;
   f.setLogType(ProgressLogger::NONE);
@@ -180,21 +175,6 @@ void OnDiscImzMLExperiment::close() noexcept
   }
   pimpl_->is_open_ = false;
   pimpl_->geometry_.clear();
-}
-
-PeakFileOptions& OnDiscImzMLExperiment::getOptions()
-{
-  return pimpl_->options_;
-}
-
-const PeakFileOptions& OnDiscImzMLExperiment::getOptions() const
-{
-  return pimpl_->options_;
-}
-
-void OnDiscImzMLExperiment::setOptions(const PeakFileOptions& options)
-{
-  pimpl_->options_ = options;
 }
 
 bool OnDiscImzMLExperiment::isOpen() const noexcept

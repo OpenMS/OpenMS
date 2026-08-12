@@ -230,14 +230,14 @@ void ImzMLFile::load(const std::string& filename, MSImagingExperiment& exp)
   // not by reading imzml:x/y MetaValues back off the spectra. index[i] corresponds to
   // spectrum i in ms_exp (both driven by the same delivery order).
   MSImagingGeometry geom;
-  buildImagingGeometry(index, meta, geom, options_.getStrictImagingGeometry());
+  buildImagingGeometry(index, meta, geom);
 
   exp.setMSExperiment(std::move(ms_exp));
   exp.setGeometry(std::move(geom));
   exp.validate();
 }
 
-void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom, const bool strict)
+void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom)
 {
   geom.clear();
 
@@ -307,12 +307,6 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
     max_y = std::max(max_y, y);
     if (geom.hasPixel(x, y))
     {
-      if (strict) // throw only when strict == True, otherwise the spectrum is just not in geom
-      {
-        throw Exception::InvalidValue(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,
-          "duplicate imzML pixel coordinates",
-          "x=" + StringUtils::toStr(x_imz) + ",y=" + StringUtils::toStr(y_imz));
-      }
       duplicate_spectra.push_back(i);
       continue;
     }
@@ -368,8 +362,7 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
 
 void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index,
                                      const ImzMLMeta& meta,
-                                     MSImagingGeometry& geom,
-                                     const bool strict)
+                                     MSImagingGeometry& geom)
 {
   // Source-of-truth geometry builder: coordinates come straight from the parsed index
   // (1-based imzML), not from imzml:x/y MetaValues. Shared by ImzMLFile::load(MSImagingExperiment&)
@@ -418,12 +411,6 @@ void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& inde
     max_y = std::max(max_y, y);
     if (geom.hasPixel(x, y))
     {
-      if (strict) // throw only when strict == True, otherwise spectrum is loaded but not in geom
-      {
-        throw Exception::InvalidValue(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,
-          "duplicate imzML pixel coordinates",
-          "x=" + StringUtils::toStr(x+1) + ",y=" + StringUtils::toStr(y+1));
-      }
       duplicate_spectra.push_back(i);
       continue;
     }
