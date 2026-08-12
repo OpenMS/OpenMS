@@ -48,8 +48,25 @@ jobs:
           # #9905 was a *silent* downgrade to a bioconda-utils carrying a 2024
           # pinning, which is invisible unless you read the solver output. Record the
           # resolved versions so the next such drift is one grep away in the log.
+          # python is included deliberately: it is the lever that caused #9905, since
+          # each bioconda-utils release is built for exactly one python minor.
           echo "--- resolved build tooling ---"
-          conda list --export | grep -E '^(bioconda-utils|conda-forge-pinning|conda-build|conda-index)=' || true
+          conda list --export | grep -E '^(python|bioconda-utils|conda-forge-pinning|conda-build|conda-index)=' || true
+          # Prefer the build-env image matching the bioconda-utils we just resolved;
+          # `--docker` derives that tag itself, but the image is published to quay.io
+          # some time after the conda package, so a brand new release would fail the
+          # pull (4.5.0 was current on the bioconda channel with no image tag on
+          # 2026-08-12). Fall back to the rolling `latest` tag during that window.
+          # Nothing is pinned here -- the tag tracks whatever we actually installed.
+          image_repo=quay.io/bioconda/bioconda-utils-build-env-cos7
+          bu_version=$(conda list --export | sed -n 's/^bioconda-utils=\([^=]*\)=.*/\1/p')
+          if [ -n "$bu_version" ] && docker manifest inspect "$image_repo:$bu_version" >/dev/null 2>&1; then
+            echo "Using build-env image matching bioconda-utils $bu_version"
+            echo "BUILD_ENV_IMAGE=$image_repo:$bu_version" >> $GITHUB_ENV
+          else
+            echo "No build-env image published for bioconda-utils ${bu_version:-unknown} yet; falling back to :latest"
+            echo "BUILD_ENV_IMAGE=$image_repo:latest" >> $GITHUB_ENV
+          fi
           python -m conda_index $GITHUB_WORKSPACE/output
           # Register the local output directory as a conda channel so that
           # host-side metadata finalization can resolve packages built in
@@ -82,15 +99,8 @@ jobs:
           # history, so it only conflicts on genuinely unresolved changes.
           git merge --no-edit bioconda/master
 
+      # BUILD_ENV_IMAGE comes from the preflight in "Prepare output directory".
       - name: Lint and build OpenMS Bioconda packages
-        env:
-          # `--docker` derives the build-env image tag from bioconda-utils' own
-          # version, but the image for a new release lands on quay.io some time after
-          # the conda package does (4.5.0 had no image tag as of 2026-08-12). Tracking
-          # the rolling `latest` image keeps "always build with the latest utils" from
-          # failing on a docker pull during that window. Still unpinned -- this follows
-          # whatever image bioconda publishes as current.
-          BUILD_ENV_IMAGE: quay.io/bioconda/bioconda-utils-build-env-cos7:latest
         run: |
           cd bioconda-recipes
           bioconda-utils lint --packages pyopenms openms-meta
@@ -98,8 +108,6 @@ jobs:
           python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Build pyopenms package
-        env:
-          BUILD_ENV_IMAGE: quay.io/bioconda/bioconda-utils-build-env-cos7:latest
         run: |
           cd bioconda-recipes
           bioconda-utils build --docker --mulled-test --pkg-dir $GITHUB_WORKSPACE/output --packages pyopenms || true
