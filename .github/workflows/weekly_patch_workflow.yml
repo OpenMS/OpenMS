@@ -45,8 +45,11 @@ jobs:
           LATEST_BRANCH=$(git branch -r | grep -E 'origin/releases/v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/.*origin\///' | sort -V | tail -n 1)
 
           if [[ -z "$LATEST_BRANCH" ]]; then
-            echo "::error::No release branches matching 'releases/vN.M.0' found."
-            exit 1
+            # Alternative if the release branch is not found then exit in error. Since workflow is not all running when this is merged keep this as comment for now.
+            # echo "::error::No release branches matching 'releases/vN.M.0' found."
+            # exit 1
+            echo "No changes detected since last release since no release branches matching 'releases/vN.M.0' found."
+            exit 0
           fi
           echo "Latest release branch detected: $LATEST_BRANCH"
 
@@ -74,9 +77,9 @@ jobs:
           if git rev-parse "$LATEST_TAG" >/dev/null 2>&1; then
             COMMITS_SINCE_TAG=$(git log "$LATEST_TAG"..HEAD --oneline | wc -l)
           else
-            # safety net in case tag does not exist for the branch (should not happen though)
+            # safety net in case tag does not exist for the branch
             echo "Tag $LATEST_TAG does not exist. Assuming initial execution."
-            COMMITS_SINCE_TAG=1
+            COMMITS_SINCE_TAG=0
           fi
 
           if [[ "$COMMITS_SINCE_TAG" -eq 0 ]]; then
