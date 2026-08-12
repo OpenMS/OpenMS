@@ -1,0 +1,19 @@
+# Ruff configuration for the pyOpenMS documentation sources.
+#
+# Ruff 0.16 widened its *default* lint selection from 59 rules to 413. Because
+# the doc-validate workflow ran an unpinned `astral-sh/ruff-action`, that
+# widening turned the build-sphinx job red with no commit in between
+# (OpenMS/OpenMS#9899).
+#
+# Selecting the rules explicitly makes the lint result independent of whichever
+# ruff version happens to be installed. The set below is exactly ruff's
+# pre-0.16 default, i.e. the rules these sources were written against, so it is
+# a no-op for the current tree while removing the version dependency.
+#
+# Adopting more of the modern rule set is a separate, deliberate decision:
+# extend `select` and fix (or `per-file-ignores`) the findings in one change.
+# For reference, the full 0.16 defaults currently report 35 findings here,
+# 13 of them auto-fixable.
+
+[lint]
+select = ["E4", "E7", "E9", "F"]
