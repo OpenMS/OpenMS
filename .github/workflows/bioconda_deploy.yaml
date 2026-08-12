@@ -24,9 +24,12 @@ jobs:
         with:
           activate-environment: bioconda_env
           auto-update-conda: true
-          # Must match the bioconda-utils version pinned below: 4.1.0 is built for
-          # python 3.12, everything from 4.2.0 on is built for python 3.13 only.
-          python-version: "3.12"
+          # Deliberately no python-version: bioconda-utils is built for exactly one
+          # python minor per release (4.2.0+ is python 3.13 only), so pinning python
+          # here silently caps which bioconda-utils the solver may pick. That is what
+          # broke #9905 -- python 3.12 held bioconda-utils at 4.1.0 and with it a
+          # conda-forge-pinning snapshot from 2024. Letting conda choose the python
+          # keeps this from recurring when bioconda-utils moves to 3.14.
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
@@ -35,25 +38,18 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/output/noarch
           mkdir -p $GITHUB_WORKSPACE/output/linux-64
           touch $GITHUB_WORKSPACE/output/noarch/repodata.json
-          # Pin bioconda-utils AND the conda-forge pinning snapshot it carries.
-          # The snapshot decides how the recipe's unversioned host dependencies
-          # resolve: bioconda-utils copies it into the build container and hands
-          # it to conda-build via --variant-config-files. The 2024.11.29 snapshot
-          # pins xerces_c to 3.2, so libOpenMS built against xerces-c 3.2.5 (icu
-          # 75) and exported a run constraint that no longer co-installs with the
-          # icu 78 chains of current libarrow/libcurl, leaving the package solve
-          # unsatisfiable. The 2026.01.07 snapshot pins xerces_c to 3.3, which
-          # resolves to a xerces-c built against icu 78.
-          # Naming the snapshot also selects the bioconda-utils build that
-          # requires it (4.1.0 build 1) rather than the older build 0.
-          # Moving further, to bioconda-utils >=4.2, additionally needs two recipe
-          # fixes in OpenMS/bioconda-recipes (openms-meta declares no c stdlib and
-          # pyopenms needs its build number reset for the stricter linter), and
-          # 4.5.0 has no build-env image published at
-          # https://quay.io/repository/bioconda/bioconda-utils-build-env-cos7?tab=tags
-          # -- `--docker` derives the image tag from the tool version, so that
-          # would fail the image pull.
-          conda install bioconda-utils=4.1.0 conda-forge-pinning=2026.01.07.13.16.30 conda-index -y
+          # Deliberately unpinned, including conda-forge-pinning. This nightly exists
+          # to mimic upstream bioconda and surface breakage against the pinnings they
+          # currently build with, so it has to track whatever bioconda-utils is
+          # current. bioconda-utils declares the conda-forge-pinning snapshot it
+          # wants, so that version decides the pinning; constraining either one here
+          # would hide exactly the breakage this workflow is meant to catch.
+          conda install bioconda-utils conda-index -y
+          # #9905 was a *silent* downgrade to a bioconda-utils carrying a 2024
+          # pinning, which is invisible unless you read the solver output. Record the
+          # resolved versions so the next such drift is one grep away in the log.
+          echo "--- resolved build tooling ---"
+          conda list --export | grep -E '^(bioconda-utils|conda-forge-pinning|conda-build|conda-index)=' || true
           python -m conda_index $GITHUB_WORKSPACE/output
           # Register the local output directory as a conda channel so that
           # host-side metadata finalization can resolve packages built in
@@ -87,6 +83,14 @@ jobs:
           git merge --no-edit bioconda/master
 
       - name: Lint and build OpenMS Bioconda packages
+        env:
+          # `--docker` derives the build-env image tag from bioconda-utils' own
+          # version, but the image for a new release lands on quay.io some time after
+          # the conda package does (4.5.0 had no image tag as of 2026-08-12). Tracking
+          # the rolling `latest` image keeps "always build with the latest utils" from
+          # failing on a docker pull during that window. Still unpinned -- this follows
+          # whatever image bioconda publishes as current.
+          BUILD_ENV_IMAGE: quay.io/bioconda/bioconda-utils-build-env-cos7:latest
         run: |
           cd bioconda-recipes
           bioconda-utils lint --packages pyopenms openms-meta
@@ -94,6 +98,8 @@ jobs:
           python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Build pyopenms package
+        env:
+          BUILD_ENV_IMAGE: quay.io/bioconda/bioconda-utils-build-env-cos7:latest
         run: |
           cd bioconda-recipes
           bioconda-utils build --docker --mulled-test --pkg-dir $GITHUB_WORKSPACE/output --packages pyopenms || true
@@ -102,8 +108,8 @@ jobs:
       - name: Upload Conda packages
         run: |
           # Safety net: anaconda-client 1.13.x still uses the removed pkg_resources.
-          # bioconda-utils 4.1.0 build 1 already requires 1.14.*, so this is a no-op
-          # as long as the pin above holds.
+          # Current bioconda-utils already requires 1.14.*, so this is normally a
+          # no-op; it only matters if the solver lands on an older one.
           pip install "anaconda-client>=1.14"
           ls -l $GITHUB_WORKSPACE/output
           shopt -s nullglob
