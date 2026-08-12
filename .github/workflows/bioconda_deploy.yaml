@@ -58,15 +58,33 @@ jobs:
           # pull (4.5.0 was current on the bioconda channel with no image tag on
           # 2026-08-12). Fall back to the rolling `latest` tag during that window.
           # Nothing is pinned here -- the tag tracks whatever we actually installed.
+          #
+          # Ask quay's API rather than `docker manifest inspect`: the API separates
+          # "tag is not published" (HTTP 200 with an empty tag list) from "we could
+          # not find out" (curl fails), which a single exit status cannot, and it
+          # does not depend on `docker manifest` being enabled on the runner.
           image_repo=quay.io/bioconda/bioconda-utils-build-env-cos7
+          tag_api="https://quay.io/api/v1/repository/bioconda/bioconda-utils-build-env-cos7/tag/"
           bu_version=$(conda list --export | sed -n 's/^bioconda-utils=\([^=]*\)=.*/\1/p')
-          if [ -n "$bu_version" ] && docker manifest inspect "$image_repo:$bu_version" >/dev/null 2>&1; then
-            echo "Using build-env image matching bioconda-utils $bu_version"
-            echo "BUILD_ENV_IMAGE=$image_repo:$bu_version" >> $GITHUB_ENV
-          else
-            echo "No build-env image published for bioconda-utils ${bu_version:-unknown} yet; falling back to :latest"
-            echo "BUILD_ENV_IMAGE=$image_repo:latest" >> $GITHUB_ENV
+          image_tag=latest
+          if [ -n "$bu_version" ]; then
+            for attempt in 1 2 3; do
+              if tags=$(curl -fsSL --max-time 30 "${tag_api}?onlyActiveTags=true&specificTag=${bu_version}"); then
+                if printf '%s' "$tags" | grep -q "\"name\": *\"${bu_version}\""; then
+                  image_tag=$bu_version
+                else
+                  echo "quay.io has no build-env image for bioconda-utils ${bu_version} yet"
+                fi
+                break
+              fi
+              # Only a lookup failure is retried. Staying on :latest is a safe
+              # outcome, so a flaky registry must not fail the nightly outright.
+              echo "quay.io tag lookup failed (attempt ${attempt}/3)"
+              if [ "$attempt" -lt 3 ]; then sleep $((attempt * 5)); fi
+            done
           fi
+          echo "Using build-env image ${image_repo}:${image_tag} (bioconda-utils ${bu_version:-unknown})"
+          echo "BUILD_ENV_IMAGE=${image_repo}:${image_tag}" >> $GITHUB_ENV
           python -m conda_index $GITHUB_WORKSPACE/output
           # Register the local output directory as a conda channel so that
           # host-side metadata finalization can resolve packages built in
