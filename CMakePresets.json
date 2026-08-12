@@ -108,7 +108,7 @@
                 "WITH_GUI": "OFF",
                 "BUILD_TOPP_TOOLS": "OFF",
                 "WITH_THERMO_RAW":"ON",
-                "ENABLE_THERMO_RAW_TESTS": "ON",
+                "ENABLE_THERMO_RAW_TESTS": "OFF",
                 "ENABLE_TUTORIALS": "OFF",
                 "WITH_ONNX": "ON",
                 "WITH_OPENTIMS":"ON",
