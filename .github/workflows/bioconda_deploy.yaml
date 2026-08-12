@@ -24,7 +24,10 @@ jobs:
         with:
           activate-environment: bioconda_env
           auto-update-conda: true
-          python-version: "3.12"
+          # bioconda-utils >=4.2.0 is built for python 3.13 only. With python 3.12 the
+          # solver silently falls back to bioconda-utils 4.1.0, which drags in a
+          # conda-forge-pinning snapshot from 2024 (see the pin below).
+          python-version: "3.13"
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
@@ -33,7 +36,15 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/output/noarch
           mkdir -p $GITHUB_WORKSPACE/output/linux-64
           touch $GITHUB_WORKSPACE/output/noarch/repodata.json
-          conda install bioconda-utils conda-index -y
+          # Pin bioconda-utils explicitly: its version selects both the
+          # conda-forge-pinning snapshot used to resolve the recipe's host
+          # dependencies and the quay.io/bioconda/bioconda-utils-build-env-cos7
+          # tag used by `--docker`. Leaving it unpinned lets the solver pick an
+          # old build whose stale pinning breaks the package solve, and bumping
+          # past the newest published build-env image would fail the docker pull.
+          # When raising this, check that a matching image tag exists at
+          # https://quay.io/repository/bioconda/bioconda-utils-build-env-cos7?tab=tags
+          conda install bioconda-utils=4.4.1 conda-index -y
           python -m conda_index $GITHUB_WORKSPACE/output
           # Register the local output directory as a conda channel so that
           # host-side metadata finalization can resolve packages built in
@@ -81,7 +92,9 @@ jobs:
 
       - name: Upload Conda packages
         run: |
-          pip install "anaconda-client>=1.14"  # bioconda-utils pulls 1.13.x which still uses removed pkg_resources
+          # Safety net: anaconda-client 1.13.x still uses the removed pkg_resources.
+          # bioconda-utils 4.4.1 already requires 1.14.*, so this is normally a no-op.
+          pip install "anaconda-client>=1.14"
           ls -l $GITHUB_WORKSPACE/output
           shopt -s nullglob
           pkgs=($GITHUB_WORKSPACE/output/linux-64/*.tar.bz2 $GITHUB_WORKSPACE/output/linux-64/*.conda)
