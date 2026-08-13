@@ -146,6 +146,8 @@ namespace OpenMS
       @param i  0-based spectrum index.
       @throws Exception::IndexOverflow if @p i >= getNrSpectra().
       @throws Exception::FileNotFound  if the .ibd is not open.
+      @throws Exception::ParseError    if m/z or intensity arrays are zlib-compressed
+                                       (@c MS:1000574), or if array lengths mismatch.
     */
     MSSpectrum getSpectrum(std::size_t i) const;
 

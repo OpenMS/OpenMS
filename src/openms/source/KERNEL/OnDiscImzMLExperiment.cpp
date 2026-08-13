@@ -14,6 +14,7 @@
 #include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <cmath>
 #include <cstdio>
@@ -62,6 +63,13 @@ struct OnDiscImzMLExperiment::Impl
     s.setMetaValue("imzml:x", static_cast<Int>(e.x));
     s.setMetaValue("imzml:y", static_cast<Int>(e.y));
     s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+
+    if (e.mz_compressed || e.int_compressed)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
+        "zlib-compressed external m/z or intensity arrays are not supported "
+        "(need IMS:1000104 + inflate). Re-export without compression.");
+    }
 
     std::vector<double> mz_vec = readMz_(e);
     std::vector<float> int_vec = readInt_(e);
@@ -118,6 +126,13 @@ struct OnDiscImzMLExperiment::Impl
       auto& fda = s.getFloatDataArrays().emplace_back();
       fda.setName(aux.name);
       fda.assign(values.begin(), values.end());
+    }
+
+    // Same default as MzMLHandler / ImzMLInterceptConsumer: per-peak IM from the
+    // .ibd is profile data unless a later centroiding step marks it otherwise.
+    if (s.containsIMData() && s.getIMPeakType() == IMPeakType::UNKNOWN)
+    {
+      s.setIMPeakType(IMPeakType::IM_PROFILE);
     }
 
     s.sortByPosition();

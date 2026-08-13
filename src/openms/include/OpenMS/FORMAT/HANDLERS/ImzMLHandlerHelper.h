@@ -85,9 +85,11 @@ namespace OpenMS
 
     Records the byte offset and element count for the m/z and intensity
     arrays in the companion .ibd file, together with the pixel (x,y,z)
-    coordinates.  Built during ImzMLHandler parsing and stored inside
-    OnDiscImzMLExperiment so that random-access spectrum decoding requires
-    only a single fseek + fread per call.
+    coordinates and zlib-compression flags (@c MS:1000574).  Built during
+    ImzMLHandler parsing and stored inside OnDiscImzMLExperiment so that
+    random-access spectrum decoding requires only a single fseek + fread
+    per call. Compressed m/z, intensity, and auxiliary arrays are rejected
+    at decode time (inflate of external arrays is not supported).
 
     Optional @p aux entries describe additional external arrays (ion mobility
     and other @c FloatDataArray values). Both in-memory @p ImzMLFile::load and
@@ -126,9 +128,11 @@ namespace OpenMS
     uint64_t mz_offset  {0};              ///< Byte offset of m/z array (IMS:1000102)
     uint64_t mz_length  {0};              ///< Element count             (IMS:1000103)
     DataType mz_type    {DataType::UNKNOWN};
+    bool mz_compressed {false};           ///< MS:1000574 on m/z array (unsupported for decode)
     uint64_t int_offset {0};              ///< Byte offset of intensity array
     uint64_t int_length {0};              ///< Element count
     DataType int_type   {DataType::UNKNOWN};
+    bool int_compressed {false};          ///< MS:1000574 on intensity array (unsupported for decode)
     std::vector<AuxArray> aux;            ///< Extra external arrays (IM, …) in document order
   };
 

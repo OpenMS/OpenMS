@@ -479,6 +479,7 @@ class TestImzMLFile(unittest.TestCase):
             pyopenms.ImzMLFile().load(out_path, img)
             loaded = img.getMSExperiment().getSpectrum(0)
             self.assertTrue(loaded.containsIMData())
+            self.assertEqual(loaded.getIMPeakType(), pyopenms.IMPeakType.IM_PROFILE)
             self.assertEqual(len(loaded.getFloatDataArrays()), 2)
             loaded_by_name = {a.getName(): a for a in loaded.getFloatDataArrays()}
             self.assertIn("mean inverse reduced ion mobility array", loaded_by_name)
@@ -497,8 +498,11 @@ class TestImzMLFile(unittest.TestCase):
             od.open(out_path)
             try:
                 self.assertEqual(len(od.getIndex(0).aux), 2)
+                self.assertFalse(od.getIndex(0).mz_compressed)
+                self.assertFalse(od.getIndex(0).int_compressed)
                 od_spec = od.getSpectrum(0)
                 self.assertTrue(od_spec.containsIMData())
+                self.assertEqual(od_spec.getIMPeakType(), pyopenms.IMPeakType.IM_PROFILE)
                 self.assertEqual(len(od_spec.getFloatDataArrays()), 2)
                 od_by_name = {a.getName(): a for a in od_spec.getFloatDataArrays()}
                 self.assertIn("mean inverse reduced ion mobility array", od_by_name)

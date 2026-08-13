@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <xercesc/util/XMLString.hpp>
 
@@ -280,6 +281,14 @@ public:
         }
       }
 
+      // MzMLHandler::populateSpectraWithData_() defaults UNKNOWN → IM_PROFILE before
+      // consumeSpectrum(), but that runs before this late .ibd aux fill. Re-apply the
+      // same default now that containsIMData() can see the materialized IM array.
+      if (s.containsIMData() && s.getIMPeakType() == IMPeakType::UNKNOWN)
+      {
+        s.setIMPeakType(IMPeakType::IM_PROFILE);
+      }
+
       // Build full spectrum index entry (includes aux so OnDisc can decode IM lazily).
       ImzMLSpectrumIndex entry;
       entry.index      = idx;
@@ -289,9 +298,11 @@ public:
       entry.mz_offset  = ims->mz_meta.offset;
       entry.mz_length  = ims->mz_meta.count;
       entry.mz_type    = ims->mz_meta.dt;
+      entry.mz_compressed = ims->mz_meta.compressed;
       entry.int_offset = ims->int_meta.offset;
       entry.int_length = ims->int_meta.count;
       entry.int_type   = ims->int_meta.dt;
+      entry.int_compressed = ims->int_meta.compressed;
       entry.aux.reserve(ims->aux_meta.size());
       for (const auto& aux : ims->aux_meta)
       {

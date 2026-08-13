@@ -803,9 +803,11 @@ by isobar to load quantification results
         .def_ro("mz_offset", &OpenMS::ImzMLSpectrumIndex::mz_offset)
         .def_ro("mz_length", &OpenMS::ImzMLSpectrumIndex::mz_length)
         .def_ro("mz_type", &OpenMS::ImzMLSpectrumIndex::mz_type)
+        .def_ro("mz_compressed", &OpenMS::ImzMLSpectrumIndex::mz_compressed)
         .def_ro("int_offset", &OpenMS::ImzMLSpectrumIndex::int_offset)
         .def_ro("int_length", &OpenMS::ImzMLSpectrumIndex::int_length)
         .def_ro("int_type", &OpenMS::ImzMLSpectrumIndex::int_type)
+        .def_ro("int_compressed", &OpenMS::ImzMLSpectrumIndex::int_compressed)
         .def_ro("aux", &OpenMS::ImzMLSpectrumIndex::aux);
 
     // -----------------------------------------------------------------------

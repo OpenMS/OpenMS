@@ -26,6 +26,7 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
 #include <fstream>
+#include <iterator>
 #include <cstdio>
 #include <sstream>
 
@@ -193,6 +194,50 @@ namespace
     xml << "    </spectrumList>\n"
         << "  </run>\n"
         << "</mzML>\n";
+  }
+
+  /// Insert MS:1000574 into the mzArray and intensityArray referenceableParamGroups
+  /// of a stored imzML so loaders see zlib-compressed external m/z / intensity.
+  bool injectZlibCompressionOnMzIntGroups_(const std::string& imzml_path)
+  {
+    std::ifstream in(imzml_path.c_str());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    const std::string zlib = "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\"/>\n";
+    auto inject = [&](const std::string& id) -> bool {
+      const std::string open = "<referenceableParamGroup id=\"" + id + "\">";
+      const std::string::size_type start = content.find(open);
+      if (start == std::string::npos)
+      {
+        return false;
+      }
+      const std::string::size_type end = content.find("</referenceableParamGroup>", start);
+      if (end == std::string::npos)
+      {
+        return false;
+      }
+      content.insert(end, zlib);
+      return true;
+    };
+    // intensity first so the mz group's insert offset stays valid
+    if (!inject("intensityArray") || !inject("mzArray"))
+    {
+      return false;
+    }
+    std::ofstream out(imzml_path.c_str(), std::ios::trunc);
+    out << content;
+    return out.good();
+  }
+
+  std::string ibdPathFor_(const std::string& imzml_path)
+  {
+    std::string lower = imzml_path;
+    StringUtils::toLower(lower);
+    if (StringUtils::hasSuffix(lower, ".imzml"))
+    {
+      return imzml_path.substr(0, imzml_path.size() - 6) + ".ibd";
+    }
+    return imzml_path + ".ibd";
   }
 } // namespace
 
@@ -695,8 +740,9 @@ START_SECTION(void store round-trip FloatDataArray ion mobility and non-standard
   TEST_REAL_SIMILAR(fda[custom_idx][0], 3.0)
   TEST_REAL_SIMILAR(fda[custom_idx][1], 4.5)
 
-  // Viewer contract: containsIMData() + correct 1/K0 unit for the PSI IM array.
+  // Viewer contract: containsIMData() + IM_PROFILE + correct 1/K0 unit for the PSI IM array.
   TEST_TRUE(reloaded[0].containsIMData())
+  TEST_TRUE(reloaded[0].getIMPeakType() == IMPeakType::IM_PROFILE)
   DriftTimeUnit im_unit = DriftTimeUnit::NONE;
   TEST_TRUE(IMDataConverter::getIMUnit(fda[im_idx], im_unit))
   TEST_TRUE(im_unit == DriftTimeUnit::VSSC)
@@ -706,8 +752,11 @@ START_SECTION(void store round-trip FloatDataArray ion mobility and non-standard
   od.open(tmp_imzml);
   TEST_EQUAL(od.getNrSpectra(), 1)
   TEST_EQUAL(od.getIndex(0).aux.size(), 2)
+  TEST_FALSE(od.getIndex(0).mz_compressed)
+  TEST_FALSE(od.getIndex(0).int_compressed)
   MSSpectrum od_spec = od.getSpectrum(0);
   TEST_TRUE(od_spec.containsIMData())
+  TEST_TRUE(od_spec.getIMPeakType() == IMPeakType::IM_PROFILE)
   TEST_EQUAL(od_spec.getFloatDataArrays().size(), 2)
   const auto& od_fda = od_spec.getFloatDataArrays();
   Size od_im_idx = od_fda.size();
@@ -802,6 +851,31 @@ START_SECTION(void buildImagingGeometry rejects duplicate pixels)
 
   MSImagingGeometry geom;
   TEST_EXCEPTION(Exception::InvalidValue, ImzMLFile::buildImagingGeometry(exp, geom))
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc reject zlib-compressed external m/z and intensity)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, exp);
+  TEST_TRUE(injectZlibCompressionOnMzIntGroups_(tmp_imzml))
+
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, f.load(tmp_imzml, img))
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_TRUE(od.getIndex(0).mz_compressed)
+  TEST_TRUE(od.getIndex(0).int_compressed)
+  TEST_EXCEPTION(Exception::ParseError, od.getSpectrum(0))
+
+  remove(ibdPathFor_(tmp_imzml).c_str());
 }
 END_SECTION
 
