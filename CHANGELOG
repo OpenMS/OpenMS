@@ -1045,6 +1045,8 @@ Build System:
   - CI: macOS notarization with timestamping integrated (#8486, #8494, #8527); the .pkg installer no longer
     packages the pyopenms extension modules, which were never signed and are shipped as wheels anyway
     (#9827)
+  - Windows installer: the NSIS "Installation Complete" page now links to a short, optional user survey,
+    to help gauge who is using OpenMS (#9769)
   - CI: the Docker image build fetches the Arrow APT source from packages.apache.org and appends Arrow's
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
