@@ -66,9 +66,11 @@ namespace OpenMS
 
   <b>Sample</b> -- the biological material a quantity is measured from; concretely, a named row
   of the sample section that @c Sample in the file section points at. Two file rows with the same
-  @c Sample value describe measurements of the same material and may be pooled downstream; rows
-  with different values are different material, even if all their metadata columns agree. In a
-  labeled experiment each channel is its own sample, so one TMT10 file describes ten samples.
+  @c Sample value describe measurements of the same material; rows with different values are
+  different material, even if all their metadata columns agree. OpenMS never pools rows that
+  share a sample -- they stay separate quantities. In a labeled experiment each channel normally
+  names a different sample, so one TMT10 file usually describes ten, but repeating a @c Sample
+  across channels or mixtures is legal and is how a bridge/reference channel is declared.
   getNumberOfSamples() returns the number of rows in the sample section.
 
   @note @c Sample holds a <b>name</b>, i.e. an arbitrary string -- @c sdrf-pipelines writes
@@ -79,15 +81,20 @@ namespace OpenMS
 
   <b>Fraction</b> -- one portion of a sample that was separated before LC-MS (high-pH reversed
   phase, SCX, gel bands, ...) and measured in its own file. Fractions are parts of one
-  measurement rather than repeats of it: OpenMS aggregates them into a single abundance.
+  measurement rather than repeats of it: tools that report one value per assay
+  (@ref TOPP_ProteinQuantifier, mzTab, QPX) combine them -- summed by default, or reduced to one
+  fraction with @c fractions:aggregate @c best. The MSstats export does not: it emits one row per
+  fraction and lets MSstats summarize.
   Numbered from 1; use @c 1 in every row for unfractionated data. Use the same numbers in every
   fraction group so corresponding fractions line up (getFractionToMSFilesMapping() groups by this
   number across groups).
 
-  <b>Fraction group</b> -- the rows that form one complete measurement of one injected mixture,
-  i.e. all fractions that are combined into a single abundance. This is OpenMS' unit of
-  quantification: @ref TOPP_ProteinQuantifier reports one value per <tt>(Fraction_Group, Label)</tt>
-  pair and calls that pair an <i>assay</i>. Must be integers starting at 1, consecutive, no gaps.
+  <b>Fraction group</b> -- the rows that form one complete measurement of one injected mixture:
+  all fractions combined before a quantity is reported. The unit a value is actually reported for
+  is the pair <tt>(Fraction_Group, Label)</tt> -- @ref TOPP_ProteinQuantifier and mzTab call it an
+  <i>assay</i>, the QPX exporters a <i>quantification unit</i>. A label-free fraction group
+  therefore yields one quantity, a TMT10 group ten.
+  Must be integers starting at 1, consecutive, no gaps.
   Unfractionated label-free data has one fraction group per file. Measuring the same material
   again means a new fraction group with the same @c Sample; see technical replicate below.
 
@@ -113,22 +120,24 @@ namespace OpenMS
 
   @section ExperimentalDesign_Formats The two file formats
 
-  Both are TAB-separated; cells are whitespace trimmed and lines starting with a hash character
-  are ignored.
+  Both are TAB-separated (tabs only -- aligning columns with spaces does not work). While
+  parsing, cells are whitespace trimmed and lines starting with a hash character are ignored.
 
   <b>One-table format</b> -- a single table. Mandatory columns are @c Fraction_Group,
   @c Fraction and @c Spectra_Filepath; @c Label and @c Sample are optional; any further column
   is taken to be sample metadata. This is the more common form.
 
-  <b>Two-table format</b> -- an MS file section and a sample section, separated by one blank
-  line. The file section accepts only @c Fraction_Group, @c Fraction, @c Spectra_Filepath,
+  <b>Two-table format</b> -- an MS file section and a sample section, separated by at least one
+  blank line. The file section accepts only @c Fraction_Group, @c Fraction, @c Spectra_Filepath,
   @c Label and @c Sample; any other column there is a parse error. The sample section must have
   a @c Sample column and may carry any number of further columns. Useful when many files share a
   sample, to avoid repeating its metadata.
 
-  The format is auto-detected: a file is read as two-table if some line contains a @c Sample
-  column header but no @c Fraction_Group column header (that line is the sample header),
-  otherwise as one-table.
+  The format is auto-detected, and the detector is cruder than the parsers: it scans <i>every</i>
+  line, not just headers, and reads the file as two-table as soon as one line has exactly one cell
+  equal to @c Sample and no cell equal to @c Fraction_Group. It does not trim cells or skip
+  comment lines, so a sample header whose cells carry padding is missed and a commented-out line
+  still counts.
 
   @section ExperimentalDesign_Examples Worked examples
 
@@ -171,8 +180,7 @@ namespace OpenMS
 
   @subsection ExperimentalDesign_Ex3 3. Fractionated, label-free
 
-  Two samples, each pre-fractionated into three fractions. Same file count as example 2, different
-  meaning:
+  Two samples again, as in example 2, but six files instead of four:
 
   | Fraction_Group | Fraction | Spectra_Filepath | Label | Sample | MSstats_Condition | MSstats_BioReplicate |
   |----------------|----------|------------------|-------|--------|-------------------|----------------------|
@@ -190,8 +198,8 @@ namespace OpenMS
 
   @subsection ExperimentalDesign_Ex4 4. TMT10-plex, one mixture, unfractionated
 
-  One file, ten channels, ten samples. The file name repeats on every row; only @c Label and
-  @c Sample change.
+  One file, ten channels, ten samples. The file name repeats on every row; of the measurement
+  columns only @c Label changes, and each channel names its own sample.
 
   | Fraction_Group | Fraction | Spectra_Filepath | Label | Sample | MSstats_Condition | MSstats_BioReplicate | MSstats_Mixture |
   |----------------|----------|------------------|-------|--------|-------------------|----------------------|-----------------|
@@ -212,7 +220,7 @@ namespace OpenMS
   @subsection ExperimentalDesign_Ex5 5. TMT10-plex, two mixtures, fractionated
 
   Two TMT mixtures, each separated into three fractions: 2 &times; 3 = 6 files, 6 &times; 10 = 60
-  rows. Only the first and last rows of each block are shown.
+  rows, of which a few representative ones are shown.
 
   | Fraction_Group | Fraction | Spectra_Filepath  | Label | Sample | MSstats_Condition | MSstats_BioReplicate | MSstats_Mixture |
   |----------------|----------|-------------------|-------|--------|-------------------|----------------------|-----------------|
@@ -230,6 +238,11 @@ namespace OpenMS
   fractions of its own group (same material, different slice) but not across the two mixtures
   (different material, different TMT tube).
 
+  @note @c MSstats_Mixture is an ordinary factor -- its name contains no "replicate" -- so it
+        counts towards the condition. This design therefore has four OpenMS conditions
+        (control/treated x mixture 1/2), not two, and the mixtures never share one. That affects
+        only OpenMS' own condition grouping; the column is forwarded to MSstats unchanged.
+
   @subsection ExperimentalDesign_Ex6 6. SILAC light/heavy
 
   Metabolic labeling: two channels per file, two files.
@@ -243,6 +256,12 @@ namespace OpenMS
 
   @c Label 1 is the light channel, @c Label 2 the heavy one. In a 3-plex, medium is 2 and heavy
   is 3.
+
+  @note MS1-labeled designs have no MSstats route in OpenMS: @ref TOPP_MSstatsConverter
+        @p -method @p LFQ refuses a design with more than one label and @p -method @p ISO requires
+        @c MSstats_Mixture, and @ref TOPP_ProteomicsLFQ refuses multi-label designs outright.
+        @ref TOPP_ProteinQuantifier consumes them. The MSstats columns above are shown only for
+        consistency with the other examples.
 
   @subsection ExperimentalDesign_Ex7 7. The same design in two-table format
 
@@ -276,13 +295,18 @@ namespace OpenMS
   A <b>condition</b> is a unique combination of the values of all factors except @c Sample and
   except every factor whose column name contains @c "replicate" or @c "Replicate". Samples that
   agree on all remaining factors form one condition. This is what getConditionToSampleMapping(),
-  getSampleToConditionMapping() and getPathLabelToConditionMapping() return, and how
-  @ref TOPP_ProteomicsLFQ decides which runs may be merged.
+  getSampleToConditionMapping(), getPathLabelToConditionMapping() and
+  getConditionToPathLabelVector() return. @ref TOPP_Epifany uses the last one to merge ID runs per
+  condition when a design is supplied; @ref TOPP_ProteomicsLFQ does not -- it merges every ID run
+  study-wide regardless of condition.
+
+  Condition numbers are the lexicographic rank of the factor-value tuple, so condition 0 is
+  whichever value sorts first, not a reference level.
 
   @warning The replicate rule matches on the column NAME only. @c MSstats_BioReplicate and
            @c Technical_Replicate are excluded from the condition automatically; @c Donor or
-           @c Rep are not, and every distinct value in them creates its own condition. Name
-           replicate columns accordingly.
+           @c Rep are not, and every distinct value in them creates its own condition. This
+           catches @c MSstats_Mixture too (see example 5). Name replicate columns accordingly.
 
   getUniqueSampleRowToSampleMapping() and getSampleToPrefractionationMapping() apply the weaker
   rule: they ignore only @c Sample and keep the replicate columns, so they group samples whose
@@ -312,20 +336,26 @@ namespace OpenMS
     renumbering per condition.
   - Each <tt>(Fraction_Group, Fraction, Label)</tt> triple may occur only once.
   - Each <tt>(Spectra_Filepath, Label)</tt> pair may occur only once.
-  - In a design that uses a single label (i.e. label-free), each
-    <tt>(Fraction_Group, Label)</tt> pair must map to exactly one sample. Two samples in one
-    label-free fraction group means the labels are missing or the grouping is wrong.
+  - In a design with a single distinct @c Label value (normally label-free), each
+    <tt>(Fraction_Group, Label)</tt> pair must map to exactly one sample. Two samples in one such
+    fraction group means the labels are missing or the grouping is wrong.
   - One-table format only: @c Sample becomes mandatory as soon as any @c Label is greater than 1
     -- OpenMS cannot guess which channel is which material. Without a @c Sample column, the
     sample name defaults to the @c Fraction_Group value, which makes every fraction group its own
     sample.
   - Two-table format only: every @c Sample value used in the file section must exist in the
-    sample section. Omitting the @c Sample column from a two-table file section is possible but
-    almost never what you want: OpenMS then looks for samples literally named
-    <tt>"Fraction group 1"</tt>, <tt>"Fraction group 2"</tt>, ...
+    sample section, otherwise loading fails with a bare @c std::out_of_range. Omitting the
+    @c Sample column from a two-table file section therefore fails as well, unless the sample
+    section literally contains rows named <tt>"Fraction group 1"</tt>,
+    <tt>"Fraction group 2"</tt>, ...
   - A relative @c Spectra_Filepath is resolved first against the directory of the design file,
     then against the current working directory; if neither exists the string is kept as written.
     Tools that need the spectra present (@c require_spectra_files) fail instead.
+  - A misspelled column name is not an error in the one-table format -- it silently becomes a
+    sample-metadata factor. A mistyped @c Sample is the dangerous case: sample names then fall
+    back to the fraction-group value, so reused samples quietly become distinct ones and the
+    misspelled column also splits conditions. The two-table file section rejects unknown headers.
+  - An empty design (no rows) is accepted without any of these checks.
 
   @section ExperimentalDesign_SDRF Relation to SDRF-Proteomics
 
@@ -334,43 +364,58 @@ namespace OpenMS
   OpenMS design (organism, disease, instrument, search settings) and can generate one:
   <tt>parse_sdrf convert-openms -s sdrf.tsv</tt> from
   <a href="https://github.com/bigbio/sdrf-pipelines">sdrf-pipelines</a> writes the file described
-  here. The conversion maps:
+  here. The terms correspond as follows -- for the exact conversion, which varies between
+  releases, consult sdrf-pipelines itself:
 
-  | OpenMS design         | SDRF-Proteomics                                        | Notes                                                                                     |
-  |-----------------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------|
-  | @c Spectra_Filepath   | <tt>comment[data file]</tt>                                  | the converter can rewrite the extension, e.g. @c .raw to @c .mzML                          |
-  | @c Fraction           | <tt>comment[fraction identifier]</tt>                        | @c 1 when absent or "not available"                                                        |
-  | @c Label              | <tt>comment[label]</tt>                                | the ontology term becomes its 1-based channel index: "label free sample"&rarr;1, TMT126&rarr;1 ... TMT131&rarr;10, "SILAC light"/"SILAC heavy"&rarr;1/2 |
-  | @c Fraction_Group     | <tt>source name</tt> + <tt>comment[technical replicate]</tt>  | one group per (biological source, technical replicate) -- which is why re-injections get their own group |
-  | @c Sample             | <tt>source name</tt>                                    | a source name ending in "sample N" contributes N, otherwise names are numbered in order of appearance |
-  | @c MSstats_Condition  | the <tt>factor value[...]</tt> columns, concatenated    | falls back to the non-redundant <tt>characteristics[...]</tt> columns, then to the source name   |
-  | @c MSstats_BioReplicate | derived from <tt>source name</tt>                     | one value per biological source; <i>not</i> copied from <tt>characteristics[biological replicate]</tt> |
-  | @c MSstats_Mixture    | derived per labeled file and sample                    | isobaric designs only                                                                      |
+  | OpenMS design           | SDRF-Proteomics                                              | Notes                                                                                     |
+  |-------------------------|--------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+  | @c Spectra_Filepath     | <tt>comment[data file]</tt>                                  | copied verbatim; the converter can optionally rewrite the extension, e.g. @c .raw to @c .mzML |
+  | @c Fraction             | <tt>comment[fraction identifier]</tt>                        | @c 1 when absent or "not available"                                                        |
+  | @c Label                | <tt>comment[label]</tt>                                      | the ontology term becomes its 1-based index within the plex inferred for that file, so the same reagent name can map to different numbers in different plexes |
+  | @c Fraction_Group       | <tt>source name</tt> + <tt>comment[technical replicate]</tt> | assigned per MS <i>file</i>, then renumbered to stay consecutive. Label-free data gets one group per (source, technical replicate) -- which is why re-injections get their own group; in a labeled design all channels of a file necessarily share its group |
+  | @c Sample               | <tt>source name</tt>                                         | a source name ending in "sample N" contributes N, otherwise names are numbered in order of appearance |
+  | @c MSstats_Condition    | the <tt>factor value[...]</tt> columns, joined with a pipe    | falls back to the non-redundant <tt>characteristics[...]</tt> columns, then to the source name   |
+  | @c MSstats_BioReplicate | derived from <tt>source name</tt>                            | the source's sample number, so equal to @c Sample in a uniform design; <i>not</i> copied from <tt>characteristics[biological replicate]</tt> |
+  | @c MSstats_Mixture      | derived per labeled file and sample                          | isobaric designs only (TMT/iTRAQ); SILAC gets no mixture column                             |
 
   Two SDRF terms do not map one-to-one. <tt>comment[technical replicate]</tt> is folded into
   @c Fraction_Group, since OpenMS expresses technical replication as "same sample, new fraction
   group" rather than as a column. And SDRF's <tt>source name</tt> (the material) vs.
-  <tt>assay name</tt> (the measurement) corresponds to @c Sample vs. the file/label pair.
+  <tt>assay name</tt> (the measurement) corresponds conceptually to @c Sample vs. the file/label
+  pair, though the OpenMS converter reads only the former.
+
+  @warning Always check a converted design before using it, in particular for labeled data. The
+           conversion is lossy in places and has had bugs -- sdrf-pipelines 0.1.6, for instance,
+           writes @c Label @c 1 for every SILAC channel, which OpenMS then rejects as a duplicate
+           <tt>(Spectra_Filepath, Label)</tt> pair.
 
   @section ExperimentalDesign_QPX Relation to QPX (quantms.io)
 
-  QPX ("Quantitative Proteomics eXchange") is the Parquet exchange format written by
-  @ref TOPP_ProteomicsLFQ and @ref TOPP_IsobaricWorkflow via their @c out_qpx option. Its sample
-  metadata comes from SDRF, so an exported design has to line up with the terms above:
+  QPX ("Quantitative Proteomics eXchange") is the Parquet exchange format written via the
+  @c out_qpx option of @ref TOPP_ProteomicsLFQ, @ref TOPP_IsobaricWorkflow and
+  @ref TOPP_ProteinQuantifier. OpenMS writes three views -- @c quantms.feature.parquet,
+  @c quantms.psm.parquet and @c quantms.pg.parquet. It does <b>not</b> write @c run.parquet or
+  @c sample.parquet; those are generated from the SDRF by the quantms converter.
 
-  | OpenMS design                              | QPX                                              | Notes                                                                                   |
-  |--------------------------------------------|--------------------------------------------------|-----------------------------------------------------------------------------------------|
-  | basename of @c Spectra_Filepath, no extension | @c run_file_name                               | primary-key component of the psm, feature and pg views; see ArrowIOHelpers::qpxRunFileName() |
-  | @c Fraction_Group                          | @c grouped_runs of the pg view                   | QPX has no fraction-group number: the group is represented by listing its run names      |
-  | @c Fraction                                | @c run.fraction                                  |                                                                                          |
-  | @c Label                                   | <tt>intensities[].label</tt>, joined to <tt>run.samples[].label</tt> | as a canonical channel token (@c "LFQ", @c "TMT126", <tt>"SILAC heavy"</tt>), not as the number; see ArrowIOHelpers::qpxIntensityLabel() |
-  | @c Sample                                  | <tt>run.samples[].sample_accession</tt>                | foreign key into @c sample.parquet, which is keyed by the SDRF source name               |
-  | replicate factors of the sample section    | <tt>run.samples[].biological_replicate</tt> / <tt>technical_replicate</tt> |                                                                          |
+  What the design controls in the views OpenMS writes:
 
-  @note QPX requires a fraction group to be <b>rectangular</b>: every label the group publishes
-        must exist in every one of its runs, so that <tt>(any run of the group, label)</tt>
-        resolves to one sample. Ragged designs, and designs that put one run into several
-        fraction groups, are refused by the exporter.
+  | OpenMS design                                 | QPX                                | Notes                                                                                   |
+  |-----------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------------|
+  | basename of @c Spectra_Filepath, no extension | @c run_file_name                   | primary-key component of the psm and feature views; the pg view instead carries the run names in @c grouped_runs. See ArrowIOHelpers::qpxRunFileName() |
+  | @c Fraction_Group                             | @c grouped_runs of the pg view     | QPX has no fraction-group number: the group is represented by listing its run names      |
+  | @c Label                                      | <tt>intensities[].label</tt> (feature) and the scalar @c label (pg) | as a canonical channel token (@c "LFQ", @c "TMT126", <tt>"SILAC heavy"</tt>), not as the number; see ArrowIOHelpers::qpxIntensityLabels() |
+
+  Those labels and run names are join keys against @c run.parquet, so the design also has to
+  agree with the views OpenMS does not write: @c Fraction with @c run.fraction, @c Sample with
+  <tt>run.samples[].sample_accession</tt> (keyed by the SDRF source name), and
+  @c MSstats_BioReplicate with <tt>run.samples[].biological_replicate</tt>. QPX's
+  <tt>run.samples[].technical_replicate</tt> has no counterpart in an OpenMS design, because
+  technical replication is expressed as a second fraction group.
+
+  @note The pg exporter requires a fraction group to be <b>rectangular</b>: every label the group
+        publishes must exist in every one of its runs, so that <tt>(any run of the group, label)</tt>
+        resolves to one sample. Ragged designs, a label meaning two samples within one group, and
+        designs that put one run into several fraction groups are refused.
 
   @section ExperimentalDesign_Pitfalls Common pitfalls
 
@@ -378,8 +423,9 @@ namespace OpenMS
     design); restarting at 1 for the second condition fails to load.
   - Confusing fractions with replicates. Fractions are aggregated (one quantity from several
     files); replicates are kept apart (several quantities). Compare examples 2 and 3.
-  - Writing one row per labeled file instead of one row per channel. A TMT10 design with one row
-    per file quantifies one channel and ignores nine, without an error.
+  - Writing one row per labeled file instead of one row per channel. Quantification then aborts:
+    PeptideAndProteinQuant refuses a consensus column whose <tt>(file, channel)</tt> has no design
+    row.
   - Naming a replicate column without "replicate" in it. It then counts towards the condition and
     splits each group of replicates into separate conditions.
   - Reusing a biological replicate id across conditions unintentionally. That declares a paired
@@ -457,8 +503,9 @@ namespace OpenMS
 
       // TODO should it include the Sample ID column or not??
       /// Get set of all factors (column names) that were defined for the sample section.
-      /// Note that this currently includes the @c Sample column itself; the mapping functions of
-      /// ExperimentalDesign therefore drop it explicitly before comparing rows.
+      /// For a design parsed from a file this includes the @c Sample column itself, which the
+      /// mapping functions of ExperimentalDesign drop explicitly before comparing rows. A section
+      /// built with addSample() has no columns at all and returns an empty set.
       std::set< std::string > getFactors() const;
 
       /// Checks whether the sample section has a row for a sample name
@@ -587,12 +634,14 @@ namespace OpenMS
     unsigned getNumberOfSamples() const;
 
     /// @return the number of distinct fraction indices used anywhere in the design.
-    /// Meaningful only when all fraction groups use the same fraction numbering; see
-    /// sameNrOfMSFilesPerFraction() to check that.
+    /// Meaningful only when all fraction groups use the same fraction numbering, which this does
+    /// not check. sameNrOfMSFilesPerFraction() is a necessary but not sufficient sanity check: it
+    /// only verifies that every fraction index occurs in equally many rows.
     unsigned getNumberOfFractions() const;
 
-    /// @return the number of labels per file (= the highest label index, i.e. the plex size;
-    /// 1 for a label-free design)
+    /// @return the highest label index used anywhere in the design (the plex size for a
+    /// well-formed design, 1 for label-free), or 0 if the design is empty. Contiguous labels are
+    /// not enforced.
     unsigned getNumberOfLabels() const;
 
     /// @return the number of distinct MS file paths in the design. A multiplexed file

@@ -50,17 +50,25 @@ namespace OpenMS
       @param[in] tsv_file Path of the design file
       @param[in] require_spectra_files If true, every @c Spectra_Filepath must resolve to an
                  existing file; otherwise unresolvable paths are kept as written
-      @throw Exception::ParseError on a malformed table, a missing mandatory column, or -- with
-             @p require_spectra_files -- a spectra file that does not exist
-      @throw Exception::InvalidValue if the fraction groups are not consecutive starting at 1, or
-             a (path, label) combination is ambiguous
-      @throw Exception::MissingInformation if a (fraction group, fraction, label) combination
-             repeats, or a label-free (fraction group, label) maps to more than one sample
+      @throws Exception::ParseError on a missing mandatory column, an unknown column in the file
+              section of a two-table design, a row of the MS file section with the wrong number
+              of records, or -- with @p require_spectra_files -- a spectra file that does not exist
+      @throws Exception::ConversionError if @c Fraction_Group, @c Fraction or @c Label is not an
+              integer
+      @throws Exception::InvalidValue if the fraction groups are not consecutive starting at 1
+      @throws Exception::MissingInformation if a (fraction group, fraction, label) triple or a
+              (path, label) pair repeats, or a design with a single distinct label maps one
+              (fraction group, label) to several samples
+      @throws std::out_of_range if the file section of a two-table design names a @c Sample that
+              the sample section does not define -- including the implicit
+              <tt>"Fraction group N"</tt> names used when that section has no @c Sample column
     */
     static ExperimentalDesign load(const std::string& tsv_file, bool require_spectra_files);
 
     /// Loads an experimental design from an already loaded or generated, tabular file.
-    /// @p filename is only used to name the source in error messages.
+    /// @p filename names the source in error messages AND is the base directory against which
+    /// relative @c Spectra_Filepath entries are resolved, so pass the real design-file path
+    /// whenever the spectra are relative to it; the default resolves them against the CWD.
     /// @see load(const std::string&, bool) for the exceptions thrown
     static ExperimentalDesign load(const TextFile& text_file, const bool require_spectra_file, std::string filename);
 
