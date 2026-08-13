@@ -69,7 +69,7 @@ auto myclass = nb::class_<OpenMS::MyClass>(m, "MyClass", "Short description")
 }, nb::rv_policy::reference_internal)
 
 // Setter with named argument
-.def("setName", [](OpenMS::MyClass& self, const OpenMS::String& name) {
+.def("setName", [](OpenMS::MyClass& self, const std::string& name) {
     self.setName(name);
 }, "name"_a, "Sets the name")
 
@@ -334,12 +334,11 @@ Custom type casters in `bindings/type_casters/` handle automatic C++ ↔ Python 
 
 | C++ type | Python type |
 |---|---|
-| `OpenMS::String` | `str` |
+| `std::string` | `str` (also accepts `bytes`) |
 | `OpenMS::DataValue` | `int` / `float` / `str` / `list` |
 | `OpenMS::ParamValue` | `int` / `float` / `str` / `list` |
 | `DPosition<1>` | `float` |
 | `DPosition<2>` | `tuple` |
-| `std::string` | `str` (also accepts `bytes`) |
 
 ## Adding Python-Only Methods (Addons)
 

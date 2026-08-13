@@ -361,7 +361,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Use OpenMS logging macros and `OpenMS::LogStream`; avoid `std::cout/err` directly.
 - Use `ProgressLogger` in tools for progress reporting.
 - Avoid `std::endl` for performance; prefer `\n`.
-- Prefer `OpenMS::String` for numeric formatting and parsing (precision and speed).
+- Prefer `OpenMS::StringUtils::toStr()`/`toDouble()` for numeric formatting and parsing (precision and speed).
 - Use `Size`/`SignedSize` for STL `.size()` values.
 - Avoid pointers; prefer references.
 - Prefer forward declarations in headers; include only base class headers, non-pointer members, and templates.
@@ -385,7 +385,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Use snake_case for Python-facing names and DataFrame columns.
 - Do not add Python-only methods to bindings; use addons or `_dataframes.py` wrappers.
 - DataFrame pattern: `get_data_dict()` in addon returns numpy arrays; `get_df()` in `src/pyOpenMS/pyopenms/_dataframes.py` wraps with pandas.
-- Type casters in `bindings/type_casters/` handle C++ ↔ Python type conversion (OpenMS::String ↔ str, DPosition, DataValue, etc.).
+- Type casters in `bindings/type_casters/` handle C++ ↔ Python type conversion (std::string ↔ str, DPosition, DataValue, etc.).
 - Keep addons minimal; avoid redundant aliases.
 - Performance-critical methods should be C++ lambdas in the binding files rather than Python addons.
 - All domain modules use `NB_DOMAIN "pyopenms"` for cross-module type sharing.
