@@ -45,9 +45,11 @@ namespace Internal
       - @c FloatDataArray only (not integer/string data arrays)
       - arrays must have the same length as the spectrum peaks (others are skipped)
       - always 32-bit float, uncompressed (@c MS:1000576)
-      - PSI-MS accession resolved via the ontology (children of @c MS:1000513),
-        with unit CVs when the term declares them (e.g. @c MS:1002814 for 1/K0);
-        unknown names become @c MS:1000786 "non-standard data array"
+      - PSI-MS accession resolved via the ontology (children of @c MS:1000513).
+        If the term declares exactly one allowed unit, that unit is written
+        (accession, name, cvRef). Terms with several allowed units get no unit
+        attributes (no arbitrary choice). Unknown names become @c MS:1000786
+        "non-standard data array"
 
       Viewers can rely on @c MSSpectrum::containsIMData() after load for IM arrays.
 

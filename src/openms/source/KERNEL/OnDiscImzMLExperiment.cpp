@@ -99,7 +99,7 @@ struct OnDiscImzMLExperiment::Impl
     // so FloatDataArrays stay aligned with peak order.
     for (const ImzMLSpectrumIndex::AuxArray& aux : e.aux)
     {
-      if (aux.name.empty() || aux.length == 0)
+      if (aux.name.empty())
       {
         continue;
       }
@@ -110,7 +110,11 @@ struct OnDiscImzMLExperiment::Impl
           + "' is not supported (IMS:1000104 encoded length="
           + StringConversions::toString(aux.encoded_bytes) + ")");
       }
-      if (n > 0 && aux.length != n)
+      if (aux.length == 0)
+      {
+        continue;
+      }
+      if (aux.length != n)
       {
         OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
                         << e.x << "," << e.y << "," << e.z

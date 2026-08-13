@@ -94,17 +94,18 @@ namespace
       accession = match.id;
       cv_name = match.name;
       non_standard = false;
-      if (match.units.contains("MS:1002814"))
+      // Write a unit only when the CV term allows exactly one. Several allowed
+      // units (e.g. raw ion mobility array) are left unset rather than guessed.
+      if (match.units.size() == 1)
       {
-        unit_attrs = "unitCvRef=\"MS\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\"";
-      }
-      else if (match.units.contains("UO:0000028"))
-      {
-        unit_attrs = "unitCvRef=\"UO\" unitAccession=\"UO:0000028\" unitName=\"millisecond\"";
-      }
-      else if (match.units.contains("UO:0000324"))
-      {
-        unit_attrs = "unitCvRef=\"UO\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\"";
+        const std::string unit_id = *match.units.begin();
+        if (cv.exists(unit_id))
+        {
+          const ControlledVocabulary::CVTerm& unit_term = cv.getTerm(unit_id);
+          unit_attrs = "unitCvRef=\"" + StringUtils::prefix(unit_id, 2)
+                       + "\" unitAccession=\"" + unit_id
+                       + "\" unitName=\"" + XMLHandler::writeXMLEscape(unit_term.name) + "\"";
+        }
       }
       return;
     }

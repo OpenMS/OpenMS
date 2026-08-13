@@ -229,6 +229,52 @@ namespace
     return out.good();
   }
 
+  /// Mark the binaryDataArray that carries @p accession as zlib-compressed with
+  /// IMS:1000103 length 0, so OnDisc must reject it even though there is no payload.
+  bool makeNamedAuxCompressedAndEmpty_(const std::string& imzml_path, const std::string& accession)
+  {
+    std::ifstream in(imzml_path.c_str());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    const std::string::size_type acc_pos = content.find(accession);
+    if (acc_pos == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type bda_start = content.rfind("<binaryDataArray", acc_pos);
+    const std::string::size_type bda_end = content.find("</binaryDataArray>", acc_pos);
+    if (bda_start == std::string::npos || bda_end == std::string::npos)
+    {
+      return false;
+    }
+    std::string block = content.substr(bda_start, bda_end - bda_start);
+    const std::string no_comp = "accession=\"MS:1000576\" name=\"no compression\"";
+    const std::string zlib = "accession=\"MS:1000574\" name=\"zlib compression\"";
+    const std::string::size_type nc = block.find(no_comp);
+    if (nc == std::string::npos)
+    {
+      return false;
+    }
+    block.replace(nc, no_comp.size(), zlib);
+
+    const std::string::size_type len_acc = block.find("accession=\"IMS:1000103\"");
+    if (len_acc == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type value_pos = block.find("value=\"", len_acc);
+    const std::string::size_type value_end = (value_pos == std::string::npos) ? std::string::npos : block.find('"', value_pos + 7);
+    if (value_pos == std::string::npos || value_end == std::string::npos)
+    {
+      return false;
+    }
+    block.replace(value_pos, value_end - value_pos, "value=\"0");
+    content.replace(bda_start, bda_end - bda_start, block);
+    std::ofstream out(imzml_path.c_str(), std::ios::trunc);
+    out << content;
+    return out.good();
+  }
+
   std::string ibdPathFor_(const std::string& imzml_path)
   {
     std::string lower = imzml_path;
@@ -874,7 +920,79 @@ START_SECTION(void load and OnDisc reject zlib-compressed external m/z and inten
   TEST_TRUE(od.getIndex(0).mz_compressed)
   TEST_TRUE(od.getIndex(0).int_compressed)
   TEST_EXCEPTION(Exception::ParseError, od.getSpectrum(0))
+  od.close();
 
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store writes a single allowed unit for PSI-MS aux arrays)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+
+  MSSpectrum::FloatDataArray pressure;
+  pressure.setName("pressure array");
+  pressure.push_back(101325.0f);
+  s.getFloatDataArrays().push_back(pressure);
+
+  // Two allowed units (ms and s): writer must not pick one arbitrarily.
+  MSSpectrum::FloatDataArray raw_im;
+  raw_im.setName("raw ion mobility array");
+  raw_im.push_back(12.5f);
+  s.getFloatDataArrays().push_back(raw_im);
+
+  original.addSpectrum(s);
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  std::ifstream xml(tmp_imzml.c_str());
+  std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+  TEST_TRUE(content.find("MS:1000821") != std::string::npos)
+  TEST_TRUE(content.find("pressure array") != std::string::npos)
+  TEST_TRUE(content.find("unitAccession=\"UO:0000110\"") != std::string::npos)
+  TEST_TRUE(content.find("unitName=\"pascal\"") != std::string::npos)
+  TEST_TRUE(content.find("unitCvRef=\"UO\"") != std::string::npos)
+
+  const std::string::size_type raw_pos = content.find("MS:1003007");
+  TEST_NOT_EQUAL(raw_pos, std::string::npos)
+  const std::string::size_type tag_start = content.rfind("<cvParam", raw_pos);
+  const std::string::size_type tag_end = content.find("/>", raw_pos);
+  TEST_NOT_EQUAL(tag_start, std::string::npos)
+  TEST_NOT_EQUAL(tag_end, std::string::npos)
+  const std::string raw_tag = content.substr(tag_start, tag_end - tag_start);
+  TEST_TRUE(raw_tag.find("unitAccession") == std::string::npos)
+}
+END_SECTION
+
+
+START_SECTION(OnDiscImzMLExperiment rejects compressed zero-length aux arrays)
+{
+  MSExperiment exp;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  exp.addSpectrum(s);
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, exp);
+  TEST_TRUE(makeNamedAuxCompressedAndEmpty_(tmp_imzml, "MS:1003006"))
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 1)
+  TEST_TRUE(od.getIndex(0).aux[0].compressed)
+  TEST_EQUAL(od.getIndex(0).aux[0].length, 0)
+  TEST_EXCEPTION(Exception::ParseError, od.getSpectrum(0))
+  od.close();
   remove(ibdPathFor_(tmp_imzml).c_str());
 }
 END_SECTION

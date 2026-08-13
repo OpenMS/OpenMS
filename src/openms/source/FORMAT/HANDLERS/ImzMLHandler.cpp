@@ -260,7 +260,7 @@ public:
           {
             continue;
           }
-          if (!s.empty() && values.size() != s.size())
+          if (values.size() != s.size())
           {
             OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
                             << ims->x << "," << ims->y << "," << ims->z

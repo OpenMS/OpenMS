@@ -184,6 +184,12 @@ namespace OpenMS
       as @c float because OpenMS stores auxiliary spectrum data in
       @p MSSpectrum::FloatDataArray.
 
+      @param[in] ibd        Open binary file handle.
+      @param[in] offset     Byte offset (IMS:1000102).
+      @param[in] count      Element count (IMS:1000103).
+      @param[in] dt         Scalar type of stored values.
+      @param[out] out       Decoded values as float (FloatDataArray storage).
+      @param[in] ibd_path   Path used in error messages.
       @param[in] array_name Array name used in error messages (e.g. the CV term name).
 
       @note zlib-compressed external arrays (MS:1000574) are not decoded; callers
