@@ -79,6 +79,11 @@ public:
     identification-only, so its label is known, and a null says "not measured" where a @c 0.0 would
     be indistinguishable from a measurement of zero.
 
+    That row is emitted only where the group has identification evidence in the quantification
+    unit, because a labelled null asserts "identified here, but not quantified for this label". A
+    cell with neither a quantity nor evidence is omitted entirely: a row there would claim an
+    observation that was never made.
+
     @param[in] cmap The ConsensusMap with annotated protein group quantification
     @param[in] design The experimental design that was used to quantify @p cmap. It defines the
                fraction-group/label keys and their grouped runs. Every key a protein group carries
