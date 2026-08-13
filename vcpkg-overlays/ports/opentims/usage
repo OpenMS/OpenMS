@@ -2,3 +2,10 @@ opentims provides CMake targets:
 
     find_package(opentims CONFIG REQUIRED)
     target_link_libraries(main PRIVATE opentims::opentims_cpp)
+
+When OPENTIMS_LINK_SQLITE_STATICALLY is enabled, opentims_cpp only provides
+sqlite3 headers, not the library. Therefore linking is left to consumers who choose
+their sqlite3 build to use. For example:
+
+    find_package(unofficial-sqlite3 CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE opentims::opentims_cpp unofficial::sqlite3::sqlite3)
