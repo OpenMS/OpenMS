@@ -1452,4 +1452,34 @@ START_SECTION(([EXTRA] a group carrying only the legacy sample abundances is ref
 }
 END_SECTION
 
+START_SECTION(([EXTRA] pg value validation - an intensity without a label stays rejected))
+{
+  // A pg intensity is only interpretable through its label: the label is what joins the value to
+  // a sample (run.samples[].label), and it is a component of the pg_id identity composite. A value
+  // with no label therefore cannot be attributed to anything and the row is unusable.
+  //
+  // Today this is enforced together with the converse, by a single "set both or neither" check in
+  // QPXValueValidation. That coupling is scheduled to be split so that a group with evidence in a
+  // quantification unit but no quantity for a label can be written as a populated label with a
+  // null intensity -- a shape the QPX schema already permits and the reference writer already
+  // handles. This section pins the half that must survive that split.
+  auto prot_id = makeIdOnlyRun({"/data/runA.mzML"});
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
+  TEST_NOT_EQUAL(table, nullptr)
+
+  if (table != nullptr)
+  {
+    // The identification-only row has both columns null; give it an intensity and nothing else.
+    arrow::FloatBuilder orphan_intensity_builder;
+    TEST_TRUE(orphan_intensity_builder.Append(42.0f).ok())
+    auto orphan_intensity = replaceColumn(table, QPXPgSchema::INTENSITY,
+                                          orphan_intensity_builder.Finish().ValueOrDie());
+    TEST_TRUE(orphan_intensity->GetColumnByName(QPXPgSchema::LABEL)->chunk(0)->IsNull(0))
+
+    QPXValueValidation orphan_validator(QPXValueValidation::View::PROTEIN_GROUP);
+    TEST_FALSE(orphan_validator.validate(orphan_intensity).valid)
+  }
+}
+END_SECTION
+
 END_TEST
