@@ -783,6 +783,82 @@ START_SECTION(([EXTRA] isobaric feature rows keep consensus coordinates and list
 }
 END_SECTION
 
+START_SECTION(([EXTRA] an undetected reporter channel is written as an explicit 0.0, unlike in the pg view))
+{
+  // CHARACTERISATION of current behaviour, not an endorsement of it.
+  //
+  // IsobaricChannelExtractor resets every channel to 0 before searching the MS2 for its reporter
+  // and inserts the channel handle even when no peak is found, so a channel that was never
+  // detected arrives here as a stored 0.0. This exporter writes every handle it is given,
+  // including those, so an undetected channel becomes an entry whose intensity is exactly 0.0 --
+  // indistinguishable from a reporter that was measured at zero.
+  //
+  // The pg view takes the opposite position on the same measurement: PeptideAndProteinQuant drops
+  // non-positive abundances before aggregating, so a channel whose reporters were all undetected
+  // ends up with no quantity and is written with a NULL intensity. The two views therefore
+  // disagree about what "not measured" looks like, and because the QPX feature->pg softlink joins
+  // on the label, a feature can associate a channel that pg reports as absent.
+  //
+  // The feature view cannot resolve this the way pg did: QPXFeatureSchema declares
+  // intensities[].intensity non-nullable, so absence can only be expressed by OMITTING the entry
+  // -- which is what the QPX reference converter does (it skips inten <= 0). That moves real
+  // output, and no reference pins any value in this view, so it is deliberately not changed here.
+  // This section pins the status quo so that when the policy is unified the diff is visible
+  // somewhere instead of landing silently green.
+  ConsensusMap cmap;
+  const std::vector<std::string> channels = {"126", "127N", "127C"};
+  for (Size c = 0; c < channels.size(); ++c)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/tmt_run.mzML";
+    ch.label = "tmt10plex_" + channels[c];
+    ch.setMetaValue("channel_name", channels[c]);
+    ch.setMetaValue("channel_id", static_cast<int>(c));
+    cmap.getColumnHeaders()[c] = ch;
+  }
+
+  ConsensusFeature cf;
+  cf.setMZ(700.5);
+  cf.setRT(300.0);
+  cf.setCharge(2);
+  const float reporter[3] = {100.0f, 0.0f, 300.0f};   // 127N was never detected
+  for (Size c = 0; c < channels.size(); ++c)
+  {
+    BaseFeature b;
+    b.setIntensity(reporter[c]);
+    b.setMZ(126.0 + c);
+    b.setRT(301.0);
+    cf.insert(c, b);
+  }
+  cmap.push_back(cf);
+
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(t, nullptr)
+
+  if (t != nullptr)
+  {
+    TEST_EQUAL(t->num_rows(), 1)
+    auto int_col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+    auto st  = std::static_pointer_cast<arrow::StructArray>(int_col->values());
+    auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+    auto val = std::static_pointer_cast<arrow::FloatArray>(st->field(1));
+
+    // The undetected channel is NOT dropped: all three labels are present.
+    TEST_EQUAL(int_col->value_length(0), 3)
+    TEST_STRING_EQUAL(lab->GetString(0), "TMT126")
+    TEST_STRING_EQUAL(lab->GetString(1), "TMT127N")
+    TEST_STRING_EQUAL(lab->GetString(2), "TMT127C")
+
+    // ... and it carries a stored 0.0 rather than being absent. This is the assertion that has to
+    // change if the feature view ever adopts the pg view's notion of "not measured".
+    TEST_FALSE(val->IsNull(1))
+    TEST_REAL_SIMILAR(val->Value(0), 100.0f)
+    TEST_REAL_SIMILAR(val->Value(1), 0.0f)
+    TEST_REAL_SIMILAR(val->Value(2), 300.0f)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] SILAC feature labels use the canonical QPX two-plex vocabulary))
 {
   ConsensusMap cmap;
