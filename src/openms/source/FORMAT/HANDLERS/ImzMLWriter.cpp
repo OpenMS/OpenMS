@@ -112,7 +112,12 @@ namespace
 
     std::unordered_set<PixelKey, PixelKeyHash> seen;
     seen.reserve(exp.size());
-    std::vector<Size> duplicate_spectra; // spectrum indices reusing an earlier pixel
+    // Cap what we retain: a file where every spectrum shares one pixel must not make the
+    // tracking (or the log line) grow with the dataset.
+    const Size max_listed = 20;
+    Size duplicate_count = 0;
+    std::vector<Size> duplicate_spectra; // first few spectrum indices reusing an earlier pixel
+    duplicate_spectra.reserve(max_listed);
 
     for (Size i = 0; i < exp.size(); ++i)
     {
@@ -149,34 +154,38 @@ namespace
                           static_cast<uint32_t>(z_imz)};
       if (!seen.emplace(key).second)
       {
-        duplicate_spectra.push_back(i);
+        ++duplicate_count;
+        if (duplicate_spectra.size() < max_listed)
+        {
+          duplicate_spectra.push_back(i);
+        }
       }
     }
 
-    if (!duplicate_spectra.empty())
+    if (duplicate_count > 0)
     {
-      // Cap the listing: a file where every spectrum shares one pixel must not produce a
-      // multi-megabyte log line.
-      const Size max_listed = 20;
-      const Size listed = std::min(max_listed, duplicate_spectra.size());
+      const Size listed = duplicate_spectra.size();
       std::string indices;
       for (Size k = 0; k < listed; ++k)
       {
-        if (k > 0) { indices += ", "; }
+        if (k > 0)
+        {
+          indices += ", ";
+        }
         const MSSpectrum& spec = exp[duplicate_spectra[k]];
         indices += OpenMS::StringConversions::toString(duplicate_spectra[k])
                    + " (x=" + spec.getMetaValue("imzml:x").toString()
                    + ",y=" + spec.getMetaValue("imzml:y").toString() + ")";
       }
-      if (listed < duplicate_spectra.size())
+      if (listed < duplicate_count)
       {
-        indices += ", ... and " + OpenMS::StringConversions::toString(duplicate_spectra.size() - listed) + " more";
+        indices += ", ... and " + OpenMS::StringConversions::toString(duplicate_count - listed) + " more";
       }
-      OPENMS_LOG_WARN << "imzML: " << duplicate_spectra.size() << " of " << exp.size()
+      OPENMS_LOG_WARN << "imzML: " << duplicate_count << " of " << exp.size()
                       << " spectra reuse a pixel coordinate already taken by an earlier spectrum. "
                       << "They are written out as-is, but readers will map only the first spectrum "
                       << "per pixel into the imaging geometry. Affected spectra: "
-                      << indices << "." << std::endl;
+                      << indices << "." << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
     }
   }
 
