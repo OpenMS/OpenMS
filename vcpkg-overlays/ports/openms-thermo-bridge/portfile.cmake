@@ -38,8 +38,10 @@ file(MAKE_DIRECTORY
     "${CURRENT_BUILDTREES_DIR}/share-tmp"
 )
 
-file(DOWNLOAD
-    "https://raw.githubusercontent.com/thermofisherlsms/RawFileReader/80963674b5c10e58236da63023ad6fa0264bbb00/License.doc"
-    "${CURRENT_BUILDTREES_DIR}/share-tmp/ThermoRawFileReader-License.doc"
+vcpkg_download_distfile(THERMO_LICENSE_PATH
+    URLS "https://raw.githubusercontent.com/thermofisherlsms/RawFileReader/80963674b5c10e58236da63023ad6fa0264bbb00/License.doc"
+    FILENAME "ThermoRawFileReader-License.doc"
+    SHA512 6ecc1691854ebd16914b2035c20585f8d5afd5f6fcf0a4ef3564ee7d6bfe65c8d332df2e56fa926cf093602a7983ae6a5c300f7ac23e3241d9ea1dc9f3b01b03
 )
-vcpkg_install_copyright(FILE_LIST "${CURRENT_BUILDTREES_DIR}/share-tmp/ThermoRawFileReader-License.doc")
+
+vcpkg_install_copyright(FILE_LIST "${THERMO_LICENSE_PATH}")
