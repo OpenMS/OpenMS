@@ -67,8 +67,10 @@ namespace OpenMS
   <b>Sample</b> -- the biological material a quantity is measured from; concretely, a named row
   of the sample section that @c Sample in the file section points at. Two file rows with the same
   @c Sample value describe measurements of the same material; rows with different values are
-  different material, even if all their metadata columns agree. OpenMS never pools rows that
-  share a sample -- they stay separate quantities. In a labeled experiment each channel normally
+  different material, even if all their metadata columns agree. Same-sample rows within one
+  fraction group are fractions of one measurement and are combined into one quantity; same-sample
+  rows in different fraction groups stay separate quantities, never pooled by OpenMS. In a
+  labeled experiment each channel normally
   names a different sample, so one TMT10 file usually describes ten, but repeating a @c Sample
   across channels or mixtures is legal and is how a bridge/reference channel is declared.
   getNumberOfSamples() returns the number of rows in the sample section.
@@ -294,11 +296,14 @@ namespace OpenMS
 
   A <b>condition</b> is a unique combination of the values of all factors except @c Sample and
   except every factor whose column name contains @c "replicate" or @c "Replicate". Samples that
-  agree on all remaining factors form one condition. This is what getConditionToSampleMapping(),
-  getSampleToConditionMapping(), getPathLabelToConditionMapping() and
-  getConditionToPathLabelVector() return. @ref TOPP_Epifany uses the last one to merge ID runs per
-  condition when a design is supplied; @ref TOPP_ProteomicsLFQ does not -- it merges every ID run
-  study-wide regardless of condition.
+  agree on all remaining factors form one condition. For a design whose sample section has
+  factor columns, this is what getConditionToSampleMapping(), getSampleToConditionMapping(),
+  getPathLabelToConditionMapping() and getConditionToPathLabelVector() return. For a factor-less
+  section -- as built by fromConsensusMap() and fromIdentifications() -- they currently disagree:
+  getSampleToConditionMapping() gives every sample its own condition, while the other three
+  collapse all samples into one. @ref TOPP_Epifany uses getConditionToPathLabelVector() to merge
+  ID runs per condition when a design is supplied; @ref TOPP_ProteomicsLFQ does not -- it merges
+  every ID run study-wide regardless of condition.
 
   Condition numbers are the lexicographic rank of the factor-value tuple, so condition 0 is
   whichever value sorts first, not a reference level.
@@ -355,7 +360,8 @@ namespace OpenMS
     sample-metadata factor. A mistyped @c Sample is the dangerous case: sample names then fall
     back to the fraction-group value, so reused samples quietly become distinct ones and the
     misspelled column also splits conditions. The two-table file section rejects unknown headers.
-  - An empty design (no rows) is accepted without any of these checks.
+  - A design without data rows still gets its column headers checked; only the row-level rules
+    above are skipped. A completely empty file loads as an empty design with no checks at all.
 
   @section ExperimentalDesign_SDRF Relation to SDRF-Proteomics
 

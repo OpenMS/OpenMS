@@ -62,7 +62,7 @@ namespace OpenMS
               (fraction group, label) to several samples
       @throws std::out_of_range if the file section of a two-table design names a @c Sample that
               the sample section does not define -- including the implicit
-              <tt>"Fraction group N"</tt> names used when that section has no @c Sample column
+              <tt>"Fraction group N"</tt> names used when the file section has no @c Sample column
     */
     static ExperimentalDesign load(const std::string& tsv_file, bool require_spectra_files);
 
@@ -70,7 +70,8 @@ namespace OpenMS
     ///
     /// @p filename names the source in error messages AND is the base directory against which
     /// relative @c Spectra_Filepath entries are resolved, so pass the real design-file path
-    /// whenever the spectra are relative to it; the default resolves them against the CWD.
+    /// whenever the spectra are relative to it; a placeholder that is not a real path makes
+    /// them resolve against the current working directory.
     /// @see load(const std::string&, bool) for the exceptions thrown
     static ExperimentalDesign load(const TextFile& text_file, const bool require_spectra_file, std::string filename);
 
@@ -88,7 +89,7 @@ namespace OpenMS
       const std::set <std::string> &optional,
       bool allow_other_header);
 
-    /// Throws Exception::ParseError with @p filename and @p message if @p test is false.
+    /// Throws Exception::ParseError with @p filename and @p message if @p test is true.
     static void parseErrorIf_(const bool test, const std::string &filename, const std::string &message);
   };
 }
