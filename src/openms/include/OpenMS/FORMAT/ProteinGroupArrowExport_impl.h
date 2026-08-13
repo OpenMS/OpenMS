@@ -404,8 +404,9 @@ inline std::string validateQuantificationAnnotations(
            "quantified without saying where";
   }
   // A subset, not an exact match: a group may legitimately have no quantity for a cell it was
-  // never measured in, and the exporter writes that as a null intensity rather than inventing a
-  // value. The direction that still has to hold is the other one -- a key the design cannot name
+  // never measured in. The exporter writes such a cell as a null intensity where the group has
+  // identification evidence in that unit, and omits it entirely where it has none -- either way,
+  // no value is invented. The direction that still has to hold is the other one -- a key the design cannot name
   // means these annotations were produced by a different design. PeptideAndProteinQuant relies on
   // exactly that when it restricts its cell set to header-backed cells: "otherwise every absent
   // design file would add an invented zero-valued quantity that the exporter correctly refuses as

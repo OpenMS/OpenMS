@@ -1559,8 +1559,10 @@ START_SECTION(([EXTRA] ConsensusMap overload - isobaric: an undetected reporter 
   // and inserts the channel handle even when no peak is found, so an undetected reporter arrives
   // at quantification as a stored 0.0. PeptideAndProteinQuant filters those out before aggregating
   // (only 'abundance > 0.0' contributes), so a channel whose reporters were all undetected ends up
-  // with no key -- and has to be written as null, because aggregating the resulting empty list
-  // returns 0.0, which is indistinguishable from a real measurement of zero.
+  // with no key in its internal result map. Today its annotation step then re-densifies that map,
+  // seeding the missing cell with 0.0 -- indistinguishable from a real measurement of zero -- so
+  // in-tree output does not yet contain the sparse shape; this section builds it by hand. Once the
+  // producer stops densifying, this is the row a dead channel becomes.
   const std::string path = "/d/plex.mzML";
   ConsensusMap cmap;
   cmap.setExperimentType("labeled_MS2");
@@ -1691,8 +1693,22 @@ START_SECTION(([EXTRA] ConsensusMap overload - the relaxed annotation check stil
 
   const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
 
-  // The one design cell, quantified: exportable.
-  TEST_NOT_EQUAL(ProteinGroupArrowExport::exportToArrow(mapWith({{1, 1, 500.0f}}), design), nullptr)
+  // The one design cell, quantified: exportable, and the value row is actually there. The group
+  // has no identification evidence anywhere, so this also pins that the evidence gate never
+  // withholds a cell that carries a quantity -- a nullptr check alone would be satisfied by an
+  // empty table.
+  {
+    auto t = ProteinGroupArrowExport::exportToArrow(mapWith({{1, 1, 500.0f}}), design);
+    TEST_NOT_EQUAL(t, nullptr)
+    if (t != nullptr)
+    {
+      TEST_EQUAL(t->num_rows(), 1)
+      const auto cell = cellOf(t, 0);
+      TEST_TRUE(cell.first.has_value())
+      TEST_TRUE(cell.second.has_value())
+      if (cell.second.has_value()) { TEST_REAL_SIMILAR(*cell.second, 500.0f) }
+    }
+  }
 
   // A key the design cannot name. This is the direction the subset check keeps, and the one
   // PeptideAndProteinQuant relies on when it restricts its cell set to header-backed cells.

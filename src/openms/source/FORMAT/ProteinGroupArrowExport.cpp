@@ -306,8 +306,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
                     << "'. They contributed no quantification." << std::endl;
   }
 
-  // Quantified groups emit one row per (fraction_group, label). Identification-only groups emit
-  // one row per evidence unit, which is bounded well enough by the same minimum reservation.
+  // Quantified groups emit at most one row per (fraction_group, label) -- a cell with neither a
+  // quantity nor evidence is omitted, so this reservation is an upper bound. Identification-only
+  // groups emit one row per evidence unit, bounded well enough by the same minimum reservation.
   Size quantities_per_group = 0;
   for (const auto& unit : units.units()) { quantities_per_group += unit.channels.size(); }
   const Size estimated_rows = groups.size() * std::max<Size>(quantities_per_group, 1);
@@ -524,7 +525,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     if (intensity.has_value()) { (void)intensity_builder.Append(*intensity); }
     else                       { (void)intensity_builder.AppendNull(); }
 
-    // additional_intensities - empty for quantified rows, null for identification-only rows.
+    // additional_intensities - empty for labelled rows (quantified or labelled-null alike),
+    // null for identification-only rows.
     if (label.has_value()) { (void)additional_intensities_builder.Append(); }
     else                   { (void)additional_intensities_builder.AppendNull(); }
 
@@ -731,7 +733,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     const bool quantified = quantities.present;
     if (quantified)
     {
-      // One scalar row per label in each fraction group, matching the active QPX 1.1 primary key.
+      // At most one scalar row per label in each fraction group, matching the active QPX 1.1
+      // primary key.
       //
       // A cell with a quantity is always written -- the quantity is its own evidence -- so a dense
       // annotation, which is what PeptideAndProteinQuant produces, takes this path for every cell
@@ -742,6 +745,12 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       // for a unit the group was never observed in would assert an observation that was never made.
       // That is the same rule, computed from the same evidence set, as the identification-only
       // branch below -- which already refuses to fan out across units it has no evidence for.
+      //
+      // One deliberate asymmetry with that branch, unchanged from before this gate existed:
+      // evidence in a run outside every design unit enables nothing here. The else branch melts
+      // such a run into its own singleton unit, but a quantified group has no channel vocabulary
+      // for a run the design does not describe, so its evidence there is not representable and is
+      // dropped without a diagnostic.
       const std::set<std::string> evidence = evidenceRuns(acc_runs, group);
       for (const auto& unit : units.units())
       {

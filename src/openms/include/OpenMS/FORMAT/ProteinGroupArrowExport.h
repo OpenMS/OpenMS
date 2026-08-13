@@ -54,8 +54,8 @@ public:
   /**
     @brief Export protein group data to Apache Arrow Table
 
-    Exports indistinguishable protein groups following the active QPX 1.1 pg schema. One row is
-    emitted per protein group, experimental-design @c fraction_group, and label. @c grouped_runs
+    Exports indistinguishable protein groups following the active QPX 1.1 pg schema. At most one
+    row is emitted per protein group, experimental-design @c fraction_group, and label. @c grouped_runs
     lists that fraction group's raw files, while scalar @c label and @c intensity carry one
     quantity. The row's identity is derived from @c pg_accessions, @c grouped_runs and @c label --
     the FULL group membership, not @c anchor_protein, which is a display representative and is not

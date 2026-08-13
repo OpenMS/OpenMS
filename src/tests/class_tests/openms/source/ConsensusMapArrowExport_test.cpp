@@ -793,11 +793,13 @@ START_SECTION(([EXTRA] an undetected reporter channel is written as an explicit 
   // including those, so an undetected channel becomes an entry whose intensity is exactly 0.0 --
   // indistinguishable from a reporter that was measured at zero.
   //
-  // The pg view takes the opposite position on the same measurement: PeptideAndProteinQuant drops
-  // non-positive abundances before aggregating, so a channel whose reporters were all undetected
-  // ends up with no quantity and is written with a NULL intensity. The two views therefore
-  // disagree about what "not measured" looks like, and because the QPX feature->pg softlink joins
-  // on the label, a feature can associate a channel that pg reports as absent.
+  // The pg view CAN now take the opposite position on the same measurement: a labelled cell with
+  // no quantity is written with a NULL intensity. Today that shape is still latent --
+  // PeptideAndProteinQuant drops non-positive abundances before aggregating, but its annotation
+  // step then re-densifies every design cell with 0.0, so in-tree pg output writes the same 0.0
+  // this view does. Once the producer stops densifying, the two views WILL disagree about what
+  // "not measured" looks like, and because the QPX feature->pg softlink joins on the label, a
+  // feature would associate a channel that pg reports as absent.
   //
   // The feature view cannot resolve this the way pg did: QPXFeatureSchema declares
   // intensities[].intensity non-nullable, so absence can only be expressed by OMITTING the entry
