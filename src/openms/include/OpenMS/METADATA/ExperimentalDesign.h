@@ -26,57 +26,50 @@ namespace OpenMS
   @brief Representation of an experimental design in OpenMS. Instances can be loaded with
          the ExperimentalDesignFile class.
 
-  An experimental design answers the two questions no mzML file can answer by itself:
-  <b>which measured value belongs to which piece of biological material</b>, and <b>which of
-  those pieces are meant to be compared with each other</b>. Every quantitative OpenMS workflow
-  needs both answers, which is why @ref TOPP_ProteomicsLFQ, @ref TOPP_IsobaricWorkflow,
-  @ref TOPP_ProteinQuantifier and @ref TOPP_MSstatsConverter all accept a design file.
+  An experimental design maps quantitative values to the biological material they were measured
+  from, and records the metadata needed to compare those measurements. @ref TOPP_ProteomicsLFQ,
+  @ref TOPP_IsobaricWorkflow, @ref TOPP_ProteinQuantifier and @ref TOPP_MSstatsConverter all
+  take one.
 
-  The design is a plain TAB-separated text file (conventionally @c design.tsv): a few numeric
-  columns that describe the <i>measurement layout</i>, plus any number of free-form columns
-  that describe the <i>biology</i>.
+  It is a TAB-separated text file (conventionally @c design.tsv) with a few numeric columns
+  describing the measurement layout plus any number of free-form columns describing the biology.
 
-  @section ExperimentalDesign_Model The one idea to start from
+  @section ExperimentalDesign_Model Structure
 
-  <b>One row of the design describes exactly one measured quantity: one channel of one MS file.</b>
+  <b>One row describes one measured quantity: one channel of one MS file.</b> A label-free run
+  has one channel and contributes one row; a TMT10-plex run has ten and contributes ten rows --
+  the same file name ten times, with @c Label 1 to 10.
 
-  A label-free run carries one channel, so it contributes one row. A TMT10-plex run carries ten
-  channels, so it contributes ten rows -- the same file name ten times, with @c Label 1 to 10.
-  Every rule below follows from that.
+  Per row:
 
-  Each row answers five questions:
-
-  | Column              | Question it answers                                                |
+  | Column              | Meaning                                                            |
   |---------------------|--------------------------------------------------------------------|
-  | @c Spectra_Filepath | Which file was measured?                                           |
-  | @c Label            | Which channel inside that file?                                    |
-  | @c Fraction         | Which slice of the injected material does this file contain?       |
-  | @c Fraction_Group   | Which rows must be combined to obtain one complete measurement?    |
-  | @c Sample           | Which piece of biological material was measured here?              |
+  | @c Spectra_Filepath | The file that was measured                                         |
+  | @c Label            | The channel inside that file                                       |
+  | @c Fraction         | Which slice of the injected material the file contains             |
+  | @c Fraction_Group   | Which rows are combined into one complete measurement              |
+  | @c Sample           | The biological material measured in this row                       |
 
-  These five columns make up the <b>MS file section</b>. The first four are the mechanical part
-  of the design and OpenMS validates them strictly (see @ref ExperimentalDesign_Rules).
-  @c Sample is the bridge to the <b>sample section</b>: a free-form table of columns -- OpenMS calls them
-  <i>factors</i> -- such as condition, biological replicate, genotype or time point. OpenMS never
-  interprets the <i>values</i> of those columns; it only compares them to decide which samples
-  belong together.
+  These five columns make up the <b>MS file section</b>. The first four are validated strictly
+  (see @ref ExperimentalDesign_Rules). @c Sample links to the <b>sample section</b>: a free-form
+  table of columns -- OpenMS calls them <i>factors</i> -- such as condition, biological replicate,
+  genotype or time point. OpenMS does not interpret factor values; it only compares them to
+  decide which samples belong together.
 
   @section ExperimentalDesign_Glossary Glossary
 
-  These terms are the whole vocabulary. They are easy to mix up because everyday lab language
-  uses several of them interchangeably, so each entry says what OpenMS means by it, how it is
-  written down, and what OpenMS does with it.
+  Lab usage of these terms varies, so each entry gives the OpenMS meaning, how it is written in
+  the file, and what OpenMS does with it.
 
   <b>MS file (run)</b> -- one raw/mzML file, i.e. one LC-MS measurement. Named by
   @c Spectra_Filepath. A file appears in as many rows as it has channels.
 
-  <b>Sample</b> -- the piece of biological material whose abundance you want to know. Technically
-  it is a <i>named row of the sample section</i>; @c Sample in the file section points at it by
-  name. Two file rows with the <i>same</i> @c Sample value describe measurements of the same
-  material and may be pooled by downstream statistics; two rows with different values are
-  different material even when all their metadata columns happen to agree. In a labeled
-  experiment every channel is its own sample, so one TMT10 file describes ten samples.
-  getNumberOfSamples() is the number of rows in the sample section.
+  <b>Sample</b> -- the biological material a quantity is measured from; concretely, a named row
+  of the sample section that @c Sample in the file section points at. Two file rows with the same
+  @c Sample value describe measurements of the same material and may be pooled downstream; rows
+  with different values are different material, even if all their metadata columns agree. In a
+  labeled experiment each channel is its own sample, so one TMT10 file describes ten samples.
+  getNumberOfSamples() returns the number of rows in the sample section.
 
   @note @c Sample holds a <b>name</b>, i.e. an arbitrary string -- @c sdrf-pipelines writes
         @c "1", @c "2", ..., but @c "BSA1" or @c "patient_7" are equally valid. In the C++ API,
@@ -84,69 +77,65 @@ namespace OpenMS
         <b>zero-based row index</b> of the sample in the sample section. The two rarely coincide;
         do not use one where the other is expected.
 
-  <b>Fraction</b> -- when one sample is separated into several portions <i>before</i> LC-MS
-  (high-pH reversed phase, SCX, gel bands, ...), each portion is measured in its own file. Those
-  files are fractions of one measurement, <i>not</i> repeats of it: OpenMS aggregates them into a
-  single abundance. Numbered from 1; use @c 1 in every row for unfractionated data. Use the
-  <i>same</i> numbers in every fraction group so that corresponding fractions line up
-  (getFractionToMSFilesMapping() groups by this number across groups).
+  <b>Fraction</b> -- one portion of a sample that was separated before LC-MS (high-pH reversed
+  phase, SCX, gel bands, ...) and measured in its own file. Fractions are parts of one
+  measurement rather than repeats of it: OpenMS aggregates them into a single abundance.
+  Numbered from 1; use @c 1 in every row for unfractionated data. Use the same numbers in every
+  fraction group so corresponding fractions line up (getFractionToMSFilesMapping() groups by this
+  number across groups).
 
-  <b>Fraction group</b> -- the set of rows that together form one complete measurement of one
-  injected mixture: all fractions that have to be combined before a single abundance comes out.
-  This is OpenMS' unit of quantification. @ref TOPP_ProteinQuantifier reports one value per
-  <tt>(Fraction_Group, Label)</tt> pair and calls that pair an <i>assay</i>. Rules: integers,
-  starting at 1, consecutive, no gaps. Unfractionated label-free data has one fraction group per
-  file. Measuring the same material a second time means a <b>new</b> fraction group carrying the
-  <b>same</b> @c Sample -- that is exactly how a technical replicate is written down.
+  <b>Fraction group</b> -- the rows that form one complete measurement of one injected mixture,
+  i.e. all fractions that are combined into a single abundance. This is OpenMS' unit of
+  quantification: @ref TOPP_ProteinQuantifier reports one value per <tt>(Fraction_Group, Label)</tt>
+  pair and calls that pair an <i>assay</i>. Must be integers starting at 1, consecutive, no gaps.
+  Unfractionated label-free data has one fraction group per file. Measuring the same material
+  again means a new fraction group with the same @c Sample; see technical replicate below.
 
   <b>Label (channel)</b> -- the multiplexing channel within one file. @c 1 for label-free and
-  DIA data; @c 1..n for an n-plex, 1-based and in the canonical channel order of the reagent
+  DIA data; @c 1..n for an n-plex, 1-based in the canonical channel order of the reagent
   (TMT10-plex: 126&rarr;1, 127N&rarr;2, 127C&rarr;3, 128N&rarr;4, 128C&rarr;5, 129N&rarr;6,
   129C&rarr;7, 130N&rarr;8, 130C&rarr;9, 131&rarr;10; SILAC 2-plex: light&rarr;1, heavy&rarr;2;
-  iTRAQ4-plex: 114&rarr;1 ... 117&rarr;4). The number is a <i>position</i>, never a reagent name:
-  OpenMS resolves it back to a reagent through the quantification method that produced the data,
-  and a mismatch silently swaps channels. Every <tt>(file, label)</tt> pair may occur only once
-  in a design.
+  iTRAQ4-plex: 114&rarr;1 ... 117&rarr;4). The value is a channel position, not a reagent name:
+  OpenMS resolves it to a reagent through the quantification method that produced the data, so a
+  mismatch swaps channels without any error. Every <tt>(file, label)</tt> pair may occur only
+  once in a design.
 
   <b>Technical replicate</b> -- the same material measured again (re-injection, re-run of the
-  same digest). Write it as a second fraction group with the same @c Sample value. OpenMS keeps
-  the repeats as separate quantities; collapsing them is the job of the statistics package.
+  same digest). Written as a second fraction group with the same @c Sample value. OpenMS keeps
+  the repeats as separate quantities; collapsing them is left to the statistics package.
 
   <b>Biological replicate</b> -- an independent biological unit (another animal, patient,
-  culture) measured under a condition. Different biological replicates are different samples, and
-  their relationship is declared in the sample section, conventionally in a column called
+  culture) measured under a condition. Different biological replicates are different samples;
+  the relationship is declared in the sample section, conventionally in a column called
   @c MSstats_BioReplicate.
 
-  Condition and factors are a property of the <i>sample section</i> and are described in
-  @ref ExperimentalDesign_SampleSection.
+  Conditions and factors belong to the sample section, see @ref ExperimentalDesign_SampleSection.
 
   @section ExperimentalDesign_Formats The two file formats
 
-  The same design can be written in two ways. Both are TAB-separated; cells are whitespace
-  trimmed and lines starting with a hash character (a comment) are ignored.
+  Both are TAB-separated; cells are whitespace trimmed and lines starting with a hash character
+  are ignored.
 
-  <b>One-table format</b> -- everything in a single table. The mandatory columns are
-  @c Fraction_Group, @c Fraction and @c Spectra_Filepath; @c Label and @c Sample are optional;
-  <i>any further column is taken to be sample metadata</i>. This is the simpler and by far the
-  more common form.
+  <b>One-table format</b> -- a single table. Mandatory columns are @c Fraction_Group,
+  @c Fraction and @c Spectra_Filepath; @c Label and @c Sample are optional; any further column
+  is taken to be sample metadata. This is the more common form.
 
   <b>Two-table format</b> -- an MS file section and a sample section, separated by one blank
-  line. The file section accepts <i>only</i> @c Fraction_Group, @c Fraction,
-  @c Spectra_Filepath, @c Label and @c Sample; any other column there is a parse error. The
-  sample section must have a @c Sample column and may carry any number of further columns. Use
-  this form when many files share a sample and you do not want to repeat its metadata.
+  line. The file section accepts only @c Fraction_Group, @c Fraction, @c Spectra_Filepath,
+  @c Label and @c Sample; any other column there is a parse error. The sample section must have
+  a @c Sample column and may carry any number of further columns. Useful when many files share a
+  sample, to avoid repeating its metadata.
 
-  The format is auto-detected: a file is read as two-table as soon as some line contains a
-  @c Sample column header but no @c Fraction_Group column header -- that line is the sample
-  header. Otherwise the file is read as one-table.
+  The format is auto-detected: a file is read as two-table if some line contains a @c Sample
+  column header but no @c Fraction_Group column header (that line is the sample header),
+  otherwise as one-table.
 
   @section ExperimentalDesign_Examples Worked examples
 
   @subsection ExperimentalDesign_Ex1 1. Label-free, unfractionated: 2 conditions, 3 biological replicates
 
-  The simplest design there is: six independent biological units, one file each. Every file is
-  its own fraction group and its own sample, and the fraction column is 1 throughout because
-  nothing was fractionated.
+  Six independent biological units, one file each. Every file is its own fraction group and its
+  own sample; the fraction column is 1 throughout because nothing was fractionated.
 
   | Fraction_Group | Fraction | Spectra_Filepath | Label | Sample | MSstats_Condition | MSstats_BioReplicate |
   |----------------|----------|------------------|-------|--------|-------------------|----------------------|
@@ -159,16 +148,15 @@ namespace OpenMS
 
   6 files, 6 fraction groups, 6 samples, 1 fraction, 1 label, 2 conditions.
 
-  @note The biological replicate numbers run 1..6 and are not restarted per condition. Repeating
-        a value under two conditions is how a <i>paired</i> (repeated-measures) design is
-        declared -- the same individual measured before and after treatment -- and
-        @ref TOPP_MSstatsConverter warns when it sees one, because it changes the statistical
-        model. Only reuse a value when the pairing is real.
+  @note The biological replicate numbers run 1..6 and are not restarted per condition. A value
+        repeated under two conditions declares a <i>paired</i> (repeated-measures) design, e.g.
+        the same individual before and after treatment. It changes the statistical model, so
+        @ref TOPP_MSstatsConverter warns about it; only reuse a value when the pairing is real.
 
   @subsection ExperimentalDesign_Ex2 2. Adding technical replicates
 
-  Two patients, each digest injected twice. The repeats carry the <b>same</b> @c Sample (and the
-  same metadata) but their <b>own</b> fraction group:
+  Two patients, each digest injected twice. The repeats carry the same @c Sample and metadata,
+  but their own fraction group:
 
   | Fraction_Group | Fraction | Spectra_Filepath | Label | Sample | MSstats_Condition | MSstats_BioReplicate |
   |----------------|----------|------------------|-------|--------|-------------------|----------------------|
@@ -177,14 +165,14 @@ namespace OpenMS
   | 3              | 1        | p2_inj1.mzML     | 1     | 2      | treated           | 2                    |
   | 4              | 1        | p2_inj2.mzML     | 1     | 2      | treated           | 2                    |
 
-  4 files, 4 fraction groups, but only 2 samples. Reusing a sample across fraction groups is
-  explicitly allowed and does not merge the groups: OpenMS still reports four quantities and
-  leaves it to the statistics package to treat them as repeated measurements.
+  4 files, 4 fraction groups, 2 samples. Reusing a sample across fraction groups is allowed and
+  does not merge them: OpenMS reports four quantities and leaves it to the statistics package to
+  treat them as repeated measurements.
 
   @subsection ExperimentalDesign_Ex3 3. Fractionated, label-free
 
-  Two samples, each pre-fractionated into three fractions. Same number of files as example 2, but
-  a completely different meaning:
+  Two samples, each pre-fractionated into three fractions. Same file count as example 2, different
+  meaning:
 
   | Fraction_Group | Fraction | Spectra_Filepath | Label | Sample | MSstats_Condition | MSstats_BioReplicate |
   |----------------|----------|------------------|-------|--------|-------------------|----------------------|
@@ -195,10 +183,10 @@ namespace OpenMS
   | 2              | 2        | drug_F2.mzML     | 1     | 2      | treated           | 2                    |
   | 2              | 3        | drug_F3.mzML     | 1     | 2      | treated           | 2                    |
 
-  6 files, 2 fraction groups, 2 samples, 3 fractions. Compare with example 2: there, four files
-  produced four quantities; here, six files produce two, because the three files of a fraction
-  group are aggregated. Fraction numbers repeat across groups on purpose -- @c ctrl_F2 and
-  @c drug_F2 are the same slice of the separation and are aligned with each other.
+  6 files, 2 fraction groups, 2 samples, 3 fractions. In example 2 four files produced four
+  quantities; here six files produce two, because the files of a fraction group are aggregated.
+  Fraction numbers repeat across groups deliberately: @c ctrl_F2 and @c drug_F2 are the same
+  slice of the separation and are aligned with each other.
 
   @subsection ExperimentalDesign_Ex4 4. TMT10-plex, one mixture, unfractionated
 
@@ -238,9 +226,9 @@ namespace OpenMS
   | ...            | ...      | ...               | ...   | ...    | ...               | ...                  | ...             |
   | 2              | 3        | mix2_F3.mzML      | 10    | 20     | treated           | 20                   | 2               |
 
-  6 files, 2 fraction groups, 3 fractions, 10 labels, 20 samples. Note that a sample repeats
-  across the fractions of its own group (same material, different slice) but never across the two
-  mixtures (different material, different TMT tube).
+  6 files, 2 fraction groups, 3 fractions, 10 labels, 20 samples. A sample repeats across the
+  fractions of its own group (same material, different slice) but not across the two mixtures
+  (different material, different TMT tube).
 
   @subsection ExperimentalDesign_Ex6 6. SILAC light/heavy
 
@@ -258,8 +246,7 @@ namespace OpenMS
 
   @subsection ExperimentalDesign_Ex7 7. The same design in two-table format
 
-  Example 3 again, with the metadata factored out. The blank line is what separates the sections
-  and is mandatory.
+  Example 3 with the metadata factored out. The blank line separating the sections is mandatory.
 
   MS file section:
 
@@ -283,21 +270,19 @@ namespace OpenMS
 
   @section ExperimentalDesign_SampleSection The sample section: factors and conditions
 
-  Every column of the sample section is a <b>factor</b>. Their names are free-form; OpenMS only
-  ever compares values, so @c Genotype, @c Timepoint or @c Dose work exactly like the MSstats
-  columns below.
+  Every column of the sample section is a <b>factor</b>. Names are free-form; OpenMS only compares
+  values, so @c Genotype, @c Timepoint or @c Dose behave like the MSstats columns below.
 
-  A <b>condition</b> is a unique combination of the values of all factors <i>except</i>
-  @c Sample and <i>except</i> every factor whose column name contains @c "replicate" or
-  @c "Replicate". Samples that agree on all remaining factors form one condition -- that is what
-  getConditionToSampleMapping(), getSampleToConditionMapping() and
-  getPathLabelToConditionMapping() return, and it is how @ref TOPP_ProteomicsLFQ decides which
-  runs may be merged.
+  A <b>condition</b> is a unique combination of the values of all factors except @c Sample and
+  except every factor whose column name contains @c "replicate" or @c "Replicate". Samples that
+  agree on all remaining factors form one condition. This is what getConditionToSampleMapping(),
+  getSampleToConditionMapping() and getPathLabelToConditionMapping() return, and how
+  @ref TOPP_ProteomicsLFQ decides which runs may be merged.
 
-  @warning The replicate rule is purely a <b>naming convention on the column name</b>. A column
-           called @c MSstats_BioReplicate or @c Technical_Replicate is excluded from the
-           condition automatically; a column called @c Donor or @c Rep is not, and every distinct
-           value in it creates its own condition. Name replicate columns accordingly.
+  @warning The replicate rule matches on the column NAME only. @c MSstats_BioReplicate and
+           @c Technical_Replicate are excluded from the condition automatically; @c Donor or
+           @c Rep are not, and every distinct value in them creates its own condition. Name
+           replicate columns accordingly.
 
   getUniqueSampleRowToSampleMapping() and getSampleToPrefractionationMapping() apply the weaker
   rule: they ignore only @c Sample and keep the replicate columns, so they group samples whose
@@ -320,8 +305,7 @@ namespace OpenMS
 
   @section ExperimentalDesign_Rules Rules OpenMS enforces
 
-  Most of these are checked when the file is loaded, and a design that breaks one is rejected.
-  They are worth knowing before writing a design by hand:
+  Checked when the file is loaded; a design that breaks one of these is rejected:
 
   - Column headers are matched exactly and are case-sensitive.
   - Fraction groups must be integers, must start at 1 and must be consecutive -- no gaps, no
@@ -346,11 +330,11 @@ namespace OpenMS
   @section ExperimentalDesign_SDRF Relation to SDRF-Proteomics
 
   <a href="https://github.com/bigbio/proteomics-sample-metadata">SDRF-Proteomics</a> is the
-  HUPO-PSI sample-and-data-relationship format used by PRIDE and quantms. It is richer than an
-  OpenMS design -- it also carries organism, disease, instrument and search settings -- and it is
-  the recommended source of truth: <tt>parse_sdrf convert-openms -s sdrf.tsv</tt> from
-  <a href="https://github.com/bigbio/sdrf-pipelines">sdrf-pipelines</a> generates the design file
-  described here. The conversion maps:
+  HUPO-PSI sample-and-data-relationship format used by PRIDE and quantms. It covers more than an
+  OpenMS design (organism, disease, instrument, search settings) and can generate one:
+  <tt>parse_sdrf convert-openms -s sdrf.tsv</tt> from
+  <a href="https://github.com/bigbio/sdrf-pipelines">sdrf-pipelines</a> writes the file described
+  here. The conversion maps:
 
   | OpenMS design         | SDRF-Proteomics                                        | Notes                                                                                     |
   |-----------------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------|
@@ -363,18 +347,16 @@ namespace OpenMS
   | @c MSstats_BioReplicate | derived from <tt>source name</tt>                     | one value per biological source; <i>not</i> copied from <tt>characteristics[biological replicate]</tt> |
   | @c MSstats_Mixture    | derived per labeled file and sample                    | isobaric designs only                                                                      |
 
-  Two SDRF terms translate less directly than their names suggest. SDRF's
-  <tt>comment[technical replicate]</tt> is folded into @c Fraction_Group, because OpenMS expresses
-  technical replication as "same sample, new fraction group" rather than as a column. And SDRF
-  distinguishes <tt>source name</tt> (the material) from <tt>assay name</tt> (the measurement),
-  where OpenMS uses @c Sample and the file/label pair for the same distinction.
+  Two SDRF terms do not map one-to-one. <tt>comment[technical replicate]</tt> is folded into
+  @c Fraction_Group, since OpenMS expresses technical replication as "same sample, new fraction
+  group" rather than as a column. And SDRF's <tt>source name</tt> (the material) vs.
+  <tt>assay name</tt> (the measurement) corresponds to @c Sample vs. the file/label pair.
 
   @section ExperimentalDesign_QPX Relation to QPX (quantms.io)
 
   QPX ("Quantitative Proteomics eXchange") is the Parquet exchange format written by
-  @ref TOPP_ProteomicsLFQ and @ref TOPP_IsobaricWorkflow via their @c out_qpx option. Its
-  sample metadata comes from SDRF, so a design exported to QPX has to line up with the terms
-  above:
+  @ref TOPP_ProteomicsLFQ and @ref TOPP_IsobaricWorkflow via their @c out_qpx option. Its sample
+  metadata comes from SDRF, so an exported design has to line up with the terms above:
 
   | OpenMS design                              | QPX                                              | Notes                                                                                   |
   |--------------------------------------------|--------------------------------------------------|-----------------------------------------------------------------------------------------|
@@ -392,18 +374,17 @@ namespace OpenMS
 
   @section ExperimentalDesign_Pitfalls Common pitfalls
 
-  - <b>Renumbering fraction groups per condition.</b> They are global: 1, 2, 3, ... across the
-    whole design. Restarting at 1 for the second condition is a common load error.
-  - <b>Confusing fractions with replicates.</b> Fractions are added together (one quantity out of
-    several files); replicates are kept apart (several quantities). Compare examples 2 and 3.
-  - <b>Forgetting that a labeled file needs one row per channel.</b> A TMT10 design with one row
-    per file quantifies one channel and silently ignores nine.
-  - <b>Giving a replicate column a name without "replicate" in it.</b> It then counts as part of
-    the condition and splits every group of replicates into separate conditions.
-  - <b>Reusing a biological replicate id across conditions by accident.</b> That declares a
-    paired design; @ref TOPP_MSstatsConverter warns about it.
-  - <b>Using a comma-separated file.</b> The format is TAB-separated, despite the @c .tsv files
-    often being edited in a spreadsheet program.
+  - Renumbering fraction groups per condition. They are global (1, 2, 3, ... across the whole
+    design); restarting at 1 for the second condition fails to load.
+  - Confusing fractions with replicates. Fractions are aggregated (one quantity from several
+    files); replicates are kept apart (several quantities). Compare examples 2 and 3.
+  - Writing one row per labeled file instead of one row per channel. A TMT10 design with one row
+    per file quantifies one channel and ignores nine, without an error.
+  - Naming a replicate column without "replicate" in it. It then counts towards the condition and
+    splits each group of replicates into separate conditions.
+  - Reusing a biological replicate id across conditions unintentionally. That declares a paired
+    design; @ref TOPP_MSstatsConverter warns about it.
+  - Saving as comma-separated. The format is TAB-separated.
 
   @see ExperimentalDesignFile for loading, and fromConsensusMap() / fromFeatureMap() /
        fromIdentifications() for deriving a design when no file is available.
