@@ -24,7 +24,12 @@ jobs:
         with:
           activate-environment: bioconda_env
           auto-update-conda: true
-          python-version: "3.12"
+          # Deliberately no python-version: bioconda-utils is built for exactly one
+          # python minor per release (4.2.0+ is python 3.13 only), so pinning python
+          # here silently caps which bioconda-utils the solver may pick. That is what
+          # broke #9905 -- python 3.12 held bioconda-utils at 4.1.0 and with it a
+          # conda-forge-pinning snapshot from 2024. Letting conda choose the python
+          # keeps this from recurring when bioconda-utils moves to 3.14.
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
@@ -33,7 +38,53 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/output/noarch
           mkdir -p $GITHUB_WORKSPACE/output/linux-64
           touch $GITHUB_WORKSPACE/output/noarch/repodata.json
+          # Deliberately unpinned, including conda-forge-pinning. This nightly exists
+          # to mimic upstream bioconda and surface breakage against the pinnings they
+          # currently build with, so it has to track whatever bioconda-utils is
+          # current. bioconda-utils declares the conda-forge-pinning snapshot it
+          # wants, so that version decides the pinning; constraining either one here
+          # would hide exactly the breakage this workflow is meant to catch.
           conda install bioconda-utils conda-index -y
+          # #9905 was a *silent* downgrade to a bioconda-utils carrying a 2024
+          # pinning, which is invisible unless you read the solver output. Record the
+          # resolved versions so the next such drift is one grep away in the log.
+          # python is included deliberately: it is the lever that caused #9905, since
+          # each bioconda-utils release is built for exactly one python minor.
+          echo "--- resolved build tooling ---"
+          conda list --export | grep -E '^(python|bioconda-utils|conda-forge-pinning|conda-build|conda-index)=' || true
+          # Prefer the build-env image matching the bioconda-utils we just resolved;
+          # `--docker` derives that tag itself, but the image is published to quay.io
+          # some time after the conda package, so a brand new release would fail the
+          # pull (4.5.0 was current on the bioconda channel with no image tag on
+          # 2026-08-12). Fall back to the rolling `latest` tag during that window.
+          # Nothing is pinned here -- the tag tracks whatever we actually installed.
+          #
+          # Ask quay's API rather than `docker manifest inspect`: the API separates
+          # "tag is not published" (HTTP 200 with an empty tag list) from "we could
+          # not find out" (curl fails), which a single exit status cannot, and it
+          # does not depend on `docker manifest` being enabled on the runner.
+          image_repo=quay.io/bioconda/bioconda-utils-build-env-cos7
+          tag_api="https://quay.io/api/v1/repository/bioconda/bioconda-utils-build-env-cos7/tag/"
+          bu_version=$(conda list --export | sed -n 's/^bioconda-utils=\([^=]*\)=.*/\1/p')
+          image_tag=latest
+          if [ -n "$bu_version" ]; then
+            for attempt in 1 2 3; do
+              if tags=$(curl -fsSL --max-time 30 "${tag_api}?onlyActiveTags=true&specificTag=${bu_version}"); then
+                if printf '%s' "$tags" | grep -q "\"name\": *\"${bu_version}\""; then
+                  image_tag=$bu_version
+                else
+                  echo "quay.io has no build-env image for bioconda-utils ${bu_version} yet"
+                fi
+                break
+              fi
+              # Only a lookup failure is retried. Staying on :latest is a safe
+              # outcome, so a flaky registry must not fail the nightly outright.
+              echo "quay.io tag lookup failed (attempt ${attempt}/3)"
+              if [ "$attempt" -lt 3 ]; then sleep $((attempt * 5)); fi
+            done
+          fi
+          echo "Using build-env image ${image_repo}:${image_tag} (bioconda-utils ${bu_version:-unknown})"
+          echo "BUILD_ENV_IMAGE=${image_repo}:${image_tag}" >> $GITHUB_ENV
           python -m conda_index $GITHUB_WORKSPACE/output
           # Register the local output directory as a conda channel so that
           # host-side metadata finalization can resolve packages built in
@@ -66,6 +117,7 @@ jobs:
           # history, so it only conflicts on genuinely unresolved changes.
           git merge --no-edit bioconda/master
 
+      # BUILD_ENV_IMAGE comes from the preflight in "Prepare output directory".
       - name: Lint and build OpenMS Bioconda packages
         run: |
           cd bioconda-recipes
@@ -81,7 +133,10 @@ jobs:
 
       - name: Upload Conda packages
         run: |
-          pip install "anaconda-client>=1.14"  # bioconda-utils pulls 1.13.x which still uses removed pkg_resources
+          # Safety net: anaconda-client 1.13.x still uses the removed pkg_resources.
+          # Current bioconda-utils already requires 1.14.*, so this is normally a
+          # no-op; it only matters if the solver lands on an older one.
+          pip install "anaconda-client>=1.14"
           ls -l $GITHUB_WORKSPACE/output
           shopt -s nullglob
           pkgs=($GITHUB_WORKSPACE/output/linux-64/*.tar.bz2 $GITHUB_WORKSPACE/output/linux-64/*.conda)

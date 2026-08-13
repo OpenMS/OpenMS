@@ -1050,6 +1050,16 @@ Build System:
     apt pin the base stage applies before the same install, so a new upstream Arrow release (25.0.0)
     made the unpinned SONAME packages unresolvable and broke the nightly container build on arm64. The
     library stage now applies the identical pin (#9890, #9891)
+  - Fix: the Bioconda deploy workflow created its conda environment with a hardcoded python 3.12.
+    bioconda-utils ships for one python minor per release (4.2.0+ is python 3.13 only), so that pin
+    silently capped it at 4.1.0 and with it a conda-forge-pinning snapshot from 2024. That snapshot
+    pins xerces_c to 3.2, so libOpenMS was built against xerces-c 3.2.5 (icu 75) and exported a
+    `xerces-c >=3.2.5,<3.3.0a0` run constraint, which no longer co-installs with the icu 78 dependency
+    chains of current libarrow/libcurl -- the openms test environment became unsolvable and no nightly
+    package was published. The python pin is gone, so the nightly now tracks the current
+    bioconda-utils and the pinnings upstream bioconda actually builds against; the resolved tooling
+    versions are echoed into the log, and the build-env image follows the rolling `latest` tag, whose
+    publication lags a new bioconda-utils release (#9905)
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
