@@ -70,10 +70,8 @@ target_include_directories(IsoSpec PUBLIC
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IsoSpec/IsoSpecExport.h
         DESTINATION include/IsoSpec)
 
-# Apply compiler flags
-if (NOT WIN32)
-  target_compile_options(IsoSpec PRIVATE -fPIC)
-endif()
+# Objects are linked into a shared library, so they must be position independent.
+set_target_properties(IsoSpec PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 install(TARGETS IsoSpec
   EXPORT IsoSpecTargets

@@ -1,3 +1,6 @@
+NOTE: BSpline.dox is preserved verbatim from upstream eol-bspline documentation.
+Its installation/build instructions describe the original standalone project layout and do not reflect how this vcpkg
+port packages the library. See src/CMakeLists.txt for the actual install rules
 
 HTML documentation, including the contents of this file, can be found in
 doc/index.html.  Otherwise, read the plain text documentation in this file

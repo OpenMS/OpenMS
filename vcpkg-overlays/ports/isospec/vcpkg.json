@@ -1,8 +1,9 @@
 {
     "name":"isospec",
-    "version":"2.2.0",
+    "version-string":"2.2.0",
     "description":"Fine structure calculator for isotopic distributions",
     "homepage":"https://github.com/MatteoLacki/IsoSpec",
+    "license":"BSD-2-Clause AND BSL-1.0 AND MIT",
     "dependencies": [
     {
       "name": "vcpkg-cmake",
