@@ -89,6 +89,12 @@ START_SECTION(static void setIMUnit(DataArrays::FloatDataArray& fda, const Drift
 	IMDataConverter::setIMUnit(fda, DriftTimeUnit::VSSC);
   TEST_EQUAL(IMDataConverter::getIMUnit(fda, unit), true)
   TEST_EQUAL(DriftTimeUnit::VSSC == unit, true)
+
+  // Official PSI name for imzML/mzML (MS:1003006) must map to 1/K0 (VSSC),
+  // not milliseconds (regression: UserParam prefix used to force ms).
+  fda.setName("mean inverse reduced ion mobility array");
+  TEST_EQUAL(IMDataConverter::getIMUnit(fda, unit), true)
+  TEST_EQUAL(DriftTimeUnit::VSSC == unit, true)
 END_SECTION
 
 START_SECTION(static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit))

@@ -11,6 +11,8 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -622,6 +624,113 @@ START_SECTION(void store round-trip processed imzML)
     TEST_REAL_SIMILAR(reloaded[0][0].getMZ(), original[0][0].getMZ())
   }
   TEST_EQUAL(reloaded.getMetaValue("imzml:imaging_mode"), "processed")
+}
+END_SECTION
+
+
+START_SECTION(void store round-trip FloatDataArray ion mobility and non-standard)
+{
+  // PSI MS:1003006 ion mobility plus a free-text MS:1000786 array.
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  s.push_back(Peak1D(200.0, 20.0f));
+
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  im.push_back(1.15f);
+  s.getFloatDataArrays().push_back(im);
+
+  MSSpectrum::FloatDataArray custom;
+  custom.setName("my custom SNR");
+  custom.push_back(3.0f);
+  custom.push_back(4.5f);
+  s.getFloatDataArrays().push_back(custom);
+
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  // Writer must emit the ontology accession for IM and MS:1000786 for the custom name.
+  {
+    std::ifstream xml(tmp_imzml.c_str());
+    std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+    TEST_TRUE(content.find("MS:1003006") != std::string::npos)
+    TEST_TRUE(content.find("mean inverse reduced ion mobility array") != std::string::npos)
+    TEST_TRUE(content.find("MS:1002814") != std::string::npos) // 1/K0 unit on IM array
+    TEST_TRUE(content.find("MS:1000786") != std::string::npos)
+    TEST_TRUE(content.find("my custom SNR") != std::string::npos)
+    TEST_TRUE(content.find("binaryDataArrayList count=\"4\"") != std::string::npos)
+  }
+
+  MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(reloaded.getNrSpectra(), 1)
+  TEST_EQUAL(reloaded[0].size(), 2)
+  TEST_EQUAL(reloaded[0].getFloatDataArrays().size(), 2)
+
+  const auto& fda = reloaded[0].getFloatDataArrays();
+  Size im_idx = fda.size();
+  Size custom_idx = fda.size();
+  for (Size i = 0; i < fda.size(); ++i)
+  {
+    if (fda[i].getName() == "mean inverse reduced ion mobility array")
+    {
+      im_idx = i;
+    }
+    if (fda[i].getName() == "my custom SNR")
+    {
+      custom_idx = i;
+    }
+  }
+  TEST_NOT_EQUAL(im_idx, fda.size())
+  TEST_NOT_EQUAL(custom_idx, fda.size())
+  TEST_EQUAL(fda[im_idx].size(), 2)
+  TEST_REAL_SIMILAR(fda[im_idx][0], 0.85)
+  TEST_REAL_SIMILAR(fda[im_idx][1], 1.15)
+  TEST_EQUAL(fda[custom_idx].size(), 2)
+  TEST_REAL_SIMILAR(fda[custom_idx][0], 3.0)
+  TEST_REAL_SIMILAR(fda[custom_idx][1], 4.5)
+
+  // Viewer contract: containsIMData() + correct 1/K0 unit for the PSI IM array.
+  TEST_TRUE(reloaded[0].containsIMData())
+  DriftTimeUnit im_unit = DriftTimeUnit::NONE;
+  TEST_TRUE(IMDataConverter::getIMUnit(fda[im_idx], im_unit))
+  TEST_TRUE(im_unit == DriftTimeUnit::VSSC)
+
+  // On-disc path must expose the same IM + custom FloatDataArrays (index + lazy decode).
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getNrSpectra(), 1)
+  TEST_EQUAL(od.getIndex(0).aux.size(), 2)
+  MSSpectrum od_spec = od.getSpectrum(0);
+  TEST_TRUE(od_spec.containsIMData())
+  TEST_EQUAL(od_spec.getFloatDataArrays().size(), 2)
+  const auto& od_fda = od_spec.getFloatDataArrays();
+  Size od_im_idx = od_fda.size();
+  Size od_custom_idx = od_fda.size();
+  for (Size i = 0; i < od_fda.size(); ++i)
+  {
+    if (od_fda[i].getName() == "mean inverse reduced ion mobility array")
+    {
+      od_im_idx = i;
+    }
+    if (od_fda[i].getName() == "my custom SNR")
+    {
+      od_custom_idx = i;
+    }
+  }
+  TEST_NOT_EQUAL(od_im_idx, od_fda.size())
+  TEST_NOT_EQUAL(od_custom_idx, od_fda.size())
+  TEST_EQUAL(od_fda[od_im_idx].size(), 2)
+  TEST_REAL_SIMILAR(od_fda[od_im_idx][0], 0.85)
+  TEST_REAL_SIMILAR(od_fda[od_im_idx][1], 1.15)
+  TEST_EQUAL(od_fda[od_custom_idx].size(), 2)
+  TEST_REAL_SIMILAR(od_fda[od_custom_idx][0], 3.0)
+  TEST_REAL_SIMILAR(od_fda[od_custom_idx][1], 4.5)
 }
 END_SECTION
 

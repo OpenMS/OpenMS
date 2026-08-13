@@ -447,6 +447,79 @@ class TestImzMLFile(unittest.TestCase):
             if os.path.isfile(ibd_path):
                 os.remove(ibd_path)
 
+    def test_store_load_ion_mobility_float_data_array(self):
+        """Per-peak IM FloatDataArray (MS:1003006) round-trips for in-memory and OnDisc load."""
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        spec = self._make_pixel_spectrum(1, 1, 100.0, 10.0)
+        p2 = pyopenms.Peak1D()
+        p2.setMZ(200.0)
+        p2.setIntensity(20.0)
+        spec.push_back(p2)
+
+        im = pyopenms.FloatDataArray()
+        im.setName("mean inverse reduced ion mobility array")
+        im.push_back(0.85)
+        im.push_back(1.15)
+        custom = pyopenms.FloatDataArray()
+        custom.setName("my custom SNR")
+        custom.push_back(3.0)
+        custom.push_back(4.5)
+        spec.setFloatDataArrays([im, custom])
+        exp.addSpectrum(spec)
+        exp.setMetaValue("imzml:imaging_mode", "processed")
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        try:
+            pyopenms.ImzMLFile().store(out_path, exp)
+
+            img = pyopenms.MSImagingExperiment()
+            pyopenms.ImzMLFile().load(out_path, img)
+            loaded = img.getMSExperiment().getSpectrum(0)
+            self.assertTrue(loaded.containsIMData())
+            self.assertEqual(len(loaded.getFloatDataArrays()), 2)
+            loaded_by_name = {a.getName(): a for a in loaded.getFloatDataArrays()}
+            self.assertIn("mean inverse reduced ion mobility array", loaded_by_name)
+            self.assertIn("my custom SNR", loaded_by_name)
+            im_idx, unit = loaded.getIMData()
+            self.assertEqual(unit, pyopenms.DriftTimeUnit.VSSC)
+            self.assertEqual(len(loaded.getFloatDataArrays()[im_idx]), 2)
+            self.assertAlmostEqual(loaded.getFloatDataArrays()[im_idx][0], 0.85, places=5)
+            self.assertAlmostEqual(loaded.getFloatDataArrays()[im_idx][1], 1.15, places=5)
+            custom = loaded_by_name["my custom SNR"]
+            self.assertEqual(len(custom), 2)
+            self.assertAlmostEqual(custom[0], 3.0, places=5)
+            self.assertAlmostEqual(custom[1], 4.5, places=5)
+
+            od = pyopenms.OnDiscImzMLExperiment()
+            od.open(out_path)
+            try:
+                self.assertEqual(len(od.getIndex(0).aux), 2)
+                od_spec = od.getSpectrum(0)
+                self.assertTrue(od_spec.containsIMData())
+                self.assertEqual(len(od_spec.getFloatDataArrays()), 2)
+                od_by_name = {a.getName(): a for a in od_spec.getFloatDataArrays()}
+                self.assertIn("mean inverse reduced ion mobility array", od_by_name)
+                self.assertIn("my custom SNR", od_by_name)
+                od_im_idx, od_unit = od_spec.getIMData()
+                self.assertEqual(od_unit, pyopenms.DriftTimeUnit.VSSC)
+                self.assertEqual(len(od_spec.getFloatDataArrays()[od_im_idx]), 2)
+                self.assertAlmostEqual(od_spec.getFloatDataArrays()[od_im_idx][0], 0.85, places=5)
+                self.assertAlmostEqual(od_spec.getFloatDataArrays()[od_im_idx][1], 1.15, places=5)
+                od_custom = od_by_name["my custom SNR"]
+                self.assertEqual(len(od_custom), 2)
+                self.assertAlmostEqual(od_custom[0], 3.0, places=5)
+                self.assertAlmostEqual(od_custom[1], 4.5, places=5)
+            finally:
+                od.close()
+        finally:
+            os.remove(out_path)
+            ibd_path = out_path[:-6] + ".ibd" if out_path.lower().endswith(".imzml") else out_path + ".ibd"
+            if os.path.isfile(ibd_path):
+                os.remove(ibd_path)
+
 
 if __name__ == "__main__":
     unittest.main()

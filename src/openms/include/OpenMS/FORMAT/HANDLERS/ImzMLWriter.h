@@ -36,10 +36,24 @@ namespace Internal
       MetaValues when present.
 
       Export writes external binary arrays with a 16-byte UUID header in the
-      @c .ibd file. Binary precision follows @p PeakFileOptions (@p getMz32Bit,
-      @p getIntensity32Bit). @p PeakFileOptions spectrum/peak filters (MS level,
-      RT, precursor m/z, m/z and intensity ranges, metadata-only, sort-by-m/z)
-      are applied to a temporary copy before export.
+      @c .ibd file. Binary precision for m/z and intensity follows
+      @p PeakFileOptions (@p getMz32Bit, @p getIntensity32Bit).
+
+      Per-spectrum @c FloatDataArray values are exported as additional external
+      binary arrays after m/z and intensity (standard imzML multi-array layout).
+      Scope of that path:
+      - @c FloatDataArray only (not integer/string data arrays)
+      - arrays must have the same length as the spectrum peaks (others are skipped)
+      - always 32-bit float, uncompressed (@c MS:1000576)
+      - PSI-MS accession resolved via the ontology (children of @c MS:1000513),
+        with unit CVs when the term declares them (e.g. @c MS:1002814 for 1/K0);
+        unknown names become @c MS:1000786 "non-standard data array"
+
+      Viewers can rely on @c MSSpectrum::containsIMData() after load for IM arrays.
+
+      @p PeakFileOptions spectrum/peak filters (MS level, RT, precursor m/z,
+      m/z and intensity ranges, metadata-only, sort-by-m/z) are applied to a
+      temporary copy before export.
 
       @param[in] imzml_path Path to the output @c .imzML file.
       @param[in] exp        Experiment to store (must contain at least one spectrum).

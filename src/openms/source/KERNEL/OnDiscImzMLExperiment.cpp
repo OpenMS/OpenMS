@@ -13,6 +13,7 @@
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
 #include <cstdio>
@@ -85,6 +86,40 @@ struct OnDiscImzMLExperiment::Impl
       s[k].setMZ(mz_vec[k]);
       s[k].setIntensity(int_vec[k]);
     }
+
+    // Attach auxiliary external arrays (ion mobility, …) before sortByPosition
+    // so FloatDataArrays stay aligned with peak order.
+    for (const ImzMLSpectrumIndex::AuxArray& aux : e.aux)
+    {
+      if (aux.name.empty() || aux.length == 0)
+      {
+        continue;
+      }
+      if (aux.compressed)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
+          "zlib-compressed external auxiliary array '" + aux.name
+          + "' is not supported (IMS:1000104 encoded length="
+          + StringConversions::toString(aux.encoded_bytes) + ")");
+      }
+      if (n > 0 && aux.length != n)
+      {
+        OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
+                        << e.x << "," << e.y << "," << e.z
+                        << "): length " << aux.length << " != peak count " << n << "\n";
+        continue;
+      }
+      std::vector<float> values;
+      ImzMLBinaryIO::readAuxArray(ibd_, aux.offset, aux.length, aux.type, values, ibd_path_, aux.name);
+      if (values.empty())
+      {
+        continue;
+      }
+      auto& fda = s.getFloatDataArrays().emplace_back();
+      fda.setName(aux.name);
+      fda.assign(values.begin(), values.end());
+    }
+
     s.sortByPosition();
     return s;
   }

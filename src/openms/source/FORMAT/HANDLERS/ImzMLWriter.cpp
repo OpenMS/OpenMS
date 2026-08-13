@@ -9,8 +9,10 @@
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -46,6 +48,18 @@ namespace
     uint32_t z {1};
   };
 
+  struct AuxArrayWritePlan
+  {
+    std::string accession; ///< MS CV accession (or MS:1000786 for non-standard)
+    std::string cv_name;   ///< CV term name written to XML
+    std::string array_name; ///< Original FloatDataArray::getName() (value for MS:1000786)
+    std::string unit_attrs; ///< Optional unitAccession/unitName/unitCvRef attributes
+    bool non_standard {false};
+    uint64_t offset {0};
+    uint64_t count {0};
+    uint64_t encoded {0};
+  };
+
   struct SpectrumWritePlan
   {
     PixelCoord pixel;
@@ -56,7 +70,53 @@ namespace
     uint64_t int_count {0};
     uint64_t int_encoded {0};
     bool share_mz {false};
+    std::vector<AuxArrayWritePlan> aux;
   };
+
+  /// Map FloatDataArray names to PSI-MS binary-array CV terms (same strategy as MzMLHandler).
+  void resolveFloatArrayCv_(const std::string& array_name, std::string& accession, std::string& cv_name, bool& non_standard, std::string& unit_attrs)
+  {
+    unit_attrs.clear();
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    ControlledVocabulary::CVTerm match;
+    auto searcher = [&match, &array_name, &cv](const std::string& child_id) {
+      const ControlledVocabulary::CVTerm& current = cv.getTerm(child_id);
+      if (current.name == array_name)
+      {
+        match = current;
+        return true;
+      }
+      return false;
+    };
+    cv.iterateAllChildren("MS:1000513", searcher);
+    if (!match.id.empty())
+    {
+      accession = match.id;
+      cv_name = match.name;
+      non_standard = false;
+      if (match.units.contains("MS:1002814"))
+      {
+        unit_attrs = "unitCvRef=\"MS\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\"";
+      }
+      else if (match.units.contains("UO:0000028"))
+      {
+        unit_attrs = "unitCvRef=\"UO\" unitAccession=\"UO:0000028\" unitName=\"millisecond\"";
+      }
+      else if (match.units.contains("UO:0000324"))
+      {
+        unit_attrs = "unitCvRef=\"UO\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\"";
+      }
+      return;
+    }
+    accession = "MS:1000786";
+    cv_name = "non-standard data array";
+    non_standard = true;
+  }
+
+  std::vector<float> floatDataArrayAsFloat_(const OpenMS::DataArrays::FloatDataArray& fda)
+  {
+    return std::vector<float>(fda.begin(), fda.end());
+  }
 
   std::string inferIbdPath_(const std::string& imzml_path)
   {
@@ -311,6 +371,41 @@ namespace
   uint64_t elementByteSize_(const bool use_32_bit)
   {
     return use_32_bit ? 4ULL : 8ULL;
+  }
+
+  void appendAndWriteFloatDataArrays_(FILE* ibd,
+                                      const MSSpectrum& spec,
+                                      SpectrumWritePlan& plan,
+                                      uint64_t& offset,
+                                      const std::string& ibd_path)
+  {
+    plan.aux.clear();
+    plan.aux.reserve(spec.getFloatDataArrays().size());
+    for (const auto& fda : spec.getFloatDataArrays())
+    {
+      if (fda.empty())
+      {
+        continue;
+      }
+      // Per-peak contract: aux length must match peak count (including both empty).
+      if (fda.size() != spec.size())
+      {
+        OPENMS_LOG_WARN << "Skipping FloatDataArray '" << fda.getName()
+                        << "' on imzML export: length " << fda.size()
+                        << " != spectrum peak count " << spec.size() << "\n";
+        continue;
+      }
+      AuxArrayWritePlan aux;
+      aux.array_name = fda.getName();
+      resolveFloatArrayCv_(aux.array_name, aux.accession, aux.cv_name, aux.non_standard, aux.unit_attrs);
+      aux.offset = offset;
+      aux.count = fda.size();
+      aux.encoded = aux.count * 4ULL; // FloatDataArray is always float32 on write
+      const std::vector<float> values = floatDataArrayAsFloat_(fda);
+      ImzMLBinaryIO::writeFloat32Array(ibd, values.data(), values.size(), ibd_path);
+      offset += aux.encoded;
+      plan.aux.push_back(std::move(aux));
+    }
   }
 
   void writeMzArray_(FILE* ibd,
@@ -898,6 +993,40 @@ namespace
     os << pad << "</binaryDataArray>\n";
   }
 
+  /// Write an auxiliary FloatDataArray (e.g. ion mobility) as an external binaryDataArray.
+  /// Uses inline CV terms (no referenceableParamGroup) so arbitrary array names round-trip.
+  void writeExternalAuxBinaryArray_(std::ostream& os,
+                                    const AuxArrayWritePlan& aux,
+                                    int indent)
+  {
+    const std::string pad(indent, '\t');
+    os << pad << "<binaryDataArray encodedLength=\"0\">\n";
+    os << pad << "\t";
+    writeCvParam_(os, "MS", "MS:1000576", "no compression");
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "MS", "MS:1000521", "32-bit float");
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000101", "external data", "true");
+    os << "\n" << pad << "\t";
+    if (aux.non_standard)
+    {
+      writeCvParam_(os, "MS", aux.accession, aux.cv_name, aux.array_name, aux.unit_attrs);
+    }
+    else
+    {
+      writeCvParam_(os, "MS", aux.accession, aux.cv_name, "", aux.unit_attrs);
+    }
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000102", "external offset", OpenMS::StringConversions::toString(aux.offset));
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000103", "external array length", OpenMS::StringConversions::toString(aux.count));
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000104", "external encoded length", OpenMS::StringConversions::toString(aux.encoded));
+    os << "\n";
+    os << pad << "\t<binary/>\n";
+    os << pad << "</binaryDataArray>\n";
+  }
+
   void writeImzMLXml_(const std::string& imzml_path,
                       const MSExperiment& exp,
                       const ImzMLMeta& meta,
@@ -1097,9 +1226,13 @@ namespace
       os << "\n";
       os << "\t\t\t\t\t</scan>\n";
       os << "\t\t\t\t</scanList>\n";
-      os << "\t\t\t\t<binaryDataArrayList count=\"2\">\n";
+      os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + plan.aux.size()) << "\">\n";
       writeExternalBinaryArray_(os, "mzArray", plan.mz_offset, plan.mz_count, plan.mz_encoded, 4);
       writeExternalBinaryArray_(os, "intensityArray", plan.int_offset, plan.int_count, plan.int_encoded, 4);
+      for (const auto& aux : plan.aux)
+      {
+        writeExternalAuxBinaryArray_(os, aux, 4);
+      }
       os << "\t\t\t\t</binaryDataArrayList>\n";
       os << "\t\t\t</spectrum>\n";
     }
@@ -1194,6 +1327,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
         const std::vector<float> intensities = intensitiesAsFloat_(work[i]);
         writeIntArray_(ibd.get(), intensities, int_32_bit, ibd_path);
         current += plans[i].int_encoded;
+        appendAndWriteFloatDataArrays_(ibd.get(), work[i], plans[i], current, ibd_path);
       }
     }
     else
@@ -1214,6 +1348,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
         writeMzArray_(ibd.get(), mzAsDouble_(work[i]), mz_32_bit, ibd_path);
         const std::vector<float> intensities = intensitiesAsFloat_(work[i]);
         writeIntArray_(ibd.get(), intensities, int_32_bit, ibd_path);
+        appendAndWriteFloatDataArrays_(ibd.get(), work[i], plans[i], offset, ibd_path);
       }
     }
 

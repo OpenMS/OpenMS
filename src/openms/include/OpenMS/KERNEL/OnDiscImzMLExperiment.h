@@ -53,6 +53,11 @@ namespace OpenMS
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
     are decoded until @p getSpectrum() is called.
 
+    @note @p getSpectrum() returns m/z, intensity, and any indexed auxiliary
+    external arrays (e.g. @c MS:1003006 ion mobility) as @c FloatDataArray
+    entries — the same contract as in-memory @p ImzMLFile::load — so viewers
+    can call @c containsIMData() / rasterize without a separate code path.
+
     @note This class is not thread-safe.  If concurrent reads are needed,
     construct one instance per thread.
 

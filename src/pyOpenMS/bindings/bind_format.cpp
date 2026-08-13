@@ -782,8 +782,19 @@ by isobar to load quantification results
         .def_ro("line_scan_direction", &OpenMS::ImzMLMeta::line_scan_direction)
         .def_ro("polarity", &OpenMS::ImzMLMeta::polarity);
 
+    nb::class_<OpenMS::ImzMLSpectrumIndex::AuxArray>(m, "ImzMLAuxArrayIndex",
+        "Index entry for one auxiliary (non-m/z/intensity) external .ibd array, e.g. ion mobility")
+        .def(nb::init<>())
+        .def_ro("name", &OpenMS::ImzMLSpectrumIndex::AuxArray::name)
+        .def_ro("accession", &OpenMS::ImzMLSpectrumIndex::AuxArray::accession)
+        .def_ro("offset", &OpenMS::ImzMLSpectrumIndex::AuxArray::offset)
+        .def_ro("length", &OpenMS::ImzMLSpectrumIndex::AuxArray::length)
+        .def_ro("encoded_bytes", &OpenMS::ImzMLSpectrumIndex::AuxArray::encoded_bytes)
+        .def_ro("type", &OpenMS::ImzMLSpectrumIndex::AuxArray::type)
+        .def_ro("compressed", &OpenMS::ImzMLSpectrumIndex::AuxArray::compressed);
+
     nb::class_<OpenMS::ImzMLSpectrumIndex>(m, "ImzMLSpectrumIndex",
-        "Per-spectrum .ibd byte-offset index entry for on-disc imzML access")
+        "Per-spectrum .ibd byte-offset index entry for on-disc imzML access (includes optional aux/IM arrays)")
         .def(nb::init<>())
         .def_ro("index", &OpenMS::ImzMLSpectrumIndex::index)
         .def_ro("x", &OpenMS::ImzMLSpectrumIndex::x)
@@ -794,7 +805,8 @@ by isobar to load quantification results
         .def_ro("mz_type", &OpenMS::ImzMLSpectrumIndex::mz_type)
         .def_ro("int_offset", &OpenMS::ImzMLSpectrumIndex::int_offset)
         .def_ro("int_length", &OpenMS::ImzMLSpectrumIndex::int_length)
-        .def_ro("int_type", &OpenMS::ImzMLSpectrumIndex::int_type);
+        .def_ro("int_type", &OpenMS::ImzMLSpectrumIndex::int_type)
+        .def_ro("aux", &OpenMS::ImzMLSpectrumIndex::aux);
 
     // -----------------------------------------------------------------------
     // ImzMLFile
