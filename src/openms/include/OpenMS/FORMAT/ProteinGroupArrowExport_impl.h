@@ -358,7 +358,8 @@ inline FractionGroupAbundanceData fractionGroupAbundances(
   @param[in] quantities Parsed fraction-group/label abundance arrays
   @param[in] design_samples Number of samples in the experimental design
   @param[in] units Quantification units derived from the design and ConsensusMap headers
-  @param[in] expected_quantity_keys Fraction-group/label keys required by @p units
+  @param[in] expected_quantity_keys Fraction-group/label keys permitted by @p units. A group may
+             carry fewer (a cell it was never measured in); it may not carry a key not in this set.
   @return An empty string when exportable, otherwise a diagnostic describing the first violation
 */
 inline std::string validateQuantificationAnnotations(
@@ -397,19 +398,27 @@ inline std::string validateQuantificationAnnotations(
     return "carries fraction-group abundances, but the experimental design yields no matching "
            "quantification unit";
   }
-  if (quantities.values.size() != expected_quantity_keys.size())
+  if (quantities.values.empty())
   {
-    return "carries " + std::to_string(quantities.values.size())
-         + " fraction-group/label quantities but the experimental design requires "
-         + std::to_string(expected_quantity_keys.size())
-         + ", so the annotations and design do not describe the same quantification";
+    return "carries fraction-group abundance arrays with no entries at all, so it claims to be "
+           "quantified without saying where";
   }
-  for (const auto& key : expected_quantity_keys)
+  // A subset, not an exact match: a group may legitimately have no quantity for a cell it was
+  // never measured in, and the exporter writes that as a null intensity rather than inventing a
+  // value. The direction that still has to hold is the other one -- a key the design cannot name
+  // means these annotations were produced by a different design. PeptideAndProteinQuant relies on
+  // exactly that when it restricts its cell set to header-backed cells: "otherwise every absent
+  // design file would add an invented zero-valued quantity that the exporter correctly refuses as
+  // an extra key".
+  for (const auto& [key, value] : quantities.values)
   {
-    if (!quantities.values.count(key))
+    (void)value;
+    if (expected_quantity_keys.count(key) == 0)
     {
-      return "has no quantity for fraction group " + std::to_string(key.first)
-           + ", label " + std::to_string(key.second);
+      return "carries a quantity for fraction group " + std::to_string(key.first)
+           + ", label " + std::to_string(key.second)
+           + ", which the experimental design does not describe, so the annotations and design "
+             "do not describe the same quantification";
     }
   }
   return {};

@@ -334,7 +334,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   auto gg_names_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder gg_names_builder(arrow::default_memory_pool(), gg_names_vb);
 
-  // -- scalar quantity columns; nullable for identification-only evidence rows --
+  // -- scalar quantity columns; independently nullable. Both null on an identification-only row,
+  //    and a label with a null intensity on a cell the group was never measured in. --
   arrow::StringBuilder label_builder;
   arrow::FloatBuilder intensity_builder;
 
@@ -514,17 +515,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     // pg_qvalue - not per-run in OpenMS
     (void)pg_qvalue_builder.AppendNull();
 
-    // label/intensity are both null for a row backed only by identification evidence.
-    if (!label.has_value())
-    {
-      (void)label_builder.AppendNull();
-      (void)intensity_builder.AppendNull();
-    }
-    else
-    {
-      (void)label_builder.Append(*label);
-      (void)intensity_builder.Append(*intensity);
-    }
+    // label and intensity are independent. Both null for a row backed only by identification
+    // evidence; a label with a null intensity where the group has evidence in this quantification
+    // unit but no quantity for this label. Writing 0.0 there instead would be indistinguishable
+    // from a measurement of zero.
+    if (label.has_value()) { (void)label_builder.Append(*label); }
+    else                   { (void)label_builder.AppendNull(); }
+    if (intensity.has_value()) { (void)intensity_builder.Append(*intensity); }
+    else                       { (void)intensity_builder.AppendNull(); }
 
     // additional_intensities - empty for quantified rows, null for identification-only rows.
     if (label.has_value()) { (void)additional_intensities_builder.Append(); }
@@ -734,12 +732,34 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     if (quantified)
     {
       // One scalar row per label in each fraction group, matching the active QPX 1.1 primary key.
+      //
+      // A cell with a quantity is always written -- the quantity is its own evidence -- so a dense
+      // annotation, which is what PeptideAndProteinQuant produces, takes this path for every cell
+      // and is unaffected by anything below.
+      //
+      // A cell with NO quantity is only written where the group was actually seen. A null intensity
+      // beside a label says "identified in this unit, not quantified for this label"; emitting one
+      // for a unit the group was never observed in would assert an observation that was never made.
+      // That is the same rule, computed from the same evidence set, as the identification-only
+      // branch below -- which already refuses to fan out across units it has no evidence for.
+      const std::set<std::string> evidence = evidenceRuns(acc_runs, group);
       for (const auto& unit : units.units())
       {
+        const bool seen_in_unit = std::any_of(unit.runs.begin(), unit.runs.end(),
+                                              [&evidence](const std::string& run)
+                                              { return evidence.count(run) != 0; });
         for (const auto& channel : unit.channels)
         {
           const auto value = quantities.values.find({unit.fraction_group, channel.label});
-          emitRow(group, unit.runs, channel.qpx_label, value->second);
+          if (value == quantities.values.end())
+          {
+            if (!seen_in_unit) { continue; }
+            emitRow(group, unit.runs, channel.qpx_label, std::nullopt);
+          }
+          else
+          {
+            emitRow(group, unit.runs, channel.qpx_label, std::optional<float>(value->second));
+          }
         }
       }
     }

@@ -33,7 +33,9 @@
 
 #include <arrow/api.h>
 
+#include <optional>
 #include <tuple>
+#include <utility>
 
 using namespace OpenMS;
 using namespace std;
@@ -162,6 +164,23 @@ namespace
     return out;
   }
 
+  /// The (label, intensity) pair of one row, keeping the three legal shapes apart:
+  ///   {nullopt, nullopt} -- identification-only: the group is not quantified anywhere,
+  ///   {label,   nullopt} -- evidence in this unit, but no quantity for this label,
+  ///   {label,   value}   -- quantified.
+  /// intensitiesOf() collapses the first two into an empty map, so it cannot express the middle
+  /// state; that is exactly what the two sections at the end of this file are about.
+  using PgCell = std::pair<std::optional<std::string>, std::optional<float>>;
+  PgCell cellOf(const std::shared_ptr<arrow::Table>& table, int64_t row)
+  {
+    auto labels = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("label")->chunk(0));
+    auto values = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("intensity")->chunk(0));
+    PgCell out;
+    if (!labels->IsNull(row)) { out.first = labels->GetString(row); }
+    if (!values->IsNull(row)) { out.second = values->Value(row); }
+    return out;
+  }
+
   /// Collect scalar quantities from all rows (for tests with one grouped_runs unit).
   std::map<std::string, float> allIntensities(const std::shared_ptr<arrow::Table>& table)
   {
@@ -255,7 +274,7 @@ START_SECTION(([EXTRA] pg value validation enforces keys, labels, and grouped_ru
   QPXValueValidation anchor_validator(QPXValueValidation::View::PROTEIN_GROUP);
   TEST_FALSE(anchor_validator.validate(empty_anchor).valid)
 
-  // A quantified row sets label and intensity together, and the label must be canonical.
+  // A row that carries an intensity must carry a canonical label beside it.
   arrow::StringBuilder bad_label_builder;
   TEST_TRUE(bad_label_builder.Append("Arg10").ok())
   arrow::FloatBuilder intensity_builder;
@@ -269,12 +288,17 @@ START_SECTION(([EXTRA] pg value validation enforces keys, labels, and grouped_ru
   TEST_FALSE(label_result.valid)
   TEST_TRUE(label_result.toString().find("non-canonical") != std::string::npos)
 
+  // Scaffold for the additional_intensities check below: an identification-only row with its label
+  // overwritten. Deliberately NOT asserted valid either way. pg_id is part of the identity
+  // composite (pg_accessions, grouped_runs, label) and is not recomputed by replaceColumn, so this
+  // row's id no longer matches its own columns -- QPXValueValidation does not re-derive ids, so
+  // asserting on its validity would be asserting on something this fixture cannot speak to. That a
+  // label with a null intensity is accepted is pinned instead on real exporter output, in the two
+  // ConsensusMap sections at the end of this file.
   arrow::StringBuilder lfq_label_builder;
   TEST_TRUE(lfq_label_builder.Append("LFQ").ok())
   auto unmatched_label = replaceColumn(table, QPXPgSchema::LABEL,
                                        lfq_label_builder.Finish().ValueOrDie());
-  QPXValueValidation pair_validator(QPXValueValidation::View::PROTEIN_GROUP);
-  TEST_FALSE(pair_validator.validate(unmatched_label).valid)
 
   // additional_intensities uses the same canonical label as the flattened pg row.
   auto pair_name_builder = std::make_shared<arrow::StringBuilder>();
@@ -1452,17 +1476,244 @@ START_SECTION(([EXTRA] a group carrying only the legacy sample abundances is ref
 }
 END_SECTION
 
+START_SECTION(([EXTRA] ConsensusMap overload - label-free: a cell with evidence but no quantity is null, not zero))
+{
+  // Two fraction groups of one file each, PROT_A quantified in the first only. The second cell has
+  // identification evidence but no quantity, so it keeps its label and takes a null intensity.
+  // Before this, the quantity arrays had to cover every design cell exactly, so the sparse shape
+  // was refused outright and PeptideAndProteinQuant materialised a 0.0 for the missing cell.
+  const std::vector<std::string> paths = {"/data/S1_F1.mzML", "/data/S2_F1.mzML", "/data/S3_F1.mzML"};
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = paths[m];
+    ch.label = "label-free";
+    ch.setMetaValue("fraction", 1);
+    ch.setMetaValue("fraction_group", static_cast<int>(m) + 1);
+    cmap.getColumnHeaders()[m] = ch;
+  }
+
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath(StringList(paths.begin(), paths.end()));
+  ProteinHit ph; ph.setAccession("PROT_A");
+  prot.setHits({ph});
+
+  ProteinIdentification::ProteinGroup grp;
+  grp.accessions = {"PROT_A"};
+  grp.probability = 0.01;
+  // Sparse on purpose: PeptideAndProteinQuant's own result map is already sparse this way -- see
+  // PeptideAndProteinQuant_test.cpp asserting 'fraction_group_abundances.count(3) == 0'.
+  setFractionGroupQuantities(grp, {{1, 1, 1000.0f}});
+  prot.insertIndistinguishableProteins(grp);
+  cmap.setProteinIdentifications({prot});
+
+  // Evidence in the first two runs only. The third unit has neither a quantity nor evidence, so
+  // the group was never seen there at all and must not acquire a row: a null intensity claims
+  // "identified here but not quantified", which would be an observation that was never made.
+  cmap.getUnassignedPeptideIdentifications() = {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged"),
+                                                makeMergedPeptide("PROT_A", 1, "PEPTIDER", "merged")};
+
+  const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
+  auto t = ProteinGroupArrowExport::exportToArrow(cmap, design);
+  TEST_NOT_EQUAL(t, nullptr)
+
+  if (t != nullptr)
+  {
+    TEST_EQUAL(t->num_rows(), 2)
+    const auto runs = groupedRuns(t);
+    std::map<std::string, PgCell> by_unit;
+    for (int64_t row = 0; row < t->num_rows(); ++row) { by_unit[runs[row][0]] = cellOf(t, row); }
+
+    // Quantified.
+    TEST_EQUAL(by_unit.count("S1_F1"), 1)
+    TEST_TRUE(by_unit.count("S1_F1") == 1 && by_unit.at("S1_F1").second.has_value())
+    if (by_unit.count("S1_F1") == 1 && by_unit.at("S1_F1").second.has_value())
+    {
+      TEST_REAL_SIMILAR(*by_unit.at("S1_F1").second, 1000.0f)
+    }
+
+    // Evidence, no quantity: the label survives, the intensity is null and specifically not 0.0.
+    TEST_EQUAL(by_unit.count("S2_F1"), 1)
+    TEST_TRUE(by_unit.count("S2_F1") == 1 && by_unit.at("S2_F1").first.has_value())
+    TEST_TRUE(by_unit.count("S2_F1") == 1 && !by_unit.at("S2_F1").second.has_value())
+
+    // Neither quantity nor evidence: no row in any shape. A labelled null here would claim the
+    // group was identified in a unit it was never seen in.
+    TEST_EQUAL(by_unit.count("S3_F1"), 0)
+
+    QPXValueValidation sparse_validator(QPXValueValidation::View::PROTEIN_GROUP);
+    TEST_TRUE(sparse_validator.validate(t).valid)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ConsensusMap overload - isobaric: an undetected reporter channel is null, not zero))
+{
+  // The isobaric shape of the same rule, and the case that makes it more than bookkeeping.
+  // IsobaricChannelExtractor resets every channel to 0 before searching the MS2 for its reporter
+  // and inserts the channel handle even when no peak is found, so an undetected reporter arrives
+  // at quantification as a stored 0.0. PeptideAndProteinQuant filters those out before aggregating
+  // (only 'abundance > 0.0' contributes), so a channel whose reporters were all undetected ends up
+  // with no key -- and has to be written as null, because aggregating the resulting empty list
+  // returns 0.0, which is indistinguishable from a real measurement of zero.
+  const std::string path = "/d/plex.mzML";
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  const char* names[3] = {"126", "127N", "127C"};
+  for (Size c = 0; c < 3; ++c)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = path;
+    h.label = std::string("tmt6plex_") + names[c];
+    h.setMetaValue("channel_name", names[c]);
+    h.setMetaValue("channel_id", static_cast<int>(c));
+    cmap.getColumnHeaders()[c] = h;
+  }
+
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath({path});
+  ProteinHit ph; ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  ProteinIdentification::ProteinGroup grp;
+  grp.accessions = {"PROT_A"};
+  grp.probability = 0.01;
+  setFractionGroupQuantities(grp, {{1, 1, 100.0f}, {1, 3, 300.0f}});   // 127N is the dead channel
+  prot.insertIndistinguishableProteins(grp);
+  cmap.setProteinIdentifications({prot});
+  cmap.getUnassignedPeptideIdentifications() = {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged")};
+
+  ExperimentalDesign::MSFileSection section;
+  for (unsigned lab = 1; lab <= 3; ++lab)
+  {
+    ExperimentalDesign::MSFileSectionEntry e;
+    e.path = path; e.fraction = 1; e.fraction_group = 1;
+    e.label = lab; e.sample = lab - 1;
+    e.sample_name = "S" + StringUtils::toStr(lab);
+    section.push_back(e);
+  }
+  ExperimentalDesign::SampleSection samples;
+  for (unsigned lab = 1; lab <= 3; ++lab) { samples.addSample("S" + StringUtils::toStr(lab)); }
+  ExperimentalDesign design;
+  design.setMSFileSection(section);
+  design.setSampleSection(samples);
+
+  auto t = ProteinGroupArrowExport::exportToArrow(cmap, design);
+  TEST_NOT_EQUAL(t, nullptr)
+
+  if (t != nullptr)
+  {
+    // The plex keeps its full label vocabulary: the group has evidence in this run, so all three
+    // channels are statements OpenMS is entitled to make.
+    TEST_EQUAL(t->num_rows(), 3)
+    std::map<std::string, PgCell> by_label;
+    for (int64_t row = 0; row < t->num_rows(); ++row)
+    {
+      const PgCell cell = cellOf(t, row);
+      TEST_TRUE(cell.first.has_value())
+      if (cell.first.has_value()) { by_label[*cell.first] = cell; }
+    }
+
+    TEST_EQUAL(by_label.count("TMT126"), 1)
+    TEST_EQUAL(by_label.count("TMT127N"), 1)
+    TEST_EQUAL(by_label.count("TMT127C"), 1)
+
+    // The two measured channels must still carry their values. Without these, a regression that
+    // nulled every channel would leave the labels and the row count intact and slip through.
+    TEST_TRUE(by_label.count("TMT126") == 1 && by_label.at("TMT126").second.has_value())
+    TEST_TRUE(by_label.count("TMT127C") == 1 && by_label.at("TMT127C").second.has_value())
+    if (by_label.count("TMT126") == 1 && by_label.at("TMT126").second.has_value())
+    {
+      TEST_REAL_SIMILAR(*by_label.at("TMT126").second, 100.0f)
+    }
+    if (by_label.count("TMT127C") == 1 && by_label.at("TMT127C").second.has_value())
+    {
+      TEST_REAL_SIMILAR(*by_label.at("TMT127C").second, 300.0f)
+    }
+
+    // The dead channel: null, and specifically not 0.0.
+    TEST_TRUE(by_label.count("TMT127N") == 1 && !by_label.at("TMT127N").second.has_value())
+
+    // The sparse table is a legal QPX pg table in its own right -- this is the self-consistent
+    // positive check the hand-edited fixture above cannot provide, because here pg_id was derived
+    // by the exporter from the label it actually wrote.
+    QPXValueValidation sparse_validator(QPXValueValidation::View::PROTEIN_GROUP);
+    TEST_TRUE(sparse_validator.validate(t).valid)
+
+    // additional_intensities stays keyed on the label, not on the intensity: an empty list on any
+    // labelled row, null only on an identification-only one.
+    auto extras = t->GetColumnByName(QPXPgSchema::ADDITIONAL_INTENSITIES)->chunk(0);
+    for (int64_t row = 0; row < t->num_rows(); ++row) { TEST_FALSE(extras->IsNull(row)) }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ConsensusMap overload - the relaxed annotation check still refuses what it must))
+{
+  // The subset check gave up exactly one thing: a design that describes more cells than the group
+  // was measured in. Everything else it used to catch it must still catch, and neither boundary is
+  // covered by the acceptance sections above.
+  const std::string path = "/d/one.mzML";
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = path;
+  ch.label = "label-free";
+  ch.setMetaValue("fraction", 1);
+  ch.setMetaValue("fraction_group", 1);
+  cmap.getColumnHeaders()[0] = ch;
+
+  auto mapWith = [&](const std::vector<std::tuple<UInt, UInt, float>>& quantities)
+  {
+    ProteinIdentification prot;
+    prot.setIdentifier("merged");
+    prot.setScoreType("q-value");
+    prot.setHigherScoreBetter(false);
+    prot.setPrimaryMSRunPath({path});
+    ProteinHit ph; ph.setAccession("PROT_A");
+    prot.setHits({ph});
+    ProteinIdentification::ProteinGroup grp;
+    grp.accessions = {"PROT_A"};
+    grp.probability = 0.01;
+    setFractionGroupQuantities(grp, quantities);
+    prot.insertIndistinguishableProteins(grp);
+    ConsensusMap out = cmap;
+    out.setProteinIdentifications({prot});
+    return out;
+  };
+
+  const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
+
+  // The one design cell, quantified: exportable.
+  TEST_NOT_EQUAL(ProteinGroupArrowExport::exportToArrow(mapWith({{1, 1, 500.0f}}), design), nullptr)
+
+  // A key the design cannot name. This is the direction the subset check keeps, and the one
+  // PeptideAndProteinQuant relies on when it restricts its cell set to header-backed cells.
+  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(mapWith({{2, 1, 500.0f}}), design), nullptr)
+
+  // Arrays present but carrying nothing: a group claiming to be quantified without saying where.
+  TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(mapWith({}), design), nullptr)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] pg value validation - an intensity without a label stays rejected))
 {
   // A pg intensity is only interpretable through its label: the label is what joins the value to
   // a sample (run.samples[].label), and it is a component of the pg_id identity composite. A value
   // with no label therefore cannot be attributed to anything and the row is unusable.
   //
-  // Today this is enforced together with the converse, by a single "set both or neither" check in
-  // QPXValueValidation. That coupling is scheduled to be split so that a group with evidence in a
-  // quantification unit but no quantity for a label can be written as a populated label with a
-  // null intensity -- a shape the QPX schema already permits and the reference writer already
-  // handles. This section pins the half that must survive that split.
+  // This used to be enforced together with the converse, by a single "set both or neither" check
+  // in QPXValueValidation. That coupling was split so a group with evidence in a quantification
+  // unit but no quantity for a label can be written as a populated label with a null intensity --
+  // a shape the QPX schema permits and the reference writer already handles. This section pins the
+  // half that had to survive the split, and which nothing else covers on its own.
   auto prot_id = makeIdOnlyRun({"/data/runA.mzML"});
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, makePeptides());
   TEST_NOT_EQUAL(table, nullptr)
