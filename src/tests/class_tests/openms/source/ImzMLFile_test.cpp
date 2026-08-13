@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -656,8 +656,10 @@ START_SECTION(void store rejects missing pixel coordinates)
 END_SECTION
 
 
-START_SECTION(void store rejects duplicate pixel coordinates)
+START_SECTION(void store tolerates duplicate pixel coordinates by default)
 {
+  // The reader accepts duplicate coordinates by default, so the writer must too:
+  // a dataset that loads has to be storable again without an unswitchable error.
   MSExperiment exp;
   exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
   exp.addSpectrum(makePixelSpectrum_(1, 1, 101.0, 900.0));
@@ -665,7 +667,46 @@ START_SECTION(void store rejects duplicate pixel coordinates)
   ImzMLFile f;
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
-  TEST_EXCEPTION(Exception::InvalidValue, f.store(tmp_imzml, exp))
+  f.store(tmp_imzml, exp);
+
+  // Both spectra are written out; only the first claims the shared pixel on re-read.
+  MSImagingExperiment img;
+  f.load(tmp_imzml, img);
+  TEST_EQUAL(img.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img.getGeometry().getNumberOfPixels(), 1u)
+  TEST_EQUAL(img.getGeometry().getSpectrumIndex(0, 0), 0u)
+
+  // The imaging overload must round-trip the same dataset: the duplicate spectrum is not
+  // in the geometry, but it is still written out with its coordinates.
+  std::string tmp_imzml2;
+  NEW_TMP_FILE_EXT(tmp_imzml2, ".imzML");
+  f.store(tmp_imzml2, img);
+
+  MSImagingExperiment img2;
+  f.load(tmp_imzml2, img2);
+  TEST_EQUAL(img2.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img2.getGeometry().getNumberOfPixels(), 1u)
+  for (Size i = 0; i < 2; ++i)
+  {
+    const MSSpectrum& s = img2.getMSExperiment()[i];
+    TEST_EQUAL(s.metaValueExists("imzml:x"), true)
+    TEST_EQUAL(s.metaValueExists("imzml:y"), true)
+    TEST_EQUAL((Int)s.getMetaValue("imzml:x"), 1)
+    TEST_EQUAL((Int)s.getMetaValue("imzml:y"), 1)
+  }
+
+  // NEW_TMP_FILE_EXT only tracks the .imzML, so drop both companion .ibd files.
+  for (const std::string& written : {tmp_imzml, tmp_imzml2})
+  {
+    std::string ibd_path = written;
+    std::string lower = written;
+    StringUtils::toLower(lower);
+    if (StringUtils::hasSuffix(lower, ".imzml"))
+    {
+      ibd_path = written.substr(0, written.size() - 6) + ".ibd";
+    }
+    remove(ibd_path.c_str());
+  }
 }
 END_SECTION
 
@@ -685,14 +726,19 @@ START_SECTION(void store rejects incompatible continuous mode)
 END_SECTION
 
 
-START_SECTION(void buildImagingGeometry rejects duplicate pixels)
+START_SECTION(void buildImagingGeometry tolerates duplicate pixels by default)
 {
+  // Must agree with the loaders: an experiment that loaded fine cannot fail here.
   MSExperiment exp;
   exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
   exp.addSpectrum(makePixelSpectrum_(1, 1, 101.0, 900.0));
+  exp.addSpectrum(makePixelSpectrum_(2, 1, 102.0, 800.0));
 
   MSImagingGeometry geom;
-  TEST_EXCEPTION(Exception::InvalidValue, ImzMLFile::buildImagingGeometry(exp, geom))
+  ImzMLFile::buildImagingGeometry(exp, geom);
+  TEST_EQUAL(geom.getNumberOfPixels(), 2u)
+  TEST_EQUAL(geom.getSpectrumIndex(0, 0), 0u) // first spectrum keeps the shared pixel
+  TEST_EQUAL(geom.getSpectrumIndex(1, 0), 2u)
 }
 END_SECTION
 
@@ -719,16 +765,46 @@ START_SECTION(void load rejects spectrum missing pixel coordinates)
 END_SECTION
 
 
-START_SECTION(OnDiscImzMLExperiment rejects duplicate pixel coordinates)
+START_SECTION(void load tolerates duplicate pixel coordinates by default)
 {
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   writeDuplicatePixelImzML_(tmp_imzml);
 
-  // The imaging geometry is built during open(), so a duplicate-coordinate dataset
-  // is rejected there (fail-fast) rather than on the first coordinate query.
+  ImzMLFile f;
+  MSImagingExperiment img;
+  f.load(tmp_imzml, img);
+
+  // Both spectra are loaded and reachable by index, but the shared pixel (1,1) maps to
+  // the first of them only.
+  TEST_EQUAL(img.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img.getGeometry().getNumberOfPixels(), 1u)
+  TEST_EQUAL(img.getGeometry().getSpectrumIndex(0, 0), 0u)
+
+  std::string ibd_path = tmp_imzml;
+  std::string lower = tmp_imzml;
+  StringUtils::toLower(lower);
+  if (StringUtils::hasSuffix(lower, ".imzml"))
+  {
+    ibd_path = tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd";
+  }
+  remove(ibd_path.c_str());
+}
+END_SECTION
+
+
+START_SECTION(OnDiscImzMLExperiment tolerates duplicate pixel coordinates by default)
+{
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  writeDuplicatePixelImzML_(tmp_imzml);
+
   OnDiscImzMLExperiment od;
-  TEST_EXCEPTION(Exception::InvalidValue, od.open(tmp_imzml))
+  od.open(tmp_imzml);
+
+  TEST_EQUAL(od.size(), 2u)
+  TEST_EQUAL(od.getGeometry().getNumberOfPixels(), 1u)
+  TEST_EQUAL(od.getGeometry().getSpectrumIndex(0, 0), 0u)
 
   std::string ibd_path = tmp_imzml;
   std::string lower = tmp_imzml;

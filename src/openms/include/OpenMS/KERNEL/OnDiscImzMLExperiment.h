@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -82,18 +82,19 @@ namespace OpenMS
       The .ibd path is inferred from @p imzml_path unless @p ibd_path is
       provided explicitly.  No peak data is read — peak arrays are decoded lazily
       per getSpectrum() call. The 2D pixel geometry (see getGeometry()) is built
-      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so a
-      structurally broken coordinate grid is rejected at open() rather than later.
+      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so any
+      problem with the coordinate grid is reported at open() rather than on the first
+      pixel query.
 
       A UUID-header mismatch between the .ibd and the XML's IMS:1000080, an out-of-grid
-      pixel, or a <1 coordinate are reported as warnings (the dataset still loads); only
-      duplicate pixel coordinates are a hard error.
+      pixel, a <1 coordinate, or a duplicate pixel coordinate are reported as warnings
+      (the dataset still loads; of duplicates, only the first spectrum per pixel enters
+      the geometry).
 
       @param imzml_path  Path to the .imzML file.
       @param ibd_path    Optional override for the .ibd path.
       @throws Exception::FileNotFound if either file cannot be opened.
       @throws Exception::ParseError   on malformed XML.
-      @throws Exception::InvalidValue if the dataset has duplicate pixel coordinates.
     */
     void open(const std::string& imzml_path, const std::string& ibd_path = "");
 
@@ -221,7 +222,7 @@ namespace OpenMS
       access expose pixel coordinates the same way. Coordinates are @b 0-based;
       imzML's 1-based coordinates are normalized here, and only the z == 1 plane is
       represented. Built during open() from the parsed index (no IBD reads); this is
-      a const, O(1) accessor (any duplicate/invalid-coordinate error already surfaced
+      a const, O(1) accessor (any duplicate/invalid-coordinate warning already surfaced
       at open()).
     */
     const MSImagingGeometry& getGeometry() const;
