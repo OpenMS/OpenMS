@@ -830,7 +830,7 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         .def_static("buildImagingGeometry", [](const OpenMS::MSExperiment& exp, OpenMS::MSImagingGeometry& geom) {
             OpenMS::ImzMLFile::buildImagingGeometry(exp, geom);
         }, "exp"_a, "geom"_a,
-           "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues). Duplicate pixel coordinates are dropped from the geometry with a warning")
+           "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues). Duplicate pixel coordinates are warned about: only the first spectrum per pixel is mapped into the geometry, while the later duplicates stay in the MSExperiment and remain reachable by index")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, nb::object consumer) {
             NanobindMSDataConsumer wrapper(consumer);
             nb::gil_scoped_release release;
