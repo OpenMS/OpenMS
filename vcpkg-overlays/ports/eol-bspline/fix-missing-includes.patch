@@ -1,0 +1,11 @@
+--- /tmp/BandedMatrix.h.orig	2026-08-13 11:42:45.528391147 +0530
++++ BSpline/BandedMatrix.h	2026-08-13 11:43:16.980538408 +0530
+@@ -23,6 +23,8 @@
+ #include <vector>
+ #include <algorithm>
+ #include <iostream>
++#include <cassert>
++#include <cstdlib>
+ 
+ namespace eol_bspline
+ {

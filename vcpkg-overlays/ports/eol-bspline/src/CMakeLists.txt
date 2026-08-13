@@ -32,10 +32,8 @@ target_include_directories(eol-bspline SYSTEM PUBLIC
                           "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
                           "$<INSTALL_INTERFACE:include>")
 
-# Apply compiler flags
-if (NOT WIN32)
-  target_compile_options(eol-bspline PRIVATE -fPIC)
-endif()
+# Objects are linked into a shared library, so they must be position independent.
+set_target_properties(eol-bspline PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 install(TARGETS eol-bspline
   EXPORT eol-bsplineTargets
@@ -53,4 +51,15 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/BSpline/
   DESTINATION include/BSpline
   FILES_MATCHING PATTERN "*.h"
   PATTERN "*.cpp" EXCLUDE
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/eol-bsplineConfigVersion.cmake"
+  VERSION 2.2.0
+  COMPATIBILITY SameMajorVersion
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/eol-bsplineConfigVersion.cmake"
+  DESTINATION share/eol-bspline
 )
