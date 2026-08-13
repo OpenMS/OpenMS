@@ -24,12 +24,13 @@ namespace OpenMS
   The format -- both the one-table and the two-table variant -- its columns, the rules a design
   has to satisfy, and worked examples are documented on OpenMS::ExperimentalDesign. In short:
 
-  - TAB-separated; cells are whitespace trimmed and lines starting with a hash character
-    (a comment) are ignored.
-  - The variant is auto-detected. A file is read as two-table as soon as some line carries a
-    @c Sample column header but no @c Fraction_Group column header (that line is the header of
-    the sample section, which a blank line separates from the MS file section above it).
-    Otherwise it is read as one-table.
+  - TAB-separated; while parsing, cells are whitespace trimmed and lines starting with a hash
+    character (a comment) are ignored.
+  - The variant is auto-detected, by a check cruder than the parsers: it scans every line, not
+    just headers, and reads the file as two-table as soon as one line has exactly one cell equal
+    to @c Sample and no cell equal to @c Fraction_Group. It neither trims cells nor skips comment
+    lines. Otherwise the file is read as one-table. In a two-table file at least one blank line
+    separates the sample section from the MS file section above it.
   - Mandatory columns of the MS file section are @c Fraction_Group, @c Fraction and
     @c Spectra_Filepath; @c Label (default 1) and @c Sample are optional. In the one-table
     format any further column is read as sample metadata, whereas the file section of a
@@ -65,7 +66,8 @@ namespace OpenMS
     */
     static ExperimentalDesign load(const std::string& tsv_file, bool require_spectra_files);
 
-    /// Loads an experimental design from an already loaded or generated, tabular file.
+    /// @brief Loads an experimental design from an already loaded or generated, tabular file
+    ///
     /// @p filename names the source in error messages AND is the base directory against which
     /// relative @c Spectra_Filepath entries are resolved, so pass the real design-file path
     /// whenever the spectra are relative to it; the default resolves them against the CWD.
@@ -86,7 +88,7 @@ namespace OpenMS
       const std::set <std::string> &optional,
       bool allow_other_header);
 
-    /// Throws @class ParseError with @p filename and @p message if @p test is false.
+    /// Throws Exception::ParseError with @p filename and @p message if @p test is false.
     static void parseErrorIf_(const bool test, const std::string &filename, const std::string &message);
   };
 }

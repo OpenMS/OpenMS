@@ -99,7 +99,7 @@ namespace OpenMS
   again means a new fraction group with the same @c Sample; see technical replicate below.
 
   <b>Label (channel)</b> -- the multiplexing channel within one file. @c 1 for label-free and
-  DIA data; @c 1..n for an n-plex, 1-based in the canonical channel order of the reagent
+  DIA data; <tt>1..n</tt> for an n-plex, 1-based in the canonical channel order of the reagent
   (TMT10-plex: 126&rarr;1, 127N&rarr;2, 127C&rarr;3, 128N&rarr;4, 128C&rarr;5, 129N&rarr;6,
   129C&rarr;7, 130N&rarr;8, 130C&rarr;9, 131&rarr;10; SILAC 2-plex: light&rarr;1, heavy&rarr;2;
   iTRAQ4-plex: 114&rarr;1 ... 117&rarr;4). The value is a channel position, not a reagent name:
@@ -369,7 +369,7 @@ namespace OpenMS
 
   | OpenMS design           | SDRF-Proteomics                                              | Notes                                                                                     |
   |-------------------------|--------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-  | @c Spectra_Filepath     | <tt>comment[data file]</tt>                                  | copied verbatim; the converter can optionally rewrite the extension, e.g. @c .raw to @c .mzML |
+  | @c Spectra_Filepath     | <tt>comment[data file]</tt>                                  | copied verbatim; the converter can optionally rewrite the extension, e.g. <tt>.raw</tt> to <tt>.mzML</tt> |
   | @c Fraction             | <tt>comment[fraction identifier]</tt>                        | @c 1 when absent or "not available"                                                        |
   | @c Label                | <tt>comment[label]</tt>                                      | the ontology term becomes its 1-based index within the plex inferred for that file, so the same reagent name can map to different numbers in different plexes |
   | @c Fraction_Group       | <tt>source name</tt> + <tt>comment[technical replicate]</tt> | assigned per MS <i>file</i>, then renumbered to stay consecutive. Label-free data gets one group per (source, technical replicate) -- which is why re-injections get their own group; in a labeled design all channels of a file necessarily share its group |
@@ -457,22 +457,36 @@ namespace OpenMS
     {
     public:
       MSFileSectionEntry() = default;
-      /// Fraction group: the rows that are combined into one quantity. 1-based and consecutive
-      /// over the whole design. A fraction group is OpenMS' unit of quantification, so a second
-      /// measurement of the same material is a new group carrying the same @c sample.
+      /// @brief Fraction group id: the rows combined into one quantity
+      ///
+      /// 1-based and consecutive over the whole design. A second measurement of the same
+      /// material is a new group carrying the same @c sample.
       unsigned fraction_group = 1;
-      /// Fraction 1..m, mandatory, 1 if not set (and 1 everywhere for unfractionated data).
-      /// The same number in two fraction groups denotes corresponding fractions.
+
+      /// @brief Fraction 1..m, mandatory, 1 if not set
+      ///
+      /// 1 everywhere for unfractionated data. The same number in two fraction groups denotes
+      /// corresponding fractions.
       unsigned fraction = 1;
-      std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
-      /// The 1-based channel position within @c path (1 for label-free; e.g. 1..10 for
-      /// TMT10plex in canonical channel order 126, 127N, ..., 131). A position, not a reagent name.
+
+      /// @brief File name, mandatory
+      std::string path = "UNKNOWN_FILE";
+
+      /// @brief 1-based channel position within @c path (1 for label-free)
+      ///
+      /// E.g. 1..10 for TMT10plex in canonical channel order 126, 127N, ..., 131. A position,
+      /// not a reagent name.
       unsigned label = 1;
-      /// Zero-based ROW INDEX into the sample section; allows grouping by sample.
+
+      /// @brief Zero-based ROW INDEX into the sample section; allows grouping by sample
+      ///
       /// This is not the @c Sample column value -- that is @c sample_name.
       unsigned sample = 0;
-      /// The @c Sample column value, i.e. the sample's NAME (an arbitrary string such as "1" or
-      /// "BSA1"). Used to look the sample row up by name rather than by index.
+
+      /// @brief The @c Sample column value, i.e. the sample's NAME
+      ///
+      /// An arbitrary string such as "1" or "BSA1", used to look the sample row up by name
+      /// rather than by index.
       std::string sample_name = "0";
     };
 
@@ -502,7 +516,8 @@ namespace OpenMS
       void addSample(const std::string& sample, const std::vector<std::string>& content = {});
 
       // TODO should it include the Sample ID column or not??
-      /// Get set of all factors (column names) that were defined for the sample section.
+      /// @brief Get set of all factors (column names) defined for the sample section
+      ///
       /// For a design parsed from a file this includes the @c Sample column itself, which the
       /// mapping functions of ExperimentalDesign drop explicitly before comparing rows. A section
       /// built with addSample() has no columns at all and returns an empty set.
@@ -520,9 +535,11 @@ namespace OpenMS
       /// Returns value of factor for given sample ROW INDEX (zero-based) and factor name
       std::string getFactorValue(unsigned sample_idx, const std::string &factor) const;
 
-      /// Returns column index of factor. This is a storage detail, not a property of the design:
-      /// a one-table design orders the sample columns alphabetically, a two-table design keeps
-      /// the order of the file. Address factors by name unless the layout itself matters.
+      /// @brief Returns column index of factor
+      ///
+      /// This is a storage detail, not a property of the design: a one-table design orders the
+      /// sample columns alphabetically, a two-table design keeps the order of the file. Address
+      /// factors by name unless the layout itself matters.
       Size getFactorColIdx(const std::string &factor) const;
 
       /// Returns the name/ID of the sample for a zero-based row index. Not the row index itself
@@ -628,36 +645,49 @@ namespace OpenMS
     /// return <file_path, label> to fraction_group mapping
     std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool use_basename_only) const;
 
-    /// @return the number of samples measured (= number of rows in the sample section).
+    /// @brief Number of samples measured (= number of rows in the sample section)
+    ///
     /// NOT the highest sample index: MSFileSectionEntry::sample is zero-based, so the highest
     /// index is one less than this.
+    /// @return the number of rows in the sample section
     unsigned getNumberOfSamples() const;
 
-    /// @return the number of distinct fraction indices used anywhere in the design.
+    /// @brief Number of distinct fraction indices used anywhere in the design
+    ///
     /// Meaningful only when all fraction groups use the same fraction numbering, which this does
     /// not check. sameNrOfMSFilesPerFraction() is a necessary but not sufficient sanity check: it
     /// only verifies that every fraction index occurs in equally many rows.
+    /// @return the number of distinct fraction indices
     unsigned getNumberOfFractions() const;
 
-    /// @return the highest label index used anywhere in the design (the plex size for a
-    /// well-formed design, 1 for label-free), or 0 if the design is empty. Contiguous labels are
-    /// not enforced.
+    /// @brief Highest label index used anywhere in the design
+    ///
+    /// The plex size for a well-formed design, 1 for label-free. Contiguous labels are not
+    /// enforced.
+    /// @return the maximum label index, or 0 if the design is empty
     unsigned getNumberOfLabels() const;
 
-    /// @return the number of distinct MS file paths in the design. A multiplexed file
-    /// contributes one file but several rows.
+    /// @brief Number of distinct MS file paths in the design
+    ///
+    /// A multiplexed file contributes one file but several rows.
+    /// @return the number of distinct paths
     unsigned getNumberOfMSFiles() const;
 
-    /// @return the number of distinct fraction_groups.
-    /// Allows to group fraction ids and source files
+    /// @brief Number of distinct fraction groups
+    ///
+    /// Allows to group fraction ids and source files.
+    /// @return the number of distinct fraction groups
     unsigned getNumberOfFractionGroups() const;
 
+    /// @brief Sample quantified in a given fraction group and label
+    ///
     /// @return the zero-based sample row index quantified in @p fraction_group at @p label
-    /// @throw Exception::ElementNotFound if the design has no such combination
+    /// @throws Exception::ElementNotFound if the design has no such combination
     unsigned getSample(unsigned fraction_group, unsigned label = 1);
 
-    /// @return whether we have a fractionated design
-    /// This is the case if more than one distinct fraction index is used in the design
+    /// @brief Whether the design is fractionated
+    ///
+    /// @return true if more than one distinct fraction index is used in the design
     bool isFractionated() const;
 
     /// filters the MSFileSection to only include a given subset of files whose basenames
@@ -675,7 +705,7 @@ namespace OpenMS
       @brief Write this design's fraction structure onto a ConsensusMap's column headers
 
       The inverse of fromConsensusMap(): stamps @c fraction_group, @c fraction and
-      @c sample_name as meta values on every column header whose @c (basename, label) pair
+      @c sample_name as meta values on every column header whose <tt>(basename, label)</tt> pair
       matches a design row. Headers are matched on the 1-based label, so this works for both
       label-free maps (one header per file) and multiplexed ones (one header per file and
       channel).
