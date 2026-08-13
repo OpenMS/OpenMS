@@ -44,4 +44,4 @@ vcpkg_download_distfile(THERMO_LICENSE_PATH
     SHA512 6ecc1691854ebd16914b2035c20585f8d5afd5f6fcf0a4ef3564ee7d6bfe65c8d332df2e56fa926cf093602a7983ae6a5c300f7ac23e3241d9ea1dc9f3b01b03
 )
 
-vcpkg_install_copyright(FILE_LIST "${THERMO_LICENSE_PATH}")
+vcpkg_install_copyright(FILE_LIST "${THERMO_LICENSE_PATH}" "${SOURCE_PATH}/LICENSE")
