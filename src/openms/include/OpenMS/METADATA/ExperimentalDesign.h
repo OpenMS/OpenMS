@@ -356,7 +356,7 @@ namespace OpenMS
   |-----------------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------|
   | @c Spectra_Filepath   | <tt>comment[data file]</tt>                                  | the converter can rewrite the extension, e.g. @c .raw to @c .mzML                          |
   | @c Fraction           | <tt>comment[fraction identifier]</tt>                        | @c 1 when absent or "not available"                                                        |
-  | @c Label              | @c comment[label]                                      | the ontology term becomes its 1-based channel index: "label free sample"&rarr;1, TMT126&rarr;1 ... TMT131&rarr;10, "SILAC light"/"SILAC heavy"&rarr;1/2 |
+  | @c Label              | <tt>comment[label]</tt>                                | the ontology term becomes its 1-based channel index: "label free sample"&rarr;1, TMT126&rarr;1 ... TMT131&rarr;10, "SILAC light"/"SILAC heavy"&rarr;1/2 |
   | @c Fraction_Group     | <tt>source name</tt> + <tt>comment[technical replicate]</tt>  | one group per (biological source, technical replicate) -- which is why re-injections get their own group |
   | @c Sample             | <tt>source name</tt>                                    | a source name ending in "sample N" contributes N, otherwise names are numbered in order of appearance |
   | @c MSstats_Condition  | the <tt>factor value[...]</tt> columns, concatenated    | falls back to the non-redundant <tt>characteristics[...]</tt> columns, then to the source name   |

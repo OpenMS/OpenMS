@@ -1018,6 +1018,11 @@ Documentation:
   - Parameter direction annotations (@param[in], @param[out], @param[in,out]) across 95+ headers (#8507)
   - AGENTS.md AI coding guidance added and improved (#8537, #8560, #8563)
   - Test creation documentation updated with a modern test file template (#8548)
+  - ExperimentalDesign: the class documentation now defines sample, fraction, fraction group,
+    label/channel and technical vs. biological replicate for newcomers, adds worked design
+    matrices for label-free, fractionated, TMT and SILAC experiments, documents the parser
+    rules and the "replicate" column-naming convention that determines what a condition is,
+    and maps the terms onto SDRF-Proteomics and QPX (#9909)
 
 Build System:
   - New multi-OS GitHub Actions workflows for build/test, installer and source packaging, publishing of
