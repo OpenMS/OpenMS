@@ -676,14 +676,37 @@ START_SECTION(void store tolerates duplicate pixel coordinates by default)
   TEST_EQUAL(img.getGeometry().getNumberOfPixels(), 1u)
   TEST_EQUAL(img.getGeometry().getSpectrumIndex(0, 0), 0u)
 
-  std::string ibd_path = tmp_imzml;
-  std::string lower = tmp_imzml;
-  StringUtils::toLower(lower);
-  if (StringUtils::hasSuffix(lower, ".imzml"))
+  // The imaging overload must round-trip the same dataset: the duplicate spectrum is not
+  // in the geometry, but it is still written out with its coordinates.
+  std::string tmp_imzml2;
+  NEW_TMP_FILE_EXT(tmp_imzml2, ".imzML");
+  f.store(tmp_imzml2, img);
+
+  MSImagingExperiment img2;
+  f.load(tmp_imzml2, img2);
+  TEST_EQUAL(img2.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img2.getGeometry().getNumberOfPixels(), 1u)
+  for (Size i = 0; i < 2; ++i)
   {
-    ibd_path = tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd";
+    const MSSpectrum& s = img2.getMSExperiment()[i];
+    TEST_EQUAL(s.metaValueExists("imzml:x"), true)
+    TEST_EQUAL(s.metaValueExists("imzml:y"), true)
+    TEST_EQUAL((Int)s.getMetaValue("imzml:x"), 1)
+    TEST_EQUAL((Int)s.getMetaValue("imzml:y"), 1)
   }
-  remove(ibd_path.c_str());
+
+  // NEW_TMP_FILE_EXT only tracks the .imzML, so drop both companion .ibd files.
+  for (const std::string& written : {tmp_imzml, tmp_imzml2})
+  {
+    std::string ibd_path = written;
+    std::string lower = written;
+    StringUtils::toLower(lower);
+    if (StringUtils::hasSuffix(lower, ".imzml"))
+    {
+      ibd_path = written.substr(0, written.size() - 6) + ".ibd";
+    }
+    remove(ibd_path.c_str());
+  }
 }
 END_SECTION
 

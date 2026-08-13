@@ -320,7 +320,10 @@ class TestImzMLFile(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
-        ibd_path = out_path[: -len(".imzML")] + ".ibd"
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp2:
+            out_path2 = tmp2.name
+        written = (out_path, out_path[: -len(".imzML")] + ".ibd",
+                   out_path2, out_path2[: -len(".imzML")] + ".ibd")
         try:
             f = pyopenms.ImzMLFile()
             f.store(out_path, exp)
@@ -330,6 +333,57 @@ class TestImzMLFile(unittest.TestCase):
             f.load(out_path, img)
             self.assertEqual(img.getMSExperiment().getNrSpectra(), 2)
             self.assertEqual(img.getGeometry().getNumberOfPixels(), 1)
+            self.assertEqual(img.getGeometry().getSpectrumIndex(0, 0), 0)
+
+            # The imaging overload must round-trip the same dataset: the duplicate spectrum
+            # is not in the geometry, but it is still written out with its coordinates.
+            f.store(out_path2, img)
+            img2 = pyopenms.MSImagingExperiment()
+            f.load(out_path2, img2)
+            self.assertEqual(img2.getMSExperiment().getNrSpectra(), 2)
+            self.assertEqual(img2.getGeometry().getNumberOfPixels(), 1)
+            for i in range(2):
+                s = img2.getMSExperiment().getSpectrum(i)
+                self.assertTrue(s.metaValueExists("imzml:x"))
+                self.assertTrue(s.metaValueExists("imzml:y"))
+                self.assertEqual(s.getMetaValue("imzml:x"), 1)
+                self.assertEqual(s.getMetaValue("imzml:y"), 1)
+        finally:
+            for p in written:
+                if os.path.isfile(p):
+                    os.remove(p)
+
+    def test_load_tolerates_duplicate_pixel_coordinates_by_default(self):
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 100.0, 1000.0))
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 101.0, 900.0))
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        ibd_path = out_path[: -len(".imzML")] + ".ibd"
+        try:
+            f = pyopenms.ImzMLFile()
+            f.store(out_path, exp)
+
+            # Both spectra are loaded and reachable by index, but the shared pixel (1,1)
+            # maps to the first of them only.
+            img = pyopenms.MSImagingExperiment()
+            f.load(out_path, img)
+            self.assertEqual(img.getMSExperiment().getNrSpectra(), 2)
+            self.assertEqual(img.getGeometry().getNumberOfPixels(), 1)
+            self.assertEqual(img.getGeometry().getSpectrumIndex(0, 0), 0)
+
+            # The on-disc path must agree with the in-memory one.
+            od = pyopenms.OnDiscImzMLExperiment()
+            try:
+                od.open(out_path)
+                self.assertEqual(od.getNrSpectra(), 2)
+                self.assertEqual(od.getGeometry().getNumberOfPixels(), 1)
+                self.assertEqual(od.getGeometry().getSpectrumIndex(0, 0), 0)
+            finally:
+                od.close()
         finally:
             for p in (out_path, ibd_path):
                 if os.path.isfile(p):
@@ -360,7 +414,8 @@ class TestImzMLFile(unittest.TestCase):
         geom = pyopenms.MSImagingGeometry()
         pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
         self.assertEqual(geom.getNumberOfPixels(), 2)
-        self.assertEqual(geom.getSpectrumIndex(0, 0), 0)
+        self.assertEqual(geom.getSpectrumIndex(0, 0), 0)  # first spectrum keeps the shared pixel
+        self.assertEqual(geom.getSpectrumIndex(1, 0), 2)
 
     def test_store_applies_mz_range_filter(self):
         import tempfile
