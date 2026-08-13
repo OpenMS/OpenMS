@@ -19,7 +19,23 @@ namespace OpenMS
   class ExperimentalDesign;
   class TextFile; 
   /**
-  @brief Load an experimental design from a TSV file. (see ExperimentalDesign for details on the supported format)
+  @brief Load an experimental design from a TSV file
+
+  The format -- both the one-table and the two-table variant -- its columns, the rules a design
+  has to satisfy, and worked examples are documented on OpenMS::ExperimentalDesign. In short:
+
+  - TAB-separated; cells are whitespace trimmed and lines starting with a hash character
+    (a comment) are ignored.
+  - The variant is auto-detected. A file is read as two-table as soon as some line carries a
+    @c Sample column header but no @c Fraction_Group column header (that line is the header of
+    the sample section, which a blank line separates from the MS file section above it).
+    Otherwise it is read as one-table.
+  - Mandatory columns of the MS file section are @c Fraction_Group, @c Fraction and
+    @c Spectra_Filepath; @c Label (default 1) and @c Sample are optional. In the one-table
+    format any further column is read as sample metadata, whereas the file section of a
+    two-table design rejects unknown columns.
+  - A relative @c Spectra_Filepath is resolved against the directory of the design file first,
+    then against the current working directory.
 
   @ingroup Format
   */
@@ -28,10 +44,24 @@ namespace OpenMS
   {
     public:
 
-    /// Loads an experimental design from a tabular separated file
+    /**
+      @brief Loads an experimental design from a tabular separated file
+
+      @param[in] tsv_file Path of the design file
+      @param[in] require_spectra_files If true, every @c Spectra_Filepath must resolve to an
+                 existing file; otherwise unresolvable paths are kept as written
+      @throw Exception::ParseError on a malformed table, a missing mandatory column, or -- with
+             @p require_spectra_files -- a spectra file that does not exist
+      @throw Exception::InvalidValue if the fraction groups are not consecutive starting at 1, or
+             a (path, label) combination is ambiguous
+      @throw Exception::MissingInformation if a (fraction group, fraction, label) combination
+             repeats, or a label-free (fraction group, label) maps to more than one sample
+    */
     static ExperimentalDesign load(const std::string& tsv_file, bool require_spectra_files);
 
-    /// Loads an experimental design from an already loaded or generated, tabular file
+    /// Loads an experimental design from an already loaded or generated, tabular file.
+    /// @p filename is only used to name the source in error messages.
+    /// @see load(const std::string&, bool) for the exceptions thrown
     static ExperimentalDesign load(const TextFile& text_file, const bool require_spectra_file, std::string filename);
 
     private:
