@@ -322,12 +322,19 @@ public:
       // containsIMData() matches OnDiscImzMLExperiment.
       pruneEmptyDataArrays_(s);
 
-      // MzMLHandler::populateSpectraWithData_() defaults UNKNOWN → IM_PROFILE before
-      // consumeSpectrum(), but that runs before this late .ibd aux fill. Re-apply the
-      // same default now that containsIMData() can see the materialized IM array.
-      if (s.containsIMData() && s.getIMPeakType() == IMPeakType::UNKNOWN)
+      // MzMLHandler::populateSpectraWithData_() runs before this late .ibd aux fill:
+      // it defaults UNKNOWN → IM_PROFILE from a still-empty named IM array, which we
+      // may have just pruned. Sync the peak type with the arrays that actually remain.
+      if (s.containsIMData())
       {
-        s.setIMPeakType(IMPeakType::IM_PROFILE);
+        if (s.getIMPeakType() == IMPeakType::UNKNOWN)
+        {
+          s.setIMPeakType(IMPeakType::IM_PROFILE);
+        }
+      }
+      else
+      {
+        s.setIMPeakType(IMPeakType::UNKNOWN);
       }
 
       // MzMLHandler sorted before consumeSpectrum(), which is a no-op for external
