@@ -45,47 +45,70 @@ namespace OpenMS
     namespace ClassTest
     {
 
+      /// Type of the hook invoked by #START_TEST (via mainInit()) before any test code runs.
+      /// @see setTestInitHook()
+      using TestInitHook = void (*)();
+
+      /// Type of the hook invoked by #END_TEST (via endTestPostProcess()) to validate the
+      /// temporary files created with #NEW_TMP_FILE. Returns false if any file fails validation.
+      /// @see setTmpFileValidator()
+      using TmpFileValidator = bool (*)(const std::vector<std::string>& file_names);
+
       /**
-       @brief Validates the given files against the XML schema (if available)
-       @return If all files passed the validation
+       @brief Registers a hook that mainInit() runs at the start of every test program.
+
+       The test framework itself is independent of libOpenMS' higher layers. Library-specific
+       test setup (e.g. seeding the UniqueIdGenerator so that tests are deterministic) is
+       installed by linking the OpenMSTestSupport object library, whose static initializer
+       calls this function. When no hook is registered, no extra setup is run.
        */
-      bool OPENMS_DLLAPI
-      validate(const std::vector<std::string>& file_names);
+      void
+      setTestInitHook(TestInitHook hook);
+
+      /**
+       @brief Registers a validator that endTestPostProcess() runs on all temporary files.
+
+       Used by the OpenMSTestSupport object library to validate the files created during a
+       test against their XML schema (mzML, featureXML, idXML, ...). When no validator is
+       registered, temporary files are not validated.
+       */
+      void
+      setTmpFileValidator(TmpFileValidator validator);
 
       /// Creates a temporary file name from the test name and the line with the specified extension
-      std::string OPENMS_DLLAPI
+      std::string
       createTmpFileName(const std::string& file, int line, const std::string& extension = "");
 
       /// This overload returns true; @c float is a floating point type.
-      inline bool OPENMS_DLLAPI
+      inline bool
       isRealType(float)
       {
         return true;
       }
 
       /// This overload returns true; @c double is a floating point type.
-      inline bool OPENMS_DLLAPI
+      inline bool
       isRealType(double)
       {
         return true;
       }
 
       /// This overload returns true; @c long @c double is a floating point type.
-      inline bool OPENMS_DLLAPI
+      inline bool
       isRealType(long double)
       {
         return true;
       }
 
       /// This overload returns true; @c ParamValue will be converted to double by #TEST_REAL_SIMILAR.
-      inline bool OPENMS_DLLAPI
+      inline bool
       isRealType(const ParamValue&)
       {
           return true;
       }
 
       /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.
-      inline bool OPENMS_DLLAPI
+      inline bool
       isRealType(const DataValue&)
       {
         return true;
@@ -104,7 +127,7 @@ namespace OpenMS
 
        Side effects: Updates #fuzzy_message.
        */
-      void OPENMS_DLLAPI
+      void
       testRealSimilar(const char* file, int line, long double number_1,
                       const char* number_1_stringified,
                       bool number_1_is_realtype, Int number_1_written_digits,
@@ -112,7 +135,7 @@ namespace OpenMS
                       bool /* number_2_is_realtype */, Int number_2_written_digits);
 
       /// used by testRealSimilar()
-      bool OPENMS_DLLAPI
+      bool
       isRealSimilar(long double number_1, long double number_2);
 
       /**@brief Compare strings using @em absdiff_max_allowed and @em ratio_max_allowed.
@@ -122,7 +145,7 @@ namespace OpenMS
        Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
        and #line_num_2_max.
        */
-      void OPENMS_DLLAPI
+      void
       testStringSimilar(const char* file, int line,
                         const std::string& string_1,
                         const char* string_1_stringified,
@@ -130,7 +153,7 @@ namespace OpenMS
                         const char* string_2_stringified);
 
       /// used by TEST_STRING_EQUAL
-      void OPENMS_DLLAPI
+      void
       testStringEqual(const char* file, int line,
                       const std::string& string_1,
                       const char* string_1_stringified,
@@ -142,16 +165,16 @@ namespace OpenMS
        Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
        and #line_num_2_max.
        */
-      bool OPENMS_DLLAPI
+      bool
       isFileSimilar(const std::string& filename_1,
                     const std::string& filename_2);
 
       /// make sure we have a newline before results from first subtest
-      void OPENMS_DLLAPI
+      void
       initialNewline();
 
       /// print the text, each line gets a prefix, the marked line number gets a special prefix
-      void OPENMS_DLLAPI
+      void
       printWithPrefix(const std::string& text, const int marked = -1);
 
       /**
@@ -163,7 +186,7 @@ namespace OpenMS
          @param[in] argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
          @param[in] argv0 Name of the executable (for debug output)
       */
-      void OPENMS_DLLAPI mainInit(const char* version, const char* class_name, int argc, const char* argv0);
+      void mainInit(const char* version, const char* class_name, int argc, const char* argv0);
 
       /**
         @brief Test if two files are exactly equal (used in TEST_FILE_EQUAL macro)
@@ -174,102 +197,102 @@ namespace OpenMS
         @param[in] filename_stringified The expression used as the first macro argument
         @param[in] templatename_stringified The expression used as the second macro argument
       */
-      void OPENMS_DLLAPI filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
+      void filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
 
       /// removed all temporary files created with the NEW_TMP_FILE macro
-      void OPENMS_DLLAPI removeTempFiles();
+      void removeTempFiles();
       
       /// set the whitelist_
-      void OPENMS_DLLAPI
+      void
       setWhitelist(const char* const /* file */, const int line,
                    const std::string& whitelist);
 
       /// Maximum ratio of numbers allowed, see #TOLERANCE_RELATIVE.
-      extern OPENMS_DLLAPI double ratio_max_allowed;
+      extern double ratio_max_allowed;
 
       /// Maximum ratio of numbers observed so far, see #TOLERANCE_RELATIVE.
-      extern OPENMS_DLLAPI double ratio_max;
+      extern double ratio_max;
 
       /// Recent ratio of numbers, see #TOLERANCE_RELATIVE.
-      extern OPENMS_DLLAPI double ratio;
+      extern double ratio;
 
       /// Maximum absolute difference of numbers allowed, see #TOLERANCE_ABSOLUTE.
-      extern OPENMS_DLLAPI double absdiff_max_allowed;
+      extern double absdiff_max_allowed;
 
       /// Maximum difference of numbers observed so far, see #TOLERANCE_ABSOLUTE.
-      extern OPENMS_DLLAPI double absdiff_max;
+      extern double absdiff_max;
 
       /// Recent absolute difference of numbers, see #TOLERANCE_ABSOLUTE.
-      extern OPENMS_DLLAPI double absdiff;
+      extern double absdiff;
 
-      extern OPENMS_DLLAPI int line_num_1_max;
-      extern OPENMS_DLLAPI int line_num_2_max;
+      extern int line_num_1_max;
+      extern int line_num_2_max;
 
       /// Verbosity level ( "-v" is 1 and "-V" is 2 )
-      extern OPENMS_DLLAPI int verbose;
+      extern int verbose;
 
       /// Status of the whole test
-      extern OPENMS_DLLAPI bool all_tests;
+      extern bool all_tests;
 
       /// Status of the current subsection
-      extern OPENMS_DLLAPI bool test;
+      extern bool test;
 
       /// Status of last elementary test
-      extern OPENMS_DLLAPI bool this_test;
+      extern bool this_test;
 
       /// (Used by various macros. Indicates a rough category of the exception being caught.)
-      extern OPENMS_DLLAPI int exception;
+      extern int exception;
 
       /// (Used by various macros.  Stores the "name" of the exception, if applicable.)
-      extern OPENMS_DLLAPI std::string exception_name;
+      extern std::string exception_name;
 
       /// (Used by various macros.  Stores the "message" of the exception, if applicable.)
-      extern OPENMS_DLLAPI std::string exception_message;
+      extern std::string exception_message;
 
       /// Name of current subsection
-      extern OPENMS_DLLAPI std::string test_name;
+      extern std::string test_name;
 
       /// Line where current subsection started
-      extern OPENMS_DLLAPI int start_section_line;
+      extern int start_section_line;
 
       /// Line of current elementary test
-      extern OPENMS_DLLAPI int test_line;
+      extern int test_line;
 
       /// Version string supplied with #START_TEST
-      extern OPENMS_DLLAPI const char* version_string;
+      extern const char* version_string;
 
       /// List of tmp file names (these will be cleaned up, see #NEW_TMP_FILE)
-      extern OPENMS_DLLAPI std::vector<std::string> tmp_file_list;
+      extern std::vector<std::string> tmp_file_list;
 
       /// List of all failed lines for summary at the end of the test
-      extern OPENMS_DLLAPI std::vector<UInt> failed_lines_list;
+      extern std::vector<UInt> failed_lines_list;
 
       /// Questionable file tested by #TEST_FILE_EQUAL
-      extern OPENMS_DLLAPI std::ifstream infile;
+      extern std::ifstream infile;
 
       /// Template (correct) file used by #TEST_FILE_EQUAL
-      extern OPENMS_DLLAPI std::ifstream templatefile;
+      extern std::ifstream templatefile;
 
       /// (A variable used by #TEST_FILE_EQUAL)
-      extern OPENMS_DLLAPI bool equal_files;
+      extern bool equal_files;
 
       /// (A buffer for one line from a file. Used by #TEST_FILE_EQUAL.)
-      extern OPENMS_DLLAPI char line_buffer[65536];
+      extern char line_buffer[65536];
 
       /// Counter for the number of elementary tests within the current subsection.
-      extern OPENMS_DLLAPI int test_count;
+      extern int test_count;
 
       /// See #ADD_MESSAGE.
-      extern OPENMS_DLLAPI std::string add_message;
+      extern std::string add_message;
 
       /**@brief Last message from a fuzzy comparison.  Written by
        #isRealSimilar(), #testStringSimilar(), #isFileSimilar().  Read by
        #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR, #TEST_FILE_SIMILAR;
        */
-      extern OPENMS_DLLAPI std::string fuzzy_message;
+      extern std::string fuzzy_message;
 
       /// (Flags whether a new line is in place, depending on context and verbosity setting.  Used by initialNewline() and some macros.)
-      extern OPENMS_DLLAPI bool newline;
+      extern bool newline;
 
       template <typename T1, typename T2>
       void
@@ -322,7 +345,9 @@ namespace OpenMS
         }
       }
 
-      void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      // must be inline: this header is included by more than one translation unit of a test
+      // executable (the test itself and e.g. the OpenMSTestSupport registration TU)
+      inline void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
       {
         ++test_count;
         test_line = line;
@@ -345,7 +370,7 @@ namespace OpenMS
         }
       }
 
-      void testFalse(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      inline void testFalse(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
       {
         ++test_count;
         test_line = line;
@@ -399,11 +424,11 @@ namespace OpenMS
       }
 
       
-      void OPENMS_DLLAPI printLastException(std::ostream& out);
+      void printLastException(std::ostream& out);
       
-      int OPENMS_DLLAPI endTestPostProcess(std::ostream& out);
+      int endTestPostProcess(std::ostream& out);
 
-      void OPENMS_DLLAPI endSectionPostProcess(std::ostream& out, const int line);
+      void endSectionPostProcess(std::ostream& out, const int line);
     }
   }
 }
@@ -415,7 +440,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @defgroup ClassTest Class test macros
 
  @brief These macros are used by the test programs in the subdirectory
- <code>OpenMS/source/TEST</code>.
+ <code>src/tests/class_tests</code>.
 
  On successful operation the test program will print out the message "PASSED",
  otherwise "FAILED".

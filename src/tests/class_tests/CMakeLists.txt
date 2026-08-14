@@ -16,6 +16,11 @@ set(_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 #------------------------------------------------------------------------------
+# libOpenMS-specific test-framework hooks (UniqueIdGenerator seeding, XML
+# validation of tmp files), linked into the openms and openms_gui class tests
+add_subdirectory(support)
+
+#------------------------------------------------------------------------------
 # add OpenSWATHAlgo specific tests
 add_subdirectory(openswathalgo)
 

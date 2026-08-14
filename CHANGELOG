@@ -1043,6 +1043,13 @@ Build System:
     system_clock epoch microseconds; such ids vary between runs either way. Math's
     RandomShuffler deliberately keeps boost::random: its bounded-range distribution is what
     makes portable_random_shuffle reproducible across standard libraries
+  - The class-test framework (ClassTest.h macros, FuzzyStringComparator, MacrosTest.h) moved out of
+    libOpenMS into the new static library OpenMSTestFramework (src/testframework/); include paths and
+    installed header locations are unchanged. libOpenMS-specific behavior (UniqueIdGenerator seeding,
+    XML schema validation of NEW_TMP_FILE files at END_TEST) is injected via the new OpenMSTestSupport
+    object library, removing the framework's inverted CONCEPT-to-FORMAT dependency. Prework for
+    splitting libOpenMS into smaller libraries; note that the framework's ~55 symbols are no longer
+    exported from libOpenMS
   - New multi-OS GitHub Actions workflows for build/test, installer and source packaging, publishing of
     release assets, website-update PRs and automated cherry-pick backports to release branches, replacing
     the previous ad hoc release orchestration scripts (#9523). The version-bump workflow now triggers

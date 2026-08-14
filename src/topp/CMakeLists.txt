@@ -51,6 +51,8 @@ target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
 endforeach(i)
 
 # special requirements of some tools
+# FuzzyDiff wraps the FuzzyStringComparator, which lives in the (static) class-test framework library
+target_link_libraries(FuzzyDiff OpenMSTestFramework)
 target_link_libraries(FileMerger Boost::regex)
 target_link_libraries(DecoyDatabase Boost::regex)
 target_link_libraries(NucleicAcidSearchEngine Boost::regex)

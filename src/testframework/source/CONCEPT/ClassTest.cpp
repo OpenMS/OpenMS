@@ -8,29 +8,16 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+// Keep this file free of FORMAT/SYSTEM/KERNEL dependencies: the test framework is built as
+// its own (static) library so that tests of any OpenMS library can use it. OpenMS-specific
+// behavior (UniqueIdGenerator seeding, XML schema validation of temporary files) is injected
+// via setTestInitHook()/setTmpFileValidator() by the OpenMSTestSupport object library.
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
-
-#include <iomanip>
-#include <fstream>
 
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
 
 namespace OpenMS::Internal::ClassTest
 {
@@ -65,6 +52,21 @@ namespace OpenMS::Internal::ClassTest
       std::vector<UInt> failed_lines_list;
       StringList whitelist;
 
+      // hooks for library-specific behavior, registered via the setters below
+      // (see OpenMSTestSupport.cpp); TU-local on purpose - not part of the API
+      static TestInitHook test_init_hook = nullptr;
+      static TmpFileValidator tmp_file_validator = nullptr;
+
+      void setTestInitHook(TestInitHook hook)
+      {
+        test_init_hook = hook;
+      }
+
+      void setTmpFileValidator(TmpFileValidator validator)
+      {
+        tmp_file_validator = validator;
+      }
+
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
         // if env var "OPENMS_TEST_VERBOSE=True" enable output of successfull line
@@ -74,7 +76,11 @@ namespace OpenMS::Internal::ClassTest
           if (std::string(pverbose) == "True") TEST::verbose = 2;
         }
 
-        OpenMS::UniqueIdGenerator::setSeed(2453440375);
+        // library-specific test setup, e.g. deterministic UniqueIdGenerator seeding
+        if (test_init_hook != nullptr)
+        {
+          test_init_hook();
+        }
         TEST::version_string = version;
 
         if (argc > 1)
@@ -189,7 +195,10 @@ namespace OpenMS::Internal::ClassTest
       {
         for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)
           {
-            if (!OpenMS::File::remove(TEST::tmp_file_list[i]))
+            // a missing file is not an error (mirrors the former File::remove() semantics)
+            std::error_code ec;
+            std::filesystem::remove(std::filesystem::path(TEST::tmp_file_list[i]), ec);
+            if (ec)
             {
               stdcout << "Warning: unable to remove temporary file '"
                       << TEST::tmp_file_list[i]
@@ -237,129 +246,6 @@ namespace OpenMS::Internal::ClassTest
           std::cout << (line_number == marked ? " # :|:  " : "   :|:  ") << line << '\n';
         }
         return;
-      }
-
-      bool
-      validate(const std::vector<std::string>& file_names)
-      {
-        std::cout << "checking (created temporary files)...\n";
-        bool passed_all = true;
-        for (Size i = 0; i < file_names.size(); ++i)
-        {
-          if (File::exists(file_names[i]))
-          {
-            FileTypes::Type type = FileHandler::getType(file_names[i]);
-            bool passed_single = true;
-            bool skipped = false;
-            switch (type)
-            {
-            case FileTypes::MZML:
-            {
-              if (!MzMLFile().isValid(file_names[i]))
-              {
-                std::cout << " - Error: mzML file does not validate against XML schema '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              StringList errors, warnings;
-              if (!MzMLFile().isSemanticallyValid(file_names[i], errors,
-                                                  warnings))
-              {
-                std::cout << " - Error: mzML file semantically invalid '" << file_names[i] << "'\n";
-                for (Size j = 0; j < errors.size(); ++j)
-                {
-                  std::cout << "Error - " << errors[j] << '\n';
-                }
-                passed_single = false;
-              }
-            }
-            break;
-
-            case FileTypes::MZDATA:
-              if (!MzDataFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::MZXML:
-              if (!MzXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::FEATUREXML:
-              if (!FeatureXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::IDXML:
-              if (!IdXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::CONSENSUSXML:
-              if (!ConsensusXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::INI:
-              if (!ParamXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid Param file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::TRANSFORMATIONXML:
-              if (!TransformationXMLFile().isValid(file_names[i], std::cerr))
-              {
-
-                passed_single = false;
-              }
-              break;
-
-            default:
-              skipped = true;
-              break;
-            }
-            //output for single file
-            if (skipped)
-            {
-              std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
-            }
-            else if (passed_single)
-            {
-              std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
-            }
-            else
-            {
-              passed_all = false;
-              std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
-            }
-          }
-        }
-        //output for all files        
-        if (passed_all)
-        {
-          std::cout << ": passed" << std::endl << '\n';
-        }
-        else
-        {
-          std::cout << ": failed" << std::endl << '\n';
-        }
-        return passed_all;
       }
 
       std::string
@@ -726,8 +612,8 @@ namespace OpenMS::Internal::ClassTest
 
       int endTestPostProcess(std::ostream& out)
       {
-        /* check validity of temporary files if known */
-        if (!TEST::validate(TEST::tmp_file_list))
+        /* check validity of temporary files if a validator is registered (see setTmpFileValidator()) */
+        if (tmp_file_validator != nullptr && !tmp_file_validator(TEST::tmp_file_list))
         {
           TEST::all_tests = false;
         }

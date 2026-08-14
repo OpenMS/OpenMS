@@ -8,10 +8,7 @@
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/PathUtils.h> // header-only (to_path)
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -20,6 +17,65 @@
 #include <iostream>
 
 // #define DEBUG_FUZZY
+
+namespace
+{
+  // Local copy of OpenMS::TextFile::getLine() (FORMAT layer): reads a line and strips any
+  // line ending (\n, \r\n, \r), so otherwise equal lines compare quickly across platforms.
+  // Kept here so the test framework library does not depend on the FORMAT layer.
+  std::istream& getLine(std::istream& is, std::string& t)
+  {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    std::istream::sentry se(is, true);
+    if (!se)
+    { // the stream has an error
+      return is;
+    }
+
+    std::streambuf* sb = is.rdbuf();
+
+    for (;;)
+    {
+        int c = sb->sbumpc(); // get and advance to next char
+        switch (c) {
+        case '\n':
+            return is;
+        case '\r': // consume next '\n' (if any) and return
+            if (sb->sgetc() == '\n') // peek current char
+            {
+              sb->sbumpc(); // consume it
+            }
+            return is;
+        case std::streambuf::traits_type::eof():
+            is.setstate(std::ios::eofbit); // still allows: while(is == true)
+            if (t.empty())
+            { // only if we just started a new line, we set the is.fail() == true, ie. is == false
+              is.setstate(std::ios::badbit);
+            }
+            return is;
+        default:
+            t += (char)c;
+        }
+    }
+  }
+
+  // Mirrors OpenMS::absolutePath() (SYSTEM layer); only used to print nice paths in
+  // the failure report below.
+  std::string absolutePath(const std::string& file)
+  {
+    if (file.empty()) return std::filesystem::current_path().generic_string();
+#ifdef OPENMS_WINDOWSPLATFORM
+    // On Windows, paths starting with '/' are treated as absolute,
+    // but fs::absolute() prepends the current drive letter. Preserve this behavior.
+    if (file[0] == '/') return file;
+#endif
+    return std::filesystem::absolute(OpenMS::to_path(file)).generic_string();
+  }
+}
 
 namespace OpenMS
 {
@@ -193,26 +249,26 @@ namespace OpenMS
         << prefix << "\n"
         << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
         << prefix << "\n"
-        << prefix << "in1:  " << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+        << prefix << "in1:  " << to_path(absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
         << prefix << prefix1.prefix << "!\n"
         << prefix << prefix1.prefix_whitespaces << StringUtils::suffix(std::string(input_line_1_.line_.str()), input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
         << prefix <<  "\n"
-        << prefix << "in2:  " << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+        << prefix << "in2:  " << to_path(absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
         << prefix << prefix2.prefix << "!\n"
         << prefix << prefix2.prefix_whitespaces << StringUtils::suffix(std::string(input_line_2_.line_.str()), input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
         << prefix << "\n\n"
         << "Easy Access:" << "\n"
-        << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-        << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+        << to_path(absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+        << to_path(absolutePath(input_2_name_)).make_preferred().string() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
         << "TortoiseGitMerge"
-        << " /base:\"" << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "\""
-        << " /mine:\"" << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "\""
+        << " /base:\"" << to_path(absolutePath(input_1_name_)).make_preferred().string() << "\""
+        << " /mine:\"" << to_path(absolutePath(input_2_name_)).make_preferred().string() << "\""
         #else
         << "diff"
-        << " " << to_path(File::absolutePath(input_1_name_)).make_preferred().string()
-        << " " << to_path(File::absolutePath(input_2_name_)).make_preferred().string()
+        << " " << to_path(absolutePath(input_1_name_)).make_preferred().string()
+        << " " << to_path(absolutePath(input_2_name_)).make_preferred().string()
         #endif
         << '\n';
     }
@@ -602,9 +658,9 @@ namespace OpenMS
 
   void FuzzyStringComparator::readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const
   {
-    // use TextFile::getLine for reading, since it will remove \r automatically on all platforms without much overhead
+    // use getLine (local copy of TextFile::getLine) for reading, since it will remove \r automatically on all platforms without much overhead
     // This allows to compare otherwise equal lines between files quickly (see compareLines_(...))
-    for (line_string.clear(); static_cast<void>(++line_number), TextFile::getLine(input_stream, line_string); )
+    for (line_string.clear(); static_cast<void>(++line_number), getLine(input_stream, line_string); )
     {
       if (line_string.empty())
       {

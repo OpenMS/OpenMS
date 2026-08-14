@@ -36,6 +36,8 @@ set(openswath_algo_tests
 # add targets for the executables
 foreach(i ${openswath_algo_tests})
   add_executable(${i} ${i}.cpp)
-  target_link_libraries(${i} OpenSwathAlgo OpenMS)
+  # the test framework (ClassTest.h) lives in its own static library; libOpenMS is
+  # (for now) still pulled in transitively for the framework's low-level utilities
+  target_link_libraries(${i} OpenSwathAlgo OpenMSTestFramework)
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
