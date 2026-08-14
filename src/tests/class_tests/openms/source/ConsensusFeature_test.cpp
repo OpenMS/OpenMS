@@ -598,7 +598,10 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
   TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)/3 + (m+m3_add)/3))
 
   // the neutral mass convention must be identical to AdductInfo::getNeutralMass()
-  // (used by AccurateMassSearchEngine), i.e. electron masses are accounted for
+  // (used by AccurateMassSearchEngine), i.e. electron masses are accounted for.
+  // tolerances are tightened well below one electron mass (5.5e-4 Da), since that is what is tested here
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-9)
   {
     struct { const char* adduct; Int charge; } cases[] = { {"M+H;1+", 1}, {"M+2H;2+", 2}, {"M+Na;1+", 1}, {"M-H;1-", -1}, {"M-2H;2-", -2} };
     for (const auto& c : cases)
@@ -641,6 +644,9 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
     cons_single.computeDechargeConsensus(fm_single);
     TEST_REAL_SIMILAR(cons_single.getMZ(), m)
   }
+  // restore the default tolerances
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
 END_SECTION
 
