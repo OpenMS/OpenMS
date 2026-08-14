@@ -117,6 +117,27 @@ jobs:
           # history, so it only conflicts on genuinely unresolved changes.
           git merge --no-edit bioconda/master
 
+      # openms-thirdparty's run requirement on gnuplot (recipes/openms-meta/meta.yaml) is
+      # unpinned, which lets the solver fall back to gnuplot 5.0.3 -- an ancient bioconda
+      # build whose only dependency option is "libgd *.bioconda", a build string no channel
+      # serves anymore. That makes the openms-thirdparty test environment unsatisfiable and
+      # fails the whole openms-meta build (BIOCONDA ERROR: Unsatisfiable dependencies ...
+      # MatchSpec("gnuplot==5.0.3=1"), MatchSpec("libgd==*.bioconda")), which in turn starves
+      # the pyopenms build of libopenms/openms artifacts. Pin to a modern, installable range
+      # here (rather than upstream, since this checkout of bioconda-recipes is never pushed
+      # back) so the solver never reaches that dead end.
+      - name: Pin gnuplot in the openms-thirdparty recipe to avoid a broken legacy build
+        run: |
+          cd bioconda-recipes
+          recipe=recipes/openms-meta/meta.yaml
+          matches=$(grep -c '^\s*- gnuplot$' "$recipe" || true)
+          if [ "$matches" -ne 1 ]; then
+            echo "::error::Expected exactly one unpinned 'gnuplot' run dependency in $recipe, found $matches -- recipe format changed, update this pin."
+            exit 1
+          fi
+          sed -i 's/^\(\s*- \)gnuplot$/\1gnuplot >=5.4/' "$recipe"
+          grep -n 'gnuplot' "$recipe"
+
       # BUILD_ENV_IMAGE comes from the preflight in "Prepare output directory".
       - name: Lint and build OpenMS Bioconda packages
         run: |
