@@ -237,9 +237,13 @@ public:
       The position of the feature handles (decharged) is averaged (using intensity as weights if
       @p intensity_weighted_averaging is true). Intensities are summed up. Charge is set to 0.
       Mass calculation: If the given features contain a metavalue "dc_charge_adduct_mass" then this
-      will be used as adduct mass instead of weight(H+) * charge.
+      will be used as (neutral) adduct mass instead of weight(H) * charge.
+      The mass of the electrons which are missing (positive charge) or surplus (negative charge) is
+      corrected for, i.e. the resulting neutral mass follows the same convention as
+      AdductInfo::getNeutralMass() (used by AccurateMassSearchEngine).
 
       @note This method has to be called explicitly, <i>after</i> adding the feature handles.
+      @note The resulting m/z of this ConsensusFeature is a neutral mass (charge is set to 0), not an observed m/z.
 
       @param[in] fm Input feature map, which provides additional information on the features
       @param[in] intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity

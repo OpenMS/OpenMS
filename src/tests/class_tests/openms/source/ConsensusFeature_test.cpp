@@ -13,8 +13,10 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -524,16 +526,19 @@ END_SECTION
 
 START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging=false)))
 
-  double proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
+  double hydrogen_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight(); // neutral hydrogen atom
   double natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
+  double proton_mass = Constants::PROTON_MASS_U;
+  double e_mass = Constants::ELECTRON_MASS_U;
 
+  // observed m/z of an ion = (neutral mass + neutral adduct mass - charge * electron mass) / |charge|
   double m = 1000;
   double m1_add = 0.5;
-  double mz1 = (m+m1_add+3*proton_mass) / 3;
+  double mz1 = (m+m1_add+3*proton_mass) / 3;  // no 'dc_charge_adduct_mass' below --> protonation is assumed
   double m2_add = 1;
-  double mz2 = (m+m2_add+1*proton_mass + 2*natrium_mass) / 3;
+  double mz2 = (m+m2_add+1*hydrogen_mass + 2*natrium_mass - 3*e_mass) / 3;
   double m3_add = -0.5;
-  double mz3 = (m+m3_add+4*proton_mass + natrium_mass) / 5;
+  double mz3 = (m+m3_add+4*hydrogen_mass + natrium_mass - 5*e_mass) / 5;
 
   FeatureMap fm;
 
@@ -559,7 +564,7 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
   tmp_feature2.setIntensity(400.0f);
   tmp_feature2.setCharge(3);
   tmp_feature2.ensureUniqueId();
-  tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + proton_mass);
+  tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + hydrogen_mass);
   fm.push_back(tmp_feature2);
   cons.insert(4,tmp_feature2);
   cons.computeDechargeConsensus(fm, true);
@@ -579,7 +584,7 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
   tmp_feature3.setIntensity(600.0f);
   tmp_feature3.setCharge(5);
   tmp_feature3.ensureUniqueId();
-  tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*proton_mass);
+  tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*hydrogen_mass);
   fm.push_back(tmp_feature3);
   cons.insert(4,tmp_feature3);
   cons.computeDechargeConsensus(fm, true);
@@ -591,6 +596,51 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
   TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
   TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0/3 + 101.0/3))
   TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)/3 + (m+m3_add)/3))
+
+  // the neutral mass convention must be identical to AdductInfo::getNeutralMass()
+  // (used by AccurateMassSearchEngine), i.e. electron masses are accounted for
+  {
+    struct { const char* adduct; Int charge; } cases[] = { {"M+H;1+", 1}, {"M+2H;2+", 2}, {"M+Na;1+", 1}, {"M-H;1-", -1}, {"M-2H;2-", -2} };
+    for (const auto& c : cases)
+    {
+      AdductInfo ai = AdductInfo::parseAdductString(c.adduct);
+      double observed_mz = ai.getMZ(m); // m/z of the ion for a neutral mass of 'm'
+
+      FeatureMap fm_single;
+      Feature f;
+      f.setRT(50);
+      f.setMZ(observed_mz);
+      f.setIntensity(100.0f);
+      f.setCharge(c.charge);
+      f.ensureUniqueId();
+      f.setMetaValue("dc_charge_adduct_mass", ai.getEmpiricalFormula().getMonoWeight());
+      fm_single.push_back(f);
+
+      ConsensusFeature cons_single;
+      cons_single.insert(0, f);
+      cons_single.computeDechargeConsensus(fm_single);
+      TEST_REAL_SIMILAR(cons_single.getMZ(), ai.getNeutralMass(observed_mz))
+      TEST_REAL_SIMILAR(cons_single.getMZ(), m)
+    }
+  }
+
+  // without 'dc_charge_adduct_mass' protonation is assumed (i.e. |q| protons, which already lack their electron)
+  {
+    AdductInfo ai = AdductInfo::parseAdductString("M+2H;2+");
+    double observed_mz = ai.getMZ(m);
+    FeatureMap fm_single;
+    Feature f;
+    f.setRT(50);
+    f.setMZ(observed_mz);
+    f.setIntensity(100.0f);
+    f.setCharge(2);
+    f.ensureUniqueId();
+    fm_single.push_back(f);
+    ConsensusFeature cons_single;
+    cons_single.insert(0, f);
+    cons_single.computeDechargeConsensus(fm_single);
+    TEST_REAL_SIMILAR(cons_single.getMZ(), m)
+  }
 
 END_SECTION
 
