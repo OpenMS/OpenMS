@@ -868,7 +868,9 @@ Fixes:
     ignored the mass of the missing/surplus electrons when the 'dc_charge_adduct_mass' MetaValue (a
     neutral adduct mass) was present, so the decharged mass was off by one electron mass per unit charge
     (~5.5 ppm at 100 Da) compared to the neutral-mass convention of AdductInfo::getNeutralMass() used by
-    AccurateMassSearch (#9917)
+    AccurateMassSearch. For ungrouped (singleton) features, MetaboliteAdductDecharger stored a proton mass
+    in 'dc_charge_adduct_mass' although the accompanying 'dc_charge_adducts' formula is neutral; it now
+    stores the neutral adduct mass, so the MetaValue has the same meaning for all features (#9917)
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names
     are not "0", "1", ... crashed with a bare std::out_of_range. getSampleToPrefractionationMapping() was
     keyed by sample name while the condition and path-label mappings used the stringified zero-based row
