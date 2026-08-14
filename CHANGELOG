@@ -1065,6 +1065,11 @@ Build System:
     bioconda-utils and the pinnings upstream bioconda actually builds against; the resolved tooling
     versions are echoed into the log, and the build-env image follows the rolling `latest` tag, whose
     publication lags a new bioconda-utils release (#9905)
+  - CI: the Bioconda deploy workflow no longer suppresses the exit code of its two `bioconda-utils build`
+    steps. The `|| true` dated from 2024, when bioconda-utils misreported successful `--docker --pkg-dir`
+    builds as failures; that was fixed upstream in bioconda-utils 3.5.0 (bioconda/bioconda-utils#838), so
+    the suppression only deferred real failures -- like the #9905 dependency conflict -- to a misleading
+    "No packages found to upload!" error two steps later. A failed build now fails its own step (#9905)
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
