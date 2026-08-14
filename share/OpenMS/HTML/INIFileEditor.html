@@ -32,9 +32,14 @@
       (verified by round-tripping the INI files of the OpenMS test suite)
 
   Known differences to the Qt tool (browser platform restrictions):
-    - "Save" writes back to the opened file directly only in browsers with the
-      File System Access API (Chrome, Edge, Opera). Elsewhere "Save"/"Save As"
-      hand the file to the browser as a download.
+    - "Save" writes back to the opened file directly in browsers with the
+      File System Access API (Chrome, Edge, Opera). Safari and Firefox do not
+      implement it; for those, run the bundled helper
+          python3 share/OpenMS/SCRIPTS/INIFileEditorServer.py <file.ini>
+      which serves this page on 127.0.0.1 with a token-protected local write
+      bridge - true in-place saving in ANY browser, plus a command-line entry
+      point like the Qt tool. Without either mechanism, "Save"/"Save As" hand
+      the edited file to the browser as a download.
     - input file/output file/output dir parameters are edited as plain text:
       web pages cannot obtain real filesystem paths from a file-picker dialog.
     - string values are always stored in the ISO-8859-1 encoding declared in
@@ -310,6 +315,8 @@
       <div>Open an OpenMS parameter file (<code>*.ini</code>) or drop it anywhere on this page.<br>
       Generate one with any TOPP tool: <code>ToolName -write_ini ToolName.ini</code></div>
       <div><button id="btnOpen2" class="primary">Open&#8230;</button></div>
+      <div>For in-place saving in browsers without the File System Access API (Safari, Firefox), start the editor via<br>
+      <code>python3 share/OpenMS/SCRIPTS/INIFileEditorServer.py ToolName.ini</code></div>
     </div>
   </div>
   <div id="docPanel"></div>
@@ -1103,12 +1110,34 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
     model: null,          // ParamCore model root
     fileName: '',         // basename shown in the title
     fileHandle: null,     // FileSystemFileHandle when opened via FS Access API
+    bridgeFile: null,     // {id, mtime} when the file came from the local helper
     modified: false,
     advanced: false,
     selected: null,       // row record
     rows: [],             // flat list of row records: {entry, parent, depth, tr, kind, expanded, dirty}
   };
   const FS_API = 'showOpenFilePicker' in window;
+
+  // Local helper bridge (share/OpenMS/SCRIPTS/INIFileEditorServer.py): the
+  // helper puts its session token into the URL fragment; keep it out of the
+  // visible URL (and of history) but survive reloads via sessionStorage.
+  const bridge = (() => {
+    if (!/^https?:$/.test(location.protocol)) return null;
+    try {
+      let token = null;
+      const m = /(?:^|[#&])t=([A-Za-z0-9_-]+)/.exec(location.hash);
+      if (m) {
+        token = m[1];
+        sessionStorage.setItem('inifileeditor_token', token);
+        history.replaceState(null, '', location.pathname + location.search);
+      } else {
+        token = sessionStorage.getItem('inifileeditor_token');
+      }
+      return token ? { headers: { 'X-Auth-Token': token } } : null;
+    } catch {
+      return null;
+    }
+  })();
 
   /* ---------------- title / footer ---------------- */
   function updateTitle() {
@@ -1127,12 +1156,16 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
   function setModified(m) {
     if (state.modified !== m) { state.modified = m; updateTitle(); }
   }
-  $('statMode').textContent = FS_API
-    ? 'in-place saving available'
-    : 'this browser cannot write files in place - "Save" downloads a copy';
-  $('helpSaveMode').textContent = FS_API
-    ? 'Your browser supports the File System Access API: "Save" writes directly back to the opened file (the browser asks once for permission). "Save As" lets you pick a new location.'
-    : 'Your browser does not expose local file writing to web pages; "Save" and "Save As" hand the edited file to the browser as a download instead. Use Chrome/Edge/Opera for in-place saving.';
+  $('statMode').textContent = bridge
+    ? 'connecting to local helper…'
+    : FS_API
+      ? 'in-place saving available'
+      : 'this browser cannot write files in place - "Save" downloads a copy';
+  $('helpSaveMode').textContent = (FS_API
+    ? 'Your browser supports the File System Access API: "Save" writes directly back to the opened file (the browser asks once for permission). "Save As" lets you pick a new location. '
+    : 'Your browser does not expose local file writing to web pages; "Save" and "Save As" hand the edited file to the browser as a download instead. ')
+    + 'For in-place saving in any browser (Safari/Firefox included) and a command-line entry point, start the editor through the bundled helper: '
+    + 'python3 share/OpenMS/SCRIPTS/INIFileEditorServer.py <file.ini>';
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1570,11 +1603,65 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
     state.model = parsed.root;
     state.fileName = name;
     state.fileHandle = handle || null;
+    state.bridgeFile = null;      // re-set by loadFromBridge() after this returns
     state.advanced = $('advancedBox').checked;
     setModified(false);
     updateTitle();
     rebuildTree();
     showWarnings(parsed.warnings);
+    return true;
+  }
+
+  /* ---------------- local helper bridge (in-place saving for any browser) ---------------- */
+  async function loadFromBridge(id) {
+    let resp;
+    try {
+      resp = await fetch('/api/file/' + id, { headers: bridge.headers });
+    } catch (err) {
+      showWarnings(['Local helper not reachable: ' + (err.message || err)]);
+      return false;
+    }
+    if (!resp.ok) {
+      showWarnings(['Local helper: could not load the file (HTTP ' + resp.status + ').']);
+      return false;
+    }
+    const bytes = new Uint8Array(await resp.arrayBuffer());
+    const name = resp.headers.get('X-File-Name') || 'file.ini';
+    const mtime = resp.headers.get('X-File-Mtime');
+    const ok = await loadFromText(ParamCore.decodeBytes(bytes), name, null);
+    if (ok) {
+      state.bridgeFile = { id, mtime };
+      $('statMode').textContent = 'in-place saving via local helper';
+    }
+    return ok;
+  }
+
+  async function saveViaBridge(force) {
+    const headers = { ...bridge.headers, 'Content-Type': 'application/xml' };
+    if (!force && state.bridgeFile.mtime) headers['X-Expected-Mtime'] = state.bridgeFile.mtime;
+    let resp;
+    try {
+      resp = await fetch('/api/file/' + state.bridgeFile.id, { method: 'PUT', headers, body: serializedBytes() });
+    } catch (err) {
+      await messageBox('Error saving file', 'The local helper is not reachable (' + (err.message || err) + '). Was it stopped?');
+      return false;
+    }
+    if (resp.status === 409) {
+      const answer = await messageBox('File changed on disk',
+        'The file was modified outside of this editor after it was loaded.\n' +
+        'Overwrite it with your version, or discard your edits and reload it?',
+        ['Cancel', 'Reload file', 'Overwrite']);
+      if (answer === 'Overwrite') return saveViaBridge(true);
+      if (answer === 'Reload file') await loadFromBridge(state.bridgeFile.id);
+      return false;
+    }
+    if (!resp.ok) {
+      await messageBox('Error saving file', 'The local helper reported: HTTP ' + resp.status + ' ' + (await resp.text()));
+      return false;
+    }
+    state.bridgeFile.mtime = resp.headers.get('X-File-Mtime');
+    clearDirtyMarks();
+    setModified(false);
     return true;
   }
 
@@ -1626,6 +1713,7 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
   async function saveFile() {
     if (!state.model) return false;
     if (activeEditor) return false;   // ParamEditor::store refuses to save with an open uncommitted editor
+    if (state.bridgeFile && bridge) return saveViaBridge(false);
     if (state.fileHandle) {
       try {
         const w = await state.fileHandle.createWritable();
@@ -1659,6 +1747,7 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
         await w.close();
         state.fileHandle = handle;
         state.fileName = handle.name;
+        state.bridgeFile = null;      // like Qt "Save As": future saves target the new file
         clearDirtyMarks();
         setModified(false);
         updateTitle();
@@ -1756,6 +1845,21 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
 
   updateTitle();
   rebuildTree();
+
+  // auto-load the helper's file when started through INIFileEditorServer.py
+  if (bridge) {
+    (async () => {
+      try {
+        const resp = await fetch('/api/files', { headers: bridge.headers });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const { files } = await resp.json();
+        if (files.length) await loadFromBridge(files[0].id);
+      } catch (err) {
+        $('statMode').textContent = FS_API ? 'in-place saving available' : 'this browser cannot write files in place - "Save" downloads a copy';
+        showWarnings(['Local helper not reachable (' + (err.message || err) + ') - continuing without in-place saving. Restart it and reload this page with the freshly printed URL.']);
+      }
+    })();
+  }
 })();
 </script>
 </body>
