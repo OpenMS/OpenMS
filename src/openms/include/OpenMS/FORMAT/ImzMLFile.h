@@ -40,7 +40,8 @@ namespace OpenMS
     After load, spectra that carry per-peak ion mobility expose it via
     @p MSSpectrum::containsIMData() / @p getFloatDataArrays() — the same
     contract used by mzML ion-mobility data and by viewers. Aux arrays must
-    match the peak count; mismatched lengths are skipped with a warning.
+    match the peak count; mismatched lengths are skipped with a warning, as are
+    aux arrays without a supported binary data type.
 
     The @c .ibd path is derived from the @c .imzML path (same basename,
     extension replaced with @c .ibd, case-insensitive).

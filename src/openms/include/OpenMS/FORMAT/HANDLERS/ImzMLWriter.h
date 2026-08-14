@@ -44,6 +44,9 @@ namespace Internal
       Scope of that path:
       - @c FloatDataArray only (not integer/string data arrays)
       - unnamed arrays are skipped with a warning
+      - arrays named after the peak CV terms (@c MS:1000514 "m/z array",
+        @c MS:1000515 "intensity array") are skipped with a warning: such an array
+        would be read back as the spectrum's peak metadata
       - arrays must have the same length as the spectrum peaks (others are skipped)
       - always 32-bit float, uncompressed (@c MS:1000576 on the array and on the
         m/z and intensity @c referenceableParamGroup entries)

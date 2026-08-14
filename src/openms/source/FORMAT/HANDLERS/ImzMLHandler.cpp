@@ -129,8 +129,9 @@ namespace
       "(need uncompressed MS:1000576). Re-export without compression.");
   }
 
-  /// Drop empty Float/IntegerDataArrays left by MzMLHandler for skipped, zero-length,
-  /// integer-typed, or inline aux arrays. On-disc never materializes those ghosts.
+  /// Drop empty Float/Integer/StringDataArrays left by MzMLHandler for skipped,
+  /// zero-length, untyped, integer-typed, or inline aux arrays. On-disc never
+  /// materializes those ghosts.
   void pruneEmptyDataArrays_(MSSpectrum& s)
   {
     auto prune = [](auto& arrays) {
@@ -140,6 +141,7 @@ namespace
     };
     prune(s.getFloatDataArrays());
     prune(s.getIntegerDataArrays());
+    prune(s.getStringDataArrays());
   }
 } // namespace
 
@@ -282,6 +284,14 @@ public:
                             << ims->x << "," << ims->y << "," << ims->z
                             << "): length " << aux.count << " != peak count " << s.size()
                             << " (viewers require equal length for ion mobility)\n";
+            continue;
+          }
+          if (aux.dt == ImzMLSpectrumIndex::DataType::UNKNOWN)
+          { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than
+            // abort the load, matching the warn-and-skip policy for other bad aux arrays
+            OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
+                            << ims->x << "," << ims->y << "," << ims->z
+                            << "): missing or unsupported binary data type\n";
             continue;
           }
           std::vector<float> values;

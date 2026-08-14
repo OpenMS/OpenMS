@@ -1546,4 +1546,100 @@ START_SECTION(void store writes MS:1000576 on mz and intensity referenceablePara
 }
 END_SECTION
 
+
+START_SECTION(void store skips FloatDataArrays named after the peak arrays)
+{
+  // "m/z array" / "intensity array" resolve to MS:1000514 / MS:1000515, so writing them
+  // as aux arrays would overwrite the real peak metadata on read (last cvParam wins).
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  s.push_back(Peak1D(200.0, 20.0f));
+
+  MSSpectrum::FloatDataArray shadow_mz;
+  shadow_mz.setName("m/z array");
+  shadow_mz.push_back(999.0f);
+  shadow_mz.push_back(998.0f);
+  s.getFloatDataArrays().push_back(shadow_mz);
+
+  MSSpectrum::FloatDataArray shadow_int;
+  shadow_int.setName("intensity array");
+  shadow_int.push_back(1.0f);
+  shadow_int.push_back(2.0f);
+  s.getFloatDataArrays().push_back(shadow_int);
+
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  std::ifstream xml(tmp_imzml.c_str());
+  std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+  TEST_TRUE(content.find("binaryDataArrayList count=\"2\"") != std::string::npos)
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem.getNrSpectra(), 1)
+  TEST_EQUAL(mem[0].size(), 2)
+  TEST_REAL_SIMILAR(mem[0][0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(mem[0][1].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(mem[0][0].getIntensity(), 10.0)
+  TEST_REAL_SIMILAR(mem[0][1].getIntensity(), 20.0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 0)
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.size(), 2)
+  TEST_REAL_SIMILAR(disc[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(disc[1].getMZ(), 200.0)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc skip aux array without a supported binary data type)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+  // MS:1000520 (obsolete '16-bit float') is not a type either loader can decode
+  TEST_TRUE(mutateNamedBinaryDataArray_(tmp_imzml, "MS:1003006",
+                                        "accession=\"MS:1000521\" name=\"32-bit float\"",
+                                        "accession=\"MS:1000520\" name=\"16-bit float\""))
+
+  // One undecodable aux array must not abort the load: peaks still come through.
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem.getNrSpectra(), 1)
+  TEST_EQUAL(mem[0].size(), 1)
+  TEST_REAL_SIMILAR(mem[0][0].getMZ(), 100.0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+  TEST_FALSE(mem[0].containsIMData())
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 1)
+  TEST_TRUE(od.getIndex(0).aux[0].type == ImzMLSpectrumIndex::DataType::UNKNOWN)
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.size(), 1)
+  TEST_EQUAL(disc.getFloatDataArrays().size(), 0)
+  TEST_FALSE(disc.containsIMData())
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
 END_TEST

@@ -425,9 +425,19 @@ namespace
                         << " != spectrum peak count " << spec.size() << "\n";
         continue;
       }
+      const ResolvedArrayCv& resolved = resolveFloatArrayCv_(fda.getName(), cv_cache);
+      // MS:1000514 / MS:1000515 are children of MS:1000513, so an array named after the
+      // peak CV terms resolves to their accession. Written out, it becomes a second
+      // m/z (or intensity) binaryDataArray whose offset and type replace the real peak
+      // metadata on read (last cvParam wins), silently corrupting the spectrum.
+      if (resolved.accession == "MS:1000514" || resolved.accession == "MS:1000515")
+      {
+        OPENMS_LOG_WARN << "Skipping FloatDataArray '" << fda.getName()
+                        << "' on imzML export: the name is reserved for the peak arrays\n";
+        continue;
+      }
       AuxArrayWritePlan aux;
       aux.array_name = fda.getName();
-      const ResolvedArrayCv& resolved = resolveFloatArrayCv_(aux.array_name, cv_cache);
       aux.accession = resolved.accession;
       aux.cv_name = resolved.cv_name;
       aux.unit_attrs = resolved.unit_attrs;

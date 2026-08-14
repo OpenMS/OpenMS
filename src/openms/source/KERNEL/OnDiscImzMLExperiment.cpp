@@ -130,6 +130,14 @@ struct OnDiscImzMLExperiment::Impl
                         << "): length " << aux.length << " != peak count " << n << "\n";
         continue;
       }
+      if (aux.type == ImzMLSpectrumIndex::DataType::UNKNOWN)
+      { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than
+        // abort the read, matching the warn-and-skip policy for other bad aux arrays
+        OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
+                        << e.x << "," << e.y << "," << e.z
+                        << "): missing or unsupported binary data type\n";
+        continue;
+      }
       std::vector<float> values;
       ImzMLBinaryIO::readAuxArray(ibd_, aux.offset, aux.length, aux.type, values, ibd_path_, aux.name);
       if (values.empty())

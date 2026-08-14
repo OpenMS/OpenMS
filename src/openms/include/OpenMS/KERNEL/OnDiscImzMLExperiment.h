@@ -57,6 +57,8 @@ namespace OpenMS
     external arrays (e.g. @c MS:1003006 ion mobility) as @c FloatDataArray
     entries — the same contract as in-memory @p ImzMLFile::load — so viewers
     can call @c containsIMData() / rasterize without a separate code path.
+    Auxiliary arrays whose length differs from the peak count, or which declare no
+    supported binary data type, are skipped with a warning in both loaders.
 
     @note This class is not thread-safe.  If concurrent reads are needed,
     construct one instance per thread.
