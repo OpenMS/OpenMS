@@ -224,6 +224,7 @@
   #warnings {
     flex: none; margin: 0 8px; padding: 6px 10px;
     border: 1px solid var(--required); border-radius: 8px;
+    background: var(--panel);                                  /* fallback for browsers without color-mix() */
     background: color-mix(in srgb, var(--required) 12%, var(--panel));
     display: none; white-space: pre-wrap; max-height: 90px; overflow: auto;
   }
@@ -1684,7 +1685,9 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = name;
+    document.body.appendChild(a);   // older Firefox ignores clicks on detached anchors
     a.click();
+    a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     clearDirtyMarks();
     setModified(false);
