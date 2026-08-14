@@ -245,6 +245,10 @@ public:
 
       @note This method has to be called explicitly, <i>after</i> adding the feature handles.
       @note The resulting m/z of this ConsensusFeature is a neutral mass (charge is set to 0), not an observed m/z.
+      @note Multimer annotations are not resolved: for a feature annotated as an n-mer (e.g. [2M+2H]2+ from
+      MetaboliteFeatureDeconvolution with max_multimer > 1), the contribution is the neutral mass of the
+      n-mer (n*M), whereas AdductInfo::getNeutralMass() divides by the mol_multiplier and returns the
+      monomer mass M. The convention equivalence above therefore holds for monomeric adducts only.
 
       @param[in] fm Input feature map, which provides additional information on the features
       @param[in] intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
