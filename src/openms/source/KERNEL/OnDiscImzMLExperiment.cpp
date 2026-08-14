@@ -56,19 +56,16 @@ struct OnDiscImzMLExperiment::Impl
     ImzMLFile::buildImagingGeometry(index_, meta_, geometry_);
   }
 
-  MSSpectrum decodeSpectrum(std::size_t i) const
+  // Decode m/z and intensity into 's'. Deliberately does not sort: callers attach
+  // auxiliary arrays first and sort afterwards, so FloatDataArrays stay aligned
+  // with peak order.
+  void decodePeaksInto_(const ImzMLSpectrumIndex& e, MSSpectrum& s) const
   {
-    const ImzMLSpectrumIndex& e = index_[i];
-    MSSpectrum s;
-    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
-    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
-    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
-
     if (e.mz_compressed || e.int_compressed)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
-        "zlib-compressed external m/z or intensity arrays are not supported "
-        "(need IMS:1000104 + inflate). Re-export without compression.");
+        "Compressed external m/z or intensity arrays are not supported "
+        "(need uncompressed MS:1000576). Re-export without compression.");
     }
 
     std::vector<double> mz_vec = readMz_(e);
@@ -94,6 +91,18 @@ struct OnDiscImzMLExperiment::Impl
       s[k].setMZ(mz_vec[k]);
       s[k].setIntensity(int_vec[k]);
     }
+  }
+
+  MSSpectrum decodeSpectrum(std::size_t i) const
+  {
+    const ImzMLSpectrumIndex& e = index_[i];
+    MSSpectrum s;
+    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
+    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
+    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+
+    decodePeaksInto_(e, s);
+    const std::size_t n = s.size();
 
     // Attach auxiliary external arrays (ion mobility, …) before sortByPosition
     // so FloatDataArrays stay aligned with peak order.
@@ -106,7 +115,7 @@ struct OnDiscImzMLExperiment::Impl
       if (aux.compressed)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
-          "zlib-compressed external auxiliary array '" + aux.name
+          "Compressed external auxiliary array '" + aux.name
           + "' is not supported (IMS:1000104 encoded length="
           + StringConversions::toString(aux.encoded_bytes) + ")");
       }
@@ -129,6 +138,10 @@ struct OnDiscImzMLExperiment::Impl
       }
       auto& fda = s.getFloatDataArrays().emplace_back();
       fda.setName(aux.name);
+      if (!aux.unit_accession.empty())
+      {
+        fda.setMetaValue("unit_accession", aux.unit_accession);
+      }
       fda.assign(values.begin(), values.end());
     }
 
@@ -139,6 +152,17 @@ struct OnDiscImzMLExperiment::Impl
       s.setIMPeakType(IMPeakType::IM_PROFILE);
     }
 
+    s.sortByPosition();
+    return s;
+  }
+
+  // Ion image extraction only sums intensities inside an m/z window (via
+  // MZBegin/MZEnd), so skip the auxiliary array reads and the pixel MetaValues
+  // that decodeSpectrum() has to produce.
+  MSSpectrum decodePeaks(std::size_t i) const
+  {
+    MSSpectrum s;
+    decodePeaksInto_(index_[i], s);
     s.sortByPosition();
     return s;
   }
@@ -287,7 +311,7 @@ IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm)
   std::vector<Size> all(pimpl_->geometry_.getNumberOfPixels());
   std::iota(all.begin(), all.end(), Size(0));
   return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, all, pimpl_->index_.size(),
-                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodePeaks(i); });
 }
 
 IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm, Size region_id) const
@@ -298,7 +322,7 @@ IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm,
   // getRegionPixels throws Exception::ElementNotFound for an unknown region_id.
   const std::vector<Size> region = pimpl_->geometry_.getRegionPixels(region_id);
   return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, region, pimpl_->index_.size(),
-                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodePeaks(i); });
 }
 
 const MSImagingGeometry& OnDiscImzMLExperiment::getGeometry() const

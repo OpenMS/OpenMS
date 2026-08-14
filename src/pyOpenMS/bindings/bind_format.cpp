@@ -787,6 +787,7 @@ by isobar to load quantification results
         .def(nb::init<>())
         .def_ro("name", &OpenMS::ImzMLSpectrumIndex::AuxArray::name)
         .def_ro("accession", &OpenMS::ImzMLSpectrumIndex::AuxArray::accession)
+        .def_ro("unit_accession", &OpenMS::ImzMLSpectrumIndex::AuxArray::unit_accession)
         .def_ro("offset", &OpenMS::ImzMLSpectrumIndex::AuxArray::offset)
         .def_ro("length", &OpenMS::ImzMLSpectrumIndex::AuxArray::length)
         .def_ro("encoded_bytes", &OpenMS::ImzMLSpectrumIndex::AuxArray::encoded_bytes)

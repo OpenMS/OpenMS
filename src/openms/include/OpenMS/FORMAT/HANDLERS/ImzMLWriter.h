@@ -43,8 +43,10 @@ namespace Internal
       binary arrays after m/z and intensity (standard imzML multi-array layout).
       Scope of that path:
       - @c FloatDataArray only (not integer/string data arrays)
+      - unnamed arrays are skipped with a warning
       - arrays must have the same length as the spectrum peaks (others are skipped)
-      - always 32-bit float, uncompressed (@c MS:1000576)
+      - always 32-bit float, uncompressed (@c MS:1000576 on the array and on the
+        m/z and intensity @c referenceableParamGroup entries)
       - PSI-MS accession resolved via the ontology (children of @c MS:1000513).
         If the term declares exactly one allowed unit, that unit is written
         (accession, name, cvRef). Terms with several allowed units get no unit

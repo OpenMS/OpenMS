@@ -88,8 +88,9 @@ namespace OpenMS
     coordinates and zlib-compression flags (@c MS:1000574).  Built during
     ImzMLHandler parsing and stored inside OnDiscImzMLExperiment so that
     random-access spectrum decoding requires only a single fseek + fread
-    per call. Compressed m/z, intensity, and auxiliary arrays are rejected
-    at decode time (inflate of external arrays is not supported).
+    per call. Compressed m/z, intensity, and auxiliary arrays (any child of
+    @c MS:1000572 other than uncompressed @c MS:1000576) are rejected at
+    decode time (inflate / numpress of external arrays is not supported).
 
     Optional @p aux entries describe additional external arrays (ion mobility
     and other @c FloatDataArray values). Both in-memory @p ImzMLFile::load and
@@ -114,11 +115,12 @@ namespace OpenMS
     {
       std::string name;                 ///< Ontology / free-text array name (FloatDataArray::getName)
       std::string accession;            ///< MS accession (e.g. MS:1003006), may be empty
+      std::string unit_accession;       ///< unitAccession on the array-identity cvParam (may be empty)
       uint64_t offset {0};              ///< IMS:1000102
       uint64_t length {0};              ///< IMS:1000103 element count
       uint64_t encoded_bytes {0};       ///< IMS:1000104 byte length on disk
       DataType type {DataType::UNKNOWN};
-      bool compressed {false};          ///< MS:1000574 (unsupported for decode)
+      bool compressed {false};          ///< Child of MS:1000572 other than MS:1000576 (unsupported)
     };
 
     int32_t  index      {0};               ///< 0-based document order
@@ -128,11 +130,11 @@ namespace OpenMS
     uint64_t mz_offset  {0};              ///< Byte offset of m/z array (IMS:1000102)
     uint64_t mz_length  {0};              ///< Element count             (IMS:1000103)
     DataType mz_type    {DataType::UNKNOWN};
-    bool mz_compressed {false};           ///< MS:1000574 on m/z array (unsupported for decode)
+    bool mz_compressed {false};           ///< Compressed (not MS:1000576) on m/z array
     uint64_t int_offset {0};              ///< Byte offset of intensity array
     uint64_t int_length {0};              ///< Element count
     DataType int_type   {DataType::UNKNOWN};
-    bool int_compressed {false};          ///< MS:1000574 on intensity array (unsupported for decode)
+    bool int_compressed {false};          ///< Compressed (not MS:1000576) on intensity array
     std::vector<AuxArray> aux;            ///< Extra external arrays (IM, …) in document order
   };
 
@@ -192,9 +194,10 @@ namespace OpenMS
       @param[in] ibd_path   Path used in error messages.
       @param[in] array_name Array name used in error messages (e.g. the CV term name).
 
-      @note zlib-compressed external arrays (MS:1000574) are not decoded; callers
-      must reject them before invoking this method. @c IMS:1000104 is then
-      required to know how many compressed bytes to read.
+      @note Compressed external arrays (any child of MS:1000572 other than
+      uncompressed MS:1000576) are not decoded; callers must reject them before
+      invoking this method. @c IMS:1000104 is then required to know how many
+      compressed bytes to read.
 
       @throws Exception::ParseError if seek or read fails.
     */

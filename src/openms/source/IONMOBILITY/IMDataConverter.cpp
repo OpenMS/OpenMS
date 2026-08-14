@@ -334,34 +334,29 @@ namespace OpenMS
     // Prefer PSI-MS ontology lookup so official names (e.g. MS:1003006
     // "mean inverse reduced ion mobility array") get the CV unit (1/K0 = VSSC),
     // not the UserParam fallback that defaulted them to milliseconds.
-    try
+    // Unknown names yield nullptr, so non-CV arrays cost no exception here —
+    // this runs for every float array of every spectrum/pixel.
+    const ControlledVocabulary::CVTerm* cv_term = cv.checkAndGetTermByName(fda.getName());
+    if (cv_term != nullptr && cv.isChildOf(cv_term->id, "MS:1002893")) // child of generic 'ion mobility array'?
     {
-      const auto& cv_term = cv.getTermByName(fda.getName()); // may throw if term is unknown
-
-      if (cv.isChildOf(cv_term.id, "MS:1002893")) // is child of generic 'ion mobility array'?
-      {
-        if (cv_term.units.contains("MS:1002814"))
-        { // MS:1002814 ! volt-second per square centimeter
-          unit = DriftTimeUnit::VSSC;
-        }
-        else if (cv_term.units.contains("UO:0000028"))
-        { // UO:0000028 ! millisecond
-          unit = DriftTimeUnit::MILLISECOND;
-        }
-        else if (cv_term.units.contains("UO:0000324"))
-        { // UO:0000324 ! square angstrom (CCS)
-          unit = DriftTimeUnit::CCS;
-        }
-        else
-        { // fallback
-          OPENMS_LOG_WARN << "Warning: FloatDataArray for IonMobility data '" << cv_term.id << " " << cv_term.name << "' does not contain proper units!" << std::endl;
-          unit = DriftTimeUnit::NONE;
-        }
-        return true;
+      if (cv_term->units.contains("MS:1002814"))
+      { // MS:1002814 ! volt-second per square centimeter
+        unit = DriftTimeUnit::VSSC;
       }
-    }
-    catch (...)
-    {
+      else if (cv_term->units.contains("UO:0000028"))
+      { // UO:0000028 ! millisecond
+        unit = DriftTimeUnit::MILLISECOND;
+      }
+      else if (cv_term->units.contains("UO:0000324"))
+      { // UO:0000324 ! square angstrom (CCS)
+        unit = DriftTimeUnit::CCS;
+      }
+      else
+      { // fallback
+        OPENMS_LOG_WARN << "Warning: FloatDataArray for IonMobility data '" << cv_term->id << " " << cv_term->name << "' does not contain proper units!" << std::endl;
+        unit = DriftTimeUnit::NONE;
+      }
+      return true;
     }
 
     // Fallbacks for non-standard / vendor UserParam names

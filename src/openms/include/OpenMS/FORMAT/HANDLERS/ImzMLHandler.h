@@ -126,7 +126,8 @@ namespace Internal
     // ------------------------------------------------------------------
     // IMS CV dispatch
     // ------------------------------------------------------------------
-    void handleIMSCvParam_(const std::string& acc, const std::string& name, const std::string& val);
+    void handleIMSCvParam_(const std::string& acc, const std::string& name, const std::string& val,
+                           const std::string& unit_accession = "");
     void applyRefGroup_   (const std::string& id);
 
     // ------------------------------------------------------------------
@@ -141,12 +142,15 @@ namespace Internal
       uint64_t offset { 0 };     ///< IMS:1000102 — byte offset
       uint64_t count  { 0 };     ///< IMS:1000103 — element count
       uint64_t encoded_bytes { 0 }; ///< IMS:1000104 — stored byte length (required for zlib)
-      bool     compressed { false }; ///< MS:1000574 — zlib compressed payload (unsupported: hard error)
+      /// True for any child of MS:1000572 other than MS:1000576 (zlib, numpress, …).
+      bool     compressed { false };
       /// PSI-MS accession of the array type (child of MS:1000513, or MS:1000786).
       std::string accession;
       /// Ontology / free-text array name matching MzMLHandler FloatDataArray naming:
       /// CV term name for MS:1000513 children, @c value for MS:1000786.
       std::string name;
+      /// unitAccession on the array-identity cvParam (copied to FloatDataArray as unit_accession).
+      std::string unit_accession;
 
       void reset() noexcept { *this = ArrayMeta{}; }
     };
@@ -161,6 +165,8 @@ namespace Internal
       ArrayMeta int_meta;
       /// Auxiliary external arrays (ion mobility, SNR, …) in document order.
       std::vector<ArrayMeta> aux_meta;
+      /// Non-external aux arrays seen while peaks come from the .ibd (warned and dropped).
+      std::vector<std::string> inline_aux_names;
     };
 
     // ------------------------------------------------------------------
@@ -179,16 +185,18 @@ namespace Internal
     ArrayMeta  cur_mz_meta_;
     ArrayMeta  cur_int_meta_;
     std::vector<ArrayMeta> cur_aux_metas_;
+    std::vector<std::string> cur_inline_aux_names_;
 
     std::vector<SpecIMS>             spec_ims_;  ///< IMS state per spectrum (document order)
     std::vector<ImzMLSpectrumIndex>  index_;     ///< Full index for OnDiscImzMLExperiment
 
-    /// A cvParam captured inside a referenceableParamGroup: accession, name, value.
+    /// A cvParam captured inside a referenceableParamGroup.
     struct CvEntry
     {
       std::string accession;
       std::string name;
       std::string value;
+      std::string unit_accession;
     };
     std::unordered_map<std::string, std::vector<CvEntry>> ref_groups_;
     std::string cur_ref_id_;
