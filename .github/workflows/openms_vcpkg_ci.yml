@@ -144,6 +144,16 @@ jobs:
             fi
           done
 
+      - name: Percolator sanity check
+        shell: bash
+        run: |
+          echo "--- percolator -h ---"
+          percolator -h
+          echo "exit: $?"
+          echo "--- env vars ---"
+          echo "PERCOLATOR_BINARY=${PERCOLATOR_BINARY:-<unset>}"
+          echo "PERCOLATOR_ADAPTER_BINARY=${PERCOLATOR_ADAPTER_BINARY:-<unset>}"
+
       - name: Select compiler
         shell: bash
         run: |
@@ -177,3 +187,11 @@ jobs:
           configurePreset: ${{ matrix.preset }}
           buildPreset: ${{ matrix.preset }}
           testPreset: ${{ matrix.preset }}
+      - name: Post percolator sanity check
+        if: always()
+        shell: bash
+        run: |
+          echo "--- env vars ---"
+          echo "PERCOLATOR_BINARY=${PERCOLATOR_BINARY:-<unset>}"
+          echo "PERCOLATOR_ADAPTER_BINARY=${PERCOLATOR_ADAPTER_BINARY:-<unset>}"
+          grep -i percolator "${{ github.workspace }}/build/${{ matrix.preset }}/CMakeCache.txt"
