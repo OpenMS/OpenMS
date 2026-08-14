@@ -1,5 +1,7 @@
---- /tmp/BandedMatrix.h.orig	2026-08-13 11:42:45.528391147 +0530
-+++ BSpline/BandedMatrix.h	2026-08-13 11:43:16.980538408 +0530
+diff --git a/BSpline/BandedMatrix.h b/BSpline/BandedMatrix.h
+index 97b75e0..2335900 100644
+--- a/BSpline/BandedMatrix.h
++++ b/BSpline/BandedMatrix.h
 @@ -23,6 +23,8 @@
  #include <vector>
  #include <algorithm>
