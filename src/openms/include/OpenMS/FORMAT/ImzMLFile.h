@@ -34,7 +34,14 @@ namespace OpenMS
     Data are split across two files on disk:
 
     - @c .imzML — XML metadata (mzML 1.1.0 schema + IMS CV terms)
-    - @c .ibd   — external m/z and intensity arrays
+    - @c .ibd   — external m/z, intensity, and optional auxiliary arrays
+      (e.g. PSI-MS @c MS:1003006 ion mobility → @c FloatDataArray)
+
+    After load, spectra that carry per-peak ion mobility expose it via
+    @p MSSpectrum::containsIMData() / @p getFloatDataArrays() — the same
+    contract used by mzML ion-mobility data and by viewers. Aux arrays must
+    match the peak count; mismatched lengths are skipped with a warning, as are
+    aux arrays without a supported binary data type.
 
     The @c .ibd path is derived from the @c .imzML path (same basename,
     extension replaced with @c .ibd, case-insensitive).
