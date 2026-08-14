@@ -118,13 +118,6 @@ jobs:
           git merge --no-edit bioconda/master
 
       # BUILD_ENV_IMAGE comes from the preflight in "Prepare output directory".
-      # Build failures are meant to fail these steps. The `|| true` both build
-      # commands used to carry worked around bioconda-utils misreporting
-      # successful --docker --pkg-dir builds as failures; that was fixed in
-      # bioconda-utils 3.5.0 (bioconda/bioconda-utils#838), which anything the
-      # unpinned install above resolves includes. The suppression only deferred
-      # real failures (e.g. the #9905 solver conflict) to a misleading "No
-      # packages found to upload!" in the upload step.
       - name: Lint and build OpenMS Bioconda packages
         run: |
           cd bioconda-recipes
