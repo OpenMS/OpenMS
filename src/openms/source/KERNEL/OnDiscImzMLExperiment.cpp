@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
@@ -34,7 +34,8 @@ struct OnDiscImzMLExperiment::Impl
   // the in-memory path. Built eagerly in open(): it is an in-memory O(n) pass over
   // the already-parsed index (no .ibd reads), negligible next to the XML parse open()
   // already performs — only peak decoding is worth deferring. Building it at open()
-  // also fails fast on a structurally broken coordinate grid (duplicate / <1 coords).
+  // also surfaces a structurally broken coordinate grid (duplicate / <1 coords) there;
+  // both are always warned about, never thrown.
   MSImagingGeometry geometry_;
 
   bool is_open_ {false};
@@ -231,7 +232,7 @@ void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::strin
   f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, ibd_path_override);
 
   // Build the 2D imaging geometry up front (in-memory pass over the index, no .ibd
-  // reads). Fails fast here on a broken coordinate grid; only peak decode stays lazy.
+  // reads). Coordinate-grid problems surface here; only peak decode stays lazy.
   pimpl_->buildGeometry_();
 
   pimpl_->ibd_path_ = ibd_path_override.empty() ? pimpl_->meta_.ibd_file_path : ibd_path_override;

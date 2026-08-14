@@ -146,6 +146,10 @@ PyOpenMS:
   - Fix: audit of all 108 nb::enum_ registrations against their C++ definitions found 4 enums with
     missing enumerators (NASequence::NASFragmentType, ProteomicsPkaScale, OSWHierarchy::Level,
     LPWrapper::SOLVER); existing bound values were unaffected (#9705)
+  - New src/pyOpenMS/THREAD_SAFETY.md documents the binding layer's thread-safety contract: releasing
+    the GIL around a call is not a thread-safety guarantee, the concurrency rules callers must follow,
+    an inventory of the 62 nb::gil_scoped_release sites, and how to avoid OpenMP oversubscription when
+    combining Python-level threading/multiprocessing with OpenMS' internal parallelism (#9792, #9857)
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720); backward
     compatibility restored for the file I/O methods of IdXMLFile, PepXMLFile and MzIdentMLFile (#8553);
     getAAFrequencies() loop bug in the AASequence addon (#8502)
@@ -943,6 +947,9 @@ Fixes:
     parsing instead of creating a separate indistinguishable group for each. Those spurious singleton groups
     made ProteinQuantifier discard shared peptides, quantifying most proteins in only one TMT plex (#8960,
     fixes #6038)
+  - Fix: imzML duplicate pixel coordinates no longer abort the load or store; they are reported as a warning
+    and only the first spectrum per pixel enters the imaging geometry, while every spectrum stays reachable
+    by index (#9903)
   - Fix: ChromatogramExtractor::prepare_coordinates (TargetedExperiment overload) honours the ms1_isotopes
     parameter again; a `&& false` guard introduced in 2018 silently disabled the isotope-coordinate block
     (#7284, #9270)
@@ -1014,6 +1021,11 @@ Documentation:
   - Parameter direction annotations (@param[in], @param[out], @param[in,out]) across 95+ headers (#8507)
   - AGENTS.md AI coding guidance added and improved (#8537, #8560, #8563)
   - Test creation documentation updated with a modern test file template (#8548)
+  - ExperimentalDesign: the class documentation now defines sample, fraction, fraction group,
+    label/channel and technical vs. biological replicate for newcomers, adds worked design
+    matrices for label-free, fractionated, TMT and SILAC experiments, documents the parser
+    rules and the "replicate" column-naming convention that determines what a condition is,
+    and maps the terms onto SDRF-Proteomics and QPX (#9909)
 
 Build System:
   - New multi-OS GitHub Actions workflows for build/test, installer and source packaging, publishing of
@@ -1038,6 +1050,8 @@ Build System:
   - CI: macOS notarization with timestamping integrated (#8486, #8494, #8527); the .pkg installer no longer
     packages the pyopenms extension modules, which were never signed and are shipped as wheels anyway
     (#9827)
+  - Windows installer: the NSIS "Installation Complete" page now links to a short, optional user survey,
+    to help gauge who is using OpenMS (#9769)
   - CI: the Docker image build fetches the Arrow APT source from packages.apache.org and appends Arrow's
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
@@ -1046,6 +1060,21 @@ Build System:
     apt pin the base stage applies before the same install, so a new upstream Arrow release (25.0.0)
     made the unpinned SONAME packages unresolvable and broke the nightly container build on arm64. The
     library stage now applies the identical pin (#9890, #9891)
+  - Fix: the Bioconda deploy workflow created its conda environment with a hardcoded python 3.12.
+    bioconda-utils ships for one python minor per release (4.2.0+ is python 3.13 only), so that pin
+    silently capped it at 4.1.0 and with it a conda-forge-pinning snapshot from 2024. That snapshot
+    pins xerces_c to 3.2, so libOpenMS was built against xerces-c 3.2.5 (icu 75) and exported a
+    `xerces-c >=3.2.5,<3.3.0a0` run constraint, which no longer co-installs with the icu 78 dependency
+    chains of current libarrow/libcurl -- the openms test environment became unsolvable and no nightly
+    package was published. The python pin is gone, so the nightly now tracks the current
+    bioconda-utils and the pinnings upstream bioconda actually builds against; the resolved tooling
+    versions are echoed into the log, and the build-env image follows the rolling `latest` tag, whose
+    publication lags a new bioconda-utils release (#9905)
+  - CI: the Bioconda deploy workflow no longer suppresses the exit code of its two `bioconda-utils build`
+    steps. The `|| true` dated from 2024, when bioconda-utils misreported successful `--docker --pkg-dir`
+    builds as failures; that was fixed upstream in bioconda-utils 3.5.0 (bioconda/bioconda-utils#838), so
+    the suppression only deferred real failures -- like the #9905 dependency conflict -- to a misleading
+    "No packages found to upload!" error two steps later. A failed build now fails its own step (#9905)
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)

@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -62,13 +62,17 @@ namespace Internal
       m/z and intensity ranges, metadata-only, sort-by-m/z) are applied to a
       temporary copy before export.
 
+      Spectra sharing a pixel coordinate are written out as-is with a warning, matching
+      what the reader accepts for the same dataset (readers map only the first spectrum
+      per pixel into the imaging geometry).
+
       @param[in] imzml_path Path to the output @c .imzML file.
       @param[in] exp        Experiment to store (must contain at least one spectrum).
       @param[in] options    Peak file options (filtering, sort, binary precision).
       @param[in] logger     Progress logger for status output.
 
       @throws Exception::MissingInformation if @p exp has no spectra or lacks imzml:x/y on any spectrum.
-      @throws Exception::InvalidValue if pixel coordinates are invalid or duplicate.
+      @throws Exception::InvalidValue if pixel coordinates are invalid.
       @throws Exception::InvalidParameter if continuous export is requested but spectra are incompatible.
       @throws Exception::UnableToCreateFile if output files cannot be written.
       @throws Exception::ParseError if binary array serialization fails.
