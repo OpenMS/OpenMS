@@ -122,13 +122,13 @@ jobs:
         run: |
           cd bioconda-recipes
           bioconda-utils lint --packages pyopenms openms-meta
-          bioconda-utils build --docker --pkg-dir $GITHUB_WORKSPACE/output --packages openms-meta || true
+          bioconda-utils build --docker --pkg-dir $GITHUB_WORKSPACE/output --packages openms-meta
           python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Build pyopenms package
         run: |
           cd bioconda-recipes
-          bioconda-utils build --docker --mulled-test --pkg-dir $GITHUB_WORKSPACE/output --packages pyopenms || true
+          bioconda-utils build --docker --mulled-test --pkg-dir $GITHUB_WORKSPACE/output --packages pyopenms
           python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Upload Conda packages
