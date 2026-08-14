@@ -33,8 +33,13 @@
 
   Known differences to the Qt tool (browser platform restrictions):
     - "Save" writes back to the opened file directly only in browsers with the
-      File System Access API (Chrome, Edge, Opera). Elsewhere "Save"/"Save As"
-      hand the file to the browser as a download.
+      File System Access API (Chrome, Edge, Opera). Safari and Firefox do not
+      implement it; there "Save"/"Save As" hand the edited file to the browser
+      as a download. To overwrite the original file, tell the browser to ask
+      for the download location (Safari: Settings > General > File download
+      location > "Ask for each download"; Firefox: Settings > General >
+      "Always ask you where to save files") and pick the original file in the
+      save dialog.
     - input file/output file/output dir parameters are edited as plain text:
       web pages cannot obtain real filesystem paths from a file-picker dialog.
     - string values are always stored in the ISO-8859-1 encoding declared in
@@ -1129,10 +1134,15 @@ if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
   }
   $('statMode').textContent = FS_API
     ? 'in-place saving available'
-    : 'this browser cannot write files in place - "Save" downloads a copy';
+    : '"Save" downloads a copy - enable "ask where to save" in the browser to overwrite the original (see ?)';
   $('helpSaveMode').textContent = FS_API
     ? 'Your browser supports the File System Access API: "Save" writes directly back to the opened file (the browser asks once for permission). "Save As" lets you pick a new location.'
-    : 'Your browser does not expose local file writing to web pages; "Save" and "Save As" hand the edited file to the browser as a download instead. Use Chrome/Edge/Opera for in-place saving.';
+    : 'Your browser does not expose local file writing to web pages, so "Save" and "Save As" hand the edited file to the browser as a download. '
+      + 'To overwrite the opened file directly, tell the browser to ask for the download location - '
+      + 'Safari: Settings → General → File download location → "Ask for each download"; '
+      + 'Firefox: Settings → General → Downloads → "Always ask you where to save files" - '
+      + 'then choose the original file in the save dialog and confirm overwriting. '
+      + 'For automatic in-place saving use a browser with the File System Access API (Chrome, Edge, Opera).';
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
