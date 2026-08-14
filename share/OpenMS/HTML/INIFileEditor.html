@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2002-present, OpenMS Inc. - - EKU Tuebingen, ETH Zurich, and FU Berlin
+  SPDX-License-Identifier: BSD-3-Clause
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  INIFileEditor (HTML edition) - a dependency-free, single-file web replacement
+  for the Qt-based INIFileEditor TOPP GUI tool.
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Open this file in any modern browser (double-click, or serve it). No network
+  access, no server and no external libraries are required; everything runs
+  locally in the browser. Files never leave your machine.
+
+  Feature parity with the Qt INIFileEditor / ParamEditor:
+    - loads OpenMS Param XML (".ini") files, presents them as an editable tree
+      with the columns "parameter", "value", "type" and "restrictions"
+    - type-aware value editors: drop-down for restricted strings, validated
+      line edits for int/double (same warning texts as the Qt version), list
+      editor dialogs for list parameters, checkbox chooser for restricted
+      string lists
+    - advanced parameters are hidden unless "Show advanced parameters" is
+      checked (checkbox is hidden if the file has no advanced parameters);
+      sections without visible children are hidden in normal mode
+    - documentation of the selected parameter is shown in the panel below the
+      tree; required parameters are highlighted; edited values are marked
+      yellow until saved; the page title carries a "*" while unsaved changes
+      exist and the browser warns before the page is closed
+    - Ctrl+O / Ctrl+S / Ctrl+Shift+S shortcuts, drag & drop to open
+    - "View as text" is the equivalent of "INIFileEditor -print <file>"
+    - saving writes the same bytes ParamXMLFile::store() would write
+      (verified by round-tripping the INI files of the OpenMS test suite)
+
+  Known differences to the Qt tool (browser platform restrictions):
+    - "Save" writes back to the opened file directly only in browsers with the
+      File System Access API (Chrome, Edge, Opera). Elsewhere "Save"/"Save As"
+      hand the file to the browser as a download.
+    - input file/output file/output dir parameters are edited as plain text:
+      web pages cannot obtain real filesystem paths from a file-picker dialog.
+    - string values are always stored in the ISO-8859-1 encoding declared in
+      the XML header; characters outside of it are written as XML character
+      references (the C++ writer would write mojibake bytes instead).
+    - string list elements containing ", " survive editing here (the Qt
+      ListEditor splits them on save).
+    - parameters tagged "output prefix" display their own type name instead of
+      "string", and their "supported_formats" attribute is preserved on save
+      (the C++ loader currently drops it).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>INIFileEditor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23205d9e'/%3E%3Cpath d='M3 5h7M12 5h1M3 8h2M7 8h6M3 11h9' stroke='%23fff' stroke-width='1.6' stroke-linecap='round'/%3E%3Ccircle cx='10.5' cy='5' r='1.6' fill='%23fff'/%3E%3Ccircle cx='5.5' cy='8' r='1.6' fill='%23fff'/%3E%3Ccircle cx='12.5' cy='11' r='1.6' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --border: #c9ced6;
+    --border-soft: #e3e6eb;
+    --text: #1c2430;
+    --text-dim: #707a87;         /* Qt::darkGray equivalent            */
+    --accent: #205d9e;           /* OpenMS-ish blue                    */
+    --accent-soft: #dce9f7;
+    --required: #ff8c00;         /* QColor(255,140,0) - required items */
+    --dirty: #ffef9c;            /* Qt::yellow-ish - edited cells      */
+    --dirty-text: #4a3f00;
+    --sel: #cfe2f8;
+    --danger: #b3261e;
+    --node-row: #eef1f5;
+    --shadow: 0 10px 30px rgba(15, 30, 50, .18);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181d;
+      --panel: #1d232b;
+      --border: #3a4450;
+      --border-soft: #2a323c;
+      --text: #e6eaf0;
+      --text-dim: #93a0b0;
+      --accent: #6aa5e0;
+      --accent-soft: #24384f;
+      --required: #ffa033;
+      --dirty: #665a12;
+      --dirty-text: #ffe98a;
+      --sel: #2a4a6e;
+      --danger: #ff7b72;
+      --node-row: #232b35;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .5);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font: 13px/1.45 system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- toolbar ---------- */
+  header {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex: none;
+  }
+  header .logo {
+    font-weight: 650; letter-spacing: .2px; margin-right: 8px;
+    color: var(--accent); white-space: nowrap; user-select: none;
+  }
+  header .filename {
+    margin-left: auto; color: var(--text-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    direction: rtl; text-align: left;   /* ellipsis on the left for long paths */
+  }
+  header .filename .star { color: var(--danger); font-weight: 700; }
+  button, .btn {
+    font: inherit;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.1); color: #fff; }
+  kbd {
+    font: 10px/1 ui-monospace, monospace; color: var(--text-dim);
+    border: 1px solid var(--border-soft); border-bottom-width: 2px;
+    border-radius: 3px; padding: 1px 3px; margin-left: 6px; vertical-align: 1px;
+  }
+
+  /* ---------- main layout: tree, doc panel, advanced row (same order as ParamEditor.ui) ---------- */
+  main { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 8px; gap: 8px; }
+  #treeWrap {
+    flex: 1; min-height: 0; overflow: auto;
+    background: var(--panel);
+    border: 1px solid var(--border); border-radius: 8px;
+    position: relative;
+  }
+  table#tree { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
+  #tree thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: var(--panel);
+    text-align: left; font-weight: 600;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #tree thead th .grip {
+    position: absolute; top: 0; right: -3px; width: 7px; height: 100%;
+    cursor: col-resize; z-index: 3;
+  }
+  #tree td {
+    padding: 3px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: pre-line;          /* list values render one element per line, like Qt */
+  }
+  #tree tbody tr { cursor: default; }
+  #tree tbody tr.selected td { background: var(--sel); }
+  #tree tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  #tree tr.node > td { background: var(--node-row); font-weight: 600; }
+  #tree tr.node.selected > td { background: var(--sel); }
+  #tree .dim  { color: var(--text-dim); }
+  #tree .req  { color: var(--required); }
+  #tree td.value { cursor: text; }
+  #tree td.value.dirty { background: var(--dirty); color: var(--dirty-text); }
+  #tree tr.selected td.value.dirty { background: var(--dirty); }
+  .twisty {
+    display: inline-block; width: 14px; flex: none;
+    color: var(--text-dim); cursor: pointer; user-select: none;
+    transition: transform .08s linear; transform-origin: 45% 50%;
+  }
+  .twisty.open { transform: rotate(90deg); }
+  .name-cell { display: flex; align-items: baseline; gap: 2px; min-width: 0; }
+  .name-cell .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* value editors */
+  #tree td.value input, #tree td.value select {
+    font: inherit; width: 100%;
+    padding: 1px 4px; margin: -2px 0;
+    border: 1px solid var(--accent); border-radius: 4px;
+    background: var(--panel); color: var(--text);
+  }
+  #empty {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    color: var(--text-dim); text-align: center; padding: 20px;
+  }
+  #empty .big { font-size: 15px; font-weight: 600; color: var(--text); }
+  body.dragover #treeWrap { outline: 2px dashed var(--accent); outline-offset: -6px; }
+
+  #docPanel {
+    flex: none; height: 75px; overflow: auto;         /* 75px, as in ParamEditor.ui */
+    background: var(--panel);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; color: var(--text);
+    white-space: pre-wrap;
+  }
+  #docPanel:empty::before { content: "Select a parameter to see its documentation."; color: var(--text-dim); }
+  #advancedRow { flex: none; display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+  #advancedRow.hidden { display: none; }
+  #advancedRow label { user-select: none; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- warnings bar ---------- */
+  #warnings {
+    flex: none; margin: 0 8px; padding: 6px 10px;
+    border: 1px solid var(--required); border-radius: 8px;
+    background: color-mix(in srgb, var(--required) 12%, var(--panel));
+    display: none; white-space: pre-wrap; max-height: 90px; overflow: auto;
+  }
+  #warnings.show { display: block; }
+  #warnings .dismiss { float: right; margin-left: 10px; }
+
+  /* ---------- dialogs ---------- */
+  dialog {
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--panel); color: var(--text);
+    box-shadow: var(--shadow);
+    padding: 0; max-width: min(640px, 92vw); width: 480px;
+  }
+  dialog::backdrop { background: rgba(10, 15, 25, .45); }
+  dialog .dlg-title {
+    padding: 10px 14px; font-weight: 650;
+    border-bottom: 1px solid var(--border-soft);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  dialog .dlg-body { padding: 12px 14px; max-height: 60vh; overflow: auto; }
+  dialog .dlg-buttons {
+    padding: 10px 14px; border-top: 1px solid var(--border-soft);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  #listRows { display: flex; flex-direction: column; gap: 6px; }
+  #listRows .row { display: flex; gap: 6px; align-items: center; }
+  #listRows input { flex: 1; font: inherit; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--text); }
+  #listRows input.invalid { border-color: var(--danger); }
+  #listRows .row button { padding: 3px 8px; }
+  #filterList { display: flex; flex-direction: column; gap: 4px; }
+  #filterList label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+  #msgDialog .dlg-body { white-space: pre-wrap; }
+  #textDialog { width: min(860px, 94vw); }
+  #textOut {
+    width: 100%; height: 50vh; font: 12px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    white-space: pre; overflow: auto;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border-soft); border-radius: 6px; padding: 8px;
+    user-select: text;
+  }
+  #helpDialog .dlg-body p { margin: 6px 0; }
+  #helpDialog .dlg-body h4 { margin: 12px 0 4px; }
+
+  footer {
+    flex: none; padding: 3px 10px; font-size: 12px;
+    color: var(--text-dim); background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex; gap: 14px;
+    overflow: hidden; white-space: nowrap;
+  }
+  footer .spacer { margin-left: auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo" title="OpenMS INIFileEditor">&#9881; INIFileEditor</span>
+  <button id="btnOpen" title="Open an INI file (Ctrl+O)">Open&#8230;<kbd>Ctrl+O</kbd></button>
+  <button id="btnSave" class="primary" title="Save (Ctrl+S)" disabled>Save<kbd>Ctrl+S</kbd></button>
+  <button id="btnSaveAs" title="Save under a new name (Ctrl+Shift+S)" disabled>Save As&#8230;</button>
+  <button id="btnPrint" title="Show the parameters as plain text (like 'INIFileEditor -print')" disabled>View as text</button>
+  <button id="btnHelp" title="About / help">?</button>
+  <span class="filename" id="fileLabel"></span>
+</header>
+
+<div id="warnings" role="alert"><button class="dismiss" id="btnDismissWarn">Dismiss</button><span id="warnText"></span></div>
+
+<main>
+  <div id="treeWrap">
+    <table id="tree" role="treegrid" aria-label="Parameters">
+      <colgroup>
+        <col id="col0" style="width:34%">
+        <col id="col1" style="width:26%">
+        <col id="col2" style="width:12%">
+        <col id="col3" style="width:28%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>parameter<span class="grip" data-col="0"></span></th>
+          <th>value<span class="grip" data-col="1"></span></th>
+          <th>type<span class="grip" data-col="2"></span></th>
+          <th>restrictions</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="empty">
+      <div class="big">No INI file loaded</div>
+      <div>Open an OpenMS parameter file (<code>*.ini</code>) or drop it anywhere on this page.<br>
+      Generate one with any TOPP tool: <code>ToolName -write_ini ToolName.ini</code></div>
+      <div><button id="btnOpen2" class="primary">Open&#8230;</button></div>
+    </div>
+  </div>
+  <div id="docPanel"></div>
+  <div id="advancedRow" class="hidden">
+    <label><input type="checkbox" id="advancedBox"> Show advanced parameters</label>
+  </div>
+</main>
+
+<footer>
+  <span id="statFile">no file</span>
+  <span id="statCounts"></span>
+  <span class="spacer"></span>
+  <span id="statMode"></span>
+</footer>
+
+<input type="file" id="fileInput" accept=".ini,application/xml,text/xml" hidden>
+
+<!-- message box (replaces QMessageBox) -->
+<dialog id="msgDialog">
+  <div class="dlg-title" id="msgTitle"></div>
+  <div class="dlg-body" id="msgBody"></div>
+  <div class="dlg-buttons" id="msgButtons"></div>
+</dialog>
+
+<!-- list editor (replaces ListEditor) -->
+<dialog id="listDialog">
+  <div class="dlg-title" id="listTitle"></div>
+  <div class="dlg-body">
+    <div id="listRows"></div>
+    <div style="margin-top:10px"><button id="listAdd">New entry</button></div>
+  </div>
+  <div class="dlg-buttons">
+    <button id="listCancel">Cancel</button>
+    <button id="listOk" class="primary">OK</button>
+  </div>
+</dialog>
+
+<!-- restricted string list chooser (replaces ListFilterDialog) -->
+<dialog id="filterDialog">
+  <div class="dlg-title" id="filterTitle"></div>
+  <div class="dlg-body"><div id="filterList"></div></div>
+  <div class="dlg-buttons">
+    <button id="filterCancel">Cancel</button>
+    <button id="filterOk" class="primary">OK</button>
+  </div>
+</dialog>
+
+<!-- text view ("INIFileEditor -print") -->
+<dialog id="textDialog">
+  <div class="dlg-title">Parameters as text</div>
+  <div class="dlg-body"><div id="textOut" tabindex="0"></div></div>
+  <div class="dlg-buttons">
+    <button id="textCopy">Copy</button>
+    <button id="textClose" class="primary">Close</button>
+  </div>
+</dialog>
+
+<dialog id="helpDialog">
+  <div class="dlg-title">INIFileEditor &mdash; An editor for OpenMS configuration files</div>
+  <div class="dlg-body">
+    <p>This is a single-file, offline HTML replacement for the Qt-based INIFileEditor.
+       It edits TOPP tool parameter files (Param XML, usually <code>*.ini</code>).</p>
+    <h4>Usage</h4>
+    <p>Values can be edited by double-clicking a row or pressing <b>F2</b> / <b>Enter</b>.
+       The documentation of each value is shown in the panel below the tree.
+       Use the arrow keys to navigate, <b>&#8592;</b>/<b>&#8594;</b> to collapse/expand sections.</p>
+    <p>Edited values are highlighted until the file is saved.
+       <span style="color:var(--required)">Orange</span> parameters are required.</p>
+    <h4>Saving</h4>
+    <p id="helpSaveMode"></p>
+    <h4>Privacy</h4>
+    <p>Everything runs locally in your browser; the file is never uploaded anywhere.</p>
+  </div>
+  <div class="dlg-buttons"><button id="helpClose" class="primary">Close</button></div>
+</dialog>
+
+<script>
+'use strict';
+
+/* =====================================================================
+ * ===== BEGIN OPENMS PARAM CORE =======================================
+ * =====================================================================
+ * Browser- and Node-compatible re-implementation of the OpenMS Param
+ * XML format (ParamXMLFile / ParamXMLHandler, schema version 1.8.0).
+ * Serialization reproduces ParamXMLFile::writeXMLToStream() byte for
+ * byte, including its number formatting (StringUtils::appendNumeric).
+ * No DOM APIs are used, so this block runs unchanged under Node for
+ * round-trip testing (see tools/test_INIFileEditor_html.mjs).
+ */
+const ParamCore = (() => {
+
+  const SCHEMA_VERSION = '1.8.0';
+  const HEADER =
+    '<?xml version="1.0" encoding="ISO-8859-1"?>\n' +
+    '<PARAMETERS version="' + SCHEMA_VERSION + '" xsi:noNamespaceSchemaLocation="https://raw.githubuserconten' +
+    't.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLS' +
+    'chema-instance">\n';
+
+  class ParamParseError extends Error {
+    constructor(message, line, col) {
+      super(line !== undefined ? `${message} (line ${line}${col !== undefined ? ', column ' + col : ''})` : message);
+      this.line = line; this.col = col;
+    }
+  }
+
+  /* ---------------- number handling ------------------------------- */
+
+  // StringUtils::toInt32-alike: optional whitespace, optional '-', digits.
+  // Returns the canonical decimal string (what std::to_string would print)
+  // or null if the string is not a valid integer.
+  function parseIntStrict(s) {
+    const m = /^[ \t\r\n]*(-?)([0-9]+)[ \t\r\n]*$/.exec(s);
+    if (!m) return null;
+    let digits = m[2].replace(/^0+(?=[0-9])/, '');
+    return (m[1] === '-' && digits !== '0') ? '-' + digits : digits;
+  }
+
+  // StringUtils::toDouble-alike (std::from_chars semantics: no leading '+',
+  // accepts inf/infinity/nan case-insensitively). Returns a JS number or null.
+  function parseDoubleStrict(s) {
+    const t = String(s).trim();
+    if (/^-?(inf(inity)?)$/i.test(t)) return t[0] === '-' ? -Infinity : Infinity;
+    if (/^-?nan$/i.test(t)) return NaN;
+    if (!/^-?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?$/.test(t)) return null;
+    return Number(t);
+  }
+
+  // Exact decimal digit extraction with round-half-even, matching C++
+  // std::to_chars / printf. (JS Number.toFixed/toPrecision round exact ties
+  // away from zero instead, so they cannot be used directly.)
+  // Returns the exact |d|*10^scale10, rounded half-to-even, as a BigInt.
+  function scaledRoundHalfEven(d, scale10) {
+    const dv = new DataView(new ArrayBuffer(8));
+    dv.setFloat64(0, Math.abs(d));
+    const bits = dv.getBigUint64(0);
+    const expBits = Number(bits >> 52n);
+    let m = bits & 0xFFFFFFFFFFFFFn;
+    let e2;
+    if (expBits === 0) { e2 = -1074n; }                  // subnormal
+    else { m |= 0x10000000000000n; e2 = BigInt(expBits) - 1075n; }
+    // exact value = m * 2^e2; compute round_half_even(m * 2^e2 * 10^scale10)
+    let num = m, den = 1n;
+    if (e2 >= 0n) num <<= e2; else den <<= -e2;
+    const s10 = BigInt(scale10);
+    if (s10 >= 0n) num *= 10n ** s10; else den *= 10n ** (-s10);
+    const q = num / den, r = num % den;
+    const twice = r * 2n;
+    if (twice > den || (twice === den && (q & 1n) === 1n)) return q + 1n;
+    return q;
+  }
+
+  // C++-compatible replacement for Number.toFixed(digits) (round half even).
+  function toFixedCxx(d, digits) {
+    const scaled = scaledRoundHalfEven(d, digits);
+    let s = scaled.toString().padStart(digits + 1, '0');
+    s = s.slice(0, -digits) + '.' + s.slice(-digits);
+    return (d < 0 || Object.is(d, -0)) && scaled !== 0n ? '-' + s : s;
+  }
+
+  // Exact `N` significant digits of |d| with round-half-even.
+  // Returns { digits, exp10 } with |d| ~= 0.<digits> * 10^(exp10+1),
+  // i.e. digits[0] is the 10^exp10 digit. d must be finite and non-zero.
+  function sigDigitsHalfEven(d, N) {
+    let exp10 = Math.floor(Math.log10(Math.abs(d)));     // estimate, then correct exactly
+    for (;;) {
+      const digs = scaledRoundHalfEven(d, N - 1 - exp10).toString();
+      if (digs.length === N + 1) { exp10++; continue; }  // rounded up to 10^N (e.g. 999.96 -> 1000)
+      if (digs.length < N) { exp10--; continue; }        // log10 estimate was one too high
+      return { digits: digs, exp10 };
+    }
+  }
+
+  // Mirror of StringUtils::appendNumeric<double>(value, target, 15, false):
+  // what ParamValue::toString()/StringUtils::toStr(double) produce - used for
+  // ITEM double values and double min/max restrictions. ("1.0", "0.05",
+  // "1.0e20", "1.5e-07", "NaN", "inf", "-inf")
+  function formatDoubleParamValue(d) {
+    if (Number.isNaN(d)) return 'NaN';
+    if (d === Infinity) return 'inf';
+    if (d === -Infinity) return '-inf';
+    if (Object.is(d, -0)) return '-0.0';
+    const abs = Math.abs(d);
+    if (abs !== 0 && (abs >= 1e4 || abs < 1e-2)) {
+      // shortest round-trip scientific representation
+      const [mantRaw, expRaw] = d.toExponential().split('e');
+      let mant = mantRaw.includes('.') ? mantRaw : mantRaw + '.0';
+      const negExp = expRaw[0] === '-';
+      let expDigits = expRaw.replace(/^[+-]/, '');
+      if (expDigits.length < 2) expDigits = '0' + expDigits;   // to_chars pads to >= 2 digits
+      return mant + 'e' + (negExp ? '-' : '') + expDigits;     // '+' is stripped by the C++ writer
+    }
+    let s = toFixedCxx(d, 15);
+    s = s.replace(/(\.[0-9]*?)0+$/, '$1');
+    if (s.endsWith('.')) s += '0';
+    if (!s.includes('.')) s += '.0';
+    return s;
+  }
+
+  // Mirror of `os << someDouble` with os.precision(15) (std::defaultfloat,
+  // i.e. printf %.15g) - used for the LISTITEM values of double lists.
+  // ("10", "0.05", "1e+20", "1.5e-07")
+  function formatDoubleStream(d) {
+    if (Number.isNaN(d)) return 'nan';
+    if (d === Infinity) return 'inf';
+    if (d === -Infinity) return '-inf';
+    if (d === 0) return Object.is(d, -0) ? '-0' : '0';
+    const neg = d < 0;
+    const { digits, exp10: exp } = sigDigitsHalfEven(d, 15);   // like %g: 15 significant digits
+    let out;
+    if (exp < -4 || exp >= 15) {                     // scientific branch of %g
+      const mantDigits = digits.replace(/0+$/, '') || '0';
+      out = mantDigits[0] + (mantDigits.length > 1 ? '.' + mantDigits.slice(1) : '');
+      const expAbs = String(Math.abs(exp)).padStart(2, '0');
+      out += 'e' + (exp < 0 ? '-' : '+') + expAbs;
+    } else if (exp >= 0) {                           // fixed branch of %g
+      const ip = digits.slice(0, exp + 1);
+      const fp = digits.slice(exp + 1).replace(/0+$/, '');
+      out = ip + (fp ? '.' + fp : '');
+    } else {
+      const fp = ('0'.repeat(-exp - 1) + digits).replace(/0+$/, '');
+      out = '0' + (fp ? '.' + fp : '');
+    }
+    return (neg ? '-' : '') + out;
+  }
+
+  /* ---------------- minimal XML scanner --------------------------- */
+  // Parses the subset of XML used by Param files: prolog, comments, PIs,
+  // elements + attributes. Text content is ignored (the SAX handler in
+  // OpenMS ignores it as well). Attribute values get the XML attribute-value
+  // normalization applied (literal tab/newline/CR become spaces, character
+  // references keep their value) and entities are decoded.
+  function parseXML(text) {
+    let pos = 0;
+    const n = text.length;
+    const lineAt = (p) => {
+      let line = 1, col = 1;
+      for (let i = 0; i < p && i < n; i++) {
+        if (text[i] === '\n') { line++; col = 1; } else col++;
+      }
+      return [line, col];
+    };
+    const fail = (msg, p = pos) => { const [l, c] = lineAt(p); throw new ParamParseError(msg, l, c); };
+
+    function decodeAttr(raw, atPos) {
+      // attribute-value normalization: whitespace chars -> space
+      let s = raw.replace(/[\t\n\r]/g, ' ');
+      return s.replace(/&([^;&]{0,32});|&/g, (m, ent, off) => {
+        if (ent === undefined) fail("unescaped '&' in attribute value", atPos);
+        if (ent === 'amp') return '&';
+        if (ent === 'lt') return '<';
+        if (ent === 'gt') return '>';
+        if (ent === 'quot') return '"';
+        if (ent === 'apos') return "'";
+        if (ent[0] === '#') {
+          const cp = ent[1] === 'x' || ent[1] === 'X' ? parseInt(ent.slice(2), 16) : parseInt(ent.slice(1), 10);
+          if (!Number.isFinite(cp) || cp < 0 || cp > 0x10FFFF) fail(`invalid character reference '&${ent};'`, atPos);
+          return String.fromCodePoint(cp);
+        }
+        fail(`unknown entity '&${ent};'`, atPos);
+      });
+    }
+
+    function skipMisc() {
+      for (;;) {
+        while (pos < n && /[\s]/.test(text[pos])) pos++;
+        if (text.startsWith('<!--', pos)) {
+          const end = text.indexOf('-->', pos + 4);
+          if (end < 0) fail('unterminated comment');
+          pos = end + 3;
+        } else if (text.startsWith('<?', pos)) {
+          const end = text.indexOf('?>', pos + 2);
+          if (end < 0) fail('unterminated processing instruction');
+          pos = end + 2;
+        } else if (text.startsWith('<!DOCTYPE', pos)) {
+          const end = text.indexOf('>', pos);
+          if (end < 0 || text.slice(pos, end).includes('[')) fail('unsupported DOCTYPE');
+          pos = end + 1;
+        } else break;
+      }
+    }
+
+    function parseElement() {
+      if (text[pos] !== '<') fail("expected '<'");
+      const startPos = pos;
+      pos++;
+      const nm = /^[A-Za-z_][A-Za-z0-9._:-]*/.exec(text.slice(pos, pos + 128));
+      if (!nm) fail('malformed element name');
+      const name = nm[0];
+      pos += name.length;
+      const attrs = new Map();
+      for (;;) {
+        while (pos < n && /\s/.test(text[pos])) pos++;
+        if (pos >= n) fail('unterminated start tag', startPos);
+        if (text[pos] === '>') { pos++; break; }
+        if (text.startsWith('/>', pos)) { pos += 2; return { name, attrs, children: [], pos: startPos }; }
+        const am = /^[A-Za-z_][A-Za-z0-9._:-]*/.exec(text.slice(pos, pos + 128));
+        if (!am) fail(`malformed attribute in <${name}>`);
+        const aname = am[0];
+        pos += aname.length;
+        while (pos < n && /\s/.test(text[pos])) pos++;
+        if (text[pos] !== '=') fail(`expected '=' after attribute '${aname}'`);
+        pos++;
+        while (pos < n && /\s/.test(text[pos])) pos++;
+        const q = text[pos];
+        if (q !== '"' && q !== "'") fail(`attribute '${aname}' value must be quoted`);
+        const vEnd = text.indexOf(q, pos + 1);
+        if (vEnd < 0) fail(`unterminated value of attribute '${aname}'`);
+        const raw = text.slice(pos + 1, vEnd);
+        if (raw.includes('<')) fail(`'<' not allowed in value of attribute '${aname}'`);
+        if (attrs.has(aname)) fail(`duplicate attribute '${aname}' in <${name}>`);
+        attrs.set(aname, decodeAttr(raw, pos));
+        pos = vEnd + 1;
+      }
+      // parse content
+      const children = [];
+      for (;;) {
+        // skip character data / comments / PIs / CDATA (ignored, like the SAX handler)
+        for (;;) {
+          const lt = text.indexOf('<', pos);
+          if (lt < 0) fail(`missing closing tag </${name}>`, startPos);
+          pos = lt;
+          if (text.startsWith('<!--', pos)) {
+            const end = text.indexOf('-->', pos + 4);
+            if (end < 0) fail('unterminated comment');
+            pos = end + 3;
+          } else if (text.startsWith('<![CDATA[', pos)) {
+            const end = text.indexOf(']]>', pos + 9);
+            if (end < 0) fail('unterminated CDATA section');
+            pos = end + 3;
+          } else if (text.startsWith('<?', pos)) {
+            const end = text.indexOf('?>', pos + 2);
+            if (end < 0) fail('unterminated processing instruction');
+            pos = end + 2;
+          } else break;
+        }
+        if (text.startsWith('</', pos)) {
+          const m = /^<\/\s*([A-Za-z_][A-Za-z0-9._:-]*)\s*>/.exec(text.slice(pos, pos + 160));
+          if (!m) fail('malformed closing tag');
+          if (m[1] !== name) fail(`mismatched closing tag </${m[1]}>, expected </${name}>`);
+          pos += m[0].length;
+          return { name, attrs, children, pos: startPos };
+        }
+        children.push(parseElement());
+      }
+    }
+
+    skipMisc();
+    if (pos >= n) fail('empty document');
+    const root = parseElement();
+    skipMisc();
+    if (pos < n) fail('content after root element');
+    return { root, lineAt };
+  }
+
+  /* ---------------- Param model ------------------------------------ */
+  // node: { kind:'node', name, description, children:[node|item...] }
+  // item: { kind:'item', name, description, tags:[...],
+  //         valueType:'int'|'double'|'string', isList:false, value:string,
+  //         minInt/maxInt (canonical int strings or null),
+  //         minFloat/maxFloat (numbers or null), validStrings:[...] }
+  // list item: same, isList:true, value:[...string] (double lists keep numbers)
+
+  function makeItem(name, description, tags) {
+    return {
+      kind: 'item', name, description, tags,
+      valueType: 'string', isList: false, value: '',
+      minInt: null, maxInt: null, minFloat: null, maxFloat: null,
+      validStrings: [],
+    };
+  }
+
+  const splitNoTrim = (s, sep) => s === '' ? [] : s.split(sep);
+
+  function compareVersion(a, b) {  // "1.8.0"-style triplets
+    const pa = a.split('.').map(x => parseInt(x, 10) || 0);
+    const pb = b.split('.').map(x => parseInt(x, 10) || 0);
+    for (let i = 0; i < 3; i++) {
+      if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+    }
+    return 0;
+  }
+
+  // Parse the content of a .ini file into the model.
+  // Returns { root: {kind:'root', children}, warnings: [..], version }
+  function parseParam(text) {
+    const { root: xroot } = parseXML(text);
+    const warnings = [];
+    if (xroot.name !== 'PARAMETERS') {
+      throw new ParamParseError(`root element is <${xroot.name}>, expected <PARAMETERS> - not an OpenMS parameter file`);
+    }
+    const version = xroot.attrs.get('version') || '1.0';
+    if (compareVersion(version, SCHEMA_VERSION) > 0) {
+      warnings.push(`The file (version ${version}) is newer than this editor (version ${SCHEMA_VERSION}). This might lead to undefined behavior.`);
+    }
+
+    const attrOrFail = (el, a) => {
+      if (!el.attrs.has(a)) throw new ParamParseError(`<${el.name}> is missing the required attribute '${a}'`);
+      return el.attrs.get(a);
+    };
+    const decodeDesc = (s) => (s || '').split('#br#').join('\n');
+
+    function readTags(el) {
+      const tags = splitNoTrim(el.attrs.get('tags') || '', ',');
+      if (el.attrs.get('advanced') === 'true') tags.push('advanced');
+      if (el.attrs.get('required') === 'true') tags.push('required');
+      return tags;
+    }
+
+    function applyNumericRestrictions(item, val, isInt) {
+      let parts = val.split(':');
+      if (parts.length !== 2) parts = val.split('-');   // pre-1.4 compatibility
+      if (parts.length === 2) {
+        const [lo, hi] = parts;
+        if (isInt) {
+          if (lo !== '') item.minInt = parseIntStrict(lo);
+          if (hi !== '') item.maxInt = parseIntStrict(hi);
+          if ((lo !== '' && item.minInt === null) || (hi !== '' && item.maxInt === null)) {
+            warnings.push(`Ignoring malformed numeric restrictions '${val}' of '${item.name}'.`);
+            item.minInt = item.maxInt = null;
+          }
+        } else {
+          if (lo !== '') item.minFloat = parseDoubleStrict(lo);
+          if (hi !== '') item.maxFloat = parseDoubleStrict(hi);
+          if ((lo !== '' && item.minFloat === null) || (hi !== '' && item.maxFloat === null)) {
+            warnings.push(`Ignoring malformed numeric restrictions '${val}' of '${item.name}'.`);
+            item.minFloat = item.maxFloat = null;
+          }
+        }
+      } else {
+        warnings.push(`ITEM ${item.name} has an empty restrictions attribute.`);
+      }
+    }
+
+    function readItem(el, path) {
+      const type = attrOrFail(el, 'type');
+      const name = attrOrFail(el, 'name');
+      const value = attrOrFail(el, 'value');
+      const item = makeItem(name, decodeDesc(el.attrs.get('description')), readTags(el));
+      const fullName = path + name;
+
+      if (type === 'int') {
+        item.valueType = 'int';
+        const canon = parseIntStrict(value);
+        if (canon === null) throw new ParamParseError(`Int conversion error of "${value}" (parameter '${fullName}')`);
+        item.value = canon;
+      } else if (type === 'bool' || type === 'string' || type === 'input-file' || type === 'output-file' || type === 'output-prefix') {
+        item.valueType = 'string';
+        item.value = value;
+        if (type === 'input-file') item.tags.push('input file');
+        else if (type === 'output-file') item.tags.push('output file');
+        else if (type === 'output-prefix') item.tags.push('output prefix');
+      } else if (type === 'float' || type === 'double') {
+        item.valueType = 'double';
+        const num = parseDoubleStrict(value);
+        if (num === null) throw new ParamParseError(`Double conversion error of "${value}" (parameter '${fullName}')`);
+        item.value = num;
+      } else {
+        warnings.push(`Ignoring entry '${fullName}' because of unknown type '${type}'`);
+        return null;
+      }
+
+      // restrictions; bool implies true/false
+      if (type === 'bool') {
+        item.validStrings = ['true', 'false'];
+      } else if (el.attrs.has('restrictions')) {
+        const val = el.attrs.get('restrictions');
+        if (type === 'int') applyNumericRestrictions(item, val, true);
+        else if (type === 'float' || type === 'double') applyNumericRestrictions(item, val, false);
+        else if (type === 'string') item.validStrings = splitNoTrim(val, ',');
+      }
+      // supported_formats overrides restrictions for file parameters
+      const fileTag = item.tags.includes('input file') || item.tags.includes('output file') || item.tags.includes('output prefix');
+      if (fileTag && el.attrs.has('supported_formats')) {
+        item.validStrings = splitNoTrim(el.attrs.get('supported_formats'), ',');
+      }
+      return item;
+    }
+
+    function readItemList(el, path) {
+      let type = attrOrFail(el, 'type');
+      const name = attrOrFail(el, 'name');
+      const item = makeItem(name, decodeDesc(el.attrs.get('description')), readTags(el));
+      item.isList = true;
+      const fullName = path + name;
+      if (type === 'input-file') { type = 'string'; item.tags.push('input file'); }
+      else if (type === 'output-file') { type = 'string'; item.tags.push('output file'); }
+
+      if (type !== 'string' && type !== 'int' && type !== 'float' && type !== 'double') {
+        warnings.push(`Ignoring list entry '${fullName}' because of unknown type '${type}'`);
+        return null;
+      }
+      item.valueType = type === 'string' ? 'string' : (type === 'int' ? 'int' : 'double');
+      item.value = [];
+      for (const c of el.children) {
+        if (c.name !== 'LISTITEM') { warnings.push(`Ignoring unexpected element <${c.name}> in ITEMLIST '${fullName}'`); continue; }
+        const v = attrOrFail(c, 'value');
+        if (item.valueType === 'int') {
+          const canon = parseIntStrict(v);
+          if (canon === null) throw new ParamParseError(`Int conversion error of "${v}" (list '${fullName}')`);
+          item.value.push(canon);
+        } else if (item.valueType === 'double') {
+          const num = parseDoubleStrict(v);
+          if (num === null) throw new ParamParseError(`Double conversion error of "${v}" (list '${fullName}')`);
+          item.value.push(num);
+        } else {
+          item.value.push(v);
+        }
+      }
+      // restrictions / supported_formats
+      let restr = el.attrs.has('restrictions') ? el.attrs.get('restrictions') : null;
+      if ((item.tags.includes('input file') || item.tags.includes('output file')) && el.attrs.has('supported_formats')) {
+        restr = el.attrs.get('supported_formats');
+      }
+      if (restr !== null) {
+        if (item.valueType === 'string') item.validStrings = splitNoTrim(restr, ',');
+        else applyNumericRestrictions(item, restr, item.valueType === 'int');
+      }
+      return item;
+    }
+
+    function readNode(el, path) {
+      const node = { kind: 'node', name: attrOrFail(el, 'name'), description: decodeDesc(el.attrs.get('description')), children: [] };
+      const subPath = path + node.name + ':';
+      for (const c of el.children) {
+        let child = null;
+        if (c.name === 'NODE') child = readNode(c, subPath);
+        else if (c.name === 'ITEM') child = readItem(c, subPath);
+        else if (c.name === 'ITEMLIST') child = readItemList(c, subPath);
+        else warnings.push(`Ignoring unknown element <${c.name}>`);
+        if (child) node.children.push(child);
+      }
+      return node;
+    }
+
+    const root = { kind: 'root', name: '', description: '', children: [] };
+    for (const c of xroot.children) {
+      let child = null;
+      if (c.name === 'NODE') child = readNode(c, '');
+      else if (c.name === 'ITEM') child = readItem(c, '');
+      else if (c.name === 'ITEMLIST') child = readItemList(c, '');
+      else warnings.push(`Ignoring unknown element <${c.name}>`);
+      if (child) root.children.push(child);
+    }
+    normalizeNode(root);
+    return { root, warnings, version };
+  }
+
+  // Mirror the Param data structure: within a node all entries come before the
+  // child sections (ParamIterator visits subnodes after entries), duplicate
+  // sibling sections are merged (Param::addSection) and a duplicate item
+  // overwrites the earlier one in place (Param::setValue).
+  function normalizeNode(node) {
+    const itemByName = new Map(), nodeByName = new Map();
+    const items = [], nodes = [];
+    for (const c of node.children) {
+      if (c.kind === 'item') {
+        if (itemByName.has(c.name)) items[items.indexOf(itemByName.get(c.name))] = c;
+        else items.push(c);
+        itemByName.set(c.name, c);
+      } else {
+        const prev = nodeByName.get(c.name);
+        if (prev) {
+          prev.children.push(...c.children);
+          if (c.description !== '') prev.description = c.description;
+        } else {
+          nodeByName.set(c.name, c);
+          nodes.push(c);
+        }
+      }
+    }
+    node.children = [...items, ...nodes];
+    for (const n of nodes) normalizeNode(n);
+  }
+
+  /* ---------------- serialization ---------------------------------- */
+
+  // XMLHandler::writeXMLEscape
+  function xmlEscape(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/'/g, '&apos;');
+  }
+  // Internal::encodeTab; newlines/CR additionally become character references
+  // (they would otherwise be corrupted to spaces on reload - the C++ writer
+  // has the same flaw and writes them raw).
+  function encodeTab(s) {
+    return s.replace(/\t/g, '&#x9;').replace(/\n/g, '&#xA;').replace(/\r/g, '&#xD;');
+  }
+  const encodeDesc = (s) => xmlEscape(s.split('\n').join('#br#'));
+
+  function subtreeHasItem(n) {
+    if (n.kind === 'item') return true;
+    return n.children.some(subtreeHasItem);
+  }
+
+  function intRestrictionString(item) {
+    if (item.minInt === null && item.maxInt === null) return '';
+    return (item.minInt !== null ? item.minInt : '') + ':' + (item.maxInt !== null ? item.maxInt : '');
+  }
+  function floatRestrictionString(item) {
+    if (item.minFloat === null && item.maxFloat === null) return '';
+    return (item.minFloat !== null ? formatDoubleParamValue(item.minFloat) : '') + ':'
+         + (item.maxFloat !== null ? formatDoubleParamValue(item.maxFloat) : '');
+  }
+
+  function serializeParam(root) {
+    let out = HEADER;
+    let indent = '  ';
+
+    function writeItem(item) {
+      const tagSet = new Set(item.tags);
+      let boolFlag = false;
+      let open;
+      if (!item.isList) {
+        if (item.valueType === 'int') {
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${item.value}" type="int"`;
+        } else if (item.valueType === 'double') {
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${formatDoubleParamValue(item.value)}" type="double"`;
+        } else if (tagSet.has('input file')) {
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${xmlEscape(item.value)}" type="input-file"`;
+          tagSet.delete('input file');
+        } else if (tagSet.has('output file')) {
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${xmlEscape(item.value)}" type="output-file"`;
+          tagSet.delete('output file');
+        } else if (tagSet.has('output prefix')) {
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${xmlEscape(item.value)}" type="output-prefix"`;
+          tagSet.delete('output prefix');
+        } else if (item.validStrings.length === 2 && item.validStrings[0] === 'true'
+                   && item.validStrings[1] === 'false' && item.value === 'false') {
+          boolFlag = true;
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${encodeTab(xmlEscape(item.value))}" type="bool"`;
+        } else {
+          open = `<ITEM name="${xmlEscape(item.name)}" value="${encodeTab(xmlEscape(item.value))}" type="string"`;
+        }
+      } else {
+        if (item.valueType === 'string') {
+          if (tagSet.has('input file')) { open = `<ITEMLIST name="${xmlEscape(item.name)}" type="input-file"`; tagSet.delete('input file'); }
+          else if (tagSet.has('output file')) { open = `<ITEMLIST name="${xmlEscape(item.name)}" type="output-file"`; tagSet.delete('output file'); }
+          else open = `<ITEMLIST name="${xmlEscape(item.name)}" type="string"`;
+        } else {
+          open = `<ITEMLIST name="${xmlEscape(item.name)}" type="${item.valueType === 'int' ? 'int' : 'double'}"`;
+        }
+      }
+
+      open += ` description="${encodeDesc(item.description)}"`;
+      open += tagSet.delete('required') ? ' required="true"' : ' required="false"';
+      open += tagSet.delete('advanced') ? ' advanced="true"' : ' advanced="false"';
+      if (tagSet.size > 0) {
+        open += ` tags="${xmlEscape([...tagSet].sort().join(','))}"`;   // std::set iterates sorted
+      }
+      if (!boolFlag) {
+        let restrictions = '';
+        if (item.valueType === 'int') restrictions = intRestrictionString(item);
+        else if (item.valueType === 'double') restrictions = floatRestrictionString(item);
+        else restrictions = item.validStrings.join(',');
+        if (restrictions !== '') {
+          const fileTag = item.tags.includes('input file') || item.tags.includes('output file') || item.tags.includes('output prefix');
+          open += ` ${fileTag ? 'supported_formats' : 'restrictions'}="${xmlEscape(restrictions)}"`;
+        }
+      }
+
+      if (!item.isList) {
+        out += indent + open + ' />\n';
+      } else {
+        out += indent + open + '>\n';
+        for (const v of item.value) {
+          const text = item.valueType === 'double' ? formatDoubleStream(v)
+                     : item.valueType === 'int' ? v
+                     : encodeTab(xmlEscape(v));
+          out += indent + `  <LISTITEM value="${text}"/>\n`;
+        }
+        out += indent + '</ITEMLIST>\n';
+      }
+    }
+
+    function writeNode(node) {
+      if (!subtreeHasItem(node)) return;   // ParamIterator never visits empty sections
+      out += indent + `<NODE name="${xmlEscape(node.name)}" description="${encodeDesc(node.description)}">\n`;
+      indent += '  ';
+      for (const c of node.children) {
+        if (c.kind === 'item') writeItem(c); else writeNode(c);
+      }
+      indent = indent.slice(0, -2);
+      out += indent + '</NODE>\n';
+    }
+
+    for (const c of root.children) {
+      if (c.kind === 'item') writeItem(c); else writeNode(c);
+    }
+    out += '</PARAMETERS>\n';
+    return out;
+  }
+
+  /* ---------------- text view ("-print") --------------------------- */
+  function printText(root) {
+    const lines = [];
+    (function walk(n, path) {
+      for (const c of n.children) {
+        if (c.kind === 'node') { walk(c, path + c.name + ':'); continue; }
+        let v;
+        if (c.isList) {
+          v = '[' + c.value.map(x => c.valueType === 'double' ? formatDoubleParamValue(x) : x).join(', ') + ']';
+        } else {
+          v = c.valueType === 'double' ? formatDoubleParamValue(c.value) : c.value;
+        }
+        lines.push(path + c.name + ' = ' + v);
+      }
+    })(root, '');
+    return lines.join('\n');
+  }
+
+  /* ---------------- bytes <-> text --------------------------------- */
+  // Param files declare ISO-8859-1. Decode according to the XML declaration
+  // (sniffed from the ASCII-compatible prefix), default ISO-8859-1.
+  // NB: TextDecoder('iso-8859-1') decodes windows-1252 (a WHATWG quirk),
+  // which maps bytes 0x80-0x9F differently from real Latin-1 - Xerces uses
+  // real Latin-1, so those labels are decoded by identity here.
+  function decodeBytes(bytes) {
+    let prefix = '';
+    for (let i = 0; i < Math.min(bytes.length, 200); i++) prefix += String.fromCharCode(bytes[i]);
+    let enc = 'iso-8859-1';
+    const m = /<\?xml[^>]*encoding\s*=\s*["']([A-Za-z0-9._-]+)["']/.exec(prefix);
+    if (m) enc = m[1].toLowerCase();
+    if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) enc = 'utf-8';
+    if (/^(iso[-_]?8859[-_]?1|latin-?1|l1|ascii|us-ascii|ansi_x3\.4-1968)$/.test(enc)) {
+      let s = '';
+      for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+      return s;
+    }
+    try {
+      return new TextDecoder(enc).decode(bytes);
+    } catch {
+      let s = '';
+      for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+      return s;
+    }
+  }
+  // Encode as ISO-8859-1 (the declared encoding); characters > 0xFF become
+  // XML character references (they can only occur inside attribute values).
+  function encodeBytes(text) {
+    const chunks = [];
+    let buf = new Uint8Array(Math.min(text.length + 64, 1 << 20));
+    let k = 0;
+    const push = (code) => {
+      if (k === buf.length) { chunks.push(buf); buf = new Uint8Array(buf.length); k = 0; }
+      buf[k++] = code;
+    };
+    for (const ch of text) {
+      const cp = ch.codePointAt(0);
+      if (cp <= 0xFF) push(cp);
+      else for (const c of `&#x${cp.toString(16).toUpperCase()};`) push(c.charCodeAt(0));
+    }
+    chunks.push(buf.subarray(0, k));
+    if (chunks.length === 1) return chunks[0];
+    const total = chunks.reduce((s, c) => s + c.length, 0);
+    const outBytes = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) { outBytes.set(c, off); off += c.length; }
+    return outBytes;
+  }
+
+  return {
+    SCHEMA_VERSION, ParamParseError,
+    parseParam, serializeParam, printText,
+    decodeBytes, encodeBytes,
+    parseIntStrict, parseDoubleStrict,
+    formatDoubleParamValue, formatDoubleStream,
+  };
+})();
+/* =====================================================================
+ * ===== END OPENMS PARAM CORE =========================================
+ * ===================================================================== */
+
+/* eslint-disable-next-line no-unused-vars */
+if (typeof window !== 'undefined') window.OpenMSParam = ParamCore;
+
+/* =====================================================================
+ * UI - replicates ParamEditor / INIFileEditorWindow behavior
+ * ===================================================================== */
+(() => {
+  if (typeof document === 'undefined') return;   // running under Node (tests): UI not needed
+
+  const $ = (id) => document.getElementById(id);
+  const rowsEl = $('rows'), docPanel = $('docPanel');
+
+  /* ---------------- application state ---------------- */
+  const state = {
+    model: null,          // ParamCore model root
+    fileName: '',         // basename shown in the title
+    fileHandle: null,     // FileSystemFileHandle when opened via FS Access API
+    modified: false,
+    advanced: false,
+    selected: null,       // row record
+    rows: [],             // flat list of row records: {entry, parent, depth, tr, kind, expanded, dirty}
+  };
+  const FS_API = 'showOpenFilePicker' in window;
+
+  /* ---------------- title / footer ---------------- */
+  function updateTitle() {
+    // INIFileEditorWindow::updateWindowTitle
+    if (state.fileName) {
+      document.title = state.fileName + (state.modified ? ' * ' : ' ') + '- INIFileEditor';
+      $('fileLabel').innerHTML = (state.modified ? '<span class="star">*&nbsp;</span>' : '') + escapeHtml(state.fileName);
+      $('statFile').textContent = state.fileName;
+    } else {
+      document.title = 'INIFileEditor';
+      $('fileLabel').textContent = '';
+      $('statFile').textContent = 'no file';
+    }
+    $('btnSave').disabled = $('btnSaveAs').disabled = $('btnPrint').disabled = !state.model;
+  }
+  function setModified(m) {
+    if (state.modified !== m) { state.modified = m; updateTitle(); }
+  }
+  $('statMode').textContent = FS_API
+    ? 'in-place saving available'
+    : 'this browser cannot write files in place - "Save" downloads a copy';
+  $('helpSaveMode').textContent = FS_API
+    ? 'Your browser supports the File System Access API: "Save" writes directly back to the opened file (the browser asks once for permission). "Save As" lets you pick a new location.'
+    : 'Your browser does not expose local file writing to web pages; "Save" and "Save As" hand the edited file to the browser as a download instead. Use Chrome/Edge/Opera for in-place saving.';
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  /* ---------------- message boxes ---------------- */
+  function messageBox(title, text, buttons = ['OK']) {
+    return new Promise((resolve) => {
+      $('msgTitle').textContent = title;
+      $('msgBody').textContent = text;
+      const bb = $('msgButtons');
+      bb.innerHTML = '';
+      for (const b of buttons) {
+        const btn = document.createElement('button');
+        btn.textContent = b;
+        if (b === buttons[buttons.length - 1]) btn.classList.add('primary');
+        btn.addEventListener('click', () => { $('msgDialog').close(); resolve(b); });
+        bb.appendChild(btn);
+      }
+      $('msgDialog').showModal();
+    });
+  }
+
+  /* ---------------- warnings bar ---------------- */
+  function showWarnings(list) {
+    if (!list.length) { $('warnings').classList.remove('show'); return; }
+    $('warnText').textContent = list.join('\n');
+    $('warnings').classList.add('show');
+  }
+  $('btnDismissWarn').addEventListener('click', () => $('warnings').classList.remove('show'));
+
+  /* ---------------- type/restriction display (ParamEditor::load) ---------------- */
+  function displayType(item) {
+    if (!item.isList) {
+      if (item.valueType === 'int') return 'int';
+      if (item.valueType === 'double') return 'float';
+      if (item.tags.includes('input file')) return 'input file';
+      if (item.tags.includes('output file')) return 'output file';
+      if (item.tags.includes('output dir')) return 'output dir';
+      if (item.tags.includes('output prefix')) return 'output prefix';
+      return 'string';
+    }
+    if (item.valueType === 'int') return 'int list';
+    if (item.valueType === 'double') return 'double list';
+    if (item.tags.includes('input file')) return 'input file list';
+    if (item.tags.includes('output file')) return 'output file list';
+    return 'string list';
+  }
+  function displayRestrictions(item) {
+    if (item.valueType === 'int') {
+      const p = [];
+      if (item.minInt !== null) p.push('min: ' + item.minInt);
+      if (item.maxInt !== null) p.push('max: ' + item.maxInt);
+      return p.join(' ');
+    }
+    if (item.valueType === 'double') {
+      const p = [];
+      if (item.minFloat !== null) p.push('min: ' + ParamCore.formatDoubleParamValue(item.minFloat));
+      if (item.maxFloat !== null) p.push('max: ' + ParamCore.formatDoubleParamValue(item.maxFloat));
+      return p.join(' ');
+    }
+    return item.validStrings.join(',');
+  }
+  function displayValue(item) {
+    if (!item.isList) {
+      return item.valueType === 'double' ? ParamCore.formatDoubleParamValue(item.value) : item.value;
+    }
+    return '[' + item.value.map(v => item.valueType === 'double' ? ParamCore.formatDoubleParamValue(v) : v).join(',\n') + ']';
+  }
+
+  /* ---------------- tree rendering ---------------- */
+  function rebuildTree() {
+    rowsEl.innerHTML = '';
+    state.rows = [];
+    state.selected = null;
+    docPanel.textContent = '';
+    let hasAdvanced = false;
+    let nItems = 0, nSections = 0;
+
+    function addRow(entry, parent, depth) {
+      const rec = { entry, parent, depth, kind: entry.kind, expanded: true, tr: null, dirty: false };
+      const tr = document.createElement('tr');
+      rec.tr = tr;
+      tr.tabIndex = -1;
+      tr.dataset.idx = state.rows.length;
+      const isNode = entry.kind === 'node';
+      const isReq = !isNode && entry.tags.includes('required');
+      if (isNode) tr.classList.add('node');
+      tr.setAttribute('role', 'row');
+      tr.setAttribute('aria-level', depth + 1);
+
+      const tdName = document.createElement('td');
+      const wrap = document.createElement('div');
+      wrap.className = 'name-cell';
+      wrap.style.paddingLeft = (depth * 16) + 'px';
+      const tw = document.createElement('span');
+      tw.className = 'twisty' + (isNode ? ' open' : '');
+      tw.textContent = isNode ? '▸' : '';
+      wrap.appendChild(tw);
+      const nm = document.createElement('span');
+      nm.className = 'nm ' + (isNode ? 'dim' : (isReq ? 'req' : 'dim'));
+      nm.textContent = entry.name;
+      nm.title = entry.name;
+      wrap.appendChild(nm);
+      tdName.appendChild(wrap);
+      tr.appendChild(tdName);
+
+      const tdVal = document.createElement('td');
+      tdVal.className = 'value';
+      const tdType = document.createElement('td');
+      const tdRestr = document.createElement('td');
+      if (!isNode) {
+        tdVal.textContent = displayValue(entry);
+        tdType.textContent = displayType(entry);
+        const restr = displayRestrictions(entry);
+        tdRestr.textContent = restr;
+        tdRestr.title = restr;
+        tdType.className = tdRestr.className = isReq ? 'req' : 'dim';
+        if (entry.tags.includes('advanced')) hasAdvanced = true;
+        nItems++;
+      } else {
+        nSections++;
+      }
+      tr.appendChild(tdVal); tr.appendChild(tdType); tr.appendChild(tdRestr);
+
+      tr.addEventListener('click', () => selectRow(rec));
+      tr.addEventListener('dblclick', () => { selectRow(rec); startEdit(rec); });
+      tw.addEventListener('click', (e) => { e.stopPropagation(); if (isNode) toggleExpand(rec); });
+
+      rowsEl.appendChild(tr);
+      state.rows.push(rec);
+      if (isNode) for (const c of entry.children) addRow(c, rec, depth + 1);
+      return rec;
+    }
+
+    if (state.model) for (const c of state.model.children) addRow(c, null, 0);
+
+    $('empty').style.display = state.model ? 'none' : '';
+    $('advancedRow').classList.toggle('hidden', !hasAdvanced);   // ParamEditor hides the checkbox without advanced params
+    $('statCounts').textContent = state.model ? `${nItems} parameters in ${nSections} sections` : '';
+    applyVisibility();
+  }
+
+  // ParamEditor::toggleAdvancedMode + expand/collapse states
+  function applyVisibility() {
+    const advanced = state.advanced;
+    // pass 1: advanced filter + collapse state
+    for (const rec of state.rows) {
+      let hidden = false;
+      if (rec.kind === 'item' && !advanced && rec.entry.tags.includes('advanced')) hidden = true;
+      for (let p = rec.parent; p; p = p.parent) {
+        if (!p.expanded) hidden = true;
+      }
+      rec.visible = !hidden;
+    }
+    // pass 2: in normal mode hide sections without any visible item below them (recursively)
+    if (!advanced) {
+      for (let i = state.rows.length - 1; i >= 0; i--) {
+        const rec = state.rows[i];
+        if (rec.kind !== 'node' || !rec.visible) continue;
+        let hasVisibleDescendant = false;
+        for (let j = i + 1; j < state.rows.length; j++) {
+          const r2 = state.rows[j];
+          if (r2.depth <= rec.depth) break;
+          if (r2.visible && (r2.kind === 'item' || r2.hasVisible)) { hasVisibleDescendant = true; break; }
+        }
+        rec.hasVisible = hasVisibleDescendant;
+        if (!hasVisibleDescendant && rec.expanded) rec.visible = false;
+      }
+    }
+    for (const rec of state.rows) rec.tr.style.display = rec.visible ? '' : 'none';
+  }
+
+  function toggleExpand(rec, force) {
+    if (rec.kind !== 'node') return;
+    rec.expanded = force !== undefined ? force : !rec.expanded;
+    rec.tr.querySelector('.twisty').classList.toggle('open', rec.expanded);
+    rec.tr.setAttribute('aria-expanded', rec.expanded);
+    applyVisibility();
+  }
+
+  function selectRow(rec) {
+    if (state.selected) state.selected.tr.classList.remove('selected');
+    state.selected = rec;
+    if (rec) {
+      rec.tr.classList.add('selected');
+      rec.tr.focus({ preventScroll: true });
+      rec.tr.scrollIntoView({ block: 'nearest' });
+      docPanel.textContent = rec.entry.description;   // ParamEditor::showDocumentation
+    } else {
+      docPanel.textContent = '';
+    }
+  }
+
+  /* ---------------- editing (ParamEditorDelegate) ---------------- */
+  let activeEditor = null;   // {rec, el, cancel()}
+
+  function markDirty(rec) {
+    rec.dirty = true;
+    rec.tr.querySelector('td.value').classList.add('dirty');
+    setModified(true);
+  }
+  function refreshValueCell(rec) {
+    rec.tr.querySelector('td.value').textContent = displayValue(rec.entry);
+  }
+
+  function commitScalar(rec, text) {
+    const item = rec.entry;
+    let newValue = text;
+    if (item.valueType === 'int') {
+      if (newValue === '') newValue = '0';
+      const canon = ParamCore.parseIntStrict(newValue);
+      if (canon === null) {
+        messageBox('Invalid value', `Cannot convert '${newValue}' to integer number!`);
+        return false;
+      }
+      const n = Number(canon);
+      if ((item.minInt !== null && n < Number(item.minInt)) || (item.maxInt !== null && n > Number(item.maxInt))) {
+        messageBox('Invalid value', `Value restrictions not met: ${displayRestrictions(item)}`);
+        return false;
+      }
+      if (canon !== item.value) { item.value = canon; markDirty(rec); }
+    } else if (item.valueType === 'double') {
+      if (newValue === '') newValue = 'nan';
+      const num = ParamCore.parseDoubleStrict(newValue);
+      if (num === null) {
+        messageBox('Invalid value', `Cannot convert '${newValue}' to floating point number!`);
+        return false;
+      }
+      if ((item.minFloat !== null && num < item.minFloat) || (item.maxFloat !== null && num > item.maxFloat)) {
+        messageBox('Invalid value', `Value restrictions not met: ${displayRestrictions(item)}`);
+        return false;
+      }
+      if (!Object.is(num, item.value)) { item.value = num; markDirty(rec); }
+    } else {
+      if (newValue !== item.value) { item.value = newValue; markDirty(rec); }
+    }
+    refreshValueCell(rec);
+    return true;
+  }
+
+  function closeEditor() {
+    if (!activeEditor) return;
+    const { rec } = activeEditor;
+    activeEditor = null;
+    refreshValueCell(rec);
+  }
+
+  function startEdit(rec) {
+    if (!rec || rec.kind !== 'item') return;    // nodes are not editable
+    if (activeEditor) closeEditor();
+    const item = rec.entry;
+
+    if (item.isList) {
+      if (item.valueType === 'string' && item.validStrings.length > 0 && !item.tags.includes('input file') && !item.tags.includes('output file')) {
+        openFilterDialog(rec);      // ListFilterDialog for restricted string lists
+      } else {
+        openListDialog(rec);        // ListEditor for everything else
+      }
+      return;
+    }
+
+    const td = rec.tr.querySelector('td.value');
+
+    // drop-down for restricted strings (including bool-ish true/false)
+    if (item.valueType === 'string' && item.validStrings.length > 0
+        && !item.tags.includes('input file') && !item.tags.includes('output file')) {
+      const sel = document.createElement('select');
+      for (const opt of ['', ...item.validStrings]) {     // Qt inserts an empty first entry
+        const o = document.createElement('option');
+        o.value = o.textContent = opt;
+        sel.appendChild(o);
+      }
+      sel.value = item.validStrings.includes(item.value) ? item.value : '';
+      td.textContent = '';
+      td.appendChild(sel);
+      sel.focus();
+      activeEditor = { rec, el: sel };
+      sel.addEventListener('change', () => { const v = sel.value; activeEditor = null; commitScalar(rec, v); });
+      sel.addEventListener('blur', () => closeEditor());
+      sel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeEditor(); } });
+      return;
+    }
+
+    // line edit for everything else (string, int, float, file paths)
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = displayValue(item);
+    if (input.value === '' && item.valueType === 'int') input.value = '0';       // ParamEditorDelegate::setEditorData
+    if (input.value === '' && item.valueType === 'double') input.value = 'nan';
+    td.textContent = '';
+    td.appendChild(input);
+    input.focus();
+    input.select();
+    activeEditor = { rec, el: input };
+    let done = false;
+    const commit = () => {
+      if (done) return;
+      done = true;
+      activeEditor = null;
+      commitScalar(rec, input.value);   // shows warning + reverts on invalid input
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); rec.tr.focus(); }
+      else if (e.key === 'Escape') { e.stopPropagation(); done = true; closeEditor(); rec.tr.focus(); }
+    });
+    input.addEventListener('blur', () => commit());   // OpenMSLineEdit commits on lost focus
+  }
+
+  /* ---------------- ListEditor dialog ---------------- */
+  function openListDialog(rec) {
+    const item = rec.entry;
+    $('listTitle').textContent = `<${item.name}> (<${displayType(item)}>)`;
+    const rows = $('listRows');
+    rows.innerHTML = '';
+    const addRow = (val) => {
+      const div = document.createElement('div');
+      div.className = 'row';
+      const inp = document.createElement('input');
+      inp.value = val;
+      const del = document.createElement('button');
+      del.textContent = '−';
+      del.title = 'Remove this entry';
+      del.addEventListener('click', () => div.remove());
+      div.appendChild(inp); div.appendChild(del);
+      rows.appendChild(div);
+      return inp;
+    };
+    for (const v of item.value) {
+      addRow(item.valueType === 'double' ? ParamCore.formatDoubleParamValue(v) : v);
+    }
+    const dlg = $('listDialog');
+    const onAdd = () => addRow('').focus();
+    const onOk = () => {
+      const inputs = [...rows.querySelectorAll('input')];
+      const parsed = [];
+      for (const inp of inputs) {
+        inp.classList.remove('invalid');
+        const t = inp.value;
+        if (item.valueType === 'int') {
+          const canon = ParamCore.parseIntStrict(t);
+          const n = canon === null ? null : Number(canon);
+          if (canon === null) { inp.classList.add('invalid'); messageBox('Invalid value', `Cannot convert '${t}' to integer number!`); return; }
+          if ((item.minInt !== null && n < Number(item.minInt)) || (item.maxInt !== null && n > Number(item.maxInt))) {
+            inp.classList.add('invalid'); messageBox('Invalid value', `Value restrictions not met: ${displayRestrictions(item)}`); return;
+          }
+          parsed.push(canon);
+        } else if (item.valueType === 'double') {
+          const num = ParamCore.parseDoubleStrict(t);
+          if (num === null) { inp.classList.add('invalid'); messageBox('Invalid value', `Cannot convert '${t}' to floating point number!`); return; }
+          if ((item.minFloat !== null && num < item.minFloat) || (item.maxFloat !== null && num > item.maxFloat)) {
+            inp.classList.add('invalid'); messageBox('Invalid value', `Value restrictions not met: ${displayRestrictions(item)}`); return;
+          }
+          parsed.push(num);
+        } else {
+          parsed.push(t);
+        }
+      }
+      const changed = parsed.length !== item.value.length || parsed.some((v, i) => !Object.is(v, item.value[i]));
+      if (changed) { item.value = parsed; markDirty(rec); refreshValueCell(rec); }
+      cleanup();
+    };
+    const cleanup = () => {
+      dlg.close();
+      $('listAdd').removeEventListener('click', onAdd);
+      $('listOk').removeEventListener('click', onOk);
+      $('listCancel').removeEventListener('click', cleanup);
+    };
+    $('listAdd').addEventListener('click', onAdd);
+    $('listOk').addEventListener('click', onOk);
+    $('listCancel').addEventListener('click', cleanup);
+    dlg.showModal();
+  }
+
+  /* ---------------- ListFilterDialog (restricted string lists) ---------------- */
+  function openFilterDialog(rec) {
+    const item = rec.entry;
+    $('filterTitle').textContent = `<${item.name}> (<string list>)`;
+    const list = $('filterList');
+    list.innerHTML = '';
+    for (const opt of item.validStrings) {
+      const lab = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = opt;
+      cb.checked = item.value.includes(opt);
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(opt));
+      list.appendChild(lab);
+    }
+    const dlg = $('filterDialog');
+    const onOk = () => {
+      const chosen = [...list.querySelectorAll('input:checked')].map(c => c.value);  // in restriction order, like ListFilterDialog
+      const changed = chosen.length !== item.value.length || chosen.some((v, i) => v !== item.value[i]);
+      if (changed) { item.value = chosen; markDirty(rec); refreshValueCell(rec); }
+      cleanup();
+    };
+    const cleanup = () => {
+      dlg.close();
+      $('filterOk').removeEventListener('click', onOk);
+      $('filterCancel').removeEventListener('click', cleanup);
+    };
+    $('filterOk').addEventListener('click', onOk);
+    $('filterCancel').addEventListener('click', cleanup);
+    dlg.showModal();
+  }
+
+  /* ---------------- keyboard navigation ---------------- */
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('dialog') || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'o') { e.preventDefault(); openFilePicker(); return; }
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveFileAs(); return; }
+    if (!state.rows.length) return;
+
+    const visibleRows = state.rows.filter(r => r.visible);
+    const idx = state.selected ? visibleRows.indexOf(state.selected) : -1;
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectRow(visibleRows[Math.min(idx + 1, visibleRows.length - 1)] || visibleRows[0]); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectRow(visibleRows[Math.max(idx - 1, 0)] || visibleRows[0]); }
+    else if (e.key === 'ArrowRight' && state.selected?.kind === 'node') { e.preventDefault(); toggleExpand(state.selected, true); }
+    else if (e.key === 'ArrowLeft' && state.selected?.kind === 'node') { e.preventDefault(); toggleExpand(state.selected, false); }
+    else if (e.key === 'F2' || e.key === 'Enter') { e.preventDefault(); startEdit(state.selected); }   // ParamTree::edit re-routes to the value column
+  });
+
+  /* ---------------- open / save (INIFileEditorWindow) ---------------- */
+  async function loadFromText(text, name, handle) {
+    let parsed;
+    try {
+      parsed = ParamCore.parseParam(text);
+    } catch (err) {
+      await messageBox('Error opening file',
+        `The file '${name}' does not exist, is not readable or not a proper INI file!\n\n${err.message}`);
+      return false;
+    }
+    state.model = parsed.root;
+    state.fileName = name;
+    state.fileHandle = handle || null;
+    state.advanced = $('advancedBox').checked;
+    setModified(false);
+    updateTitle();
+    rebuildTree();
+    showWarnings(parsed.warnings);
+    return true;
+  }
+
+  async function openFromFileObject(file, handle) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    await loadFromText(ParamCore.decodeBytes(bytes), file.name, handle);
+  }
+
+  async function confirmDiscard() {
+    // INIFileEditorWindow::closeEvent - Ok=save, Discard, Cancel
+    if (!state.modified) return true;
+    const answer = await messageBox('Save?', 'Do you want to save your changes?', ['Cancel', 'Discard', 'OK']);
+    if (answer === 'OK') return saveFile();
+    return answer === 'Discard';
+  }
+
+  async function openFilePicker() {
+    if (!(await confirmDiscard())) return;
+    if (FS_API) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'ini files', accept: { 'application/xml': ['.ini'] } }],
+          excludeAcceptAllOption: false,
+        });
+        await openFromFileObject(await handle.getFile(), handle);
+      } catch (err) {
+        if (err && err.name !== 'AbortError') messageBox('Error opening file', String(err.message || err));
+      }
+    } else {
+      $('fileInput').click();
+    }
+  }
+  $('fileInput').addEventListener('change', async () => {
+    const f = $('fileInput').files[0];
+    $('fileInput').value = '';
+    if (f) await openFromFileObject(f, null);
+  });
+
+  function serializedBytes() {
+    return ParamCore.encodeBytes(ParamCore.serializeParam(state.model));
+  }
+
+  function clearDirtyMarks() {
+    for (const rec of state.rows) {
+      if (rec.dirty) { rec.dirty = false; rec.tr.querySelector('td.value').classList.remove('dirty'); }
+    }
+  }
+
+  async function saveFile() {
+    if (!state.model) return false;
+    if (activeEditor) return false;   // ParamEditor::store refuses to save with an open uncommitted editor
+    if (state.fileHandle) {
+      try {
+        const w = await state.fileHandle.createWritable();
+        await w.write(serializedBytes());
+        await w.close();
+        clearDirtyMarks();
+        setModified(false);
+        return true;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return false;
+        await messageBox('Error saving file', String(err.message || err));
+        return false;
+      }
+    }
+    return saveFileAs();
+  }
+
+  async function saveFileAs() {
+    if (!state.model) return false;
+    if (activeEditor) return false;
+    let name = state.fileName || 'Untitled.ini';
+    if (!name.endsWith('.ini')) name += '.ini';   // INIFileEditorWindow appends .ini
+    if (FS_API && 'showSaveFilePicker' in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: name,
+          types: [{ description: 'ini files', accept: { 'application/xml': ['.ini'] } }],
+        });
+        const w = await handle.createWritable();
+        await w.write(serializedBytes());
+        await w.close();
+        state.fileHandle = handle;
+        state.fileName = handle.name;
+        clearDirtyMarks();
+        setModified(false);
+        updateTitle();
+        return true;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return false;
+        await messageBox('Error saving file', String(err.message || err));
+        return false;
+      }
+    }
+    // download fallback
+    const blob = new Blob([serializedBytes()], { type: 'application/xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    clearDirtyMarks();
+    setModified(false);
+    return true;
+  }
+
+  /* ---------------- drag & drop ---------------- */
+  let dragDepth = 0;
+  document.addEventListener('dragenter', (e) => { e.preventDefault(); dragDepth++; document.body.classList.add('dragover'); });
+  document.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragover'); } });
+  document.addEventListener('dragover', (e) => e.preventDefault());
+  document.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dragDepth = 0;
+    document.body.classList.remove('dragover');
+    const dtItem = e.dataTransfer.items && e.dataTransfer.items[0];
+    if (!dtItem) return;
+    if (!(await confirmDiscard())) return;
+    let handle = null;
+    if (FS_API && dtItem.getAsFileSystemHandle) {
+      try { handle = await dtItem.getAsFileSystemHandle(); } catch { handle = null; }
+      if (handle && handle.kind !== 'file') handle = null;
+    }
+    const f = e.dataTransfer.files[0];
+    if (f) await openFromFileObject(f, handle);
+  });
+
+  /* ---------------- text view ("-print") ---------------- */
+  $('btnPrint').addEventListener('click', () => {
+    if (!state.model) return;
+    $('textOut').textContent = ParamCore.printText(state.model);
+    $('textDialog').showModal();
+  });
+  $('textCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('textOut').textContent); } catch { /* clipboard unavailable */ }
+  });
+  $('textClose').addEventListener('click', () => $('textDialog').close());
+
+  /* ---------------- misc wiring ---------------- */
+  $('btnOpen').addEventListener('click', openFilePicker);
+  $('btnOpen2').addEventListener('click', openFilePicker);
+  $('btnSave').addEventListener('click', saveFile);
+  $('btnSaveAs').addEventListener('click', saveFileAs);
+  $('btnHelp').addEventListener('click', () => $('helpDialog').showModal());
+  $('helpClose').addEventListener('click', () => $('helpDialog').close());
+  $('advancedBox').addEventListener('change', () => {
+    state.advanced = $('advancedBox').checked;   // ParamEditor::toggleAdvancedMode
+    applyVisibility();
+  });
+
+  window.addEventListener('beforeunload', (e) => {
+    if (state.modified) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  /* ---------------- column resizing ---------------- */
+  for (const grip of document.querySelectorAll('#tree thead .grip')) {
+    grip.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const colIdx = Number(grip.dataset.col);
+      const col = $('col' + colIdx);
+      const table = $('tree');
+      const startX = e.clientX;
+      const startW = col.getBoundingClientRect ? col.offsetWidth || 0 : 0;
+      const widths = [0, 1, 2, 3].map(i => $('col' + i).offsetWidth || (table.offsetWidth / 4));
+      const move = (ev) => {
+        const delta = ev.clientX - startX;
+        const w = Math.max(60, widths[colIdx] + delta);
+        col.style.width = (w / table.offsetWidth * 100) + '%';
+        void startW;
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+  }
+
+  updateTitle();
+  rebuildTree();
+})();
+</script>
+</body>
+</html>
