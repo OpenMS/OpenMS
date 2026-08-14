@@ -3,6 +3,7 @@
     "version":"2.2.0",
     "description":"NCAR/EOL BSpline C++ library.",
     "homepage":"https://github.com/NCAR/bspline",
+    "license":"BSD-3-Clause",
     "dependencies": [
     {
       "name": "vcpkg-cmake",
