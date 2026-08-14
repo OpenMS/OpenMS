@@ -102,7 +102,9 @@ namespace OpenMS
       double neutral_mass;
       if (f.metaValueExists("dc_charge_adduct_mass"))
       {
-        neutral_mass = mz * z - (double)f.getMetaValue("dc_charge_adduct_mass");
+        // the MetaValue holds the *neutral* adduct mass (see ConsensusFeature::computeDechargeConsensus),
+        // so the electrons missing on the observed cation must be added back
+        neutral_mass = mz * z - (double)f.getMetaValue("dc_charge_adduct_mass") + z * Constants::ELECTRON_MASS_U;
       }
       else
       {
