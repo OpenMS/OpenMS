@@ -211,11 +211,41 @@ endfunction()
 function(openms_add_executable_compiler_flags target_name)
   # Add common flags first (both PUBLIC and PRIVATE)
   openms_add_compiler_flags(${target_name})
-  
+
   # Executable-specific PRIVATE flags can be added here
-  
+
   # Address sanitizer (PRIVATE)
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${target_name})
+  endif()
+endfunction()
+
+#------------------------------------------------------------------------------
+# Keep symbols that come from static archives out of an executable's dynamic
+# symbol table.
+#
+# Rationale: with ARROW_USE_STATIC=ON (the default) the Arrow/Parquet archives -
+# including the Thrift code bundled inside them - are linked into libOpenMS.so
+# *and* into every test executable that links Arrow/Parquet directly. The
+# resulting weak template symbols (e.g. the static
+# 'std::map<int, const char*>' enum-name tables built from
+# apache::thrift::TEnumIterator) then exist in both binaries and are exported
+# by both. Since the executable is searched first when the dynamic linker
+# resolves global symbols, libOpenMS.so binds to the *executable's* copy and
+# registers an atexit destructor for it. The object is consequently destroyed
+# twice at process teardown - once via the executable's exit handlers and once
+# via __cxa_finalize() when libOpenMS.so is unloaded - which corrupts the heap
+# and aborts the process with "malloc_consolidate(): invalid chunk size" after
+# all tests have already passed.
+#
+# Hiding the archive symbols makes each binary use its own copy, so every
+# static object is destroyed exactly once. Executables never need to export
+# symbols (nothing dlopen()s a test), so this is safe.
+#
+# GNU ld and lld only; the Apple linker has no equivalent option, and Windows
+# does not have symbol interposition to begin with.
+function(openms_hide_static_archive_symbols target_name)
+  if(NOT WIN32 AND NOT APPLE)
+    target_link_options(${target_name} PRIVATE "LINKER:--exclude-libs,ALL")
   endif()
 endfunction()

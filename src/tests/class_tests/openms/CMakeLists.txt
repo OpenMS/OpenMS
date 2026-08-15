@@ -42,6 +42,7 @@ foreach(_class_test ${TEST_executables})
   # OpenMSTestFramework provides the ClassTest macros/FuzzyStringComparator,
   # OpenMSTestSupport wires in libOpenMS-specific hooks (UID seeding, XML validation)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES} OpenMSTestFramework OpenMSTestSupport)
+  openms_hide_static_archive_symbols(${_class_test})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
