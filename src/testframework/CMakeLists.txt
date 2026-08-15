@@ -54,17 +54,20 @@ target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 openms_add_library_compiler_flags(OpenMSTestFramework)
 
 #------------------------------------------------------------------------------
-# install the archive and its headers; the headers keep their historic install
-# location <prefix>/include/OpenMS/CONCEPT/, so existing includes of
-# <OpenMS/CONCEPT/ClassTest.h> keep working against an installed OpenMS
+# install the archive and its headers under a dedicated component; the headers
+# keep their historic install location <prefix>/include/OpenMS/CONCEPT/, so
+# existing includes of <OpenMS/CONCEPT/ClassTest.h> keep working against a
+# (fully) installed OpenMS.
+#
+# The target is deliberately NOT part of the exported OpenMS package
+# (OpenMSTargets.cmake) and NOT in the 'library' component: minimal install
+# flows (e.g. the pyOpenMS wheel builds) build only 'ninja OpenMS OpenSwathAlgo'
+# and install component-wise -- an exported test-framework target would make
+# their installed OpenMSTargets.cmake reference an archive that was never
+# built/installed and break every downstream find_package(OpenMS).
+# In-tree consumers (class tests, FuzzyDiff) link the target directly.
 install(TARGETS OpenMSTestFramework
-        EXPORT ${OPENMS_EXPORT_SET}
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT library)
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT OpenMSTestFramework)
 install_headers("${OpenMSTestFramework_sources_h}" OpenMSTestFramework)
-
-#------------------------------------------------------------------------------
-# register for export (OpenMSTargets), so find_package(OpenMS) consumers can
-# link the test framework of an installed OpenMS
-openms_register_export_target(OpenMSTestFramework)
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
