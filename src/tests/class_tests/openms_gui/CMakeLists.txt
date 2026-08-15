@@ -38,8 +38,9 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  # OpenMSTestFramework provides the ClassTest macros
-  target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES} OpenMSTestFramework)
+  # framework archive before the libraries it draws symbols from -- see the comment in
+  # ../openms/CMakeLists.txt for why the order matters with --as-needed
+  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_GUI_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 endforeach(_class_test)

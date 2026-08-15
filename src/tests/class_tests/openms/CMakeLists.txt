@@ -40,8 +40,16 @@ endif()
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  # OpenMSTestFramework provides the ClassTest macros/FuzzyStringComparator
-  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES} OpenMSTestFramework)
+  # Link order matters twice here, so keep it as: framework archive, libOpenMS, then
+  # (for the Arrow tests, appended further below) the static Arrow/Parquet archives.
+  #  - OpenMSTestFramework must come *before* libOpenMS: the framework archive pulls in
+  #    libOpenMS symbols (Exception, StringUtils, UniqueIdGenerator), and with the linker's
+  #    default --as-needed a test whose own object references nothing from libOpenMS would
+  #    otherwise drop it before those references are seen (e.g. RAIICleanup_test).
+  #  - libOpenMS must come *before* the static Arrow/Parquet archives, or the linker
+  #    satisfies the Arrow symbols from those archives instead and pulls their objects
+  #    (including Thrift statics) into the test binary.
+  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_LIBRARIES})
   openms_hide_static_archive_symbols(${_class_test})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
