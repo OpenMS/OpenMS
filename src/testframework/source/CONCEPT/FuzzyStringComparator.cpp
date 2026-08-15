@@ -9,8 +9,8 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/PathUtils.h> // header-only (to_path)
-// note: include everything used here explicitly -- the former FORMAT/SYSTEM includes
-// provided many std headers transitively on libstdc++, but not on libc++ (macOS)
+// note: include every std header used here explicitly -- which ones arrive transitively
+// differs between standard libraries (libc++ provides fewer than libstdc++)
 #include <cctype>       // isspace
 #include <cmath>
 #include <filesystem>
@@ -68,8 +68,8 @@ namespace
     }
   }
 
-  // Mirrors OpenMS::absolutePath() (SYSTEM layer); only used to print nice paths in
-  // the failure report below.
+  // Mirrors OpenMS::File::absolutePath() (SYSTEM layer), duplicated here so the test
+  // framework does not depend on it; only used to print readable paths in the failure report.
   std::string absolutePath(const std::string& file)
   {
     if (file.empty()) return std::filesystem::current_path().generic_string();

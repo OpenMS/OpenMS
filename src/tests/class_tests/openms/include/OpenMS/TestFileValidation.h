@@ -12,10 +12,9 @@
 //
 // This lives in the class-test project rather than in the test framework
 // (OpenMSTestFramework) on purpose: validation needs the FORMAT layer, while the
-// framework must stay usable by tests of libraries that do not have it. It is a
-// header-only helper, so no support library and no callback registration are
-// involved -- a test that wants its output validated simply includes this header
-// and calls #VALIDATE_TMP_FILES before END_TEST.
+// framework must stay usable by tests of libraries that do not have it. It is
+// header-only, so a test that wants its output validated just includes it and
+// calls #VALIDATE_TMP_FILES before END_TEST -- nothing to link, nothing to register.
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 

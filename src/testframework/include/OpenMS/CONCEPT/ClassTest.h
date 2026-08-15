@@ -336,8 +336,8 @@ namespace OpenMS
         }
       }
 
-      // must be inline: this header is included by more than one translation unit of a test
-      // executable (the test itself and other TUs that include this header)
+      // must be inline: this header is included both by the test and by ClassTest.cpp inside
+      // libOpenMSTestFramework.a, so a non-inline definition would violate the ODR
       inline void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
       {
         ++test_count;

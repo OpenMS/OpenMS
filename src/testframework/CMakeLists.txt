@@ -15,9 +15,9 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 # (OpenSwathAlgo, OpenMS, OpenMS_GUI and future split-off libraries) can use it
 # without the framework being part of libOpenMS itself.
 #
-# It still links libOpenMS for low-level utilities (StringUtils, Exception,
-# DataValue, ...); once libOpenMS is split into smaller libraries, this
-# dependency shrinks to the future core library.
+# It uses libOpenMS' low-level utilities (StringUtils, Exception, DataValue,
+# UniqueIdGenerator) and needs no third-party headers of its own; once libOpenMS
+# is split up, that dependency becomes the future core library.
 #
 # The library is deliberately STATIC:
 #  - the framework is per-executable global state, so there is no point in
@@ -46,16 +46,14 @@ target_include_directories(OpenMSTestFramework PUBLIC
                            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
                            "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>")
 
-# Low-level utilities (StringUtils, Exception, DataValue, ...) come from libOpenMS.
-# Deliberately a *usage* (header) dependency instead of target_link_libraries(... OpenMS):
-# a link edge would force CMake to order libOpenMS.so after libOpenMSTestFramework.a on
-# every consumer's link line, which pushes it behind the static Arrow/Parquet archives
-# that the Arrow-related class tests link. The linker would then satisfy the Arrow/Parquet
-# symbols from those archives instead of from libOpenMS.so, pulling their objects (and the
-# Thrift statics inside them) into each test executable -- 24x larger binaries and, before
-# openms_hide_static_archive_symbols(), duplicated static objects that were destroyed twice
-# at exit. Every consumer (class tests, FuzzyDiff) links OpenMS itself, and this target is
-# not part of the installed package, so no link edge is needed here.
+# Headers of libOpenMS are a *usage* requirement here, deliberately not a link edge:
+# target_link_libraries(... OpenMS) would force CMake to place libOpenMS.so after
+# libOpenMSTestFramework.a on every consumer's link line, and therefore behind the static
+# Arrow/Parquet archives that the Arrow-related class tests link. The linker would then
+# resolve the Arrow symbols from those archives rather than from libOpenMS.so and pull
+# their objects -- including Thrift's static enum tables -- into each test executable,
+# bloating it ~24x and duplicating static objects that libOpenMS.so also owns.
+# Every consumer (class tests, FuzzyDiff) links OpenMS itself, so no link edge is needed.
 target_include_directories(OpenMSTestFramework PUBLIC
                            "$<TARGET_PROPERTY:OpenMS,INTERFACE_INCLUDE_DIRECTORIES>")
 target_compile_definitions(OpenMSTestFramework PUBLIC

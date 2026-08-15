@@ -18,8 +18,8 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-// note: include everything used here explicitly -- the former FORMAT/SYSTEM includes
-// provided many std headers transitively on libstdc++, but not on libc++ (macOS)
+// note: include every std header used here explicitly -- which ones arrive transitively
+// differs between standard libraries (libc++ provides fewer than libstdc++)
 #include <cstdlib>      // std::getenv, exit
 #include <cstring>      // std::strcmp
 #include <exception>    // std::exception_ptr, std::current_exception, std::rethrow_exception
@@ -190,7 +190,7 @@ namespace OpenMS::Internal::ClassTest
       {
         for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)
           {
-            // a missing file is not an error (mirrors the former File::remove() semantics)
+            // a file that is already gone is not an error
             std::error_code ec;
             std::filesystem::remove(std::filesystem::path(TEST::tmp_file_list[i]), ec);
             if (ec)
