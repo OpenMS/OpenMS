@@ -100,10 +100,8 @@ int runAdapter(const std::string& adapter_bin,
                const std::string& out_idxml,
                const std::string& extra_args = "")
 {
-  // const std::string stdout_log = File::getTemporaryFile();
-  // const std::string stderr_log = File::getTemporaryFile();
-  const std::string stdout_log = out_idxml + ".stdout.log";
-  const std::string stderr_log = out_idxml + ".stderr.log";
+  const std::string stdout_log = File::getTemporaryFile();
+  const std::string stderr_log = File::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << adapter_bin << "\""
@@ -169,35 +167,12 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     const std::string out_sub = File::getTemporaryFile() + ".idxml";
     const std::string out_inp = File::getTemporaryFile() + ".idxml";
 
-    // TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
-    //                       in_idxml, out_sub,
-    //                       "-testFDR 0.5 -trainFDR 0.5"), 0)
-    // TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/false,
-    //                       in_idxml, out_inp,
-    //                       "-testFDR 0.5 -trainFDR 0.5"), 0)
-    int rc_sub = runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
+    TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
                           in_idxml, out_sub,
-                          "-testFDR 0.5 -trainFDR 0.5");
-
-    if(rc_sub != 0)
-    {
-      std::cerr <<"[PercolatorAdapter_parity_test] subprocess=true failed, rc=" << rc_sub <<"\n"
-                <<"--- stdout ---\n" << File::getFileContent(out_sub + ".stdout.log") << "\n"
-                <<"--- stderr ---\n" << File::getFileContent(out_sub + ".stderr.log") << std::endl;
-    }
-    TEST_EQUAL(rc_sub,0)
-
-    int rc_inp = runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/false,
+                          "-testFDR 0.5 -trainFDR 0.5"), 0)
+    TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/false,
                           in_idxml, out_inp,
-                          "-testFDR 0.5 -trainFDR 0.5");
-
-    if(rc_inp != 0)
-    {
-      std::cerr <<"[PercolatorAdapter_parity_test] subprocess=false failed, rc=" << rc_inp <<"\n"
-                <<"--- stdout ---\n" << File::getFileContent(out_inp + ".stdout.log") << "\n"
-                <<"--- stderr ---\n" << File::getFileContent(out_inp + ".stderr.log") << std::endl;
-    }
-    TEST_EQUAL(rc_inp,0)
+                          "-testFDR 0.5 -trainFDR 0.5"), 0)
 
     auto sub = loadTripletsByRowKey(out_sub);
     auto inp = loadTripletsByRowKey(out_inp);
