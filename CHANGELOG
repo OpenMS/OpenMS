@@ -1030,9 +1030,12 @@ Documentation:
 Build System:
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
-    <OpenMS/CONCEPT/UniqueIdGenerator.h>. Generated ids are unchanged -- MT19937-64 is a fully
-    specified algorithm and the previous uniform_int over the complete UInt64 range was the
-    identity on the engine output (verified byte-identical, including getUUID()). Math's
+    <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
+    are unchanged, including getUUID() -- MT19937-64 is a fully specified algorithm and the
+    previous uniform_int over the complete UInt64 range was the identity on the engine output
+    (verified byte-identical). Without an explicit seed the generator still seeds itself from the
+    current time and the process id, and that time source changed from local time-of-day ticks to
+    system_clock epoch microseconds; such ids vary between runs either way. Math's
     RandomShuffler deliberately keeps boost::random: its bounded-range distribution is what
     makes portable_random_shuffle reproducible across standard libraries
   - New multi-OS GitHub Actions workflows for build/test, installer and source packaging, publishing of
