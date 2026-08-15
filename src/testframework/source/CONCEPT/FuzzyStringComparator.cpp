@@ -9,12 +9,17 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/PathUtils.h> // header-only (to_path)
+// note: include everything used here explicitly -- the former FORMAT/SYSTEM includes
+// provided many std headers transitively on libstdc++, but not on libc++ (macOS)
+#include <cctype>       // isspace
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <istream>
 #include <iomanip>
 #include <iostream>
+#include <limits>       // std::numeric_limits
+#include <streambuf>    // std::streambuf in getLine
 
 // #define DEBUG_FUZZY
 

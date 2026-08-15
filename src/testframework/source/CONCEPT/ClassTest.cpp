@@ -15,9 +15,17 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+// note: include everything used here explicitly -- the former FORMAT/SYSTEM includes
+// provided many std headers transitively on libstdc++, but not on libc++ (macOS)
+#include <cstdlib>      // std::getenv, exit
+#include <cstring>      // std::strcmp
+#include <exception>    // std::exception_ptr, std::current_exception, std::rethrow_exception
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <system_error> // std::error_code
 
 namespace OpenMS::Internal::ClassTest
 {
