@@ -35,3 +35,73 @@ jobs:
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+
+      ##########################################################################
+      # TEMPORARY diagnostic for PR #9919 -- REVERT BEFORE MERGE.
+      #
+      # ConsensusMapArrowExport_test / QPXFile_test (clang++, x64) and
+      # OpenSwathExport_test (g++, arm) die with "malloc_consolidate():
+      # invalid chunk size" on this branch only; the abort is glibc detecting
+      # earlier heap corruption. This step re-runs the three tests on the
+      # exact failing binaries and captures (a) a gdb backtrace from the core,
+      # (b) a run with glibc's malloc debugging (moves the abort closer to
+      # the corrupting operation), and (c) a valgrind run with origin
+      # tracking. Runs only when the job already failed, Linux only.
+      - name: Heap corruption diagnostics (temporary, PR 9919)
+        if: failure() && runner.os == 'Linux'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          sudo apt-get update -qq || true
+          sudo apt-get install -y -qq gdb valgrind || true
+          sudo sysctl -w kernel.core_pattern='core.%e.%p' || true
+          ulimit -c unlimited
+          echo "core_pattern: $(cat /proc/sys/kernel/core_pattern)"
+          cd build/src/tests/class_tests/openms || exit 0
+          echo "=========== ldd of QPXFile_test (runtime library resolution) ==========="
+          ldd ../bin/QPXFile_test 2>/dev/null | sort
+          for t in ConsensusMapArrowExport_test QPXFile_test OpenSwathExport_test; do
+            [ -x "../bin/$t" ] || continue
+            echo ""
+            echo "######################################################################"
+            echo "### $t"
+            echo "######################################################################"
+
+            echo "=========== plain rerun ==========="
+            rm -f core.*
+            "../bin/$t" > "/tmp/$t.plain.log" 2>&1
+            ec=$?
+            echo "exit: $ec"
+            tail -n 15 "/tmp/$t.plain.log"
+            for c in core.*; do
+              [ -f "$c" ] || continue
+              echo "----------- gdb backtrace ($c) -----------"
+              gdb -batch -q -ex 'set pagination off' -ex 'bt full' \
+                  -ex 'echo \n--- all threads ---\n' -ex 'thread apply all bt' \
+                  "../bin/$t" "$c" 2>&1 | head -n 250
+            done
+
+            echo "=========== glibc malloc debug (MALLOC_CHECK_=3, MALLOC_PERTURB_) ==========="
+            rm -f core.*
+            LD_PRELOAD=libc_malloc_debug.so.0 MALLOC_CHECK_=3 MALLOC_PERTURB_=165 \
+              "../bin/$t" > "/tmp/$t.mcheck.log" 2>&1
+            ec=$?
+            echo "exit: $ec"
+            tail -n 15 "/tmp/$t.mcheck.log"
+            for c in core.*; do
+              [ -f "$c" ] || continue
+              echo "----------- gdb backtrace ($c) -----------"
+              gdb -batch -q -ex 'set pagination off' -ex 'bt full' \
+                  "../bin/$t" "$c" 2>&1 | head -n 250
+            done
+
+            echo "=========== valgrind (track-origins) ==========="
+            valgrind --error-exitcode=99 --track-origins=yes --num-callers=30 \
+                     --suppressions="$GITHUB_WORKSPACE/tools/valgrind/openms_external.supp" \
+                     "../bin/$t" > "/tmp/$t.vg.log" 2>&1
+            ec=$?
+            echo "exit: $ec"
+            grep -E -A 25 "Invalid (read|write)|Mismatched|uninitialised|ERROR SUMMARY" "/tmp/$t.vg.log" | head -n 220
+          done
+          exit 0
