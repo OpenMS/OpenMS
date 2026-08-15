@@ -750,4 +750,3 @@ namespace OpenMS
   }
 } // namespace OpenMS
 
-/// @endcond

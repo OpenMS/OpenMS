@@ -1037,7 +1037,7 @@ Build System:
     current time and the process id, and that time source changed from local time-of-day ticks to
     system_clock epoch microseconds; such ids vary between runs either way. Math's
     RandomShuffler deliberately keeps boost::random: its bounded-range distribution is what
-    makes portable_random_shuffle reproducible across standard libraries
+    makes portable_random_shuffle reproducible across standard libraries (#9921)
   - New multi-OS GitHub Actions workflows for build/test, installer and source packaging, publishing of
     release assets, website-update PRs and automated cherry-pick backports to release branches, replacing
     the previous ad hoc release orchestration scripts (#9523). The version-bump workflow now triggers

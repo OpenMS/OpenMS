@@ -907,4 +907,3 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   return ExitCodes::EXECUTION_OK;
 }
 
-/// @endcond

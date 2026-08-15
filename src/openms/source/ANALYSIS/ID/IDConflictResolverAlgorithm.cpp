@@ -459,4 +459,3 @@ namespace OpenMS
   }
 }
 
-/// @endcond
