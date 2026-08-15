@@ -106,7 +106,6 @@
             "hidden": true,
             "cacheVariables": {
                 "WITH_GUI": "OFF",
-                "BUILD_TOPP_TOOLS": "OFF",
                 "WITH_THERMO_RAW":"ON",
                 "ENABLE_THERMO_RAW_TESTS": "OFF",
                 "ENABLE_TUTORIALS": "OFF",
