@@ -8,6 +8,35 @@
 
 #pragma once
 
+// ---------------------------------------------------------------------------
+// Architecture note: why this file lives in its own library
+//
+// This header (together with FuzzyStringComparator) forms the OpenMS class-test
+// framework. It is built as the standalone static library OpenMSTestFramework
+// (see src/testframework/), so that the tests of every OpenMS library --
+// OpenSwathAlgo, OpenMS, OpenMS_GUI and future split-off libraries -- can use
+// the TEST_ macros without requiring all of libOpenMS.
+//
+// For this to work, the framework must not call into the higher OpenMS layers
+// (FORMAT, KERNEL, ...) itself. Two pieces of OpenMS-specific behavior are
+// therefore not hard-wired here, but injected as callbacks:
+//
+//  * setTestInitHook():     runs at START_TEST. Used to seed the
+//                           UniqueIdGenerator with a fixed value, so that
+//                           unique ids in test output are reproducible.
+//  * setTmpFileValidator(): runs at END_TEST. Validates the files created via
+//                           NEW_TMP_FILE against their XML schema
+//                           (mzML, featureXML, idXML, ...).
+//
+// Both callbacks are registered by the OpenMSTestSupport object library
+// (src/tests/class_tests/support/), which is linked into the class tests of
+// libOpenMS and libOpenMS_GUI. The registration happens in a static
+// initializer, i.e. automatically before main() -- linking the library is all
+// that is needed, and the individual test files stay unchanged. When no
+// callback is registered (e.g. in the OpenSwathAlgo tests, which do not link
+// libOpenMS-specific support code), the corresponding step is simply skipped.
+// ---------------------------------------------------------------------------
+
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
