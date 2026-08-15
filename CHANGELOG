@@ -1028,6 +1028,13 @@ Documentation:
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
 
 Build System:
+  - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
+    and std::chrono instead, which removes the boost/random include from the public header
+    <OpenMS/CONCEPT/UniqueIdGenerator.h>. Generated ids are unchanged -- MT19937-64 is a fully
+    specified algorithm and the previous uniform_int over the complete UInt64 range was the
+    identity on the engine output (verified byte-identical, including getUUID()). Math's
+    RandomShuffler deliberately keeps boost::random: its bounded-range distribution is what
+    makes portable_random_shuffle reproducible across standard libraries
   - New multi-OS GitHub Actions workflows for build/test, installer and source packaging, publishing of
     release assets, website-update PRs and automated cherry-pick backports to release branches, replacing
     the previous ad hoc release orchestration scripts (#9523). The version-bump workflow now triggers
