@@ -95,7 +95,7 @@ namespace OpenMS
       inline bool
       isRealType(const ParamValue&)
       {
-          return true;
+        return true;
       }
 
       /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.

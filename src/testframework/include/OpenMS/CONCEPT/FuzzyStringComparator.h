@@ -22,14 +22,14 @@ namespace OpenMS
     namespace ClassTest
     {
       void testStringSimilar(const char * file,
-                                           int line,
-                                           const std::string & string_1,
-                                           const char * string_1_stringified,
-                                           const std::string & string_2,
-                                           const char * string_2_stringified);
+                             int line,
+                             const std::string & string_1,
+                             const char * string_1_stringified,
+                             const std::string & string_2,
+                             const char * string_2_stringified);
 
       bool isFileSimilar(const std::string &,
-                                       const std::string &);
+                         const std::string &);
     }
   }
 
