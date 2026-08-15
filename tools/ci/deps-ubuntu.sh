@@ -90,4 +90,12 @@ sudo apt-get install -y --no-install-recommends \
 sudo apt-get -qq install -y \
   doxygen \
   graphviz
+
+# Optional dependencies for reading .raw files (Thermo Fisher Scientific RAW files):
+curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+chmod +x dotnet-install.sh
+./dotnet-install.sh --channel 8.0
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH=$DOTNET_ROOT:$PATH
+
 # [installation_documentation]
