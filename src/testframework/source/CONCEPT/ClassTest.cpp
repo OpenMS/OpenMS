@@ -9,10 +9,13 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 // Keep this file free of FORMAT/SYSTEM/KERNEL dependencies: the test framework is built as
-// its own (static) library so that tests of any OpenMS library can use it. OpenMS-specific
-// behavior (UniqueIdGenerator seeding, XML schema validation of temporary files) is injected
-// via setTestInitHook()/setTmpFileValidator() by the OpenMSTestSupport object library.
+// its own (static) library so that tests of any OpenMS library can use it. libOpenMS'
+// low-level utilities (CONCEPT/DATASTRUCTURES) are fine -- they move to the future core
+// library when libOpenMS is split up. XML schema validation of test output needs the FORMAT
+// layer and therefore lives in the class-test project (OpenMS/TestFileValidation.h), where
+// tests call it explicitly via VALIDATE_TMP_FILES.
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 // note: include everything used here explicitly -- the former FORMAT/SYSTEM includes
@@ -60,21 +63,6 @@ namespace OpenMS::Internal::ClassTest
       std::vector<UInt> failed_lines_list;
       StringList whitelist;
 
-      // hooks for library-specific behavior, registered via the setters below
-      // (see OpenMSTestSupport.cpp); TU-local on purpose - not part of the API
-      static TestInitHook test_init_hook = nullptr;
-      static TmpFileValidator tmp_file_validator = nullptr;
-
-      void setTestInitHook(TestInitHook hook)
-      {
-        test_init_hook = hook;
-      }
-
-      void setTmpFileValidator(TmpFileValidator validator)
-      {
-        tmp_file_validator = validator;
-      }
-
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
         // if env var "OPENMS_TEST_VERBOSE=True" enable output of successfull line
@@ -84,11 +72,10 @@ namespace OpenMS::Internal::ClassTest
           if (std::string(pverbose) == "True") TEST::verbose = 2;
         }
 
-        // library-specific test setup, e.g. deterministic UniqueIdGenerator seeding
-        if (test_init_hook != nullptr)
-        {
-          test_init_hook();
-        }
+        // Fixed seed so unique ids stored in test output are reproducible. UniqueIdGenerator
+        // is CONCEPT level -- the same layer this framework already uses for StringUtils and
+        // Exception -- so calling it directly adds no coupling the framework does not have.
+        OpenMS::UniqueIdGenerator::setSeed(2453440375);
         TEST::version_string = version;
 
         if (argc > 1)
@@ -620,11 +607,6 @@ namespace OpenMS::Internal::ClassTest
 
       int endTestPostProcess(std::ostream& out)
       {
-        /* check validity of temporary files if a validator is registered (see setTmpFileValidator()) */
-        if (tmp_file_validator != nullptr && !tmp_file_validator(TEST::tmp_file_list))
-        {
-          TEST::all_tests = false;
-        }
         if (TEST::verbose == 0)
         {
           out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them.\n";

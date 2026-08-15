@@ -22,7 +22,8 @@ include(executables.cmake)
 
 #------------------------------------------------------------------------------
 # Include directories for tests
-set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
+# binary dir: generated test_config.h; source dir: TestFileValidation.h
+set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/;${PROJECT_SOURCE_DIR}/include/")
 # add OpenMS directories
 set(OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES "${OpenMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
 include_directories(${OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES})
@@ -39,9 +40,8 @@ endif()
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  # OpenMSTestFramework provides the ClassTest macros/FuzzyStringComparator,
-  # OpenMSTestSupport wires in libOpenMS-specific hooks (UID seeding, XML validation)
-  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES} OpenMSTestFramework OpenMSTestSupport)
+  # OpenMSTestFramework provides the ClassTest macros/FuzzyStringComparator
+  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES} OpenMSTestFramework)
   openms_hide_static_archive_symbols(${_class_test})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})

@@ -38,9 +38,8 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  # OpenMSTestFramework provides the ClassTest macros,
-  # OpenMSTestSupport wires in libOpenMS-specific hooks (UID seeding, XML validation)
-  target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES} OpenMSTestFramework OpenMSTestSupport)
+  # OpenMSTestFramework provides the ClassTest macros
+  target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES} OpenMSTestFramework)
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 endforeach(_class_test)

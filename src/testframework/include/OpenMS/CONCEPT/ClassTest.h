@@ -17,24 +17,16 @@
 // OpenSwathAlgo, OpenMS, OpenMS_GUI and future split-off libraries -- can use
 // the TEST_ macros without requiring all of libOpenMS.
 //
-// For this to work, the framework must not call into the higher OpenMS layers
-// (FORMAT, KERNEL, ...) itself. Two pieces of OpenMS-specific behavior are
-// therefore not hard-wired here, but injected as callbacks:
+// The framework uses libOpenMS' low-level utilities (StringUtils, Exception,
+// DataValue, UniqueIdGenerator) directly. Those are CONCEPT/DATASTRUCTURES
+// level and will move to the future core library when libOpenMS is split up.
 //
-//  * setTestInitHook():     runs at START_TEST. Used to seed the
-//                           UniqueIdGenerator with a fixed value, so that
-//                           unique ids in test output are reproducible.
-//  * setTmpFileValidator(): runs at END_TEST. Validates the files created via
-//                           NEW_TMP_FILE against their XML schema
-//                           (mzML, featureXML, idXML, ...).
-//
-// Both callbacks are registered by the OpenMSTestSupport object library
-// (src/tests/class_tests/support/), which is linked into the class tests of
-// libOpenMS and libOpenMS_GUI. The registration happens in a static
-// initializer, i.e. automatically before main() -- linking the library is all
-// that is needed, and the individual test files stay unchanged. When no
-// callback is registered (e.g. in the OpenSwathAlgo tests, which do not link
-// libOpenMS-specific support code), the corresponding step is simply skipped.
+// It must not call into the higher OpenMS layers (FORMAT, KERNEL, ...). The one
+// piece of test behavior that needs them -- validating written files against
+// their XML schema (mzML, featureXML, idXML, ...) -- therefore does not live
+// here. It is a header-only helper in the class-test project,
+// <OpenMS/TestFileValidation.h>, which tests that write such files include and
+// invoke explicitly via VALIDATE_TMP_FILES / VALIDATE_FILE before END_TEST.
 // ---------------------------------------------------------------------------
 
 // Avoid OpenMS includes here at all costs
@@ -73,36 +65,6 @@ namespace OpenMS
     /// Namespace for class tests
     namespace ClassTest
     {
-
-      /// Type of the hook invoked by #START_TEST (via mainInit()) before any test code runs.
-      /// @see setTestInitHook()
-      using TestInitHook = void (*)();
-
-      /// Type of the hook invoked by #END_TEST (via endTestPostProcess()) to validate the
-      /// temporary files created with #NEW_TMP_FILE. Returns false if any file fails validation.
-      /// @see setTmpFileValidator()
-      using TmpFileValidator = bool (*)(const std::vector<std::string>& file_names);
-
-      /**
-       @brief Registers a hook that mainInit() runs at the start of every test program.
-
-       The test framework itself is independent of libOpenMS' higher layers. Library-specific
-       test setup (e.g. seeding the UniqueIdGenerator so that tests are deterministic) is
-       installed by linking the OpenMSTestSupport object library, whose static initializer
-       calls this function. When no hook is registered, no extra setup is run.
-       */
-      void
-      setTestInitHook(TestInitHook hook);
-
-      /**
-       @brief Registers a validator that endTestPostProcess() runs on all temporary files.
-
-       Used by the OpenMSTestSupport object library to validate the files created during a
-       test against their XML schema (mzML, featureXML, idXML, ...). When no validator is
-       registered, temporary files are not validated.
-       */
-      void
-      setTmpFileValidator(TmpFileValidator validator);
 
       /// Creates a temporary file name from the test name and the line with the specified extension
       std::string
@@ -375,7 +337,7 @@ namespace OpenMS
       }
 
       // must be inline: this header is included by more than one translation unit of a test
-      // executable (the test itself and e.g. the OpenMSTestSupport registration TU)
+      // executable (the test itself and other TUs that include this header)
       inline void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
       {
         ++test_count;
