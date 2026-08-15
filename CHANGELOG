@@ -654,6 +654,11 @@ OpenMS Library:
       - on-disc ion image extraction: the shared kernel in IonImageExtraction.h is used by both the
         in-memory and the on-disc path, so single-mass ion images can be visualized from large imzML
         datasets without a full load (one fseek+fread per pixel) (#9654)
+      - per-peak auxiliary FloatDataArrays (e.g. ion mobility, MS:1003006) are now written as additional
+        external .ibd arrays and read back on both the in-memory and on-disc path, so containsIMData() and
+        getIMUnit()/getIMPeakType() work for imaging data the same way they do for mzML; known PSI-MS array
+        names keep their accession and unit, and zlib-compressed m/z/intensity is now rejected on the
+        on-disc path as well as the in-memory one (#9908)
     - Native Parquet I/O for identifications, features and consensus maps:
       - PSMArrowIO reads/writes the .idparquet directory bundle (psms/proteins/protein_groups/
         search_params.parquet), lossless round-trip from PeptideIdentificationList and
