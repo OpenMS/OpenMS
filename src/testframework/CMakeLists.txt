@@ -46,8 +46,21 @@ target_include_directories(OpenMSTestFramework PUBLIC
                            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
                            "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>")
 
-# low-level utilities (StringUtils, Exception, DataValue, ...) come from libOpenMS
-target_link_libraries(OpenMSTestFramework PUBLIC OpenMS)
+# Low-level utilities (StringUtils, Exception, DataValue, ...) come from libOpenMS.
+# Deliberately a *usage* (header) dependency instead of target_link_libraries(... OpenMS):
+# a link edge would force CMake to order libOpenMS.so after libOpenMSTestFramework.a on
+# every consumer's link line, which pushes it behind the static Arrow/Parquet archives
+# that the Arrow-related class tests link. The linker would then satisfy the Arrow/Parquet
+# symbols from those archives instead of from libOpenMS.so, pulling their objects (and the
+# Thrift statics inside them) into each test executable -- 24x larger binaries and, before
+# openms_hide_static_archive_symbols(), duplicated static objects that were destroyed twice
+# at exit. Every consumer (class tests, FuzzyDiff) links OpenMS itself, and this target is
+# not part of the installed package, so no link edge is needed here.
+target_include_directories(OpenMSTestFramework PUBLIC
+                           "$<TARGET_PROPERTY:OpenMS,INTERFACE_INCLUDE_DIRECTORIES>")
+target_compile_definitions(OpenMSTestFramework PUBLIC
+                           "$<TARGET_PROPERTY:OpenMS,INTERFACE_COMPILE_DEFINITIONS>")
+add_dependencies(OpenMSTestFramework OpenMS)
 
 target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 
