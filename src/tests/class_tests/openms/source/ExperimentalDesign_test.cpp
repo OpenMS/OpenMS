@@ -138,6 +138,24 @@ START_SECTION((std::map<unsigned int, std::vector<std::string> > getFractionToMS
 }
 END_SECTION
 
+START_SECTION(( std::map<std::vector<String>, std::set<unsigned> > getConditionToSampleMapping() const ))
+{
+  ExperimentalDesign ed;
+  
+  // Add 3 samples without factors to simulate a factor-less design
+  ed.addSample("sample_1");
+  ed.addSample("sample_2");
+  ed.addSample("sample_3");
+  
+  auto map_a = ed.getSampleToConditionMapping();
+  auto map_b = ed.getConditionToSampleMapping();
+  
+  // Both mapping functions should return 3 unique conditions (N samples = N conditions)
+  TEST_EQUAL(map_a.size(), 3);
+  TEST_EQUAL(map_b.size(), 3);
+}
+END_SECTION
+
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
   const auto lf = labelfree_unfractionated_design.getPathLabelToSampleMapping(true);

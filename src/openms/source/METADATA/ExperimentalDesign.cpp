@@ -436,7 +436,17 @@ namespace OpenMS
     map<vector<std::string>, set<unsigned>> ExperimentalDesign::getConditionToSampleMapping() const
     {
       const auto& facset = sample_section_.getFactors();
-      // assert(!facset.empty()); // not needed: If no factors are given, same condition is assumed for every run
+      // assuming that all samples are unique if no factors are given
+      if (facset.empty())
+      {
+        std::map<std::vector<std::string>, std::set<unsigned>> res;
+
+        for(const auto& name : sample_section_.getSamples())
+        {
+          res[{name}].insert(sample_section_.getSampleRow(name));
+        }
+        return res;
+      }
       set<std::string> nonRepFacs{};
 
       for (const std::string& fac : facset)
