@@ -32,18 +32,30 @@ include_directories(${PROJECT_BINARY_DIR})
 include_directories(${CMAKE_BINARY_DIR}/src/openms_gui)
 
 #------------------------------------------------------------------------------
+# OpenMS is linked separately below through the 'needed' feature, and CMake rejects a library
+# linked both with and without a feature, so it is dropped from the dependency list here.
+set(_openms_gui_class_test_extra_libs ${OpenMS_GUI_LIBRARIES})
+list(REMOVE_ITEM _openms_gui_class_test_extra_libs OpenMS)
+
+#------------------------------------------------------------------------------
 # VISUAL
 add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  # The framework archive stays before the libraries it draws symbols from, because with the
-  # linker's default --as-needed a library listed ahead of the references that need it is
-  # dropped. The class tests in ../openms/ instead state that with the 'needed' link feature
-  # (see cmake/compiler_flags.cmake); doing the same here means resolving how OpenMS is spelt
-  # inside OpenMS_GUI_LIBRARIES, which needs a Qt build to verify, so this site keeps the order.
-  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_GUI_LIBRARIES})
+  # libOpenMS is linked through the 'needed' feature, as in ../openms/CMakeLists.txt: the
+  # framework archive draws Exception/StringUtils/UniqueIdGenerator from it, and the linker's
+  # default --as-needed would drop it for a test that references nothing from it directly.
+  #
+  # OpenMS_GUI links OpenMS publicly, so OpenMS also arrives here as a transitive dependency
+  # without a feature. CMake treats that as a conflict, so the override settles it in favour
+  # of 'needed' for every way OpenMS reaches this target.
+  target_link_libraries(${_class_test}
+                        OpenMSTestFramework
+                        "$<LINK_LIBRARY:needed,OpenMS>"
+                        ${_openms_gui_class_test_extra_libs})
+  set_property(TARGET ${_class_test} PROPERTY LINK_LIBRARY_OVERRIDE_OpenMS needed)
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 endforeach(_class_test)
