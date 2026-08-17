@@ -441,7 +441,7 @@ namespace OpenMS
       {
         std::map<std::vector<std::string>, std::set<unsigned>> res;
 
-        for(const auto& name : sample_section_.getSamples())
+        for (const auto& name : sample_section_.getSamples())
         {
           res[{name}].insert(sample_section_.getSampleRow(name));
         }

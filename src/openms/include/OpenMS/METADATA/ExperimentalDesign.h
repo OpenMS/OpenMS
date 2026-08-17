@@ -618,6 +618,9 @@ namespace OpenMS
       column called @c MSstats_BioReplicate is excluded, one called @c Donor is not and would
       split the replicates it names into separate conditions.
 
+      @note If no factors are provided in the experimental design, each sample forms 
+      its own unique condition (N samples = N distinct conditions).
+      
       @return condition (the retained factor values, in the alphabetical order of their column
               names) to the zero-based sample row indices that share it
     */

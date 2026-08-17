@@ -142,7 +142,7 @@ START_SECTION(( std::map<std::vector<String>, std::set<unsigned> > getConditionT
 {
   ExperimentalDesign ed;
   
-  // Add 3 samples without factors to simulate a factor-less design
+  // add 3 samples without factors to simulate a factor-less design
   ed.addSample("sample_1");
   ed.addSample("sample_2");
   ed.addSample("sample_3");
@@ -150,9 +150,24 @@ START_SECTION(( std::map<std::vector<String>, std::set<unsigned> > getConditionT
   auto map_a = ed.getSampleToConditionMapping();
   auto map_b = ed.getConditionToSampleMapping();
   
-  // Both mapping functions should return 3 unique conditions (N samples = N conditions)
+  // both mapping functions should return 3 unique conditions (N samples = N conditions)
   TEST_EQUAL(map_a.size(), 3);
   TEST_EQUAL(map_b.size(), 3);
+
+  // stronger assertions: Verify that condition IDs are actually distinct
+  std::set<unsigned> condition_ids;
+  for (const auto& [sample, condition] : map_a)
+  {
+    condition_ids.insert(condition);
+  }
+  TEST_EQUAL(condition_ids.size(), 3);
+
+  // verify that each map_b entry contains exactly one sample row
+  for (const auto& [condition, rows] : map_b)
+  {
+    TEST_EQUAL(condition.size(), 1);
+    TEST_EQUAL(rows.size(), 1);
+  }
 }
 END_SECTION
 
