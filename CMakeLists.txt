@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
 
 # The vcpkg toolchain must be selected before project() initializes compilers.
 # Existing system/contrib dependency discovery remains the default.

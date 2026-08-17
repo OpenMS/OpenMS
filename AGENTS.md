@@ -60,7 +60,7 @@ OpenMS/
 
 ## Build and Install
 
-- **CMake minimum**: 3.21; **C++ standard**: C++23
+- **CMake minimum**: 3.24; **C++ standard**: C++23
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - When adding or removing a public header under `src/openms/include/OpenMS/`, update the matching directory's `sources.cmake` header list. These lists control the `OpenMS_headers` install component, and missing entries break consumers of the installed package.
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.

@@ -1043,6 +1043,12 @@ Build System:
     system_clock epoch microseconds; such ids vary between runs either way. Math's
     RandomShuffler deliberately keeps boost::random: its bounded-range distribution is what
     makes portable_random_shuffle reproducible across standard libraries
+  - The minimum required CMake is now 3.24 (was 3.21). The installation instructions and AGENTS.md
+    already stated 3.24, so this only makes cmake_minimum_required agree with them. 3.24 is the first
+    release with the $<LINK_LIBRARY:...> generator expression and user-defined link features
+    (CMAKE_LINK_LIBRARY_USING_<FEATURE>), which let link requirements be expressed directly instead of
+    relying on the order of target_link_libraries arguments. Every current distribution ships at least
+    3.24 (Ubuntu 24.04 LTS has 3.28)
   - The class-test framework (ClassTest.h macros, FuzzyStringComparator, MacrosTest.h) moved out of
     libOpenMS into the new static library OpenMSTestFramework (src/testframework/); include paths and
     installed header locations are unchanged. XML schema validation of test output moved to a
