@@ -38,8 +38,11 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  # framework archive before the libraries it draws symbols from -- see the comment in
-  # ../openms/CMakeLists.txt for why the order matters with --as-needed
+  # The framework archive stays before the libraries it draws symbols from, because with the
+  # linker's default --as-needed a library listed ahead of the references that need it is
+  # dropped. The class tests in ../openms/ instead state that with the 'needed' link feature
+  # (see cmake/compiler_flags.cmake); doing the same here means resolving how OpenMS is spelt
+  # inside OpenMS_GUI_LIBRARIES, which needs a Qt build to verify, so this site keeps the order.
   target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_GUI_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})

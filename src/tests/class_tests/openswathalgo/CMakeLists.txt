@@ -36,11 +36,11 @@ set(openswath_algo_tests
 # add targets for the executables
 foreach(i ${openswath_algo_tests})
   add_executable(${i} ${i}.cpp)
-  # OpenMS is listed explicitly and *after* the framework: the framework still uses
-  # libOpenMS' low-level utilities (StringUtils, Exception, ...), and these test
-  # sources themselves reference no OpenMS symbols, so with the linker's default
-  # --as-needed libOpenMS.so has to follow the archive whose references it satisfies.
+  # OpenMS is listed explicitly because the framework still uses libOpenMS' low-level
+  # utilities (StringUtils, Exception, ...) while these test sources reference no OpenMS
+  # symbols themselves. The 'needed' feature (see cmake/compiler_flags.cmake) keeps the
+  # linker's default --as-needed from dropping it, so the position no longer matters.
   # Once libOpenMS is split up, this becomes a dependency on the future core library.
-  target_link_libraries(${i} OpenSwathAlgo OpenMSTestFramework OpenMS)
+  target_link_libraries(${i} OpenSwathAlgo OpenMSTestFramework "$<LINK_LIBRARY:needed,OpenMS>")
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)

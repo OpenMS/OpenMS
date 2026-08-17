@@ -249,3 +249,33 @@ function(openms_hide_static_archive_symbols target_name)
     target_link_options(${target_name} PRIVATE "LINKER:--exclude-libs,ALL")
   endif()
 endfunction()
+
+#------------------------------------------------------------------------------
+# Link feature 'needed': record a shared library as a dependency even if nothing
+# has referenced it yet at the point where it appears on the link line.
+#
+# Most Linux distributions default their linker to --as-needed, which drops a
+# shared library unless some object seen *earlier* already needs a symbol from
+# it. That turns the order of target_link_libraries() arguments into a silent
+# correctness requirement: a class test whose own object references nothing from
+# libOpenMS keeps it only because libOpenMSTestFramework.a -- which does
+# reference it -- happens to be listed first.
+#
+#   target_link_libraries(mytest OpenMSTestFramework "$<LINK_LIBRARY:needed,OpenMS>")
+#
+# states that requirement instead of encoding it in the argument order, so
+# reordering the arguments can no longer break the link.
+#
+# The Apple linker resolves archives repeatedly and has no --as-needed, and
+# Windows has no equivalent concept, so there the feature passes the library
+# through unchanged. It is defined (not just supported) on every platform, so
+# the generator expression stays valid everywhere.
+if(NOT WIN32 AND NOT APPLE)
+  set(CMAKE_CXX_LINK_LIBRARY_USING_needed
+      "LINKER:--push-state,--no-as-needed"
+      "<LINK_ITEM>"
+      "LINKER:--pop-state")
+else()
+  set(CMAKE_CXX_LINK_LIBRARY_USING_needed "<LINK_ITEM>")
+endif()
+set(CMAKE_CXX_LINK_LIBRARY_USING_needed_SUPPORTED TRUE)
