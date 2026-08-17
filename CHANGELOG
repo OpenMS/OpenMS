@@ -1033,6 +1033,17 @@ Documentation:
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
 
 Build System:
+  - Removed the obsolete developer script tools/checker.php (not referenced by any CI workflow, build
+    target, container or packaging script; the ACTIVE_MAINTAINERS file behind its maintainer checks
+    had itself been deleted as unmaintained). Its role is covered by clang-format and the regular test
+    suite. tools/create_test.php and tools/correct_test.php remain
+  - Removed the ENABLE_STYLE_TESTING option and the src/tests/coding/ project it enabled: the vendored
+    cpplint (a locally modified copy), the CMake-side cppcheck integration (cmake/Modules/Findcppcheck*
+    and CppcheckTargets.cmake) and the potential_for_loop_copies grep check. No CI workflow ever set
+    the option, and because it replaced the regular test system rather than adding to it, a build that
+    enabled it contained no class or TOPP tests at all. Formatting is covered by the .clang-format
+    preset and cppcheck runs on every push via the cppcheck-test GitHub workflow, which is independent
+    of CMake. Configuring with -DENABLE_STYLE_TESTING=ON no longer has any effect
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
     <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
