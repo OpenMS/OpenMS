@@ -60,11 +60,6 @@ target_compile_definitions(OpenMSTestFramework PUBLIC
                            "$<TARGET_PROPERTY:OpenMS,INTERFACE_COMPILE_DEFINITIONS>")
 add_dependencies(OpenMSTestFramework OpenMS)
 
-# UniqueIdGenerator.h (seeding in ClassTest.cpp) includes boost/random headers.
-# Boost::boost is header-only: include dirs only, no link-line entry, so this does
-# not affect the link ordering discussed above.
-target_link_libraries(OpenMSTestFramework PRIVATE Boost::boost)
-
 target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 
 openms_add_library_compiler_flags(OpenMSTestFramework)
