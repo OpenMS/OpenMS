@@ -45,6 +45,8 @@ namespace OpenMS::Internal::ClassTest
 
     @param[in] file_names The files to check (usually TEST::tmp_file_list)
     @return true if all applicable files passed validation
+
+    @ingroup ClassTest
   */
   inline bool validateTmpFiles(const std::vector<std::string>& file_names)
   {
@@ -170,6 +172,7 @@ namespace OpenMS::Internal::ClassTest
 
   Requires <OpenMS/TestFileValidation.h>. The test fails if any file is invalid.
 
+  @ingroup ClassTest
   @hideinitializer
 */
 #define VALIDATE_TMP_FILES                                                                \
@@ -193,6 +196,7 @@ namespace OpenMS::Internal::ClassTest
   which makes a validation failure easier to attribute than a check at the end of
   the test. Also usable for files that were not created via #NEW_TMP_FILE.
 
+  @ingroup ClassTest
   @hideinitializer
 */
 #define VALIDATE_FILE(filename)                                                           \

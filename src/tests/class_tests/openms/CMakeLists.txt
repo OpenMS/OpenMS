@@ -21,6 +21,12 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURE
 include(executables.cmake)
 
 #------------------------------------------------------------------------------
+# scan this project's include dir when generating the API documentation, so the
+# VALIDATE_TMP_FILES / VALIDATE_FILE macros (TestFileValidation.h) appear on the
+# ClassTest doxygen page next to the framework's macros
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
+#------------------------------------------------------------------------------
 # Include directories for tests
 set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/;${PROJECT_SOURCE_DIR}/include/")
 # add OpenMS directories

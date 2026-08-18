@@ -407,19 +407,51 @@ namespace TEST = OpenMS::Internal::ClassTest;
 /**
  @defgroup ClassTest Class test macros
 
- @brief These macros are used by the test programs in the subdirectory
- <code>OpenMS/source/TEST</code>.
+ @brief The macros of OpenMS' class-test framework (library
+ <code>OpenMSTestFramework</code>), used by the test programs under
+ <code>src/tests/class_tests/</code>.
 
- On successful operation the test program will print out the message "PASSED",
- otherwise "FAILED".
+ The framework lives in its own static library, <code>OpenMSTestFramework</code>
+ (<code>src/testframework/</code>), and depends on the C++ standard library
+ ONLY — it does not link or include libOpenMS. That is what lets the tests of
+ every OpenMS library (including ones that do not link libOpenMS, such as
+ OpenSwathAlgo) use the same macros, and it keeps the framework working
+ unchanged when libOpenMS is split into smaller libraries.
 
- If called with the @b -v option, the test program prints verbose information
- about subsections.
+ A test program is one translation unit: #START_TEST / #END_TEST wrap the whole
+ program, #START_SECTION / #END_SECTION wrap each subtest, and the elementary
+ macros (#TEST_EQUAL, #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR,
+ #TEST_FILE_EQUAL, #TEST_FILE_SIMILAR, #TEST_EXCEPTION, ...) record results.
+ On success the program prints "PASSED", otherwise "FAILED" plus the failing
+ lines. With <code>-v</code> it prints information about subsections, with
+ <code>-V</code> (or the environment variable
+ <code>OPENMS_TEST_VERBOSE=True</code>) about every elementary test.
 
- If called with the @b -V option, the test program prints even more verbose
- information for every elementary test.
+ Because the framework knows nothing about the library under test,
+ library-specific behavior is <em>registered</em> by the test project
+ (see <code>src/tests/class_tests/openms/source/OpenMSTestSupport.cpp</code>,
+ compiled into every openms/openms_gui test executable):
 
- The implementation is done in namespace #OpenMS::Internal::ClassTest.
+ - OpenMS::Internal::ClassTest::registerExceptionTranslator() — so failure
+   reports show the name and origin of unexpected OpenMS exceptions (the
+   framework itself only knows <code>std::exception</code>);
+ - OpenMS::Internal::ClassTest::setPreconditionTestsEnabled() — so
+   #TEST_PRECONDITION_VIOLATED / #TEST_POSTCONDITION_VIOLATED expect a throw
+   exactly when the library's #OPENMS_PRECONDITION checks are compiled in;
+ - OpenMS::UniqueIdGenerator seeding, so unique IDs written into test output
+   files are reproducible against the reference files.
+
+ Values in failure reports print via <code>operator<<</code> found at the
+ macro-expansion site (so any type your test can see prints as usual);
+ #TEST_REAL_SIMILAR accepts floating point values and class types implicitly
+ convertible to <code>double</code> (e.g. DataValue, ParamValue) — no
+ registration needed.
+
+ Schema validation of temporary files is explicit: tests that write XML call
+ #VALIDATE_TMP_FILES (or #VALIDATE_FILE) from
+ <code>OpenMS/TestFileValidation.h</code> in the openms class-test project —
+ it needs the FORMAT layer and therefore deliberately does not live in the
+ framework.
 
  To create a test, follow the guidelines in @ref developer_faq (section "How to add a new class test").
  Look at existing test files in src/tests/class_tests/ for examples.
