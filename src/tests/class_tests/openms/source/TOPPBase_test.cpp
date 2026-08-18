@@ -453,25 +453,25 @@ START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) cons
 	//command line (when there is a ini file value too)
 	const char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(5,both_cl);
-	TEST_EQUAL(tmp3.getStringOption("stringoption"),DataValue("commandline"));
+	TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
 
 	//ini file: instance section
 	const char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp4(3,common_cl);
-	TEST_EQUAL(tmp4.getStringOption("stringoption"),DataValue("instance1"));
+	TEST_EQUAL(tmp4.getStringOption("stringoption"), "instance1");
 	const char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
 	TOPPBaseTest tmp5(5,common5_cl);
-	TEST_EQUAL(tmp5.getStringOption("stringoption"),DataValue("instance5"));
+	TEST_EQUAL(tmp5.getStringOption("stringoption"), "instance5");
 
 	//ini file: tool common section
 	const char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
 	TOPPBaseTest tmp6(5,common6_cl);
-	TEST_EQUAL(tmp6.getStringOption("stringoption"),DataValue("toolcommon"));
+	TEST_EQUAL(tmp6.getStringOption("stringoption"), "toolcommon");
 
 	//ini file: common section
 	const char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
 	TOPPBaseTest tmp7(5,common7_cl);
-	TEST_EQUAL(tmp7.getStringOption("stringoption"),DataValue("common"));
+	TEST_EQUAL(tmp7.getStringOption("stringoption"), "common");
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringOption("doubleoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringOption("imleeewenit"));
