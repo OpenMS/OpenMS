@@ -55,6 +55,7 @@ brew update
 # Required dependencies:
 brew install \
   autoconf \
+  autoconf-archive \
   automake \
   dotnet \
   icu4c \

@@ -7,6 +7,18 @@ inputs:
   macosx_deployment_target:
     description: "Used to override -macos-version-min on macOS"
     default: 14.0
+  ssh_key:
+    description: "SSH private key for the rsync cache archive"
+    required: false
+  ssh_host:
+    description: "SSH host for the rsync cache archive"
+    required: false
+  ssh_port:
+    description: "SSH port for the rsync cache archive"
+    required: false
+  ssh_user:
+    description: "SSH user for the rsync cache archive"
+    required: false
 outputs:
   version:
     description: "The discovered compiler version number"
@@ -28,6 +40,10 @@ runs:
       uses: ./.github/actions/dependencies
       with:
         compiler: ${{ inputs.compiler }}
+        ssh_key: ${{ inputs.ssh_key }}
+        ssh_host: ${{ inputs.ssh_host }}
+        ssh_port: ${{ inputs.ssh_port }}
+        ssh_user: ${{ inputs.ssh_user }}
 
     ############################################################################
     - name: Compute the Compiler Version
@@ -40,6 +56,7 @@ runs:
         clang*)
           ver=$(clang -dumpversion)
           name=$(type -p clang++)
+          cc_name=$(type -p clang)
           ;;
 
         cl*)
@@ -52,11 +69,13 @@ runs:
         gcc | g++)
           ver=$(gcc -dumpversion)
           name=$(type -p g++)
+          cc_name=$(type -p gcc)
           ;;
 
         xcode)
           ver=$(clang -dumpversion)
           name=$(xcrun -f clang++)
+          cc_name=$(xcrun -f clang)
           ;;
 
         *)
@@ -76,6 +95,7 @@ runs:
         {
           # All remaining steps should use this compiler.
           echo "CXX=$name"
+          echo "CC=$cc_name"
         } >>"$GITHUB_ENV"
 
     ############################################################################
@@ -173,13 +193,13 @@ runs:
       id: preset
       shell: bash
       run: |
-        case "${{ runner.os }}-${{ runner.arch }}" in
+        case "$RUNNER_OS-$RUNNER_ARCH" in
           Linux-X64) preset=linux-x64-ci ;;
           Linux-ARM64) preset=linux-arm64-ci ;;
           macOS-ARM64) preset=macos-arm64-ci ;;
           Windows-X64) preset=windows-x64-ci ;;
           *)
-            echo >&2 "ERROR: no CI preset mapped for ${{ runner.os }}-{{ runner-arch }}"
+            echo >&2 "ERROR: no CI preset mapped for $RUNNER_OS-$RUNNER_ARCH"
             exit 1
             ;;
         esac

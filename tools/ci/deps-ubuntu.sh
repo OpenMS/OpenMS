@@ -37,6 +37,7 @@ sudo apt-get -qq install -y \
   libtool \
   git \
   automake \
+  autoconf-archive \
   ninja-build \
   xvfb \
   ccache \

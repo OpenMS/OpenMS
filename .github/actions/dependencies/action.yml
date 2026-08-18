@@ -4,6 +4,18 @@ inputs:
   compiler:
     description: "The name of the compiler to use"
     required: true
+  ssh_key:
+    description: "SSH private key for the rsync cache archive"
+    required: false
+  ssh_host:
+    description: "SSH host for the rsync cache archive"
+    required: false
+  ssh_port:
+    description: "SSH port for the rsync cache archive"
+    required: false
+  ssh_user:
+    description: "SSH user for the rsync cache archive"
+    required: false
 outputs:
   cmake_prefix:
     description: "Path to add to CMAKE_PREFIX"
@@ -131,7 +143,10 @@ runs:
 
         if [[ "${{ inputs.compiler }}" == clang* ]]; then
           major_ver=$(clang -dumpversion | cut -d. -f1)
-          sudo apt-get -qq install -y "libomp-${major_ver}-dev"
+          sudo apt-get -qq install -y "libomp-${major_ver}-dev" "llvm-${major_ver}"
+          sudo ln -sf "/usr/bin/llvm-ar-${major_ver}" /usr/local/bin/llvm-ar
+          sudo ln -sf "/usr/bin/llvm-nm-${major_ver}" /usr/local/bin/llvm-nm
+          sudo ln -sf "/usr/bin/llvm-ranlib-${major_ver}" /usr/local/bin/llvm-ranlib
         fi
 
         echo "cmake_prefix=" >>$GITHUB_OUTPUT
@@ -183,19 +198,24 @@ runs:
       with:
         name: vcpkg-cache
         path: ${{ github.workspace }}/.vcpkg-cache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}
-        ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
-        ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-        ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
-        ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        ssh_key: ${{ inputs.ssh_key }}
+        ssh_host: ${{ inputs.ssh_host }}
+        ssh_port: ${{ inputs.ssh_port }}
+        ssh_user: ${{ inputs.ssh_user }}
 
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        doNotCache: true
+    - name: Init vcpkg submodule
+      shell: bash
+      run: |
+        git submodule update --init vcpkg
     
     - name: Point vcpkg at the Local Binary Cache
       shell: bash
       run: |
         mkdir -p "${{ github.workspace }}/.vcpkg-cache"
-        echo "VCPKG_BINARY_CACHE=clear;files;${{ github.workspace }}/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+        echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        doNotCache: true
