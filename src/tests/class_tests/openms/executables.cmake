@@ -8,7 +8,6 @@ set(concept_executables_list
   ProgressLogger_test
   RAIICleanup_test
   StreamHandler_test
-  Types_test
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test

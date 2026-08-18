@@ -15,7 +15,6 @@ PrecisionWrapper.cpp
 ProgressLogger.cpp
 RAIICleanup.cpp
 StreamHandler.cpp
-Types.cpp
 UniqueIdGenerator.cpp
 UniqueIdIndexer.cpp
 UniqueIdInterface.cpp

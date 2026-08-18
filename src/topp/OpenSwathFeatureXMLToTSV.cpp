@@ -415,9 +415,8 @@ protected:
     }
     FeatureMap feature_map;
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
-    // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
-    // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
-    std::string locale_before =std::string(OpenMS::Internal::OpenMS_locale);
+    // Reset it to "C" afterwards. TODO this needs to be fixed more thoroughly.
+    std::string locale_before = "C";
     FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
     setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().empty())
