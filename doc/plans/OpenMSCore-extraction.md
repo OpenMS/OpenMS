@@ -481,3 +481,13 @@ doesn't — purely as the first slice of the libOpenMS split, no longer coupled 
 comparison plus CTest wiring live here. Wrapping the `TEST_*` macros over Catch2 is feasible as a
 separate, larger migration; this part gets Catch2's *architecture* — which is what makes the
 framework split-proof — without touching a single existing test.
+
+**Implementer handoff:** the file-by-file specification for this part, with copy sources,
+verification steps, and acceptance criteria, is
+[`testframework-std-only-implementation.md`](testframework-std-only-implementation.md). Two
+details discovered while writing it revise §3.4 above: the `isRealType` predicate must be part of
+the main PR (the header cannot go std-only while it still includes `DataValue.h`), and the
+`what()`-completion PR is dropped — 29 test files compare `what()` verbatim in
+`TEST_EXCEPTION_WITH_MESSAGE`, so exception naming is injected via a registered translator (the
+exact Catch2 `CATCH_TRANSLATE_EXCEPTION` design) from the same support TU that seeds the ID
+generator.
