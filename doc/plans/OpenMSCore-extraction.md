@@ -272,3 +272,140 @@ generically — verify in the wheel jobs, expect no edits.
   semantics change. The trait/overload move is observable only as a compile error for a test that
   uses `TEST_REAL_SIMILAR` on a new variant-like type without providing the overload, which is the
   designed extension point.
+
+---
+
+# Part 2: upstream changes that make Part 1 simpler and cleaner
+
+Everything hard in Part 1 is hard because OpenMS keeps configuration, global state, or type
+knowledge one layer below where it belongs. Each of those is independently fixable — mostly by
+deleting code — and each fix is a small, separately green PR. Landing S1–S4 *before* the
+extraction turns Part 1 into nearly the pure "`git mv` + build system" move the original sketch
+imagined. All statements below are measured on the #9919 branch.
+
+## S1. Make the bottom of OpenMS configuration-free
+
+Measured: across the 18 files of §3.2, the only configure-time macros actually consumed are
+`OPENMS_WINDOWSPLATFORM` (≙ `_WIN32`), `OPENMS_HAS_UNISTD_H`/`OPENMS_HAS_SYS_RESOURCE_H`/
+`OPENMS_HAS_KILL` (≙ `__has_include`, C++17), `OPENMS_ASSERTIONS` (≙ `!defined(NDEBUG)` — which
+is also *more* correct than today's `CMAKE_BUILD_TYPE STREQUAL Debug`, which never fires for the
+Debug config of multi-config generators), and `OPENMS_NO_FLOAT_FROM_CHARS` (a compiler
+feature test). `OPENMS_PRETTY_FUNCTION` is already compiler-derived. Elsewhere,
+`OPENMS_BIG_ENDIAN` (4 users) is `std::endian` since C++20 and `OPENMS_HAS_PROCESS_H` has zero
+users. **The core needs nothing from `configure_file` at all.**
+
+Therefore:
+
+* Replace the configure-time checks with compiler facts and make the platform slice of `config.h`
+  a **static, checked-in header**. The §3.4 problem ("who generates `config.h` first") ceases to
+  exist — there is nothing to generate.
+* Replace the per-target `generate_export_header()` calls with **one small checked-in header**
+  defining all library export macros (`OPENMS_DLLAPI`, `OPENMSCORE_DLLAPI`,
+  `OPENSWATHALGO_DLLAPI`, `OPENMS_GUI_DLLAPI`), each keyed on the `<Target>_EXPORTS` define CMake
+  already sets. One greppable file; headers work in IDEs without configuring; a new library is a
+  three-line diff. This deletes §3.4 entirely, including the shared-build-include-dir plumbing
+  and the generated-header special case in `install_headers()`.
+* Put the rest of `config.h` on a diet separately: it currently bakes feature/dependency soup
+  (`WITH_GUI`, `ENABLE_UPDATE_CHECK`, Boost/LibSVM/GLPK version numbers, `WITH_CRAWDAD`,
+  COINOR/HiGHS, install paths) into a header included by every TU of every consumer — flipping
+  `WITH_GUI` or the install prefix rebuilds the world. Those belong as target-level compile
+  definitions on the handful of TUs that read them. Not a prerequisite for Part 1, but it is the
+  same disease, and it keeps the core from owning macros about GUI and LP solvers.
+
+## S2. Retire the push-model `GlobalExceptionHandler`
+
+Today every `BaseException` constructor calls `GlobalExceptionHandler::getInstance().set(...)`,
+pushing file/line/function/name/what into static strings that a custom `terminate()` handler
+prints later. That design (from before C++11) is why `Exception.cpp` drags
+`GlobalExceptionHandler` into the core — and it is independently broken: the statics are a data
+race under OpenMP, the handler is only installed once the first exception has ever been
+constructed, and `terminate()` prints the *last constructed* exception even when it is unrelated
+to the actual termination.
+
+The pull model deletes all of it: the terminate handler calls `std::current_exception()`,
+rethrows, catches `Exception::BaseException&`, and reads the same five fields from the in-flight
+object (they are all stored members). Consequences:
+
+* the `set()`/`setMessage()` calls disappear from `Exception.cpp` and from the four outside call
+  sites (`ProForma.cpp`, `TOPPBase_defs.h`, two FEATUREFINDER headers) — all mechanical deletions;
+* `GlobalExceptionHandler` shrinks to a ~40-line terminate/new-handler installer that no longer
+  needs to be in the core at all (`Exception.cpp` becomes dependency-free);
+* the printed diagnostics get *more* accurate, and a real latent race is gone.
+
+## S3. Localize the PID fetch in `UniqueIdGenerator`
+
+`UniqueIdGenerator.cpp` includes `SysInfo.h` for exactly one call, `SysInfo::getProcessId()`,
+used to mix the PID into the seed. A three-line `#ifdef _WIN32 GetCurrentProcessId() #else
+getpid()` in the `.cpp` removes it. `SysInfo` (335 lines of psapi/mach/proc memory
+introspection, 8 real users, all library-level) then stays in libOpenMS where it belongs, and
+the core loses its entire platform-API surface. While in the file: the hand-rolled
+pointer-plus-`omp critical` singleton can become a function-local static (thread-safe since
+C++11), deleting three critical sections.
+
+## S4. Move type knowledge out of the bottom headers — the same fix, three places
+
+The framework's `isRealType(DataValue)` (§3.5) is one instance of a pattern; there are two more:
+
+* **`Types.h` specializes `writtenDigits<DataValue>`** — the bottom-most header of the codebase
+  forward-declares and special-cases a DATASTRUCTURES type. Measured: no library code calls
+  `writtenDigits` on a `DataValue`; only `TEST_REAL_SIMILAR` does. The specialization moves into
+  the same test-side support header as the `isRealType` overloads.
+* **`StringUtils.h/.cpp` declare and define `toStr`/`appendToStr` for `DataValue`/`ParamValue`**
+  (§3.2's wart). Root fix instead of the workaround: declare those overloads next to the types
+  (`DataValue.h`/`ParamValue.h`), where every caller already has the type included. Unqualified
+  callers keep working via ADL; the handful of `StringUtils::`-qualified callers get a
+  deprecation shim or a one-time mechanical edit. `StringUtils` then contains *no* named OpenMS
+  type, and the "3 declarations stay `OPENMS_DLLAPI` in a core header" exception in §3.2
+  disappears.
+* **Optionally delete the customization point altogether**: `DataValue::operator double()` and
+  `ParamValue::operator double()` are implicit, so
+  `std::is_floating_point_v<T> || (std::is_class_v<T> && std::is_convertible_v<T, double>)`
+  classifies today's types correctly with zero registration — and covers any future library's
+  variant type for free. Semantics are unchanged for current tests (a non-numeric `DataValue`
+  already throws on conversion today). The support header of §3.5 then shrinks to nothing; the
+  26+1 tests still add their `DataValue.h`/`ParamValue.h` includes, which they morally owed
+  anyway.
+
+Also in this family: **delete `Internal::OpenMS_locale`** (`Types.cpp`). Its initializer saves
+the locale, sets "C", restores the saved locale — net effect nothing — and the global holds the
+literal `"C"`. It has one reader (`OpenSwathFeatureXMLToTSV.cpp`, which can use the literal) plus
+its own relic test. With it gone, `Types.cpp` is empty and is deleted; the core loses another
+static-initializer global.
+
+## S5. Finish the migration to target-based CMake
+
+The test projects still consume `include_directories(${OpenMS_INCLUDE_DIRECTORIES})` and friends
+from `CACHE INTERNAL` variables that `openms_add_library()` maintains in parallel to the targets'
+real usage requirements. Every new library means more bookkeeping in that shadow system. Deleting
+it (tests just `target_link_libraries(... OpenMS)`) is what makes "add a library" a non-event —
+for `OpenMSCore` and for every later slice. Same direction, lower priority: the per-directory
+`sources.cmake`/`sources.cmake` pairs make every file move a 4–6-list edit; one list per library
+(or `CONFIGURE_DEPENDS` globs, if acceptable) would reduce §4's step 2 to the `git mv`.
+
+## S6. Make the shipped-library list a derived fact
+
+Part 1's §5 checklist exists because four places hardcode the library roster (wheel workflow
+components, pyOpenMS copy commands, the `__init__.py` preload order, KNIME's `foreach` lists).
+Two changes retire most of it: give the shipped libraries a `$ORIGIN` self-RPATH in the wheel
+(the installed tree already uses `$ORIGIN/../lib`; the wheel copies bypass it — hence the
+manual, order-sensitive `ctypes` preload), and drive the copy/packaging lists from the existing
+`_OPENMS_EXPORT_TARGETS` list instead of naming libraries. After that, adding a library touches
+the CHANGELOG and nothing else.
+
+## Revised sequencing and what Part 1 becomes
+
+Land as independent PRs, in any order, before the extraction: **S2, S3, S4** (each deletes more
+than it adds), and **S1** at least for the platform/export headers. Then re-run Part 1, which
+shrinks to:
+
+* extraction set: **9 headers + 4 sources** (`GlobalExceptionHandler.*`, `SysInfo.*` no longer
+  move; `Types.cpp` and `PrecisionWrapper.cpp` are deleted outright), every `.cpp` of which is
+  dependency-free except `StringUtils.cpp` → SIMDe (`PRIVATE`, header-only);
+* §3.2's declaration wart: gone (S4);
+* §3.4: gone (S1);
+* §3.5: a support header with two overloads — or nothing at all with the predicate variant (S4);
+* §5's checklist: CHANGELOG plus whatever of S6 has not landed yet.
+
+The original sketch claimed "8 headers, 5 sources, build-system only". After S1–S4 that claim is
+essentially true — not because the plan got smaller, but because the code was changed to match
+the architecture the sketch assumed.
