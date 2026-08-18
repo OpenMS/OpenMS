@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h> 
-#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
-
+#include <OpenMS/OpenMSConfig.h> // OPENMS_DLLAPI; removed when the framework leaves libOpenMS
 
 #include <map>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace OpenMS
 {
@@ -90,13 +91,13 @@ public:
     void setAcceptableAbsolute(const double rhs);
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    const StringList & getWhitelist() const;
+    const std::vector<std::string> & getWhitelist() const;
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    StringList & getWhitelist();
+    std::vector<std::string> & getWhitelist();
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    void setWhitelist(const StringList & rhs);
+    void setWhitelist(const std::vector<std::string> & rhs);
 
     /// Matched white list. If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
     void setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs); 
@@ -338,9 +339,9 @@ protected:
     bool use_prefix_;
 
     /// Whitelist
-    StringList whitelist_;
+    std::vector<std::string> whitelist_;
     /// Occurrences of whitelist entries
-    std::map<std::string, UInt> whitelist_cases_;
+    std::map<std::string, unsigned int> whitelist_cases_;
 
     /// Alternative Whitelist
     std::vector< std::pair<std::string, std::string> > matched_whitelist_; 

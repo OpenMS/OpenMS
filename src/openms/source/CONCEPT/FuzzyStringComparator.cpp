@@ -7,19 +7,250 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/PathUtils.h>
+// The framework depends on the C++ standard library only (see ClassTest.h); the
+// handful of libOpenMS utilities this file used are duplicated in the unnamed
+// namespace below, each with a pointer to its source of truth.
+// note: include every std header used here explicitly -- which ones arrive transitively
+// differs between standard libraries (libc++ provides fewer than libstdc++)
+#include <cctype>       // isspace
+#include <cerrno>       // errno in the strtod fallback
+#include <charconv>     // std::from_chars
 #include <cmath>
+#include <cstdlib>      // std::strtod/strtof in the libc++ fallback
+#include <cstring>      // std::memcpy
 #include <filesystem>
 #include <fstream>
 #include <istream>
 #include <iomanip>
 #include <iostream>
+#include <limits>       // std::numeric_limits
+#include <memory>       // std::unique_ptr in the libc++ fallback
+#include <streambuf>    // std::streambuf in getLine
+#include <string>
 
 // #define DEBUG_FUZZY
+
+namespace
+{
+  // Convert a UTF-8 std::string to std::filesystem::path safely on all platforms.
+  // Copy of to_path() from OpenMS/SYSTEM/PathUtils.h; see there for the rationale
+  // (Windows code pages vs. UTF-8).
+  std::filesystem::path to_path(const std::string& s)
+  {
+#ifdef _WIN32
+    try
+    {
+      return std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(s.data()), s.size()));
+    }
+    catch (const std::system_error&)
+    {
+      return std::filesystem::path(s);
+    }
+#else
+    return std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(s.data()), s.size()));
+#endif
+  }
+
+  // Local copy of OpenMS::TextFile::getLine() (FORMAT layer): reads a line and strips any
+  // line ending (\n, \r\n, \r), so otherwise equal lines compare quickly across platforms.
+  // Kept here so the test framework library does not depend on the FORMAT layer.
+  std::istream& getLine(std::istream& is, std::string& t)
+  {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    std::istream::sentry se(is, true);
+    if (!se)
+    { // the stream has an error
+      return is;
+    }
+
+    std::streambuf* sb = is.rdbuf();
+
+    for (;;)
+    {
+        int c = sb->sbumpc(); // get and advance to next char
+        switch (c) {
+        case '\n':
+            return is;
+        case '\r': // consume next '\n' (if any) and return
+            if (sb->sgetc() == '\n') // peek current char
+            {
+              sb->sbumpc(); // consume it
+            }
+            return is;
+        case std::streambuf::traits_type::eof():
+            is.setstate(std::ios::eofbit); // still allows: while(is == true)
+            if (t.empty())
+            { // only if we just started a new line, we set the is.fail() == true, ie. is == false
+              is.setstate(std::ios::badbit);
+            }
+            return is;
+        default:
+            t += (char)c;
+        }
+    }
+  }
+
+  // Mirrors OpenMS::File::absolutePath() (SYSTEM layer), duplicated here so the test
+  // framework does not depend on it; only used to print readable paths in the failure report.
+  std::string absolutePath(const std::string& file)
+  {
+    if (file.empty()) return std::filesystem::current_path().generic_string();
+#ifdef _WIN32
+    // On Windows, paths starting with '/' are treated as absolute,
+    // but fs::absolute() prepends the current drive letter. Preserve this behavior.
+    if (file[0] == '/') return file;
+#endif
+    return std::filesystem::absolute(to_path(file)).generic_string();
+  }
+
+  // Return the last 'length' characters, like StringUtils::suffix() (without the
+  // exception on overlong requests -- the call sites below always pass a valid length).
+  std::string suffix(const std::string& s, std::size_t length)
+  {
+    if (length > s.size()) return s;
+    return s.substr(s.size() - length, length);
+  }
+
+  // Return the first 'length' characters, like StringUtils::prefix() (without the
+  // exception on overlong requests -- the call site below always passes a valid length).
+  std::string prefixOf(const std::string& s, std::size_t length)
+  {
+    if (length > s.size()) return s;
+    return s.substr(0, length);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Number parsing: VERBATIM copies of the std::from_chars-based helpers in
+  // src/openms/source/DATASTRUCTURES/StringUtils.cpp (tryParseNaN, the libc++
+  // fallback, parseFloat, StringUtilsHelper::extractDouble). The fuzzy comparison
+  // must accept exactly the same number tokens as the library writes/reads.
+  // Keep the two in sync; do not "improve" this copy.
+  // ---------------------------------------------------------------------------
+
+  template <typename T>
+  bool tryParseNaN(const char*& p, const char* end, T& target)
+  {
+    if (p == end) return false;
+    if (*p != 'n' && *p != 'N') return false;
+
+    const char* start = p;
+    if ((end - start) >= 3 &&
+        (start[0] == 'n' || start[0] == 'N') &&
+        (start[1] == 'a' || start[1] == 'A') &&
+        (start[2] == 'n' || start[2] == 'N'))
+    {
+      p += 3;
+      if (p != end && *p == '(')
+      {
+        ++p;
+        while (p != end && *p != ')') ++p;
+        if (p == end) { p = start; return false; }
+        ++p;
+      }
+      target = std::numeric_limits<T>::quiet_NaN();
+      return true;
+    }
+    return false;
+  }
+
+  // libc++ (e.g. Apple Clang) does not implement the floating-point overloads of
+  // std::from_chars -- only the integer ones. Provide a strtod/strtof based
+  // fallback with matching semantics (general format, no leading whitespace/'+').
+#if defined(_LIBCPP_VERSION)
+  #define OPENMS_TESTFRAMEWORK_NO_FLOAT_FROM_CHARS 1
+#endif
+
+#ifdef OPENMS_TESTFRAMEWORK_NO_FLOAT_FROM_CHARS
+  template <typename T>
+  std::from_chars_result fromCharsFloat(const char* first, const char* last, T& value)
+  {
+    std::from_chars_result res{first, std::errc::invalid_argument};
+    // std::from_chars(general) rejects leading whitespace and a leading '+'; mimic that
+    // so behaviour is identical to the std::from_chars path on other platforms.
+    if (first == last || *first == '+' || *first == ' ' || *first == '\t' ||
+        *first == '\n' || *first == '\r' || *first == '\f' || *first == '\v')
+    {
+      return res;
+    }
+
+    // strtod/strtof need a null-terminated string and may read past 'last', so copy the
+    // range into a bounded buffer first.
+    const std::size_t n = static_cast<std::size_t>(last - first);
+    char stackbuf[64];
+    std::unique_ptr<char[]> heapbuf;
+    char* buf = stackbuf;
+    if (n + 1 > sizeof(stackbuf))
+    {
+      heapbuf = std::make_unique<char[]>(n + 1);
+      buf = heapbuf.get();
+    }
+    std::memcpy(buf, first, n);
+    buf[n] = '\0';
+
+    errno = 0;
+    char* parse_end = nullptr;
+    if constexpr (std::is_same_v<T, float>)
+      value = std::strtof(buf, &parse_end);
+    else
+      value = std::strtod(buf, &parse_end);
+
+    if (parse_end == buf) // nothing consumed
+    {
+      return res; // invalid_argument, ptr == first
+    }
+    res.ptr = first + (parse_end - buf);
+    // strtod/strtof set errno==ERANGE on both overflow (returns +/-HUGE_VAL) and
+    // underflow (returns a representable subnormal or 0). std::from_chars only reports
+    // result_out_of_range on overflow, so match that: accept underflow as success.
+    res.ec = (errno == ERANGE && std::isinf(value)) ? std::errc::result_out_of_range : std::errc{};
+    return res;
+  }
+#endif
+
+  /// Thin wrapper dispatching to std::from_chars or the libc++ fallback above.
+  template <typename T>
+  inline std::from_chars_result parseFloat(const char* first, const char* last, T& value)
+  {
+#ifdef OPENMS_TESTFRAMEWORK_NO_FLOAT_FROM_CHARS
+    return fromCharsFloat(first, last, value);
+#else
+    return std::from_chars(first, last, value);
+#endif
+  }
+
+  bool extractDouble(const char*& begin, const char* end, double& target)
+  {
+    if (tryParseNaN(begin, end, target))
+      return true;
+
+    const char* start = begin;
+    if (start != end && *start == '+') ++start;
+
+    auto fc = parseFloat(start, end, target);
+    if (fc.ec == std::errc{})
+    {
+      begin = fc.ptr;
+      return true;
+    }
+    return false;
+  }
+
+  /// Overload for std::string iterators (converts to const char* internally),
+  /// like StringUtils::extractDouble.
+  bool extractDouble(std::string::const_iterator& begin, const std::string::const_iterator& end, double& target)
+  {
+    const char* const p_start = &(*begin);
+    const char* p = p_start;
+    const char* e = &(*end);
+    bool ok = extractDouble(p, e, target);
+    begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
+    return ok;
+  }
+}
 
 namespace OpenMS
 {
@@ -84,17 +315,17 @@ namespace OpenMS
     }
   }
 
-  const StringList& FuzzyStringComparator::getWhitelist() const
+  const std::vector<std::string>& FuzzyStringComparator::getWhitelist() const
   {
     return whitelist_;
   }
 
-  StringList& FuzzyStringComparator::getWhitelist()
+  std::vector<std::string>& FuzzyStringComparator::getWhitelist()
   {
     return whitelist_;
   }
 
-  void FuzzyStringComparator::setWhitelist(const StringList& rhs)
+  void FuzzyStringComparator::setWhitelist(const std::vector<std::string>& rhs)
   {
     whitelist_ = rhs;
   }
@@ -179,7 +410,7 @@ namespace OpenMS
         prefix << "  is_space:\t" << element_1_.is_space << '\t' << element_2_.is_space << "\n" <<
         prefix << "  is_letter:\t" << (!element_1_.is_number && !element_1_.is_space) << '\t' << (!element_2_.is_number && !element_2_.is_space) << "\n" <<
         prefix << "  letters:\t\"" << element_1_.letter << "\"\t\"" << element_2_.letter << "\"\n" <<
-        prefix << "  char_codes:\t" << static_cast<UInt>(element_1_.letter) << "\t" << static_cast<UInt>(element_2_.letter) << "\n" <<
+        prefix << "  char_codes:\t" << static_cast<unsigned int>(element_1_.letter) << "\t" << static_cast<unsigned int>(element_2_.letter) << "\n" <<
         prefix << " --------------------------------\n" <<
         prefix << "  relative_max:        " << ratio_max_ << "\n" <<
         prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
@@ -193,26 +424,26 @@ namespace OpenMS
         << prefix << "\n"
         << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
         << prefix << "\n"
-        << prefix << "in1:  " << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+        << prefix << "in1:  " << to_path(absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
         << prefix << prefix1.prefix << "!\n"
-        << prefix << prefix1.prefix_whitespaces << StringUtils::suffix(std::string(input_line_1_.line_.str()), input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
+        << prefix << prefix1.prefix_whitespaces << suffix(std::string(input_line_1_.line_.str()), input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
         << prefix <<  "\n"
-        << prefix << "in2:  " << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+        << prefix << "in2:  " << to_path(absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
         << prefix << prefix2.prefix << "!\n"
-        << prefix << prefix2.prefix_whitespaces << StringUtils::suffix(std::string(input_line_2_.line_.str()), input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
+        << prefix << prefix2.prefix_whitespaces << suffix(std::string(input_line_2_.line_.str()), input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
         << prefix << "\n\n"
         << "Easy Access:" << "\n"
-        << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-        << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+        << to_path(absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+        << to_path(absolutePath(input_2_name_)).make_preferred().string() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
         << "TortoiseGitMerge"
-        << " /base:\"" << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "\""
-        << " /mine:\"" << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "\""
+        << " /base:\"" << to_path(absolutePath(input_1_name_)).make_preferred().string() << "\""
+        << " /mine:\"" << to_path(absolutePath(input_2_name_)).make_preferred().string() << "\""
         #else
         << "diff"
-        << " " << to_path(File::absolutePath(input_1_name_)).make_preferred().string()
-        << " " << to_path(File::absolutePath(input_2_name_)).make_preferred().string()
+        << " " << to_path(absolutePath(input_1_name_)).make_preferred().string()
+        << " " << to_path(absolutePath(input_2_name_)).make_preferred().string()
         #endif
         << '\n';
     }
@@ -278,7 +509,7 @@ namespace OpenMS
     {
       return true;
     }
-    for (StringList::const_iterator slit = whitelist_.begin();
+    for (std::vector<std::string>::const_iterator slit = whitelist_.begin();
          slit != whitelist_.end(); ++slit)
     {
       if (line_str_1.contains(*slit) &&
@@ -324,7 +555,7 @@ namespace OpenMS
           if (element_2_.is_number) // we are comparing numbers
           {
 #ifdef DEBUG_FUZZY
-            std::cout << "cmp number: " << StringUtils::toStr(element_1_.number) << " : " << StringUtils::toStr(element_2_.number) << '\n';
+            std::cout << "cmp number: " << element_1_.number << " : " << element_2_.number << '\n';
 #endif
             if (element_1_.number == element_2_.number)
             {
@@ -476,7 +707,7 @@ namespace OpenMS
               }
               else
               {
-                if (element_1_.letter == ASCII__CARRIAGE_RETURN) // should be 13 == ascii carriage return char
+                if (element_1_.letter == '\r') // should be 13 == ascii carriage return char
                 {
                   // we skip over '\r'
                   input_line_2_.line_.clear(); // reset status
@@ -495,7 +726,7 @@ namespace OpenMS
             {
               if (element_2_.is_space)
               {
-                if (element_2_.letter == ASCII__CARRIAGE_RETURN) // should be 13 == ascii carriage return char
+                if (element_2_.letter == '\r') // should be 13 == ascii carriage return char
                 {
                   // we skip over '\r'
                   input_line_1_.line_.clear(); // reset status
@@ -602,9 +833,9 @@ namespace OpenMS
 
   void FuzzyStringComparator::readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const
   {
-    // use TextFile::getLine for reading, since it will remove \r automatically on all platforms without much overhead
+    // use getLine (local copy of TextFile::getLine) for reading, since it will remove \r automatically on all platforms without much overhead
     // This allows to compare otherwise equal lines between files quickly (see compareLines_(...))
-    for (line_string.clear(); static_cast<void>(++line_number), TextFile::getLine(input_stream, line_string); )
+    for (line_string.clear(); static_cast<void>(++line_number), getLine(input_stream, line_string); )
     {
       if (line_string.empty())
       {
@@ -673,8 +904,8 @@ namespace OpenMS
       *log_dest_ <<
         prefix << '\n' <<
         prefix << "  whitelist cases:\n";
-      Size length = 0;
-      for (std::map<std::string, UInt>::const_iterator wlcit = whitelist_cases_.begin();
+      std::size_t length = 0;
+      for (std::map<std::string, unsigned int>::const_iterator wlcit = whitelist_cases_.begin();
            wlcit != whitelist_cases_.end(); ++wlcit)
       {
         if (wlcit->first.size() > length)
@@ -682,7 +913,7 @@ namespace OpenMS
           length = wlcit->first.size();
         }
       }
-      for (std::map<std::string, UInt>::const_iterator wlcit = whitelist_cases_.begin();
+      for (std::map<std::string, unsigned int>::const_iterator wlcit = whitelist_cases_.begin();
            wlcit != whitelist_cases_.end(); ++wlcit)
       {
         *log_dest_ <<
@@ -713,7 +944,7 @@ namespace OpenMS
       auto it_start = str_line.begin() + (int)input_line.line_position_;
       auto it_start_fixed = it_start;
       // extracting the double does NOT modify the stream (since we work on the string)
-      is_number = StringUtils::extractDouble(it_start, str_line.end(), number);
+      is_number = extractDouble(it_start, str_line.end(), number);
       if (is_number)
       { // forward the stream
         input_line.line_.seekg(long(input_line.line_.tellg()) + long(std::distance(it_start_fixed, it_start)));
@@ -758,7 +989,7 @@ namespace OpenMS
 
   void FuzzyStringComparator::InputLine::updatePosition()
   {
-    line_position_ = (Int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length())); // save current reading position
+    line_position_ = (int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length())); // save current reading position
   }
 
   void FuzzyStringComparator::InputLine::seekGToSavedPosition()
@@ -777,7 +1008,7 @@ namespace OpenMS
   FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int this_tab_width_, const int this_first_column_) :
     prefix(input_line.line_.str()), line_column(0)
   {
-    prefix = StringUtils::prefix(prefix, size_t(input_line.line_position_));
+    prefix = prefixOf(prefix, size_t(input_line.line_position_));
     prefix_whitespaces = prefix;
     for (auto iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter)
     {

@@ -37,7 +37,8 @@ add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 foreach(_class_test ${visual_executables_list})
-  add_executable(${_class_test} source/${_class_test}.cpp)
+  # OpenMSTestSupport.cpp: see src/tests/class_tests/openms/source/OpenMSTestSupport.cpp
+  add_executable(${_class_test} source/${_class_test}.cpp ${PROJECT_SOURCE_DIR}/../openms/source/OpenMSTestSupport.cpp)
   target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
@@ -69,7 +70,7 @@ if(HAS_XSERVER)
   # Add GUI tests
   foreach(_gui_test ${GUI_executables_list})
     # add the executable (Note: The header needs to be added as source file, too. Otherwise automoc will not find it.
-    add_executable(${_gui_test} source/GUI/${_gui_test}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI/${_gui_test}.h)
+    add_executable(${_gui_test} source/GUI/${_gui_test}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI/${_gui_test}.h ${PROJECT_SOURCE_DIR}/../openms/source/OpenMSTestSupport.cpp)
     # add headers
     target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt

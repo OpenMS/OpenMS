@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 

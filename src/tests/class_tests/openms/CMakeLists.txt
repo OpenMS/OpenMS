@@ -38,7 +38,10 @@ endif()
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
-  add_executable(${_class_test} source/${_class_test}.cpp)
+  # OpenMSTestSupport.cpp registers libOpenMS behavior (unique-ID seeding, exception
+  # naming) with the std-only test framework. Removing it makes ID-bearing
+  # reference-file comparisons nondeterministic -- see the file's header comment.
+  add_executable(${_class_test} source/${_class_test}.cpp source/OpenMSTestSupport.cpp)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
