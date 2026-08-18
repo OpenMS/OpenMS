@@ -106,6 +106,7 @@
             "hidden": true,
             "cacheVariables": {
                 "WITH_GUI": "OFF",
+                "ENABLE_DOCS": "ON",
                 "WITH_THERMO_RAW":"ON",
                 "ENABLE_THERMO_RAW_TESTS": "OFF",
                 "ENABLE_TUTORIALS": "OFF",
@@ -251,7 +252,6 @@
                 "ci-base"
             ],
             "cacheVariables": {
-                "ENABLE_DOCS": "OFF",
                 "WITH_THERMO_RAW":"OFF",
                 "ENABLE_THERMO_RAW_TESTS": "OFF"
             }
@@ -264,10 +264,7 @@
                 "macos-arm64-base",
                 "release-base",
                 "ci-base"
-            ],
-            "cacheVariables": {
-                "ENABLE_DOCS": "OFF"
-            }
+            ]
         },
         {
             "name": "windows-x64-ci",
@@ -277,10 +274,7 @@
                 "windows-x64-base",
                 "release-base",
                 "ci-base"
-            ],
-            "cacheVariables": {
-                "ENABLE_DOCS": "OFF"
-            }
+            ]
         }
     ],
     "buildPresets": [

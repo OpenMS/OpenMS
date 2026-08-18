@@ -11,42 +11,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Identify contrib submodule revision for cache key
-      id: contrib-rev
-      if: runner.os == 'Windows'
-      shell: bash
-      run: |
-        rev=$(git submodule status --cached -- contrib | sed -E 's/^-?//' | cut -d' ' -f1)
-        echo "rev=$rev" >> "$GITHUB_OUTPUT"
-
-    - name: Cache contrib
-      id: cache-contrib
-      if: runner.os == 'Windows'
-      uses: actions/cache@v5
-      with:
-        path: contrib/build
-        key: ${{ runner.os }}-${{ steps.contrib-rev.outputs.rev }}
-
-    - name: Fetch contrib if not in cache
-      if: runner.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        git submodule update --init -- contrib
-        mkdir -p contrib/build
-
-    - name: Build contrib if not in cache
-      if: runner.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        $NPROC = $env:NUMBER_OF_PROCESSORS
-        if (-not $NPROC) { $NPROC = 4 }
-        $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
-        Set-Location "${{ github.workspace }}\contrib\build"
-        # windows-2025 runners ship Visual Studio 2026 (v145). The "Visual Studio 18 2026"
-        # generator needs CMake >= 4.2 (the runner image provides CMake >= 4.3).
-        cmake -G"Visual Studio 18 2026" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
     - name: Add THIRDPARTY
       shell: bash
       run: |
@@ -105,7 +69,7 @@ runs:
         # pre-merge); conda-forge ships it into Library/bin (already on PATH below).
         # Ghostscript is no longer required: LaTeX formulas are rendered client-side via
         # MathJax (USE_MATHJAX=YES in doc/doxygen/Doxyfile*.in).
-        conda install -c conda-forge libarrow libparquet libzip doxygen uv -y
+        conda install -c conda-forge doxygen uv -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
@@ -182,10 +146,14 @@ runs:
       shell: bash
       run: |
         bash tools/ci/deps-macos.sh
-        brew install ccache
+        brew install ccache \
+                    flex \
+                    bison
 
         brew_path=$(brew --prefix)
         echo "$brew_path/bin" >>"$GITHUB_PATH"
+        echo "$(brew --prefix bison)/bin" >> "$GITHUB_PATH"
+        echo "$(brew --prefix flex)/bin" >> "$GITHUB_PATH"
         echo "cmake_prefix=$brew_path" >>"$GITHUB_OUTPUT"
 
     - name: Combine Outputs
@@ -210,3 +178,24 @@ runs:
         done
 
         echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
+    
+    - uses: OpenMS/ci-tools/actions/rsync-cache@48558751d87bfaed314a1f5da0e15bcc07f94dc4
+      with:
+        name: vcpkg-cache
+        path: ${{ github.workspace }}/.vcpkg-cache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}
+        ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+        ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+        ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+        ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        doNotCache: true
+    
+    - name: Point vcpkg at the Local Binary Cache
+      shell: bash
+      run: |
+        mkdir -p "${{ github.workspace }}/.vcpkg-cache"
+        echo "VCPKG_BINARY_CACHE=clear;files;${{ github.workspace }}/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"

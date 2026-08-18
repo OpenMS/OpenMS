@@ -167,37 +167,47 @@ runs:
         ccache --zero-stats
 
     ############################################################################
+    # Resolve vcpkg CMake presets from the runner, since calling matrix
+    # doesn't yet pass one in explicitly.
+    - name: Resolve CMake presets
+      id: preset
+      shell: bash
+      run: |
+        case "${{ runner.os }}-${{ runner.arch }}" in
+          Linux-X64) preset=linux-x64-ci ;;
+          Linux-ARM64) preset=linux-arm64-ci ;;
+          macOS-ARM64) preset=macos-arm64-ci ;;
+          Windows-X64) preset=windows-x64-ci ;;
+          *)
+            echo >&2 "ERROR: no CI preset mapped for ${{ runner.os }}-{{ runner-arch }}"
+            exit 1
+            ;;
+        esac
+        echo "name=$preset" >> "$GITHUB_OUTPUT"
+
+    ############################################################################
     # The actual commands to build OpenMS.
     - name: Build
       id: build
       shell: bash
       env:
         # Official variables that need to be set to build OpenMS:
-        CMAKE_PREFIX_PATH: "${{ steps.deps.outputs.cmake_prefix }}"
         OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contrib/build"
         SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
-        BOOST_USE_STATIC: ${{ runner.os == 'Windows' && 'ON' || 'OFF' }}
-
         # FIXME: Do we actually need this?
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
+        #-DOPENMS_CONTRIB_LIBS, -DYOPENMS and DBOOST_USE_STATIC are dropped since
+        # pyOpenMS is not build in this workflow and BOOST_USE_STATIC is already set
+        # in CMakePresets.json.
 
       run: |
         set -ex
 
-        mkdir -p build
-        cd build
-
-        cmake \
-          -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
+        cmake --preset "${{ steps.preset.outputs.name }}" \
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
-          -DOPENMS_CONTRIB_LIBS="$OPENMS_CONTRIB_LIBS" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
-          -DPYOPENMS=ON \
-          -DBOOST_USE_STATIC="$BOOST_USE_STATIC" \
-          ..
 
-        ninja --verbose
+        cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
 
     ############################################################################
     # Hit rate and cache size for this run.  Without this there is no way to
@@ -217,7 +227,7 @@ runs:
     ############################################################################
     - name: Test
       shell: bash
-      run: ctest --parallel --output-on-failure --test-dir build
+      run: ctest --preset "${{ steps.preset.outputs.name }}"
 
     ############################################################################
     # Saved on every event, including pull requests.  A cache written by a pull
