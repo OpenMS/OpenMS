@@ -409,3 +409,75 @@ shrinks to:
 The original sketch claimed "8 headers, 5 sources, build-system only". After S1–S4 that claim is
 essentially true — not because the plan got smaller, but because the code was changed to match
 the architecture the sketch assumed.
+
+---
+
+# Part 3: the Catch2 answer — free the framework without creating a library
+
+Parts 1–2 are still complex because they answer two questions at once: *free the test framework*
+and *start splitting libOpenMS*. Every piece of residual machinery — the shared library, the
+export macros, the `config.h` wiring, the packaging checklist, the ABI note — is a cost of the
+**second** goal. Catch2 never pays any of it because it refuses that goal's premise: it depends
+on nothing, so there is no library to create, version, export, or ship. This part supersedes the
+sequencing above **for the framework goal**; the `OpenMSCore` extraction remains the right first
+slice *of the split*, on the split's own timeline and justification.
+
+## 3.1 The load-bearing trick, named
+
+Catch2's cleanliness is not "it avoids dependencies by being careful". It is one structural rule:
+
+> **The framework's *compiled* code touches only `std` types. Everything type-specific happens at
+> the macro-expansion site, inside the user's TU, where the user's headers are visible.**
+
+Knowledge flows *into* the framework by ADL/`operator<<`/trait specialization/registration —
+never by the framework naming a type. The sketch's objection ("we can't be std-only —
+`TEST_EQUAL` and `TEST_REAL_SIMILAR` legitimately format OpenMS types") conflated *tests
+formatting OpenMS types* (true, and it happens at the expansion site) with *the framework linking
+OpenMS formatting* (not needed). Measured proof that OpenMS is already halfway there:
+`testEqual`'s failure output streams `expression_1`/`expression_2` with bare `operator<<` — the
+expansion-site mechanism, working today.
+
+## 3.2 The five remaining couplings, mapped to Catch2's mechanisms
+
+| coupling (measured) | Catch2 mechanism | OpenMS change |
+|---|---|---|
+| `StringUtils::toStr` in `testEqual`'s `std::string == numeric` quirk (reproduces old `String(114) == "114"`) | `StringMaker` — the framework owns its stringification | framework-local numeric formatter; **the one place needing care**: for floating point it must format like `toStr` or string-vs-double comparisons shift — the 720-test suite is the oracle (~20 lines) |
+| `ListUtilsIO.h` include (so `TEST_EQUAL` can print vectors) | users provide `operator<<`; framework prints "{?}" otherwise | framework-local `operator<<`-if-streamable printer, or tests include `ListUtilsIO.h` themselves — either way the include leaves `ClassTest.h` |
+| `BaseException` caught/printed by `ClassTest.cpp`; `ConversionError`/`IndexOverflow` ctors referenced via inline `StringUtils.h` code | catch `std::exception` + registered translators | `BaseException` already **is** a `std::runtime_error`; fold file/line/name into `what()` (a strict improvement everywhere — even libstdc++'s default terminate prints `what()`), then the framework catches `std::exception` only. `TEST_EXCEPTION(Exception::Precondition, …)` is untouched: its typed `catch` expands in the test TU. The ctor references disappear with the `StringUtils.h` include |
+| `StringUtilsHelper::extractDouble` + `trim` in `FuzzyStringComparator`/`ClassTest.cpp` | the framework owns its own parsing | framework-local copies (49 + ~6 lines, incl. the `from_chars`-for-float fallback). Parsing arbitrary file text is semantically independent of the library by nature; drift risk is confined here |
+| `UniqueIdGenerator::setSeed` at `START_TEST` | event listeners — registration by the side that knows | a support TU in the openms class-test project whose static initializer calls `setSeed(2453440375)` (one `target_sources` line; runs even earlier than today's `START_TEST` call). OpenSwathAlgo tests simply don't compile it. This re-adds what #9919's hook-removal took out — but as *test-project code*, not framework API |
+| `isRealType`/`writtenDigits<DataValue>` | type traits with sensible defaults | the S4 predicate (`is_floating_point` ∨ class-convertible-to-`double`) — no registration at all |
+
+## 3.3 What this yields, and what it costs
+
+`OpenMSTestFramework` becomes a **std-only static library**: zero OpenMS includes, zero link
+dependencies, roughly 200–250 owned utility lines. `src/testframework/CMakeLists.txt` loses the
+entire `$<TARGET_PROPERTY:OpenMS,…>` propagation block *and* needs no replacement; the
+OpenSwathAlgo tests drop `"$<LINK_LIBRARY:needed,OpenMS>"`; the acid test holds. **No new shipped
+artifact, no `OPENMSCORE_DLLAPI`, no config wiring, no packaging checklist, no ABI note.**
+
+Honest costs:
+
+* ~250 lines duplicated in spirit (`trim`, number extraction, numeric formatting). The failure
+  mode is loud (test failures), not silent, and confined to the fuzzy comparator's parsing and
+  the string-vs-numeric `TEST_EQUAL` quirk.
+* `what()` gaining context changes the text of uncaught-exception reports tool-wide — an
+  improvement, but a visible one.
+* The framework still cannot validate XML or seed anything by itself — by design; #9919 already
+  moved those to the right side of the line.
+
+## 3.4 Revised plan of record
+
+1. **PR: complete `what()`** — independent, valuable alone, composes with S2 (it makes even the
+   custom terminate handler mostly redundant).
+2. **PR: framework goes std-only** — local utils + formatter, `std::exception` catch, includes
+   dropped, CMake decoupling, seeding support TU, OpenSwathAlgo link line cleaned. Acid test.
+3. **PR: the S4 predicate** with the 26+1 test includes.
+
+None of these touches packaging, installers, or wheels. `OpenMSCore` (Parts 1–2) proceeds — or
+doesn't — purely as the first slice of the libOpenMS split, no longer coupled to the framework.
+
+*Why not simply adopt Catch2 itself?* 720 test files speak `TEST_*`, and the fuzzy file
+comparison plus CTest wiring live here. Wrapping the `TEST_*` macros over Catch2 is feasible as a
+separate, larger migration; this part gets Catch2's *architecture* — which is what makes the
+framework split-proof — without touching a single existing test.
