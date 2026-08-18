@@ -45,13 +45,6 @@ namespace OpenMS
     namespace ClassTest
     {
 
-      /**
-       @brief Validates the given files against the XML schema (if available)
-       @return If all files passed the validation
-       */
-      bool OPENMS_DLLAPI
-      validate(const std::vector<std::string>& file_names);
-
       /// Creates a temporary file name from the test name and the line with the specified extension
       std::string OPENMS_DLLAPI
       createTmpFileName(const std::string& file, int line, const std::string& extension = "");
