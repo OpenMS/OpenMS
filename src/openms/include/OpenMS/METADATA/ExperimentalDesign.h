@@ -298,11 +298,12 @@ namespace OpenMS
   except every factor whose column name contains @c "replicate" or @c "Replicate". Samples that
   agree on all remaining factors form one condition. For a design whose sample section has
   factor columns, this is what getConditionToSampleMapping(), getSampleToConditionMapping(),
-  getPathLabelToConditionMapping() and getConditionToPathLabelVector() return. For a factor-less
-  section -- as built by fromConsensusMap() and fromIdentifications() -- these functions now
-  consistently give every sample its own distinct condition. @ref TOPP_Epifany uses
-  getConditionToPathLabelVector() to merge ID runs per condition when a design is supplied;
-  @ref TOPP_ProteomicsLFQ does not -- it merges every ID run study-wide regardless of condition.
+  getPathLabelToConditionMapping() and getConditionToPathLabelVector() return. For a section
+  with no non-replicate factors remaining -- as built by fromConsensusMap() and fromIdentifications(),
+  or when only @c Sample and replicate factors exist -- these functions now consistently give every
+  sample its own distinct condition. @ref TOPP_Epifany uses getConditionToPathLabelVector() to merge ID
+  runs per condition when a design is supplied; @ref TOPP_ProteomicsLFQ does not -- it merges every ID
+  run study-wide regardless of condition.
 
   Condition numbers are the lexicographic rank of the factor-value tuple (or the lexicographic
   rank of the sample name in a factor-less design), so condition 0 is whichever value sorts
@@ -621,8 +622,8 @@ namespace OpenMS
       column called @c MSstats_BioReplicate is excluded, one called @c Donor is not and would
       split the replicates it names into separate conditions.
 
-      @note If no factors are provided in the experimental design, each sample forms
-      its own unique condition (N samples = N distinct conditions).
+      @note If no non-replicate factors remain after excluding @c Sample and replicate
+            columns, each sample forms its own unique condition (N samples = N distinct conditions).
 
       @return condition (the retained factor values, in the alphabetical order of their column
               names) to the zero-based sample row indices that share it
