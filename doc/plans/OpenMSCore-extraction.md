@@ -443,7 +443,7 @@ expansion-site mechanism, working today.
 |---|---|---|
 | `StringUtils::toStr` in `testEqual`'s `std::string == numeric` quirk (reproduces old `String(114) == "114"`) | `StringMaker` — the framework owns its stringification | framework-local numeric formatter; **the one place needing care**: for floating point it must format like `toStr` or string-vs-double comparisons shift — the 720-test suite is the oracle (~20 lines) |
 | `ListUtilsIO.h` include (so `TEST_EQUAL` can print vectors) | users provide `operator<<`; framework prints "{?}" otherwise | framework-local `operator<<`-if-streamable printer, or tests include `ListUtilsIO.h` themselves — either way the include leaves `ClassTest.h` |
-| `BaseException` caught/printed by `ClassTest.cpp`; `ConversionError`/`IndexOverflow` ctors referenced via inline `StringUtils.h` code | catch `std::exception` + registered translators | `BaseException` already **is** a `std::runtime_error`; fold file/line/name into `what()` (a strict improvement everywhere — even libstdc++'s default terminate prints `what()`), then the framework catches `std::exception` only. `TEST_EXCEPTION(Exception::Precondition, …)` is untouched: its typed `catch` expands in the test TU. The ctor references disappear with the `StringUtils.h` include |
+| `BaseException` caught/printed by `ClassTest.cpp`; `ConversionError`/`IndexOverflow` ctors referenced via inline `StringUtils.h` code | catch `std::exception` + registered translators | `BaseException` already **is** a `std::runtime_error`; the framework catches `std::exception` only, and name/file/line context comes from a **registered exception translator** (changing `what()` itself is off the table — 29 tests compare it verbatim in `TEST_EXCEPTION_WITH_MESSAGE`; see the implementation spec). `TEST_EXCEPTION(Exception::Precondition, …)` is untouched: its typed `catch` expands in the test TU. The ctor references disappear with the `StringUtils.h` include |
 | `StringUtilsHelper::extractDouble` + `trim` in `FuzzyStringComparator`/`ClassTest.cpp` | the framework owns its own parsing | framework-local copies (49 + ~6 lines, incl. the `from_chars`-for-float fallback). Parsing arbitrary file text is semantically independent of the library by nature; drift risk is confined here |
 | `UniqueIdGenerator::setSeed` at `START_TEST` | event listeners — registration by the side that knows | a support TU in the openms class-test project whose static initializer calls `setSeed(2453440375)` (one `target_sources` line; runs even earlier than today's `START_TEST` call). OpenSwathAlgo tests simply don't compile it. This re-adds what #9919's hook-removal took out — but as *test-project code*, not framework API |
 | `isRealType`/`writtenDigits<DataValue>` | type traits with sensible defaults | the S4 predicate (`is_floating_point` ∨ class-convertible-to-`double`) — no registration at all |
@@ -468,11 +468,11 @@ Honest costs:
 
 ## 3.4 Revised plan of record
 
-1. **PR: complete `what()`** — independent, valuable alone, composes with S2 (it makes even the
-   custom terminate handler mostly redundant).
-2. **PR: framework goes std-only** — local utils + formatter, `std::exception` catch, includes
-   dropped, CMake decoupling, seeding support TU, OpenSwathAlgo link line cleaned. Acid test.
-3. **PR: the S4 predicate** with the 26+1 test includes.
+1. **PR: framework goes std-only** — local utils + formatter, `std::exception` catch + registered
+   exception translators (a `what()`-completion PR was considered and dropped: 29 tests compare
+   `what()` verbatim in `TEST_EXCEPTION_WITH_MESSAGE`), includes dropped, CMake decoupling,
+   seeding support TU, OpenSwathAlgo link line cleaned. Acid test.
+2. **PR: the S4 predicate** with the 26+1 test includes.
 
 None of these touches packaging, installers, or wheels. `OpenMSCore` (Parts 1–2) proceeds — or
 doesn't — purely as the first slice of the libOpenMS split, no longer coupled to the framework.

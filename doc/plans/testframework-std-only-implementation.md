@@ -21,8 +21,10 @@ registration.
    inside libOpenMS.
 2. After PR 2: `nm -uC libOpenMSTestFramework.a` shows **no** undefined `OpenMS::` symbols.
 3. After PR 2: the five OpenSwathAlgo tests link as `target_link_libraries(${i} OpenSwathAlgo
-   OpenMSTestFramework)` — no `OpenMS` — and pass (`readelf -d Datastructures_test` shows no
-   `libOpenMS.so`).
+   OpenMSTestFramework)` — no `OpenMS` — and pass. Check the full transitive closure, not just
+   direct entries: `ldd Datastructures_test` lists no `libOpenMS`; (`readelf -d` shows the direct
+   `DT_NEEDED` set — libstdc++/libgcc/libc only, since `OpenSwathAlgo`'s own dependencies are
+   private).
 4. Full `ctest` green after every PR, including the ≈1600 `TOPP_FuzzyDiff`-based TOPP tests (the
    oracle for all copied parsing/formatting code) — with **no** change to any reference file.
 5. Failure output stays human-equivalent: values print; unexpected OpenMS exceptions in openms
@@ -37,7 +39,7 @@ registration.
 * rename installed header paths (`<OpenMS/CONCEPT/ClassTest.h>` must keep working for ~720 tests);
 * touch reference files or TOPP tools (other than `FuzzyDiff`'s link line in PR 2).
 
-Three PRs, each independently green.
+Three required PRs (PR 0–2) plus the optional library-side tidy (PR 3), each independently green.
 
 ---
 
@@ -180,7 +182,10 @@ failing test, repeat. Budget 30–150 one-line fixes. Never fix by re-adding inc
 
 ### 1.7 PR 1 verification
 
-Acceptance 1, 4, 5; plus: `git grep -nE "OpenMS/(DATASTRUCTURES|FORMAT|SYSTEM|CONCEPT/(Types|Exception|PrecisionWrapper|UniqueIdGenerator))" -- src/openms/source/CONCEPT/ClassTest.cpp src/openms/source/CONCEPT/FuzzyStringComparator.cpp src/openms/include/OpenMS/CONCEPT/ClassTest*.h src/openms/include/OpenMS/CONCEPT/FuzzyStringComparator.h`
+Acceptance 1, 4, 5; plus an allowlist scan over **all** framework files: every
+`#include <OpenMS/...>` in the framework's sources and headers must name one of the framework's
+own headers (`ClassTest.h`, `ClassTestUtils.h`, `MacrosTest.h`, `FuzzyStringComparator.h`) —
+e.g. `git grep -nE '#include <OpenMS/' -- <framework files> | grep -vE 'CONCEPT/(ClassTest|ClassTestUtils|MacrosTest|FuzzyStringComparator)\.h'`
 returns nothing; a deliberately failing `TEST_EQUAL` on a `StringList` and a `DataValue` prints
 readable values; a wrong-typed `TEST_EXCEPTION` prints the OpenMS exception name; a
 `UniqueId`-bearing format test (featureXML) is byte-stable on Windows and Linux CI.

@@ -347,7 +347,7 @@ namespace OpenMS
             else
             {
               detail::printValue(stdcout, expression_1);
-              stdcout << "', expected '";
+              stdcout << "', forbidden is '";
               detail::printValue(stdcout, expression_2);
               stdcout << "'\n";
             }

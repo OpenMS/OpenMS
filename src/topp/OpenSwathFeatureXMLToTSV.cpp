@@ -416,9 +416,8 @@ protected:
     FeatureMap feature_map;
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
     // Reset it to "C" afterwards. TODO this needs to be fixed more thoroughly.
-    std::string locale_before = "C";
     FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
-    setlocale(LC_ALL, locale_before.c_str());
+    setlocale(LC_ALL, "C");
     if (feature_map.getIdentifier().empty())
     {
       feature_map.setIdentifier("run0");

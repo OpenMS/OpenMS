@@ -9,7 +9,10 @@
 #pragma once
 
 
+#include <fstream>
+#include <istream>
 #include <map>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <utility>

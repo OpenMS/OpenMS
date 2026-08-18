@@ -17,6 +17,8 @@
 // calls #VALIDATE_TMP_FILES before END_TEST -- nothing to link, nothing to register.
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Types.h>            // Size
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h> // StringList
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -179,6 +181,7 @@ namespace OpenMS::Internal::ClassTest
     TEST::all_tests = TEST::all_tests && TEST::this_test;                                 \
     if (!TEST::this_test)                                                                 \
     {                                                                                     \
+      stdcout << " -  line " << TEST::test_line << ": VALIDATE_TMP_FILES\n";              \
       TEST::failed_lines_list.push_back(TEST::test_line);                                 \
     }                                                                                     \
   }

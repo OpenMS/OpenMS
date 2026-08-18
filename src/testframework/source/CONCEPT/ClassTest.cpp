@@ -92,6 +92,10 @@ namespace OpenMS::Internal::ClassTest
         }
       }
 
+      // NOTE: must only be called while an exception is being handled (i.e. from
+      // inside a catch block): both the translators and the fallback below rethrow
+      // the current exception with a bare `throw;`, which calls std::terminate if
+      // no exception is active.
       std::string describeCaughtException()
       {
         for (int i = 0; i < translator_count; ++i)

@@ -27,6 +27,7 @@
 #include <memory>       // std::unique_ptr in the libc++ fallback
 #include <streambuf>    // std::streambuf in getLine
 #include <string>
+#include <type_traits>  // std::is_same_v in the libc++ from_chars fallback
 
 // #define DEBUG_FUZZY
 
@@ -240,12 +241,16 @@ namespace
   }
 
   /// Overload for std::string iterators (converts to const char* internally),
-  /// like StringUtils::extractDouble.
+  /// like StringUtils::extractDouble. The end pointer is computed from the range
+  /// length so the past-the-end iterator is never dereferenced (which debug
+  /// iterators assert on), and an empty range parses to false without touching
+  /// either iterator.
   bool extractDouble(std::string::const_iterator& begin, const std::string::const_iterator& end, double& target)
   {
+    if (begin == end) return false;
     const char* const p_start = &(*begin);
     const char* p = p_start;
-    const char* e = &(*end);
+    const char* const e = p_start + (end - begin);
     bool ok = extractDouble(p, e, target);
     begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
     return ok;
