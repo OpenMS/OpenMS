@@ -29,7 +29,6 @@
   - @subpage TOPP_ParquetConverter - Converts between XML and Parquet formats for feature and consensus maps.
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-  - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
   - @subpage TOPP_UniPEFF - Convert a UniProtKB XML protein database (.xml or .xml.gz) to PEFF 1.0.
 
 
@@ -213,6 +212,7 @@
   <b>[for developers]</b>
   - @subpage TOPP_CVInspector - Visualization and validation of PSI mapping and CV files.
   - @subpage TOPP_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage TOPP_ParquetDiff - Compares two Parquet tables by primary key, tolerating numeric differences.
   - @subpage TOPP_JSONExporter - Exports .oms (SQLite) files in JSON format
   - @subpage TOPP_OpenMSDatabasesInfo - prints the content of OpenMS' enzyme and modification databases to a TSV file.
   - @subpage TOPP_SemanticValidator - SemanticValidator for analysisXML and mzML files.

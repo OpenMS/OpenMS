@@ -782,8 +782,20 @@ by isobar to load quantification results
         .def_ro("line_scan_direction", &OpenMS::ImzMLMeta::line_scan_direction)
         .def_ro("polarity", &OpenMS::ImzMLMeta::polarity);
 
+    nb::class_<OpenMS::ImzMLSpectrumIndex::AuxArray>(m, "ImzMLAuxArrayIndex",
+        "Index entry for one auxiliary (non-m/z/intensity) external .ibd array, e.g. ion mobility")
+        .def(nb::init<>())
+        .def_ro("name", &OpenMS::ImzMLSpectrumIndex::AuxArray::name)
+        .def_ro("accession", &OpenMS::ImzMLSpectrumIndex::AuxArray::accession)
+        .def_ro("unit_accession", &OpenMS::ImzMLSpectrumIndex::AuxArray::unit_accession)
+        .def_ro("offset", &OpenMS::ImzMLSpectrumIndex::AuxArray::offset)
+        .def_ro("length", &OpenMS::ImzMLSpectrumIndex::AuxArray::length)
+        .def_ro("encoded_bytes", &OpenMS::ImzMLSpectrumIndex::AuxArray::encoded_bytes)
+        .def_ro("type", &OpenMS::ImzMLSpectrumIndex::AuxArray::type)
+        .def_ro("compressed", &OpenMS::ImzMLSpectrumIndex::AuxArray::compressed);
+
     nb::class_<OpenMS::ImzMLSpectrumIndex>(m, "ImzMLSpectrumIndex",
-        "Per-spectrum .ibd byte-offset index entry for on-disc imzML access")
+        "Per-spectrum .ibd byte-offset index entry for on-disc imzML access (includes optional aux/IM arrays)")
         .def(nb::init<>())
         .def_ro("index", &OpenMS::ImzMLSpectrumIndex::index)
         .def_ro("x", &OpenMS::ImzMLSpectrumIndex::x)
@@ -792,9 +804,12 @@ by isobar to load quantification results
         .def_ro("mz_offset", &OpenMS::ImzMLSpectrumIndex::mz_offset)
         .def_ro("mz_length", &OpenMS::ImzMLSpectrumIndex::mz_length)
         .def_ro("mz_type", &OpenMS::ImzMLSpectrumIndex::mz_type)
+        .def_ro("mz_compressed", &OpenMS::ImzMLSpectrumIndex::mz_compressed)
         .def_ro("int_offset", &OpenMS::ImzMLSpectrumIndex::int_offset)
         .def_ro("int_length", &OpenMS::ImzMLSpectrumIndex::int_length)
-        .def_ro("int_type", &OpenMS::ImzMLSpectrumIndex::int_type);
+        .def_ro("int_type", &OpenMS::ImzMLSpectrumIndex::int_type)
+        .def_ro("int_compressed", &OpenMS::ImzMLSpectrumIndex::int_compressed)
+        .def_ro("aux", &OpenMS::ImzMLSpectrumIndex::aux);
 
     // -----------------------------------------------------------------------
     // ImzMLFile
@@ -829,7 +844,8 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         }, "filename"_a, "exp"_a, "Load an imzML file into an MSImagingExperiment with pixel lookup")
         .def_static("buildImagingGeometry", [](const OpenMS::MSExperiment& exp, OpenMS::MSImagingGeometry& geom) {
             OpenMS::ImzMLFile::buildImagingGeometry(exp, geom);
-        }, "exp"_a, "geom"_a, "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues)")
+        }, "exp"_a, "geom"_a,
+           "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues). Duplicate pixel coordinates are warned about: only the first spectrum per pixel is mapped into the geometry, while the later duplicates stay in the MSExperiment and remain reachable by index")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, nb::object consumer) {
             NanobindMSDataConsumer wrapper(consumer);
             nb::gil_scoped_release release;
@@ -2672,11 +2688,20 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         "Export PSM data to Apache Arrow/Parquet format following QPX PSM schema")
         .def(nb::init<>())
         .def_static("exportToParquet",
-            static_cast<bool (*)(const std::vector<OpenMS::ProteinIdentification>&,
-                                 const OpenMS::PeptideIdentificationList&,
-                                 const std::string&,
-                                 bool,
-                                 const OpenMS::ParquetWriteConfig&)>(&OpenMS::QPXFile::exportToParquet),
+            // Forwarded through a lambda rather than bound directly: the C++ overload also takes
+            // an optional feature<->PSM linkage, which is not exposed. Building one needs the
+            // feature exporter, and without it every row's feature_id is null -- the correct
+            // value for the psm-only export this entry point produces.
+            [](const std::vector<OpenMS::ProteinIdentification>& protein_identifications,
+               const OpenMS::PeptideIdentificationList& peptide_identifications,
+               const std::string& filename,
+               bool export_all_psms,
+               const OpenMS::ParquetWriteConfig& config)
+            {
+              return OpenMS::QPXFile::exportToParquet(protein_identifications,
+                                                      peptide_identifications, filename,
+                                                      export_all_psms, config);
+            },
             "protein_identifications"_a, "peptide_identifications"_a,
             "filename"_a, "export_all_psms"_a = false,
             "config"_a = OpenMS::ParquetWriteConfig{},

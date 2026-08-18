@@ -145,7 +145,18 @@ target_link_libraries(ConsensusMapArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+target_link_libraries(ProteinGroupArrowExport_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(QPXFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+# Builds its invalid inputs with arrow::FloatBuilder / ArrayData::Make rather than through the
+# exporters, so it needs Arrow itself, not just what OpenMS re-exports. On Linux/macOS the symbols
+# happen to be reachable through libOpenMS; on Windows they are dllimport and the link fails.
+target_link_libraries(QPXValueValidation_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
@@ -244,6 +255,14 @@ if (TARGET OpenSwathParquetExporter_test)
 endif()
 if (TARGET ArrowIOHelpers_test)
   target_link_libraries(ArrowIOHelpers_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+# Builds its fixture tables with arrow::*Builder rather than through an exporter, so it needs
+# Arrow itself, not just what OpenMS re-exports -- the same reason QPXValueValidation_test does.
+if (TARGET ParquetTableComparator_test)
+  target_link_libraries(ParquetTableComparator_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )

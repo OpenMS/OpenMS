@@ -26,7 +26,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
@@ -65,7 +64,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
@@ -526,7 +524,8 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def("__copy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); })
         .def("__deepcopy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self, nb::dict) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); }, "memo"_a)
         .def_rw("feature_maps", &OpenMS::FeatureMapping::FeatureMappingInfo::feature_maps)
-        .def_rw("kd_tree", &OpenMS::FeatureMapping::FeatureMappingInfo::kd_tree)
+        // kd_tree is deliberately not exposed: its type is KDTreeFeatureMaps, whose bindings were
+        // removed because they could only ever hand out pointers into a call-local copy of the maps.
         ;
 
     // -----------------------------------------------------------------------
@@ -560,6 +559,15 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // IDConflictResolverAlgorithm
     // -----------------------------------------------------------------------
+    nb::class_<OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications>(
+            m, "UnresolvedIdentifications", "What IDConflictResolverAlgorithm.reduceToOnePerSpectrum did")
+        .def(nb::init<>())
+        .def_ro("removed", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::removed)
+        .def_ro("multiply_identified_spectra", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::multiply_identified_spectra)
+        .def_ro("without_spectrum_reference", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::without_spectrum_reference)
+        .def_ro("inconsistent_score_direction", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::inconsistent_score_direction)
+        .def_ro("example", &OpenMS::IDConflictResolverAlgorithm::UnresolvedIdentifications::example);
+
     nb::class_<OpenMS::IDConflictResolverAlgorithm>(m, "IDConflictResolverAlgorithm", "OpenMS class IDConflictResolverAlgorithm")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IDConflictResolverAlgorithm &>())
@@ -567,6 +575,18 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def("__deepcopy__", [](const OpenMS::IDConflictResolverAlgorithm& self, nb::dict) { return OpenMS::IDConflictResolverAlgorithm(self); }, "memo"_a)
         .def_static("resolve", [](OpenMS::FeatureMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
         .def_static("resolve", [](OpenMS::ConsensusMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
+        .def_static("reduceToOnePerSpectrum", [](OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids); }, "ids"_a,
+            R"doc(
+Reduce identifications a quantification workflow cannot tell apart to one per spectrum.
+
+Keeps the best-scoring identification of each (spectrum reference, top-hit peptidoform,
+top-hit charge) group and removes the rest. Identifications are keyed on the top hit as
+stored; hits are never re-sorted. Identifications of one spectrum naming different
+peptidoforms are left alone, as are those without a spectrum reference or without hits.
+
+:param ids: one identification run's peptide identifications (modified in-place)
+:returns: an UnresolvedIdentifications report of what was found and removed
+)doc")
         .def_static("resolveAllHitRankAggregation", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveAllHitRankAggregation(features); }, "features"_a,
             R"doc(
 Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
@@ -754,20 +774,6 @@ Useful to update the matrix with user isotope correction values
         .def_rw("id", &OpenMS::ItraqConstants::ChannelInfo::id)
         .def_rw("center", &OpenMS::ItraqConstants::ChannelInfo::center)
         .def_rw("active", &OpenMS::ItraqConstants::ChannelInfo::active)
-        ;
-
-    // -----------------------------------------------------------------------
-    // KDTreeFeatureNode
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::KDTreeFeatureNode>(m, "KDTreeFeatureNode", 
-        R"doc(
-A node of the kD-tree with pointer to corresponding data and index
-)doc")
-        .def(nb::init<const OpenMS::KDTreeFeatureNode &>())
-        .def("__copy__", [](const OpenMS::KDTreeFeatureNode& self) { return OpenMS::KDTreeFeatureNode(self); })
-        .def("__deepcopy__", [](const OpenMS::KDTreeFeatureNode& self, nb::dict) { return OpenMS::KDTreeFeatureNode(self); }, "memo"_a)
-        .def("__getitem__", [](OpenMS::KDTreeFeatureNode& self, size_t i) { return self[i]; })
-        .def("getIndex", [](const OpenMS::KDTreeFeatureNode& self) { return self.getIndex(); }, "Returns index of corresponding feature in ``data_``")
         ;
 
     // -----------------------------------------------------------------------
@@ -1191,30 +1197,6 @@ and 0 means no correlation.
         .def("calcMIPrecursorCombinedScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorCombinedScore(); })
         .def("calcSeparateMIContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcSeparateMIContrastScore(); })
         .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> const OpenMS::Matrix<double>& { return self.getMIMatrix(); }, nb::rv_policy::reference_internal, "Returns the MI matrix")
-        ;
-
-    // -----------------------------------------------------------------------
-    // MapAlignmentAlgorithmKD
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MapAlignmentAlgorithmKD>(m, "MapAlignmentAlgorithmKD", 
-        R"doc(
-An efficient reference-free feature map alignment algorithm for unlabeled data
-This algorithm uses a kd-tree to efficiently compute conflict-free connected components (CCC)
-in a compatibility graph on feature data. This graph is comprised of nodes corresponding
-to features and edges connecting features f and f' iff both are within each other's tolerance
-windows (wrt. RT and m/z difference). CCCs are those CCs that do not contain multiple features
-from the same input map, and whose features all have the same charge state
-All CCCs above a user-specified minimum size are considered true sets of corresponding features
-and based on these, LOWESS transformations are computed for each input map such that the average
-deviation from the mean retention time within all CCCs is minimized
-private
-)doc")
-        .def(nb::init<size_t, OpenMS::Param>())
-        .def("__copy__", [](const OpenMS::MapAlignmentAlgorithmKD& self) { return OpenMS::MapAlignmentAlgorithmKD(self); })
-        .def("__deepcopy__", [](const OpenMS::MapAlignmentAlgorithmKD& self, nb::dict) { return OpenMS::MapAlignmentAlgorithmKD(self); }, "memo"_a)
-        .def("addRTFitData", [](OpenMS::MapAlignmentAlgorithmKD& self, const OpenMS::KDTreeFeatureMaps& kd_data) { return self.addRTFitData(kd_data); }, "kd_data"_a, "Compute data points needed for RT transformation in the current ``kd_data``, add to ``fit_data_``")
-        .def("fitLOWESS", [](OpenMS::MapAlignmentAlgorithmKD& self) { return self.fitLOWESS(); }, "Fit LOWESS to ``fit_data_``, store final models in ``transformations_``")
-        .def("transform", [](const OpenMS::MapAlignmentAlgorithmKD& self, OpenMS::KDTreeFeatureMaps& kd_data) { return self.transform(kd_data); }, "kd_data"_a, "Transform RTs for `kd_data`")
         ;
 
     // -----------------------------------------------------------------------
@@ -2016,7 +1998,7 @@ CVTermList
         .def("__deepcopy__", [](const OpenMS::PeptideAndProteinQuant::PeptideData& self, nb::dict) { return OpenMS::PeptideAndProteinQuant::PeptideData(self); }, "memo"_a)
         .def_rw("abundances", &OpenMS::PeptideAndProteinQuant::PeptideData::abundances)
         .def_rw("psm_counts", &OpenMS::PeptideAndProteinQuant::PeptideData::psm_counts)
-        .def_rw("total_abundances", &OpenMS::PeptideAndProteinQuant::PeptideData::total_abundances)
+        .def_rw("fraction_group_abundances", &OpenMS::PeptideAndProteinQuant::PeptideData::fraction_group_abundances)
         .def_rw("total_psm_counts", &OpenMS::PeptideAndProteinQuant::PeptideData::total_psm_counts)
         .def_rw("accessions", &OpenMS::PeptideAndProteinQuant::PeptideData::accessions)
         .def_rw("psm_count", &OpenMS::PeptideAndProteinQuant::PeptideData::psm_count)
@@ -2029,11 +2011,11 @@ CVTermList
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::PeptideAndProteinQuant::ProteinData& self) { return OpenMS::PeptideAndProteinQuant::ProteinData(self); })
         .def("__deepcopy__", [](const OpenMS::PeptideAndProteinQuant::ProteinData& self, nb::dict) { return OpenMS::PeptideAndProteinQuant::ProteinData(self); }, "memo"_a)
-        .def_rw("peptide_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_abundances)
+        .def_rw("peptide_fraction_group_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_fraction_group_abundances)
         .def_rw("peptide_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_psm_counts)
         .def_rw("channel_level_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::channel_level_abundances)
         .def_rw("file_level_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::file_level_psm_counts)
-        .def_rw("total_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::total_abundances)
+        .def_rw("fraction_group_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::fraction_group_abundances)
         .def_rw("total_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::total_psm_counts)
         .def_rw("total_distinct_peptides", &OpenMS::PeptideAndProteinQuant::ProteinData::total_distinct_peptides)
         .def_rw("psm_count", &OpenMS::PeptideAndProteinQuant::ProteinData::psm_count)
@@ -2276,23 +2258,14 @@ percolator result into the set of Identifications
         .def(nb::init<const OpenMS::PercolatorFeatureSetHelper &>())
         .def("__copy__", [](const OpenMS::PercolatorFeatureSetHelper& self) { return OpenMS::PercolatorFeatureSetHelper(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorFeatureSetHelper& self, nb::dict) { return OpenMS::PercolatorFeatureSetHelper(self); }, "memo"_a)
-        .def_static("concatMULTISEPeptideIds", [](OpenMS::PeptideIdentificationList& all_peptide_ids, OpenMS::PeptideIdentificationList& new_peptide_ids, const std::string& search_engine) { return OpenMS::PercolatorFeatureSetHelper::concatMULTISEPeptideIds(all_peptide_ids, new_peptide_ids, search_engine); }, "all_peptide_ids"_a, "new_peptide_ids"_a, "search_engine"_a)
-        .def_static("mergeMULTISEPeptideIds", [](OpenMS::PeptideIdentificationList& all_peptide_ids, OpenMS::PeptideIdentificationList& new_peptide_ids, const std::string& search_engine) { return OpenMS::PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(all_peptide_ids, new_peptide_ids, search_engine); }, "all_peptide_ids"_a, "new_peptide_ids"_a, "search_engine"_a, 
-            R"doc(
-Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine)
-:param all_peptide_ids: PeptideIdentification vector to append to
-:param new_peptide_ids: PeptideIdentification vector to be appended
-:param search_engine: Search engine to depend on for feature creation
-)doc")
         .def_static("mergeMULTISEProteinIds", [](std::vector<OpenMS::ProteinIdentification> all_protein_ids, std::vector<OpenMS::ProteinIdentification> new_protein_ids) {
             OpenMS::PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, new_protein_ids);
             return nb::make_tuple(all_protein_ids, new_protein_ids);
         }, "all_protein_ids"_a, "new_protein_ids"_a,
             R"doc(
-Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration
-:param all_peptide_idsL: PeptideIdentification vector to be merged into
-:param new_peptide_idsL: PeptideIdentification vector to merge
-:param search_engineL: Search engine to create features from their scores
+Merges a ProteinIdentification run into another: takes over the search parameters of the first run, sets the search engine to "multiple" once runs from differing search engines are combined, and unions the ProteinHits by accession
+:param all_protein_ids: ProteinIdentification vector to be merged into
+:param new_protein_ids: ProteinIdentification vector to merge
 :returns: Tuple of (updated all_protein_ids, updated new_protein_ids)
 )doc")
         .def_static("addMSGFFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<std::string> feature_set) {
@@ -2300,9 +2273,9 @@ Merges a vector of PeptideIdentification into another and prepares the merged Me
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration
-:param all_protein_ids: ProteinIdentification vector to be merged into
-:param new_protein_ids: ProteinIdentification vector to merge
+Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled
+:param peptide_ids: PeptideIdentification vector to create Percolator features in
+:param feature_set: Register of added features
 :returns: Updated feature_set
 )doc")
         .def_static("addXTANDEMFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<std::string> feature_set) {
@@ -2310,7 +2283,7 @@ Concatenates SearchParameter of multiple search engine runs and merges PeptideEv
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled
+Creates and adds X!Tandem specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
 :returns: Updated feature_set
@@ -2320,7 +2293,7 @@ Creates and adds MSGF+ specific Percolator features and registers them in featur
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Creates and adds X!Tandem specific Percolator features and registers them in feature_set
+Creates and adds Comet specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
 :returns: Updated feature_set
@@ -2330,32 +2303,9 @@ Creates and adds X!Tandem specific Percolator features and registers them in fea
             return feature_set;
         }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
-Creates and adds Comet specific Percolator features and registers them in feature_set
-:param peptide_ids: PeptideIdentification vector to create Percolator features in
-:param feature_set: Register of added features
-:returns: Updated feature_set
-)doc")
-        .def_static("addMULTISEFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<std::string> search_engines_used, std::vector<std::string> feature_set, bool complete_only, bool limits_imputation) {
-            OpenMS::PercolatorFeatureSetHelper::addMULTISEFeatures(peptide_ids, search_engines_used, feature_set, complete_only, limits_imputation);
-            return feature_set;
-        }, "peptide_ids"_a, "search_engines_used"_a, "feature_set"_a, "complete_only"_a, "limits_imputation"_a,
-            R"doc(
 Creates and adds Mascot specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
-:returns: Updated feature_set
-)doc")
-        .def_static("addCONCATSEFeatures", [](OpenMS::PeptideIdentificationList& peptide_id_list, std::vector<std::string> search_engines_used, std::vector<std::string> feature_set) {
-            OpenMS::PercolatorFeatureSetHelper::addCONCATSEFeatures(peptide_id_list, search_engines_used, feature_set);
-            return feature_set;
-        }, "peptide_id_list"_a, "search_engines_used"_a, "feature_set"_a,
-            R"doc(
-Adds multiple search engine specific Percolator features and registers them in feature_set
-:param peptide_ids: PeptideIdentification vector to create Percolator features in
-:param search_engines_used: The list of search engines to be considered
-:param feature_set: Register of added features
-:param complete_only: Will only add features for PeptideIdentifications where all given search engines identified something
-:param limits_imputation: Uses C++ numeric limits as imputed values instead of min/max of that feature
 :returns: Updated feature_set
 )doc")
         .def_static("checkExtraFeatures", [](const std::vector<OpenMS::PeptideHit>& psms, std::vector<std::string> extra_features) {
@@ -2363,11 +2313,9 @@ Adds multiple search engine specific Percolator features and registers them in f
             return extra_features;
         }, "psms"_a, "extra_features"_a,
             R"doc(
-Adds multiple search engine specific Percolator features and registers them in feature_set
-This struct can be used to store both peak or feature indices
-:param peptide_ids: PeptideIdentification vector to create Percolator features in
-:param search_engines_used: The list of search engines to be considered
-:param feature_set: Register of added features
+Checks the requested extra Percolator features and removes those that are not available on all given PSMs
+:param psms: The vector of PeptideHit to be checked
+:param extra_features: The list of requested extra features
 :returns: Updated extra_features with unavailable features removed
 )doc")
         ;
@@ -3209,12 +3157,13 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // IsobaricNormalizer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsobaricNormalizer>(m, "IsobaricNormalizer", "OpenMS class IsobaricNormalizer")
-        .def("__copy__", [](const OpenMS::IsobaricNormalizer& self) { return OpenMS::IsobaricNormalizer(self); })
-        .def("__deepcopy__", [](const OpenMS::IsobaricNormalizer& self, nb::dict) { return OpenMS::IsobaricNormalizer(self); }, "memo"_a)
-        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
-        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a)
+        // The quantitation method is stored by reference (IsobaricNormalizer.h:48), so the new
+        // object has to keep it alive. Copying is not exposed: a C++ copy would duplicate the
+        // raw pointer without carrying this keep-alive edge along, and would dangle.
+        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a, nb::keep_alive<1, 2>())
         .def("normalize", &OpenMS::IsobaricNormalizer::normalize, "consensus_map"_a, "Normalize consensus map")
         ;
 

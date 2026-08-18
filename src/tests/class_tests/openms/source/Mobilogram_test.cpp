@@ -439,6 +439,131 @@ START_SECTION((void sortByPosition()))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] sorting reorders all data arrays alongside the peaks))
+{
+  // Regression test: sortByPosition()/sortByIntensity() used to be a bare stable_sort
+  // over the peaks and never touched the float/string/integer data arrays, so any
+  // per-peak metadata was silently mis-associated after a sort.
+
+  // peaks in mobility order 3,1,2 with intensities 10,30,20; arrays mirror their peak
+  auto make = []() {
+    Mobilogram m;
+    m.emplace_back(3.0, 10.0f);
+    m.emplace_back(1.0, 30.0f);
+    m.emplace_back(2.0, 20.0f);
+
+    Mobilogram::FloatDataArray fda;
+    fda.push_back(3.5f); fda.push_back(1.5f); fda.push_back(2.5f);
+    fda.setName("f1");
+    m.getFloatDataArrays().push_back(fda);
+
+    Mobilogram::StringDataArray sda;
+    sda.push_back("mb3"); sda.push_back("mb1"); sda.push_back("mb2");
+    sda.setName("s1");
+    m.getStringDataArrays().push_back(sda);
+
+    Mobilogram::IntegerDataArray ida;
+    ida.push_back(3); ida.push_back(1); ida.push_back(2);
+    ida.setName("i1");
+    m.getIntegerDataArrays().push_back(ida);
+    return m;
+  };
+
+  // --- sortByPosition: mobility 1,2,3
+  Mobilogram m = make();
+  m.sortByPosition();
+  TEST_REAL_SIMILAR(m[0].getMobility(), 1.0)
+  TEST_REAL_SIMILAR(m[1].getMobility(), 2.0)
+  TEST_REAL_SIMILAR(m[2].getMobility(), 3.0)
+  TEST_REAL_SIMILAR(m.getFloatDataArrays()[0][0], 1.5)
+  TEST_REAL_SIMILAR(m.getFloatDataArrays()[0][1], 2.5)
+  TEST_REAL_SIMILAR(m.getFloatDataArrays()[0][2], 3.5)
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][0], "mb1")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][1], "mb2")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][2], "mb3")
+  TEST_EQUAL(m.getIntegerDataArrays()[0][0], 1)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][1], 2)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][2], 3)
+  // array names must survive the permutation
+  TEST_STRING_EQUAL(m.getFloatDataArrays()[0].getName(), "f1")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0].getName(), "s1")
+  TEST_STRING_EQUAL(m.getIntegerDataArrays()[0].getName(), "i1")
+
+  // --- sortByIntensity ascending: 10,20,30 -> mobility 3,2,1
+  m = make();
+  m.sortByIntensity();
+  TEST_REAL_SIMILAR(m[0].getIntensity(), 10.0)
+  TEST_REAL_SIMILAR(m[2].getIntensity(), 30.0)
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][0], "mb3")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][2], "mb1")
+  TEST_EQUAL(m.getIntegerDataArrays()[0][0], 3)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][2], 1)
+
+  // --- sortByIntensity reverse: 30,20,10 -> mobility 1,2,3
+  m = make();
+  m.sortByIntensity(true);
+  TEST_REAL_SIMILAR(m[0].getIntensity(), 30.0)
+  TEST_REAL_SIMILAR(m[2].getIntensity(), 10.0)
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][0], "mb1")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][2], "mb3")
+  TEST_EQUAL(m.getIntegerDataArrays()[0][0], 1)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][2], 3)
+
+  // --- a mis-sized data array must be rejected rather than silently corrupting
+  m = make();
+  m.getIntegerDataArrays()[0].push_back(99); // now 4 entries for 3 peaks
+  TEST_EXCEPTION(Exception::Precondition, m.sortByPosition())
+
+  // --- stable order across *tied* keys: the data arrays must stay aligned with the peaks
+  //     through the tie, and equal keys must keep their original relative order. Four peaks
+  //     with tied mobilities and tied intensities; string/integer arrays carry each peak's
+  //     original identity (A..D / 1..4). The starting order is deliberately unsorted by
+  //     mobility, by ascending intensity and by descending intensity, so none of the three
+  //     sorts can short-circuit -- each really permutes.
+  auto make_ties = []() {
+    Mobilogram m;
+    m.emplace_back(1.0, 10.0f); // A / 1
+    m.emplace_back(2.0, 20.0f); // B / 2
+    m.emplace_back(1.0, 20.0f); // C / 3
+    m.emplace_back(2.0, 10.0f); // D / 4
+
+    Mobilogram::StringDataArray sda;
+    sda.push_back("A"); sda.push_back("B"); sda.push_back("C"); sda.push_back("D");
+    m.getStringDataArrays().push_back(sda);
+
+    Mobilogram::IntegerDataArray ida;
+    ida.push_back(1); ida.push_back(2); ida.push_back(3); ida.push_back(4);
+    m.getIntegerDataArrays().push_back(ida);
+    return m;
+  };
+
+  auto check_order = [](const Mobilogram& m, const std::vector<std::string>& s, const std::vector<Int>& i) {
+    for (Size k = 0; k < s.size(); ++k)
+    {
+      TEST_STRING_EQUAL(m.getStringDataArrays()[0][k], s[k])
+      TEST_EQUAL(m.getIntegerDataArrays()[0][k], i[k])
+    }
+  };
+
+  // sortByPosition: mobility ascending; ties (mob=1: A,C) and (mob=2: B,D) keep original order
+  Mobilogram mt = make_ties();
+  mt.sortByPosition();
+  TEST_REAL_SIMILAR(mt[0].getMobility(), 1.0) TEST_REAL_SIMILAR(mt[1].getMobility(), 1.0)
+  TEST_REAL_SIMILAR(mt[2].getMobility(), 2.0) TEST_REAL_SIMILAR(mt[3].getMobility(), 2.0)
+  check_order(mt, {"A", "C", "B", "D"}, {1, 3, 2, 4});
+
+  // sortByIntensity ascending; ties (I=10: A,D) then (I=20: B,C) keep original order
+  mt = make_ties();
+  mt.sortByIntensity();
+  check_order(mt, {"A", "D", "B", "C"}, {1, 4, 2, 3});
+
+  // sortByIntensity reverse (descending); ties (I=20: B,C) then (I=10: A,D) keep original order
+  mt = make_ties();
+  mt.sortByIntensity(true);
+  check_order(mt, {"B", "C", "A", "D"}, {2, 3, 1, 4});
+}
+END_SECTION
+
 START_SECTION(bool isSorted() const)
 {
   // make test dataset
@@ -487,8 +612,104 @@ START_SECTION(template<class Predicate> bool isSorted(const Predicate& lamdba) c
 END_SECTION
 
 START_SECTION(template<class Predicate> void sort(const Predicate& lambda))
-{// tested above
-  NOT_TESTABLE
+{
+  // sort by a data array rather than by the peaks themselves; peaks and *all*
+  // data arrays must follow the same permutation
+  Mobilogram m;
+  m.emplace_back(1.0, 10.0f);
+  m.emplace_back(2.0, 20.0f);
+  m.emplace_back(3.0, 30.0f);
+
+  Mobilogram::IntegerDataArray rank;
+  rank.push_back(2); rank.push_back(0); rank.push_back(1);
+  rank.setName("rank");
+  m.getIntegerDataArrays().push_back(rank);
+
+  Mobilogram::StringDataArray tag;
+  tag.push_back("a"); tag.push_back("b"); tag.push_back("c");
+  m.getStringDataArrays().push_back(tag);
+
+  const auto& r = m.getIntegerDataArrays()[0];
+  m.sort([&r](const Size i1, const Size i2) { return r[i1] < r[i2]; });
+
+  // ascending 'rank' means original order 1,2,0
+  TEST_EQUAL(m.getIntegerDataArrays()[0][0], 0)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][1], 1)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][2], 2)
+  TEST_REAL_SIMILAR(m[0].getMobility(), 2.0)
+  TEST_REAL_SIMILAR(m[1].getMobility(), 3.0)
+  TEST_REAL_SIMILAR(m[2].getMobility(), 1.0)
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][0], "b")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][1], "c")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][2], "a")
+}
+END_SECTION
+
+START_SECTION((Mobilogram& select(const std::vector<Size>& indices)))
+{
+  Mobilogram m;
+  m.emplace_back(1.0, 10.0f);
+  m.emplace_back(2.0, 20.0f);
+  m.emplace_back(3.0, 30.0f);
+
+  Mobilogram::FloatDataArray fda;
+  fda.push_back(1.5f); fda.push_back(2.5f); fda.push_back(3.5f);
+  fda.setName("f1");
+  m.getFloatDataArrays().push_back(fda);
+
+  Mobilogram::StringDataArray sda;
+  sda.push_back("a"); sda.push_back("b"); sda.push_back("c");
+  m.getStringDataArrays().push_back(sda);
+
+  Mobilogram::IntegerDataArray ida;
+  ida.push_back(1); ida.push_back(2); ida.push_back(3);
+  m.getIntegerDataArrays().push_back(ida);
+
+  // subset + reorder in one go
+  m.select(std::vector<Size>{2, 0});
+  TEST_EQUAL(m.size(), 2)
+  TEST_REAL_SIMILAR(m[0].getMobility(), 3.0)
+  TEST_REAL_SIMILAR(m[1].getMobility(), 1.0)
+  TEST_REAL_SIMILAR(m.getFloatDataArrays()[0][0], 3.5)
+  TEST_REAL_SIMILAR(m.getFloatDataArrays()[0][1], 1.5)
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][0], "c")
+  TEST_STRING_EQUAL(m.getStringDataArrays()[0][1], "a")
+  TEST_EQUAL(m.getIntegerDataArrays()[0][0], 3)
+  TEST_EQUAL(m.getIntegerDataArrays()[0][1], 1)
+  TEST_STRING_EQUAL(m.getFloatDataArrays()[0].getName(), "f1")
+
+  // duplicate indices must duplicate the values, not leave moved-from holes
+  Mobilogram dup;
+  dup.emplace_back(1.0, 10.0f);
+  dup.emplace_back(2.0, 20.0f);
+  Mobilogram::StringDataArray dup_sda;
+  dup_sda.push_back("a"); dup_sda.push_back("b");
+  dup.getStringDataArrays().push_back(dup_sda);
+  dup.select(std::vector<Size>{0, 0});
+  TEST_EQUAL(dup.size(), 2)
+  TEST_STRING_EQUAL(dup.getStringDataArrays()[0][0], "a")
+  TEST_STRING_EQUAL(dup.getStringDataArrays()[0][1], "a")
+
+  // size mismatch between peaks and a data array is an error
+  Mobilogram bad;
+  bad.emplace_back(1.0, 10.0f);
+  bad.emplace_back(2.0, 20.0f);
+  Mobilogram::IntegerDataArray too_long;
+  too_long.push_back(1); too_long.push_back(2); too_long.push_back(3);
+  bad.getIntegerDataArrays().push_back(too_long);
+  TEST_EXCEPTION(Exception::Precondition, bad.select(std::vector<Size>{0, 1}))
+  // ... and the rejected call must leave the mobilogram untouched
+  TEST_EQUAL(bad.size(), 2)
+  TEST_REAL_SIMILAR(bad[0].getMobility(), 1.0)
+  TEST_REAL_SIMILAR(bad[1].getMobility(), 2.0)
+  TEST_EQUAL(bad.getIntegerDataArrays()[0].size(), 3)
+
+  // out-of-range indices are rejected rather than being undefined behaviour
+  Mobilogram oor;
+  oor.emplace_back(1.0, 10.0f);
+  oor.emplace_back(2.0, 20.0f);
+  TEST_EXCEPTION(Exception::Precondition, oor.select(std::vector<Size>{0, 5}))
+  TEST_EQUAL(oor.size(), 2)
 }
 END_SECTION
 
@@ -890,11 +1111,19 @@ START_SECTION(void clear())
   edit.resize(1);
   edit.setRT(5);
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  edit.getFloatDataArrays().resize(3);
+  edit.getIntegerDataArrays().resize(2);
+  edit.getStringDataArrays().resize(1);
 
   edit.clear();
   TEST_EQUAL(edit.size(), 0)
   TEST_EQUAL(edit == Mobilogram(), false)
   TEST_EQUAL(edit.empty(), true)
+  // the data arrays are parallel to the peaks, so dropping the peaks must drop them too
+  // (previously they survived clear(), so a subsequent fill appended to stale entries)
+  TEST_EQUAL(edit.getFloatDataArrays().empty(), true)
+  TEST_EQUAL(edit.getIntegerDataArrays().empty(), true)
+  TEST_EQUAL(edit.getStringDataArrays().empty(), true)
 }
 END_SECTION
 

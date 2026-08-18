@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/config.h>
 #include <filesystem>
+#include <system_error>
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -367,7 +368,7 @@ protected:
     registerSubsection_("Scoring", "Scoring parameters section");
     registerSubsection_("Library", "Library parameters section");
 
-    registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction.");
+    registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction, including configurable estimated RT-window floor/ceiling clamps.");
     registerSubsection_("Calibration:RTNormalization", "Parameters for the RTNormalization for iRT peptides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
     registerSubsection_("Calibration:MassIMCorrection", "Parameters for the m/z and ion mobility calibration.");
   registerSubsection_("MRMMapping", "Parameters for mapping chromatograms to transitions (SRM/MRM data).");
@@ -604,52 +605,15 @@ protected:
     return id.find("DECOY") == 0 || id.find("Decoy") == 0 || id.find("decoy") == 0;
   }
 
-  static std::unordered_map<std::string, std::string> invertStringMap_(const std::unordered_map<std::string, std::string>& input)
+  static bool mapsToSelectedTarget_(
+    const std::string& decoy_ref,
+    const std::unordered_set<std::string>& selected_targets,
+    const std::string& decoy_prefix,
+    const OpenSwathLibraryIDNormalizer::SourceIDMapping& source_ids)
   {
-    std::unordered_map<std::string, std::string> output;
-    output.reserve(input.size());
-    for (const auto& item : input)
-    {
-      output[item.second] = item.first;
-    }
-    return output;
-  }
-
-  static bool mapsToSelectedTarget_(const std::string& decoy_ref,
-                                    const std::unordered_set<std::string>& selected_targets,
-                                    const std::string& decoy_prefix,
-                                    const std::unordered_map<std::string, std::string>& traml_to_current,
-                                    const std::unordered_map<std::string, std::string>& current_to_traml)
-  {
-    const std::string prefix = decoy_prefix;
-    if (!prefix.empty() && decoy_ref.find(prefix) == 0)
-    {
-      const std::string target_ref = decoy_ref.substr(prefix.size());
-      if (selected_targets.find(target_ref) != selected_targets.end())
-      {
-        return true;
-      }
-    }
-
-    const auto traml_it = current_to_traml.find(decoy_ref);
-    if (traml_it == current_to_traml.end())
-    {
-      return false;
-    }
-    const std::string& decoy_traml_ref = traml_it->second;
-    if (prefix.empty() || decoy_traml_ref.find(prefix) != 0)
-    {
-      return false;
-    }
-
-    const std::string target_traml_ref = decoy_traml_ref.substr(prefix.size());
-    if (selected_targets.find(target_traml_ref) != selected_targets.end())
-    {
-      return true;
-    }
-    const auto current_it = traml_to_current.find(target_traml_ref);
-    return current_it != traml_to_current.end() &&
-           selected_targets.find(current_it->second) != selected_targets.end();
+    const auto target_ref = OpenSwathLibraryIDNormalizer::canonicalTargetForDecoyPrecursor(
+      decoy_ref, source_ids, decoy_prefix);
+    return target_ref.has_value() && selected_targets.contains(*target_ref);
   }
 
   static double precursorIMFactor_(double precursor_im_scale, bool precursor_im_scaled_by_charge, int charge)
@@ -685,9 +649,8 @@ protected:
     const std::string& decoy_prefix,
     double precursor_im_scale,
     bool precursor_im_scaled_by_charge,
-    const std::unordered_map<std::string, std::string>& traml_to_current)
+    const OpenSwathLibraryIDNormalizer::SourceIDMapping& source_ids)
   {
-    const std::unordered_map<std::string, std::string> current_to_traml = invertStringMap_(traml_to_current);
     OpenSwath::LightTargetedExperiment filtered_exp;
     std::unordered_map<std::string, int> charge_by_compound;
     charge_by_compound.reserve(transition_exp.getCompounds().size());
@@ -699,7 +662,13 @@ protected:
     std::unordered_set<std::string> kept_compounds;
     for (const auto& transition : transition_exp.getTransitions())
     {
-      const bool decoy = transition.getDecoy() || hasDecoyPrefix_(transition.getPeptideRef(), decoy_prefix);
+      std::string source_ref = transition.getPeptideRef();
+      if (const auto source_it = source_ids.precursor_canonical_to_source.find(transition.getPeptideRef());
+          source_it != source_ids.precursor_canonical_to_source.end())
+      {
+        source_ref = source_it->second;
+      }
+      const bool decoy = transition.getDecoy() || hasDecoyPrefix_(source_ref, decoy_prefix);
       bool keep = false;
       if (!decoy)
       {
@@ -711,7 +680,7 @@ protected:
       }
       else if (decoy_handling == "keep_matching")
       {
-        keep = mapsToSelectedTarget_(transition.getPeptideRef(), selected_targets, decoy_prefix, traml_to_current, current_to_traml);
+        keep = mapsToSelectedTarget_(transition.getPeptideRef(), selected_targets, decoy_prefix, source_ids);
       }
 
       if (keep)
@@ -751,24 +720,6 @@ protected:
     return filtered_exp;
   }
 
-  std::unordered_map<std::string, std::string> getPrecursorTraMLToCurrentIDMap_(
-    FileTypes::Type tr_type,
-    FileTypes::Type out_features_type,
-    const std::string& tr_file,
-    const std::string& out_features) const
-  {
-    if (tr_type == FileTypes::PQP)
-    {
-      return TransitionPQPFile().getPQPIDToTraMLIDMap(tr_file.c_str(), "PRECURSOR");
-    }
-    if (out_features_type == FileTypes::OSW &&
-        (tr_type == FileTypes::TSV || tr_type == FileTypes::OSWPQ) &&
-        File::exists(out_features))
-    {
-      return TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
-    }
-    return {};
-  }
 
   ExitCodes prefilterLibraryAcrossRuns_(OpenSwath::LightTargetedExperiment& transition_exp,
                                         const std::vector<StringList>& run_groups,
@@ -787,12 +738,18 @@ protected:
                                         bool sort_swath_maps,
                                         bool prm,
                                         int outer_loop_threads,
-                                        const std::unordered_map<std::string, std::string>& traml_to_current)
+                                        const OpenSwathLibraryIDNormalizer::SourceIDMapping& source_ids)
   {
     const std::string aggregation_method = prefilter_params.getValue("aggregation_method").toString();
     const bool require_all_runs = aggregation_method == "all";
     const std::string decoy_handling = prefilter_params.getValue("decoy_handling").toString();
     const std::string decoy_prefix = prefilter_params.getValue("decoy_prefix").toString();
+
+    // Source-oriented libraries have already crossed the canonical-ID boundary.
+    // Re-materialize any configurable source-prefix decoy semantics onto the
+    // explicit transition flags before the evidence filter sees numeric IDs.
+    OpenSwathLibraryIDNormalizer::materializeDecoyPrefix(transition_exp, source_ids, decoy_prefix);
+
     const Size min_supported_precursors = static_cast<Size>(prefilter_params.getValue("min_supported_precursors"));
     prefilter_params.setValue("enabled", "false");
     prefilter_params.remove("aggregation_method");
@@ -897,7 +854,7 @@ protected:
 
     OpenSwath::LightTargetedExperiment filtered_exp = buildPrefilteredLibraryExperiment_(
       transition_exp, selected_targets, decoy_handling, decoy_prefix,
-      output_precursor_im_scale, output_precursor_im_scaled_by_charge, traml_to_current);
+      output_precursor_im_scale, output_precursor_im_scaled_by_charge, source_ids);
     const Size decoy_transitions = std::count_if(filtered_exp.getTransitions().begin(), filtered_exp.getTransitions().end(),
                                                 [&decoy_prefix](const OpenSwath::LightTransition& transition)
                                                 {
@@ -1191,7 +1148,9 @@ protected:
     ///////////////////////////////////
     // Load the transitions
     ///////////////////////////////////
-    OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
+    OpenSwathLibraryIDNormalizer::SourceIDMapping library_source_ids;
+    OpenSwath::LightTargetedExperiment transition_exp =
+      loadTransitionList(tr_type, tr_file, tsv_reader_param, &library_source_ids);
     OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
@@ -1199,88 +1158,30 @@ protected:
     {
       if (tr_type == FileTypes::PQP)
       {
-         // copy the PQP file and name it OSW file
-          std::ifstream  src(tr_file.c_str(), std::ios::binary);
-          std::ofstream  dst(out_features.c_str(), std::ios::binary | std::ios::trunc);
-          dst << src.rdbuf();
-      }
-      else if (tr_type == FileTypes::TSV)
-      {
-        // Convert TSV to .PQP 
-        TransitionTSVFile tsv_reader;
-        TargetedExperiment transition_exp_heavy;
-        tsv_reader.setParameters(tsv_reader_param);
-        tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp_heavy);
-        TransitionPQPFile().convertTargetedExperimentToPQP(out_features.c_str(), transition_exp_heavy);
-
-        // instead of reloading - edit the already loaded transition_exp to be compatible with .pqp format
-        // read the PQP to traMLID mapping
-        auto precursor_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
-        auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
-
-        // convert tramlID in transitionExp to PQP ID
-        for (auto & prec : transition_exp.getCompounds())
+        // A PQP input already carries the canonical operational ID domain.
+        // Copy it so the OSW result tables are appended to the same library.
+        std::error_code copy_error;
+        std::filesystem::copy_file(tr_file, out_features,
+                                   std::filesystem::copy_options::overwrite_existing,
+                                   copy_error);
+        if (copy_error)
         {
-          if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
-          {
-            prec.id = id->second;
-          }
-        }
-
-        for (auto & tr : transition_exp.getTransitions())
-        {
-          // convert transition tramlID peptide reference in transitionExp to PQP ID 
-          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
-          if (pep != precursor_traml_to_pqp.end())
-          {
-            tr.peptide_ref = pep->second;
-          }
-
-          // Update transition id
-          auto id = transition_traml_to_pqp.find(tr.transition_name);
-          if (id != transition_traml_to_pqp.end())
-          {
-            tr.transition_name = id->second;
-          }
+          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           out_features + " (" + copy_error.message() + ")");
         }
       }
-      else if (tr_type == FileTypes::OSWPQ)
+      else if (tr_type == FileTypes::TSV || tr_type == FileTypes::OSWPQ)
       {
-        // Convert parquet library to .PQP for OSW output
-        TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
-
-        auto precursor_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
-        auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
-
-        for (auto & prec : transition_exp.getCompounds())
-        {
-          if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
-          {
-            prec.id = id->second;
-          }
-        }
-
-        for (auto & tr : transition_exp.getTransitions())
-        {
-          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
-          if (pep != precursor_traml_to_pqp.end())
-          {
-            tr.peptide_ref = pep->second;
-          }
-
-          auto id = transition_traml_to_pqp.find(tr.transition_name);
-          if (id != transition_traml_to_pqp.end())
-          {
-            tr.transition_name = id->second;
-          }
-        }
+        // transition_exp has already been canonicalized/validated by
+        // loadTransitionList(). Persist those exact IDs; do not reinterpret the
+        // canonical decimal strings as source TraML IDs and remap them again.
+        TransitionPQPFile().convertLightTargetedExperimentToPQP(
+          out_features.c_str(), transition_exp, &library_source_ids);
       }
       else if (tr_type == FileTypes::TRAML)
       {
-        if (out_features_type == FileTypes::OSW)
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Conversion from TraML to OSW is not supported."));
-        }
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          std::string("Conversion from TraML to OSW is not supported."));
       }
     }
 
@@ -1351,13 +1252,11 @@ protected:
     if (library_prefilter_enabled)
     {
       OPENMS_LOG_INFO << "Library:prefilter enabled: scanning all input runs once and using one shared evidence-filtered transition library." << std::endl;
-      const std::unordered_map<std::string, std::string> precursor_traml_to_current =
-        getPrecursorTraMLToCurrentIDMap_(tr_type, out_features_type, tr_file, out_features);
       const ExitCodes prefilter_status = prefilterLibraryAcrossRuns_(
         transition_exp, run_groups, cp_ms1, cp_irt, library_prefilter_param, user_pasef,
         disable_im_windowing, split_file, tmp_dir, readoptions, keep_cached_files,
         swath_windows_file, min_upper_edge_dist, force, sort_swath_maps, prm,
-        outer_loop_threads, precursor_traml_to_current);
+        outer_loop_threads, library_source_ids);
       if (prefilter_status != EXECUTION_OK)
       {
         return prefilter_status;
@@ -1801,7 +1700,8 @@ protected:
     if (write_parquet)
     {
       parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
-                           cur_run, current_run_files[0], enable_uis_scoring);
+                           cur_run, current_run_files[0], enable_uis_scoring,
+                           &library_source_ids);
     }
 
     OPENMS_LOG_INFO << std::endl;

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="minimal.fasta" db_version="1.0" taxonomy="" mass_type="monoisotopic" charges="+2, +3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.02" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="TMT6plex (N-term)" />
+		<FixedModification name="TMT6plex (K)" />
+	</SearchParameters>
+	<IdentificationRun date="2026-01-01T00:00:00" search_engine="OpenMS" search_engine_version="1.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="PROT_A" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT_B" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[TMTTenPlexMethod_test.mzML]"/>
+			<UserParam type="string" name="protein_group_0" value="0.0,PH_0"/>
+			<UserParam type="string" name="protein_group_1" value="0.0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.0,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.0,PH_1"/>
+		</ProteinIdentification>
+				<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="567.827" RT="4880.15802" spectrum_reference="controllerType=0 controllerNumber=1 scan=24215" >
+			<PeptideHit score="0.0" sequence=".(TMT6plex)PEPTIDEK(TMT6plex)" charge="2" aa_before="K" aa_after="A" start="10" end="20" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="768.950003899738" RT="4880.56854" spectrum_reference="controllerType=0 controllerNumber=1 scan=24217" >
+			<PeptideHit score="0.0" sequence=".(TMT6plex)PEPTIDESK(TMT6plex)" charge="2" aa_before="K" aa_after="A" start="10" end="20" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="544.813" RT="4880.80014" spectrum_reference="controllerType=0 controllerNumber=1 scan=24218" >
+			<PeptideHit score="0.0" sequence=".(TMT6plex)TESTPEPTIDEK(TMT6plex)" charge="2" aa_before="K" aa_after="A" start="10" end="20" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="489.278535890617" RT="4881.03162" spectrum_reference="controllerType=0 controllerNumber=1 scan=24219" >
+			<PeptideHit score="0.0" sequence=".(TMT6plex)SAMPLEPEPTIDEK(TMT6plex)" charge="2" aa_before="K" aa_after="A" start="10" end="20" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="479.744303406726" RT="4881.26316" spectrum_reference="controllerType=0 controllerNumber=1 scan=24220" >
+			<PeptideHit score="0.0" sequence=".(TMT6plex)ANOTHERPEPTIDEK(TMT6plex)" charge="2" aa_before="K" aa_after="A" start="10" end="20" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
+			<PeptideHit score="0.0" sequence=".(TMT6plex)LASTPEPTIDEK(TMT6plex)" charge="2" aa_before="K" aa_after="A" start="10" end="20" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

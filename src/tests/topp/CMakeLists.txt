@@ -55,6 +55,12 @@ set(TESTS_TEMP_DIR "${PROJECT_BINARY_DIR}/tmp_path")
 file(MAKE_DIRECTORY "${TESTS_TEMP_DIR}")
 set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
+# QPX text dumps are compared with the shared relative tolerance but WITHOUT the absolute one.
+# FuzzyDiff.ini's 'absdiff' of 0.01 exists for "zero vs. epsilon" on unbounded quantities; the QPX
+# views carry q-values and posterior error probabilities that live in [0,1], where it deletes the
+# assertion outright - in one of these fixtures 68 of 104 PEPs are <= 0.01, so every one of them
+# would compare equal to every other. Relative tolerance alone still absorbs float noise.
+set(QPX_DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ratio 1.01 -absdiff 0)
 # zlib-ng produces byte-different (but functionally equivalent) compressed output.
 # When detected, whitelist mzML binary data elements so FuzzyDiff skips them.
 if(HAVE_ZLIB_NG)
@@ -187,6 +193,72 @@ add_test("TOPP_IDMerger_idparquet_diff"
     -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_output.idXML
     -whitelist "IdentificationRun date" "UserParam.*file_origin")
 set_tests_properties("TOPP_IDMerger_idparquet_diff" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet_convert")
+
+### ParquetDiff ###
+# Uses the checked-in .idparquet psm tables as fixtures: both have the same 29-column schema,
+# (peptidoform, precursor_charge) is unique in each, and the two share no key at all -- so a
+# self-comparison must report equal and a cross-comparison must report differences. No
+# generated reference file is needed.
+add_test("TOPP_ParquetDiff_1" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge)
+
+# Schema-only mode: the value comparison is skipped entirely, so identical schemas are equal.
+add_test("TOPP_ParquetDiff_2" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -schema_only)
+
+# Two different tables: the key sets are disjoint, so this must exit non-zero.
+add_test("TOPP_ParquetDiff_3" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge)
+set_tests_properties("TOPP_ParquetDiff_3" PROPERTIES WILL_FAIL 1)
+
+# A primary-key column that does not exist must be reported, not silently ignored.
+add_test("TOPP_ParquetDiff_4" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk no_such_column)
+set_tests_properties("TOPP_ParquetDiff_4" PROPERTIES WILL_FAIL 1)
+
+# Neither 'in2' nor 'schema' given: illegal parameters.
+add_test("TOPP_ParquetDiff_5" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet)
+set_tests_properties("TOPP_ParquetDiff_5" PROPERTIES WILL_FAIL 1)
+
+# 'min_rows' is satisfied: input1 holds 5 rows.
+add_test("TOPP_ParquetDiff_6" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -min_rows 5)
+
+# 'min_rows' is violated by one row, so an otherwise-equal comparison must still fail. This is
+# what the row-count floor buys over a schema check: identical tables compare equal however few
+# rows they hold.
+add_test("TOPP_ParquetDiff_7" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -min_rows 6)
+set_tests_properties("TOPP_ParquetDiff_7" PROPERTIES WILL_FAIL 1)
+
+# The floor applies to BOTH inputs, not only the first: input2 holds 4 rows against input1's 5.
+# 'schema_only' is what makes this test mean that. These two tables have disjoint primary
+# keys, so without it the comparison fails on the key mismatch and would go red even if
+# 'min_rows' only ever looked at 'in1'. Skipping the value comparison leaves the row floor as
+# the only thing that can fail.
+add_test("TOPP_ParquetDiff_8" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -pk peptidoform precursor_charge
+  -schema_only
+  -min_rows 5)
+set_tests_properties("TOPP_ParquetDiff_8" PROPERTIES WILL_FAIL 1)
 
 # .idparquet rip: split the merged .idparquet from TOPP_IDMerger_idparquet back into
 # per-run .idparquet directories.  -numeric_filenames + -split_ident_runs make output
@@ -1006,7 +1078,79 @@ set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPE
 
 #------------------------------------------------------------------------------
 # IsobaricWorkflow tests
-# TODO
+# The three functional runs below request consensusXML, mzTab, and QPX individually. This guards
+# that every output is optional on its own while the separate parameter test keeps one output required.
+add_test("TOPP_IsobaricWorkflow_requires_output" ${TOPP_BIN_PATH}/IsobaricWorkflow -test)
+set_tests_properties("TOPP_IsobaricWorkflow_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_mzTab/out_qpx")
+
+# TMT-10plex, one file, 10 channels/samples. The consensusXML check covers the protein-group
+# quantities: with remove_unquantified=true every group that survives carries data arrays, so this
+# is the path where dropping them on store is most visible.
+add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
+
+# Same run as TOPP_IsobaricWorkflow_1, but one identification appears twice (same spectrum,
+# peptidoform and charge; the copy scored worse). IsobaricWorkflow builds one ConsensusFeature
+# per identification and all of a spectrum's identifications read the same MS2/MS3 scan, so
+# without the reduction that scan's reporter intensities would enter the quantification twice.
+# Diffed against IsobaricWorkflow_1's OWN reference on purpose: the assertion is that the
+# duplicate changed nothing.
+add_test("TOPP_IsobaricWorkflow_duplicate_psm" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_duplicate_psm_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML)
+# An identical output could also mean the reduction never ran, so require that it reported.
+set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm" PROPERTIES PASS_REGULAR_EXPRESSION "repeat a .spectrum, peptidoform, charge. already claimed")
+add_test("TOPP_IsobaricWorkflow_duplicate_psm_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_duplicate_psm")
+
+# An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
+# TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made
+# MSExperiment::getPrecursorSpectrum() return -1 and PrecursorPurity index before the start of
+# the experiment -- a segfault. The feature must still be quantified, just without a purity.
+add_test("TOPP_IsobaricWorkflow_2_no_preceding_ms1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
+         -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+         -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_2_input.idXML
+         -type tmt10plex
+         -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_2_output.tmp.mzTab)
+
+# QPX Parquet export. IsobaricWorkflow is the only -out_qpx producer that uses the STREAMING
+# feature and PSM writers, and the only one whose pg export runs after two large streamed files
+# -- so it is the one where a late refusal would leave a partial collection behind.
+#
+# These checked existence only, on the grounds that a fresh uuid and creation_date per run make
+# the files non-reproducible. That is true byte-wise but irrelevant here: ParquetDiff compares
+# schema and values, not file metadata. Each now validates the file against the built-in QPX
+# schema for its view and requires a row-count floor. The floor is the point -- an empty table
+# satisfies any schema, so a schema check alone cannot tell a correct table from a correctly
+# shaped nothing. Floors are minima, not equalities: they catch row LOSS while tolerating gain.
+# Clear the output directory first. ctest never cleans tmp_path, so without this a
+# producer that crashed - or that legitimately stopped writing a file - would leave the
+# previous run's output for the assertions below to read, and they would pass on it.
+add_test(NAME "TOPP_IsobaricWorkflow_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir)
+add_test("TOPP_IsobaricWorkflow_qpx" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
+         -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+         -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+         -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+         -type tmt10plex
+         -out_qpx ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx_clean")
+add_test("TOPP_IsobaricWorkflow_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.feature.parquet -schema feature -min_rows 5)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_features" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test("TOPP_IsobaricWorkflow_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.psm.parquet -schema psm -min_rows 4)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_psms" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test("TOPP_IsobaricWorkflow_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet -schema pg -min_rows 20)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+
 #add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML)
 #add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
 #set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1")
@@ -1471,6 +1615,18 @@ set_tests_properties("TOPP_MetaboliteAdductDecharger_2_out2" PROPERTIES DEPENDS 
 
 #------------------------------------------------------------------------------
 # MSstatsConverter tests
+# An input whose type cannot be determined must return ILLEGAL_PARAMETERS (6), not abort.
+# fatalErrorIf_ used to throw an int while main_ catches ExitCodes, and TOPPBase has no
+# catch-all, so the throw escaped main() and the process died with SIGABRT (exit 134).
+# The exact code is the assertion: WILL_FAIL treats a crash and a clean error alike, and
+# PASS_REGULAR_EXPRESSION ignores the exit code (the FATAL line is printed in both cases).
+# Only an input that is unidentifiable by BOTH extension and content reaches this path --
+# a recognized-but-wrong format is rejected by TOPPBase before main_ runs.
+add_test(NAME "TOPP_MSstatsConverter_unknown_input_type" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/MSstatsConverter;-test;-in;${DATA_DIR_TOPP}/MSstatsConverter_unknown_type_in.dat;-in_design;${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv;-out;${TESTS_TEMP_DIR}/MSstatsConverter_unknown_type_out.tmp.csv"
+  -DEXPECTED_CODE=6
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
 add_test("TOPP_MSstatsConverter_1" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_1_in.consensusXML -retention_time_summarization_method max -in_design ${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv -out ${TESTS_TEMP_DIR}/MSstatsConverter_1_out.tmp.csv)
 add_test("TOPP_MSstatsConverter_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_1_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_1_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_1_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_1")
@@ -1727,6 +1883,38 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     -Algorithm:ms2_min_fragment_hits 1
     -Algorithm:min_supported_precursors 1
     -test)
+
+  # Regression for source-prefix-only decoys after canonicalization. The fixture deliberately
+  # has no explicit Decoy column. keep_matching must recover DECOY_PEPTIDEA -> PEPTIDEA from
+  # source provenance even though the operational precursor IDs have become numeric.
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy" ${TOPP_BIN_PATH}/TransitionListEvidenceFilter
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/TransitionListEvidenceFilter_prefixed_decoy_input.tsv
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.pqp
+    -out_type pqp
+    -decoy_handling keep_matching
+    -decoy_prefix DECOY_
+    -mz_extraction_window_ms1 100000
+    -mz_extraction_window_ms1_unit ppm
+    -mz_extraction_window_ms2 100
+    -mz_extraction_window_ms2_unit Th
+    -Algorithm:ms2_min_fragment_hits 1
+    -Algorithm:min_supported_precursors 1
+    -test)
+
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv" ${TOPP_BIN_PATH}/TargetedFileConverter
+    -test
+    -in ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.pqp
+    -in_type pqp
+    -out ${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.tsv
+    -out_type tsv)
+  set_tests_properties("TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv" PROPERTIES
+    DEPENDS "TOPP_TransitionListEvidenceFilter_prefixed_decoy")
+
+  add_test("TOPP_TransitionListEvidenceFilter_prefixed_decoy_out1"
+    bash -c "awk -F '\t' 'NR == 1 { for (i = 1; i <= NF; ++i) if ($i == \"Decoy\") decoy_col = i; next } decoy_col && $decoy_col == 0 { ++targets } decoy_col && $decoy_col == 1 { ++decoys } END { exit !(decoy_col && targets == 4 && decoys == 4) }' '${TESTS_TEMP_DIR}/TransitionListEvidenceFilter_prefixed_decoy.tmp.tsv'")
+  set_tests_properties("TOPP_TransitionListEvidenceFilter_prefixed_decoy_out1" PROPERTIES
+    DEPENDS "TOPP_TransitionListEvidenceFilter_prefixed_decoy_to_tsv")
 
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.TraML -out ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathChromatogramExtractor_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output.mzML)
@@ -2066,6 +2254,77 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_21_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
   # set_tests_properties("TOPP_OpenSwathWorkflow_21_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
 
+  # Regression for canonical numeric source IDs when TSV input is used with OSW output.
+  # OpenSwathWorkflow used to canonicalize the TSV and then apply the legacy
+  # TraML->PQP remapping a second time only for OSW output. Numeric source IDs
+  # could therefore collapse (e.g. source 1/2 -> canonical 0/1 -> remapped 0/0).
+  # Compare XIC written from the same numeric-ID TSV through featureXML and OSW
+  # output paths; the operational precursor/transition identities must be identical.
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_numeric_source_ids_input.tsv
+    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML
+    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.featureXML
+    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic
+    -Calibration:auto_irt:enabled false
+    -Calibration:windows:estimate_rt false
+    -Calibration:windows:estimate_mz false
+    -Calibration:windows:estimate_im false
+    -Calibration:RTNormalization:lowess:auto_span false
+    -Calibration:RTNormalization:lowess:span 0.6666666666666667
+    -test
+    -mz_extraction_window 0.05
+    -mz_extraction_window_unit Th
+    -ms1_isotopes 0
+    -Scoring:Scores:use_total_mi_score
+    -Scoring:Scores:use_ms1_mi false
+    -Scoring:TransitionGroupPicker:compute_peak_quality)
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_numeric_source_ids_input.tsv
+    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML
+    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids.tmp.osw
+    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic
+    -Calibration:auto_irt:enabled false
+    -Calibration:windows:estimate_rt false
+    -Calibration:windows:estimate_mz false
+    -Calibration:windows:estimate_im false
+    -Calibration:RTNormalization:lowess:auto_span false
+    -Calibration:RTNormalization:lowess:span 0.6666666666666667
+    -test
+    -mz_extraction_window 0.05
+    -mz_extraction_window_unit Th
+    -ms1_isotopes 0
+    -Scoring:Scores:use_total_mi_score
+    -Scoring:Scores:use_ms1_mi false
+    -Scoring:TransitionGroupPicker:compute_peak_quality)
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text" ${TOPP_BIN_PATH}/TextExporter
+    -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic
+    -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic.tsv
+    -out_type tsv
+    -xic:mode summary)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic")
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text" ${TOPP_BIN_PATH}/TextExporter
+    -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic
+    -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic.tsv
+    -out_type tsv
+    -xic:mode summary)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_osw_xic")
+
+  add_test("TOPP_OpenSwathWorkflow_numeric_ids_osw_identity" ${DIFF}
+    -sort
+    -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_featurexml.tmp.xic.tsv
+    -in2 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_numeric_ids_osw.tmp.xic.tsv)
+  set_tests_properties("TOPP_OpenSwathWorkflow_numeric_ids_osw_identity" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_numeric_ids_featurexml_xic_text;TOPP_OpenSwathWorkflow_numeric_ids_osw_xic_text")
+
   # Test PRM workflow
   add_test("TOPP_OpenSwathWorkflow_22" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.tsv -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_22.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_22.tmp.featureXML -readOptions workingInMemory -matching_window_only "true" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false"
   ${OLD_OSW_PARAM} -ms1_isotopes 3)
@@ -2352,13 +2611,16 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   endif()
 
   # reporting of multiple hits and tsv output
-  add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
-  add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
-  add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
-  set_tests_properties("TOPP_OpenNuXL_3_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
-  set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
+    add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
+    add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
+    set_tests_properties("TOPP_OpenNuXL_3_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+    set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+  endif()
 
   # reporting of multiple hits and tsv output and decoy generation
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
@@ -2373,20 +2635,26 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   endif()
 
   # test internal decoy generation - slow scoring
-  add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
-  add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
-  set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
+    add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
+  endif()
 
   # reporting of multiple hits and tsv output and decoy generation with huge mass window so that all candidates are scored
-  add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
-  add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
-  add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
-  set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
-  set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
+    add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
+    add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
+    set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+    set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  endif()
 endif(NOT MSVC)
 
 #------------------------------------------------------------------------------
@@ -2757,7 +3025,7 @@ add_test("TOPP_ProteinQuantifier_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQ
 set_tests_properties("TOPP_ProteinQuantifier_1_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
 add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_1_output2.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_1_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
-add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output2.tmp.csv -top:N 2 -top:include_all -best_charge_and_fraction -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output2.tmp.csv -top:N 2 -top:include_all -best_charge -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output1.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_2_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_2")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_2_output2.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file" )
@@ -2790,13 +3058,6 @@ set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_Pr
 add_test("TOPP_ProteinQuantifier_9_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_9_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output_mztab.mzTab -whitelist "software")
 set_tests_properties("TOPP_ProteinQuantifier_9_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
 
-#ratios
-add_test("TOPP_ProteinQuantifier_12" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_12_output.tmp.csv -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum -ratios)
-add_test("TOPP_ProteinQuantifier_12_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_12_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_12_output.txt -whitelist "computed from file" )
-set_tests_properties("TOPP_ProteinQuantifier_12_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_12")
-add_test("TOPP_ProteinQuantifier_13" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_13_output.tmp.csv -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum -ratiosSILAC)
-add_test("TOPP_ProteinQuantifier_13_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_13_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_13_output.txt -whitelist "computed from file" )
-set_tests_properties("TOPP_ProteinQuantifier_13_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_13")
 # idXML input (spectral counting):
 add_test("TOPP_ProteinQuantifier_14" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.idXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output2.tmp.csv -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_14_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output1.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_14_output1.txt -whitelist "computed from file" )
@@ -2812,9 +3073,155 @@ add_test("TOPP_ProteinQuantifier_16" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_16_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_16_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_16_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_16")
 
-add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
+add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -top:include_all -best_charge )
 add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
+
+# QPX Parquet export. Both inputs carry a merged identification run (several files in 'spectra_data'
+# with per-PSM 'id_merge_index'), the label-free one over 3 files and the TMT6 one over 48. As with
+# the other QPX TOPP tests these only assert that the files are produced - there is no QPX Parquet
+# reader in the tree, so the per-PSM run_file_name values are asserted in QPXFile_test instead.
+# Clear the output directory first. ctest never cleans tmp_path, so without this a
+# producer that crashed - or that legitimately stopped writing a file - would leave the
+# previous run's output for the assertions below to read, and they would pass on it.
+add_test(NAME "TOPP_ProteinQuantifier_18_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir)
+add_test("TOPP_ProteinQuantifier_18_qpx" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv -out_qpx ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir -top:N 0 -top:aggregate sum)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx_clean")
+add_test("TOPP_ProteinQuantifier_18_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.psm.parquet -schema psm -min_rows 4)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+add_test("TOPP_ProteinQuantifier_18_qpx_feature_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.feature.parquet -schema feature -min_rows 9)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+add_test("TOPP_ProteinQuantifier_18_qpx_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.pg.parquet -schema pg -min_rows 3)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+
+# Clear the output directory first. ctest never cleans tmp_path, so without this a
+# producer that crashed - or that legitimately stopped writing a file - would leave the
+# previous run's output for the assertions below to read, and they would pass on it.
+add_test(NAME "TOPP_ProteinQuantifier_19_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir)
+add_test("TOPP_ProteinQuantifier_19_qpx" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp -out_qpx ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir -top:include_all)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx_clean")
+add_test("TOPP_ProteinQuantifier_19_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.psm.parquet -schema psm -min_rows 2)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+add_test("TOPP_ProteinQuantifier_19_qpx_feature_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.feature.parquet -schema feature -min_rows 2)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_feature_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+add_test("TOPP_ProteinQuantifier_19_qpx_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet -schema pg -min_rows 48)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+# NOTE: numbering continues at 23 - 18 and 19 are already taken by the "_qpx" tests above,
+# which write ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv and
+# ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp. ctest runs in parallel, so reusing a temp
+# path across two tests lets one clobber the other's output between producer and FuzzyDiff.
+
+# file+channel level output with peptidoform/charge structure. The input has a peptide
+# split over two peptidoforms and another split over two charge states, and a second file
+# that sees only a single peptide, so the detailed columns are sensitive to peptidoform
+# merging, to 'top:N' counting peptides rather than raw cells, and to an unquantifiable
+# cell being reported as absent instead of as an un-aggregated sum.
+add_test("TOPP_ProteinQuantifier_23" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_23_output.tmp -top:N 2 -top:aggregate mean)
+add_test("TOPP_ProteinQuantifier_23_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_23_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_23_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_23_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_23")
+
+# same input under iBAQ: the file+channel level values must be normalized by the number of
+# theoretically observable peptides, just like the sample-level ones
+add_test("TOPP_ProteinQuantifier_24" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_24_output.tmp -method iBAQ)
+add_test("TOPP_ProteinQuantifier_24_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_24_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_24_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_24_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_24")
+
+# Fractionated design (one sample spans two fraction files, two channels).
+# 25/26: with 'top:N 0' + 'sum' the file+channel cells decompose the sample level exactly
+#        (300 + 350 = 650 for ch1, 30 + 35 = 65 for ch2).
+add_test("TOPP_ProteinQuantifier_25" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_25_output.tmp -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_25_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_25_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_25_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_25_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_25")
+
+add_test("TOPP_ProteinQuantifier_26" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_26_output.tmp -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_26_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_26_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_26_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_26_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_26")
+
+# 27: same input at the default 'top:N 3'. The 'at least N peptides' requirement is enforced
+#     per file, so with no fraction holding 3 peptides the protein is quantified at the sample
+#     level while all of its file+channel cells are 0. This is intended (these are per-file
+#     values); before the aggregation fix the cells instead showed un-aggregated raw sums.
+add_test("TOPP_ProteinQuantifier_27" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_27_output.tmp)
+add_test("TOPP_ProteinQuantifier_27_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_27_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_27_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_27_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_27")
+
+# 28: detailed peptide output on the same fractionated design. Every fraction file must keep its
+#     own column pair (keying the header by fraction group alone collapsed them onto the last
+#     file), and every (file, channel) cell must be written - a peptide seen in only one of the
+#     two fractions must report 0.0 for the other, not skip the cells and shift the row.
+add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge -top:N 0 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
+
+# 29: 'fractions:aggregate best' on the same fractionated design, against _26, which is the same
+#     command line at the default 'sum'. AAAAAK (fraction 1 only) and CCCCCK (fraction 2 only) are
+#     unaffected; PEPTIDEK, seen in both at 100/10 and 50/5, has equal label prevalence in the two,
+#     so the higher total keeps fraction 1 and drops 50/5. The protein therefore falls from
+#     650.0/65.0 to 600.0/60.0, and the header records the setting that did it.
+add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -top:N 0 -top:aggregate sum -fractions:aggregate best)
+add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
+
+#------------------------------------------------------------------------------
+# QPX value references (#9864 Phase 0.1, phases 1-2)
+#
+# ParquetDiff -out_tsv writes the table as text sorted by primary key, and the reference is
+# that text. A committed .parquet could only ever be regenerated wholesale, which is the
+# operation that hides unrelated drift; a text reference is reviewable in a pull request and
+# patchable line by line. Compared with QPX_DIFF (relative tolerance only - see its
+# definition for why the shared absdiff would delete the q-value assertions).
+#
+# Row order is the comparator's own canonical key order, which length-prefixes each value -
+# so 'TMT126' and 'TMT131' (6 chars) both sort before 'TMT127C' (7), not in channel order.
+# It looks unsorted and is not: the encoding is deterministic and byte-comparable, which is
+# what a reference needs. Reusing that encoding is deliberate, so the dump cannot disagree
+# with the comparison about what a primary key is.
+#
+# Phase 1 value reference. This fixture reads a committed consensusXML, so there is no mzML
+# parsing, no feature finding, no alignment and no median normalization - the shortest float
+# path of any QPX producer, and the pg key is all-string. Its 48 rows are 4 fraction groups x
+# 6 TMT labels x 2 anchors with 12-entry grouped_runs lists: exactly the design melting,
+# fraction-group keying and label assignment that #9869/#9874/#9876 touched. It also VERIFIES
+# rather than assumes #9876's claim that nothing changes at the default 'fractions:aggregate'.
+add_test("TOPP_ProteinQuantifier_19_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+add_test("TOPP_ProteinQuantifier_19_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_19_qpx_pg.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_out" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx_pg_dump")
+#
+# Same, on the label-free merged-identification-run input (3 rows).
+add_test("TOPP_ProteinQuantifier_18_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_dir/quantms.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx")
+add_test("TOPP_ProteinQuantifier_18_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_18_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_18_qpx_pg.tsv)
+set_tests_properties("TOPP_ProteinQuantifier_18_qpx_pg_out" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_18_qpx_pg_dump")
+#
+# Phase 2. Adds mzML reporter extraction on top of Phase 1's float path, so more exposure, but
+# the pg key is still all-string. 20 rows over 10 TMT channels.
+add_test("TOPP_IsobaricWorkflow_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test("TOPP_IsobaricWorkflow_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_qpx_pg.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg_out" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx_pg_dump")
+#
+# The psm key is string+int, still float-free. The FEATURE view is deliberately NOT pinned yet:
+# its key contains a float32 'rt' matched with zero tolerance, so it is the one view where a
+# one-ULP cross-platform drift does not degrade gracefully.
+add_test("TOPP_IsobaricWorkflow_qpx_psm_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.psm.parquet -out_tsv ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_psm.tmp.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_psm_dump" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+add_test("TOPP_IsobaricWorkflow_qpx_psm_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_psm.tmp.tsv -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_qpx_psm.tsv)
+set_tests_properties("TOPP_IsobaricWorkflow_qpx_psm_out" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx_psm_dump")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out ${TESTS_TEMP_DIR}/PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
@@ -3305,24 +3712,52 @@ add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
 
-# Test 3b: QPX directory output (smoke test — check files exist)
+# Test 3b: QPX directory output.
+#
+# No pg file is expected here, and the absence is the assertion. pg rows come only from
+# getIndistinguishableProteins(), and ProSE infers proteins in just two places: single-file
+# finalization, which needs 'FDR:protein' > 0 AND decoys, and the merged path, which needs
+# '-out_merged' with more than one input. ProSE_1.ini sets 'decoys=ignore' and leaves
+# 'FDR:protein' at 0, and a single '-in' is passed, so neither gate opens and this run infers no
+# groups at all. ProSE therefore omits both pg files rather than writing a schema-valid table that
+# says "no protein groups" - which a consumer cannot tell apart from "inference ran and found
+# none".
+#
+# The absence checks are sha256sum + WILL_FAIL: sha256sum errors on a missing file, so a failing
+# hash is exactly "this file is not there". They would go red if ProSE started writing empty pg
+# files again, and equally if it started inferring groups here - either is a change worth noticing.
+# Clear the output directory first. ctest never cleans tmp_path, so without this a
+# producer that crashed - or that legitimately stopped writing a file - would leave the
+# previous run's output for the assertions below to read, and they would pass on it.
+add_test(NAME "TOPP_ProSE_3_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir)
 add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test(NAME "TOPP_ProSE_3_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx_clean")
+add_test("TOPP_ProSE_3_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
-add_test(NAME "TOPP_ProSE_3_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+add_test(NAME "TOPP_ProSE_3_qpx_pg_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
   ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
-set_tests_properties("TOPP_ProSE_3_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
-add_test(NAME "TOPP_ProSE_3_qpx_merged_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_pg_absent" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx" WILL_FAIL 1)
+add_test("TOPP_ProSE_3_qpx_merged_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet -schema psm -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_merged_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
-add_test(NAME "TOPP_ProSE_3_qpx_merged_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+add_test(NAME "TOPP_ProSE_3_qpx_merged_pg_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
   ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.pg.parquet)
-set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_absent" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx" WILL_FAIL 1)
+
+# Merging a single run must be the identity. The two psm checks above cover what are in fact
+# byte-identical tables, so assert that relationship rather than leaving it an unstated
+# coincidence. Produced-vs-produced, so it needs no reference file and cannot churn when the
+# numbers legitimately change.
+add_test("TOPP_ProSE_3_qpx_merged_identity" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet
+  -in2 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet
+  -min_rows 3)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_identity" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -3490,7 +3925,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:enzyme Trypsin/P
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
-    -Search:decoys auto
+    -Search:decoys
     -threads 4)
 
   add_test("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
@@ -3735,6 +4170,11 @@ add_test("TOPP_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 add_test("TOPP_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+# ProteomicsLFQ rejects an invocation without outputs; existing functional runs below exercise
+# mzTab plus alternate-only consensusXML and QPX output paths.
+add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
+set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
+
 # ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
 add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
@@ -3759,7 +4199,6 @@ add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_subset.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_subset.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -3770,10 +4209,12 @@ add_test("TOPP_ProteomicsLFQ_1_subset_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 add_test("TOPP_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
-add_test("TOPP_ProteomicsLFQ_1_subset_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 
 # QPX Parquet export test (reuses subset test input data)
+  # Clear the output directory first. ctest never cleans tmp_path, so without this a
+  # producer that crashed - or that legitimately stopped writing a file - would leave the
+  # previous run's output for the assertions below to read, and they would pass on it.
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_qpx_dir)
   add_test("TOPP_ProteomicsLFQ_qpx" ${TOPP_BIN_PATH}/ProteomicsLFQ
            -in
            ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -3800,23 +4241,145 @@ set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOP
            -proteinFDR 0.3
            -test
            )
-  # Verify all three QPX files were created (sha256sum fails if file is missing)
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_clean")
+  # Each of the three QPX files is validated against the built-in schema for its view and must
+  # meet a row-count floor. ParquetDiff compares schema and values, not file metadata, so the
+  # per-run uuid/creation_date that made these files non-reproducible byte-wise do not matter.
+  #
+  # Unlike the ProteinQuantifier/IsobaricWorkflow floors, these sit WELL BELOW the counts
+  # actually produced (60/104/35 here). ProteomicsLFQ finds features in mzML rather than
+  # reading a committed consensusXML, and feature counts legitimately differ a little between
+  # compilers and architectures - CI covers five. A floor tight enough to pin the count would
+  # report that as a regression. These floors are therefore set at roughly three quarters of
+  # the observed count. The floor's job is to catch collapse, which is what an existence check
+  # could not do at all; pinning the count is the job of a value reference, deliberately a
+  # later phase.
+  add_test("TOPP_ProteomicsLFQ_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 45)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet)
+  add_test("TOPP_ProteomicsLFQ_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet -schema psm -min_rows 80)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
-  add_test(NAME "TOPP_ProteomicsLFQ_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet)
+  add_test("TOPP_ProteomicsLFQ_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 28)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
-# Test ProteomicsLFQ bypass with -in_feat (Multi-file)
-add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
+# Requesting an MSstats file must not change any other output.
+# It used to: a median scaling ran over the consensus features unless -out_msstats
+# was given, so the very same input written to the same -out_qpx directory held normalized or raw
+# intensities depending on whether an unrelated output file had been asked for -- and neither the
+# Parquet nor the mzTab recorded which. On this design the two differed by a median factor of 5.3
+# and a maximum of 12.0. ProteomicsLFQ no longer normalizes at all, and this test is what stops a
+# flag from quietly acquiring the second meaning "and rescale everything" again.
+# Same invocation as TOPP_ProteomicsLFQ_qpx above, plus the exporter.
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_flags_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir)
+  add_test("TOPP_ProteomicsLFQ_qpx_flags" ${TOPP_BIN_PATH}/ProteomicsLFQ
+           -in
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+           -ids
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+           -design
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+           -Alignment:align_algorithm:max_rt_shift 0
+           -fasta
+           ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+           -targeted_only true
+           -mass_recalibration false
+           -out ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab
+           -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir
+           -out_msstats ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.csv
+           -threads 1
+           -proteinFDR 0.3
+           -test
+           )
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_flags_clean")
+  # These are independent ProteomicsLFQ executions, which CTest may run concurrently. MSVC shows
+  # low-order integration drift between them (1.4e-4 relative on this fixture), so bit-exactness is
+  # not an honest contract. A 1e-3 relative tolerance still sits orders of magnitude below the
+  # accidental median rescaling this test guards against (factors of 5.3 to 12), while absdiff 0
+  # keeps a zero-to-nonzero change observable.
+  add_test("TOPP_ProteomicsLFQ_qpx_flags_feature" ${TOPP_BIN_PATH}/ParquetDiff
+           -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.feature.parquet
+           -ratio 1.001 -absdiff 0)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_feature" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
+  add_test("TOPP_ProteomicsLFQ_qpx_flags_pg" ${TOPP_BIN_PATH}/ParquetDiff
+           -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags_dir/quantms.pg.parquet
+           -ratio 1.001 -absdiff 0)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
+  # mzTab is the other value-compared surface, and unlike the Parquet views it has a reference here.
+  add_test("TOPP_ProteomicsLFQ_qpx_flags_mztab" ${DIFF}
+           -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value"
+           -in1 ${TESTS_TEMP_DIR}/BSA_qpx.tmp.mzTab
+           -in2 ${TESTS_TEMP_DIR}/BSA_qpx_flags.tmp.mzTab)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_flags_mztab" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx;TOPP_ProteomicsLFQ_qpx_flags")
 
-add_test("TOPP_ProteomicsLFQ_in_feat_out" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_multi_out.mzTab)
-set_tests_properties("TOPP_ProteomicsLFQ_in_feat_out" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat")
-
-# Mismatch between number of mzML and featureXML inputs must fail (1 mzML, 2 featureXMLs)
-add_test("TOPP_ProteomicsLFQ_in_feat_mismatch" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_mismatch.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
-set_tests_properties("TOPP_ProteomicsLFQ_in_feat_mismatch" PROPERTIES WILL_FAIL 1)
+# QPX-only Parquet export from the SEEDED configuration (same setup as TOPP_ProteomicsLFQ_3).
+# The test above runs -targeted_only true, whose consensus features are all identified: 0 of its 60
+# feature rows are unmapped. Seeding makes unmapped features the majority -- 210 of 298 rows here --
+# and those carry an empty peptidoform, so they lean on the rest of the QPX feature primary key to
+# stay distinct. No -out_qpx test covered that shape, which is why the key defect reached develop.
+# What this guards is that the shape reaches the exporter and is accepted end to end; the specific
+# float32-rt collision is reproduced directly in ConsensusMapArrowExport_test, since at this
+# fixture's size the pre-fix key happens not to collide. Kept as a separate run rather than folded
+# into TOPP_ProteomicsLFQ_3 so no reference file is touched.
+  # Clear the output directory first. ctest never cleans tmp_path, so without this a
+  # producer that crashed - or that legitimately stopped writing a file - would leave the
+  # previous run's output for the assertions below to read, and they would pass on it.
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_seeds_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir)
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
+           -in
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+           -ids
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+           -design
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+           -Alignment:align_algorithm:max_rt_shift 0
+           -Linking:min_nr_diffs_per_bin 10
+           -fasta
+           ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+           -targeted_only false
+           -mass_recalibration false
+           -PeptideQuantification:seed_apex_rt_tolerance 0
+           -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir
+           -threads 1
+           -proteinFDR 0.3
+           -test
+           -debug 0
+           )
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds_clean")
+  # All three files must exist AND be non-degenerate: a refused table aborts the tool, and the
+  # export is transactional, so a failure leaves the directory empty rather than partially
+  # written -- ParquetDiff then fails to open the file. The row-count floor additionally catches
+  # a table that was written but is empty, which existence alone cannot.
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds_features" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.feature.parquet -schema feature -min_rows 230)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds_psms" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.psm.parquet -schema psm -min_rows 90)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
+  add_test("TOPP_ProteomicsLFQ_qpx_seeds_pg" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_seeds_dir/quantms.pg.parquet -schema pg -min_rows 25)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_seeds_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx_seeds")
 
 add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
@@ -3843,7 +4406,6 @@ add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -3854,8 +4416,49 @@ add_test("TOPP_ProteomicsLFQ_1_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 add_test("TOPP_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
-add_test("TOPP_ProteomicsLFQ_1_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_1_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
+
+# Identical to TOPP_ProteomicsLFQ_1, except that BSA1_F1's identifications carry one
+# PeptideIdentification twice (same spectrum, peptidoform and charge; the copy scored worse).
+# ProteomicsLFQ reduces those to one at load, so every output must come out identical to the
+# un-duplicated run above -- the SAME reference files are reused deliberately, since "the
+# duplicate changed no number" is exactly what needs asserting.
+add_test("TOPP_ProteomicsLFQ_duplicate_psm" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_TOPP}/ProteomicsLFQ_duplicate_psm_1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv
+         -out ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+# The reduction must actually have fired -- an identical output could also mean it never ran.
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm" PROPERTIES PASS_REGULAR_EXPRESSION "repeat a .spectrum, peptidoform, charge. already claimed")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.consensusXML )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_2" ${DIFF} -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
+add_test("TOPP_ProteomicsLFQ_duplicate_psm_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_dup.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
+set_tests_properties("TOPP_ProteomicsLFQ_duplicate_psm_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_duplicate_psm")
 
 # regression test (decoys in ID files)
 add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -3883,7 +4486,6 @@ add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -3894,8 +4496,6 @@ add_test("TOPP_ProteomicsLFQ_2_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_2_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
 add_test("TOPP_ProteomicsLFQ_2_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
-add_test("TOPP_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusTransfer.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_2")
 
 add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
@@ -3924,7 +4524,6 @@ add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -3936,8 +4535,6 @@ add_test("TOPP_ProteomicsLFQ_3_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_3_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
 add_test("TOPP_ProteomicsLFQ_3_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_3_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
-add_test("TOPP_ProteomicsLFQ_3_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_3_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3")
 
 # spectral counting
 add_test("TOPP_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -3998,7 +4595,6 @@ add_test("TOPP_ProteomicsLFQ_5" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_decoys.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_decoys.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_decoys.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_decoys.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4009,8 +4605,6 @@ add_test("TOPP_ProteomicsLFQ_5_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_5_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
 add_test("TOPP_ProteomicsLFQ_5_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_decoys.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_5_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
-add_test("TOPP_ProteomicsLFQ_5_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_decoys.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_5_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_5")
 
 # spectral counting (regression test with target + decoys)
 add_test("TOPP_ProteomicsLFQ_6" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4061,7 +4655,6 @@ add_test("TOPP_ProteomicsLFQ_7" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub.tmp.mztab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4072,8 +4665,6 @@ add_test("TOPP_ProteomicsLFQ_7_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_7_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
 add_test("TOPP_ProteomicsLFQ_7_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_7_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
-add_test("TOPP_ProteomicsLFQ_7_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_7_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_7")
 
 # test empty id
 add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4093,7 +4684,6 @@ add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4104,8 +4694,6 @@ add_test("TOPP_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 add_test("TOPP_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
-add_test("TOPP_ProteomicsLFQ_8_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_8_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 
 # test single file, no experimental design (regression)
 add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4122,7 +4710,6 @@ add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4133,8 +4720,6 @@ add_test("TOPP_ProteomicsLFQ_9_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 add_test("TOPP_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
-add_test("TOPP_ProteomicsLFQ_9_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 
 # Variant of TOPP_ProteomicsLFQ_3 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
 add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4164,7 +4749,6 @@ add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv
          -threads 1
          -proteinFDR 0.3
          -test
@@ -4176,8 +4760,6 @@ add_test("TOPP_ProteomicsLFQ_3_seedRT_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
 add_test("TOPP_ProteomicsLFQ_3_seedRT_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
-add_test("TOPP_ProteomicsLFQ_3_seedRT_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
 
 # Variant of TOPP_ProteomicsLFQ_9 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
 add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4194,7 +4776,6 @@ add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab
-         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4205,8 +4786,6 @@ add_test("TOPP_ProteomicsLFQ_9_seedRT_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 add_test("TOPP_ProteomicsLFQ_9_seedRT_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
-add_test("TOPP_ProteomicsLFQ_9_seedRT_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.tsv )
-set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 
 # biosaur2 seeding algorithm smoke test (mzML input, verifies pipeline completes)
 add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
@@ -4224,7 +4803,6 @@ add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -mass_recalibration false
          -Seeding:algorithm biosaur2
          -out_cxml ${TESTS_TEMP_DIR}/BSA_biosaur2_seeds.tmp.consensusXML
-         -out ${TESTS_TEMP_DIR}/BSA_biosaur2_seeds.tmp.mzTab
          -threads 1
          -proteinFDR 0.8
          -test
@@ -4307,17 +4885,13 @@ set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalcul
 
 #------------------------------------------------------------------------------
 # PSMFeatureExtractor
-add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:" "MS-GF+:" "db=" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
+add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
+add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
 set_tests_properties("TOPP_PSMFeatureExtractor_1_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_1")
 
-add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid)
+add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type mzid -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid)
 add_test("TOPP_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "creationDate=" "SearchDatabase" "MSGFPlusAdapter:1:" "MS-GF+:" "db=" "activityDate=" "version=" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_2_out.tmp.mzid -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
 set_tests_properties("TOPP_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_2")
-
-add_test("TOPP_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_3_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
-set_tests_properties("TOPP_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_3")
 
 
 #------------------------------------------------------------------------------

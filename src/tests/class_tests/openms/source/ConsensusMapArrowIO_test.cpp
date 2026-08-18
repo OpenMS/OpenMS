@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 #include <OpenMS/config.h>
@@ -956,6 +957,37 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   TEST_EQUAL(out_dl.size(), 2)
   TEST_REAL_SIMILAR(out_dl[0], 1.5)
   TEST_REAL_SIMILAR(out_dl[1], -0.5)
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  ConsensusMap cmap;
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setIntensity(1000.0f);
+  cmap.push_back(cf);
+
+  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_cmio";
+  TEST_TRUE(File::makeDir(dir))
+
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(cmap, dir))
+  TEST_TRUE(File::exists(dir + "/consensus_features.parquet"))
+  File::remove(dir + "/consensus_features.parquet");
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform. This is the FIRST file of the collection,
+  // so nothing else has been written yet - collection-level atomicity is a separate concern.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  TEST_FALSE(ConsensusMapArrowIO::exportToParquet(cmap, dir, no_row_group))
+  TEST_FALSE(File::exists(dir + "/consensus_features.parquet"))
+
+  File::removeDirRecursively(dir);
 }
 END_SECTION
 

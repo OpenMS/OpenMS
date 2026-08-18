@@ -698,7 +698,7 @@ protected:
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
-                         ". Use TOPP_PSMFeatureExtractor to merge results from different search engines if desired. Aborting!");
+                         ". Use TOPP_ConsensusID to combine results from different search engines if desired. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         

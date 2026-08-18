@@ -397,7 +397,14 @@ namespace OpenMS
           valid = false; // some proteins removed from group
         }
         filtered.probability = group.probability;
-        filtered_groups.push_back(filtered);
+        // Carry over the quantities attached by PeptideAndProteinQuant. They are indexed by
+        // (fraction group, label) assay resp. by (file, channel), not by group member, so removing a
+        // protein from the group does not invalidate them. Dropping them here silently discarded
+        // protein abundances in every tool that filters after quantification.
+        filtered.setFloatDataArrays(group.getFloatDataArrays());
+        filtered.setStringDataArrays(group.getStringDataArrays());
+        filtered.setIntegerDataArrays(group.getIntegerDataArrays());
+        filtered_groups.push_back(std::move(filtered));
       }
     }
     groups.swap(filtered_groups);

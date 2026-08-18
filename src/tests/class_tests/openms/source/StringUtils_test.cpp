@@ -12,6 +12,12 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <cmath>
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 using namespace StringUtils;
@@ -517,6 +523,49 @@ END_SECTION
 START_SECTION((static std::string& removeWhitespaces(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] non-finite values round-trip through toStr/toDouble/toFloat)
+{
+  // std::to_chars writes "inf", which has neither '.' nor 'e', so the "keep at least one digit after
+  // the decimal point" rule used to append ".0" and emit "inf.0" - a token the parsers reject. Any
+  // file carrying an infinity then failed to load in full.
+  const double dinf = std::numeric_limits<double>::infinity();
+  const float finf = std::numeric_limits<float>::infinity();
+
+  TEST_EQUAL(StringUtils::toStr(dinf), "inf")
+  TEST_EQUAL(StringUtils::toStr(-dinf), "-inf")
+  TEST_EQUAL(StringUtils::toStr(finf), "inf")
+  TEST_EQUAL(StringUtils::toStr(-finf), "-inf")
+  TEST_EQUAL(StringUtils::toStr(std::numeric_limits<double>::quiet_NaN()), "NaN")
+
+  // and back again
+  TEST_EQUAL(std::isinf(StringUtils::toDouble(StringUtils::toStr(dinf))), true)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(dinf)) > 0, true)
+  TEST_EQUAL(std::isinf(StringUtils::toDouble(StringUtils::toStr(-dinf))), true)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(-dinf)) < 0, true)
+  TEST_EQUAL(std::isinf(StringUtils::toFloat(StringUtils::toStr(finf))), true)
+  TEST_EQUAL(StringUtils::toFloat(StringUtils::toStr(-finf)) < 0, true)
+  TEST_EQUAL(std::isnan(StringUtils::toDouble(StringUtils::toStr(std::numeric_limits<double>::quiet_NaN()))), true)
+
+  // finite values are untouched by the added branch
+  TEST_EQUAL(StringUtils::toStr(5.0), "5.0")
+  TEST_EQUAL(StringUtils::toStr(-0.5), "-0.5")
+  TEST_EQUAL(StringUtils::toStr(0.0), "0.0")
+
+  // a list of them survives the DataValue encoding used by the XML writers
+  const DoubleList mixed {1.5, dinf, -dinf, std::numeric_limits<double>::quiet_NaN(), 2.5};
+  const StringList parts = ListUtils::create<std::string>(
+    StringUtils::substr(DataValue(mixed).toString(), 1, DataValue(mixed).toString().size() - 2), ',');
+  TEST_EQUAL(parts.size(), 5)
+  const DoubleList back = ListUtils::create<double>(parts);
+  TEST_REAL_SIMILAR(back[0], 1.5)
+  TEST_EQUAL(std::isinf(back[1]) && back[1] > 0, true)
+  TEST_EQUAL(std::isinf(back[2]) && back[2] < 0, true)
+  TEST_EQUAL(std::isnan(back[3]), true)
+  TEST_REAL_SIMILAR(back[4], 2.5)
 }
 END_SECTION
 
