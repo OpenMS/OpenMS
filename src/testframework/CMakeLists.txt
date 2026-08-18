@@ -55,10 +55,17 @@ target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 openms_add_library_compiler_flags(OpenMSTestFramework)
 
 #------------------------------------------------------------------------------
-# install the archive and its headers under a dedicated component; the headers
-# keep their historic install location <prefix>/include/OpenMS/CONCEPT/, so
-# existing includes of <OpenMS/CONCEPT/ClassTest.h> keep working against a
-# (fully) installed OpenMS.
+# The framework is an in-repo development tool, not part of the shipped
+# product: the archive is EXCLUDE_FROM_ALL, so default installs, the
+# monolithic installers (NSIS/zip) and 'make install' skip it; it remains
+# installable explicitly via `cmake --install . --component OpenMSTestFramework`.
+# (package_mac_productbuild.cmake additionally drops the component from its
+# per-component package list.)
+#
+# The headers keep their historic install location
+# <prefix>/include/OpenMS/CONCEPT/ (they shipped inside the OpenMS header set
+# before the framework was split out), so existing includes of
+# <OpenMS/CONCEPT/ClassTest.h> still resolve against an installed OpenMS.
 #
 # The target is deliberately NOT part of the exported OpenMS package
 # (OpenMSTargets.cmake) and NOT in the 'library' component: minimal install
@@ -66,9 +73,11 @@ openms_add_library_compiler_flags(OpenMSTestFramework)
 # and install component-wise -- an exported test-framework target would make
 # their installed OpenMSTargets.cmake reference an archive that was never
 # built/installed and break every downstream find_package(OpenMS).
-# In-tree consumers (class tests, FuzzyDiff) link the target directly.
+# All consumers (class tests, FuzzyDiff, tests of future split-off libraries)
+# are in-tree and link the target directly.
 install(TARGETS OpenMSTestFramework
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT OpenMSTestFramework)
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT OpenMSTestFramework
+        EXCLUDE_FROM_ALL)
 install_headers("${OpenMSTestFramework_sources_h}" OpenMSTestFramework)
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
