@@ -138,14 +138,17 @@ START_SECTION((std::map<unsigned int, std::vector<std::string> > getFractionToMS
 }
 END_SECTION
 
-START_SECTION(( std::map<std::vector<String>, std::set<unsigned> > getConditionToSampleMapping() const ))
+START_SECTION(( map<vector<String>, set<unsigned> > getConditionToSampleMapping() const ))
 {
-  ExperimentalDesign ed;
+  ExperimentalDesign::SampleSection ss;
   
   // add 3 samples without factors to simulate a factor-less design
-  ed.addSample("sample_1");
-  ed.addSample("sample_2");
-  ed.addSample("sample_3");
+  ss.addSample("sample_1");
+  ss.addSample("sample_2");
+  ss.addSample("sample_3");
+
+  ExperimentalDesign ed;
+  ed.setSampleSection(ss);
   
   auto map_a = ed.getSampleToConditionMapping();
   auto map_b = ed.getConditionToSampleMapping();
@@ -154,19 +157,22 @@ START_SECTION(( std::map<std::vector<String>, std::set<unsigned> > getConditionT
   TEST_EQUAL(map_a.size(), 3);
   TEST_EQUAL(map_b.size(), 3);
 
-  // stronger assertions: Verify that condition IDs are actually distinct
-  std::set<unsigned> condition_ids;
-  for (const auto& [sample, condition] : map_a)
+  // Stronger assertion: Cross-check each map_b entry's ordinal position 
+  // against the map_a condition id of its sample.
+  unsigned ordinal = 0;
+  for (const auto& [condition_vec, sample_indices] : map_b)
   {
-    condition_ids.insert(condition);
-  }
-  TEST_EQUAL(condition_ids.size(), 3);
-
-  // verify that each map_b entry contains exactly one sample row
-  for (const auto& [condition, rows] : map_b)
-  {
-    TEST_EQUAL(condition.size(), 1);
-    TEST_EQUAL(rows.size(), 1);
+    // The key should be a single-element vector containing the sample name
+    TEST_EQUAL(condition_vec.size(), 1);
+    // The value should be a set containing exactly one sample row index
+    TEST_EQUAL(sample_indices.size(), 1);
+    
+    String sample_name = condition_vec[0];
+    
+    // The ordinal position in map_b must perfectly match the condition ID in map_a
+    TEST_EQUAL(map_a[sample_name], ordinal);
+    
+    ++ordinal;
   }
 }
 END_SECTION

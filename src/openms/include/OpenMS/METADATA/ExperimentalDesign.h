@@ -299,14 +299,17 @@ namespace OpenMS
   agree on all remaining factors form one condition. For a design whose sample section has
   factor columns, this is what getConditionToSampleMapping(), getSampleToConditionMapping(),
   getPathLabelToConditionMapping() and getConditionToPathLabelVector() return. For a factor-less
-  section -- as built by fromConsensusMap() and fromIdentifications() -- they currently disagree:
-  getSampleToConditionMapping() gives every sample its own condition, while the other three
-  collapse all samples into one. @ref TOPP_Epifany uses getConditionToPathLabelVector() to merge
-  ID runs per condition when a design is supplied; @ref TOPP_ProteomicsLFQ does not -- it merges
-  every ID run study-wide regardless of condition.
+  section -- as built by fromConsensusMap() and fromIdentifications() -- these functions now
+  consistently give every sample its own distinct condition. @ref TOPP_Epifany uses
+  getConditionToPathLabelVector() to merge ID runs per condition when a design is supplied;
+  @ref TOPP_ProteomicsLFQ does not -- it merges every ID run study-wide regardless of condition.
 
-  Condition numbers are the lexicographic rank of the factor-value tuple, so condition 0 is
-  whichever value sorts first, not a reference level.
+  Condition numbers are the lexicographic rank of the factor-value tuple (or the lexicographic
+  rank of the sample name in a factor-less design), so condition 0 is whichever value sorts
+  first, not a reference level.
+
+  @note In a factor-less design, functions returning condition keys return a one-element vector
+        containing the sample name, rather than a true factor value.
 
   @warning The replicate rule matches on the column NAME only. @c MSstats_BioReplicate and
            @c Technical_Replicate are excluded from the condition automatically; @c Donor or
@@ -618,9 +621,9 @@ namespace OpenMS
       column called @c MSstats_BioReplicate is excluded, one called @c Donor is not and would
       split the replicates it names into separate conditions.
 
-      @note If no factors are provided in the experimental design, each sample forms 
+      @note If no factors are provided in the experimental design, each sample forms
       its own unique condition (N samples = N distinct conditions).
-      
+
       @return condition (the retained factor values, in the alphabetical order of their column
               names) to the zero-based sample row indices that share it
     */

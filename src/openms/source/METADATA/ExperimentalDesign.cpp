@@ -436,17 +436,7 @@ namespace OpenMS
     map<vector<std::string>, set<unsigned>> ExperimentalDesign::getConditionToSampleMapping() const
     {
       const auto& facset = sample_section_.getFactors();
-      // assuming that all samples are unique if no factors are given
-      if (facset.empty())
-      {
-        std::map<std::vector<std::string>, std::set<unsigned>> res;
-
-        for (const auto& name : sample_section_.getSamples())
-        {
-          res[{name}].insert(sample_section_.getSampleRow(name));
-        }
-        return res;
-      }
+      
       set<std::string> nonRepFacs{};
 
       for (const std::string& fac : facset)
@@ -455,6 +445,18 @@ namespace OpenMS
         {
           nonRepFacs.insert(fac);
         }
+      }
+
+      // assuming that all samples are unique if no factors are given
+      if (nonRepFacs.empty())
+      {
+        std::map<std::vector<std::string>, std::set<unsigned>> res;
+
+        for (const auto& name : sample_section_.getSamples())
+        {
+          res[{name}].insert(sample_section_.getSampleRow(name));
+        }
+        return res;
       }
 
       map<vector<std::string>, set<unsigned> > rowContent2RowIdx;
@@ -477,7 +479,19 @@ namespace OpenMS
       map<std::string, unsigned> res;
       // could happen when the Experimental Design was loaded from an idXML or consensusXML
       // without additional Experimental Design file
-      if (sample_section_.getFactors().empty())
+
+      const auto& facset = sample_section_.getFactors();
+      set<std::string> nonRepFacs{};
+
+      for (const std::string& fac : facset)
+      {
+        if (fac != "Sample" && !StringUtils::hasSubstring(fac, "replicate") && !StringUtils::hasSubstring(fac, "Replicate"))
+        {
+          nonRepFacs.insert(fac);
+        }
+      }
+
+      if (nonRepFacs.empty())
       {
         // no information about the origin of the samples -> assume uniqueness of all.
         // Key by sample NAME, like getSampleToPrefractionationMapping(): the previous version
