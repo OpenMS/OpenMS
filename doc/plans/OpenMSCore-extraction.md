@@ -484,10 +484,13 @@ framework split-proof — without touching a single existing test.
 
 **Implementer handoff:** the file-by-file specification for this part, with copy sources,
 verification steps, and acceptance criteria, is
-[`testframework-std-only-implementation.md`](testframework-std-only-implementation.md). Two
-details discovered while writing it revise §3.4 above: the `isRealType` predicate must be part of
-the main PR (the header cannot go std-only while it still includes `DataValue.h`), and the
-`what()`-completion PR is dropped — 29 test files compare `what()` verbatim in
-`TEST_EXCEPTION_WITH_MESSAGE`, so exception naming is injected via a registered translator (the
-exact Catch2 `CATCH_TRANSLATE_EXCEPTION` design) from the same support TU that seeds the ID
-generator.
+[`testframework-std-only-implementation.md`](testframework-std-only-implementation.md) — based on
+`develop`, so it does not require #9919 to merge first (#9919's branch serves as a donor for
+three verified hunks). Details discovered while writing it revise §3.4 above: the `isRealType`
+predicate must be part of the main PR (the header cannot go std-only while it still includes
+`DataValue.h`); the `what()`-completion PR is dropped — 29 test files compare `what()` verbatim
+in `TEST_EXCEPTION_WITH_MESSAGE`, so exception naming is injected via a registered translator
+(the exact Catch2 `CATCH_TRANSLATE_EXCEPTION` design) from the same support TU that seeds the ID
+generator; and sequencing std-only *before* extraction makes #9919's `needed` link feature,
+`LINK_LIBRARY_OVERRIDE`, CMake 3.24 bump, and OpenMS→framework usage-requirement propagation all
+unnecessary.
