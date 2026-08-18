@@ -2,32 +2,27 @@
 
     @page install_vcpkg Managing dependencies with vcpkg
     
-    %OpenMS can obtains its third-party dependencies (Boost,Eigen, Apache Arrow, etc.)
-    through [vcpkg][https://learn.microsoft.com/en-us/vcpkg/get_started/overview], 
-    Microsoft's cross-platform C/C++ platform, instead of the system package manager or 
-    the `contrib` package. vcpkg builds every dependency from source in a fixed, 
-    reproducible configuration, which make it easiest way to get a consistent set of 
-    libraries across Linux, macOS and Windows.
+    %OpenMS can obtain its third-party dependencies (Boost,Eigen, Apache Arrow, etc.)
+    through [vcpkg](https://learn.microsoft.com/en-us/vcpkg/get_started/overview), 
+    Microsoft's cross-platform C/C++ package manager, instead of the system package manager or the `contrib` package. vcpkg builds vcpkg resolves the manifest and builds or restores packages as needed in a fixed, reproducible configuration, which make it easiest way to get a consistent set of libraries across Linux, macOS and Windows.
 
     The set of dependencies and their versions or features are declared in the manifest 
-    file [vcpkg.json][https://github.com/OpenMS/OpenMS/blob/develop/vcpkg.json] at the 
-    root of the repository, and a overlay settings are declared in [vcpkg-configuration.json][https://github.com/OpenMS/OpenMS/blob/develop/vcpkg-configuration.json]. 
-    For a general introduction to vcpkg and manifest mode, see the [vcpkg documentation][https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode].
+    file [vcpkg.json](https://github.com/OpenMS/OpenMS/blob/develop/vcpkg.json) at the 
+    root of the repository, and an overlay settings are declared in [vcpkg-configuration.json](https://github.com/OpenMS/OpenMS/blob/develop/vcpkg-configuration.json). 
+    For a general introduction to vcpkg and manifest mode, see the [vcpkg documentation](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode).
 
     @section install_vcpkg_overlay The overlay directory
 
     Most of the libraries %OpenMS depends are available, unmodified from the public 
     vcpkg directory. A few, however needs a patch, file changes or do not exist in 
-    the registry at all (for example the header-only `pylmcf`/`wnet`/`wnetalign` libraries
-    used for Wasserstein network alignment feature or the `openms-thermo-bridge` library 
-    used for native Thermo RAW file support). For these cases %OpenMS ships its own 
-    [overlay ports][https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays/ports] 
-    in the [vcpkg-overlays/][https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays] 
+    the registry at all (for example the header-only `pylmcf`/`wnet`/`wnetalign` libraries used for Wasserstein network alignment feature or the `openms-thermo-bridge` library used for native Thermo RAW file support). For these cases %OpenMS ships its own 
+    [overlay ports](https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays/ports) 
+    in the [vcpkg-overlays/](https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays) 
     directory: 
 
     - `vcpkg-overlays/ports` contain one subdirectory per port. A port here can either 
        replace a port of the same name from the public registry(e.g., to apply a patch 
-       or edit the exisitng port files) or provide an entirely a new port that is not 
+       or edit the existing port files) or provide an entirely a new port that is not 
        available upstream at all (e.g., `opentime`, `isospec`, `pylmcf`, etc.).
 
     - `vcpkg-overlays/triplets` contains custom triplets used to build these dependencies 
@@ -36,13 +31,13 @@
     These locations are wired up via the `overlay-ports` and `overlay-triplets` keys in 
     `vcpkg-configuration.json`, so vcpkg automatically picks them up whenever it resolves 
     a port name. If you need to add or edit the corresponding subdirectory under 
-    `vcpkg-overlays/ports`; see the vcpkg [overlay-ports][https://learn.microsoft.com/en-us/vcpkg/concepts/overlay-ports] 
-    and the [packaging details][https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-packaging?pivots=shell-powershell] 
+    `vcpkg-overlays/ports`; see the vcpkg [overlay-ports](https://learn.microsoft.com/en-us/vcpkg/concepts/overlay-ports)
+    and the [packaging details](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-packaging?pivots=shell-powershell)
     for details on writing a `overlay-port`.
 
     @section install_vcpkg_build Building OpenMS with vcpkg
 
-    1. vcpkg is included as a git module, so make it sure it is checkout out alongside
+    1. vcpkg is included as a git submodule, so make it sure it is checked out alongside
        the rest of source tree:
 
         \code
@@ -73,12 +68,11 @@
         ctest --preset linux-x64-release
         \endcode
 
-        The resulting build directort is `build/linux-x64-release` (each preset gets 
+        The resulting build directory is `build/linux-x64-release` (each preset gets 
         its own directory, so debug/release/relwithdebinfo builds don't clash). Substitute 
         the preset name for your platform and desired build type; run `cmake --list-presets` 
         to see all available presets, including the `*-ci` presets used by the CI pipeline, 
-        which aditionally enable most optional featured via `VCPKG_MANIFEST_FEATURES` (see 
-        below).
+        which additionally enable most optional features via `VCPKG_MANIFEST_FEATURES` (see below).
 
         The first configure of a given preset can take a while, since it
         builds all vcpkg dependencies for that triplet from source; subsequent
@@ -107,8 +101,8 @@
     show an example enabling several of these together:
 
     \code
-    -DVCPKG_MANIFEST_FEATURES="isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;
-    wnetalign;openms-thermo-bridge;opentims;onnxruntime"
+    -DVCPKG_MANIFEST_FEATURES="isospec;wnetalign;onnxruntime" \
+    -DWITH_ONNX=ON -DWITH_WNETALIGN=ON -DUSE_EXTERNAL_ISOSPEC=ON
     \endcode
     
     See @ref install_linux_cmake_flags for the full list of `WITH_*`/`USE_EXTERNAL_*`
