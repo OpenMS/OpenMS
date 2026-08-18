@@ -39,7 +39,7 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 foreach(_class_test ${visual_executables_list})
   # OpenMSTestSupport.cpp: see src/tests/class_tests/openms/source/OpenMSTestSupport.cpp
   add_executable(${_class_test} source/${_class_test}.cpp ${PROJECT_SOURCE_DIR}/../openms/source/OpenMSTestSupport.cpp)
-  target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES})
+  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_GUI_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 endforeach(_class_test)
@@ -74,7 +74,7 @@ if(HAS_XSERVER)
     # add headers
     target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt
-    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt6::Test)
+    target_link_libraries(${_gui_test} OpenMSTestFramework ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt6::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
   endforeach(_gui_test)

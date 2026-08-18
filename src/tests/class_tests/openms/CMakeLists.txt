@@ -42,7 +42,7 @@ foreach(_class_test ${TEST_executables})
   # naming) with the std-only test framework. Removing it makes ID-bearing
   # reference-file comparisons nondeterministic -- see the file's header comment.
   add_executable(${_class_test} source/${_class_test}.cpp source/OpenMSTestSupport.cpp)
-  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug

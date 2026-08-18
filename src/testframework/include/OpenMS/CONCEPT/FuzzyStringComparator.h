@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/OpenMSConfig.h> // OPENMS_DLLAPI; removed when the framework leaves libOpenMS
 
 #include <map>
 #include <sstream>
@@ -22,14 +21,14 @@ namespace OpenMS
   {
     namespace ClassTest
     {
-      void OPENMS_DLLAPI testStringSimilar(const char * file,
+      void testStringSimilar(const char * file,
                                            int line,
                                            const std::string & string_1,
                                            const char * string_1_stringified,
                                            const std::string & string_2,
                                            const char * string_2_stringified);
 
-      bool OPENMS_DLLAPI isFileSimilar(const std::string &,
+      bool isFileSimilar(const std::string &,
                                        const std::string &);
     }
   }
@@ -37,10 +36,10 @@ namespace OpenMS
   /**
     @brief Fuzzy comparison of strings, tolerates numeric differences.
   */
-  class OPENMS_DLLAPI FuzzyStringComparator
+  class FuzzyStringComparator
   {
 
-    friend void OPENMS_DLLAPI
+    friend void
     Internal::ClassTest::testStringSimilar(
       const char * file,
       int line,
@@ -49,7 +48,7 @@ namespace OpenMS
       const std::string & string_2,
       const char * string_2_stringified);
 
-    friend bool OPENMS_DLLAPI
+    friend bool
     Internal::ClassTest::isFileSimilar(const std::string &,
                                        const std::string &);
 

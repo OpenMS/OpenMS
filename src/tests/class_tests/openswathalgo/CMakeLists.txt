@@ -36,6 +36,9 @@ set(openswath_algo_tests
 # add targets for the executables
 foreach(i ${openswath_algo_tests})
   add_executable(${i} ${i}.cpp)
-  target_link_libraries(${i} OpenSwathAlgo OpenMS)
+  # The framework is standard-library-only, so these tests need nothing from
+  # libOpenMS at all -- which is the point: OpenSwathAlgo tests build and run
+  # without libOpenMS anywhere in their link closure.
+  target_link_libraries(${i} OpenSwathAlgo OpenMSTestFramework)
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
