@@ -379,6 +379,15 @@ namespace OpenMS
       /// Register an exception translator (idempotent; bounded, first-come first-served).
       void registerExceptionTranslator(ExceptionTranslator translator);
 
+      /// Whether TEST_PRECONDITION/POSTCONDITION_VIOLATED actually run their command.
+      /// Off by default; the test-support TU of the library under test enables it when
+      /// the library was built with its precondition checks active (OPENMS_ASSERTIONS),
+      /// so the expectation always matches the library's real behavior.
+      bool preconditionTestsEnabled();
+
+      /// See preconditionTestsEnabled().
+      void setPreconditionTestsEnabled(bool enabled);
+
       /// Describe the exception currently being handled: registered translators first,
       /// then std::exception's what(), then a generic fallback.
       std::string describeCaughtException();
@@ -843,35 +852,49 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
   This macro checks if a precondition violation is detected while executing the command,
   similar to <code>TEST_EXCEPTION(Exception::Precondition,command)</code>.
-  However the test is executed only when the #OPENMS_PRECONDITION macros are active,
-  i.e., when compiling without NDEBUG (Debug mode).  (See Macros.h)
+  However the test is executed only when the library's #OPENMS_PRECONDITION macros
+  are active; the test project registers that fact via setPreconditionTestsEnabled()
+  (see OpenMSTestSupport.cpp), keyed on the same OPENMS_ASSERTIONS the library
+  uses (see Macros.h).
 
  @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
-#ifndef NDEBUG
-#define TEST_PRECONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Precondition, command);
-#else
-#define TEST_PRECONDITION_VIOLATED(command) STATUS("TEST_PRECONDITION_VIOLATED(" # command ")  -  skipped");
-#endif
+#define TEST_PRECONDITION_VIOLATED(command)                                               \
+  {                                                                                       \
+    if (TEST::preconditionTestsEnabled())                                                 \
+    {                                                                                     \
+      TEST_EXCEPTION(Exception::Precondition, command);                                   \
+    }                                                                                     \
+    else                                                                                  \
+    {                                                                                     \
+      STATUS("TEST_PRECONDITION_VIOLATED(" # command ")  -  skipped");                    \
+    }                                                                                     \
+  }
 
 /** @brief Postcondition test macro
 
   This macro checks if a postcondition violation is detected while executing the command,
   similar to <code>TEST_EXCEPTION(Exception::Postcondition,command)</code>.
-  However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
-  i.e., when compiling without NDEBUG (Debug mode).  (See Macros.h)
+  However the test is executed only when the library's #OPENMS_POSTCONDITION macros
+  are active; see #TEST_PRECONDITION_VIOLATED for how that is determined.
 
  @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
-#ifndef NDEBUG
-#define TEST_POSTCONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Postcondition, command);
-#else
-#define TEST_POSTCONDITION_VIOLATED(command) STATUS("TEST_POSTCONDITION_VIOLATED(" # command ")  -  skipped");
-#endif
+#define TEST_POSTCONDITION_VIOLATED(command)                                               \
+  {                                                                                       \
+    if (TEST::preconditionTestsEnabled())                                                 \
+    {                                                                                     \
+      TEST_EXCEPTION(Exception::Postcondition, command);                                   \
+    }                                                                                     \
+    else                                                                                  \
+    {                                                                                     \
+      STATUS("TEST_POSTCONDITION_VIOLATED(" # command ")  -  skipped");                    \
+    }                                                                                     \
+  }
 
 
 /**	@brief Exception test macro (with test for exception message).

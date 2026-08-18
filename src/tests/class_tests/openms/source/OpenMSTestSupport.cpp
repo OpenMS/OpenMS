@@ -69,6 +69,14 @@ namespace
       // Fixed seed so unique ids stored in test output are reproducible.
       OpenMS::UniqueIdGenerator::setSeed(2453440375);
       OpenMS::Internal::ClassTest::registerExceptionTranslator(&describeOpenMSException);
+      // TEST_PRECONDITION/POSTCONDITION_VIOLATED must expect a throw exactly when the
+      // library's OPENMS_PRECONDITION checks are compiled in. OPENMS_ASSERTIONS comes
+      // from <OpenMS/config.h> (via the includes above), i.e. the same switch Macros.h
+      // keys the library's checks on -- so the two can never diverge, regardless of
+      // build type, per-project flag overrides, or multi-config generators.
+#ifdef OPENMS_ASSERTIONS
+      OpenMS::Internal::ClassTest::setPreconditionTestsEnabled(true);
+#endif
     }
   };
 

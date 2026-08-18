@@ -64,6 +64,21 @@ namespace OpenMS::Internal::ClassTest
         int translator_count = 0;
       }
 
+      namespace
+      {
+        bool precondition_tests_enabled = false;
+      }
+
+      bool preconditionTestsEnabled()
+      {
+        return precondition_tests_enabled;
+      }
+
+      void setPreconditionTestsEnabled(bool enabled)
+      {
+        precondition_tests_enabled = enabled;
+      }
+
       void registerExceptionTranslator(ExceptionTranslator translator)
       {
         if (translator == nullptr) return;
