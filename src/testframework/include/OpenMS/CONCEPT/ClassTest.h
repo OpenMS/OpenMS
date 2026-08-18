@@ -459,10 +459,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @ingroup Concept
 
  */
-//@{
-
-//@name test and subtest
-//@{
+/** @{ */
 
 /**	@brief Begin of the test program for a given class.  @sa #END_TEST.
 
@@ -585,8 +582,6 @@ namespace TEST = OpenMS::Internal::ClassTest;
   } \
   TEST::endSectionPostProcess(stdcout, __LINE__);
 
-
-//@}
 
 /**	@brief Generic equality macro.
 
@@ -1102,4 +1097,4 @@ namespace TEST = OpenMS::Internal::ClassTest;
 #define NOT_TESTABLE                                                                      \
   TEST::test_count = 1;
 
-//@} // end of ClassTest
+/** @} */ // end of defgroup ClassTest

@@ -88,7 +88,7 @@ namespace OpenMS
 
       namespace detail
       {
-        /// Remove leading and trailing whitespace (' ', '\t', '\n', '\r'), like StringUtils::trim.
+        /// Remove leading and trailing whitespace (' ', '\\t', '\\n', '\\r'), like StringUtils::trim.
         inline void trim(std::string& s)
         {
           const char* ws = " \t\n\r";
