@@ -617,7 +617,31 @@ namespace OpenMS::Internal::ClassTest
         TEST::test = false;
         TEST::all_tests = false;
         TEST::initialNewline();
-        out << "Error: Caught unexpected " << describeCaughtException() << '\n';
+        // A registered translator (e.g. for OpenMS exceptions) yields the complete
+        // one-line description; the fallbacks below reproduce the framework's
+        // historical report format byte for byte.
+        for (int i = 0; i < translator_count; ++i)
+        {
+          std::string description;
+          if (translators[i](description))
+          {
+            out << "Error: Caught unexpected " << description << '\n';
+            return;
+          }
+        }
+        try
+        {
+          throw; // rethrow the exception currently being handled
+        }
+        catch (const std::exception& e)
+        {
+          out << "Error: Caught unexpected std::exception\n";
+          out << " - Message: " << e.what() << '\n';
+        }
+        catch (...)
+        {
+          out << "Error: Caught unidentified and unexpected exception - No message.\n";
+        }
       }
 
       int endTestPostProcess(std::ostream& out)

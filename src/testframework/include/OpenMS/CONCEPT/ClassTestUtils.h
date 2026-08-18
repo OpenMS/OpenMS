@@ -48,6 +48,12 @@ namespace OpenMS
         so that tests of libraries that do not link libOpenMS can use TEST_REAL_SIMILAR.
         Class types convertible to double (e.g. DataValue, ParamValue) are printed
         like a double, exactly as the former writtenDigits<DataValue> specialization did.
+
+        Deliberate divergence from the old writtenDigits, affecting only the precision
+        of values printed in TEST_REAL_SIMILAR reports (never the pass/fail decision):
+        ParamValue now prints with double precision (15) instead of the generic
+        fallback (6), and long/unsigned long print with their own digits10 instead of
+        being clamped to int's (9).
       */
       template <typename T>
       constexpr int writtenDigits(const T& = T())
