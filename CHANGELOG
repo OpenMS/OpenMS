@@ -1053,7 +1053,11 @@ Build System:
     requested with BUILD_TOPP_TOOLS=OFF (#9752). Public headers missing from sources.cmake, which broke
     standalone consumers building against an installed prefix, were registered (#9774)
   - vcpkg integration (GSoC 2026): vcpkg.json, vcpkg-configuration.json and CMakePresets.json manage the
-    build dependencies via vcpkg, validated by a dedicated CI workflow with a binary cache (#9511)
+    build dependencies via vcpkg, validated by a dedicated CI workflow with a binary cache (#9511).
+    Extended to Windows and macOS with platform-specific presets, overlay ports for
+    openms-thermo-bridge, onnxruntime (patched for clang) and opentims, and overlay triplets that fix
+    an empty SDK sysroot in macOS port builds and optionally build release-only variants to cut
+    configure time (#9800)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for
