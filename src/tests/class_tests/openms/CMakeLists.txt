@@ -306,8 +306,11 @@ endif()
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
 # THERMO_FAIMS_DIA_TEST_DATA or downloaded by ENABLE_THERMO_FAIMS_DIA_TESTS.
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA)
+  # Normalize manually supplied native paths (especially Windows paths with
+  # backslashes) before embedding the value as a C/C++ string literal.
+  file(TO_CMAKE_PATH "${THERMO_FAIMS_DIA_TEST_DATA}" _thermo_faims_dia_test_data)
   target_compile_definitions(ThermoRawFile_test PRIVATE
-    THERMO_FAIMS_DIA_TEST_DATA="${THERMO_FAIMS_DIA_TEST_DATA}")
+    THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
 endif()
 
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND
