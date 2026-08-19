@@ -69,24 +69,31 @@ public:
       Additionally the charge of the peak and an arbitrary string annotation
       can be stored.
 
-      The string annotation can be e.g. a fragment type like "y3".
-      This information can be used e.g. to label peaks in TOPPView.
+      The string annotation is the complete, human readable name of the ion and
+      @em always spells out its charge, e.g. "y3+" for a singly and "y3++" for a
+      doubly charged y3 ion (mzPAF annotations use the "^2" notation instead, e.g.
+      "y3-H2O^2"). It is meant to be displayed as-is, e.g. to label peaks in
+      TOPPView -- never append the charge a second time.
+      @p charge holds the same charge as a number, for consumers that need it
+      machine readable (the charge column of idXML, mzIdentML, the OMS database
+      and the parquet formats). It is a duplicate of what the name says, not a
+      second place to put a charge the name is missing.
 
       The specific application in OpenProXL uses a more complex syntax to
       define the larger number of different ion types found in XL-MS data.
 
-      In the example "[alpha|ci$y3-H2O-NH3]" "alpha" or "beta" determines on
+      In the example "[alpha|ci$y3-H2O-NH3]++" "alpha" or "beta" determines on
       which of the two peptides the fragmentation occurred, "ci" or "xi"
       determines whether the cross-link and with it the other peptide is
-      contained in the fragment, and the last part is the ion type with the
-      fragmentation position (index) and losses.  The separators "|" and "$"
-      are used to separate the parts easily when parsing the annotation.
+      contained in the fragment, then the ion type with the fragmentation
+      position (index) and losses, and finally the charge.  The separators "|"
+      and "$" are used to separate the parts easily when parsing the annotation.
 
    */
   struct OPENMS_DLLAPI PeakAnnotation
   {
-    std::string annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
-    int charge = 0;
+    std::string annotation;  ///< complete ion name, charge included, e.g. "y3+" or "[alpha|ci$y3-H2O-NH3]++"
+    int charge = 0;          ///< the charge spelled out in @p annotation, as a number
     double mz = -1.;
     double intensity = 0.;
 

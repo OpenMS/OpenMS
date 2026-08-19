@@ -22,6 +22,16 @@
 #include <iostream>
 
 
+// Ion names spell out the charge (see PeptideHit::PeakAnnotation), so an ion type generated
+// over a range of charge states shows up once per charge, e.g. "[alpha|ci$b1]+" and "[alpha|ci$b1]++".
+static void insertChargeStates_(std::set<std::string>& names, const std::string& ion, OpenMS::Size min_charge, OpenMS::Size max_charge)
+{
+  for (OpenMS::Size z = min_charge; z <= max_charge; ++z)
+  {
+    names.insert(ion + std::string(z, '+'));
+  }
+}
+
 START_TEST(TheoreticalSpectrumGeneratorXLMS, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -108,18 +118,18 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   TEST_EQUAL(spec.size(), 30)
 
   set<std::string> ion_names;
-  ion_names.insert("[alpha|ci$b1]");
-  ion_names.insert("[alpha|ci$b2]");
-  ion_names.insert("[alpha|ci$b2-H2O1]");
-  ion_names.insert("[alpha|ci$b3]");
-  ion_names.insert("[alpha|ci$b3-H2O1]");
-  ion_names.insert("[alpha|ci$b3-H3N1]");
-  ion_names.insert("[alpha|ci$x1]");
-  ion_names.insert("[alpha|ci$x2]");
-  ion_names.insert("[alpha|ci$x3]");
-  ion_names.insert("[alpha|ci$x1-H3N1]");
-  ion_names.insert("[alpha|ci$x2-H3N1]");
-  ion_names.insert("[alpha|ci$x3-H3N1]");
+  insertChargeStates_(ion_names, "[alpha|ci$b1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$b2]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$b2-H2O1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$b3]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$b3-H2O1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$b3-H3N1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$x1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$x2]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$x3]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$x1-H3N1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$x2-H3N1]", 1, 3);
+  insertChargeStates_(ion_names, "[alpha|ci$x3-H3N1]", 1, 3);
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
@@ -134,18 +144,18 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   spec.clear(true);
   ptr->getLinearIonSpectrum(spec, peptide, 3, false, 3);
   ion_names.clear();
-  ion_names.insert("[beta|ci$b1]");
-  ion_names.insert("[beta|ci$b2]");
-  ion_names.insert("[beta|ci$b2-H2O1]");
-  ion_names.insert("[beta|ci$b3]");
-  ion_names.insert("[beta|ci$b3-H2O1]");
-  ion_names.insert("[beta|ci$b3-H3N1]");
-  ion_names.insert("[beta|ci$x1]");
-  ion_names.insert("[beta|ci$x2]");
-  ion_names.insert("[beta|ci$x3]");
-  ion_names.insert("[beta|ci$x1-H3N1]");
-  ion_names.insert("[beta|ci$x2-H3N1]");
-  ion_names.insert("[beta|ci$x3-H3N1]");
+  insertChargeStates_(ion_names, "[beta|ci$b1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$b2]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$b2-H2O1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$b3]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$b3-H2O1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$b3-H3N1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$x1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$x2]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$x3]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$x1-H3N1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$x2-H3N1]", 1, 3);
+  insertChargeStates_(ion_names, "[beta|ci$x3-H3N1]", 1, 3);
 
   string_array = spec.getStringDataArrays().at(0);
 
@@ -340,27 +350,27 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   TEST_EQUAL(spec.size(), 75)
 
   set<std::string> ion_names;
-  ion_names.insert("[alpha|xi$b4]");
-  ion_names.insert("[alpha|xi$b5]");
-  ion_names.insert("[alpha|xi$b6]");
-  ion_names.insert("[alpha|xi$x4]");
-  ion_names.insert("[alpha|xi$x5]");
-  ion_names.insert("[alpha|xi$x6]");
-  ion_names.insert("[Q-linked-beta]");
-  ion_names.insert("[M+H]");
-  ion_names.insert("[M+H]-H2O");
-  ion_names.insert("[M+H]-NH3");
-  ion_names.insert("[alpha|xi$x4-H3N1]");
-  ion_names.insert("[alpha|xi$b4-H2O1]");
-  ion_names.insert("[alpha|xi$b4-H3N1]");
-  ion_names.insert("[alpha|xi$x5-H2O1]");
-  ion_names.insert("[alpha|xi$x5-H3N1]");
-  ion_names.insert("[alpha|xi$b5-H2O1]");
-  ion_names.insert("[alpha|xi$b5-H3N1]");
-  ion_names.insert("[alpha|xi$b6-H3N1]");
-  ion_names.insert("[alpha|xi$b6-H2O1]");
-  ion_names.insert("[alpha|xi$x6-H3N1]");
-  ion_names.insert("[alpha|xi$x6-H2O1]");
+  insertChargeStates_(ion_names, "[alpha|xi$b4]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b5]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b6]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x4]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x5]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x6]", 2, 5);
+  insertChargeStates_(ion_names, "[Q-linked-beta]", 2, 5);
+  insertChargeStates_(ion_names, "[M+H]", 5, 5); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-H2O", 5, 5); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-NH3", 5, 5); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[alpha|xi$x4-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b4-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b4-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x5-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x5-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b5-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b5-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b6-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b6-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x6-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x6-H2O1]", 2, 5);
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
@@ -375,27 +385,27 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   spec.clear(true);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, false, 2, 4);
   ion_names.clear();
-  ion_names.insert("[beta|xi$b4]");
-  ion_names.insert("[beta|xi$b5]");
-  ion_names.insert("[beta|xi$b6]");
-  ion_names.insert("[beta|xi$x4]");
-  ion_names.insert("[beta|xi$x5]");
-  ion_names.insert("[beta|xi$x6]");
-  ion_names.insert("[Q-linked-alpha]");
-  ion_names.insert("[M+H]");
-  ion_names.insert("[M+H]-H2O");
-  ion_names.insert("[M+H]-NH3");
-  ion_names.insert("[beta|xi$b6-H2O1]");
-  ion_names.insert("[beta|xi$b6-H3N1]");
-  ion_names.insert("[beta|xi$x6-H2O1]");
-  ion_names.insert("[beta|xi$x6-H3N1]");
-  ion_names.insert("[beta|xi$x4-H3N1]");
-  ion_names.insert("[beta|xi$b4-H2O1]");
-  ion_names.insert("[beta|xi$b4-H3N1]");
-  ion_names.insert("[beta|xi$x5-H2O1]");
-  ion_names.insert("[beta|xi$x5-H3N1]");
-  ion_names.insert("[beta|xi$b5-H2O1]");
-  ion_names.insert("[beta|xi$b5-H3N1]");
+  insertChargeStates_(ion_names, "[beta|xi$b4]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b5]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b6]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x4]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x5]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x6]", 2, 4);
+  insertChargeStates_(ion_names, "[Q-linked-alpha]", 2, 4);
+  insertChargeStates_(ion_names, "[M+H]", 4, 4); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-H2O", 4, 4); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-NH3", 4, 4); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[beta|xi$b6-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b6-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x6-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x6-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x4-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b4-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b4-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x5-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x5-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b5-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b5-H3N1]", 2, 4);
 
   string_array = spec.getStringDataArrays().at(0);
 
@@ -630,28 +640,28 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   TEST_EQUAL(spec.size(), 79)
 
   set<std::string> ion_names;
-  ion_names.insert("[alpha|xi$b4]");
-  ion_names.insert("[alpha|xi$b5]");
-  ion_names.insert("[alpha|xi$b6]");
-  ion_names.insert("[alpha|xi$x4]");
-  ion_names.insert("[alpha|xi$x5]");
-  ion_names.insert("[alpha|xi$x6]");
-  ion_names.insert("[Q-linked-beta]");
-  ion_names.insert("[M+H]");
-  ion_names.insert("[M+H]-H2O");
-  ion_names.insert("[M+H]-NH3");
-  ion_names.insert("[alpha|xi$x4-H3N1]");
-  ion_names.insert("[alpha|xi$x4-H2O1]");
-  ion_names.insert("[alpha|xi$b4-H2O1]");
-  ion_names.insert("[alpha|xi$b4-H3N1]");
-  ion_names.insert("[alpha|xi$x5-H2O1]");
-  ion_names.insert("[alpha|xi$x5-H3N1]");
-  ion_names.insert("[alpha|xi$b5-H2O1]");
-  ion_names.insert("[alpha|xi$b5-H3N1]");
-  ion_names.insert("[alpha|xi$b6-H3N1]");
-  ion_names.insert("[alpha|xi$b6-H2O1]");
-  ion_names.insert("[alpha|xi$x6-H3N1]");
-  ion_names.insert("[alpha|xi$x6-H2O1]");
+  insertChargeStates_(ion_names, "[alpha|xi$b4]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b5]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b6]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x4]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x5]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x6]", 2, 5);
+  insertChargeStates_(ion_names, "[Q-linked-beta]", 2, 5);
+  insertChargeStates_(ion_names, "[M+H]", 5, 5); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-H2O", 5, 5); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-NH3", 5, 5); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[alpha|xi$x4-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x4-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b4-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b4-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x5-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x5-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b5-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b5-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b6-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$b6-H2O1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x6-H3N1]", 2, 5);
+  insertChargeStates_(ion_names, "[alpha|xi$x6-H2O1]", 2, 5);
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
@@ -667,31 +677,31 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   spec.clear(true);
   ptr->getXLinkIonSpectrum(spec, test_link, false, 2, 4);
   ion_names.clear();
-  ion_names.insert("[beta|xi$b4]");
-  ion_names.insert("[beta|xi$b5]");
-  ion_names.insert("[beta|xi$b6]");
-  ion_names.insert("[beta|xi$x3]");
-  ion_names.insert("[beta|xi$x4]");
-  ion_names.insert("[beta|xi$x5]");
-  ion_names.insert("[beta|xi$x6]");
-  ion_names.insert("[P-linked-alpha]");
-  ion_names.insert("[M+H]");
-  ion_names.insert("[M+H]-H2O");
-  ion_names.insert("[M+H]-NH3");
-  ion_names.insert("[beta|xi$x3-H3N1]");
-  ion_names.insert("[beta|xi$x3-H2O1]");
-  ion_names.insert("[beta|xi$b6-H2O1]");
-  ion_names.insert("[beta|xi$b6-H3N1]");
-  ion_names.insert("[beta|xi$x6-H2O1]");
-  ion_names.insert("[beta|xi$x6-H3N1]");
-  ion_names.insert("[beta|xi$x4-H3N1]");
-  ion_names.insert("[beta|xi$x4-H2O1]");
-  ion_names.insert("[beta|xi$b4-H2O1]");
-  ion_names.insert("[beta|xi$b4-H3N1]");
-  ion_names.insert("[beta|xi$x5-H2O1]");
-  ion_names.insert("[beta|xi$x5-H3N1]");
-  ion_names.insert("[beta|xi$b5-H2O1]");
-  ion_names.insert("[beta|xi$b5-H3N1]");
+  insertChargeStates_(ion_names, "[beta|xi$b4]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b5]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b6]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x3]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x4]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x5]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x6]", 2, 4);
+  insertChargeStates_(ion_names, "[P-linked-alpha]", 2, 4);
+  insertChargeStates_(ion_names, "[M+H]", 4, 4); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-H2O", 4, 4); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[M+H]-NH3", 4, 4); // precursor peaks are only added at maxcharge
+  insertChargeStates_(ion_names, "[beta|xi$x3-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x3-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b6-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b6-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x6-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x6-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x4-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x4-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b4-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b4-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x5-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$x5-H3N1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b5-H2O1]", 2, 4);
+  insertChargeStates_(ion_names, "[beta|xi$b5-H3N1]", 2, 4);
 
   string_array = spec.getStringDataArrays().at(0);
 

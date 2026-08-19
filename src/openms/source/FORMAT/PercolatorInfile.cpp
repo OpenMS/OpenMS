@@ -18,6 +18,7 @@
 #include <regex>
 #include <functional>
 #include <unordered_set>
+#include <cstdlib>
 
 namespace OpenMS
 {
@@ -130,8 +131,10 @@ namespace OpenMS
           //Make a new vector of annotations 
           PeptideHit::PeakAnnotation peak_temp; 
 
-          peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
           peak_temp.charge = StringUtils::toInt32(row[to_idx_a.at("fragment_charge")]); 
+          // the ion name spells out the charge, see PeptideHit::PeakAnnotation
+          peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]
+                               + std::string((Size)std::abs(peak_temp.charge), (peak_temp.charge < 0) ? '-' : '+'); 
           peak_temp.intensity = StringUtils::toDouble(row[to_idx_a.at("fragment_intensity")]); 
           peak_temp.mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_experimental")]); 
 
@@ -144,8 +147,10 @@ namespace OpenMS
           //Add values to exisiting vector 
           PeptideHit::PeakAnnotation peak_temp; 
 
-          peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
           peak_temp.charge = StringUtils::toInt32(row[to_idx_a.at("fragment_charge")]); 
+          // the ion name spells out the charge, see PeptideHit::PeakAnnotation
+          peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]
+                               + std::string((Size)std::abs(peak_temp.charge), (peak_temp.charge < 0) ? '-' : '+'); 
           peak_temp.intensity = StringUtils::toDouble(row[to_idx_a.at("fragment_intensity")]); 
           peak_temp.mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_experimental")]); 
 

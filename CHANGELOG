@@ -608,6 +608,12 @@ GUI tools:
   - Fix: TOPPView performance regression when right-clicking in large mzML files (#8997)
   - Fix: Annotation1DItem was missing the OPENMS_GUI_DLLAPI export macro, so its symbols and vtable were
     not exported on Windows DLL builds (#9831)
+  - Fix: TOPPView's identification view appended PeakAnnotation::charge to fragment ion labels which
+    already spelled the charge out, so every singly charged ion of e.g. an OpenNuXL, SimpleSearchEngine
+    or ProSE result was displayed as "y1++", i.e. doubly charged. Peak annotations now follow a single
+    convention throughout OpenMS (see OpenMS Library) and TOPPView shows the ion name as it is. Editing
+    a peak label no longer moves the charge between the ion name and PeakAnnotation::charge, so the
+    label round trip is stable and a label the user did not touch keeps the charge it had (#8766)
 
 OpenMS Library:
   Added:
@@ -769,6 +775,18 @@ OpenMS Library:
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
   Changes:
+    - PeptideHit::PeakAnnotation: the ion name in 'annotation' now always spells out the charge ("y3+",
+      "[alpha|ci$y3]++", "c1-" in negative mode) and 'charge' only repeats it as a number, for the charge
+      columns of idXML/mzIdentML/OMS/parquet. That was already the documented behaviour of
+      TheoreticalSpectrumGenerator's add_metainfo and the only possible one for mzPAF annotations, but
+      TheoreticalSpectrumGeneratorXLMS (and with it OpenPepXL), NucleicAcidSpectrumGenerator (and with it
+      NucleicAcidSearchEngine), the mzIdentML reader and PercolatorInfile used to leave the charge out of
+      the name, so consumers had to guess whether appending it would duplicate it. They now all spell it
+      out and the name can be displayed as-is. Changes the fragment annotations written by OpenPepXL,
+      NucleicAcidSearchEngine and SageAdapter. Also fixes an off-by-one in
+      NucleicAcidSpectrumGenerator::getMultipleSpectra(): with add_precursor_peaks enabled (and not
+      add_all_precursor_charges), the final precursor peak was computed with a charge one past the
+      spectrum's charge state, i.e. at the wrong m/z and with the wrong charge annotation (#8766)
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
       longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
       they use the native schemas and file_type tokens such as consensus_features / features /

@@ -716,11 +716,12 @@ namespace OpenMS
       Size split = label.find_first_not_of("0123456789", 2);
       std::string ion = StringUtils::prefix(label, 1);
       // special case for RNA: "a[n]-B", where "[n]" is the ion number
-      // -> don't forget to add the "-B" back on if it's there:
+      // -> don't forget to add the "-B" back on if it's there
+      // (the ion name ends in its charge, e.g. "a3-B-", so only compare the prefix):
       std::string more_ion = StringUtils::substr(label, split);
-      if (more_ion == "-B")
+      if (StringUtils::hasPrefix(more_ion, std::string("-B")))
       {
-        ion += more_ion;
+        ion += "-B";
       }
       Size pos = StringUtils::toInt32(StringUtils::substr(label, 1, split - 1));
       ion_pos[ion].insert(pos);
@@ -1205,6 +1206,9 @@ namespace OpenMS
         continue;
       }
 
+      // PeakAnnotation::annotation is the complete ion name and already spells out the charge
+      // (see PeptideHit::PeakAnnotation) -- appending PeakAnnotation::charge on top of it would
+      // label every singly charged fragment as doubly charged
       std::string label = ann.annotation;
       StringUtils::trim(label);
 
@@ -1215,17 +1219,6 @@ namespace OpenMS
       if (lines.size() > 1)
       {
         label = fromQString(lines[0]);
-      }
-
-      // write out positive and negative charges with the correct sign at the end of the annotation string
-      switch (ann.charge)
-      {
-        case 0: break;
-        case 1: label += "+"; break;
-        case 2: label += "++"; break;
-        case -1: label += "-"; break;
-        case -2: label += "--"; break;
-        default: label += ((ann.charge > 0) ? "+" : "") + StringUtils::toStr(ann.charge);
       }
 
       QColor color(Qt::black);
@@ -1255,9 +1248,9 @@ namespace OpenMS
       Peak1D position(current_spectrum[peak_idx].getMZ(),
         current_spectrum[peak_idx].getIntensity());
 
-      if (lines.size() > 1)
-      {
-        label.append("\n").append(fromQString(lines[1]));
+      for (int l = 1; l < lines.size(); ++l)
+      { // keep all extra label lines (they are free text, only line 0 is the ion name)
+        label.append("\n").append(fromQString(lines[l]));
       }
 
       auto item = new Annotation1DPeakItem<Peak1D>(

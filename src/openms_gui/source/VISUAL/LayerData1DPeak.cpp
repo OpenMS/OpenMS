@@ -16,6 +16,8 @@
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 #include <QMenu>
+
+#include <cmath>
 using namespace std;
 
 namespace OpenMS
@@ -299,6 +301,28 @@ namespace OpenMS
 
     if (annotations_changed)
     {
+      // The charge is read back from the label, which is fine as long as the ion name spells it out
+      // (see PeptideHit::PeakAnnotation). Names that do not -- e.g. from a file written before the
+      // name carried the charge, or an mzPAF name like "b2^2" -- would silently lose it here, so
+      // every label the user left untouched keeps the charge it already had.
+      for (PeptideHit::PeakAnnotation& fa : fas)
+      {
+        if (fa.charge != 0)
+        {
+          continue;
+        }
+        // tolerance must cover the display's peak snapping: addPeakAnnotationsFromID_ anchors the
+        // item to the experimental peak found via findNearest(ann.mz, 1e-2), so the stored m/z and
+        // the item's m/z can differ by up to 0.01
+        for (const PeptideHit::PeakAnnotation& old_fa : hit.getPeakAnnotations())
+        {
+          if (old_fa.charge != 0 && old_fa.annotation == fa.annotation && fabs(old_fa.mz - fa.mz) < 1.5e-2)
+          {
+            fa.charge = old_fa.charge;
+            break;
+          }
+        }
+      }
       hit.setPeakAnnotations(fas);
     }
   }

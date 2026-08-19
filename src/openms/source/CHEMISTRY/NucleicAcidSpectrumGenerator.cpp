@@ -9,15 +9,24 @@
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <cstdlib>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// ion names spell out the charge, see PeptideHit::PeakAnnotation
+    std::string chargeSuffix_(Int charge)
+    {
+      return std::string((Size)std::abs(charge), (charge < 0) ? '-' : '+');
+    }
+  }
 
   NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator() : DefaultParamHandler("NucleicAcidSpectrumGenerator")
   {
-    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as meta information to the peaks, e.g. c1, y2, a3-B");
+    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as meta information to the peaks, charge included, e.g. c1-, y2--, a3-B-");
     defaults_.setValidStrings("add_metainfo", {"true", "false"});
 
     defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the unfragmented precursor ion to the spectrum");
@@ -332,7 +341,11 @@ namespace OpenMS
     {
       auto& ions = spectrum.getStringDataArrays()[0];
       auto source_it = uncharged_spectrum.getStringDataArrays()[0].begin();
-      ions.insert(ions.end(), source_it, source_it + size);
+      const std::string charge_str = chargeSuffix_(charge);
+      for (Size i = 0; i < size; ++i)
+      {
+        ions.push_back(*(source_it + i) + charge_str);
+      }
       auto& charges = spectrum.getIntegerDataArrays()[0];
       charges.resize(charges.size() + size, charge);
     }
@@ -422,8 +435,9 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.rend())
       {
-        MSSpectrum& spectrum = spectra[*charge_it];
-        for (; charge >= *charge_it; --charge)
+        const Int spec_charge = *charge_it; // charge state of the spectrum built in this iteration
+        MSSpectrum& spectrum = spectra[spec_charge];
+        for (; charge >= spec_charge; --charge)
         {
           addChargedSpectrum_(spectrum, uncharged_spectrum, charge, add_all_precursors);
         }
@@ -434,14 +448,15 @@ namespace OpenMS
         }
         // if we want precursor peaks only for selected charge states, add them
         // after the next spectrum has been initialized:
+        // (use spec_charge - the loop above has already stepped 'charge' one past it)
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
+          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / spec_charge + Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
-            spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getStringDataArrays()[0].push_back("M" + chargeSuffix_(spec_charge));
+            spectrum.getIntegerDataArrays()[0].push_back(spec_charge);
           }
         }
         spectrum.sortByPosition();
@@ -460,8 +475,9 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.end())
       {
-        MSSpectrum& spectrum = spectra[*charge_it];
-        for (; charge <= *charge_it; ++charge)
+        const Int spec_charge = *charge_it; // charge state of the spectrum built in this iteration
+        MSSpectrum& spectrum = spectra[spec_charge];
+        for (; charge <= spec_charge; ++charge)
         {
           addChargedSpectrum_(spectrum, uncharged_spectrum, charge, add_all_precursors);
         }
@@ -472,14 +488,15 @@ namespace OpenMS
         }
         // if we want precursor peaks only for selected charge states, add them
         // after the next spectrum has been initialized:
+        // (use spec_charge - the loop above has already stepped 'charge' one past it)
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U);
+          spectrum.back().setMZ(spectrum.back().getMZ() / spec_charge + Constants::PROTON_MASS_U);
           if (add_metainfo_)
           {
-            spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getStringDataArrays()[0].push_back("M" + chargeSuffix_(spec_charge));
+            spectrum.getIntegerDataArrays()[0].push_back(spec_charge);
           }
         }
         spectrum.sortByPosition();

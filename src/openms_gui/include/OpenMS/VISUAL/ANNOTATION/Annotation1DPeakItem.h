@@ -229,15 +229,15 @@ public:
       // regular expression for a charge at the end of the annotation
       QRegularExpression reg_exp(R"(([\+|\-]\d+)$)");
 
-      // read charge and text from annotation item string
+      // read the charge from the annotation item string; the label keeps it, since
+      // PeakAnnotation::annotation is the complete ion name including the charge and
+      // PeakAnnotation::charge only repeats it as a number (see PeptideHit::PeakAnnotation)
       // we support two notations for the charge suffix: '+2' or '++'
-      // cut and convert the trailing + or - to a proper charge
       int match_pos = peak_anno.indexOf(reg_exp);
       int tmp_charge(0);
       if (match_pos >= 0)
       {
         tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
-        peak_anno = peak_anno.left(match_pos);
       }
       else
       {
@@ -261,13 +261,11 @@ public:
             if (plus > 0 && minus == 0) // found pluses?
             {
               tmp_charge = plus;
-              peak_anno = peak_anno.left(peak_anno.size() - plus);
               break;
             }
             else if (minus > 0 && plus == 0) // found minuses?
             {
               tmp_charge = -minus;
-              peak_anno = peak_anno.left(peak_anno.size() - minus);
               break;
             }
             break;
@@ -279,9 +277,9 @@ public:
       fa.charge = tmp_charge;
       fa.mz = this->getPeakPosition().getMZ();
       fa.intensity = this->getPeakPosition().getIntensity();
-      if (lines.size() > 1)
-      {
-        peak_anno.append("\n").append(lines[1]);
+      for (int l = 1; l < lines.size(); ++l)
+      { // keep all extra label lines (they are free text, only line 0 is the ion name)
+        peak_anno.append("\n").append(lines[l]);
       }
       fa.annotation = fromQString(peak_anno);
 

@@ -366,12 +366,12 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
   TEST_EQUAL(frag_annotations[1].charge, 1)
   TEST_REAL_SIMILAR(frag_annotations[1].mz, 98.06004)
   TEST_EQUAL(frag_annotations[1].intensity, 1)
-  TEST_EQUAL(frag_annotations[1].annotation, "[alpha|ci$b1]")
+  TEST_EQUAL(frag_annotations[1].annotation, "[alpha|ci$b1]+")
 
   TEST_EQUAL(frag_annotations[3].charge, 1)
   TEST_REAL_SIMILAR(frag_annotations[3].mz, 324.15539)
   TEST_EQUAL(frag_annotations[3].intensity, 1)
-  TEST_EQUAL(frag_annotations[3].annotation, "[alpha|ci$b3]")
+  TEST_EQUAL(frag_annotations[3].annotation, "[alpha|ci$b3]+")
 
 END_SECTION
 
