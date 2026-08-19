@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <string>
 #include <vector>
+#include <array>
+#include <string_view>
 
 namespace OpenMS {
   namespace ML {
@@ -21,7 +23,7 @@ namespace OpenMS {
     /// @brief AlphaPeptDeep's exact 109-element array for modification tensor mapping.
     /// Elements missing from this list are binned into the final "Other" channel ("?").
     /// Heavy isotopes (2H, 13C, 15N, 18O) map strictly to their dedicated channels.
-    const std::vector<std::string> ALPHAPEPTDEEP_MOD_ELEMENTS = {
+    inline constexpr std::array<std::string_view, 109> ALPHAPEPTDEEP_MOD_ELEMENTS = {
     "C", "H", "N", "O", "P", "S", "B", "F", "I", "K", "U", "V", "W", "X", "Y",
     "Ac", "Ag", "Al", "Am", "Ar", "As", "At", "Au", "Ba", "Be", "Bi", "Bk",
     "Br", "Ca", "Cd", "Ce", "Cf", "Cl", "Cm", "Co", "Cr", "Cs", "Cu", "Dy",
