@@ -65,12 +65,18 @@ namespace OpenMS
     }
 
     /// Append a double/float/long double via std::to_chars.
-    /// NaN is output as "NaN" (uppercase) for backward compatibility.
+    /// NaN is output as "NaN" (uppercase) for backward compatibility, infinities as "inf"/"-inf".
     /// Trailing zeros are trimmed but at least one digit after '.' is kept (matches old karma behavior).
     template <typename T>
     inline void appendNumeric(T value, std::string& target, int precision, bool fixed_format)
     {
       if (std::isnan(value)) { target += "NaN"; return; }
+      // Without this, std::to_chars writes "inf", which carries neither '.' nor 'e', so the
+      // "keep at least one digit after the decimal point" rule below (there so that 5 prints as 5.0)
+      // appended ".0" and produced "inf.0" - a token nothing can read back, which turned any file
+      // containing an infinity into one that fails to load. "inf"/"-inf" round-trip through
+      // toDouble()/toFloat() as they stand, so only the writing side was ever wrong.
+      if (std::isinf(value)) { target += (value < T(0)) ? "-inf" : "inf"; return; }
       char buf[64];
       std::to_chars_result fc;
 

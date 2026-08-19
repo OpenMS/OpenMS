@@ -330,10 +330,46 @@ namespace OpenMS
   bool IMDataConverter::getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)
   {
     const auto& cv = ControlledVocabulary::getPSIMSCV();
-    if (StringUtils::hasPrefix(fda.getName(), Constants::UserParam::ION_MOBILITY) ||
-        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY) ||
-        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY))
-    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, "inverse reduced ion mobility" from MSConvert, or "mean inverse reduced ion mobility array" from Bruker)
+
+    // Prefer PSI-MS ontology lookup so official names (e.g. MS:1003006
+    // "mean inverse reduced ion mobility array") get the CV unit (1/K0 = VSSC),
+    // not the UserParam fallback that defaulted them to milliseconds.
+    // Unknown names yield nullptr, so non-CV arrays cost no exception here —
+    // this runs for every float array of every spectrum/pixel.
+    const ControlledVocabulary::CVTerm* cv_term = cv.checkAndGetTermByName(fda.getName());
+    if (cv_term != nullptr && cv.isChildOf(cv_term->id, "MS:1002893")) // child of generic 'ion mobility array'?
+    {
+      if (cv_term->units.contains("MS:1002814"))
+      { // MS:1002814 ! volt-second per square centimeter
+        unit = DriftTimeUnit::VSSC;
+      }
+      else if (cv_term->units.contains("UO:0000028"))
+      { // UO:0000028 ! millisecond
+        unit = DriftTimeUnit::MILLISECOND;
+      }
+      else if (cv_term->units.contains("UO:0000324"))
+      { // UO:0000324 ! square angstrom (CCS)
+        unit = DriftTimeUnit::CCS;
+      }
+      else
+      { // fallback
+        OPENMS_LOG_WARN << "Warning: FloatDataArray for IonMobility data '" << cv_term->id << " " << cv_term->name << "' does not contain proper units!" << std::endl;
+        unit = DriftTimeUnit::NONE;
+      }
+      return true;
+    }
+
+    // Fallbacks for non-standard / vendor UserParam names
+    // (Mobi-DIK "Ion Mobility", MSConvert "inverse reduced ion mobility", …).
+    if (StringUtils::hasPrefix(fda.getName(), Constants::UserParam::MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY) ||
+        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY))
+    {
+      // These names denote 1/K0 (Vs/cm^2), not drift time in ms.
+      unit = DriftTimeUnit::VSSC;
+      return true;
+    }
+    if (StringUtils::hasPrefix(fda.getName(), Constants::UserParam::ION_MOBILITY))
+    {
       if (StringUtils::hasSubstring(fda.getName(), "MS:1002815") || StringUtils::hasSubstring(fda.getName(), "MS:1003006"))
       {
         unit = DriftTimeUnit::VSSC;
@@ -347,35 +383,6 @@ namespace OpenMS
         unit = DriftTimeUnit::MILLISECOND;
       }
       return true;
-    }
-    try
-    {
-      const auto& cv_term = cv.getTermByName(fda.getName()); // may throw if term is unknown
-
-      if (cv.isChildOf(cv_term.id, "MS:1002893")) // is child of generic 'ion mobility array'?
-      {
-        if (cv_term.units.contains("MS:1002814"))
-        { // MS:1002814 ! volt-second per square centimeter
-          unit = DriftTimeUnit::VSSC;
-        }
-        else if (cv_term.units.contains("UO:0000028"))
-        { // UO:0000028 ! millisecond
-          unit = DriftTimeUnit::MILLISECOND;
-        }
-        else if (cv_term.units.contains("UO:0000324"))
-        { // UO:0000324 ! square angstrom (CCS)
-          unit = DriftTimeUnit::CCS;
-        }
-        else
-        { // fallback
-          OPENMS_LOG_WARN << "Warning: FloatDataArray for IonMobility data '" << cv_term.id << " " << cv_term.name << "' does not contain proper units!" << std::endl;
-          unit = DriftTimeUnit::NONE;
-        }
-        return true;
-      }
-    }
-    catch (...)
-    {
     }
     return false;
   }

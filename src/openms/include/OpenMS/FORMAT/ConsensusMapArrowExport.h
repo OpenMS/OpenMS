@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 
 #include <memory>
 #include <string>
@@ -48,9 +49,17 @@ public:
     and protein group information.
 
     @param[in] cmap The ConsensusMap to export
+    @param[out] out_links Optional feature&harr;PSM linkage, collected while the rows are built.
+                Pass it to the psm exporter to fill @c psm.feature_id. Producing it here rather
+                than in a second pass is what keeps the two directions reciprocal -- qpx
+                validates that a PSM pointing at a feature is listed back by that feature's
+                @c psm_ids. The export refuses a @c psm_id claimed by two different feature
+                rows instead of silently choosing one owner.
     @return Shared pointer to Arrow Table, or nullptr on error
+    @throws Exception::InvalidValue if one PSM identity is claimed by different feature rows
   */
-  static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap);
+  static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
+                                                     QPXIdentity::FeatureLinks* out_links = nullptr);
 
   /**
     @brief Verify that every feature can be attributed to a single peptide
@@ -73,9 +82,29 @@ public:
           std::terminate.
 
     @param[in] cmap The map about to be exported
-    @throw Exception::IllegalArgument if any feature has divergent peptide annotations
+    @throws Exception::IllegalArgument if any feature has divergent peptide annotations
   */
   static void requireUnambiguousIdentities(const ConsensusMap& cmap);
+
+  /**
+    @brief Refuse a map whose features cannot be attributed to an origin MS run
+
+    A feature's identification names its run through @c id_merge_index into the identification
+    run's @c spectra_data. Without a usable index every PSM of a merged run resolves to the
+    run's FIRST file, so @c run_file_name would be wrong rather than missing.
+
+    Only the identification the exported row actually uses is validated -- validating every
+    attached one refuses a feature whose winning hit resolves perfectly because a sibling,
+    hitless or simply not selected, lacks an index that is never read.
+
+    @note Same preflight constraint as requireUnambiguousIdentities(): call before any OpenMP
+          region and before the output file is opened.
+
+    @param[in] cmap The map about to be exported
+    @throws Exception::MissingInformation if a feature's winning identification belongs to a
+           merged run but carries no usable @c id_merge_index
+  */
+  static void requireResolvableIdRuns(const ConsensusMap& cmap);
 
   /**
     @brief Export ConsensusMap to Parquet file
@@ -83,12 +112,15 @@ public:
     @param[in] cmap The ConsensusMap to export
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[out] out_links Optional feature&harr;PSM linkage, see exportToArrow()
     @return true on success, false on error
+    @throws Exception::InvalidValue if one PSM identity is claimed by different feature rows
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    QPXIdentity::FeatureLinks* out_links = nullptr);
 
   /**
     @brief Stream a ConsensusMap to a Parquet file in row batches (bounded peak memory)
@@ -111,6 +143,9 @@ public:
     @param[in] config Parquet writing options
     @param[in] n_threads OpenMP threads for the per-batch build: 1 = serial (default),
                          0 = all available cores (honors @c OMP_NUM_THREADS), N = fixed
+    @param[out] out_links Optional feature&harr;PSM linkage, see exportToArrow(). Each worker
+                fills its own map and they are merged in index order, so the collected linkage
+                does not depend on @p n_threads either.
     @return true on success, false on error
   */
   static bool exportToParquetStreaming(
@@ -118,7 +153,8 @@ public:
     const std::string& filename,
     size_t batch_size = 1000000,
     const ParquetWriteConfig& config = ParquetWriteConfig{},
-    int n_threads = 1);
+    int n_threads = 1,
+    QPXIdentity::FeatureLinks* out_links = nullptr);
 };
 
 } // namespace OpenMS

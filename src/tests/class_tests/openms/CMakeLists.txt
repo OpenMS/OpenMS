@@ -153,6 +153,13 @@ target_link_libraries(QPXFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+# Builds its invalid inputs with arrow::FloatBuilder / ArrayData::Make rather than through the
+# exporters, so it needs Arrow itself, not just what OpenMS re-exports. On Linux/macOS the symbols
+# happen to be reachable through libOpenMS; on Windows they are dllimport and the link fails.
+target_link_libraries(QPXValueValidation_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(ProteinIdentificationArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
@@ -216,8 +223,17 @@ if (TARGET OpenSwathPercolatorScoring_test)
   target_link_libraries(OpenSwathPercolatorScoring_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
-    sqlite3
   )
+  #Test calls sqlite3 directly, so linkage required.
+  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test unofficial::sqlite3::sqlite3)
+  elseif(TARGET SQLite::SQLite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test SQLite::SQLite3)
+  elseif(TARGET SQLiteCpp)
+    target_link_libraries(OpenSwathPercolatorScoring_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+  elseif(TARGET sqlite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test sqlite3)
+  endif()
 endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
@@ -243,6 +259,14 @@ if (TARGET ArrowIOHelpers_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+# Builds its fixture tables with arrow::*Builder rather than through an exporter, so it needs
+# Arrow itself, not just what OpenMS re-exports -- the same reason QPXValueValidation_test does.
+if (TARGET ParquetTableComparator_test)
+  target_link_libraries(ParquetTableComparator_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 if (TARGET ParquetFile_test)
   target_link_libraries(ParquetFile_test
     ${OPENMS_ARROW_TARGET}
@@ -251,7 +275,16 @@ if (TARGET ParquetFile_test)
 endif()
 
 if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
-  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp sqlite3)
+  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp)
+  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    target_link_libraries(BrukerTimsFile_test unofficial::sqlite3::sqlite3)
+  elseif(TARGET SQLite::SQLite3)
+    target_link_libraries(BrukerTimsFile_test SQLite::SQLite3)
+  elseif(TARGET SQLiteCpp)
+    target_link_libraries(BrukerTimsFile_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+  elseif(TARGET sqlite3)
+    target_link_libraries(BrukerTimsFile_test sqlite3)
+  endif()
 endif()
 
 if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)

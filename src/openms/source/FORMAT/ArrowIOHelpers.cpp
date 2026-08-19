@@ -14,20 +14,28 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+#include <cctype>
+#include <cstdint>
+#include <map>
 #include <set>
+#include <unordered_set>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
 #include <arrow/table.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
-
-#include <cstdint>
 
 namespace OpenMS
 {
@@ -37,6 +45,11 @@ namespace ArrowIOHelpers
 std::string generateUuidV4()
 {
   return UniqueIdGenerator::getUUID();
+}
+
+Size tableRowCount(const std::shared_ptr<arrow::Table>& table)
+{
+  return table ? static_cast<Size>(table->num_rows()) : 0;
 }
 
 namespace
@@ -68,6 +81,53 @@ namespace
     }
     return "";
   }
+
+  /// Validate an OpenMS-supported QPX table before a generic Parquet helper opens its output.
+  /// Non-QPX tables, and QPX sidecars not produced by these exporters, pass through unchanged.
+  bool validateQPXValuesForWrite(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& filename)
+  {
+    const auto metadata = table->schema()->metadata();
+    if (!metadata || !metadata->Contains("qpx_version")) { return true; }
+
+    const auto file_type_result = metadata->Get("file_type");
+    if (!file_type_result.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: QPX table for " << filename
+                       << " has no file_type metadata." << std::endl;
+      return false;
+    }
+
+    const std::string file_type = file_type_result.ValueOrDie();
+    QPXValueValidation::View view;
+    if (file_type == "psm_file")
+    {
+      view = QPXValueValidation::View::PSM;
+    }
+    else if (file_type == "feature_file")
+    {
+      view = QPXValueValidation::View::FEATURE;
+    }
+    else if (file_type == "pg_file")
+    {
+      view = QPXValueValidation::View::PROTEIN_GROUP;
+    }
+    else
+    {
+      return true;
+    }
+
+    QPXValueValidation validator(view);
+    const auto validation = validator.validate(table);
+    if (!validation.valid)
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: refusing invalid QPX " << file_type << " table for "
+                       << filename << ": " << validation.toString() << std::endl;
+      return false;
+    }
+    return true;
+  }
 }
 
 std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
@@ -86,14 +146,35 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFileMetadata(
   std::vector<std::string> keys{
     "qpx_version", "file_type", "creator", "software_provider", "creation_date",
     "compression_format", "uuid"};
+  // The identity declaration belongs to the view, so it is stamped here rather than by each
+  // exporter: a producer that forgot it would emit ids no reader could re-derive. qpxc reads
+  // identity_composite back to re-derive the ids on conversion (its _source_identity_composite),
+  // which is what lets an OpenMS collection survive a round trip with its cross-references intact.
+  std::string primary_key;
+  std::string identity_composite;
+  if      (file_type == "feature_file") { primary_key = QPXFeatureSchema::FEATURE_ID; identity_composite = QPXIdentity::FEATURE_COMPOSITE; }
+  else if (file_type == "psm_file")     { primary_key = QPXPSMSchema::PSM_ID;         identity_composite = QPXIdentity::PSM_COMPOSITE; }
+  else if (file_type == "pg_file")      { primary_key = QPXPgSchema::PG_ID;           identity_composite = QPXIdentity::PG_COMPOSITE; }
   std::vector<std::string> values{
-    "1.0",
+    // QPX 1.1 (bigbio/qpx#220): the pg view is re-keyed from a scalar run_file_name onto
+    // grouped_runs (list<string>). Breaking, but shipped as a minor under the spec's pre-2.0
+    // stabilisation rule, so a reader must consult the version rather than assume 1.x is additive.
+    // The psm and feature views are unchanged by 1.1 and carry the same version key.
+    "1.1",
     file_type,
     "OpenMS",
     "OpenMS " + VersionInfo::getVersion(),
     DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ"),
     compression,
     generateUuidV4()};
+
+  if (!primary_key.empty())
+  {
+    keys.push_back("primary_key");
+    values.push_back(primary_key);
+    keys.push_back("identity_composite");
+    values.push_back(identity_composite);
+  }
 
   for (const auto& [k, v] : extra)
   {
@@ -113,32 +194,78 @@ std::string qpxScanFormat(const std::string& native_id)
 
 std::string qpxIntensityLabel(const std::string& column_label, const std::string& channel_name)
 {
+  // IsobaricChannelExtractor writes both fields, but older/synthetic ConsensusMaps may carry the
+  // complete "<method>_<channel>" identity only in ColumnHeader::label. Recover the channel from
+  // that label after validating the method instead of rejecting otherwise unambiguous input.
+  const auto sep = column_label.rfind('_');
+  const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
+  const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
+  std::string resolved_channel_name = channel_name;
+  if (resolved_channel_name.empty()
+      && method != IsobaricQuantitationMethod::MethodType::UNKNOWN
+      && sep + 1 < column_label.size())
+  {
+    resolved_channel_name = column_label.substr(sep + 1);
+  }
+
+  if (!resolved_channel_name.empty()
+      && method != IsobaricQuantitationMethod::MethodType::UNKNOWN)
+  {
+    if (StringUtils::hasPrefix(method_name, "tmt"))
+    {
+      return "TMT" + resolved_channel_name;
+    }
+    if (StringUtils::hasPrefix(method_name, "itraq"))
+    {
+      return "ITRAQ" + resolved_channel_name;
+    }
+  }
+
   // No channel => not an isobaric map.
   if (channel_name.empty())
   {
     // ProteomicsLFQ stamps "label-free" on every header; an unset label means the same.
     if (column_label.empty() || column_label == "label-free") { return "LFQ"; }
-    // Multiplex/SILAC headers carry the modification in `label` and annotate no channel
-    // (see ConsensusMap::ColumnHeader::getLabelAsUInt). QPX defines no token for those, so
-    // pass the tool's own label through rather than mislabel it as LFQ.
-    return column_label;
-  }
 
-  // Isobaric: IsobaricChannelExtractor builds the label as "<methodname>_<channelname>".
-  const auto sep = column_label.rfind('_');
-  const std::string method_name = (sep == std::string::npos) ? "" : column_label.substr(0, sep);
-  const auto method = IsobaricQuantitationMethod::methodTypeFromName(method_name);
+    std::string lower = column_label;
+    std::transform(lower.begin(), lower.end(), lower.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (lower == "lfq") { return "LFQ"; }
+    if (lower == "no_label" || lower == "silac light" || lower == "light")
+    {
+      return "SILAC light";
+    }
+    if (lower == "silac medium" || lower == "medium"
+        || ((lower.find("arg6") != std::string::npos
+             || lower.find("lys4") != std::string::npos
+             || lower.find("lys6") != std::string::npos)
+            && lower.find("arg10") == std::string::npos
+            && lower.find("lys8") == std::string::npos))
+    {
+      return "SILAC medium";
+    }
+    if (lower == "silac heavy" || lower == "heavy"
+        || lower.find("arg10") != std::string::npos
+        || lower.find("lys8") != std::string::npos)
+    {
+      return "SILAC heavy";
+    }
 
-  // Family prefix + OpenMS' own reporter name, so TMT10-plex channel 10 is "TMT131"
-  // (qpx's own converter map is 11-plex-indexed and says "TMT131N"; sdrf-pipelines agrees
-  // with OpenMS). methodTypeFromName() has already validated the method against
-  // METHOD_REGISTRY, so the family follows from its canonical identifier ("tmt6plex",
-  // "itraq4plex", ...) rather than from a switch that would silently drop a join key for
-  // any method added later.
-  if (method != IsobaricQuantitationMethod::MethodType::UNKNOWN)
-  {
-    if (StringUtils::hasPrefix(method_name, "tmt"))   { return "TMT" + channel_name; }
-    if (StringUtils::hasPrefix(method_name, "itraq")) { return "ITRAQ" + channel_name; }
+    // FeatureFinderMultiplex uses title case while the shared SDRF/QPX vocabulary is uppercase.
+    if (StringUtils::hasPrefix(lower, "dimethyl"))
+    {
+      const std::string suffix = column_label.substr(std::string("Dimethyl").size());
+      const std::string canonical = "DIMETHYL" + suffix;
+      if (qpxIsCanonicalIntensityLabel(canonical)) { return canonical; }
+    }
+
+    // Already-canonical values can occur after loading a QPX-enriched intermediate.
+    if (qpxIsCanonicalIntensityLabel(column_label)) { return column_label; }
+
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: column header label '" << column_label
+                     << "' is not in the canonical SDRF/QPX intensity-label vocabulary."
+                     << std::endl;
+    return "";
   }
 
   OPENMS_LOG_ERROR << "ArrowIOHelpers: cannot derive a QPX intensity label for channel '"
@@ -147,10 +274,253 @@ std::string qpxIntensityLabel(const std::string& column_label, const std::string
   return "";
 }
 
+namespace
+{
+  enum class SILACRole
+  {
+    UNKNOWN,
+    LIGHT,
+    MEDIUM,
+    HEAVY
+  };
+
+  SILACRole silacRole(const std::string& label)
+  {
+    std::string lower = label;
+    std::transform(lower.begin(), lower.end(), lower.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (lower.empty() || lower == "no_label" || lower == "silac light" || lower == "light")
+    {
+      return SILACRole::LIGHT;
+    }
+    const bool medium = lower == "silac medium" || lower == "medium"
+                        || lower.find("arg6") != std::string::npos
+                        || lower.find("lys4") != std::string::npos
+                        || lower.find("lys6") != std::string::npos;
+    const bool heavy = lower == "silac heavy" || lower == "heavy"
+                       || lower.find("arg10") != std::string::npos
+                       || lower.find("lys8") != std::string::npos;
+    if (medium == heavy) { return SILACRole::UNKNOWN; }
+    return medium ? SILACRole::MEDIUM : SILACRole::HEAVY;
+  }
+
+  bool hasSILACMarker(const std::string& label)
+  {
+    const SILACRole role = silacRole(label);
+    if (role == SILACRole::MEDIUM || role == SILACRole::HEAVY) { return true; }
+
+    std::string lower = label;
+    std::transform(lower.begin(), lower.end(), lower.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    // An explicit SILAC label with an unknown role must still enter the map-level validation
+    // branch and be rejected. Ordinary labels containing "arg" or "lys" are not SILAC markers.
+    return lower.find("silac") != std::string::npos;
+  }
+
+  std::string canonicalSILACLabel(SILACRole role)
+  {
+    switch (role)
+    {
+      case SILACRole::LIGHT:  return "SILAC light";
+      case SILACRole::MEDIUM: return "SILAC medium";
+      case SILACRole::HEAVY:  return "SILAC heavy";
+      case SILACRole::UNKNOWN: break;
+    }
+    return "";
+  }
+}
+
+std::map<std::uint64_t, std::string> qpxIntensityLabels(const ConsensusMap& cmap)
+{
+  using HeaderRef = std::pair<std::uint64_t, const ConsensusMap::ColumnHeader*>;
+  std::map<std::string, std::vector<HeaderRef>> by_source;
+  for (const auto& [map_index, header] : cmap.getColumnHeaders())
+  {
+    by_source[header.filename].emplace_back(map_index, &header);
+  }
+
+  std::map<std::uint64_t, std::string> result;
+  for (const auto& [source, headers] : by_source)
+  {
+    bool has_isobaric_channel = false;
+    bool has_silac_marker = false;
+    const bool supported_silac_plex = headers.size() == 2 || headers.size() == 3;
+    bool all_silac_roles_known = true;
+    std::vector<SILACRole> roles;
+    roles.reserve(headers.size());
+    for (const auto& [map_index, header] : headers)
+    {
+      (void)map_index;
+      has_isobaric_channel = has_isobaric_channel
+                             || (header->metaValueExists("channel_name")
+                                 && !header->getMetaValue("channel_name").toString().empty());
+      has_silac_marker = has_silac_marker || hasSILACMarker(header->label);
+      const auto role = silacRole(header->label);
+      roles.push_back(role);
+      all_silac_roles_known = all_silac_roles_known && role != SILACRole::UNKNOWN;
+    }
+
+    const bool silac_shaped = !has_isobaric_channel && has_silac_marker;
+    if (silac_shaped)
+    {
+      if (!supported_silac_plex || !all_silac_roles_known)
+      {
+        OPENMS_LOG_ERROR << "ArrowIOHelpers: source run '" << source
+                         << "' has SILAC labels but is not a supported, unambiguous two- or "
+                            "three-plex."
+                         << std::endl;
+        for (const auto& [map_index, header] : headers)
+        {
+          (void)header;
+          result[map_index] = "";
+        }
+        continue;
+      }
+
+      std::vector<SILACRole> resolved_roles = roles;
+      bool valid_plex = true;
+      if (headers.size() == 2)
+      {
+        // QPX names the non-light channel of a two-plex "heavy", including Arg6/Lys4
+        // experiments where the same mass class would be "medium" in a three-plex.
+        const Size light_count = static_cast<Size>(std::count(
+          roles.begin(), roles.end(), SILACRole::LIGHT));
+        valid_plex = light_count == 1;
+        if (valid_plex)
+        {
+          for (auto& role : resolved_roles)
+          {
+            if (role != SILACRole::LIGHT) { role = SILACRole::HEAVY; }
+          }
+        }
+      }
+      else
+      {
+        valid_plex = std::count(roles.begin(), roles.end(), SILACRole::LIGHT) == 1
+                     && std::count(roles.begin(), roles.end(), SILACRole::MEDIUM) == 1
+                     && std::count(roles.begin(), roles.end(), SILACRole::HEAVY) == 1;
+      }
+
+      if (!valid_plex)
+      {
+        OPENMS_LOG_ERROR << "ArrowIOHelpers: source run '" << source
+                         << "' has a SILAC-shaped column set that cannot be represented as a "
+                         << headers.size() << "-plex with unique channel roles." << std::endl;
+        for (const auto& [map_index, header] : headers)
+        {
+          (void)header;
+          result[map_index] = "";
+        }
+        continue;
+      }
+
+      for (Size i = 0; i < headers.size(); ++i)
+      {
+        result[headers[i].first] = canonicalSILACLabel(resolved_roles[i]);
+      }
+      continue;
+    }
+
+    for (const auto& [map_index, header] : headers)
+    {
+      const std::string channel_name = header->metaValueExists("channel_name")
+                                     ? header->getMetaValue("channel_name").toString() : "";
+      result[map_index] = qpxIntensityLabel(header->label, channel_name);
+    }
+  }
+  return result;
+}
+
+bool qpxIsCanonicalIntensityLabel(const std::string& label)
+{
+  static const std::unordered_set<std::string> canonical = []
+  {
+    std::unordered_set<std::string> labels{
+      "LFQ", "SILAC light", "SILAC medium", "SILAC heavy",
+      "MTRAQ0", "MTRAQ4", "MTRAQ8",
+      "DIMETHYL0", "DIMETHYL2", "DIMETHYL4", "DIMETHYL6", "DIMETHYL8"};
+
+    using MethodType = IsobaricQuantitationMethod::MethodType;
+    for (int value = static_cast<int>(MethodType::TMT_6PLEX);
+         value < static_cast<int>(MethodType::SIZE_OF_METHODTYPE); ++value)
+    {
+      const auto type = static_cast<MethodType>(value);
+      auto method = IsobaricQuantitationMethod::create(type);
+      if (!method) { continue; }
+      const std::string method_name(method->getMethodName());
+      std::string prefix;
+      if (StringUtils::hasPrefix(method_name, "tmt")) { prefix = "TMT"; }
+      else if (StringUtils::hasPrefix(method_name, "itraq")) { prefix = "ITRAQ"; }
+      else { continue; }
+      for (const auto& channel : method->getChannelInformation())
+      {
+        labels.insert(prefix + channel.name);
+      }
+    }
+    return labels;
+  }();
+  return canonical.contains(label);
+}
+
 std::string qpxRunFileName(const std::string& ms_run_path)
 {
   // File::stemName() already maps "" -> "".
   return File::stemName(ms_run_path);
+}
+
+std::vector<Int32> qpxScanComponents(const std::string& spectrum_reference)
+{
+  if (spectrum_reference.empty()) { return {}; }
+  const std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_reference);
+  if (regex_str.empty()) { return {}; }
+
+  // getRegExFromNativeID() maps every native-ID convention onto one of a handful of fixed
+  // patterns, but compiling a boost::regex parses the pattern each time -- and this runs once per
+  // exported row. Cached per thread rather than shared: the exporters call it from inside an
+  // OpenMP region, where one shared cache would need a lock and reintroduce the cost it saves.
+  thread_local std::map<std::string, boost::regex> compiled;
+  auto entry = compiled.find(regex_str);
+  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, boost::regex(regex_str)).first; }
+
+  const Int scan = SpectrumNativeIDParser::extractScanNumber(spectrum_reference, entry->second, true);
+  if (scan < 0) { return {}; }
+  return {static_cast<Int32>(scan)};
+}
+
+QPXRunFileNameKeys::QPXRunFileNameKeys() :
+  reference_file_name(MetaInfo::registry().getIndex("reference_file_name")),
+  run_file_name(MetaInfo::registry().getIndex("run_file_name"))
+{
+}
+
+std::string qpxPsmRunFileName(const MetaInfoInterface& hit,
+                              const MetaInfoInterface& identification,
+                              const std::string& resolved_run_file,
+                              const QPXRunFileNameKeys& keys)
+{
+  // UInt(-1) is guarded explicitly: the index overload of metaValueExists() does not special-case
+  // the "not registered" sentinel the way the string overload does.
+  const auto has = [](const MetaInfoInterface& meta, UInt index)
+  { return index != static_cast<UInt>(-1) && meta.metaValueExists(index); };
+
+  std::string run_file;
+  if (has(hit, keys.reference_file_name))
+  {
+    run_file = hit.getMetaValue(keys.reference_file_name).toString();
+  }
+  else if (has(hit, keys.run_file_name))
+  {
+    run_file = hit.getMetaValue(keys.run_file_name).toString();
+  }
+  else if (has(identification, keys.reference_file_name))
+  {
+    run_file = identification.getMetaValue(keys.reference_file_name).toString();
+  }
+  if (run_file.empty()) { run_file = resolved_run_file; }
+
+  // Stem every source of the value, not just the fallback, so the column is a usable join key
+  // across the psm, feature and pg tables no matter which branch above supplied it.
+  return qpxRunFileName(run_file);
 }
 
 bool qpxWarnOnRunNameCollisions(const std::string& context,
@@ -168,7 +538,7 @@ bool qpxWarnOnRunNameCollisions(const std::string& context,
   {
     if (paths.size() < 2) { continue; }
     unique = false;
-    OPENMS_LOG_WARN << context << ": several MS runs share the run_file_name '" << stem
+    OPENMS_LOG_WARN << context << ": several MS runs share the QPX run name '" << stem
                     << "' after stripping path and extension: "
                     << ListUtils::concatenate(StringList(paths.begin(), paths.end()), ", ")
                     << ". They cannot be told apart in the exported QPX tables." << std::endl;
@@ -206,6 +576,7 @@ bool writeTableToParquet(
     OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to writeTableToParquet (" << filename << ")" << std::endl;
     return false;
   }
+  if (!validateQPXValuesForWrite(table, filename)) { return false; }
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
   if (!file_result.ok())
@@ -238,19 +609,31 @@ bool writeTableToParquet(
     writer_properties,
     arrow_properties);
 
+  // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+  // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+  // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+  // removing: on Windows an open handle blocks the unlink.
+  const auto abandon = [&](const std::string& what)
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: " << what << std::endl;
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to remove incomplete output " << filename
+                       << std::endl;
+    }
+    return false;
+  };
+
   if (!status.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to write " << filename
-                     << ": " << status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to write " + filename + ": " + status.ToString());
   }
 
   auto close_status = outfile->Close();
   if (!close_status.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to close " << filename
-                     << ": " << close_status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to close " + filename + ": " + close_status.ToString());
   }
 
   return true;

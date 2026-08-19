@@ -301,7 +301,6 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
-  TriqlerFile_test
   UnimodXMLFile_test
   UniProtXMLFile_test
   XMassFile_test
@@ -336,7 +335,8 @@ if(WITH_HDF5)
 endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
-  ProteinGroupArrowExport_test QPXFile_test
+  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
   XICParquetFile_test
@@ -349,7 +349,8 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ConsensusMapArrowIO_test
   PSMArrowIO_test
   ArrowSchemaRegistry_test
-  ArrowIOHelpers_test)
+  ArrowIOHelpers_test
+  ParquetTableComparator_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -730,6 +731,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     PeakMapExtractor_test
     OpenSwathHelper_test
+    OpenSwathLibraryIDNormalizer_test
     OpenSwathOSWWriter_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test

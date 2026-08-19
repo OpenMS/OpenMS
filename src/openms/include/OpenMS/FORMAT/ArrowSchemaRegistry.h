@@ -216,6 +216,10 @@ namespace OpenMS
   /// peptide-spectrum match data in the QPX format. Used by QPXFile for export.
   struct OPENMS_DLLAPI QPXPSMSchema
   {
+    /// Mandatory opaque identity and primary key; see QPXIdentity
+    static constexpr const char* PSM_ID = "psm_id";
+    /// Optional cross-reference to QPXFeatureSchema::FEATURE_ID; null when the PSM is unlinked
+    static constexpr const char* FEATURE_ID = "feature_id";
     static constexpr const char* SEQUENCE = "sequence";
     static constexpr const char* PEPTIDOFORM = "peptidoform";
     static constexpr const char* MODIFICATIONS = "modifications";
@@ -249,7 +253,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> cvParamsType();
     /// @brief Arrow type for cross-links: list<struct{xl_type, partner_sequence, ...}>
     static std::shared_ptr<arrow::DataType> crossLinksType();
-    /// @brief Complete Arrow schema for QPX PSM table (24 fields)
+    /// @brief Complete Arrow schema for QPX PSM table (26 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
@@ -259,6 +263,10 @@ namespace OpenMS
   /// consensus feature data in the QPX format. Used by ConsensusMapArrowExport.
   struct OPENMS_DLLAPI QPXFeatureSchema
   {
+    /// Mandatory opaque identity and primary key; see QPXIdentity
+    static constexpr const char* FEATURE_ID = "feature_id";
+    /// Optional cross-reference to the QPXPSMSchema::PSM_ID values this feature was quantified from
+    static constexpr const char* PSM_IDS = "psm_ids";
     static constexpr const char* SEQUENCE = "sequence";
     static constexpr const char* PEPTIDOFORM = "peptidoform";
     static constexpr const char* MODIFICATIONS = "modifications";
@@ -305,7 +313,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> pgAccessionsType();
     /// @brief Arrow type for protein group positions: list<struct{protein_accession, start, end}>
     static std::shared_ptr<arrow::DataType> pgPositionsType();
-    /// @brief Complete Arrow schema for QPX feature table (31 fields)
+    /// @brief Complete Arrow schema for QPX feature table (33 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
@@ -314,18 +322,26 @@ namespace OpenMS
   /// Defines column names, nested Arrow types, and the complete schema for
   /// protein group data in the QPX format. Supports both quantified (ConsensusMap)
   /// and identification-only (search engine) output — quantification columns are nullable.
+  ///
+  /// @note QPX 1.1 keys this view on @c anchor_protein, @c grouped_runs, and @c label. One
+  ///       protein-group quantity applies to one experimental-design fraction group and one
+  ///       label. The psm and feature views keep their scalar @c run_file_name and nested
+  ///       intensity representation.
   struct OPENMS_DLLAPI QPXPgSchema
   {
+    /// Mandatory opaque identity and primary key; see QPXIdentity
+    static constexpr const char* PG_ID = "pg_id";
     static constexpr const char* PG_ACCESSIONS = "pg_accessions";
     static constexpr const char* PG_NAMES = "pg_names";
     static constexpr const char* GG_ACCESSIONS = "gg_accessions";
     static constexpr const char* GG_NAMES = "gg_names";
     static constexpr const char* GG_QVALUE = "gg_qvalue";
     static constexpr const char* ANCHOR_PROTEIN = "anchor_protein";
-    static constexpr const char* RUN_FILE_NAME = "run_file_name";
+    static constexpr const char* GROUPED_RUNS = "grouped_runs";
     static constexpr const char* GLOBAL_QVALUE = "global_qvalue";
     static constexpr const char* PG_QVALUE = "pg_qvalue";
-    static constexpr const char* INTENSITIES = "intensities";
+    static constexpr const char* LABEL = "label";
+    static constexpr const char* INTENSITY = "intensity";
     static constexpr const char* ADDITIONAL_INTENSITIES = "additional_intensities";
     static constexpr const char* IS_DECOY = "is_decoy";
     static constexpr const char* CONTAMINANT = "contaminant";
@@ -337,8 +353,8 @@ namespace OpenMS
     static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
     static constexpr const char* CV_PARAMS = "cv_params";
 
-    /// @brief Arrow type for intensities: list<struct{label, intensity}> (nullable for search-engine output)
-    static std::shared_ptr<arrow::DataType> intensitiesType();
+    /// @brief Arrow type for grouped_runs: list<utf8> — the raw files of one quantification unit
+    static std::shared_ptr<arrow::DataType> groupedRunsType();
     /// @brief Arrow type for additional intensities: list<struct{label, intensities: list<struct{...}>}>
     static std::shared_ptr<arrow::DataType> additionalIntensitiesType();
     /// @brief Arrow type for peptides: list<struct{protein_name, peptide_count}>
@@ -351,7 +367,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> additionalScoresType();
     /// @brief Arrow type for CV params (delegates to QPXPSMSchema::cvParamsType)
     static std::shared_ptr<arrow::DataType> cvParamsType();
-    /// @brief Complete Arrow schema for QPX pg table (20 fields)
+    /// @brief Complete Arrow schema for QPX pg table (22 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 

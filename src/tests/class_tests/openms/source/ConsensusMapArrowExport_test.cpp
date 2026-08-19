@@ -10,10 +10,14 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -173,6 +177,17 @@ ConsensusMap createTestConsensusMap()
   return cmap;
 }
 
+std::shared_ptr<arrow::Table> replaceColumn(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& name,
+  const std::shared_ptr<arrow::Array>& values)
+{
+  std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+  columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+    std::make_shared<arrow::ChunkedArray>(values);
+  return arrow::Table::Make(table->schema(), std::move(columns));
+}
+
 ConsensusMap createEmptyConsensusMap()
 {
   return ConsensusMap();
@@ -227,6 +242,115 @@ START_SECTION(exportToArrow - basic export)
   TEST_TRUE(schema->GetFieldIndex("charge") >= 0)
   TEST_TRUE(schema->GetFieldIndex("intensities") >= 0)
   TEST_TRUE(schema->GetFieldIndex("pg_accessions") >= 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] feature value validation rejects duplicate primary keys before writing))
+{
+  ConsensusMap cmap = createTestConsensusMap();
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  QPXValueValidation validator(QPXValueValidation::View::FEATURE);
+  TEST_TRUE(validator.validate(table).valid)
+
+  auto duplicate = arrow::ConcatenateTables({table->Slice(0, 1), table->Slice(0, 1)}).ValueOrDie();
+  QPXValueValidation duplicate_validator(QPXValueValidation::View::FEATURE);
+  auto duplicate_result = duplicate_validator.validate(duplicate);
+  TEST_FALSE(duplicate_result.valid)
+  TEST_TRUE(duplicate_result.toString().find("primary key") != std::string::npos)
+
+  auto invalid_keys = table->Slice(0, 1);
+  arrow::StringBuilder null_peptidoform_builder;
+  TEST_TRUE(null_peptidoform_builder.AppendNull().ok())
+  invalid_keys = replaceColumn(invalid_keys, QPXFeatureSchema::PEPTIDOFORM,
+                               null_peptidoform_builder.Finish().ValueOrDie());
+  arrow::Int16Builder null_charge_builder;
+  TEST_TRUE(null_charge_builder.AppendNull().ok())
+  invalid_keys = replaceColumn(invalid_keys, QPXFeatureSchema::CHARGE,
+                               null_charge_builder.Finish().ValueOrDie());
+  QPXValueValidation invalid_key_validator(QPXValueValidation::View::FEATURE);
+  const auto invalid_key_result = invalid_key_validator.validate(invalid_keys);
+  TEST_FALSE(invalid_key_result.valid)
+  TEST_TRUE(invalid_key_result.toString().find("null 'peptidoform'") != std::string::npos)
+  TEST_TRUE(invalid_key_result.toString().find("null 'charge'") != std::string::npos)
+
+  // Duplicating the source feature exercises the one-shot writer's validation placement: the
+  // output path remains absent because validation runs before FileOutputStream::Open().
+  cmap.push_back(cmap.front());
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquet(cmap, output))
+  TEST_FALSE(File::exists(output))
+
+  std::string stream_output;
+  NEW_TMP_FILE(stream_output);
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_output, 1))
+  TEST_FALSE(File::exists(stream_output))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] unmapped features are separated by observed_mz, not by rt alone))
+{
+  // The feature primary key is (peptidoform, charge, run_file_name, rt, observed_mz). For an
+  // unmapped feature the peptidoform is empty, so without observed_mz the key would collapse to
+  // (charge, run, rt) -- and 'rt' is float32 on write, one ULP being 244 us at 3000 s. Two
+  // co-eluting unmapped features of the same charge in one run would then collide and the whole
+  // export would be refused. ProteomicsLFQ with seeds leaves most of its features unmapped, so
+  // this is the common shape, not an exotic one.
+  ConsensusMap cmap = createTestConsensusMap();
+  while (!cmap.empty())
+  {
+    cmap.pop_back();
+  }
+
+  const auto make_unmapped = [](double rt, double mz, double intensity)
+  {
+    ConsensusFeature cf;
+    cf.setRT(rt);
+    cf.setMZ(mz);
+    cf.setIntensity(intensity);
+    cf.setCharge(2);
+    BaseFeature bf;
+    bf.setRT(rt);
+    bf.setMZ(mz);
+    bf.setIntensity(static_cast<float>(intensity));
+    bf.setCharge(2);
+    cf.insert(0, bf);
+    return cf; // no PeptideIdentification: an unmapped feature
+  };
+
+  // Same run, same charge, retention times that differ but round to the SAME float32.
+  // Their m/z differ by 100 Th, so they are plainly different features.
+  const double rt_a = 3000.0;
+  const double rt_b = 3000.0001;
+  TEST_EQUAL(static_cast<float>(rt_a), static_cast<float>(rt_b)) // the collision this guards
+  cmap.push_back(make_unmapped(rt_a, 400.0, 5000.0));
+  cmap.push_back(make_unmapped(rt_b, 500.0, 6000.0));
+
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  QPXValueValidation validator(QPXValueValidation::View::FEATURE);
+  TEST_TRUE(validator.validate(table).valid)
+
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_TRUE(ConsensusMapArrowExport::exportToParquet(cmap, output))
+  TEST_TRUE(File::exists(output))
+
+  // The check must still fire when the m/z matches too: then the two rows really are
+  // indistinguishable and one of them is a duplicate.
+  ConsensusMap same_mz = cmap;
+  same_mz.pop_back();
+  same_mz.push_back(make_unmapped(rt_b, 400.0, 6000.0));
+  auto same_mz_table = ConsensusMapArrowExport::exportToArrow(same_mz);
+  TEST_NOT_EQUAL(same_mz_table, nullptr)
+  QPXValueValidation same_mz_validator(QPXValueValidation::View::FEATURE);
+  const auto same_mz_result = same_mz_validator.validate(same_mz_table);
+  TEST_FALSE(same_mz_result.valid)
+  TEST_TRUE(same_mz_result.toString().find("primary key") != std::string::npos)
 }
 END_SECTION
 
@@ -659,6 +783,52 @@ START_SECTION(([EXTRA] isobaric feature rows keep consensus coordinates and list
 }
 END_SECTION
 
+START_SECTION(([EXTRA] SILAC feature labels use the canonical QPX two-plex vocabulary))
+{
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS1");
+  const std::vector<std::string> raw_labels = {"no_label", "Arg6"};
+  for (Size channel = 0; channel < raw_labels.size(); ++channel)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = "/data/silac_run.mzML";
+    header.label = raw_labels[channel];
+    header.setMetaValue("channel_id", static_cast<int>(channel));
+    cmap.getColumnHeaders()[channel] = header;
+  }
+
+  ConsensusFeature feature;
+  feature.setMZ(600.0);
+  feature.setRT(120.0);
+  feature.setCharge(2);
+  for (Size channel = 0; channel < raw_labels.size(); ++channel)
+  {
+    BaseFeature handle;
+    handle.setIntensity(100.0f * (channel + 1));
+    handle.setMZ(600.0);
+    handle.setRT(120.0);
+    handle.setCharge(2);
+    feature.insert(channel, handle);
+  }
+  cmap.push_back(feature);
+
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  auto intensities = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("intensities")->chunk(0));
+  auto entries = std::static_pointer_cast<arrow::StructArray>(intensities->values());
+  auto labels = std::static_pointer_cast<arrow::StringArray>(entries->field(0));
+  TEST_EQUAL(intensities->value_length(0), 2)
+  TEST_STRING_EQUAL(labels->GetString(0), "SILAC light")
+  // Arg6 is the second/heavy-role channel in a two-plex, not "SILAC medium".
+  TEST_STRING_EQUAL(labels->GetString(1), "SILAC heavy")
+
+  QPXValueValidation validator(QPXValueValidation::View::FEATURE);
+  TEST_TRUE(validator.validate(table).valid)
+}
+END_SECTION
+
 START_SECTION(exportToParquet - basic export)
 {
   ConsensusMap cmap = createTestConsensusMap();
@@ -746,6 +916,29 @@ START_SECTION(exportToParquet - no compression)
   TEST_TRUE(success)
 
   TEST_TRUE(File::exists(filename))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToParquet leaves no file behind when the write fails))
+{
+  // The value validation runs before the file is opened, so a refused table never creates one.
+  // A write that fails afterwards is a different matter: FileOutputStream::Open has created and
+  // truncated the file and the Parquet writer has already put its magic bytes there, so what
+  // survives is a headerless fragment that reports as corrupt rather than as the smaller table
+  // it looks like. The streaming writer handles this; the one-shot writer must too.
+  // A row group size of 0 is refused by Parquet for a non-empty table, which reaches that
+  // failure deterministically on every platform.
+  ConsensusMap cmap = createTestConsensusMap();
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  filename += ".parquet";
+
+  ParquetWriteConfig pq_config;
+  pq_config.row_group_size = 0;
+
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config))
+  TEST_FALSE(File::exists(filename))
 }
 END_SECTION
 
@@ -1189,6 +1382,230 @@ START_SECTION(([EXTRA] duplicate identification-run identifiers are refused))
   cmap.setProteinIdentifications({a, b});
 
   TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::exportToArrow(cmap))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] feature_id is derived from the row this exporter wrote, in the declared order))
+{
+  // Re-derives every row's feature_id from the columns AS WRITTEN, passing them in the order
+  // QPXIdentity::FEATURE_COMPOSITE declares. QPXIdentity_test pins the derivation itself against
+  // the reference implementation's vectors; what this pins is the exporter's use of it -- an
+  // exporter that hashed the run name where the peptidoform belongs, or an rt it had not yet
+  // narrowed to float32, would produce ids no reader could reproduce, and neither the schema
+  // check nor a value reference would notice.
+  ConsensusMap cmap = createTestConsensusMap();
+  auto table = ConsensusMapArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  auto ids  = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("feature_id")->chunk(0));
+  auto run  = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  auto pf   = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("peptidoform")->chunk(0));
+  auto chg  = std::static_pointer_cast<arrow::Int16Array>(table->GetColumnByName("charge")->chunk(0));
+  auto rt   = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("rt")->chunk(0));
+  auto mz   = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("observed_mz")->chunk(0));
+  auto scan = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("scan")->chunk(0));
+  auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan->values());
+
+  std::set<Int64> seen;
+  for (int64_t r = 0; r < table->num_rows(); ++r)
+  {
+    std::vector<Int32> components;
+    for (int64_t i = 0; i < scan->value_length(r); ++i)
+    {
+      components.push_back(scan_values->Value(scan->value_offset(r) + i));
+    }
+    const std::optional<float> row_rt =
+      rt->IsNull(r) ? std::optional<float>{} : std::optional<float>{rt->Value(r)};
+
+    TEST_FALSE(ids->IsNull(r))
+    TEST_EQUAL(ids->Value(r), QPXIdentity::featureId(run->GetString(r), pf->GetString(r),
+                                                     chg->Value(r), row_rt, components, mz->Value(r)))
+    // The identity is also the view's primary key.
+    TEST_TRUE(seen.insert(ids->Value(r)).second)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the feature<->PSM cross-references resolve and agree in both directions))
+{
+  // qpx validates three things about these columns: that psm.feature_id resolves to a feature,
+  // that feature.psm_ids resolve to PSMs, and that the two directions describe the SAME edge
+  // (its "reciprocal desync" check). Producing both from one pass is what makes that hold, so
+  // this asserts the property rather than the implementation detail.
+  ConsensusMap cmap = createTestConsensusMap();
+  // The shared fixture leaves the identification run's MS run path unset and its PSMs' run
+  // identifier unlinked. Both are legitimate, but together they mean the psm view cannot resolve
+  // run_file_name -- and a PSM with no run matches no feature row, so the cross-references would
+  // come out empty and every assertion below would hold vacuously. The `total_listed > 0` guard
+  // further down is what catches that if these two lines are ever lost.
+  cmap.getProteinIdentifications()[0].setPrimaryMSRunPath({"sample1.mzML"});
+  for (auto& cf : cmap)
+  {
+    for (auto& pid : cf.getPeptideIdentifications()) { pid.setIdentifier("PI_0"); }
+  }
+
+  QPXIdentity::FeatureLinks links;
+  auto features = ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  TEST_NOT_EQUAL(features, nullptr)
+
+  PeptideIdentificationList all_pepids;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications()) { all_pepids.push_back(pid); }
+  }
+  for (const auto& pid : cmap.getUnassignedPeptideIdentifications()) { all_pepids.push_back(pid); }
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids,
+                                            /*export_all_psms=*/false, &links);
+  TEST_NOT_EQUAL(psms, nullptr)
+
+  auto feature_ids = std::static_pointer_cast<arrow::Int64Array>(features->GetColumnByName("feature_id")->chunk(0));
+  auto psm_ids_col = std::static_pointer_cast<arrow::ListArray>(features->GetColumnByName("psm_ids")->chunk(0));
+  auto psm_ids_values = std::static_pointer_cast<arrow::Int64Array>(psm_ids_col->values());
+  auto psm_id  = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("psm_id")->chunk(0));
+  auto psm_feature_id = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("feature_id")->chunk(0));
+
+  std::set<Int64> known_features;
+  for (int64_t r = 0; r < features->num_rows(); ++r) { known_features.insert(feature_ids->Value(r)); }
+  std::set<Int64> known_psms;
+  for (int64_t r = 0; r < psms->num_rows(); ++r) { known_psms.insert(psm_id->Value(r)); }
+
+  // feature.psm_ids -> psm.psm_id, and the reverse edge each one implies
+  std::map<Int64, Int64> listed_by;    // psm_id -> the feature that lists it
+  Size total_listed = 0;
+  for (int64_t r = 0; r < features->num_rows(); ++r)
+  {
+    for (int64_t i = 0; i < psm_ids_col->value_length(r); ++i)
+    {
+      const Int64 referenced = psm_ids_values->Value(psm_ids_col->value_offset(r) + i);
+      TEST_EQUAL(known_psms.count(referenced), 1)   // no dangling psm_id
+      listed_by[referenced] = feature_ids->Value(r);
+      ++total_listed;
+    }
+  }
+  TEST_TRUE(total_listed > 0)   // an assertion over an empty set proves nothing
+
+  // psm.feature_id -> feature.feature_id, and it must be the feature that lists it back
+  Size total_linked = 0;
+  for (int64_t r = 0; r < psms->num_rows(); ++r)
+  {
+    if (psm_feature_id->IsNull(r)) { continue; }   // unassigned identification: correctly unlinked
+    TEST_EQUAL(known_features.count(psm_feature_id->Value(r)), 1)  // no dangling feature_id
+    const auto back = listed_by.find(psm_id->Value(r));
+    TEST_TRUE(back != listed_by.end())
+    if (back != listed_by.end()) { TEST_EQUAL(back->second, psm_feature_id->Value(r)) }
+    ++total_linked;
+  }
+  TEST_EQUAL(total_linked, total_listed)   // the two directions describe exactly one edge set
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a psm view exported without a feature view leaves feature_id null))
+{
+  // The spec's answer for an unlinked PSM is null, not a fabricated reference. Every psm-only
+  // producer (ProSE, any search engine) takes this path.
+  ConsensusMap cmap = createTestConsensusMap();
+  PeptideIdentificationList all_pepids;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications()) { all_pepids.push_back(pid); }
+  }
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids);
+  TEST_NOT_EQUAL(psms, nullptr)
+  TEST_TRUE(psms->num_rows() > 0)
+  auto psm_feature_id = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("feature_id")->chunk(0));
+  TEST_EQUAL(psm_feature_id->null_count(), psms->num_rows())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link collection))
+{
+  // Both directions of the cross-reference are built from one loop, so they agree per row. The
+  // remaining way they could disagree is ACROSS rows: two consensus features in one run whose
+  // identifications share all four psm-key columns derive the same psm_id, so both rows list it
+  // while psm.feature_id can name only one of them -- the "reciprocal desync" qpx checks for.
+  //
+  // Refuse that ambiguity while collecting the links. Waiting for the psm view's repeated-key
+  // validation would leave exportToArrow() itself returning a feature table whose two rows claim
+  // one PSM while its out_links map can name only one owner.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "/data/runA.mzML";
+  ch.label = "label-free";
+  cmap.getColumnHeaders()[0] = ch;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("PI_0");
+  prot.setPrimaryMSRunPath({"/data/runA.mzML"});
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.01;
+  group.accessions = {"PROT_A"};
+  prot.insertProteinGroup(group);
+  ProteinHit ph;
+  ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  cmap.setProteinIdentifications({prot});
+
+  // One identification, two consensus features. Same run, scan, peptidoform and charge -> same
+  // psm_id; different rt and m/z -> two distinct feature rows, both listing it.
+  const auto make_id = []()
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("PI_0");
+    pid.setSpectrumReference("scan=1234");
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDE"));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    pid.setHits({hit});
+    return pid;
+  };
+
+  for (int i = 0; i < 2; ++i)
+  {
+    ConsensusFeature cf;
+    cf.setMZ(500.0 + i);
+    cf.setRT(100.0 + i);
+    cf.setCharge(2);
+    BaseFeature bf;
+    bf.setIntensity(1000.0f);
+    bf.setMZ(500.0 + i);
+    bf.setRT(100.0 + i);
+    bf.setCharge(2);
+    cf.insert(0, bf);
+    cf.setPeptideIdentifications({make_id()});
+    cmap.push_back(cf);
+  }
+
+  QPXIdentity::FeatureLinks links;
+  bool conflict_reported = false;
+  try
+  {
+    (void)ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    const std::string message = e.what();
+    conflict_reported = message.find("QPX psm_id") != std::string::npos
+                        && message.find("is claimed by feature_id") != std::string::npos;
+  }
+  TEST_TRUE(conflict_reported)
+
+  // The first association remains intact; the conflicting feature never overwrites it.
+  const Int64 psm_id = QPXIdentity::psmId("runA", {1234}, "PEPTIDE", 2);
+  const Int64 first_feature_id = QPXIdentity::featureId("runA", "PEPTIDE", 2, 100.0f,
+                                                        {1234}, 500.0f);
+  TEST_EQUAL(links.size(), 1)
+  TEST_EQUAL(links.at(psm_id), first_feature_id)
+
+  // The streaming merge must detect the same conflict even when the two rows are split between
+  // worker-local maps, and its bool error contract must not leave an incomplete file behind.
+  std::string tmp_file;
+  NEW_TMP_FILE(tmp_file)
+  QPXIdentity::FeatureLinks streaming_links;
+  TEST_FALSE(ConsensusMapArrowExport::exportToParquetStreaming(
+    cmap, tmp_file, 2, ParquetWriteConfig{}, 2, &streaming_links))
+  TEST_FALSE(File::exists(tmp_file))
 }
 END_SECTION
 

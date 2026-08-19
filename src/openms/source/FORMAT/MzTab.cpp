@@ -20,6 +20,8 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+
+#include <algorithm>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -880,6 +882,7 @@ namespace OpenMS
     const ConsensusFeature& c, 
     const ConsensusMap& consensus_map,
     const StringList& ms_runs,
+    const Size n_assays,
     const Size n_study_variables,
     const set<std::string>& consensus_feature_user_value_keys,
     const set<std::string>& peptide_identifications_user_value_keys,
@@ -887,6 +890,8 @@ namespace OpenMS
     const map<std::string, size_t>& idrun_2_run_index,
     const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
     const std::map< std::pair< std::string, unsigned >, unsigned>& path_label_to_assay,
+    const vector<Size>& assay_to_study_variable,
+    const vector<vector<Size>>& study_variable_to_assays,
     const vector<std::string>& fixed_mods,
     bool export_subfeatures)
   {
@@ -949,7 +954,23 @@ namespace OpenMS
     row.charge = MzTabInteger(c.getCharge());
     row.best_search_engine_score[1] = MzTabDouble();
 
-    // initialize columns
+    // Preserve the existing compact layout when assay and study-variable grain are identical.
+    // Once the design genuinely splits them, initialize every assay column in every row.
+    // Ask the mapping, not the two counts: a sample section may hold a sample that owns no assay,
+    // so the counts can agree while one study variable owns two assays and another owns none. Under
+    // the count test the assay columns would then be dropped AND the multi-assay study variable
+    // would stay null below, so those intensities would vanish from the row entirely.
+    const bool has_distinct_assay_grain = std::any_of(
+      study_variable_to_assays.begin() + 1, study_variable_to_assays.end(),
+      [](const std::vector<Size>& assays) { return assays.size() != 1; });
+    if (has_distinct_assay_grain)
+    {
+      for (Size assay = 1; assay <= n_assays; ++assay)
+      {
+        row.peptide_abundance_assay[assay] = MzTabDouble();
+      }
+    }
+
     OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
     for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
     {
@@ -963,36 +984,73 @@ namespace OpenMS
       row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
     }
 
+    map<Size, double> assay_abundances;
     const ConsensusFeature::HandleSetType& fs = c.getFeatures();
     for (auto fit = fs.begin(); fit != fs.end(); ++fit)
     {
-      UInt study_variable{1};
       const int index = fit->getMapIndex();
       const ConsensusMap::ColumnHeader& ch = cm_column_headers.at(index);
 
       UInt label = ch.getLabelAsUInt(experiment_type);
-      // convert from column index to study variable index
       auto pl = make_pair(ch.filename, label);
-      study_variable = path_label_to_assay.at(pl) + 1; // for now, a study_variable is one assay (both 1-based). And pathLabelToSample mapping reports 0-based.
-
-      //TODO implement aggregation in case we generalize study_variable to include multiple assays.
-      row.peptide_abundance_stdev_study_variable[study_variable];
-      row.peptide_abundance_std_error_study_variable[study_variable];
-      row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
+      const auto assay_it = path_label_to_assay.find(pl);
+      if (assay_it == path_label_to_assay.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column ('" + ch.filename + "', label " + StringUtils::toStr(label)
+          + ") has no quantification unit in the experimental design.");
+      }
+      const Size assay = assay_it->second + 1; // design mapping is zero-based; mzTab assays are one-based
+      const Size study_variable = assay_to_study_variable.at(assay);
+      assay_abundances[assay] += fit->getIntensity();
 
       if (export_subfeatures)
       {
-        MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
-        opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + StringUtils::toStr(study_variable) + "]";
-        opt_global_mass_to_charge_study_variable.second = MzTabString(StringUtils::toStr(fit->getMZ()));
-        row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+        // One column per handle. Keying on the study variable is only unique while it owns a single
+        // assay; once it groups replicates, two handles would emit the same column name twice. Keep
+        // the established name in the single-assay case and fall back to the assay otherwise.
+        const bool sv_is_one_assay = study_variable_to_assays.at(study_variable).size() == 1;
+        const std::string suffix = sv_is_one_assay
+          ? "study_variable[" + StringUtils::toStr(study_variable) + "]"
+          : "assay[" + StringUtils::toStr(assay) + "]";
 
-        MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
-        opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + StringUtils::toStr(study_variable) + "]";
-        opt_global_retention_time_study_variable.second = MzTabString(StringUtils::toStr(fit->getRT()));
-        row.opt_.push_back(opt_global_retention_time_study_variable);
+        MzTabOptionalColumnEntry opt_global_mass_to_charge;
+        opt_global_mass_to_charge.first = "opt_global_mass_to_charge_" + suffix;
+        opt_global_mass_to_charge.second = MzTabString(StringUtils::toStr(fit->getMZ()));
+        row.opt_.push_back(opt_global_mass_to_charge);
+
+        MzTabOptionalColumnEntry opt_global_retention_time;
+        opt_global_retention_time.first = "opt_global_retention_time_" + suffix;
+        opt_global_retention_time.second = MzTabString(StringUtils::toStr(fit->getRT()));
+        row.opt_.push_back(opt_global_retention_time);
+      }
+    }
+
+    // A consensus feature can contain one handle for each fraction of an assay.
+    // mzTab assay abundance is the sum over those handles.
+    if (has_distinct_assay_grain)
+    {
+      for (const auto& [assay, abundance] : assay_abundances)
+      {
+        row.peptide_abundance_assay[assay] = MzTabDouble(abundance);
+      }
+    }
+
+    // Copying a single assay is an identity operation. Replicate aggregation is deliberately
+    // left unspecified, so study variables with several assays remain null.
+    for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
+    {
+      const auto& assays = study_variable_to_assays.at(study_variable);
+      if (assays.size() == 1)
+      {
+        const auto abundance = assay_abundances.find(assays.front());
+        if (abundance != assay_abundances.end())
+        {
+          row.peptide_abundance_study_variable[study_variable] = MzTabDouble(abundance->second);
         }
       }
+    }
 
     const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
     if (!curr_pep_ids.empty())
@@ -1294,15 +1352,32 @@ namespace OpenMS
   size_t MzTab::getQuantStudyVariables_(const ProteinIdentification& pid)
   {
     size_t quant_study_variables(0);
-    for (auto & p : pid.getIndistinguishableProteins())
+    for (const auto& p : pid.getIndistinguishableProteins())
     {
-      if (p.getFloatDataArrays().empty()
-        || p.getFloatDataArrays()[0].getName() != "abundances")
+      const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+      for (const auto& array : p.getFloatDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_abundance") { assay_abundances = &array; }
+      }
+      for (const auto& array : p.getIntegerDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_fraction_group") { fraction_groups = &array; }
+        else if (array.getName() == "fraction_group_level_label") { labels = &array; }
+      }
+
+      // The three parallel assay arrays are the explicit quantified-group marker. Their
+      // abundance count is only used as a non-zero gate by the callers; the consensus-map
+      // exporter derives the actual assay and study-variable counts from the design.
+      if (assay_abundances == nullptr || fraction_groups == nullptr || labels == nullptr
+          || assay_abundances->size() != fraction_groups->size()
+          || assay_abundances->size() != labels->size())
       {
         quant_study_variables = 0;
         break;
       }
-      quant_study_variables = p.getFloatDataArrays()[0].size();
+      quant_study_variables = assay_abundances->size();
     }
     return quant_study_variables; 
   }
@@ -1700,6 +1775,107 @@ Not sure how to handle these:
 
     // Add protein(group) row to MzTab
     return protein_row;
+  }
+
+  namespace
+  {
+    bool applyAssayProteinQuantification(
+      MzTabProteinSectionRow& protein_row,
+      const ProteinIdentification::ProteinGroup& group,
+      const vector<pair<UInt, UInt>>& assay_keys,
+      const vector<vector<Size>>& study_variable_to_assays)
+    {
+      const auto& float_arrays = group.getFloatDataArrays();
+
+      const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+      for (const auto& array : float_arrays)
+      {
+        if (array.getName() == "fraction_group_level_abundance")
+        {
+          assay_abundances = &array;
+        }
+      }
+      for (const auto& array : group.getIntegerDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_fraction_group")
+        {
+          fraction_groups = &array;
+        }
+        else if (array.getName() == "fraction_group_level_label")
+        {
+          labels = &array;
+        }
+      }
+
+      const bool any_assay_array = assay_abundances != nullptr || fraction_groups != nullptr || labels != nullptr;
+      if (!any_assay_array)
+      {
+        return false; // old consensusXML or another producer: keep any legacy abundance columns
+      }
+
+      const auto warnAndFallback = [&group](const std::string& reason)
+      {
+        const std::string accession = group.accessions.empty() ? "<unknown>" : group.accessions.front();
+        OPENMS_LOG_WARN << "Cannot use assay-level protein abundances for group '" << accession
+                        << "': " << reason << ". Keeping any pre-existing abundance columns.\n";
+        return false;
+      };
+
+      if (assay_abundances == nullptr || fraction_groups == nullptr || labels == nullptr)
+      {
+        return warnAndFallback("the three named parallel arrays are not all present");
+      }
+      if (assay_abundances->size() != fraction_groups->size() || assay_abundances->size() != labels->size())
+      {
+        return warnAndFallback("the named parallel arrays have different lengths");
+      }
+
+      map<pair<UInt, UInt>, float> abundance_by_assay_key;
+      for (Size i = 0; i < assay_abundances->size(); ++i)
+      {
+        // Both keys are 1-based: MSFileSectionEntry defaults fraction_group to 1 and isValid_()
+        // requires the set to start at 1. Same boundary as the QPX sibling
+        // (ProteinGroupArrowExport_impl.h fractionGroupAbundances). A zero here means the design
+        // did not come from a canonical producer, so it is refused rather than tolerated.
+        if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0)
+        {
+          return warnAndFallback("a fraction group or label key is not 1-based");
+        }
+        const pair<UInt, UInt> key(static_cast<UInt>((*fraction_groups)[i]),
+                                   static_cast<UInt>((*labels)[i]));
+        if (!abundance_by_assay_key.emplace(key, (*assay_abundances)[i]).second)
+        {
+          return warnAndFallback("a (fraction_group, label) key occurs more than once");
+        }
+      }
+
+      protein_row.protein_abundance_assay.clear();
+      protein_row.protein_abundance_study_variable.clear();
+      protein_row.protein_abundance_stdev_study_variable.clear();
+      protein_row.protein_abundance_std_error_study_variable.clear();
+
+      for (Size i = 0; i < assay_keys.size(); ++i)
+      {
+        const Size assay = i + 1;
+        const auto value = abundance_by_assay_key.find(assay_keys[i]);
+        protein_row.protein_abundance_assay[assay] = value == abundance_by_assay_key.end()
+          ? MzTabDouble()
+          : MzTabDouble(value->second);
+      }
+
+      for (Size study_variable = 1; study_variable < study_variable_to_assays.size(); ++study_variable)
+      {
+        const auto& assays = study_variable_to_assays[study_variable];
+        protein_row.protein_abundance_study_variable[study_variable] = assays.size() == 1
+          ? protein_row.protein_abundance_assay.at(assays.front())
+          : MzTabDouble();
+        protein_row.protein_abundance_stdev_study_variable[study_variable] = MzTabDouble();
+        protein_row.protein_abundance_std_error_study_variable[study_variable] = MzTabDouble();
+      }
+      return true;
+    }
   }
 
   map<std::string, Size> MzTab::mapIDRunIdentifier2IDRunIndex_(const vector<const ProteinIdentification*>& prot_ids)
@@ -2797,13 +2973,53 @@ state0:
     std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
     prt_optional_column_names_.emplace_back("opt_global_result_type");
 
-    // determine number of samples
+    // Build mzTab assays from OpenMS quantification units. The named protein arrays use the
+    // same canonical (fraction_group, label) ordering through their explicit parallel keys.
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
+    set<pair<UInt, UInt>> assay_key_set;
+    map<pair<UInt, UInt>, Size> assay_key_to_sample;
+    for (const auto& entry : ed.getMSFileSection())
+    {
+      const pair<UInt, UInt> assay_key(entry.fraction_group, entry.label);
+      assay_key_set.insert(assay_key);
+      auto [sample_it, inserted] = assay_key_to_sample.emplace(assay_key, entry.sample);
+      if (!inserted && sample_it->second != entry.sample)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The same (fraction_group, label) quantification unit resolves to several samples.");
+      }
+    }
 
-    Size n_assays = ed.getNumberOfSamples();
+    assay_keys_.assign(assay_key_set.begin(), assay_key_set.end());
+    n_assays_ = assay_keys_.size();
+    n_study_variables_ = ed.getNumberOfSamples();
+    assay_to_study_variable_.assign(n_assays_ + 1, 0);
+    study_variable_to_assays_.clear();
+    study_variable_to_assays_.resize(n_study_variables_ + 1);
 
-    // TODO for now every assay is a study variable since we do not aggregate across e.g. replicates.
-    n_study_variables_ = n_assays;
+    map<pair<UInt, UInt>, UInt> assay_index_by_key;
+    for (Size i = 0; i < assay_keys_.size(); ++i)
+    {
+      const Size assay = i + 1;
+      const Size study_variable = assay_key_to_sample.at(assay_keys_[i]) + 1;
+      if (study_variable > n_study_variables_)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "A quantification unit resolves to a sample outside the experimental design's sample section.");
+      }
+      assay_index_by_key[assay_keys_[i]] = static_cast<UInt>(i);
+      assay_to_study_variable_[assay] = study_variable;
+      study_variable_to_assays_[study_variable].push_back(assay);
+    }
+
+    path_label_to_assay_.clear();
+    for (const auto& entry : ed.getMSFileSection())
+    {
+      path_label_to_assay_[{entry.path, entry.label}] =
+        assay_index_by_key.at({entry.fraction_group, entry.label});
+    }
 
     ///////////////////////////////////////////////////////////////////////
     // MetaData section
@@ -2848,8 +3064,10 @@ state0:
 
     // set run meta data
     Size run_index{1};
+    map<std::string, Size> path_to_ms_run_index;
     for (std::string m : ms_runs_)
     {
+      path_to_ms_run_index.try_emplace(m, run_index);
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
       mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
@@ -2864,20 +3082,21 @@ state0:
       ++run_index;
     }
 
-    // assay index (and sample index) must be unique numbers 1..n
-    // fraction_group + label define the quant. values of an assay (which currently corresponds to our Sample ID)
-    path_label_to_assay_ = ed.getPathLabelToSampleMapping(false);
-
-    // assay meta data
+    // Populate each assay with every MS run (fraction) belonging to its quantification unit.
     for (auto const & c : consensus_map.getColumnHeaders())
     {
-      Size assay_index{1};
-
-      MzTabAssayMetaData assay;
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay_[pl] + 1; // sample rows are a vector and therefore their IDs zero-based, mzTab assays 1-based
+      const auto assay_it = path_label_to_assay_.find(pl);
+      if (assay_it == path_label_to_assay_.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column ('" + c.second.filename + "', label " + StringUtils::toStr(label)
+          + ") has no quantification unit in the experimental design.");
+      }
+      const Size assay_index = assay_it->second + 1;
 
       if (experiment_type == "label-free")
       {
@@ -2892,25 +3111,33 @@ state0:
         quantification_reagent.fromCellString("[PRIDE,PRIDE:0000317,MS2 based isotope labeling," + c.second.label + "]");
       }
       
-      // look up run index by filename
-      //TODO again, check if we rather want fraction groups instead of individual files.
-      auto md_it = find_if(meta_data_.ms_run.begin(), meta_data_.ms_run.end(),
-        [&c] (const pair<Size, MzTabMSRunMetaData>& m) {
-          return StringUtils::hasSuffix(m.second.location.toCellString(), c.second.filename);
-        } );
-      Size curr_run_index = md_it->first;
+      const auto run_it = path_to_ms_run_index.find(c.second.filename);
+      if (run_it == path_to_ms_run_index.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column '" + c.second.filename + "' has no ms_run entry; the primary MS "
+          "run paths and the column headers disagree.");
+      }
+      const Size curr_run_index = run_it->second;
 
       meta_data_.assay[assay_index].quantification_reagent = quantification_reagent;
-      meta_data_.assay[assay_index].ms_run_ref.push_back(curr_run_index);
+      auto& ms_run_refs = meta_data_.assay[assay_index].ms_run_ref;
+      if (find(ms_run_refs.begin(), ms_run_refs.end(), curr_run_index) == ms_run_refs.end())
+      {
+        ms_run_refs.push_back(curr_run_index);
+      }
+    }
 
-      // study variable meta data
-      MzTabString sv_description;
-      // TODO how would we represent study variables? = Collection of sample rows that are equal except for replicate
-      //  columns?
-      meta_data_.study_variable[assay_index].description.fromCellString("no description given");
-      IntList al;
-      al.push_back(assay_index);
-      meta_data_.study_variable[assay_index].assay_refs = al;
+    // An OpenMS Sample is an mzTab study variable; its quantification units are replicate assays.
+    for (Size study_variable = 1; study_variable <= n_study_variables_; ++study_variable)
+    {
+      auto& study_variable_meta = meta_data_.study_variable[study_variable];
+      study_variable_meta.description.fromCellString("no description given");
+      for (const Size assay : study_variable_to_assays_[study_variable])
+      {
+        study_variable_meta.assay_refs.push_back(static_cast<int>(assay));
+      }
     }
   }
 
@@ -3019,6 +3246,11 @@ state0:
         ind2prot_,
         db_,
         db_version_);
+      applyAssayProteinQuantification(
+        prt_row,
+        group,
+        assay_keys_,
+        study_variable_to_assays_);
       ++prt_indistgroup_id_;
 
       std::swap(row, prt_row);
@@ -3054,6 +3286,7 @@ state0:
      c.get(), 
      consensus_map_, 
      ms_runs_,
+     n_assays_,
      n_study_variables_, 
      consensus_feature_user_value_keys_, 
      consensus_feature_peptide_identification_user_value_keys_, 
@@ -3061,6 +3294,8 @@ state0:
      idrunid_2_idrunindex_,
      map_id_run_fileidx_2_msfileidx_,
      path_label_to_assay_,
+     assay_to_study_variable_,
+     study_variable_to_assays_,
      fixed_mods_,
      export_subfeatures_);
 

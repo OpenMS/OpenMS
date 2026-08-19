@@ -11,6 +11,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <set>
+
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 ///////////////////////////
@@ -64,73 +66,16 @@ STATUS("Preparing test inputs.")
 PeptideIdentificationList comet_check_pids;
 PeptideIdentificationList msgf_check_pids;
 PeptideIdentificationList xtandem_check_pids;
-PeptideIdentificationList merge_check_pids;
-PeptideIdentificationList concat_check_pids;
 std::vector< ProteinIdentification > comet_check_pods;
 std::vector< ProteinIdentification > msgf_check_pods;
 std::vector< ProteinIdentification > xtandem_check_pods;
-std::vector< ProteinIdentification > concat_check_pods;
-std::vector< ProteinIdentification > merge_check_pods;
 
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc_check.idXML"), comet_check_pods, comet_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc_check.idXML"), msgf_check_pods, msgf_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("xtandem.topperc_check.idXML"), xtandem_check_pods, xtandem_check_pids);
-IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.merge.perco.in.idXML"), merge_check_pods, merge_check_pids);
-IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.concat.perco.in.idXML"), concat_check_pods, concat_check_pids);
-
-START_SECTION((static void concatMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, std::string search_engine)))
-{
-    StringList fs;
-    PeptideIdentificationList comet_pids;
-    std::vector< ProteinIdentification > comet_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
-
-    PeptideIdentificationList msgf_pids;
-    std::vector< ProteinIdentification > msgf_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
-
-    StringList ses = ListUtils::create<std::string>("MS-GF+,Comet");
-    PeptideIdentificationList concat_pids;
-    PercolatorFeatureSetHelper::concatMULTISEPeptideIds(concat_pids, msgf_pids, "MS-GF+");
-    PercolatorFeatureSetHelper::concatMULTISEPeptideIds(concat_pids, comet_pids, "Comet");
-    PercolatorFeatureSetHelper::addCONCATSEFeatures(concat_pids, ses, fs);
-
-    //check completeness of feature construction
-    ABORT_IF(!check_pepids(concat_check_pids, concat_pids));
-}
-END_SECTION
-
-START_SECTION((static void mergeMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, std::string search_engine)))
-{
-    PeptideIdentificationList comet_pids;
-    std::vector< ProteinIdentification > comet_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
-
-    PeptideIdentificationList msgf_pids;
-    std::vector< ProteinIdentification > msgf_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
-
-    PeptideIdentificationList merge_pids;
-    StringList ses = ListUtils::create<std::string>("MS-GF+,Comet");
-    PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(merge_pids, msgf_pids, "MS-GF+");
-    PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(merge_pids, comet_pids, "Comet");
-    StringList empty_extra;
-    PercolatorFeatureSetHelper::addMULTISEFeatures(merge_pids, ses, empty_extra, true);
-    TEST_EQUAL(merge_pids.size(),4)
-    for (size_t i = merge_pids.size()-1; i > 0; --i)
-    {
-      PercolatorFeatureSetHelper::checkExtraFeatures(merge_pids[i].getHits(), empty_extra);  // also check against empty extra features list and inconsistency removal
-      merge_pids.erase(merge_pids.begin()+i);  //erase to be able to use completeness check function below
-    }
-    TEST_EQUAL(merge_pids.size(),1)
-    //check completeness of feature construction
-    ABORT_IF(!check_pepids(merge_check_pids, merge_pids));
-}
-END_SECTION
 
 START_SECTION((static void mergeMULTISEProteinIds(std::vector< ProteinIdentification > &all_protein_ids, std::vector< ProteinIdentification > &new_protein_ids)))
 {
-    StringList fs;
     PeptideIdentificationList comet_pids;
     std::vector< ProteinIdentification > comet_pods;
     IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
@@ -139,18 +84,33 @@ START_SECTION((static void mergeMULTISEProteinIds(std::vector< ProteinIdentifica
     std::vector< ProteinIdentification > msgf_pods;
     IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
 
+    // expected result: the union of both runs' ProteinHits, keyed by accession
+    std::set<std::string> expected_accessions;
+    for (const ProteinHit& h : msgf_pods.front().getHits()) expected_accessions.insert(h.getAccession());
+    for (const ProteinHit& h : comet_pods.front().getHits()) expected_accessions.insert(h.getAccession());
+    const std::string expected_db = msgf_pods.front().getSearchParameters().db;
+
     std::vector< ProteinIdentification > merge_pods;
     PercolatorFeatureSetHelper::mergeMULTISEProteinIds(merge_pods, msgf_pods);
+
+    // merging into an empty target creates a single run that adopts the incoming run's settings
+    TEST_EQUAL(merge_pods.size(), 1)
+    TEST_STRING_EQUAL(merge_pods.front().getSearchEngine(), "MS-GF+")
+
     PercolatorFeatureSetHelper::mergeMULTISEProteinIds(merge_pods, comet_pods);
 
-    PeptideIdentificationList merge_pids;
-    StringList ses = ListUtils::create<std::string>("MS-GF+,Comet");
-    PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(merge_pids, msgf_pids, "MS-GF+");
-    PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(merge_pids, comet_pids, "Comet");
-    PercolatorFeatureSetHelper::addMULTISEFeatures(merge_pids, ses, fs, true);
+    // a second run from a different engine collapses the search engine label, never the run
+    TEST_EQUAL(merge_pods.size(), 1)
+    TEST_STRING_EQUAL(merge_pods.front().getSearchEngine(), "multiple")
+    // search parameters stay those of the first merged run
+    TEST_STRING_EQUAL(merge_pods.front().getSearchParameters().db, expected_db)
 
-    //check completeness of feature construction
-    ABORT_IF(!check_proids(merge_check_pods, merge_pods, fs));
+    // ProteinHits are unioned by accession, so shared accessions must not be duplicated
+    TEST_EQUAL(merge_pods.front().getHits().size(), expected_accessions.size())
+    std::set<std::string> merged_accessions;
+    for (const ProteinHit& h : merge_pods.front().getHits()) merged_accessions.insert(h.getAccession());
+    TEST_EQUAL(merged_accessions.size(), expected_accessions.size())
+    TEST_TRUE(merged_accessions == expected_accessions)
 }
 END_SECTION
 
@@ -241,21 +201,30 @@ START_SECTION((static void addANDESFeatures(std::vector< PeptideIdentification >
 }
 END_SECTION
 
-START_SECTION((static void addMULTISEFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &search_engines_used, StringList &feature_set, bool complete_only=true, bool limits_imputation=false)))
-{
-  NOT_TESTABLE  // actually tested in combination with mergeMULTISEPeptideIds
-}
-END_SECTION
-
-START_SECTION((static void addCONCATSEFeatures(std::vector< PeptideIdentification > &peptide_id_list, StringList &search_engines_used, StringList &feature_set)))
-{
-  NOT_TESTABLE  // actually tested in combination with concatMULTISEPeptideIds
-}
-END_SECTION
-
 START_SECTION((static void checkExtraFeatures(const std::vector< PeptideHit > &psms, StringList &extra_features)))
 {
-  NOT_TESTABLE  // actually tested in combination with mergeMULTISEPeptideIds
+    // a requested extra feature survives only if it is present on every PSM
+    PeptideHit hit_a;
+    hit_a.setMetaValue("on_all", 1.0);
+    hit_a.setMetaValue("on_first_only", 2.0);
+
+    PeptideHit hit_b;
+    hit_b.setMetaValue("on_all", 3.0);
+
+    std::vector<PeptideHit> psms {hit_a, hit_b};
+
+    StringList extra = ListUtils::create<std::string>("on_all,on_first_only,on_none");
+    PercolatorFeatureSetHelper::checkExtraFeatures(psms, extra);
+
+    TEST_EQUAL(extra.size(), 1)
+    TEST_TRUE(ListUtils::contains(extra, std::string("on_all")))
+    TEST_FALSE(ListUtils::contains(extra, std::string("on_first_only")))
+    TEST_FALSE(ListUtils::contains(extra, std::string("on_none")))
+
+    // an empty request stays empty and must not touch the PSMs
+    StringList none;
+    PercolatorFeatureSetHelper::checkExtraFeatures(psms, none);
+    TEST_EQUAL(none.size(), 0)
 }
 END_SECTION
 

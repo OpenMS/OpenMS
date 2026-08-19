@@ -165,6 +165,7 @@ namespace OpenMS
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
     tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
+    tools_map["ParquetDiff"] = Internal::ToolDescription("ParquetDiff", cat_dev);
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
     tools_map["QCExporter"] = Internal::ToolDescription("QCExporter", cat_QC);
@@ -194,7 +195,6 @@ namespace OpenMS
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
     tools_map["TransitionListEvidenceFilter"] = Internal::ToolDescription("TransitionListEvidenceFilter", cat_targeted);
-    tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["UniPEFF"] = Internal::ToolDescription("UniPEFF", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
