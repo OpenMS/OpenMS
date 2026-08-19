@@ -1056,6 +1056,11 @@ Build System:
     standalone consumers building against an installed prefix, were registered (#9774)
   - vcpkg integration (GSoC 2026): vcpkg.json, vcpkg-configuration.json and CMakePresets.json manage the
     build dependencies via vcpkg, validated by a dedicated CI workflow with a binary cache (#9511)
+    - Extended from Linux to Windows and macOS: platform-specific configure/build/test presets, overlay
+      ports for onnxruntime, openms-thermo-bridge and opentims (with the clang/newer-gcc glpk build fix
+      applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
+      SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
+      configure time roughly in half by skipping the debug variant of every port (#9800)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for
