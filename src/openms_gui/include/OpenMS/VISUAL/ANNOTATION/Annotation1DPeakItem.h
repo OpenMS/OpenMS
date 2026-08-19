@@ -232,12 +232,18 @@ public:
       // read the charge from the annotation item string; the label keeps it, since
       // PeakAnnotation::annotation is the complete ion name including the charge and
       // PeakAnnotation::charge only repeats it as a number (see PeptideHit::PeakAnnotation)
-      // we support two notations for the charge suffix: '+2' or '++'
+      // we support three notations for the charge suffix: '+2', '++' and the mzPAF '^2'
       int match_pos = peak_anno.indexOf(reg_exp);
       int tmp_charge(0);
       if (match_pos >= 0)
       {
         tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
+      }
+      else if (QRegularExpressionMatch mzpaf = QRegularExpression(R"(\^([\+\-]?\d+)(?=$|[/*]))").match(peak_anno); mzpaf.hasMatch())
+      {
+        // mzPAF spells the charge as '^' plus a number, optionally followed by a mass delta or
+        // confidence field, e.g. "b2^2", "y4-H2O^2/3.2ppm" (see MzPAF)
+        tmp_charge = mzpaf.captured(1).toInt();
       }
       else
       {
