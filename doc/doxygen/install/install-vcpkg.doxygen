@@ -35,6 +35,55 @@
     and the [packaging details](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-packaging?pivots=shell-powershell)
     for details on writing a `overlay-port`.
 
+    @section install_vcpkg_prereqs System prerequisites
+
+    OpenMS need an underlying compiler, build generator,
+    and (because some vcpkg ports build upstream projects using an
+    autotools build system, and because `WITH_GUI` is on by default) the
+    autotools chain and GUI/OpenGL prerequisites below.
+
+    @subsection install_linux_compiler Linux Compiler Requirements
+
+      %OpenMS uses modern C++23 and therefore requires a recent C++
+      compiler.  The minimum supported compilers on GNU/Linux are:
+      
+      - GCC 13 or later
+      - Clang 17 or later
+      
+      On Ubuntu 24.04 (and newer) the default `g++` provided by the
+      `build-essential` package already satisfies this requirement.  On
+      older distributions the system compiler is usually too old to build
+      %OpenMS; install a newer toolchain (for example the `gcc-13` /
+      `g++-13` packages) and point CMake at it via `-DCMAKE_C_COMPILER` and
+      `-DCMAKE_CXX_COMPILER` (see also @ref install_linux_cmake_flags).
+ 
+    @subsection install_vcpkg_prereqs_linux Linux
+
+      \snippet "../../tools/ci/deps-vcpkg-ubuntu.sh" installation_documentation
+ 
+    @subsection required_apps macOS Compiler Requirements
+
+      Apple Clang is the officially supported compiler on macOS for
+      building %OpenMS (GCC can be used at your own risk).  %OpenMS is
+      tested with the Apple Clang toolchain that ships with the last
+      three Xcode releases.  Xcode 16 or later is required for
+      C++23 support.
+
+      A minimal installation of Apple Clang is achieved by downloading
+      Apple's "Command Line Tools".  However we suggest using a full
+      Xcode installation from the Mac App Store.  More details can be
+      found on the [Apple Developer Site][xcode].
+    
+      @note Since macOS El Capitan 10.11, the command line tools can
+      easily be installed via:
+      \code
+      xcode-select --install
+      \endcode
+
+    @subsection install_vcpkg_prereqs_macos macOS
+ 
+      \snippet "../../tools/ci/deps-vcpkg-macos.sh" installation_documentation
+
     @section install_vcpkg_build Building OpenMS with vcpkg
 
     1. vcpkg is included as a git submodule, so make it sure it is checked out alongside
@@ -104,20 +153,12 @@
     -DVCPKG_MANIFEST_FEATURES="isospec;wnetalign;onnxruntime" \
     -DWITH_ONNX=ON -DWITH_WNETALIGN=ON -DUSE_EXTERNAL_ISOSPEC=ON
     \endcode
-    
-    See @ref install_linux_cmake_flags for the full list of `WITH_*`/`USE_EXTERNAL_*`
-    build flags and what each optional feature does.
-    
-    @note `OPENMS_USE_VCPKG` is an alternative to, not a combination with,
-    the system/`contrib`-based dependency discovery described elsewhere in
-    this document -- pick one dependency provider per build directory.
 
     See @ref install_linux or other operating system build docs for the full 
     list of `WITH_*`/`USE_EXTERNAL_*` build flags and what each optional feature does.
     
     @note `OPENMS_USE_VCPKG` is an alternative to, not a combination with,
-    the system/`contrib`-based dependency discovery described elsewhere in
-    this document -- pick one dependency provider per build directory.
+    the system/`contrib`-based dependency discovery.
 
     [vcpkg]: https://vcpkg.io
     [vcpkg-docs]: https://learn.microsoft.com/en-us/vcpkg/
