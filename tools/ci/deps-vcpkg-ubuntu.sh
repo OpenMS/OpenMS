@@ -36,7 +36,9 @@ sudo apt-get -qq install -y \
   git \
   zip \
   unzip \
-  pkg-config
+  pkg-config \
+  flex \
+  bison
 
 
 # GUI dependencies (can be skipped for non-GUI builds):
