@@ -64,6 +64,7 @@ runs:
             grep -E 'Version [0-9.]+' |
             sed -E 's/^.* Version ([0-9.]+) .*$/\1/')
           name=$compiler
+          cc_name=$compiler
           ;;
 
         gcc | g++)
@@ -81,6 +82,7 @@ runs:
         *)
           ver="0.0"
           name=$compiler
+          cc_name=$compiler
           ;;
         esac
 
@@ -212,7 +214,7 @@ runs:
       shell: bash
       env:
         # Official variables that need to be set to build OpenMS:
-        OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contrib/build"
+        CMAKE_PREFIX_PATH: ${{ steps.deps.outputs.cmake_prefix }}
         SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
         # FIXME: Do we actually need this?
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"

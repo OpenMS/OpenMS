@@ -199,7 +199,7 @@ runs:
       with:
         name: vcpkg-cache
         path: ${{ github.workspace }}/.vcpkg-cache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
         ssh_key: ${{ inputs.ssh_key }}
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
