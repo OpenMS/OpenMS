@@ -356,6 +356,85 @@ START_SECTION((void getMultipleSpectra(std::map<Int, MSSpectrum>& spectra, const
 }
 END_SECTION
 
+START_SECTION(([EXTRA] getMultipleSpectra() puts the precursor peak at the charge state of each spectrum))
+{
+  // The section above leaves add_precursor_peaks off ("// yes or no?") because the two APIs used to
+  // disagree once it was on: the loop that fills a spectrum steps 'charge' one past that spectrum's own
+  // charge state, and the precursor block after it used 'charge'. So the precursor of the -5 spectrum was
+  // computed as if it were -6 -- wrong m/z, and annotated with the wrong charge.
+  NucleicAcidSpectrumGenerator gen;
+  Param param = gen.getParameters();
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_precursor_peaks", "true");
+  param.setValue("add_all_precursor_charges", "false"); // only the spectrum's own charge state
+  param.setValue("add_a_ions", "true");
+  param.setValue("add_w_ions", "true");
+  gen.setParameters(param);
+
+  NASequence seq = NASequence::fromString("[m1A]UCCACAGp");
+  const double neutral_mass = seq.getMonoWeight(NASequence::Full, 0);
+
+  set<Int> charges = {-1, -3, -5};
+  map<Int, MSSpectrum> spectra;
+  gen.getMultipleSpectra(spectra, seq, charges, -1);
+  TEST_EQUAL(spectra.size(), charges.size());
+
+  for (const auto& [charge, spectrum] : spectra)
+  {
+    // exactly one precursor peak, at the spectrum's own charge state
+    const auto& names = spectrum.getStringDataArrays()[0];
+    const auto& peak_charges = spectrum.getIntegerDataArrays()[0];
+    Size n_precursors = 0;
+    for (Size i = 0; i < names.size(); ++i)
+    {
+      if (names[i][0] == 'M') // fragment ion names (a, w, a-B) are lower-case
+      {
+        ++n_precursors;
+        TEST_EQUAL(peak_charges[i], charge);
+        TEST_REAL_SIMILAR(spectrum[i].getMZ(), std::fabs(neutral_mass / charge + Constants::PROTON_MASS_U));
+      }
+    }
+    TEST_EQUAL(n_precursors, 1);
+  }
+
+  // the batch API must agree with getSpectrum() for the same charges, precursor included
+  // (this is the comparison the section above skips by leaving add_precursor_peaks off)
+  vector<MSSpectrum> compare(charges.size());
+  Size index = 0;
+  for (Int charge : charges)
+  {
+    gen.getSpectrum(compare[index], seq, -1, charge);
+    index++;
+  }
+  index = 0;
+  for (const auto& pair : spectra)
+  {
+    TEST_EQUAL(compare[index] == pair.second, true);
+    index++;
+  }
+
+  // same guarantee in positive mode
+  spectra.clear();
+  gen.getMultipleSpectra(spectra, seq, set<Int>{2, 3}, 1);
+  for (const auto& [charge, spectrum] : spectra)
+  {
+    const auto& names = spectrum.getStringDataArrays()[0];
+    const auto& peak_charges = spectrum.getIntegerDataArrays()[0];
+    Size n_precursors = 0;
+    for (Size i = 0; i < names.size(); ++i)
+    {
+      if (names[i][0] == 'M')
+      {
+        ++n_precursors;
+        TEST_EQUAL(peak_charges[i], charge);
+        TEST_REAL_SIMILAR(spectrum[i].getMZ(), neutral_mass / charge + Constants::PROTON_MASS_U);
+      }
+    }
+    TEST_EQUAL(n_precursors, 1);
+  }
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////
