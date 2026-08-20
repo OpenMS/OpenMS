@@ -130,7 +130,7 @@ jobs:
             )
           fi
 
-          cmake "${cmake_options[@]}" ..
+          cmake "${cmake_options[@]}" ../..
 
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
