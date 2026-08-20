@@ -1242,7 +1242,9 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-      QStringList lines = toQString(label).split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
+      // "\r\n" comes first in the alternation so a CRLF counts as one line break, and KeepEmptyParts
+      // keeps a blank line the user put between the ion name and their comment.
+      QStringList lines = toQString(label).split(QRegularExpression("\r\n|[\r\n]"), Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         label = fromQString(lines[0]);

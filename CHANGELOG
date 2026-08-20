@@ -613,7 +613,9 @@ GUI tools:
     or ProSE result was displayed as "y1++", i.e. doubly charged. Peak annotations now follow a single
     convention throughout OpenMS (see OpenMS Library) and TOPPView shows the ion name as it is. Editing
     a peak label no longer moves the charge between the ion name and PeakAnnotation::charge, so the
-    label round trip is stable and a label the user did not touch keeps the charge it had (#8766)
+    label round trip is stable and a label the user did not touch keeps the charge it had. Multi-line
+    labels also keep all of their lines, blank ones included; the plot used to show only the first line
+    of an annotation and reading a label back kept only its first extra line (#8766)
 
 OpenMS Library:
   Added:

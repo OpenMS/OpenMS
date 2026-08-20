@@ -219,9 +219,11 @@ public:
       // add new fragment annotation
       QString peak_anno = this->getText().trimmed();
 
-      // check for newlines in the label and only continue with the first line for charge determination
+      // check for newlines in the label and only continue with the first line for charge determination.
+      // KeepEmptyParts: a blank line inside a label is the user's text, and dropping it here would
+      // silently rewrite the label every time the annotations are read back.
       peak_anno.remove('\r');
-      QStringList lines = peak_anno.split('\n', Qt::SkipEmptyParts);
+      QStringList lines = peak_anno.split('\n', Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         peak_anno = lines[0];
