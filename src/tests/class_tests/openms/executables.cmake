@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  ClassTestUtils_test
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
