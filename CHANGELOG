@@ -1105,6 +1105,10 @@ Build System:
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
+  - CI: doc-validate ran an unpinned astral-sh/ruff-action, so ruff 0.16 widening its default lint selection
+    from 59 to 413 rules turned the job red with no commit of its own in between (#9899). The action is now
+    pinned to 0.16.2 and doc/pyopenms/ruff.toml selects the lint rules explicitly, so the result no longer
+    depends on whichever ruff version happens to be installed (#9906)
   - Tests: the 19 assertions on QPX Parquet output were `cmake -E sha256sum` calls that compared the hash to
     nothing, so only file existence was asserted -- a regression emptying a table, renaming every run or
     dropping a column was invisible. They now assert the schema and a row-count floor via the new ParquetDiff
