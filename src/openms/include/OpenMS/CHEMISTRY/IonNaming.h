@@ -28,7 +28,12 @@ namespace OpenMS
   */
   namespace IonNaming
   {
-    /// beyond this magnitude the charge is written as a number instead of a run of signs
+    /**
+      @brief Largest charge magnitude still written as a run of signs
+
+      Beyond this the charge is written as a sign followed by the number, which keeps names readable and
+      bounds the allocation for a charge that came from a file.
+    */
     constexpr int MAX_REPEATED_SIGNS = 8;
 
     /**

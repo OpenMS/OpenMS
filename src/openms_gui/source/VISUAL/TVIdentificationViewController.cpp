@@ -44,6 +44,22 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The fragment ordinal is the digit run right after the ion letter; losses and the charge follow it.
+    /// Deleting only '+' would fold a numeric charge suffix into the number ("y3+12" -> "y312"), and
+    /// deleting every 'y' would corrupt any name that repeats the ion letter.
+    UInt ionOrdinalFromName_(const QString& ion_name)
+    {
+      QString digits;
+      for (int i = 1; i < ion_name.size() && ion_name.at(i).isDigit(); ++i)
+      {
+        digits.append(ion_name.at(i));
+      }
+      return digits.toUInt();
+    }
+  }
+
   TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
@@ -1041,23 +1057,23 @@ namespace OpenMS
       {
         PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
         QString s(sa[aligned_peak_indices[i].second].c_str());
-        QString ion_nr_string = s;
 
         if (s.at(0) == 'y')
         {
-          ion_nr_string.replace("y", "");
-          ion_nr_string.replace("+", "");
-          Size ion_number = ion_nr_string.toUInt();
+          const Size ion_number = ionOrdinalFromName_(s);
           s.append("\n");
           // extract peptide ion sequence
           QString aa_ss;
-          for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
+          if (ion_number > 0 && ion_number <= aa_sequence.size()) // else: no ordinal to index the peptide with
           {
-            const Residue& r = aa_sequence.getResidue(j);
-            aa_ss.append(toQString(r.getOneLetterCode()));
-            if (r.isModified())
+            for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
             {
-              aa_ss.append("*");
+              const Residue& r = aa_sequence.getResidue(j);
+              aa_ss.append(toQString(r.getOneLetterCode()));
+              if (r.isModified())
+              {
+                aa_ss.append("*");
+              }
             }
           }
           s.append(aa_ss);
@@ -1066,15 +1082,17 @@ namespace OpenMS
         }
         else if (s.at(0) == 'b')
         {
-          ion_nr_string.replace("b", "");
-          ion_nr_string.replace("+", "");
-          UInt ion_number = ion_nr_string.toUInt();
+          const UInt ion_number = ionOrdinalFromName_(s);
           s.append("\n");
           // extract peptide ion sequence
-          AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
-          QString aa_ss = toQString(aa_subsequence.toString());
-          // shorten modifications "(MODNAME)" to "*"
-          aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
+          QString aa_ss;
+          if (ion_number > 0 && ion_number <= aa_sequence.size()) // else: no ordinal to index the peptide with
+          {
+            AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
+            aa_ss = toQString(aa_subsequence.toString());
+            // shorten modifications "(MODNAME)" to "*"
+            aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
+          }
           // append to label
           s.append(aa_ss);
           Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
