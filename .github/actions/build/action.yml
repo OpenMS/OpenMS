@@ -23,6 +23,9 @@ outputs:
   version:
     description: "The discovered compiler version number"
     value: ${{ steps.compiler.outputs.ver }}
+  preset:
+    description: "The resolved CMake preset name"
+    value: ${{ steps.preset.outputs.name }}
 runs:
   using: "composite"
   steps:

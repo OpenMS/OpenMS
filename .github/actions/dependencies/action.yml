@@ -124,7 +124,8 @@ runs:
         # longer needed -- LaTeX formulas render client-side via MathJax.)
         choco install -y --no-progress \
           ccache \
-          graphviz
+          graphviz \
+          rsync
 
         # Use a custom NSIS, which provides 8-k string support and has
         # UltraModernUI integrated already:
