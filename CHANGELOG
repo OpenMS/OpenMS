@@ -770,6 +770,10 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: MzPAF could not parse a negative charge. MzPAF::toString() writes the sign it is given
+      ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
+      own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --
+      could be expressed in mzPAF at all. An optional sign is now read before the number
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
       longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
       they use the native schemas and file_type tokens such as consensus_features / features /
