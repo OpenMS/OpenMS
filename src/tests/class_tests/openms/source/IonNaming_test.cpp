@@ -95,6 +95,14 @@ START_SECTION((int chargeFromName(const std::string& ion_name)))
   // absurdly long digit runs are not charges and must not overflow
   TEST_EQUAL(IonNaming::chargeFromName("y5+99999999999999999999"), 0)
   TEST_EQUAL(IonNaming::chargeFromName("y5^99999999999999999999"), 0)
+  // ... but a value that does not fit in an int is rejected rather than wrapped
+  TEST_EQUAL(IonNaming::chargeFromName("y5+2147483648"), 0)
+  TEST_EQUAL(IonNaming::chargeFromName("y5-2147483649"), 0)
+
+  // the caret form is a charge only when the digits end the name or a further mzPAF field follows;
+  // otherwise it is ordinary text that happens to contain a caret
+  TEST_EQUAL(IonNaming::chargeFromName("note ^2text"), 0)
+  TEST_EQUAL(IonNaming::chargeFromName("y4^2abc"), 0)
 }
 END_SECTION
 
@@ -104,6 +112,13 @@ START_SECTION(([EXTRA] chargeSuffix and chargeFromName round trip))
   for (int z = -20; z <= 20; ++z)
   {
     if (z == 0) { continue; }
+    const std::string name = "y5" + IonNaming::chargeSuffix(z);
+    TEST_EQUAL(IonNaming::chargeFromName(name), z)
+  }
+  // every suffix chargeSuffix() can emit must read back, including the 10-digit ones. Otherwise a
+  // consumer sees "this name spells no charge" and appends a second suffix.
+  for (int z : {9, 99, 2000000000, INT_MAX, INT_MIN, -2000000000})
+  {
     const std::string name = "y5" + IonNaming::chargeSuffix(z);
     TEST_EQUAL(IonNaming::chargeFromName(name), z)
   }

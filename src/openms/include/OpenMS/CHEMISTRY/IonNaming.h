@@ -12,6 +12,7 @@
 #include <OpenMS/OpenMSConfig.h>
 
 #include <cctype>
+#include <climits>
 #include <string>
 
 namespace OpenMS
@@ -66,12 +67,23 @@ namespace OpenMS
       const std::string name = ion_name.substr(0, ion_name.find_first_of("\r\n"));
       if (name.empty()) { return 0; }
 
-      // a charge never has more digits than this; anything longer is not a charge (and would overflow)
-      const std::string::size_type MAX_DIGITS = 9;
+      // parse name[begin, end) as a charge magnitude; returns false if it is not one that fits in an int.
+      // Widening before the range check matters: the digits come from a file and chargeSuffix() itself can
+      // emit 10 of them (INT_MIN -> "-2147483648"), which would overflow a narrower parse.
+      auto toCharge = [&name](std::string::size_type begin, std::string::size_type end, bool negative, int& out) {
+        if (end <= begin || (end - begin) > 10) { return false; }
+        long long value = 0;
+        for (std::string::size_type i = begin; i < end; ++i) { value = value * 10 + (name[i] - '0'); }
+        if (negative) { value = -value; }
+        if (value < (long long)INT_MIN || value > (long long)INT_MAX) { return false; }
+        out = (int)value;
+        return true;
+      };
 
-      // mzPAF: '^' followed by an optionally signed number, optionally followed by further mzPAF fields.
-      // Checked before the trailing-number form below, because mzPAF's mass delta is itself a signed
-      // number at the end of the name ("y4-H2O1^2/-1") and would otherwise be read as the charge.
+      // mzPAF: '^' followed by an optionally signed number, then either the end of the name or one of
+      // mzPAF's following fields ('/' mass delta, '*' confidence). Checked before the trailing-number form
+      // below, because mzPAF's mass delta is itself a signed number at the end of the name
+      // ("y4-H2O1^2/-1") and would otherwise be read as the charge.
       const std::string::size_type caret = name.rfind('^');
       if (caret != std::string::npos)
       {
@@ -80,11 +92,10 @@ namespace OpenMS
         if (c < name.size() && (name[c] == '+' || name[c] == '-')) { ++c; }
         std::string::size_type end = c;
         while (end < name.size() && std::isdigit((unsigned char)name[end])) { ++end; }
-        if (end > c && (end - c) <= MAX_DIGITS)
-        {
-          const int value = std::stoi(name.substr(c, end - c));
-          return negative ? -value : value;
-        }
+        // anything other than a field delimiter after the digits means this is not a charge token
+        const bool token_ends = (end == name.size() || name[end] == '/' || name[end] == '*');
+        int value = 0;
+        if (token_ends && toCharge(c, end, negative, value)) { return value; }
       }
 
       const char last = name.back();
@@ -103,10 +114,10 @@ namespace OpenMS
       {
         std::string::size_type d = name.size();
         while (d > 0 && std::isdigit((unsigned char)name[d - 1])) { --d; }
-        if (d > 0 && (name[d - 1] == '+' || name[d - 1] == '-') && (name.size() - d) <= MAX_DIGITS)
+        int value = 0;
+        if (d > 0 && (name[d - 1] == '+' || name[d - 1] == '-') && toCharge(d, name.size(), name[d - 1] == '-', value))
         {
-          const int value = std::stoi(name.substr(d));
-          return (name[d - 1] == '-') ? -value : value;
+          return value;
         }
       }
       return 0;

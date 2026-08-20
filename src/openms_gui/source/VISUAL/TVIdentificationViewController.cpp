@@ -1216,8 +1216,9 @@ namespace OpenMS
       std::string label = ann.annotation;
       StringUtils::trim(label);
       if (ann.charge != 0 && IonNaming::chargeFromName(label) == 0)
-      {
-        label += IonNaming::chargeSuffix(ann.charge);
+      { // the ion name is the first line, so the charge goes there and not behind the free text below it
+        const std::string::size_type eol = label.find_first_of("\r\n");
+        label.insert((eol == std::string::npos) ? label.size() : eol, IonNaming::chargeSuffix(ann.charge));
       }
 
 #ifdef DEBUG_IDENTIFICATION_VIEW
