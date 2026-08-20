@@ -70,10 +70,15 @@ public:
       can be stored.
 
       The string annotation is the complete, human readable name of the ion and
-      @em always spells out its charge, e.g. "y3+" for a singly and "y3++" for a
-      doubly charged y3 ion (mzPAF annotations use the "^2" notation instead, e.g.
-      "y3-H2O^2"). It is meant to be displayed as-is, e.g. to label peaks in
-      TOPPView -- never append the charge a second time.
+      spells out its charge, e.g. "y3+" for a singly and "y3++" for a doubly charged
+      y3 ion; charges beyond +/-8 are written as a sign plus the number ("y3+12").
+      It is meant to be displayed as-is, e.g. to label peaks in TOPPView -- never
+      append the charge a second time.
+      Two documented exceptions leave the charge out of the name: mzPAF annotations
+      use the "^2" notation and omit it entirely for charge 1 (the mzPAF default), and
+      annotations read from files written before this convention carry only @p charge.
+      Use IonNaming::chargeFromName() to tell "the name spells no charge" (returns 0)
+      from "the name says charge 1", and IonNaming::chargeSuffix() to write the notation.
       @p charge holds the same charge as a number, for consumers that need it
       machine readable (the charge column of idXML, mzIdentML, the OMS database
       and the parquet formats). It is a duplicate of what the name says, not a

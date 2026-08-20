@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
@@ -1206,11 +1207,18 @@ namespace OpenMS
         continue;
       }
 
-      // PeakAnnotation::annotation is the complete ion name and already spells out the charge
-      // (see PeptideHit::PeakAnnotation) -- appending PeakAnnotation::charge on top of it would
-      // label every singly charged fragment as doubly charged
+      // PeakAnnotation::annotation is the complete ion name and normally already spells out the
+      // charge (see PeptideHit::PeakAnnotation) -- appending PeakAnnotation::charge on top of that
+      // would label every singly charged fragment as doubly charged.
+      // Names that do not spell it out still occur: files written before the ion name carried the
+      // charge, mzPAF names (which omit '^1'), and a few producers that have not been migrated.
+      // For those the charge is added here so it does not disappear from the plot.
       std::string label = ann.annotation;
       StringUtils::trim(label);
+      if (ann.charge != 0 && IonNaming::chargeFromName(label) == 0)
+      {
+        label += IonNaming::chargeSuffix(ann.charge);
+      }
 
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
@@ -1239,10 +1247,10 @@ namespace OpenMS
           peak_color = Qt::red;
         }
       }
-      else
+      else if (!label.empty())
       { // different colors for left/right fragments (e.g. b/y ions)
-        color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
-        peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
+        color = (label.front() < 'n') ? Qt::darkRed : Qt::darkGreen;
+        peak_color = (label.front() < 'n') ? Qt::red : Qt::green;
       }
 
       Peak1D position(current_spectrum[peak_idx].getMZ(),

@@ -9,21 +9,12 @@
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <cstdlib>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  namespace
-  {
-    /// ion names spell out the charge, see PeptideHit::PeakAnnotation
-    std::string chargeSuffix_(Int charge)
-    {
-      return std::string((Size)std::abs(charge), (charge < 0) ? '-' : '+');
-    }
-  }
-
   NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator() : DefaultParamHandler("NucleicAcidSpectrumGenerator")
   {
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as meta information to the peaks, charge included, e.g. c1-, y2--, a3-B-");
@@ -341,7 +332,7 @@ namespace OpenMS
     {
       auto& ions = spectrum.getStringDataArrays()[0];
       auto source_it = uncharged_spectrum.getStringDataArrays()[0].begin();
-      const std::string charge_str = chargeSuffix_(charge);
+      const std::string charge_str = IonNaming::chargeSuffix(charge);
       for (Size i = 0; i < size; ++i)
       {
         ions.push_back(*(source_it + i) + charge_str);
@@ -455,7 +446,7 @@ namespace OpenMS
           spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / spec_charge + Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
-            spectrum.getStringDataArrays()[0].push_back("M" + chargeSuffix_(spec_charge));
+            spectrum.getStringDataArrays()[0].push_back("M" + IonNaming::chargeSuffix(spec_charge));
             spectrum.getIntegerDataArrays()[0].push_back(spec_charge);
           }
         }
@@ -495,7 +486,7 @@ namespace OpenMS
           spectrum.back().setMZ(spectrum.back().getMZ() / spec_charge + Constants::PROTON_MASS_U);
           if (add_metainfo_)
           {
-            spectrum.getStringDataArrays()[0].push_back("M" + chargeSuffix_(spec_charge));
+            spectrum.getStringDataArrays()[0].push_back("M" + IonNaming::chargeSuffix(spec_charge));
             spectrum.getIntegerDataArrays()[0].push_back(spec_charge);
           }
         }

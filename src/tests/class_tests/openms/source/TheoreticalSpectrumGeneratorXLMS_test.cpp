@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -29,6 +30,26 @@ static void insertChargeStates_(std::set<std::string>& names, const std::string&
   for (OpenMS::Size z = min_charge; z <= max_charge; ++z)
   {
     names.insert(ion + std::string(z, '+'));
+  }
+}
+
+// Check every generated peak: its name must be expected AND must spell out exactly the charge recorded
+// in the Charges data array (see PeptideHit::PeakAnnotation).
+// The membership check alone cannot catch a wrong charge suffix - the expected set is closed over the
+// whole charge range for every base name, so any charge in range satisfies it. Correlating the name with
+// the charge array is what actually pins the suffix down.
+static void checkNamesAndCharges_(const OpenMS::PeakSpectrum& spec, const std::set<std::string>& expected)
+{
+  TEST_EQUAL(spec.getStringDataArrays().empty(), false)
+  TEST_EQUAL(spec.getIntegerDataArrays().empty(), false)
+  const OpenMS::PeakSpectrum::StringDataArray& names = spec.getStringDataArrays()[0];
+  const OpenMS::PeakSpectrum::IntegerDataArray& charges = spec.getIntegerDataArrays()[0];
+  TEST_EQUAL(names.size(), spec.size())
+  TEST_EQUAL(charges.size(), spec.size())
+  for (OpenMS::Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_EQUAL(expected.find(names[i]) != expected.end(), true)
+    TEST_EQUAL(OpenMS::IonNaming::chargeFromName(names[i]), charges[i])
   }
 }
 
@@ -134,11 +155,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
   // check if all ion names have been annotated
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    std::string name = string_array[i];
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-  }
+  checkNamesAndCharges_(spec, ion_names);
 
   // beta annotations
   spec.clear(true);
@@ -159,11 +176,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
 
   string_array = spec.getStringDataArrays().at(0);
 
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    std::string name = string_array[i];
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-  }
+  checkNamesAndCharges_(spec, ion_names);
 
   // test for charges stored in IntegerDataArray
   PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
@@ -375,11 +388,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
   // check if all ion names have been annotated
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    std::string name = string_array[i];
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-  }
+  checkNamesAndCharges_(spec, ion_names);
 
   // beta annotations
   spec.clear(true);
@@ -409,11 +418,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 
   string_array = spec.getStringDataArrays().at(0);
 
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    std::string name = string_array[i];
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-  }
+  checkNamesAndCharges_(spec, ion_names);
 
   // test for charges stored in IntegerDataArray
   PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
@@ -666,12 +671,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
   // check if all ion names have been annotated
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    std::string name = string_array[i];
-    // TEST_EQUAL(name, "TESTSTRING")
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-  }
+  checkNamesAndCharges_(spec, ion_names);
 
   // beta annotations
   spec.clear(true);
@@ -705,12 +705,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
 
   string_array = spec.getStringDataArrays().at(0);
 
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    std::string name = string_array[i];
-    // TEST_EQUAL(name, "TESTSTRING")
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-  }
+  checkNamesAndCharges_(spec, ion_names);
 
   // test for charges stored in IntegerDataArray
   PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);

@@ -9,24 +9,15 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <cstdlib>
 
 
 using namespace std;
 
 namespace OpenMS
 {
-  namespace
-  {
-    /// ion names spell out the charge, see PeptideHit::PeakAnnotation
-    std::string chargeSuffix_(int charge)
-    {
-      return std::string((Size)std::abs(charge), (charge < 0) ? '-' : '+');
-    }
-  }
-
   TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS() :
     DefaultParamHandler("TheoreticalSpectrumGeneratorXLMS")
   {
@@ -570,7 +561,7 @@ namespace OpenMS
     if (add_metainfo_)
     {
       // the ion name spells out the charge, see PeptideHit::PeakAnnotation
-      ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]" + chargeSuffix_(charge));
+      ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]" + IonNaming::chargeSuffix(charge));
     }
     if (add_charges_)
     {
@@ -592,7 +583,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H2O1]" + chargeSuffix_(charge));
+          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H2O1]" + IonNaming::chargeSuffix(charge));
         }
         if (add_charges_)
         {
@@ -611,7 +602,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H3N1]" + chargeSuffix_(charge));
+          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H3N1]" + IonNaming::chargeSuffix(charge));
         }
         if (add_charges_)
         {
@@ -632,7 +623,7 @@ namespace OpenMS
     p.setIntensity(pre_int_);
     if (add_metainfo_)
     {
-      ion_names.emplace_back(std::string("[M+H]") + chargeSuffix_(charge));
+      ion_names.emplace_back(std::string("[M+H]") + IonNaming::chargeSuffix(charge));
     }
     if (add_charges_)
     {
@@ -646,7 +637,7 @@ namespace OpenMS
       p.setIntensity(pre_int_);
       if (add_metainfo_)
       {
-        ion_names.emplace_back(std::string("[M+H]") + chargeSuffix_(charge));
+        ion_names.emplace_back(std::string("[M+H]") + IonNaming::chargeSuffix(charge));
       }
       if (add_charges_)
       {
@@ -662,7 +653,7 @@ namespace OpenMS
     p.setIntensity(pre_int_H2O_);
     if (add_metainfo_)
     {
-      ion_names.emplace_back(std::string("[M+H]-H2O") + chargeSuffix_(charge));
+      ion_names.emplace_back(std::string("[M+H]-H2O") + IonNaming::chargeSuffix(charge));
     }
     if (add_charges_)
     {
@@ -676,7 +667,7 @@ namespace OpenMS
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
       {
-        ion_names.emplace_back(std::string("[M+H]-H2O") + chargeSuffix_(charge));
+        ion_names.emplace_back(std::string("[M+H]-H2O") + IonNaming::chargeSuffix(charge));
       }
       if (add_charges_)
       {
@@ -691,7 +682,7 @@ namespace OpenMS
     p.setIntensity(pre_int_NH3_);
     if (add_metainfo_)
     {
-      ion_names.emplace_back(std::string("[M+H]-NH3") + chargeSuffix_(charge));
+      ion_names.emplace_back(std::string("[M+H]-NH3") + IonNaming::chargeSuffix(charge));
     }
     if (add_charges_)
     {
@@ -705,7 +696,7 @@ namespace OpenMS
       p.setIntensity(pre_int_NH3_);
       if (add_metainfo_)
       {
-        ion_names.emplace_back(std::string("[M+H]-NH3") + chargeSuffix_(charge));
+        ion_names.emplace_back(std::string("[M+H]-NH3") + IonNaming::chargeSuffix(charge));
       }
       if (add_charges_)
       {
@@ -773,7 +764,7 @@ namespace OpenMS
         l_pos = 0;
       }
       // the ion name spells out the charge, see PeptideHit::PeakAnnotation
-      ion_name = "[" + peptide[l_pos].getOneLetterCode() + "-linked-" + ion_type + "]" + chargeSuffix_(charge);
+      ion_name = "[" + peptide[l_pos].getOneLetterCode() + "-linked-" + ion_type + "]" + IonNaming::chargeSuffix(charge);
       ion_names.push_back(ion_name);
     }
     if (add_charges_)
@@ -811,7 +802,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back(StringUtils::prefix(ion_name, ion_name.size()-1) + "-H2O1]" + chargeSuffix_(charge));
+          ion_names.emplace_back(StringUtils::prefix(ion_name, ion_name.size()-1) + "-H2O1]" + IonNaming::chargeSuffix(charge));
         }
         if (add_charges_)
         {
@@ -830,7 +821,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back(StringUtils::prefix(ion_name, ion_name.size()-1) + "-H3N1]" + chargeSuffix_(charge));
+          ion_names.emplace_back(StringUtils::prefix(ion_name, ion_name.size()-1) + "-H3N1]" + IonNaming::chargeSuffix(charge));
         }
         if (add_charges_)
         {

@@ -18,7 +18,7 @@
 #include <regex>
 #include <functional>
 #include <unordered_set>
-#include <cstdlib>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 
 namespace OpenMS
 {
@@ -132,9 +132,10 @@ namespace OpenMS
           PeptideHit::PeakAnnotation peak_temp; 
 
           peak_temp.charge = StringUtils::toInt32(row[to_idx_a.at("fragment_charge")]); 
-          // the ion name spells out the charge, see PeptideHit::PeakAnnotation
+          // the ion name spells out the charge, see PeptideHit::PeakAnnotation.
+          // the charge comes straight from the file, so the notation must be bounded
           peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]
-                               + std::string((Size)std::abs(peak_temp.charge), (peak_temp.charge < 0) ? '-' : '+'); 
+                               + IonNaming::chargeSuffix(peak_temp.charge); 
           peak_temp.intensity = StringUtils::toDouble(row[to_idx_a.at("fragment_intensity")]); 
           peak_temp.mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_experimental")]); 
 
@@ -148,9 +149,10 @@ namespace OpenMS
           PeptideHit::PeakAnnotation peak_temp; 
 
           peak_temp.charge = StringUtils::toInt32(row[to_idx_a.at("fragment_charge")]); 
-          // the ion name spells out the charge, see PeptideHit::PeakAnnotation
+          // the ion name spells out the charge, see PeptideHit::PeakAnnotation.
+          // the charge comes straight from the file, so the notation must be bounded
           peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]
-                               + std::string((Size)std::abs(peak_temp.charge), (peak_temp.charge < 0) ? '-' : '+'); 
+                               + IonNaming::chargeSuffix(peak_temp.charge); 
           peak_temp.intensity = StringUtils::toDouble(row[to_idx_a.at("fragment_intensity")]); 
           peak_temp.mz = StringUtils::toDouble(row[to_idx_a.at("fragment_mz_experimental")]); 
 

@@ -10,6 +10,7 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -226,58 +227,12 @@ public:
         peak_anno = lines[0];
       }
 
-      // regular expression for a charge at the end of the annotation
-      QRegularExpression reg_exp(R"(([\+|\-]\d+)$)");
-
       // read the charge from the annotation item string; the label keeps it, since
       // PeakAnnotation::annotation is the complete ion name including the charge and
-      // PeakAnnotation::charge only repeats it as a number (see PeptideHit::PeakAnnotation)
-      // we support three notations for the charge suffix: '+2', '++' and the mzPAF '^2'
-      int match_pos = peak_anno.indexOf(reg_exp);
-      int tmp_charge(0);
-      if (match_pos >= 0)
-      {
-        tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
-      }
-      else if (QRegularExpressionMatch mzpaf = QRegularExpression(R"(\^([\+\-]?\d+)(?=$|[/*]))").match(peak_anno); mzpaf.hasMatch())
-      {
-        // mzPAF spells the charge as '^' plus a number, optionally followed by a mass delta or
-        // confidence field, e.g. "b2^2", "y4-H2O^2/3.2ppm" (see MzPAF)
-        tmp_charge = mzpaf.captured(1).toInt();
-      }
-      else
-      {
-        // count number of + and - in suffix (e.g., to support "++" as charge 2 annotation)
-        int plus(0), minus(0);
-
-        for (int p = (int)peak_anno.size() - 1; p >= 0; --p)
-        {
-          if (peak_anno[p] == '+')
-          {
-            ++plus;
-            continue;
-          }
-          else if (peak_anno[p] == '-')
-          {
-            ++minus;
-            continue;
-          }
-          else // not '+' or '-'?
-          {
-            if (plus > 0 && minus == 0) // found pluses?
-            {
-              tmp_charge = plus;
-              break;
-            }
-            else if (minus > 0 && plus == 0) // found minuses?
-            {
-              tmp_charge = -minus;
-              break;
-            }
-            break;
-          }
-        }
-      }
+      // PeakAnnotation::charge only repeats it as a number (see PeptideHit::PeakAnnotation).
+      // IonNaming::chargeFromName understands all three notations ('+2', '++' and the mzPAF '^2')
+      // and is the same function the producers write with, so parser and producers cannot drift apart.
+      const int tmp_charge = IonNaming::chargeFromName(fromQString(peak_anno));
 
       PeptideHit::PeakAnnotation fa;
       fa.charge = tmp_charge;

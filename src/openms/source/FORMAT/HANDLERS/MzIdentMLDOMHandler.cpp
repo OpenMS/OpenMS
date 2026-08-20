@@ -23,7 +23,7 @@
 #include <cerrno>
 #include <limits>
 #include <xercesc/util/XMLString.hpp>
-#include <cstdlib>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 
 using namespace std;
 using namespace xercesc;
@@ -1708,9 +1708,10 @@ namespace OpenMS::Internal
 
               for (Size s = 0; s < indices.size(); ++s)
               {
-                // the ion name spells out the charge, see PeptideHit::PeakAnnotation
+                // the ion name spells out the charge, see PeptideHit::PeakAnnotation.
+                // ion_charge comes straight from the file, so the notation must be bounded
                 std::string annotation= "[" + chains[s] + "|" + categories[s]  + "$" + frag_type + indices[s] + loss + "]"
-                                      + std::string((Size)std::abs(ion_charge), (ion_charge < 0) ? '-' : '+');
+                                      + IonNaming::chargeSuffix(ion_charge);
 
                 PeptideHit::PeakAnnotation frag_anno;
                 frag_anno.charge = ion_charge;
