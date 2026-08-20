@@ -414,8 +414,10 @@ START_SECTION(([EXTRA] getMultipleSpectra() puts the precursor peak at the charg
   }
 
   // same guarantee in positive mode
+  const set<Int> pos_charges = {2, 3};
   spectra.clear();
-  gen.getMultipleSpectra(spectra, seq, set<Int>{2, 3}, 1);
+  gen.getMultipleSpectra(spectra, seq, pos_charges, 1);
+  TEST_EQUAL(spectra.size(), pos_charges.size());
   for (const auto& [charge, spectrum] : spectra)
   {
     const auto& names = spectrum.getStringDataArrays()[0];
@@ -431,6 +433,21 @@ START_SECTION(([EXTRA] getMultipleSpectra() puts the precursor peak at the charg
       }
     }
     TEST_EQUAL(n_precursors, 1);
+  }
+
+  // ... including the agreement between the two APIs
+  vector<MSSpectrum> pos_compare(pos_charges.size());
+  index = 0;
+  for (Int charge : pos_charges)
+  {
+    gen.getSpectrum(pos_compare[index], seq, 1, charge);
+    index++;
+  }
+  index = 0;
+  for (const auto& pair : spectra)
+  {
+    TEST_EQUAL(pos_compare[index] == pair.second, true);
+    index++;
   }
 }
 END_SECTION
