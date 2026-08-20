@@ -9,19 +9,19 @@ SKIP_GUI_DEPS=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --skip-doc-deps)
-      SKIP_DOC_DEPS=true
-      shift
-      ;;
-    --skip-gui-deps)
-      SKIP_GUI_DEPS=true
-      shift
-      ;;
-    *)
-      echo "Unknown option: $1"
-      echo "Usage: $0 [--skip-doc-deps] [--skip-gui-deps]"
-      exit 1
-      ;;
+  --skip-doc-deps)
+    SKIP_DOC_DEPS=true
+    shift
+    ;;
+  --skip-gui-deps)
+    SKIP_GUI_DEPS=true
+    shift
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Usage: $0 [--skip-doc-deps] [--skip-gui-deps]"
+    exit 1
+    ;;
   esac
 done
 
@@ -57,25 +57,15 @@ brew install \
   autoconf \
   autoconf-archive \
   automake \
+  bash \
+  bison \
+  ccache \
   dotnet \
+  flex \
   icu4c \
   libtool \
-  ninja \
-  libomp \
-  libsvm \
-  xerces-c \
-  boost \
-  eigen \
-  sqlite \
-  coinutils \
-  cbc \
-  cgl \
-  clp \
-  apache-arrow \
-  libzip \
-  zstd \
-  bash \
-  uv
+  pkg-config \
+  ninja
 
 # GUI dependencies (can be skipped for non-GUI builds):
 if [ "$SKIP_GUI_DEPS" = false ]; then

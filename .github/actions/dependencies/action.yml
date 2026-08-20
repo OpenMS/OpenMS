@@ -53,57 +53,6 @@ runs:
             fi
           done
 
-    - name: Install Conda
-      if: runner.os == 'Windows'
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        activate-environment: "ci"
-        python-version: 3.11
-        use-mamba: true
-
-    - name: Install Dependencies via Conda
-      id: conda-setup
-      if: runner.os == 'Windows'
-      # NOTE: This weird shell line is needed in order to activate
-      # conda (and put it in this shell's PATH) since the way it's
-      # installed requires a login shell :(
-      shell: bash -el {0}
-      run: |
-        # Dump out environment information for debugging:
-        conda info
-
-        # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        # doxygen is installed here (conda-forge) instead of via Chocolatey:
-        #  - choco 'doxygen.portable' downloads from doxygen.nl, which intermittently returns
-        #    HTTP 403 and aborts the whole job before it can build.
-        # doxygen is needed for the docs (enable_docs=ON, built on Windows to catch errors
-        # pre-merge); conda-forge ships it into Library/bin (already on PATH below).
-        # Ghostscript is no longer required: LaTeX formulas are rendered client-side via
-        # MathJax (USE_MATHJAX=YES in doc/doxygen/Doxyfile*.in).
-        conda install -c conda-forge doxygen uv -y
-
-        # Set variables required for the following steps so they
-        # don't need a conda environment or login shell:
-        CONDA_ENV_PREFIX=$(
-          conda info --json |
-            jq --raw-output .active_prefix |
-            sed 's|\\|/|g'
-        )
-
-        echo "$CONDA_ENV_PREFIX/bin" >>"$GITHUB_PATH"
-        echo "$CONDA_ENV_PREFIX/Library/bin" >>"$GITHUB_PATH"
-        echo "cmake_prefix=$CONDA_ENV_PREFIX/Library" >>"$GITHUB_OUTPUT"
-
-        # Some output for debugging:
-        echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
-
-        # Disable conda auto-activation to prevent race conditions during parallel
-        # CMake builds. See https://github.com/conda/conda/issues/8733
-        # The paths are already added to GITHUB_PATH above, so conda activation
-        # is no longer needed for subsequent steps.
-        conda init --reverse bash
-
     - name: Install Qt (Windows)
       if: runner.os == 'Windows'
       uses: jurplel/install-qt-action@v4
@@ -119,20 +68,8 @@ runs:
       if: runner.os == 'Windows'
       shell: bash
       run: |
-        # NOTE: doxygen is installed via conda-forge in the Conda step above, not here:
-        # choco 'doxygen.portable' frequently 403s from doxygen.nl. (Ghostscript is no
-        # longer needed -- LaTeX formulas render client-side via MathJax.)
-        choco install -y --no-progress \
-          ccache \
-          graphviz \
-          rsync
-
-        # Use a custom NSIS, which provides 8-k string support and has
-        # UltraModernUI integrated already:
-        curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
-        7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
+        bash tools/ci/deps-windows.sh
         echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
-
         echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
 
     - name: "Dependencies: Linux"
@@ -163,9 +100,6 @@ runs:
       shell: bash
       run: |
         bash tools/ci/deps-macos.sh
-        brew install ccache \
-                      flex \
-                      bison
 
         brew_path=$(brew --prefix)
         echo "$brew_path/bin" >>"$GITHUB_PATH"
@@ -195,7 +129,7 @@ runs:
         done
 
         echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
-    
+
     - uses: OpenMS/ci-tools/actions/rsync-cache@48558751d87bfaed314a1f5da0e15bcc07f94dc4
       with:
         name: vcpkg-cache
@@ -210,7 +144,7 @@ runs:
       shell: bash
       run: |
         git submodule update --init vcpkg
-    
+
     - name: Point vcpkg at the Local Binary Cache
       shell: bash
       run: |
