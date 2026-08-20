@@ -70,15 +70,18 @@ public:
       can be stored.
 
       The string annotation is the complete, human readable name of the ion and
-      spells out its charge, e.g. "y3+" for a singly and "y3++" for a doubly charged
-      y3 ion; charges beyond +/-8 are written as a sign plus the number ("y3+12").
+      spells out its charge in mzPAF's caret notation, e.g. "y3^1" for a singly and
+      "y3^2" for a doubly charged y3 ion, "c1^-1" in negative mode.
       It is meant to be displayed as-is, e.g. to label peaks in TOPPView -- never
       append the charge a second time.
-      Two documented exceptions leave the charge out of the name: mzPAF annotations
-      use the "^2" notation and omit it entirely for charge 1 (the mzPAF default), and
-      annotations read from files written before this convention carry only @p charge.
+      Unlike mzPAF the charge is spelled out even when it is 1, so that a name without
+      a caret means the charge is unknown. That happens for annotations read from
+      files written before this convention, and for mzPAF strings from other producers
+      (mzPAF omits "^1" by default).
       Use IonNaming::chargeFromName() to tell "the name spells no charge" (returns 0)
       from "the name says charge 1", and IonNaming::chargeSuffix() to write the notation.
+      IonNaming::chargeFromName() also still reads the two notations OpenMS wrote before
+      the caret ("y3++" and "y3+3"), so old files keep working.
       @p charge holds the same charge as a number, for consumers that need it
       machine readable (the charge column of idXML, mzIdentML, the OMS database
       and the parquet formats). It is a duplicate of what the name says, not a
@@ -87,7 +90,7 @@ public:
       The specific application in OpenProXL uses a more complex syntax to
       define the larger number of different ion types found in XL-MS data.
 
-      In the example "[alpha|ci$y3-H2O-NH3]++" "alpha" or "beta" determines on
+      In the example "[alpha|ci$y3-H2O-NH3]^2" "alpha" or "beta" determines on
       which of the two peptides the fragmentation occurred, "ci" or "xi"
       determines whether the cross-link and with it the other peptide is
       contained in the fragment, then the ion type with the fragmentation
@@ -97,7 +100,7 @@ public:
    */
   struct OPENMS_DLLAPI PeakAnnotation
   {
-    std::string annotation;  ///< complete ion name, charge included, e.g. "y3+" or "[alpha|ci$y3-H2O-NH3]++"
+    std::string annotation;  ///< complete ion name, charge included, e.g. "y3^1" or "[alpha|ci$y3-H2O-NH3]^2"
     int charge = 0;          ///< the charge spelled out in @p annotation, as a number
     double mz = -1.;
     double intensity = 0.;

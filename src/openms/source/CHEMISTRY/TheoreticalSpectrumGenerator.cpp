@@ -8,6 +8,8 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
+#include <OpenMS/CHEMISTRY/IonNaming.h>
+
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -31,7 +33,7 @@ namespace OpenMS
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added if 'isotope_model' is 'coarse'");
     defaults_.setValue("max_isotope_probability", 0.05, "Defines the maximal isotopic probability to cover if 'isotope_model' is 'fine'");
 
-    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8^1, [M-H2O+2H]^2");
     defaults_.setValidStrings("add_metainfo", {"true","false"});
 
     defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
@@ -314,12 +316,13 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const
   {
+    const std::string singly_charged = IonNaming::chargeSuffix(1); // immonium ions are always singly charged
     // Proline immonium ion (C4H8N)
     if (peptide.has(*ResidueDB::getInstance()->getResidue('P')))
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iP+");
+        ion_names.emplace_back("iP" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(70.0656, 1.0f); // emplace_back(MZ, intensity)
@@ -330,7 +333,7 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iC+");
+        ion_names.emplace_back("iC" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(76.0221, 1.0f);
@@ -341,7 +344,7 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iL/I+");
+        ion_names.emplace_back("iL/I" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(86.09698, 1.0f);
@@ -352,7 +355,7 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iH+");
+        ion_names.emplace_back("iH" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(110.0718, 1.0f);
@@ -363,7 +366,7 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iF+");
+        ion_names.emplace_back("iF" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(120.0813, 1.0f);
@@ -374,7 +377,7 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iY+");
+        ion_names.emplace_back("iY" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(136.0762, 1.0f);
@@ -385,7 +388,7 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        ion_names.emplace_back("iW+");
+        ion_names.emplace_back("iW" + singly_charged);
         charges.push_back(1);
       }
       spectrum.emplace_back(159.0922, 1.0f);
@@ -441,7 +444,7 @@ namespace OpenMS
                          bool add_metainfo,
                          int charge) const
   {
-    const std::string charge_str((Size)abs(charge), '+');
+    const std::string charge_str = IonNaming::chargeSuffix(charge);
     const std::string ion_ordinal_str = ion_ordinal < 0 ? "-" : StringUtils::toStr(ion_ordinal) + "-"; // only add ion number for non-negative values
 
     // TODO why do you need a separate set for the losses? Just use the keys from the formula_str_cache?
@@ -470,7 +473,7 @@ namespace OpenMS
                                                 const Residue::ResidueType res_type,
                                                 int charge) const
   {
-    const std::string charge_str((Size)abs(charge), '+');
+    const std::string charge_str = IonNaming::chargeSuffix(charge);
     const std::string ion_type_str(Residue::residueTypeToIonLetter(res_type));
     const std::string ion_ordinal_str(StringUtils::toStr(ion.size()) + "-");
 
@@ -701,7 +704,7 @@ namespace OpenMS
                                                const Residue::ResidueType res_type,
                                                Int charge) const
   {
-    const std::string charge_str((Size)abs(charge), '+');
+    const std::string charge_str = IonNaming::chargeSuffix(charge);
     const std::string ion_name_str(Residue::residueTypeToIonLetter(res_type));
 
     int min_nr_new_peaks = 1 + int(add_isotopes_) + int(add_losses_);
@@ -1000,7 +1003,7 @@ namespace OpenMS
                                                         DataArrays::IntegerDataArray& charges,
                                                         Int charge) const
   {
-    const std::string charge_str((Size)abs(charge), '+');
+    const std::string charge_str = IonNaming::chargeSuffix(charge);
     std::string ion_name;
     if (charge == 1)
     {

@@ -15,6 +15,7 @@
 #include <iostream>
 
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 ///////////////////////////
@@ -381,10 +382,10 @@ START_SECTION(([EXTRA] getMultipleSpectra() adds the final precursor at the char
 
   for (const auto& [charge, spectrum] : spectra)
   {
-    // exactly one precursor peak, named "M" plus one '-' per charge, at the spectrum's own charge state:
+    // exactly one precursor peak, named "M" plus the charge, at the spectrum's own charge state:
     const auto& names = spectrum.getStringDataArrays()[0];
     const auto& peak_charges = spectrum.getIntegerDataArrays()[0];
-    std::string expected_name = "M" + std::string((Size)(-charge), '-');
+    std::string expected_name = "M" + IonNaming::chargeSuffix(charge);
     Size n_precursors = 0;
     for (Size i = 0; i < names.size(); ++i)
     {
@@ -422,7 +423,7 @@ START_SECTION(([EXTRA] getMultipleSpectra() adds the final precursor at the char
   {
     const auto& names = spectrum.getStringDataArrays()[0];
     const auto& peak_charges = spectrum.getIntegerDataArrays()[0];
-    std::string expected_name = "M" + std::string((Size)charge, '+');
+    std::string expected_name = "M" + IonNaming::chargeSuffix(charge);
     Size n_precursors = 0;
     for (Size i = 0; i < names.size(); ++i)
     {

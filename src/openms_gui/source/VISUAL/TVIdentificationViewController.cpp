@@ -44,22 +44,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  namespace
-  {
-    /// The fragment ordinal is the digit run right after the ion letter; losses and the charge follow it.
-    /// Deleting only '+' would fold a numeric charge suffix into the number ("y3+12" -> "y312"), and
-    /// deleting every 'y' would corrupt any name that repeats the ion letter.
-    UInt ionOrdinalFromName_(const QString& ion_name)
-    {
-      QString digits;
-      for (int i = 1; i < ion_name.size() && ion_name.at(i).isDigit(); ++i)
-      {
-        digits.append(ion_name.at(i));
-      }
-      return digits.toUInt();
-    }
-  }
-
   TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
@@ -1060,7 +1044,7 @@ namespace OpenMS
 
         if (s.at(0) == 'y')
         {
-          const Size ion_number = ionOrdinalFromName_(s);
+          const Size ion_number = IonNaming::ordinalFromName(fromQString(s));
           s.append("\n");
           // extract peptide ion sequence
           QString aa_ss;
@@ -1082,7 +1066,7 @@ namespace OpenMS
         }
         else if (s.at(0) == 'b')
         {
-          const UInt ion_number = ionOrdinalFromName_(s);
+          const UInt ion_number = IonNaming::ordinalFromName(fromQString(s));
           s.append("\n");
           // extract peptide ion sequence
           QString aa_ss;

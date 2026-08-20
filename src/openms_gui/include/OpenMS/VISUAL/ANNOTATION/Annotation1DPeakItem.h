@@ -122,6 +122,21 @@ public:
         text.replace("HPO3", "HPO<sub>3</sub>");
         text.replace("C3O", "C<sub>3</sub>O");
 
+        // charge format: mzPAF caret, e.g. "y3^2". Checked first, since this is what ion names carry now;
+        // the sign forms below are only still read for files written before the convention.
+        // A charge of 1 is not drawn, the same way a lone trailing '+' never was.
+        {
+          static const QRegularExpression caret_rx(R"(\^(-?)(\d+)$)");
+          const QRegularExpressionMatch caret_m = caret_rx.match(text);
+          if (caret_m.hasMatch() && caret_m.capturedStart() > 0)
+          {
+            const QString magnitude = caret_m.captured(2);
+            const QString sign = caret_m.captured(1).isEmpty() ? QString("+") : QString("-");
+            text = text.left(caret_m.capturedStart())
+                   + ((magnitude == "1") ? QString() : QString("<sup>") + magnitude + sign + QString("</sup>"));
+          }
+        }
+
         // charge format: +z
         QRegularExpression charge_rx(R"([\+|\-](\d+)$)");
         int match_pos = text.indexOf(charge_rx);

@@ -27,7 +27,7 @@ namespace OpenMS
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
 
-    defaults_.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    defaults_.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8^1, [M-H2O+2H]^2");
     defaults_.setValidStrings("add_metainfo", {"true","false"});
 
     defaults_.setValue("add_charges", "true", "Adds the charges to a DataArray of the spectrum");

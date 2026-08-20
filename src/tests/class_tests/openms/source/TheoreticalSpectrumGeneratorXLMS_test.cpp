@@ -24,12 +24,12 @@
 
 
 // Ion names spell out the charge (see PeptideHit::PeakAnnotation), so an ion type generated
-// over a range of charge states shows up once per charge, e.g. "[alpha|ci$b1]+" and "[alpha|ci$b1]++".
+// over a range of charge states shows up once per charge, e.g. "[alpha|ci$b1]^1" and "[alpha|ci$b1]^2".
 static void insertChargeStates_(std::set<std::string>& names, const std::string& ion, OpenMS::Size min_charge, OpenMS::Size max_charge)
 {
   for (OpenMS::Size z = min_charge; z <= max_charge; ++z)
   {
-    names.insert(ion + std::string(z, '+'));
+    names.insert(ion + OpenMS::IonNaming::chargeSuffix((int)z));
   }
 }
 

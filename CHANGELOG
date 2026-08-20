@@ -615,7 +615,10 @@ GUI tools:
     a peak label no longer moves the charge between the ion name and PeakAnnotation::charge, so the
     label round trip is stable and a label the user did not touch keeps the charge it had. Multi-line
     labels also keep all of their lines, blank ones included; the plot used to show only the first line
-    of an annotation and reading a label back kept only its first extra line (#8766)
+    of an annotation and reading a label back kept only its first extra line. Peak labels are drawn the
+    same as before -- the charge as a superscript, and not drawn at all when it is 1 -- and a nucleic
+    acid fragment no longer has its ion ordinal mistaken for its charge ("c1-" was drawn as c with a
+    superscript 1-) (#8766)
 
 OpenMS Library:
   Added:
@@ -777,18 +780,35 @@ OpenMS Library:
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
   Changes:
-    - PeptideHit::PeakAnnotation: the ion name in 'annotation' now always spells out the charge ("y3+",
-      "[alpha|ci$y3]++", "c1-" in negative mode) and 'charge' only repeats it as a number, for the charge
-      columns of idXML/mzIdentML/OMS/parquet. That was already the documented behaviour of
-      TheoreticalSpectrumGenerator's add_metainfo and the only possible one for mzPAF annotations, but
-      TheoreticalSpectrumGeneratorXLMS (and with it OpenPepXL), NucleicAcidSpectrumGenerator (and with it
-      NucleicAcidSearchEngine), the mzIdentML reader and PercolatorInfile used to leave the charge out of
-      the name, so consumers had to guess whether appending it would duplicate it. They now all spell it
-      out and the name can be displayed as-is. Changes the fragment annotations written by OpenPepXL,
-      NucleicAcidSearchEngine and SageAdapter. Also fixes an off-by-one in
-      NucleicAcidSpectrumGenerator::getMultipleSpectra(): with add_precursor_peaks enabled (and not
-      add_all_precursor_charges), the final precursor peak was computed with a charge one past the
-      spectrum's charge state, i.e. at the wrong m/z and with the wrong charge annotation (#8766)
+    - PeptideHit::PeakAnnotation: the ion name in 'annotation' now always spells out the charge, and
+      'charge' only repeats it as a number for the charge columns of idXML/mzIdentML/OMS/parquet.
+      The notation is mzPAF's caret ("y3^1", "y3^2", "[alpha|ci$y3]^2", "c1^-1" in negative mode),
+      which is what MzPAF::toString() already wrote, replacing the runs of '+' and '-' signs OpenMS
+      used before ("y3+", "y3++"). Unlike mzPAF the charge is spelled out even when it is 1, so that
+      a name without a caret still means "charge unknown" -- a distinction consumers need in order to
+      tell an old file from a singly charged ion. IonNaming::chargeFromName() keeps reading the old
+      notations, so files written by earlier versions are unaffected.
+      This changes the fragment annotations written by every producer: TheoreticalSpectrumGenerator
+      (and with it SimpleSearchEngine, ProSE and everything else building theoretical spectra),
+      TheoreticalSpectrumGeneratorXLMS (OpenPepXL), NucleicAcidSpectrumGenerator
+      (NucleicAcidSearchEngine), OpenNuXL, the mzIdentML reader and PercolatorInfile. Before this,
+      several of them left the charge out of the name entirely, so consumers had to guess whether
+      appending it would duplicate it.
+      New IonNaming.h holds the one implementation of writing the notation, reading it back, and
+      reading a fragment ordinal out of a name; the six divergent copies that existed before are gone.
+      Also fixed along the way:
+      * NucleicAcidSpectrumGenerator::getMultipleSpectra(): with add_precursor_peaks enabled (and not
+        add_all_precursor_charges), the final precursor peak was computed with a charge one past the
+        spectrum's charge state, i.e. at the wrong m/z and with the wrong charge annotation
+      * OpenNuXL appended a second charge to its shifted immonium ions, which already carried one, so
+        they were annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1; its special lysine
+        immonium ions had the opposite problem and reached some outputs with no charge in the name
+      * OpenNuXL derived fragment ordinals by deleting the charge characters out of the ion name,
+        which turned a numeric charge suffix into part of the number
+      * MzPAF could not parse a negative charge ("c1^-1" was an INVALID_CHARGE error), which made the
+        notation unusable for nucleic acids
+      * TheoreticalSpectrumGenerator wrote '+' for a negative charge, because it sized the suffix with
+        abs() and hardcoded the sign (#8766)
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
       longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
       they use the native schemas and file_type tokens such as consensus_features / features /

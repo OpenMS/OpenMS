@@ -1209,7 +1209,9 @@ namespace OpenMS::Internal
       for (const PeptideHit::PeakAnnotation& pep : annotations)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
-        static const boost::regex frag_regex_tweak(R"(\[(?:([\|\w]+)\$)*([abcxyz])(\d+)(?:-(H2O|NH3))*\][(\d+)\+]*)"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
+        // the trailing group is the charge: the caret notation ion names carry now, or one of the sign
+        // forms written before it (files predating the convention still hold "]5+" and "]++")
+        static const boost::regex frag_regex_tweak(R"(\[(?:([\|\w]+)\$)*([abcxyz])(\d+)(?:-(H2O|NH3))*\](?:\^-?\d+|[\d+-]*))"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
         std::string ionseries_index;
         std::string iontype;
         //std::string loss_gain;

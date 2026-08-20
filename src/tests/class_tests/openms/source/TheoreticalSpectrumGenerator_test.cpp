@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -260,42 +261,42 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   TEST_EQUAL(spec.size(), 30)
   set<std::string> ion_names;
   // ions without losses
-  ion_names.insert("b1+");
-  ion_names.insert("x1+");
-  ion_names.insert("b2+");
-  ion_names.insert("x2+");
-  ion_names.insert("b3+");
-  ion_names.insert("x3+");
-  ion_names.insert("b4+");
-  ion_names.insert("x4+");
-  ion_names.insert("b5+");
-  ion_names.insert("x5+");
-  ion_names.insert("b6+");
-  ion_names.insert("x6+");
+  ion_names.insert("b1^1");
+  ion_names.insert("x1^1");
+  ion_names.insert("b2^1");
+  ion_names.insert("x2^1");
+  ion_names.insert("b3^1");
+  ion_names.insert("x3^1");
+  ion_names.insert("b4^1");
+  ion_names.insert("x4^1");
+  ion_names.insert("b5^1");
+  ion_names.insert("x5^1");
+  ion_names.insert("b6^1");
+  ion_names.insert("x6^1");
 
   // currently losses are generated independent of ion ladder type (b,y,...)
   // if an amino acid with potential loss is present in the prefix/suffix, then the loss is applied
   // if multiple amino acids with the same e.g. water loss are present in the prefix/suffix ion then the loss is only applied once
-  ion_names.insert("x1-H3N1+");
-  ion_names.insert("x2-H3N1+");
-  ion_names.insert("x3-H3N1+");
-  ion_names.insert("b3-H2O1+");
-  ion_names.insert("x4-H3N1+");
-  ion_names.insert("b4-H2O1+");
-  ion_names.insert("b4-H3N1+");
-  ion_names.insert("x5-H2O1+");
-  ion_names.insert("x5-H3N1+");
-  ion_names.insert("b5-H2O1+");
-  ion_names.insert("b5-H3N1+");
-  ion_names.insert("b6-H2O1+");
-  ion_names.insert("b6-H3N1+");
-  ion_names.insert("x6-H2O1+");
-  ion_names.insert("x6-H3N1+");
+  ion_names.insert("x1-H3N1^1");
+  ion_names.insert("x2-H3N1^1");
+  ion_names.insert("x3-H3N1^1");
+  ion_names.insert("b3-H2O1^1");
+  ion_names.insert("x4-H3N1^1");
+  ion_names.insert("b4-H2O1^1");
+  ion_names.insert("b4-H3N1^1");
+  ion_names.insert("x5-H2O1^1");
+  ion_names.insert("x5-H3N1^1");
+  ion_names.insert("b5-H2O1^1");
+  ion_names.insert("b5-H3N1^1");
+  ion_names.insert("b6-H2O1^1");
+  ion_names.insert("b6-H3N1^1");
+  ion_names.insert("x6-H2O1^1");
+  ion_names.insert("x6-H3N1^1");
 
   // precursors
-  ion_names.insert("[M+H-H2O]+");
-  ion_names.insert("[M+H-NH3]+");
-  ion_names.insert("[M+H]+");
+  ion_names.insert("[M+H-H2O]^1");
+  ion_names.insert("[M+H-NH3]^1");
+  ion_names.insert("[M+H]^1");
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
@@ -338,42 +339,42 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
 
   ion_names.clear();
   // ions without losses
-  ion_names.insert("b1+++");
-  ion_names.insert("x1+++");
-  ion_names.insert("b2+++");
-  ion_names.insert("x2+++");
-  ion_names.insert("b3+++");
-  ion_names.insert("x3+++");
-  ion_names.insert("b4+++");
-  ion_names.insert("x4+++");
-  ion_names.insert("b5+++");
-  ion_names.insert("x5+++");
-  ion_names.insert("b6+++");
-  ion_names.insert("x6+++");
+  ion_names.insert("b1^3");
+  ion_names.insert("x1^3");
+  ion_names.insert("b2^3");
+  ion_names.insert("x2^3");
+  ion_names.insert("b3^3");
+  ion_names.insert("x3^3");
+  ion_names.insert("b4^3");
+  ion_names.insert("x4^3");
+  ion_names.insert("b5^3");
+  ion_names.insert("x5^3");
+  ion_names.insert("b6^3");
+  ion_names.insert("x6^3");
 
   // currently losses are generated independent of ion ladder type (b,y,...)
   // if an amino acid with potential loss is present in the prefix/suffix, then the loss is applied
   // if multiple amino acids with the same e.g. water loss are present in the prefix/suffix ion then the loss is only applied once
-  ion_names.insert("x1-H3N1+++");
-  ion_names.insert("x2-H3N1+++");
-  ion_names.insert("x3-H3N1+++");
-  ion_names.insert("b3-H2O1+++");
-  ion_names.insert("x4-H3N1+++");
-  ion_names.insert("b4-H2O1+++");
-  ion_names.insert("b4-H3N1+++");
-  ion_names.insert("x5-H2O1+++");
-  ion_names.insert("x5-H3N1+++");
-  ion_names.insert("b5-H2O1+++");
-  ion_names.insert("b5-H3N1+++");
-  ion_names.insert("b6-H2O1+++");
-  ion_names.insert("b6-H3N1+++");
-  ion_names.insert("x6-H2O1+++");
-  ion_names.insert("x6-H3N1+++");
+  ion_names.insert("x1-H3N1^3");
+  ion_names.insert("x2-H3N1^3");
+  ion_names.insert("x3-H3N1^3");
+  ion_names.insert("b3-H2O1^3");
+  ion_names.insert("x4-H3N1^3");
+  ion_names.insert("b4-H2O1^3");
+  ion_names.insert("b4-H3N1^3");
+  ion_names.insert("x5-H2O1^3");
+  ion_names.insert("x5-H3N1^3");
+  ion_names.insert("b5-H2O1^3");
+  ion_names.insert("b5-H3N1^3");
+  ion_names.insert("b6-H2O1^3");
+  ion_names.insert("b6-H3N1^3");
+  ion_names.insert("x6-H2O1^3");
+  ion_names.insert("x6-H3N1^3");
 
   // precursors
-  ion_names.insert("[M+3H-H2O]+++");
-  ion_names.insert("[M+3H-NH3]+++");
-  ion_names.insert("[M+3H]+++");
+  ion_names.insert("[M+3H-H2O]^3");
+  ion_names.insert("[M+3H-NH3]^3");
+  ion_names.insert("[M+3H]^3");
 
   string_array = spec.getStringDataArrays().at(0);
 
@@ -877,10 +878,10 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(tmp.size(), 107)
 
   auto anno = tmp.getStringDataArrays()[0];
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1+") != anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") != anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") != anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1^1") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1^1") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2^1") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1^1") != anno.end(), true)
 
   // test without prefix ion (but still requires correct losses elsewhere)
   tmp.clear(true);
@@ -891,10 +892,10 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(tmp.size(), 99) // missing a1 and b1 ions as well as their losses -H3N1+ C1H2N2+ -C1H2N1O1+
 
   anno = tmp.getStringDataArrays()[0];
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1+") == anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") == anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") == anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1^1") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1^1") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2^1") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1^1") == anno.end(), true)
 }
 END_SECTION
 
@@ -932,10 +933,10 @@ START_SECTION([EXTRA] b-ion and a-ion neutral-loss m/z values)
   for (const auto& kv : mz)
   {
     const std::string& name = kv.first;
-    const std::string::size_type loss_pos = name.find("-H2O1+");
+    const std::string::size_type loss_pos = name.find("-H2O1^");
     if (loss_pos != std::string::npos && (name[0] == 'b' || name[0] == 'a'))
     {
-      const std::string base = name.substr(0, loss_pos) + "+"; // "b3-H2O1+" -> "b3+"
+      const std::string base = name.substr(0, loss_pos) + IonNaming::chargeSuffix(1); // "b3-H2O1^1" -> "b3^1"
       if (mz.count(base))
       {
         TEST_REAL_SIMILAR(kv.second, mz[base] - water)

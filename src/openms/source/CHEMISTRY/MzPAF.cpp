@@ -706,12 +706,22 @@ namespace OpenMS
       {
         advance_();
 
+        // negative mode: the charge may carry a sign ("c1^-1"), which the tokenizer hands back as its own
+        // token. Without this a negative charge is a parse error, so nucleic acid fragments -- which are
+        // always negative -- could not be written in this notation at all.
+        int sign = 1;
+        if (current_.type == TokenType::MINUS || current_.type == TokenType::PLUS)
+        {
+          sign = (current_.type == TokenType::MINUS) ? -1 : 1;
+          advance_();
+        }
+
         if (current_.type != TokenType::NUMBER)
         {
           error_(MzPAFErrorCode::INVALID_CHARGE, "Expected charge number after '^'");
         }
 
-        ann.charge = parseInt_(current_.text, MzPAFErrorCode::INVALID_CHARGE, "Invalid charge number");
+        ann.charge = sign * parseInt_(current_.text, MzPAFErrorCode::INVALID_CHARGE, "Invalid charge number");
         advance_();
       }
 

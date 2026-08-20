@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -48,7 +49,7 @@ void NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
       {  
         spectrum.emplace_back(immonium_ion2_mz, 1.0f);
         spectrum_charge.emplace_back(1);
-        spectrum_annotation.emplace_back(std::string("iK(C5H10N1)"));
+        spectrum_annotation.emplace_back("iK(C5H10N1)" + IonNaming::chargeSuffix(1));
       }
 
       // usually only observed without shift (A. Stuetzer)
@@ -58,7 +59,7 @@ void NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
       {
         spectrum.emplace_back(immonium_ion3_mz, 1.0f);
         spectrum_charge.emplace_back(1);
-        spectrum_annotation.emplace_back(std::string("iK(C6H13N2O)"));
+        spectrum_annotation.emplace_back("iK(C6H13N2O)" + IonNaming::chargeSuffix(1));
       }
 
     }
@@ -141,13 +142,13 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const std::string &unmodif
     const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0f);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(std::string("iK(C5H10N1)" + fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back("iK(C5H10N1)" + fragment_shift_name + IonNaming::chargeSuffix(1));
 
     // usually only observed without shift (A. Stuetzer)
     const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion3_mz, 1.0f);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(std::string("iK(C6H13N2O)" + fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back("iK(C6H13N2O)" + fragment_shift_name + IonNaming::chargeSuffix(1));
   }
 
   if (StringUtils::hasSubstring(unmodified_sequence, "M"))

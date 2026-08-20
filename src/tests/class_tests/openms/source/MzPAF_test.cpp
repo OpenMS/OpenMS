@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/MzPAF.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
@@ -76,6 +77,53 @@ START_SECTION(Ion with charge)
   TEST_EQUAL(ann.ordinal.value(), 4)
   TEST_EQUAL(ann.charge.has_value(), true)
   TEST_EQUAL(ann.charge.value(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fromPeakAnnotation() reads the names OpenMS itself writes))
+{
+  // ion names carry the caret notation now (see IonNaming), which is mzPAF's own. Before that they
+  // carried runs of signs ("y3++"), which this parser could not read at all, so the bridge from a
+  // PeptideHit::PeakAnnotation into mzPAF silently produced nothing.
+  PeptideHit::PeakAnnotation pa;
+  pa.annotation = "y3" + IonNaming::chargeSuffix(2);
+  pa.charge = 2;
+  pa.mz = 400.0;
+  pa.intensity = 1.0;
+
+  MzPAFPeakAnnotations anns = MzPAF::fromPeakAnnotation(pa);
+  TEST_EQUAL(anns.annotations.size(), 1)
+  TEST_EQUAL(anns.annotations[0].ion_series, MzPAFIonSeries::Y)
+  TEST_EQUAL(anns.annotations[0].ordinal.value(), 3)
+  TEST_EQUAL(anns.annotations[0].charge.value(), 2)
+  // and the charge the name spells is the charge the field holds
+  TEST_EQUAL(anns.annotations[0].charge.value(), pa.charge)
+}
+END_SECTION
+
+START_SECTION(Ion with negative charge)
+{
+  // negative mode: nucleic acid fragments are always negatively charged, so the charge carries a sign.
+  // Without this the parser stopped at the '-' and reported INVALID_CHARGE.
+  MzPAFAnnotation ann = MzPAF::parse("c1^-1");
+  TEST_EQUAL(ann.ion_series, MzPAFIonSeries::C)
+  TEST_EQUAL(ann.ordinal.value(), 1)
+  TEST_EQUAL(ann.charge.has_value(), true)
+  TEST_EQUAL(ann.charge.value(), -1)
+  TEST_STRING_EQUAL(MzPAF::toString(ann), "c1^-1")
+
+  ann = MzPAF::parse("a3^-2");
+  TEST_EQUAL(ann.charge.value(), -2)
+  TEST_STRING_EQUAL(MzPAF::toString(ann), "a3^-2")
+
+  // an explicit '+' means the same as no sign
+  ann = MzPAF::parse("y4^+3");
+  TEST_EQUAL(ann.charge.value(), 3)
+  TEST_STRING_EQUAL(MzPAF::toString(ann), "y4^3")
+
+  // a caret with only a sign and no number is still an error
+  TEST_EQUAL(MzPAF::tryParse("y4^-").has_value(), false)
+  TEST_EQUAL(MzPAF::tryParse("y4^").has_value(), false)
 }
 END_SECTION
 

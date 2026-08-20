@@ -31,21 +31,21 @@ START_SECTION((std::string chargeSuffix(int charge)))
   // unknown charge is never spelled out
   TEST_STRING_EQUAL(IonNaming::chargeSuffix(0), "")
 
-  // small charges as a run of signs - what TheoreticalSpectrumGenerator has always written
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(1), "+")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(2), "++")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(5), "+++++")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(8), "++++++++")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(-1), "-")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(-3), "---")
+  // mzPAF's caret notation, which is also what MzPAF::toString() writes
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(1), "^1")
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(2), "^2")
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(5), "^5")
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(12), "^12")
 
-  // beyond MAX_REPEATED_SIGNS the number is written out, which bounds the allocation for a
-  // charge that came from a file
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(9), "+9")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(-12), "-12")
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(2000000000), "+2000000000")
-  // INT_MIN must not be negated in int (undefined behaviour) and must not size an allocation
-  TEST_STRING_EQUAL(IonNaming::chargeSuffix(INT_MIN), "-2147483648")
+  // negative mode, e.g. nucleic acid fragments
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(-1), "^-1")
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(-3), "^-3")
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(-12), "^-12")
+
+  // a charge that came from a file cannot size an allocation any more, and INT_MIN must not be negated
+  // in an int (undefined behaviour)
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(2000000000), "^2000000000")
+  TEST_STRING_EQUAL(IonNaming::chargeSuffix(INT_MIN), "^-2147483648")
   TEST_EQUAL(IonNaming::chargeSuffix(INT_MIN).size() < 20, true)
 }
 END_SECTION
@@ -122,6 +122,30 @@ START_SECTION(([EXTRA] chargeSuffix and chargeFromName round trip))
     const std::string name = "y5" + IonNaming::chargeSuffix(z);
     TEST_EQUAL(IonNaming::chargeFromName(name), z)
   }
+}
+END_SECTION
+
+START_SECTION((UInt ordinalFromName(const std::string& ion_name)))
+{
+  // the digit run right after the ion letter, whatever follows it
+  TEST_EQUAL(IonNaming::ordinalFromName("y3"), 3)
+  TEST_EQUAL(IonNaming::ordinalFromName("y3^2"), 3)
+  TEST_EQUAL(IonNaming::ordinalFromName("y12^1"), 12)
+  TEST_EQUAL(IonNaming::ordinalFromName("y12-H2O1^1"), 12)
+  TEST_EQUAL(IonNaming::ordinalFromName("c1^-1"), 1)
+  // NuXL puts the nucleotide shift after the ordinal
+  TEST_EQUAL(IonNaming::ordinalFromName("y3+U-H2O^1"), 3)
+  // a numeric charge suffix must not fold into the ordinal, which is what deleting the '+' used to do
+  TEST_EQUAL(IonNaming::ordinalFromName("y3+12"), 3)
+
+  // names whose ordinal is not in that position yield 0 rather than a wrong number
+  TEST_EQUAL(IonNaming::ordinalFromName(""), 0)
+  TEST_EQUAL(IonNaming::ordinalFromName("y"), 0)
+  TEST_EQUAL(IonNaming::ordinalFromName("[alpha|ci$y3]^2"), 0)
+  TEST_EQUAL(IonNaming::ordinalFromName("iY+U-H3PO4^1"), 0)
+  TEST_EQUAL(IonNaming::ordinalFromName("MI:U-H2O^1"), 0)
+  // an absurd digit run is not an ordinal and must not overflow
+  TEST_EQUAL(IonNaming::ordinalFromName("y99999999999999999999"), 0)
 }
 END_SECTION
 

@@ -17,7 +17,7 @@ namespace OpenMS
 {
   NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator() : DefaultParamHandler("NucleicAcidSpectrumGenerator")
   {
-    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as meta information to the peaks, charge included, e.g. c1-, y2--, a3-B-");
+    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as meta information to the peaks, charge included, e.g. c1^-1, y2^-2, a3-B^-1");
     defaults_.setValidStrings("add_metainfo", {"true", "false"});
 
     defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the unfragmented precursor ion to the spectrum");

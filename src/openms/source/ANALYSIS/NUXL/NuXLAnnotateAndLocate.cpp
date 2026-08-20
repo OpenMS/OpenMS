@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
@@ -153,7 +154,6 @@ namespace OpenMS
       if (ion_name[0] == 'y')
       {
         Size loss_first = ion_name.find_first_of('-'); // start of loss
-        Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
         const bool ion_has_neutral_loss = (loss_first != string::npos);
 
         if (ion_has_neutral_loss) // ion with neutral loss e.g. water
@@ -168,8 +168,7 @@ namespace OpenMS
         }
         else // no neutral loss
         {
-          std::string ion_nr_string = StringUtils::substr(ion_name, 1, charge_pos - 1);
-          Size ion_number = (Size)StringUtils::toInt32(ion_nr_string);
+          const Size ion_number = IonNaming::ordinalFromName(ion_name);
           NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
           unshifted_y_ions[ion_number].push_back(d);
           #ifdef DEBUG_OpenNuXL
@@ -182,7 +181,6 @@ namespace OpenMS
       else if (ion_name[0] == 'b')
       {
         Size loss_first = ion_name.find_first_of('-'); // start of loss
-        Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
         const bool ion_has_neutral_loss = (loss_first != string::npos);
 
         if (ion_has_neutral_loss)
@@ -197,8 +195,7 @@ namespace OpenMS
         }
         else
         {
-          std::string ion_nr_string = StringUtils::substr(ion_name, 1, charge_pos - 1);
-          Size ion_number = (Size)StringUtils::toInt32(ion_nr_string);
+          const Size ion_number = IonNaming::ordinalFromName(ion_name);
           #ifdef DEBUG_OpenNuXL
             const AASequence& peptide_sequence = aas.getPrefix(ion_number);
             OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
@@ -211,7 +208,6 @@ namespace OpenMS
       else if (ion_name[0] == 'a')
       {
         Size loss_first = ion_name.find_first_of('-'); // start of loss
-        Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
         const bool ion_has_neutral_loss = (loss_first != string::npos);
 
         if (ion_has_neutral_loss)
@@ -226,8 +222,7 @@ namespace OpenMS
         }
         else
         {
-          std::string ion_nr_string = StringUtils::substr(ion_name, 1, charge_pos - 1);
-          auto ion_number = (Size)StringUtils::toInt32(ion_nr_string);
+          const Size ion_number = IonNaming::ordinalFromName(ion_name);
           #ifdef DEBUG_OpenNuXL
             const AASequence& peptide_sequence = aas.getPrefix(ion_number);
             OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
@@ -560,10 +555,7 @@ namespace OpenMS
           // define which ion names are annotated
           if (StringUtils::hasPrefix(fragment_ion_name, "y"))
           {
-            std::string ion_nr_string = fragment_ion_name;
-            StringUtils::substitute(ion_nr_string, "y", "");
-            StringUtils::substitute(ion_nr_string, "+", ""); // remove one or multiple '+'
-            auto ion_number = (Size)StringUtils::toInt32(ion_nr_string);
+            const Size ion_number = IonNaming::ordinalFromName(fragment_ion_name);
 
             NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
             if (ion_number > 1) // trypsin doesn't cut at cross-linked amino acid
@@ -573,20 +565,14 @@ namespace OpenMS
           }
           else if (StringUtils::hasPrefix(fragment_ion_name, "b"))
           {
-            std::string ion_nr_string = fragment_ion_name;
-            StringUtils::substitute(ion_nr_string, "b", "");
-            StringUtils::substitute(ion_nr_string, "+", ""); // remove one or multiple '+'
-            auto ion_number = (Size)StringUtils::toInt32(ion_nr_string);
+            const Size ion_number = IonNaming::ordinalFromName(fragment_ion_name);
 
             NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
             shifted_b_ions[ion_number].push_back(d);
           }
           else if (StringUtils::hasPrefix(fragment_ion_name, "a"))
           {
-            std::string ion_nr_string = fragment_ion_name;
-            StringUtils::substitute(ion_nr_string, "a", "");
-            StringUtils::substitute(ion_nr_string, "+", ""); // remove one or multiple '+'
-            auto ion_number = (Size)StringUtils::toInt32(ion_nr_string);
+            const Size ion_number = IonNaming::ordinalFromName(fragment_ion_name);
 
             NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
             shifted_a_ions[ion_number].push_back(d);
@@ -600,7 +586,7 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name + "+";
+              fa.annotation = ion_name + IonNaming::chargeSuffix(1);
               annotated_marker_ions.push_back(fa);
             }
             else
@@ -617,7 +603,10 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name + "+";
+              // the ion name normally spells the charge already (appending it again is what labelled
+              // every shifted immonium ion as doubly charged while fa.charge said 1), but add it for a
+              // producer that does not, rather than losing it
+              fa.annotation = (IonNaming::chargeFromName(ion_name) == 0) ? ion_name + IonNaming::chargeSuffix(1) : ion_name;
               shifted_immonium_ions.push_back(fa);
             }
             else
@@ -631,10 +620,10 @@ namespace OpenMS
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
             fa.charge = charge;
-            static const std::regex pattern(R"(\](\++)+)");
+            static const std::regex pattern(R"(\](\^-?\d+|\++))");
             fa.annotation = std::regex_replace(ion_name, pattern, "]"); // remove charge inside string (e.g., before loss)
             StringUtils::substitute(fa.annotation, ' ', '+'); // turn gap into plus "[M+2H] U-H2O" -> "[M+2H]+U-H2O"
-            fa.annotation +=std::string(charge, '+'); // add charges back at end
+            fa.annotation += IonNaming::chargeSuffix(charge); // add charge back at end
             annotated_precursor_ions.push_back(fa);
           }
           else if (isupper(ion_name[0])) // shifted internal ions
@@ -645,7 +634,7 @@ namespace OpenMS
             fa.charge = charge;
             std::string with_plus = ion_name;
             StringUtils::substitute(with_plus, ' ', '+'); // turn "PEPT U-H2O" into "PEPT+U-H20"
-            fa.annotation = with_plus + std::string(charge, '+'); 
+            fa.annotation = with_plus + IonNaming::chargeSuffix(charge);
             shifted_immonium_ions.push_back(fa);  //TODO: add to shifted_internal_fragment_ions or rename vector
           }
         }

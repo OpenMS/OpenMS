@@ -50,9 +50,9 @@ START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spe
   TEST_EQUAL(merged_spec.getIntegerDataArrays()[0].size(), 36)
   TEST_EQUAL(merged_spec.getStringDataArrays()[0].size(), 36)
   TEST_EQUAL(merged_spec.getIntegerDataArrays()[0][10], 3)
-  TEST_EQUAL(merged_spec.getStringDataArrays()[0][10], "[alpha|ci$y2]+++")
+  TEST_EQUAL(merged_spec.getStringDataArrays()[0][10], "[alpha|ci$y2]^3")
   TEST_EQUAL(merged_spec.getIntegerDataArrays()[0][20], 2)
-  TEST_EQUAL(merged_spec.getStringDataArrays()[0][20], "[alpha|ci$y2]++")
+  TEST_EQUAL(merged_spec.getStringDataArrays()[0][20], "[alpha|ci$y2]^2")
   TEST_REAL_SIMILAR(merged_spec[10].getMZ(), 83.04780)
   TEST_REAL_SIMILAR(merged_spec[20].getMZ(), 132.04732)
 

@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -16,10 +18,15 @@ using namespace std;
 
 namespace OpenMS
 {
-  const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]*");
-  const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]*");
-  const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]*");
-  const boost::regex SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]]+)[+,-]*[[:word:]]*[+]*");
+  // the trailing group is the charge: the caret notation ion names carry (see IonNaming), or the runs of
+  // signs written before it. These are used with regex_match, so the charge has to be part of the pattern
+  // or nothing matches at all and every series statistic silently comes out empty.
+  #define OPENMS_ION_CHARGE_RE "(?:\\^-?[[:digit:]]+|[+-]*)"
+  const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+" OPENMS_ION_CHARGE_RE);
+  const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+" OPENMS_ION_CHARGE_RE);
+  const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+" OPENMS_ION_CHARGE_RE);
+  const boost::regex SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]]+)[+,-]*[[:word:]]*" OPENMS_ION_CHARGE_RE);
+  #undef OPENMS_ION_CHARGE_RE
 
   SpectrumAnnotator::SpectrumAnnotator() :
     DefaultParamHandler("SpectrumAnnotator")
@@ -218,9 +225,7 @@ namespace OpenMS
             }
             catch (std::out_of_range&)
             {
-              std::string ion_sub = StringUtils::substr(ion_name, 1);
-              StringUtils::remove(ion_sub, '+');
-              OPENMS_LOG_WARN << "Note: Ions of " << ion_type << StringUtils::toInt32(ion_sub)
+              OPENMS_LOG_WARN << "Note: Ions of " << ion_type << IonNaming::ordinalFromName(ion_name)
                        << " will be ignored for max_series " << ph->getSequence().toString() << endl;
               continue;
             }
