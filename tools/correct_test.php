@@ -139,7 +139,7 @@ for($i = 0;$i < count($tests);++$i)
   }
   print "\n[enter]  => 0\n";
   print "[i]      => ignore this test\n";
-  print "[x]      => make [EXTRA] test (is ignored by checker.php)\n";
+  print "[x]      => make [EXTRA] test (marks a subtest without matching method declaration)\n";
   print "[CTRL+C] => abort\n";
   @ob_flush();
   flush();

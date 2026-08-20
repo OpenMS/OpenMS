@@ -2419,7 +2419,6 @@ convolving
 count'set
 cppcheck
 cppclass
-cpplint
 ctest
 cython
 debian

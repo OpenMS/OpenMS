@@ -500,8 +500,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  being printed on execution.
  If you are testing a non-public method you can use the [EXTRA] statement,
  e.g. #START_SECTION([EXTRA]memFunc())
- to indicate this. Otherwise you will trigger a warning by %OpenMS/tools/checker.php
- due to this unexpected subtest.
+ to mark a subtest that has no matching method declaration.
 
  This macro also opens a <code>try</code> block to catch any unexpected
  exceptions thrown in the course of a subtest. To catch <em>wanted</em>

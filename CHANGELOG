@@ -779,7 +779,12 @@ OpenMS Library:
     - TOPPExternalToolBase: tools that shell out to an external executable (search engine adapters, ...)
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
+    - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: MzPAF could not parse a negative charge. MzPAF::toString() writes the sign it is given
+      ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
+      own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --
+      could be expressed in mzPAF at all. An optional sign is now read before the number
     - PeptideHit::PeakAnnotation: the ion name in 'annotation' now always spells out the charge, and
       'charge' only repeats it as a number for the charge columns of idXML/mzIdentML/OMS/parquet.
       The notation is mzPAF's caret ("y3^1", "y3^2", "[alpha|ci$y3]^2", "c1^-1" in negative mode),
@@ -805,8 +810,6 @@ OpenMS Library:
         immonium ions had the opposite problem and reached some outputs with no charge in the name
       * OpenNuXL derived fragment ordinals by deleting the charge characters out of the ion name,
         which turned a numeric charge suffix into part of the number
-      * MzPAF could not parse a negative charge ("c1^-1" was an INVALID_CHARGE error), which made the
-        notation unusable for nucleic acids
       * TheoreticalSpectrumGenerator wrote '+' for a negative charge, because it sized the suffix with
         abs() and hardcoded the sign (#8766)
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
@@ -1073,6 +1076,8 @@ Documentation:
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
 
 Build System:
+  - Removed the developer script tools/checker.php. Covered by .clang-format now (tools/create_test.php and tools/correct_test.php remain).
+  - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
     <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
@@ -1094,6 +1099,11 @@ Build System:
     standalone consumers building against an installed prefix, were registered (#9774)
   - vcpkg integration (GSoC 2026): vcpkg.json, vcpkg-configuration.json and CMakePresets.json manage the
     build dependencies via vcpkg, validated by a dedicated CI workflow with a binary cache (#9511)
+    - Extended from Linux to Windows and macOS: platform-specific configure/build/test presets, overlay
+      ports for onnxruntime, openms-thermo-bridge and opentims (with the clang/newer-gcc glpk build fix
+      applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
+      SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
+      configure time roughly in half by skipping the debug variant of every port (#9800)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for

@@ -706,9 +706,10 @@ namespace OpenMS
       {
         advance_();
 
-        // negative mode: the charge may carry a sign ("c1^-1"), which the tokenizer hands back as its own
-        // token. Without this a negative charge is a parse error, so nucleic acid fragments -- which are
-        // always negative -- could not be written in this notation at all.
+        // the charge may carry a sign ("c1^-1"), which the tokenizer hands back as its own token.
+        // Without this a negative charge is a parse error, so nucleic acid fragments -- which are always
+        // negatively charged -- cannot be expressed at all, and toString() writes names this parser
+        // then rejects.
         int sign = 1;
         if (current_.type == TokenType::MINUS || current_.type == TokenType::PLUS)
         {
