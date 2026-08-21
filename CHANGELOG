@@ -783,6 +783,13 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
+      already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
+      another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
+      same defect as #8766, in the written data rather than in the display. The special lysine immonium
+      ions had the mirror problem and reached the output with no charge in the name at all
+      ("iK(C6H13N2O)"). The charge is now added only when the name does not already carry one. Changes
+      the fragment annotations written by OpenNuXL (#8766)
     - Fix: MzPAF could not parse a negative charge. MzPAF::toString() writes the sign it is given
       ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
       own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --
