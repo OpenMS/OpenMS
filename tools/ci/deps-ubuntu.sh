@@ -34,7 +34,6 @@ sudo apt-get -qq install -y \
   autoconf-archive \
   automake \
   build-essential \
-  ccache \
   cmake \
   git \
   libtool \
@@ -57,3 +56,8 @@ sudo apt-get -qq install -y \
   graphviz
 
 # [installation_documentation]
+
+# These are only needed in CI:
+sudo apt-get -qq install -y \
+  ccache \
+  rclone

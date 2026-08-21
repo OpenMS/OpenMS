@@ -59,7 +59,6 @@ brew install \
   automake \
   bash \
   bison \
-  ccache \
   dotnet \
   flex \
   icu4c \
@@ -79,3 +78,9 @@ if [ "$SKIP_DOC_DEPS" = false ]; then
     graphviz
 fi
 # [installation_documentation]
+
+# These are only needed in CI:
+brew install \
+  ccache \
+  rclone \
+  rsync

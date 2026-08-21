@@ -130,7 +130,7 @@ runs:
 
         echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
 
-    - uses: OpenMS/ci-tools/actions/rsync-cache@48558751d87bfaed314a1f5da0e15bcc07f94dc4
+    - uses: OpenMS/ci-tools/actions/rsync-cache@743a157b6a4f3ae721f2a028ac0ccc92ef3eb655
       with:
         name: vcpkg-cache
         path: ${{ github.workspace }}/.vcpkg-cache
