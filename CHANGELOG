@@ -610,12 +610,15 @@ GUI tools:
     not exported on Windows DLL builds (#9831)
   - Fix: TOPPView's identification view appended PeakAnnotation::charge to fragment ion labels that
     already spelled the charge out, so every singly charged ion of e.g. an OpenNuXL, SimpleSearchEngine
-    or ProSE result was drawn as "y1++", i.e. doubly charged. The charge is now added only when the ion
-    name does not already carry one, which handles both kinds of producer without changing any file
-    format (#8766)
-  - Fix: editing a peak label in TOPPView corrupted the stored annotation. Reading a label back cut the
-    charge off the ion name while the identification view put it back on the next redraw, so a round
-    trip turned "y3+" into "y3++". The label is now kept as it is and the charge only read from it
+    or ProSE result was drawn as "y1++", i.e. doubly charged (#8766)
+  - Fix: viewing a spectrum in TOPPView rewrote the stored fragment annotations. The identification view
+    put the charge into the peak label, and the annotations are synchronised back into the PeptideHit on
+    every spectrum switch, so simply stepping through spectra turned NucleicAcidSearchEngine's "a2-B"
+    into "a2-B-" and OpenPepXL's "[alpha|ci$y3]" into "[alpha|ci$y3]++" -- which in turn made the
+    sequence diagram file an a-B ion under "a". The charge now travels on the annotation item and is
+    drawn from there, so the ion name a producer wrote is never modified by looking at it
+  - Fix: reading a peak label back cut the charge off the ion name while the identification view put it
+    back on the next redraw, so a round trip turned "y3+" into "y3++"
   - Fix: TOPPView kept only the first extra line of a multi-line peak label and dropped blank lines, so
     a comment under the ion name was silently truncated on every spectrum switch
   - Fix: TOPPView derived the fragment ordinal for its sequence annotation by deleting the characters

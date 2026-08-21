@@ -99,6 +99,15 @@ START_SECTION((int chargeFromName(const std::string& ion_name)))
   TEST_EQUAL(IonNaming::chargeFromName("y5+2147483648"), 0)
   TEST_EQUAL(IonNaming::chargeFromName("y5-2147483649"), 0)
 
+  // mzPAF spells the charge with the caret, so a trailing signed number after one of its fields is a
+  // mass delta or a confidence, not a charge -- reading it as one turned charge 1 into -5
+  TEST_EQUAL(IonNaming::chargeFromName("y3/1.2e-05"), 0)
+  TEST_EQUAL(IonNaming::chargeFromName("y3/-1"), 0)
+  TEST_EQUAL(IonNaming::chargeFromName("y3*0.75"), 0)
+  // ... while a caret in front of the field still is
+  TEST_EQUAL(IonNaming::chargeFromName("y3^1/1.2e-05"), 1)
+  TEST_EQUAL(IonNaming::chargeFromName("y3^2/-1"), 2)
+
   // the caret form is a charge only when the digits end the name or a further mzPAF field follows;
   // otherwise it is ordinary text that happens to contain a caret
   TEST_EQUAL(IonNaming::chargeFromName("note ^2text"), 0)

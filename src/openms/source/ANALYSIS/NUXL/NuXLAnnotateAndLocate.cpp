@@ -643,7 +643,7 @@ namespace OpenMS
             static const std::regex pattern(R"(\](\++)+)");
             fa.annotation = std::regex_replace(ion_name, pattern, "]"); // remove charge inside string (e.g., before loss)
             StringUtils::substitute(fa.annotation, ' ', '+'); // turn gap into plus "[M+2H] U-H2O" -> "[M+2H]+U-H2O"
-            fa.annotation +=std::string(charge, '+'); // add charges back at end
+            fa.annotation += IonNaming::chargeSuffix(charge); // add charges back at end
             annotated_precursor_ions.push_back(fa);
           }
           else if (isupper(ion_name[0])) // shifted internal ions
@@ -654,7 +654,7 @@ namespace OpenMS
             fa.charge = charge;
             std::string with_plus = ion_name;
             StringUtils::substitute(with_plus, ' ', '+'); // turn "PEPT U-H2O" into "PEPT+U-H20"
-            fa.annotation = with_plus + std::string(charge, '+'); 
+            fa.annotation = with_plus + IonNaming::chargeSuffix(charge);
             shifted_immonium_ions.push_back(fa);  //TODO: add to shifted_internal_fragment_ions or rename vector
           }
         }

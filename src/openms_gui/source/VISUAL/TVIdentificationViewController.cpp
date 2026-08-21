@@ -1225,7 +1225,9 @@ namespace OpenMS
       // "y3+"), while others leave it to PeakAnnotation::charge alone (TheoreticalSpectrumGeneratorXLMS
       // writes "[alpha|ci$y3]"). Appending it unconditionally therefore labelled every singly charged
       // fragment of the first kind as doubly charged -- issue #8766. Ask the name what it already says.
-      label = IonNaming::withCharge(label, ann.charge);
+      // The charge is NOT put into the label: the annotations are synchronised back to the PeptideHit
+      // on every spectrum switch, so anything added here would be written into the stored annotation.
+      // It travels on the item instead and is drawn from there.
 
       // "\r\n" first in the alternation so a CRLF counts as one line break, and KeepEmptyParts so a
       // blank line the user put between the ion name and their comment survives
@@ -1271,7 +1273,8 @@ namespace OpenMS
       auto item = new Annotation1DPeakItem<Peak1D>(
         position,
         toQString(label),
-        color);
+        color,
+        ann.charge);
 
       // set peak color
       current_layer2.peak_colors_1d[peak_idx] = peak_color;

@@ -31,9 +31,22 @@ namespace OpenMS
     public Annotation1DItem
   {
 public:
-    /// Constructor
-    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color) :
-      Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color)
+    /**
+      @brief Constructor
+
+      @p charge is the charge of the annotated peak for producers that keep it in
+      PeptideHit::PeakAnnotation::charge rather than spelling it out in @p text. It is drawn next to the
+      ion name but deliberately kept out of @p text, so that reading the item back yields the name the
+      producer wrote: putting it into the text made every redraw rewrite the stored annotation.
+      Pass 0 (the default) when the text is all there is, as for a plain user label.
+
+      @param[in] peak_position The peak this annotation belongs to
+      @param[in] text The annotation text, i.e. the ion name as the producer wrote it
+      @param[in] color The colour to draw it in
+      @param[in] charge Charge of the peak when @p text does not spell one out, 0 otherwise
+    */
+    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color, int charge = 0) :
+      Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color), charge_(charge)
     {
     }
 
@@ -122,6 +135,13 @@ public:
         text.replace("H3PO4", "H<sub>3</sub>PO<sub>4</sub>");
         text.replace("HPO3", "HPO<sub>3</sub>");
         text.replace("C3O", "C<sub>3</sub>O");
+
+        // A charge that is not in the name at all (see the constructor) is drawn from the member, so
+        // that it never has to travel through the label and get written back into the stored annotation.
+        if (charge_ != 0 && IonNaming::chargeFromName(fromQString(text_)) == 0)
+        {
+          text += QString("<sup>") + QString::number(std::abs(charge_)) + ((charge_ < 0) ? "-" : "+") + QString("</sup>");
+        }
 
         // charge format: +z
         QRegularExpression charge_rx(R"([\+|\-](\d+)$)");
@@ -238,7 +258,10 @@ public:
       // corrupt the stored annotation: the identification view puts the charge back on redraw, so a
       // round trip through this function turned "y3+" into "y3" and then into "y3++".
       // IonNaming::chargeFromName understands all notations that occur ('+2', '++' and mzPAF's '^2').
-      const int tmp_charge = IonNaming::chargeFromName(fromQString(peak_anno));
+      // A charge the user typed into the label wins; otherwise fall back to the one the item was built
+      // with. The name itself is returned untouched, so viewing a spectrum cannot rewrite it.
+      const int named_charge = IonNaming::chargeFromName(fromQString(peak_anno));
+      const int tmp_charge = (named_charge != 0) ? named_charge : charge_;
 
       PeptideHit::PeakAnnotation fa;
       fa.charge = tmp_charge;
@@ -268,5 +291,8 @@ public:
 
     /// The color of the label
     QColor color_;
+
+    /// Charge of the annotated peak when its name does not spell one out; 0 if unknown or already named
+    int charge_ = 0;
   };
 } // namespace OpenMS

@@ -21,9 +21,9 @@ using namespace std;
 
 /// A label as it sits on the plot, converted back into the annotation stored in the PeptideHit.
 /// This is the direction TOPPView takes whenever it writes edited annotations back to the ID data.
-PeptideHit::PeakAnnotation toAnnotation_(const QString& label)
+PeptideHit::PeakAnnotation toAnnotation_(const QString& label, int charge = 0)
 {
-  Annotation1DPeakItem<Peak1D> item(Peak1D(1234.5, 678.0), label, QColor(Qt::black));
+  Annotation1DPeakItem<Peak1D> item(Peak1D(1234.5, 678.0), label, QColor(Qt::black), charge);
   return item.toPeakAnnotation();
 }
 
@@ -65,6 +65,38 @@ START_SECTION((PeptideHit::PeakAnnotation toPeakAnnotation() const))
 
   // surrounding whitespace is not part of the annotation
   TEST_STRING_EQUAL(toAnnotation_("  y5++  ").annotation, "y5++")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] toPeakAnnotation() never rewrites the ion name the producer wrote))
+{
+  // The identification view synchronises annotations back into the PeptideHit on every spectrum
+  // switch, not only when the user edits something. So whatever the view does to show the charge must
+  // not reach the name, or merely looking at a spectrum rewrites the stored data.
+  // NucleicAcidSearchEngine writes "a2-B" with the charge in PeakAnnotation::charge alone; that name
+  // has to survive untouched, otherwise it becomes "a2-B-" and the sequence diagram files the ion
+  // under "a" instead of "a-B".
+  PeptideHit::PeakAnnotation fa = toAnnotation_("a2-B", -1);
+  TEST_STRING_EQUAL(fa.annotation, "a2-B")
+  TEST_EQUAL(fa.charge, -1)
+
+  // same for the cross-link names, which also leave the charge to the member
+  TEST_STRING_EQUAL(toAnnotation_("[alpha|ci$y3]", 2).annotation, "[alpha|ci$y3]")
+  TEST_EQUAL(toAnnotation_("[alpha|ci$y3]", 2).charge, 2)
+
+  // and for an mzPAF name, which must stay parseable as mzPAF
+  TEST_STRING_EQUAL(toAnnotation_("y3", 1).annotation, "y3")
+  TEST_EQUAL(toAnnotation_("y3", 1).charge, 1)
+
+  // a name that spells the charge keeps it and is still returned unchanged
+  TEST_STRING_EQUAL(toAnnotation_("y3+", 1).annotation, "y3+")
+  TEST_EQUAL(toAnnotation_("y3+", 1).charge, 1)
+
+  // when the two disagree the name wins: it is what the producer actually wrote
+  TEST_EQUAL(toAnnotation_("y3+", 2).charge, 1)
+
+  // an unknown charge stays unknown rather than being invented
+  TEST_EQUAL(toAnnotation_("y3", 0).charge, 0)
 }
 END_SECTION
 

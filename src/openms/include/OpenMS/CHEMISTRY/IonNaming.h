@@ -120,8 +120,11 @@ namespace OpenMS
         return (last == '-') ? -count : count;
       }
 
-      // trailing sign plus number, e.g. "y3+3" (note "y1-H2O1" must NOT match: 'O' is not a sign)
-      if (std::isdigit((unsigned char)last))
+      // trailing sign plus number, e.g. "y3+3" (note "y1-H2O1" must NOT match: 'O' is not a sign).
+      // Not when the name carries an mzPAF field: mzPAF spells the charge with the caret handled above,
+      // so a trailing signed number after '/' or '*' is its mass delta or confidence, not a charge --
+      // "y3/1.2e-05" would otherwise read as charge -5.
+      if (std::isdigit((unsigned char)last) && name.find_first_of("/*") == std::string::npos)
       {
         std::string::size_type d = name.size();
         while (d > 0 && std::isdigit((unsigned char)name[d - 1])) { --d; }
