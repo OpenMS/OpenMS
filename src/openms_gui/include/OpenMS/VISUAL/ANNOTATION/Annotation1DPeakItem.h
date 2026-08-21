@@ -138,9 +138,20 @@ public:
 
         // A charge that is not in the name at all (see the constructor) is drawn from the member, so
         // that it never has to travel through the label and get written back into the stored annotation.
+        // Charge 1 is implied and left off, exactly as it is for a named ion like "y3+" whose lone sign
+        // is stripped below; only |charge| >= 2 is drawn, and next to the ion name (end of the first
+        // line) rather than after a trailing free-text comment.
         if (charge_ != 0 && IonNaming::chargeFromName(fromQString(text_)) == 0)
         {
-          text += QString("<sup>") + QString::number(std::abs(charge_)) + ((charge_ < 0) ? "-" : "+") + QString("</sup>");
+          // magnitude in a wider type: std::abs(INT_MIN) is undefined behaviour
+          const long long magnitude = (charge_ < 0) ? -static_cast<long long>(charge_) : static_cast<long long>(charge_);
+          if (magnitude > 1)
+          {
+            const QString sup = QString("<sup>") + QString::number(magnitude) + ((charge_ < 0) ? "-" : "+") + QString("</sup>");
+            static const QRegularExpression first_break(R"([\r\n])");
+            const int eol = text.indexOf(first_break);
+            text.insert((eol < 0) ? text.size() : eol, sup);
+          }
         }
 
         // charge format: +z

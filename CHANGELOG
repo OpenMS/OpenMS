@@ -624,6 +624,12 @@ GUI tools:
   - Fix: TOPPView derived the fragment ordinal for its sequence annotation by deleting the characters
     that are not the ordinal, so a loss ion like "y3-H2O1+" yielded ordinal 0 and no sequence at all;
     the ordinal is now read as the digits following the ion letter and range-checked against the peptide
+  - Fix: TOPPView's sequence diagram for a b ion collapsed everything between the first and last
+    modification into a single "*", dropping the residues in between (a doubly modified prefix such as
+    "PEPT(Phospho)IDM(Oxidation)" was drawn as "PEPT*" instead of "PEPT*IDM*")
+  - TOPPView no longer draws an explicit "1+"/"1-" on singly charged fragments whose name leaves the
+    charge to PeakAnnotation::charge (cross-link, NucleicAcidSearchEngine and OpenNuXL ions); charge 1
+    is implied, matching how a named "y3+" is already drawn without its sign
 
 OpenMS Library:
   Added:

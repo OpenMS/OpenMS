@@ -1080,8 +1080,10 @@ namespace OpenMS
             // extract peptide ion sequence
             AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
             aa_ss = toQString(aa_subsequence.toString());
-            // shorten modifications "(MODNAME)" to "*"
-            aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
+            // shorten each modification "(MODNAME)" to "*". [^)] stops at the closing parenthesis so a
+            // second modification is not swallowed together with the residues between them: a greedy
+            // "[(].*[)]" turned "PEPT(Phospho)IDM(Oxidation)" into "PEPT*" instead of "PEPT*IDM*"
+            aa_ss.replace(QRegularExpression("[(][^)]*[)]"), "*");
           }
           // append to label
           s.append(aa_ss);
