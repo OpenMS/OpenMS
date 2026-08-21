@@ -19,8 +19,10 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <atomic>
 #include <fstream>
 #include <filesystem>
+#include <thread>
 
 using namespace OpenMS;
 using namespace std;
@@ -78,10 +80,78 @@ START_SECTION((static bool writable(const std::string &file)))
   TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
   TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
   TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
+  TEST_EQUAL(File::writable(""), false)
 
   std::string filename;
   NEW_TMP_FILE(filename);
   TEST_EQUAL(File::writable(filename), true)
+
+  // writable() is a query: asking the question must not change the answer, and must not
+  // touch anything on disk that the caller did not ask about.
+  {
+    std::string probed;
+    NEW_TMP_FILE(probed);
+    { std::ofstream os(probed.c_str()); os << "payload"; }
+    TEST_EQUAL(File::writable(probed), true)
+    TEST_EQUAL(File::exists(probed), true)                        // still there
+    TEST_EQUAL(size_t(std::filesystem::file_size(probed)), size_t(7)) // and still intact
+
+    std::string absent;
+    NEW_TMP_FILE(absent);
+    std::filesystem::remove(absent);
+    TEST_EQUAL(File::writable(absent), true)
+    TEST_EQUAL(File::exists(absent), false)                       // probing left no litter
+  }
+
+  // Concurrent callers must not sabotage each other. Both of the following are races, so a
+  // single attempt proves nothing -- before the fix they went wrong in roughly 2% and 79% of
+  // attempts respectively, which a one-shot check sails straight past. Repeat instead, and
+  // use a spin barrier: without one the first thread finishes before the second even starts,
+  // and the two never overlap at all.
+  {
+    const int repeats = 500;
+    int both_writable = 0;   // two probes of the same new path must both answer 'true'
+    int output_survived = 0; // a probe must not delete what a concurrent writer produced
+
+    std::string shared;
+    NEW_TMP_FILE(shared);
+    std::string contended;
+    NEW_TMP_FILE(contended);
+
+    for (int i = 0; i < repeats; ++i)
+    {
+      // Two callers race to probe one path that does not exist yet. Probing used to create
+      // and delete that very path, so one prober would delete the other's file and then
+      // report it unwritable -- the intermittent 'Cannot write output file' seen on Windows
+      // CI when two TOPP tools were given the same -out path.
+      std::filesystem::remove(shared);
+      std::atomic<int> go_probe{0};
+      bool first = false, second = false;
+      std::thread p1([&]() { while (go_probe == 0) {} first = File::writable(shared); });
+      std::thread p2([&]() { while (go_probe == 0) {} second = File::writable(shared); });
+      go_probe = 1;
+      p1.join();
+      p2.join();
+      if (first && second) ++both_writable;
+
+      // A probe running alongside a real writer must leave that writer's output alone.
+      std::filesystem::remove(contended);
+      std::atomic<int> go_write{0};
+      std::thread writer([&]() { while (go_write == 0) {} std::ofstream os(contended.c_str()); os << "important"; });
+      std::thread prober([&]() { while (go_write == 0) {} File::writable(contended); });
+      go_write = 1;
+      writer.join();
+      prober.join();
+      std::error_code ec;
+      if (std::filesystem::exists(contended, ec) && std::filesystem::file_size(contended, ec) == 9) ++output_survived;
+    }
+
+    TEST_EQUAL(both_writable, repeats)
+    TEST_EQUAL(output_survived, repeats)
+
+    std::filesystem::remove(shared);
+    std::filesystem::remove(contended);
+  }
 END_SECTION
 
 START_SECTION((static std::string find(const std::string &filename, StringList directories=StringList())))

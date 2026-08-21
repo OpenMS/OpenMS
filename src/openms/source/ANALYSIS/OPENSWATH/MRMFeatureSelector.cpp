@@ -93,7 +93,7 @@ namespace OpenMS
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
-      addConstraint_(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      addConstraint_(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::FIXED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
@@ -203,8 +203,7 @@ namespace OpenMS
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
-      addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
-      // addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::FIXED); // glpk
+      addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::FIXED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
