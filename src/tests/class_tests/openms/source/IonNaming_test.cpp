@@ -106,6 +106,36 @@ START_SECTION((int chargeFromName(const std::string& ion_name)))
 }
 END_SECTION
 
+START_SECTION((std::string withCharge(const std::string& ion_name, int charge)))
+{
+  // the defect behind issue #8766: a name that already spells the charge must not get a second one,
+  // which is what turned every singly charged fragment into a doubly charged one
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3+", 1), "y3+")
+  TEST_STRING_EQUAL(IonNaming::withCharge("b2++", 2), "b2++")
+  TEST_STRING_EQUAL(IonNaming::withCharge("c1-", -1), "c1-")
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3^2", 2), "y3^2")
+  TEST_STRING_EQUAL(IonNaming::withCharge("y1-H2O1+", 1), "y1-H2O1+")
+
+  // a name that does not spell it gets the charge, so it is not lost from the display
+  TEST_STRING_EQUAL(IonNaming::withCharge("[alpha|ci$y3]", 2), "[alpha|ci$y3]++")
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3", 1), "y3+")
+  TEST_STRING_EQUAL(IonNaming::withCharge("w1", -1), "w1-")
+
+  // the name wins when the two disagree: it is the complete ion name, 'charge' only repeats it
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3+", 2), "y3+")
+
+  // an unknown charge adds nothing
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3", 0), "y3")
+  TEST_STRING_EQUAL(IonNaming::withCharge("", 0), "")
+
+  // the charge belongs on the ion-name line, not after the free text below it
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3\nmy comment", 1), "y3+\nmy comment")
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3\r\nmy comment", 2), "y3++\r\nmy comment")
+  // ... and a name that already spells it keeps its free text untouched
+  TEST_STRING_EQUAL(IonNaming::withCharge("y3+\nmy comment", 1), "y3+\nmy comment")
+}
+END_SECTION
+
 START_SECTION((UInt ordinalFromName(const std::string& ion_name)))
 {
   TEST_EQUAL(IonNaming::ordinalFromName("y3"), 3)

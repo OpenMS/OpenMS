@@ -129,6 +129,26 @@ namespace OpenMS
     }
 
     /**
+      @brief The ion name to display for a peak annotated with @p ion_name and @p charge
+
+      Producers disagree about whether the name already spells the charge out, so a consumer that wants
+      a complete name has to ask rather than assume: appending unconditionally is what labelled every
+      singly charged fragment as doubly charged (issue #8766). Returns @p ion_name unchanged when it
+      already spells a charge, or when the charge is unknown (0); otherwise appends the notation.
+
+      The charge goes at the end of the first line, because anything below that is free text rather than
+      part of the ion name.
+    */
+    inline std::string withCharge(const std::string& ion_name, int charge)
+    {
+      if (charge == 0 || chargeFromName(ion_name) != 0) { return ion_name; }
+      std::string named = ion_name;
+      const std::string::size_type eol = named.find_first_of("\r\n");
+      named.insert((eol == std::string::npos) ? named.size() : eol, chargeSuffix(charge));
+      return named;
+    }
+
+    /**
       @brief The fragment ordinal an ion name spells out ("y12++" -> 12), or 0 if it does not spell one
 
       The ordinal is the run of digits directly after the ion letter, so it stops at whatever follows --

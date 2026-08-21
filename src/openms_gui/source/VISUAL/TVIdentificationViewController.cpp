@@ -1225,11 +1225,7 @@ namespace OpenMS
       // "y3+"), while others leave it to PeakAnnotation::charge alone (TheoreticalSpectrumGeneratorXLMS
       // writes "[alpha|ci$y3]"). Appending it unconditionally therefore labelled every singly charged
       // fragment of the first kind as doubly charged -- issue #8766. Ask the name what it already says.
-      if (ann.charge != 0 && IonNaming::chargeFromName(label) == 0)
-      { // the ion name is the first line, so the charge goes there and not behind the free text below it
-        const std::string::size_type eol = label.find_first_of("\r\n");
-        label.insert((eol == std::string::npos) ? label.size() : eol, IonNaming::chargeSuffix(ann.charge));
-      }
+      label = IonNaming::withCharge(label, ann.charge);
 
       // "\r\n" first in the alternation so a CRLF counts as one line break, and KeepEmptyParts so a
       // blank line the user put between the ion name and their comment survives
