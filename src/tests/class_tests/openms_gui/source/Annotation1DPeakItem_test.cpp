@@ -84,6 +84,10 @@ START_SECTION(([EXTRA] toPeakAnnotation() keeps the free text below the ion name
 
   // line endings are normalised to '\n', a CRLF is one line break and not an empty line
   TEST_STRING_EQUAL(toAnnotation_("y5++\r\nmy comment").annotation, "y5++\nmy comment")
+  // a lone CR is a line break too, the same way the identification view treats it when it builds
+  // the label -- it used to be deleted here, which joined the two lines into one
+  TEST_STRING_EQUAL(toAnnotation_("y5++\rmy comment").annotation, "y5++\nmy comment")
+  TEST_EQUAL(toAnnotation_("y5++\rmy comment").charge, 2)
 
   // the charge is read from the ion name, never from the free text below it
   TEST_EQUAL(toAnnotation_("y5\ncharge is 2+").charge, 0)

@@ -121,6 +121,10 @@ START_SECTION((UInt ordinalFromName(const std::string& ion_name)))
   TEST_EQUAL(IonNaming::ordinalFromName("y"), 0)
   TEST_EQUAL(IonNaming::ordinalFromName("[alpha|ci$y3]++"), 0)
   TEST_EQUAL(IonNaming::ordinalFromName("iY+U-H3PO4+"), 0)
+  // the digits have to follow an ion letter: a charge and a bare number are not ordinals
+  TEST_EQUAL(IonNaming::ordinalFromName("+3"), 0)
+  TEST_EQUAL(IonNaming::ordinalFromName("-2"), 0)
+  TEST_EQUAL(IonNaming::ordinalFromName("12"), 0)
   // absurdly long digit runs are not ordinals and must not overflow
   TEST_EQUAL(IonNaming::ordinalFromName("y99999999999999"), 0)
 }

@@ -1233,7 +1233,8 @@ namespace OpenMS
 
       // "\r\n" first in the alternation so a CRLF counts as one line break, and KeepEmptyParts so a
       // blank line the user put between the ion name and their comment survives
-      QStringList lines = toQString(label).split(QRegularExpression("\r\n|[\r\n]"), Qt::KeepEmptyParts);
+      static const QRegularExpression line_break(R"(\r\n|[\r\n])");
+      QStringList lines = toQString(label).split(line_break, Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         label = fromQString(lines[0]);

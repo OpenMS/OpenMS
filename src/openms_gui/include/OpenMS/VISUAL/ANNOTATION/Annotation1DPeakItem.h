@@ -223,8 +223,12 @@ public:
       // check for newlines in the label and only continue with the first line for charge determination.
       // KeepEmptyParts: a blank line inside a label is the user's text, and dropping it here would
       // silently rewrite the label every time the annotations are read back.
-      peak_anno.remove('\r');
-      QStringList lines = peak_anno.split('\n', Qt::KeepEmptyParts);
+      // Same rule as the identification view uses when it builds the label: "\r\n" first in the
+      // alternation so a CRLF is one break, a lone CR is a break of its own, and KeepEmptyParts so a
+      // blank line the user typed survives. IonNaming::chargeFromName likewise ends the ion name at
+      // either character, so all three agree on where the first line stops.
+      static const QRegularExpression line_break(R"(\r\n|[\r\n])");
+      QStringList lines = peak_anno.split(line_break, Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         peak_anno = lines[0];

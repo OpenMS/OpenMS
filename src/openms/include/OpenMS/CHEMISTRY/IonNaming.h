@@ -141,6 +141,9 @@ namespace OpenMS
     */
     inline UInt ordinalFromName(const std::string& ion_name)
     {
+      // the ordinal follows an ion letter, so anything else in front of the digits is not one:
+      // "+3" is a charge and "12" is not an ion name at all
+      if (ion_name.empty() || std::isalpha((unsigned char)ion_name[0]) == 0) { return 0; }
       std::string::size_type end = 1;
       while (end < ion_name.size() && std::isdigit((unsigned char)ion_name[end])) { ++end; }
       if (end == 1) { return 0; }
