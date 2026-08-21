@@ -270,7 +270,12 @@ public:
       // round trip through this function turned "y3+" into "y3" and then into "y3++".
       // IonNaming::chargeFromName understands all notations that occur ('+2', '++' and mzPAF's '^2').
       // A charge the user typed into the label wins; otherwise fall back to the one the item was built
-      // with. The name itself is returned untouched, so viewing a spectrum cannot rewrite it.
+      // with. The ion name (the first line) is returned exactly, so viewing a spectrum never rewrites
+      // it. The free-text remainder is intentionally normalised -- edge whitespace is trimmed (above)
+      // and CR/CRLF line endings fold to LF (the split and rejoin below); that is a no-op on producer
+      // annotations, which are single-line ion names, and only tidies a comment a user typed. So the
+      // round trip is identity for the ion name and any interior blank line, not byte-for-byte for a
+      // free-text comment's surrounding whitespace or line endings.
       const int named_charge = IonNaming::chargeFromName(fromQString(peak_anno));
       const int tmp_charge = (named_charge != 0) ? named_charge : charge_;
 
