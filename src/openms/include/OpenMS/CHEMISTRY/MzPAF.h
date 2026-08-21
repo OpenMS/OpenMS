@@ -130,7 +130,7 @@ namespace OpenMS
     std::vector<MzPAFNeutralLoss> neutral_losses;   ///< Neutral losses (-H2O, -NH3, etc.)
     std::optional<int> isotope_offset;              ///< Isotope offset (+1i, +2i for M+1, M+2)
     std::optional<EmpiricalFormula> adduct;         ///< Adduct ion (+Na, +K, etc.)
-    std::optional<int> charge;                      ///< Charge state (^2, ^3)
+    std::optional<int> charge;                      ///< Charge state (^2, ^3, ^-1 for negative-mode fragments)
     std::optional<MzPAFMassDelta> mass_delta;       ///< Mass delta (/0.001, /-1.4ppm)
     std::optional<double> confidence;               ///< Confidence score (*0.75)
     std::optional<std::string> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
