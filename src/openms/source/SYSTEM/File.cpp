@@ -498,17 +498,33 @@ namespace OpenMS
     const std::string dir = File::path(file);
     for (int attempt = 0; attempt < 3; ++attempt)
     {
-      // getUniqueName() mixes in hostname, pid and an atomic counter, so colliding needs a
-      // second machine to pick the same name in the same second on a shared filesystem. Retry
-      // with a fresh name rather than misreport a perfectly writable directory in that case.
-      const std::string probe = dir + "/." + File::getUniqueName() + ".openms_writetest";
+      // Keep the probe name short. It stands in for the caller's own basename, so every extra
+      // character it carries is a character of path budget the caller loses -- and on Windows
+      // that budget is MAX_PATH, small enough that a needlessly long probe can overflow it for
+      // a directory the caller's own (shorter) name would have fit into. getUniqueName(false)
+      // drops the hostname, roughly halving the name; pid and its atomic counter still make a
+      // collision take a second machine picking the same pid in the same second on a shared
+      // filesystem, and the retry covers even that.
+      const std::string probe = dir + "/." + File::getUniqueName(false) + ".omswt";
       const int create_err = createExclusive_(probe);
       if (create_err == 0)
       {
         std::remove(probe.c_str());
         return true;
       }
-      if (create_err != EEXIST) return false; // no such directory, read-only medium, ...
+      if (create_err == EEXIST) continue; // somebody holds that name -- retry with a fresh one
+
+      // The create can also fail for a reason that is about the probe *name* rather than about
+      // the directory: an over-long probe path reports ENAMETOOLONG on POSIX, and the Windows
+      // CRT folds ERROR_FILENAME_EXCED_RANGE onto ENOENT/EINVAL. Answering "not writable" on
+      // those would be exactly the false negative this function exists to avoid, so fall back
+      // to asking the directory itself. That still answers false when the directory is simply
+      // not there, because access() reports ENOENT for it too.
+      if (create_err == ENAMETOOLONG || create_err == ENOENT || create_err == EINVAL)
+      {
+        return fileAccess_(dir, write_mode) == 0;
+      }
+      return false; // read-only medium, no permission on the directory, ...
     }
     return false;
   }

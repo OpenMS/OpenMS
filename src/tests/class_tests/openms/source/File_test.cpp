@@ -108,6 +108,15 @@ START_SECTION((static bool writable(const std::string &file)))
   // attempts respectively, which a one-shot check sails straight past. Repeat instead, and
   // use a spin barrier: without one the first thread finishes before the second even starts,
   // and the two never overlap at all.
+  //
+  // The spins yield rather than burn the core. That costs nothing natively (500 repeats run in
+  // ~0.1 s either way) but matters by three orders of magnitude under valgrind, whose scheduler
+  // hands a spinning thread a full quantum before switching: measured on the same binary,
+  // 5 repeats take 67 s with a bare spin and 0.11 s with the yield.
+  //
+  // Note this section can only catch the bug where the threads genuinely overlap; pinned to a
+  // single core they serialise and the pre-fix implementation passes too. It is a regression
+  // guard on ordinary multi-core runners, not a proof on every machine.
   {
     const int repeats = 500;
     int both_writable = 0;   // two probes of the same new path must both answer 'true'
@@ -127,8 +136,8 @@ START_SECTION((static bool writable(const std::string &file)))
       std::filesystem::remove(shared);
       std::atomic<int> go_probe{0};
       bool first = false, second = false;
-      std::thread p1([&]() { while (go_probe == 0) {} first = File::writable(shared); });
-      std::thread p2([&]() { while (go_probe == 0) {} second = File::writable(shared); });
+      std::thread p1([&]() { while (go_probe == 0) { std::this_thread::yield(); } first = File::writable(shared); });
+      std::thread p2([&]() { while (go_probe == 0) { std::this_thread::yield(); } second = File::writable(shared); });
       go_probe = 1;
       p1.join();
       p2.join();
@@ -137,8 +146,8 @@ START_SECTION((static bool writable(const std::string &file)))
       // A probe running alongside a real writer must leave that writer's output alone.
       std::filesystem::remove(contended);
       std::atomic<int> go_write{0};
-      std::thread writer([&]() { while (go_write == 0) {} std::ofstream os(contended.c_str()); os << "important"; });
-      std::thread prober([&]() { while (go_write == 0) {} File::writable(contended); });
+      std::thread writer([&]() { while (go_write == 0) { std::this_thread::yield(); } std::ofstream os(contended.c_str()); os << "important"; });
+      std::thread prober([&]() { while (go_write == 0) { std::this_thread::yield(); } File::writable(contended); });
       go_write = 1;
       writer.join();
       prober.join();
