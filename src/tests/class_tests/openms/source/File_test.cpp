@@ -19,11 +19,10 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <filesystem>
 #include <thread>
-#include <vector>
 
 using namespace OpenMS;
 using namespace std;
@@ -104,42 +103,54 @@ START_SECTION((static bool writable(const std::string &file)))
     TEST_EQUAL(File::exists(absent), false)                       // probing left no litter
   }
 
-  // Concurrent callers must not sabotage each other. Probing used to create and delete the
-  // caller's own path, so two tools writing the same output file would delete each other's
-  // probe and report the path unwritable -- an intermittent 'Cannot write output file' that
-  // showed up as a flaky Windows CI failure (issue seen in TOPP_OpenSwathWorkflow_17_cache).
+  // Concurrent callers must not sabotage each other. Both of the following are races, so a
+  // single attempt proves nothing -- before the fix they went wrong in roughly 2% and 79% of
+  // attempts respectively, which a one-shot check sails straight past. Repeat instead, and
+  // use a spin barrier: without one the first thread finishes before the second even starts,
+  // and the two never overlap at all.
   {
+    const int repeats = 500;
+    int both_writable = 0;   // two probes of the same new path must both answer 'true'
+    int output_survived = 0; // a probe must not delete what a concurrent writer produced
+
     std::string shared;
     NEW_TMP_FILE(shared);
-    std::filesystem::remove(shared);
-
-    const size_t n_threads = 8;
-    std::vector<char> results(n_threads, 0); // char, not bool: vector<bool> bits are not
-                                             // independently writable from several threads
-    std::vector<std::thread> threads;
-    for (size_t i = 0; i < n_threads; ++i)
-    {
-      threads.emplace_back([&results, &shared, i]() { results[i] = File::writable(shared) ? 1 : 0; });
-    }
-    for (auto& t : threads) t.join();
-
-    TEST_EQUAL(size_t(std::count(results.begin(), results.end(), 1)), n_threads)
-    TEST_EQUAL(File::exists(shared), false) // every probe cleaned up after itself
-  }
-
-  // A probe running alongside a real writer must never remove that writer's output.
-  {
     std::string contended;
     NEW_TMP_FILE(contended);
+
+    for (int i = 0; i < repeats; ++i)
+    {
+      // Two callers race to probe one path that does not exist yet. Probing used to create
+      // and delete that very path, so one prober would delete the other's file and then
+      // report it unwritable -- the intermittent 'Cannot write output file' seen on Windows
+      // CI when two TOPP tools were given the same -out path.
+      std::filesystem::remove(shared);
+      std::atomic<int> go_probe{0};
+      bool first = false, second = false;
+      std::thread p1([&]() { while (go_probe == 0) {} first = File::writable(shared); });
+      std::thread p2([&]() { while (go_probe == 0) {} second = File::writable(shared); });
+      go_probe = 1;
+      p1.join();
+      p2.join();
+      if (first && second) ++both_writable;
+
+      // A probe running alongside a real writer must leave that writer's output alone.
+      std::filesystem::remove(contended);
+      std::atomic<int> go_write{0};
+      std::thread writer([&]() { while (go_write == 0) {} std::ofstream os(contended.c_str()); os << "important"; });
+      std::thread prober([&]() { while (go_write == 0) {} File::writable(contended); });
+      go_write = 1;
+      writer.join();
+      prober.join();
+      std::error_code ec;
+      if (std::filesystem::exists(contended, ec) && std::filesystem::file_size(contended, ec) == 9) ++output_survived;
+    }
+
+    TEST_EQUAL(both_writable, repeats)
+    TEST_EQUAL(output_survived, repeats)
+
+    std::filesystem::remove(shared);
     std::filesystem::remove(contended);
-
-    std::thread writer([&contended]() { std::ofstream os(contended.c_str()); os << "important"; });
-    std::thread prober([&contended]() { File::writable(contended); });
-    writer.join();
-    prober.join();
-
-    TEST_EQUAL(File::exists(contended), true)
-    TEST_EQUAL(size_t(std::filesystem::file_size(contended)), size_t(9))
   }
 END_SECTION
 
