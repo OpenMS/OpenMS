@@ -47,6 +47,9 @@ namespace OpenMS
       @p charge can come from a file, where an unbounded run of signs would try to allocate
       gigabytes for a large value.
       A charge of 0 (unknown) yields "".
+
+      @param[in] charge The charge to spell out; may come from a file, so it is not assumed to be small
+      @return The notation to append to an ion name, or "" for an unknown charge
     */
     inline std::string chargeSuffix(int charge)
     {
@@ -68,6 +71,9 @@ namespace OpenMS
 
       This is deliberately conservative: a name that does not clearly spell a charge returns 0 rather
       than guessing, so callers can tell "no charge in the name" from "charge 1".
+
+      @param[in] ion_name The ion name to inspect; only its first line is read
+      @return The charge the name spells out, or 0 if it does not spell one
     */
     inline int chargeFromName(const std::string& ion_name)
     {
@@ -138,6 +144,10 @@ namespace OpenMS
 
       The charge goes at the end of the first line, because anything below that is free text rather than
       part of the ion name.
+
+      @param[in] ion_name The ion name as the producer wrote it
+      @param[in] charge The charge recorded alongside it, 0 if unknown
+      @return @p ion_name with the charge spelled out, or unchanged if it already spells one
     */
     inline std::string withCharge(const std::string& ion_name, int charge)
     {
@@ -158,6 +168,9 @@ namespace OpenMS
 
       Returns 0 for names whose ordinal is not in that position, e.g. the cross-link names
       ("[alpha|ci$y3]++"). Callers must range-check the result against the peptide before indexing.
+
+      @param[in] ion_name The ion name to inspect
+      @return The fragment ordinal, or 0 if the name does not spell one in that position
     */
     inline UInt ordinalFromName(const std::string& ion_name)
     {
