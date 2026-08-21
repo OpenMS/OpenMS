@@ -19,8 +19,11 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <thread>
+#include <vector>
 
 using namespace OpenMS;
 using namespace std;
@@ -78,10 +81,66 @@ START_SECTION((static bool writable(const std::string &file)))
   TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
   TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
   TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
+  TEST_EQUAL(File::writable(""), false)
 
   std::string filename;
   NEW_TMP_FILE(filename);
   TEST_EQUAL(File::writable(filename), true)
+
+  // writable() is a query: asking the question must not change the answer, and must not
+  // touch anything on disk that the caller did not ask about.
+  {
+    std::string probed;
+    NEW_TMP_FILE(probed);
+    { std::ofstream os(probed.c_str()); os << "payload"; }
+    TEST_EQUAL(File::writable(probed), true)
+    TEST_EQUAL(File::exists(probed), true)                        // still there
+    TEST_EQUAL(size_t(std::filesystem::file_size(probed)), size_t(7)) // and still intact
+
+    std::string absent;
+    NEW_TMP_FILE(absent);
+    std::filesystem::remove(absent);
+    TEST_EQUAL(File::writable(absent), true)
+    TEST_EQUAL(File::exists(absent), false)                       // probing left no litter
+  }
+
+  // Concurrent callers must not sabotage each other. Probing used to create and delete the
+  // caller's own path, so two tools writing the same output file would delete each other's
+  // probe and report the path unwritable -- an intermittent 'Cannot write output file' that
+  // showed up as a flaky Windows CI failure (issue seen in TOPP_OpenSwathWorkflow_17_cache).
+  {
+    std::string shared;
+    NEW_TMP_FILE(shared);
+    std::filesystem::remove(shared);
+
+    const size_t n_threads = 8;
+    std::vector<char> results(n_threads, 0); // char, not bool: vector<bool> bits are not
+                                             // independently writable from several threads
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < n_threads; ++i)
+    {
+      threads.emplace_back([&results, &shared, i]() { results[i] = File::writable(shared) ? 1 : 0; });
+    }
+    for (auto& t : threads) t.join();
+
+    TEST_EQUAL(size_t(std::count(results.begin(), results.end(), 1)), n_threads)
+    TEST_EQUAL(File::exists(shared), false) // every probe cleaned up after itself
+  }
+
+  // A probe running alongside a real writer must never remove that writer's output.
+  {
+    std::string contended;
+    NEW_TMP_FILE(contended);
+    std::filesystem::remove(contended);
+
+    std::thread writer([&contended]() { std::ofstream os(contended.c_str()); os << "important"; });
+    std::thread prober([&contended]() { File::writable(contended); });
+    writer.join();
+    prober.join();
+
+    TEST_EQUAL(File::exists(contended), true)
+    TEST_EQUAL(size_t(std::filesystem::file_size(contended)), size_t(9))
+  }
 END_SECTION
 
 START_SECTION((static std::string find(const std::string &filename, StringList directories=StringList())))

@@ -46,6 +46,14 @@ General:
     variable or an old side-by-side install can no longer hijack resolution (most relevant on Windows).
     File::find reports the resolved data directory and where it came from when a file is missing
     (#9635, #9636, #9650)
+  - Fix: File::writable() is no longer destructive and no longer reports false negatives under
+    concurrency. It used to answer "does it exist?" and "may I write it?" with two separate
+    queries, so a concurrent process could change the path in between and make it wrongly report
+    a writable path as unwritable; and it probed a non-existent path by creating that very file
+    and deleting it again, which could unlink output another process had just written there.
+    It now asks once and probes the target *directory* with a uniquely named temporary file.
+    File::readable() lost the same redundant exists() check. This removes a source of
+    intermittent "Cannot write output file" failures when two TOPP tools share an output path
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
