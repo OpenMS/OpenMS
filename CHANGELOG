@@ -608,6 +608,19 @@ GUI tools:
   - Fix: TOPPView performance regression when right-clicking in large mzML files (#8997)
   - Fix: Annotation1DItem was missing the OPENMS_GUI_DLLAPI export macro, so its symbols and vtable were
     not exported on Windows DLL builds (#9831)
+  - Fix: TOPPView's identification view appended PeakAnnotation::charge to fragment ion labels that
+    already spelled the charge out, so every singly charged ion of e.g. an OpenNuXL, SimpleSearchEngine
+    or ProSE result was drawn as "y1++", i.e. doubly charged. The charge is now added only when the ion
+    name does not already carry one, which handles both kinds of producer without changing any file
+    format (#8766)
+  - Fix: editing a peak label in TOPPView corrupted the stored annotation. Reading a label back cut the
+    charge off the ion name while the identification view put it back on the next redraw, so a round
+    trip turned "y3+" into "y3++". The label is now kept as it is and the charge only read from it
+  - Fix: TOPPView kept only the first extra line of a multi-line peak label and dropped blank lines, so
+    a comment under the ion name was silently truncated on every spectrum switch
+  - Fix: TOPPView derived the fragment ordinal for its sequence annotation by deleting the characters
+    that are not the ordinal, so a loss ion like "y3-H2O1+" yielded ordinal 0 and no sequence at all;
+    the ordinal is now read as the digits following the ion letter and range-checked against the peptide
 
 OpenMS Library:
   Added:

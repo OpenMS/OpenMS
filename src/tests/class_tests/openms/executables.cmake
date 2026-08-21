@@ -490,6 +490,7 @@ set(chemistry_executables_list
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
   MonosaccharideDB_test
+  IonNaming_test
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test

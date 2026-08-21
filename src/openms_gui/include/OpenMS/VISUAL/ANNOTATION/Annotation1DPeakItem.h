@@ -10,6 +10,8 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <OpenMS/CHEMISTRY/IonNaming.h>
+
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -218,70 +220,29 @@ public:
       // add new fragment annotation
       QString peak_anno = this->getText().trimmed();
 
-      // check for newlines in the label and only continue with the first line for charge determination
+      // check for newlines in the label and only continue with the first line for charge determination.
+      // KeepEmptyParts: a blank line inside a label is the user's text, and dropping it here would
+      // silently rewrite the label every time the annotations are read back.
       peak_anno.remove('\r');
-      QStringList lines = peak_anno.split('\n', Qt::SkipEmptyParts);
+      QStringList lines = peak_anno.split('\n', Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         peak_anno = lines[0];
       }
 
-      // regular expression for a charge at the end of the annotation
-      QRegularExpression reg_exp(R"(([\+|\-]\d+)$)");
-
-      // read charge and text from annotation item string
-      // we support two notations for the charge suffix: '+2' or '++'
-      // cut and convert the trailing + or - to a proper charge
-      int match_pos = peak_anno.indexOf(reg_exp);
-      int tmp_charge(0);
-      if (match_pos >= 0)
-      {
-        tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
-        peak_anno = peak_anno.left(match_pos);
-      }
-      else
-      {
-        // count number of + and - in suffix (e.g., to support "++" as charge 2 annotation)
-        int plus(0), minus(0);
-
-        for (int p = (int)peak_anno.size() - 1; p >= 0; --p)
-        {
-          if (peak_anno[p] == '+')
-          {
-            ++plus;
-            continue;
-          }
-          else if (peak_anno[p] == '-')
-          {
-            ++minus;
-            continue;
-          }
-          else // not '+' or '-'?
-          {
-            if (plus > 0 && minus == 0) // found pluses?
-            {
-              tmp_charge = plus;
-              peak_anno = peak_anno.left(peak_anno.size() - plus);
-              break;
-            }
-            else if (minus > 0 && plus == 0) // found minuses?
-            {
-              tmp_charge = -minus;
-              peak_anno = peak_anno.left(peak_anno.size() - minus);
-              break;
-            }
-            break;
-          }
-        }
-      }
+      // Read the charge from the label but leave the label alone. Cutting the charge off used to
+      // corrupt the stored annotation: the identification view puts the charge back on redraw, so a
+      // round trip through this function turned "y3+" into "y3" and then into "y3++".
+      // IonNaming::chargeFromName understands all notations that occur ('+2', '++' and mzPAF's '^2').
+      const int tmp_charge = IonNaming::chargeFromName(fromQString(peak_anno));
 
       PeptideHit::PeakAnnotation fa;
       fa.charge = tmp_charge;
       fa.mz = this->getPeakPosition().getMZ();
       fa.intensity = this->getPeakPosition().getIntensity();
-      if (lines.size() > 1)
-      {
-        peak_anno.append("\n").append(lines[1]);
+      for (int l = 1; l < lines.size(); ++l)
+      { // keep every extra label line, not just the first (they are free text below the ion name)
+        peak_anno.append("\n").append(lines[l]);
       }
       fa.annotation = fromQString(peak_anno);
 

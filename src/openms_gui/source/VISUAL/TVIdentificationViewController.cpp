@@ -8,6 +8,8 @@
 
 #include <OpenMS/VISUAL/TVIdentificationViewController.h>
 
+#include <OpenMS/CHEMISTRY/IonNaming.h>
+
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
@@ -1039,23 +1041,27 @@ namespace OpenMS
       {
         PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
         QString s(sa[aligned_peak_indices[i].second].c_str());
-        QString ion_nr_string = s;
-
         if (s.at(0) == 'y')
         {
-          ion_nr_string.replace("y", "");
-          ion_nr_string.replace("+", "");
-          Size ion_number = ion_nr_string.toUInt();
+          // Read the ordinal as the digits following the ion letter instead of deleting the characters
+          // that are not the ordinal: deleting only "y" and "+" leaves "3-H2O1" for a loss ion, which
+          // toUInt() reports as 0, and the sequence below then came out empty.
+          const Size ion_number = IonNaming::ordinalFromName(fromQString(s));
           s.append("\n");
           // extract peptide ion sequence
           QString aa_ss;
-          for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
+          if (ion_number > 0 && ion_number <= aa_sequence.size()) // else: no ordinal to index the peptide with
           {
-            const Residue& r = aa_sequence.getResidue(j);
-            aa_ss.append(toQString(r.getOneLetterCode()));
-            if (r.isModified())
+            // count down from the end; 'j' is one past the residue so that j == 0 ends the loop without
+            // wrapping around (Size is unsigned)
+            for (Size j = aa_sequence.size(); j > aa_sequence.size() - ion_number; --j)
             {
-              aa_ss.append("*");
+              const Residue& r = aa_sequence.getResidue(j - 1);
+              aa_ss.append(toQString(r.getOneLetterCode()));
+              if (r.isModified())
+              {
+                aa_ss.append("*");
+              }
             }
           }
           s.append(aa_ss);
@@ -1064,15 +1070,19 @@ namespace OpenMS
         }
         else if (s.at(0) == 'b')
         {
-          ion_nr_string.replace("b", "");
-          ion_nr_string.replace("+", "");
-          UInt ion_number = ion_nr_string.toUInt();
+          // see the y branch: the ordinal is the digit run after the ion letter, so a neutral loss or a
+          // charge suffix no longer folds into it
+          const UInt ion_number = IonNaming::ordinalFromName(fromQString(s));
           s.append("\n");
-          // extract peptide ion sequence
-          AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
-          QString aa_ss = toQString(aa_subsequence.toString());
-          // shorten modifications "(MODNAME)" to "*"
-          aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
+          QString aa_ss;
+          if (ion_number > 0 && ion_number <= aa_sequence.size()) // else: no ordinal to index the peptide with
+          {
+            // extract peptide ion sequence
+            AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
+            aa_ss = toQString(aa_subsequence.toString());
+            // shorten modifications "(MODNAME)" to "*"
+            aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
+          }
           // append to label
           s.append(aa_ss);
           Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
@@ -1211,21 +1221,22 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-      QStringList lines = toQString(label).split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
+      // Most producers already spell the charge out in the ion name (TheoreticalSpectrumGenerator writes
+      // "y3+"), while others leave it to PeakAnnotation::charge alone (TheoreticalSpectrumGeneratorXLMS
+      // writes "[alpha|ci$y3]"). Appending it unconditionally therefore labelled every singly charged
+      // fragment of the first kind as doubly charged -- issue #8766. Ask the name what it already says.
+      if (ann.charge != 0 && IonNaming::chargeFromName(label) == 0)
+      { // the ion name is the first line, so the charge goes there and not behind the free text below it
+        const std::string::size_type eol = label.find_first_of("\r\n");
+        label.insert((eol == std::string::npos) ? label.size() : eol, IonNaming::chargeSuffix(ann.charge));
+      }
+
+      // "\r\n" first in the alternation so a CRLF counts as one line break, and KeepEmptyParts so a
+      // blank line the user put between the ion name and their comment survives
+      QStringList lines = toQString(label).split(QRegularExpression("\r\n|[\r\n]"), Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         label = fromQString(lines[0]);
-      }
-
-      // write out positive and negative charges with the correct sign at the end of the annotation string
-      switch (ann.charge)
-      {
-        case 0: break;
-        case 1: label += "+"; break;
-        case 2: label += "++"; break;
-        case -1: label += "-"; break;
-        case -2: label += "--"; break;
-        default: label += ((ann.charge > 0) ? "+" : "") + StringUtils::toStr(ann.charge);
       }
 
       QColor color(Qt::black);
@@ -1246,7 +1257,7 @@ namespace OpenMS
           peak_color = Qt::red;
         }
       }
-      else
+      else if (!label.empty()) // an annotation with an empty name would throw in at()
       { // different colors for left/right fragments (e.g. b/y ions)
         color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
         peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
@@ -1255,9 +1266,9 @@ namespace OpenMS
       Peak1D position(current_spectrum[peak_idx].getMZ(),
         current_spectrum[peak_idx].getIntensity());
 
-      if (lines.size() > 1)
-      {
-        label.append("\n").append(fromQString(lines[1]));
+      for (int l = 1; l < lines.size(); ++l)
+      { // keep every extra label line, not just the first (they are free text below the ion name)
+        label.append("\n").append(fromQString(lines[l]));
       }
 
       auto item = new Annotation1DPeakItem<Peak1D>(
