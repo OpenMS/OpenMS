@@ -54,6 +54,13 @@ General:
     It now asks once and probes the target *directory* with a uniquely named temporary file.
     File::readable() lost the same redundant exists() check. This removes a source of
     intermittent "Cannot write output file" failures when two TOPP tools share an output path
+    (#9937, #9940, #9941)
+  - Fix: MRMFeatureSelector selected no features at all on builds using the GLPK backend
+    (-DLP_SOLVER=GLPK, or the vcpkg "lp-glpk" feature). Its "exactly one feature per transition"
+    constraints were typed DOUBLE_BOUNDED with both bounds equal, which reaches GLPK as GLP_DB
+    with lb == ub; glp_intopt then returns GLP_EBOUND and leaves every column at zero, and the
+    unchecked return value turned that into a silently empty selection. They are now typed FIXED.
+    No effect on the COIN-OR and HiGHS backends, which treat the two types identically (#9940)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)

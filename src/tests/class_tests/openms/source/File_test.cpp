@@ -103,6 +103,57 @@ START_SECTION((static bool writable(const std::string &file)))
     TEST_EQUAL(File::exists(absent), false)                       // probing left no litter
   }
 
+  // A long path must not make writable() lie. writable() answers "could this be
+  // created?" by creating a file of its own in the same directory, and that name is
+  // longer than a typical caller's -- so close to the platform's path limit there is a
+  // band where the caller's own file still fits but the probe no longer does. Reporting
+  // "not writable" there is exactly the false negative this function exists to avoid.
+  //
+  // The limit is not the same on every platform (PATH_MAX, MAX_PATH, and whatever the
+  // filesystem says), so rather than hard-code a length, grow a directory until the OS
+  // refuses to go deeper and then sweep the last stretch of headroom. At every depth the
+  // requirement is the same and is checked against reality rather than against an
+  // expected answer: if the file can actually be created, writable() must say true.
+  {
+    File::TempDir long_path_dir;
+    std::error_code ec;
+    std::string deep = long_path_dir.getPath();
+    const std::string chunk(60, 'd');
+
+    // Cap the descent: a filesystem with no practical path limit must not loop forever.
+    for (int level = 0; level < 200; ++level)
+    {
+      const std::string next = deep + chunk + "/";
+      std::filesystem::create_directory(next, ec);
+      if (ec || !std::filesystem::is_directory(next, ec)) break;
+      deep = next;
+    }
+
+    int agreed = 0, checked = 0;
+    for (size_t tail = 1; tail < 60; tail += 6)
+    {
+      const std::string leaf = deep + std::string(tail, 'e');
+      std::filesystem::create_directory(leaf, ec);
+      if (ec || !std::filesystem::is_directory(leaf, ec)) continue;
+
+      // Ground truth: let the OS itself say whether this file can be created.
+      const std::string target = leaf + "/o";
+      std::ofstream os(target.c_str());
+      const bool creatable = os.is_open() && os.good();
+      os.close();
+      if (creatable) std::filesystem::remove(target, ec);
+
+      ++checked;
+      if (File::writable(target) == creatable) ++agreed;
+      std::filesystem::remove(leaf, ec);
+    }
+
+    TEST_NOT_EQUAL(checked, 0)      // the sweep has to have probed something
+    TEST_EQUAL(agreed, checked)     // ... and writable() has to agree with the OS at every depth
+
+    std::filesystem::remove_all(deep, ec);
+  }
+
   // Concurrent callers must not sabotage each other. Both of the following are races, so a
   // single attempt proves nothing -- before the fix they went wrong in roughly 2% and 79% of
   // attempts respectively, which a one-shot check sails straight past. Repeat instead, and
