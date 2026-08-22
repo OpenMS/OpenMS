@@ -616,6 +616,28 @@ GUI tools:
   - Fix: TOPPView performance regression when right-clicking in large mzML files (#8997)
   - Fix: Annotation1DItem was missing the OPENMS_GUI_DLLAPI export macro, so its symbols and vtable were
     not exported on Windows DLL builds (#9831)
+  - Fix: TOPPView's identification view appended PeakAnnotation::charge to fragment ion labels that
+    already spelled the charge out, so every singly charged ion of e.g. an OpenNuXL, SimpleSearchEngine
+    or ProSE result was drawn as "y1++", i.e. doubly charged (#8766)
+  - Fix: viewing a spectrum in TOPPView rewrote the stored fragment annotations. The identification view
+    put the charge into the peak label, and the annotations are synchronised back into the PeptideHit on
+    every spectrum switch, so simply stepping through spectra turned NucleicAcidSearchEngine's "a2-B"
+    into "a2-B-" and OpenPepXL's "[alpha|ci$y3]" into "[alpha|ci$y3]++" -- which in turn made the
+    sequence diagram file an a-B ion under "a". The charge now travels on the annotation item and is
+    drawn from there, so the ion name a producer wrote is never modified by looking at it
+  - Fix: reading a peak label back cut the charge off the ion name while the identification view put it
+    back on the next redraw, so a round trip turned "y3+" into "y3++"
+  - Fix: TOPPView kept only the first extra line of a multi-line peak label and dropped blank lines, so
+    a comment under the ion name was silently truncated on every spectrum switch
+  - Fix: TOPPView derived the fragment ordinal for its sequence annotation by deleting the characters
+    that are not the ordinal, so a loss ion like "y3-H2O1+" yielded ordinal 0 and no sequence at all;
+    the ordinal is now read as the digits following the ion letter and range-checked against the peptide
+  - Fix: TOPPView's sequence diagram for a b ion collapsed everything between the first and last
+    modification into a single "*", dropping the residues in between (a doubly modified prefix such as
+    "PEPT(Phospho)IDM(Oxidation)" was drawn as "PEPT*" instead of "PEPT*IDM*")
+  - TOPPView no longer draws an explicit "1+"/"1-" on singly charged fragments whose name leaves the
+    charge to PeakAnnotation::charge (cross-link, NucleicAcidSearchEngine and OpenNuXL ions); charge 1
+    is implied, matching how a named "y3+" is already drawn without its sign
 
 OpenMS Library:
   Added:
@@ -778,6 +800,13 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
+      already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
+      another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
+      same defect as #8766, in the written data rather than in the display. The special lysine immonium
+      ions had the mirror problem and reached the output with no charge in the name at all
+      ("iK(C6H13N2O)"). The charge is now added only when the name does not already carry one. Changes
+      the fragment annotations written by OpenNuXL (#8766)
     - Fix: MzPAF could not parse a negative charge. MzPAF::toString() writes the sign it is given
       ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
       own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --

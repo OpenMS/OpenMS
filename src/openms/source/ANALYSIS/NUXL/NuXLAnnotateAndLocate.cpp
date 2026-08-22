@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
+
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
 
@@ -253,7 +255,10 @@ namespace OpenMS
         fa.mz = fragment_mz;
         fa.intensity = fragment_intensity;
         fa.charge = charge;
-        fa.annotation = ion_name;
+        // the abundant immonium ions arrive named "iF+", but the special lysine ones that
+        // NuXLFragmentIonGenerator::addSpecialLysImmonumIons() adds do not carry the charge at all
+        // ("iK(C6H13N2O)"), so those reached the output with no charge in the name
+        fa.annotation = IonNaming::withCharge(ion_name, charge);
         annotated_immonium_ions.push_back(fa);
         peak_is_annotated.insert(aligned.second);
       }
@@ -600,7 +605,7 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name + "+";
+              fa.annotation = IonNaming::withCharge(ion_name, 1);
               annotated_marker_ions.push_back(fa);
             }
             else
@@ -617,7 +622,11 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name + "+";
+              // getAnnotatedImmoniumIon() already ends the name with the charge ("iY+U-H3PO4+"), while
+              // the special lysine immonium ions ("iK(C5H10N1)") and the marker ions do not. Appending
+              // unconditionally annotated the first kind as doubly charged while PeakAnnotation::charge
+              // said 1 -- the same defect as issue #8766, in the written data rather than the display.
+              fa.annotation = IonNaming::withCharge(ion_name, 1);
               shifted_immonium_ions.push_back(fa);
             }
             else
@@ -634,7 +643,7 @@ namespace OpenMS
             static const std::regex pattern(R"(\](\++)+)");
             fa.annotation = std::regex_replace(ion_name, pattern, "]"); // remove charge inside string (e.g., before loss)
             StringUtils::substitute(fa.annotation, ' ', '+'); // turn gap into plus "[M+2H] U-H2O" -> "[M+2H]+U-H2O"
-            fa.annotation +=std::string(charge, '+'); // add charges back at end
+            fa.annotation += IonNaming::chargeSuffix(charge); // add charges back at end
             annotated_precursor_ions.push_back(fa);
           }
           else if (isupper(ion_name[0])) // shifted internal ions
@@ -645,7 +654,7 @@ namespace OpenMS
             fa.charge = charge;
             std::string with_plus = ion_name;
             StringUtils::substitute(with_plus, ' ', '+'); // turn "PEPT U-H2O" into "PEPT+U-H20"
-            fa.annotation = with_plus + std::string(charge, '+'); 
+            fa.annotation = with_plus + IonNaming::chargeSuffix(charge);
             shifted_immonium_ions.push_back(fa);  //TODO: add to shifted_internal_fragment_ions or rename vector
           }
         }
