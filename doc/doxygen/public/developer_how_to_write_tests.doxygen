@@ -80,7 +80,7 @@
 
   @subsection creating_barebone_tests Creating barebone tests
 
-  New class tests start from the test file template shown in @ref how_to_add_a_new_class_test, which needs to be fleshed out with the specifics of your implementation details.
+  New class tests start from @ref how_to_add_a_new_class_test, which covers where to put the test file, how to register it in <code>executables.cmake</code>, and the test file structure to start from. It needs to be fleshed out with the specifics of your implementation details.
 
   @subsection building_tests Building tests
 
