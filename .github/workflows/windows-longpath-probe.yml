@@ -20,15 +20,6 @@ jobs:
       - name: Emulate a Visual Studio shell
         uses: egor-tensin/vs-shell@v2
 
-      - name: Report and enable LongPathsEnabled
-        shell: pwsh
-        run: |
-          $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem'
-          $before = (Get-ItemProperty -Path $k -Name LongPathsEnabled -ErrorAction SilentlyContinue).LongPathsEnabled
-          Write-Host "LongPathsEnabled before = $before"
-          New-ItemProperty -Path $k -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
-          Write-Host "LongPathsEnabled after  = $((Get-ItemProperty -Path $k -Name LongPathsEnabled).LongPathsEnabled)"
-
       # Optional: real SQLite to test against. The probe still runs without it.
       # Two previous runs produced no lib and finished in ~1s, so make the failure
       # visible: VCPKG_INSTALLATION_ROOT *is* set (C:\vcpkg) on this image, so the
@@ -48,7 +39,7 @@ jobs:
           Write-Host "sqlite3.lib exists: $(Test-Path $lib)"
           "VCPKG_ROOT_RESOLVED=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Build and run the probe (without, then with, a longPathAware manifest)
+      - name: Build both probe binaries
         shell: pwsh
         run: |
           $root = $env:VCPKG_ROOT_RESOLVED; if (-not $root) { $root = 'C:\vcpkg' }
@@ -57,25 +48,38 @@ jobs:
           $bin = "$root\installed\x64-windows\bin"
           $sqliteOk = Test-Path "$lib\sqlite3.lib"
           Write-Host "sqlite3.lib present: $sqliteOk"
-
           $common = @('/nologo','/EHsc','/std:c++17','tools\longpath_probe\probe.cpp')
-          $defs   = @(); $link = @('advapi32.lib')   # Reg* APIs
+          $defs   = @(); $link = @('advapi32.lib')
           if ($sqliteOk) {
             $defs += '/DPROBE_WITH_SQLITE'; $defs += "/I$inc"
             $link += "/LIBPATH:$lib"; $link += 'sqlite3.lib'
-            $env:PATH = "$bin;$env:PATH"
           }
-
           & cl @common @defs '/Fe:probe_plain.exe' '/link' @link
           if ($LASTEXITCODE -ne 0) { throw "build (plain) failed" }
-
           & cl @common @defs '/DPROBE_MANIFEST' '/Fe:probe_manifest.exe' '/link' @link `
               '/MANIFEST:EMBED' '/MANIFESTINPUT:tools\longpath_probe\longpath.manifest'
           if ($LASTEXITCODE -ne 0) { throw "build (manifest) failed" }
 
-          Write-Host ""
-          Write-Host "================= NO MANIFEST ================="
-          & .\probe_plain.exe
-          Write-Host ""
-          Write-Host "================= WITH MANIFEST ==============="
-          & .\probe_manifest.exe
+      # The load-bearing question for "why did it work in OpenMS 3.5":
+      # is Qt's \\?\ mechanism independent of the LongPathsEnabled registry value?
+      # Run the full 2x2: {registry off, on} x {no manifest, manifest}. Each probe run
+      # is a fresh process, so the per-process registry cache is re-read each time.
+      - name: Run 2x2 matrix (registry off/on x manifest none/embedded)
+        shell: pwsh
+        run: |
+          $root = $env:VCPKG_ROOT_RESOLVED; if (-not $root) { $root = 'C:\vcpkg' }
+          $bin  = "$root\installed\x64-windows\bin"
+          if (Test-Path $bin) { $env:PATH = "$bin;$env:PATH" }
+          $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem'
+
+          function Set-LP($v) {
+            New-ItemProperty -Path $k -Name LongPathsEnabled -Value $v -PropertyType DWORD -Force | Out-Null
+            Write-Host "---- LongPathsEnabled set to $((Get-ItemProperty -Path $k -Name LongPathsEnabled).LongPathsEnabled) ----"
+          }
+
+          Set-LP 0
+          Write-Host "`n===== registry OFF, NO manifest ====="; & .\probe_plain.exe
+          Write-Host "`n===== registry OFF, manifest ========"; & .\probe_manifest.exe
+          Set-LP 1
+          Write-Host "`n===== registry ON, NO manifest ======"; & .\probe_plain.exe
+          Write-Host "`n===== registry ON, manifest ========="; & .\probe_manifest.exe
