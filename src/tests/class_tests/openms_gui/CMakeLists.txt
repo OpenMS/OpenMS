@@ -11,6 +11,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_class_tests_openms_gui")
 
 set(visual_executables_list
+  Annotation1DPeakItem_test
   AxisTickCalculator_test
   FileWatcher_test
   GUIHelpers_test

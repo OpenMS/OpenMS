@@ -46,6 +46,14 @@ General:
     variable or an old side-by-side install can no longer hijack resolution (most relevant on Windows).
     File::find reports the resolved data directory and where it came from when a file is missing
     (#9635, #9636, #9650)
+  - Fix: File::writable() is no longer destructive and no longer reports false negatives under
+    concurrency. It used to answer "does it exist?" and "may I write it?" with two separate
+    queries, so a concurrent process could change the path in between and make it wrongly report
+    a writable path as unwritable; and it probed a non-existent path by creating that very file
+    and deleting it again, which could unlink output another process had just written there.
+    It now asks once and probes the target *directory* with a uniquely named temporary file.
+    File::readable() lost the same redundant exists() check. This removes a source of
+    intermittent "Cannot write output file" failures when two TOPP tools share an output path
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -608,6 +616,28 @@ GUI tools:
   - Fix: TOPPView performance regression when right-clicking in large mzML files (#8997)
   - Fix: Annotation1DItem was missing the OPENMS_GUI_DLLAPI export macro, so its symbols and vtable were
     not exported on Windows DLL builds (#9831)
+  - Fix: TOPPView's identification view appended PeakAnnotation::charge to fragment ion labels that
+    already spelled the charge out, so every singly charged ion of e.g. an OpenNuXL, SimpleSearchEngine
+    or ProSE result was drawn as "y1++", i.e. doubly charged (#8766)
+  - Fix: viewing a spectrum in TOPPView rewrote the stored fragment annotations. The identification view
+    put the charge into the peak label, and the annotations are synchronised back into the PeptideHit on
+    every spectrum switch, so simply stepping through spectra turned NucleicAcidSearchEngine's "a2-B"
+    into "a2-B-" and OpenPepXL's "[alpha|ci$y3]" into "[alpha|ci$y3]++" -- which in turn made the
+    sequence diagram file an a-B ion under "a". The charge now travels on the annotation item and is
+    drawn from there, so the ion name a producer wrote is never modified by looking at it
+  - Fix: reading a peak label back cut the charge off the ion name while the identification view put it
+    back on the next redraw, so a round trip turned "y3+" into "y3++"
+  - Fix: TOPPView kept only the first extra line of a multi-line peak label and dropped blank lines, so
+    a comment under the ion name was silently truncated on every spectrum switch
+  - Fix: TOPPView derived the fragment ordinal for its sequence annotation by deleting the characters
+    that are not the ordinal, so a loss ion like "y3-H2O1+" yielded ordinal 0 and no sequence at all;
+    the ordinal is now read as the digits following the ion letter and range-checked against the peptide
+  - Fix: TOPPView's sequence diagram for a b ion collapsed everything between the first and last
+    modification into a single "*", dropping the residues in between (a doubly modified prefix such as
+    "PEPT(Phospho)IDM(Oxidation)" was drawn as "PEPT*" instead of "PEPT*IDM*")
+  - TOPPView no longer draws an explicit "1+"/"1-" on singly charged fragments whose name leaves the
+    charge to PeakAnnotation::charge (cross-link, NucleicAcidSearchEngine and OpenNuXL ions); charge 1
+    is implied, matching how a named "y3+" is already drawn without its sign
 
 OpenMS Library:
   Added:
@@ -768,7 +798,19 @@ OpenMS Library:
     - TOPPExternalToolBase: tools that shell out to an external executable (search engine adapters, ...)
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
+    - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
+      already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
+      another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
+      same defect as #8766, in the written data rather than in the display. The special lysine immonium
+      ions had the mirror problem and reached the output with no charge in the name at all
+      ("iK(C6H13N2O)"). The charge is now added only when the name does not already carry one. Changes
+      the fragment annotations written by OpenNuXL (#8766)
+    - Fix: MzPAF could not parse a negative charge. MzPAF::toString() writes the sign it is given
+      ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
+      own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --
+      could be expressed in mzPAF at all. An optional sign is now read before the number
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
       longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
       they use the native schemas and file_type tokens such as consensus_features / features /
@@ -1033,6 +1075,8 @@ Documentation:
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
 
 Build System:
+  - Removed the developer script tools/checker.php. Covered by .clang-format now (tools/create_test.php and tools/correct_test.php remain).
+  - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
     <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
@@ -1054,6 +1098,11 @@ Build System:
     standalone consumers building against an installed prefix, were registered (#9774)
   - vcpkg integration (GSoC 2026): vcpkg.json, vcpkg-configuration.json and CMakePresets.json manage the
     build dependencies via vcpkg, validated by a dedicated CI workflow with a binary cache (#9511)
+    - Extended from Linux to Windows and macOS: platform-specific configure/build/test presets, overlay
+      ports for onnxruntime, openms-thermo-bridge and opentims (with the clang/newer-gcc glpk build fix
+      applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
+      SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
+      configure time roughly in half by skipping the debug variant of every port (#9800)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for
@@ -1093,6 +1142,20 @@ Build System:
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
+  - CI: the compiler build cache now actually gets written. actions/cache only saves in its post step when
+    the primary key missed, but the build workflow used a static key, so the cache was populated once and
+    then restored stale on every later run -- every build recompiled from scratch. Restore and save are now
+    split (actions/cache/restore + actions/cache/save) with a per-run primary key, which guarantees a miss
+    so the save step always fires, while a restore-keys ladder still prefers the newest cache for the
+    current branch, then develop, then any branch; ccache statistics are printed after each build so a cold
+    cache is visible in the log instead of only in wall-clock time (#9887)
+  - CI: doc-validate now pins ruff to 0.16.2 instead of installing whatever astral-sh/ruff-action resolves
+    to latest, and doc/pyopenms/ruff.toml selects the pyOpenMS documentation's lint rules explicitly. Ruff
+    0.16 widened its default lint selection from 59 to 413 rules, which turned the job red with no commit
+    of ours in between (#9899, #9906)
+  - Tests: TOPP_OpenSwathWorkflow_17_cache wrote to the same output file names as TOPP_OpenSwathWorkflow_17,
+    so the two tests could collide when a Windows nightly run scheduled them concurrently; the cache variant
+    now uses its own file names (#9937)
   - Tests: the 19 assertions on QPX Parquet output were `cmake -E sha256sum` calls that compared the hash to
     nothing, so only file existence was asserted -- a regression emptying a table, renaming every run or
     dropping a column was invisible. They now assert the schema and a row-count floor via the new ParquetDiff
