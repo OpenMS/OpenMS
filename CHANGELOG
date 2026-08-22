@@ -64,6 +64,8 @@ General:
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
+  - Removed the stale developer runners under src/tests/topp/ProteomicsLFQTestScripts (hardcoded
+    personal paths, not run by CI) and the ProteomicsLFQ documentation line that pointed to them
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
