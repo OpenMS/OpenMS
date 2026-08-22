@@ -464,17 +464,29 @@ public:
 
       The verbose level (0,1,2) determines if the solver prints status messages and internals.
 
+      As a side effect the normalised solution status is stored and can afterwards be queried via
+      getStatus(). Whenever the solver does not return a usable solution (e.g. an infeasible model,
+      an ill-posed constraint, or a hit time/iteration limit) an error is logged. Because the raw
+      return value is backend specific, callers should inspect getStatus() (or the logged error)
+      rather than the return value to decide whether the solution is meaningful. Reading
+      getColumnValue()/getObjectiveValue() after a failed solve yields all-zero / undefined values.
+
       @param[in] solver_param
       @param[in] verbose_level
 
-      @return solver dependent (todo: fix)
+      @return backend-specific status code (GLPK: 0 on success; COIN-OR: CbcModel::status();
+              HiGHS: HighsStatus). Prefer getStatus() for a backend-independent result.
     */
     Int solve(SolverParam& solver_param, const Size verbose_level = 0);
 
     /**
-      @brief Get solution status.
+      @brief Get the normalised solution status of the last solve() call.
 
-      @return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+      Reliable for all backends (GLPK, COIN-OR and HiGHS). Returns UNDEFINED if solve() has not been
+      called yet or if the solver did not produce a usable solution.
+
+      @return status: 1 - undefined, 2 - (integer) feasible (no optimality proven), 4 - no (integer)
+              feasible solution, 5 - (integer) optimal
      */
     SolverStatus getStatus();
 
@@ -529,6 +541,8 @@ protected:
 #endif
 
     SOLVER solver_;                    ///< Currently active solver backend
+
+    SolverStatus solver_status_ = UNDEFINED; ///< Normalised status of the last solve() call (see getStatus())
 
 
   }; // class

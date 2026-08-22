@@ -749,6 +749,29 @@ namespace OpenMS
       solution_.push_back(model.solver()->getColSolution()[i]);
     }
     OPENMS_LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
+    // store a normalised status, so getStatus() reports a meaningful result on the COIN-OR path
+    if (model.isProvenOptimal())
+    {
+      solver_status_ = OPTIMAL;
+    }
+    else if (model.getSolutionCount() > 0)
+    {
+      solver_status_ = FEASIBLE;
+    }
+    else if (model.isProvenInfeasible())
+    {
+      solver_status_ = NO_FEASIBLE_SOL;
+    }
+    else
+    {
+      solver_status_ = UNDEFINED;
+    }
+    if (solver_status_ != OPTIMAL && solver_status_ != FEASIBLE)
+    {
+      OPENMS_LOG_ERROR << "LPWrapper::solve(): the COIN-OR solver did not return a usable solution "
+                          "(CbcModel::status() = " << model.status() << "). The reported column/objective values "
+                          "are not meaningful; check getStatus() before using the solution.\n";
+    }
     return model.status();
 #elif defined(OPENMS_HAS_HIGHS)
     OPENMS_LOG_INFO << "Using solver 'highs' ...\n";
@@ -769,16 +792,41 @@ namespace OpenMS
 
     // Store solution
     solution_.clear();
+    const HighsModelStatus model_status = highs_->getModelStatus();
     if (status == HighsStatus::kOk || status == HighsStatus::kWarning)
     {
       const HighsSolution& sol = highs_->getSolution();
       solution_ = sol.col_value;
-      HighsModelStatus model_status = highs_->getModelStatus();
       OPENMS_LOG_INFO << (model_status == HighsModelStatus::kOptimal ? "Optimal solution found!" : "Solution status: non-optimal") << "\n";
     }
     else
     {
       OPENMS_LOG_INFO << "No solution found!\n";
+    }
+    // store a normalised status, so getStatus() reports a meaningful result
+    switch (model_status)
+    {
+    case HighsModelStatus::kOptimal:
+      solver_status_ = OPTIMAL;
+      break;
+    case HighsModelStatus::kObjectiveBound:
+    case HighsModelStatus::kObjectiveTarget:
+      solver_status_ = FEASIBLE;
+      break;
+    case HighsModelStatus::kInfeasible:
+    case HighsModelStatus::kUnbounded:
+      solver_status_ = NO_FEASIBLE_SOL;
+      break;
+    default:
+      solver_status_ = UNDEFINED;
+      break;
+    }
+    if (status == HighsStatus::kError || (solver_status_ != OPTIMAL && solver_status_ != FEASIBLE))
+    {
+      OPENMS_LOG_ERROR << "LPWrapper::solve(): the HiGHS solver did not return a usable solution "
+                          "(HighsStatus = " << static_cast<Int>(status) << ", model status not optimal/feasible). "
+                          "The reported column/objective values are not meaningful; check getStatus() before "
+                          "using the solution.\n";
     }
     return static_cast<Int>(status);
 #else
@@ -823,46 +871,40 @@ namespace OpenMS
     {
       solver_param_glp.binarize = GLP_ON; // only with presolve
     }
-    return glp_intopt(lp_problem_, &solver_param_glp);
+    const Int glpk_ret = glp_intopt(lp_problem_, &solver_param_glp);
+    // store a normalised status, so getStatus() reports a meaningful result
+    switch (glp_mip_status(lp_problem_))
+    {
+    case GLP_OPT:
+      solver_status_ = OPTIMAL;
+      break;
+    case GLP_FEAS:
+      solver_status_ = FEASIBLE;
+      break;
+    case GLP_NOFEAS:
+      solver_status_ = NO_FEASIBLE_SOL;
+      break;
+    default: // GLP_UNDEF and anything else
+      solver_status_ = UNDEFINED;
+      break;
+    }
+    // glp_intopt returns 0 on success; a non-zero code (GLP_EBOUND, GLP_ENOPFS, GLP_ETMLIM, ...) means the
+    // search could not start or was aborted, so no solution was computed.
+    if (glpk_ret != 0 || (solver_status_ != OPTIMAL && solver_status_ != FEASIBLE))
+    {
+      OPENMS_LOG_ERROR << "LPWrapper::solve(): the GLPK solver did not return a usable solution "
+                          "(glp_intopt returned " << glpk_ret << "). The reported column/objective values are "
+                          "not meaningful; check getStatus() before using the solution.\n";
+    }
+    return glpk_ret;
 #endif
   }
 
   LPWrapper::SolverStatus LPWrapper::getStatus()
   {
-#ifdef OPENMS_HAS_COINOR
-    return LPWrapper::UNDEFINED;
-#elif defined(OPENMS_HAS_HIGHS)
-    HighsModelStatus model_status = highs_->getModelStatus();
-    switch (model_status)
-    {
-    case HighsModelStatus::kOptimal:
-      return LPWrapper::OPTIMAL;
-    case HighsModelStatus::kObjectiveBound:
-    case HighsModelStatus::kObjectiveTarget:
-      return LPWrapper::FEASIBLE;
-    case HighsModelStatus::kInfeasible:
-    case HighsModelStatus::kUnbounded:
-      return LPWrapper::NO_FEASIBLE_SOL;
-    default:
-      return LPWrapper::UNDEFINED;
-    }
-#else
-    Int status = glp_mip_status(lp_problem_);
-    switch (status)
-    {
-    case 4:
-      return LPWrapper::NO_FEASIBLE_SOL;
-
-    case 5:
-      return LPWrapper::OPTIMAL;
-
-    case 2:
-      return LPWrapper::FEASIBLE;
-
-    default:
-      return LPWrapper::UNDEFINED;
-    }
-#endif
+    // The normalised status is computed in solve() for every backend (including the COIN-OR path, which
+    // previously always reported UNDEFINED here), so all callers get a reliable, backend-independent result.
+    return solver_status_;
   }
 
   double LPWrapper::getObjectiveValue()

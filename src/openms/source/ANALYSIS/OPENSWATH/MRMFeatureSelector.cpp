@@ -97,6 +97,13 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
+    const LPWrapper::SolverStatus status = problem.getStatus();
+    if (status != LPWrapper::OPTIMAL && status != LPWrapper::FEASIBLE)
+    {
+      OPENMS_LOG_ERROR << "MRMFeatureSelectorScore::optimize(): the LP solver did not find a feasible solution "
+                          "(status " << static_cast<int>(status) << "); no features are selected for this segment.\n";
+      return; // result stays empty; do not read all-zero column values as a (silently wrong) selection
+    }
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
       if (problem.getColumnValue(c) >= parameters.optimal_threshold)
@@ -207,6 +214,13 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
+    const LPWrapper::SolverStatus status = problem.getStatus();
+    if (status != LPWrapper::OPTIMAL && status != LPWrapper::FEASIBLE)
+    {
+      OPENMS_LOG_ERROR << "MRMFeatureSelectorQMIP::optimize(): the LP solver did not find a feasible solution "
+                          "(status " << static_cast<int>(status) << "); no features are selected for this segment.\n";
+      return; // result stays empty; do not read all-zero column values as a (silently wrong) selection
+    }
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
       const std::string name = problem.getColumnName(c);

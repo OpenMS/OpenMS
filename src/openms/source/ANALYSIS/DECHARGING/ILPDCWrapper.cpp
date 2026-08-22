@@ -270,6 +270,15 @@ namespace OpenMS
 
     build.solve(param);
 
+    const LPWrapper::SolverStatus status = build.getStatus();
+    if (status != LPWrapper::OPTIMAL && status != LPWrapper::FEASIBLE)
+    {
+      OPENMS_LOG_ERROR << "ILPDCWrapper::computeSlice_(): the LP solver did not find a feasible solution "
+                          "(status " << static_cast<int>(status) << "); no adduct/charge assignments are made "
+                          "for this slice.\n";
+      return 0.0; // do not activate edges from meaningless all-zero column values
+    }
+
     for (UInt iColumn = 0; iColumn < margin_right - margin_left; ++iColumn)
     {
       double value = build.getColumnValue(iColumn);
@@ -435,11 +444,20 @@ namespace OpenMS
     time1.start();
     build.solve(param);
     time1.stop();
+    const LPWrapper::SolverStatus status = build.getStatus();
+    const bool solved = (status == LPWrapper::OPTIMAL || status == LPWrapper::FEASIBLE);
     if (verbose_level > 0)
       OPENMS_LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
                << " with objective value: " << build.getObjectiveValue() << "."
-               << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
+               << " Status: " << (solved ? "Finished" : "Not finished")
                << std::endl;
+    if (!solved)
+    {
+      OPENMS_LOG_ERROR << "ILPDCWrapper::computeSliceOld_(): the LP solver did not find a feasible solution "
+                          "(status " << static_cast<int>(status) << "); no adduct/charge assignments are made "
+                          "for this slice.\n";
+      return 0.0; // do not activate edges from meaningless all-zero column values
+    }
 
     // variable values
     UInt active_edges = 0;

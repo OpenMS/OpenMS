@@ -445,7 +445,9 @@ START_SECTION((SolverStatus getStatus()))
 #ifdef OPENMS_HAS_COINOR
   else if (lp4.getSolver() == LPWrapper::SOLVER_COINOR)
   {
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
+    // getStatus() is now reliable on the COIN-OR path as well (previously it returned UNDEFINED
+    // unconditionally); the small integer problem in lp4 solves to a proven optimum.
+    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
   }
 #endif
 #ifdef OPENMS_HAS_HIGHS
@@ -455,6 +457,29 @@ START_SECTION((SolverStatus getStatus()))
   }
 #endif
 
+}
+END_SECTION
+
+// A solver failure (here: an infeasible model) must be reliably observable via getStatus() on every
+// backend, so that callers do not read the resulting all-zero column values as a valid solution
+// (see issue #9944). Before this was fixed the return value of solve() was the only signal and it was
+// discarded at every C++ call site, turning solver failures into silently empty results.
+START_SECTION([EXTRA] getStatus() reliably signals a solver failure on an infeasible problem)
+{
+  LPWrapper lp_inf;
+  lp_inf.setObjectiveSense(LPWrapper::MAX);
+  const Int col = lp_inf.addColumn();
+  lp_inf.setColumnBounds(col, 0, 10, LPWrapper::DOUBLE_BOUNDED);
+  lp_inf.setColumnType(col, LPWrapper::INTEGER);
+  lp_inf.setObjective(col, 1);
+  const std::vector<Int> row_idx(1, col);
+  const std::vector<double> row_val(1, 1.0);
+  lp_inf.addRow(row_idx, row_val, "geq5", 5.0, 10.0, LPWrapper::LOWER_BOUND_ONLY); // x >= 5
+  lp_inf.addRow(row_idx, row_val, "leq3", 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY);  // x <= 3  -> infeasible
+  LPWrapper::SolverParam inf_param;
+  lp_inf.solve(inf_param); // logs an error (expected) about the missing usable solution
+  const LPWrapper::SolverStatus status = lp_inf.getStatus();
+  TEST_EQUAL(status != LPWrapper::OPTIMAL && status != LPWrapper::FEASIBLE, true)
 }
 END_SECTION
 

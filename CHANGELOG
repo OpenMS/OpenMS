@@ -1206,6 +1206,12 @@ Build System:
     LLVM/clang 21+, which no longer provides them transitively (#9651, #9653)
   - Fix: removed default(none) from the SimpleSearchEngineAlgorithm OpenMP pragma, which broke builds on
     macOS/Xcode where _OPENMP is not defined (#9388)
+  - Fix: LPWrapper::solve() failures no longer turn into silently wrong all-zero results. Every C++ call
+    site (MRMFeatureSelector, ILPDCWrapper) discarded the return value and read the solution regardless,
+    so a solver that declined to solve (infeasible model, ill-posed bounds, time/iteration limit) produced
+    an empty/degenerate result with no error. solve() now stores a normalised status for all three
+    backends and logs an error on failure; getStatus() is reliable on the COIN-OR path as well (it
+    previously always returned UNDEFINED), and the call sites check it before using the solution (#9944)
   - Security patterns added to .gitignore (#8545); configure return value checking in CI packaging (#8515);
     Claude GitHub Actions workflows added for CI automation (#8675, #8676); removed leftover traces of the
     removed doc_internal target (#2256)

@@ -520,15 +520,16 @@ Write LP formulation to a file
         .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, size_t verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0,
             R"doc(
 Solve problems, parameters like enabled heuristics can be given via solver_param
-The verbose level (0,1,2) determines if the solver prints status messages and internals
+The verbose level (0,1,2) determines if the solver prints status messages and internals.
+The raw return value is backend specific; prefer getStatus() to check whether the solution is usable.
 :param solver_param: Parameters of the solver introduced by SolverParam
 :param verbose_level: Sets verbose level
-:return: solver dependent
+:return: backend-specific status code (GLPK: 0 on success; COIN-OR: CbcModel::status(); HiGHS: HighsStatus)
 )doc")
         .def("getStatus", [](OpenMS::LPWrapper& self) { return self.getStatus(); },
             R"doc(
-Returns solution status
-:return: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+Returns the normalised solution status of the last solve() call (reliable for all backends)
+:return: status: 1 - undefined, 2 - (integer) feasible (no optimality proven), 4 - no (integer) feasible solution, 5 - (integer) optimal
 )doc")
         .def("getObjectiveValue", [](OpenMS::LPWrapper& self) { return self.getObjectiveValue(); },
             R"doc(
