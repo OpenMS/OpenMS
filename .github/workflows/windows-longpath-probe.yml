@@ -29,28 +29,35 @@ jobs:
           New-ItemProperty -Path $k -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
           Write-Host "LongPathsEnabled after  = $((Get-ItemProperty -Path $k -Name LongPathsEnabled).LongPathsEnabled)"
 
-      # Optional: a real SQLite to test against. If this fails the probe still runs,
-      # just without the sqlite3_open row.
+      # Optional: real SQLite to test against. If unavailable the probe still runs,
+      # just without the sqlite3_open row. The previous run silently produced no lib
+      # because VCPKG_INSTALLATION_ROOT was not set, so locate vcpkg explicitly.
       - name: Get SQLite via vcpkg
         id: sqlite
         continue-on-error: true
         shell: pwsh
         run: |
-          Write-Host "VCPKG_INSTALLATION_ROOT = $env:VCPKG_INSTALLATION_ROOT"
-          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install sqlite3:x64-windows
-          if ($LASTEXITCODE -ne 0) { throw "vcpkg install failed" }
+          $root = $env:VCPKG_INSTALLATION_ROOT
+          if (-not $root -or -not (Test-Path $root)) { $root = 'C:\vcpkg' }
+          Write-Host "using vcpkg root: $root"
+          if (-not (Test-Path "$root\vcpkg.exe")) { throw "vcpkg.exe not found under $root" }
+          & "$root\vcpkg.exe" install sqlite3:x64-windows
+          if ($LASTEXITCODE -ne 0) { throw "vcpkg install failed ($LASTEXITCODE)" }
+          "VCPKG_ROOT_RESOLVED=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "lib present: $(Test-Path "$root\installed\x64-windows\lib\sqlite3.lib")"
 
       - name: Build and run the probe (without, then with, a longPathAware manifest)
         shell: pwsh
         run: |
-          $inc = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\include"
-          $lib = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib"
-          $bin = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin"
+          $root = $env:VCPKG_ROOT_RESOLVED; if (-not $root) { $root = 'C:\vcpkg' }
+          $inc = "$root\installed\x64-windows\include"
+          $lib = "$root\installed\x64-windows\lib"
+          $bin = "$root\installed\x64-windows\bin"
           $sqliteOk = Test-Path "$lib\sqlite3.lib"
           Write-Host "sqlite3.lib present: $sqliteOk"
 
           $common = @('/nologo','/EHsc','/std:c++17','tools\longpath_probe\probe.cpp')
-          $defs   = @(); $link = @()
+          $defs   = @(); $link = @('advapi32.lib')   # Reg* APIs
           if ($sqliteOk) {
             $defs += '/DPROBE_WITH_SQLITE'; $defs += "/I$inc"
             $link += "/LIBPATH:$lib"; $link += 'sqlite3.lib'

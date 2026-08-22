@@ -22,7 +22,10 @@
 // Build twice: once plain, once with longpath.manifest embedded. Compare.
 
 #include <windows.h>
-#include <io.h>       // _waccess_s
+#include <io.h>       // _waccess_s, _wsopen_s, _close
+#include <fcntl.h>    // _O_CREAT / _O_EXCL / _O_WRONLY
+#include <share.h>    // _SH_DENYNO
+#include <sys/stat.h> // _S_IREAD / _S_IWRITE
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
@@ -76,7 +79,8 @@ int main()
         deep = next;
     }
     const std::wstring wtarget = deep + L"\\out.dat";
-    const std::string  ntarget(wtarget.begin(), wtarget.end());  // ASCII by construction
+    std::string ntarget; ntarget.reserve(wtarget.size());         // ASCII by construction
+    for (wchar_t c : wtarget) ntarget.push_back(static_cast<char>(c));
     printf("target path length = %zu\n\n", wtarget.size());
 
     printf("  %-28s | %-34s | %-6s | %s\n", "API", "stands in for", "result", "GetLastError/errno");
@@ -106,6 +110,23 @@ int main()
       HANDLE h = CreateFileW(p.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
       bool ok = h != INVALID_HANDLE_VALUE; DWORD e = ok ? 0 : GetLastError(); if (ok) CloseHandle(h);
       row("CreateFileW (\\\\?\\ prefix)", "OpenMS 3.5 via Qt longFileName()", ok, e); }
+
+    // --- would prefixing at a chokepoint restore 3.5 parity? -----------------
+    // File::readable/writable use the NARROW _access_s/_sopen_s today. Parity would mean
+    // switching to the wide forms fed a \\?\ path. These rows say whether the CRT wide
+    // functions actually honour the prefix -- the load-bearing unknown for that plan.
+    { const std::wstring pp = L"\\\\?\\" + wtarget;
+      errno = 0; bool ok = (_waccess_s(pp.c_str(), 0) == 0);
+      row("_waccess_s (\\\\?\\ prefix)", "parity fix: File::readable/writable", ok, (unsigned long)errno); }
+
+    { const std::wstring pp = L"\\\\?\\" + wtarget + L".excl";
+      int fd = -1; errno = 0;
+      const int e = _wsopen_s(&fd, pp.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+      bool ok = (e == 0 && fd >= 0); if (fd >= 0) _close(fd);
+      row("_wsopen_s (\\\\?\\ prefix)", "parity fix: writable() probe", ok, (unsigned long)(ok ? 0 : errno)); }
+
+    { std::ofstream os{fs::path(L"\\\\?\\" + wtarget)};
+      row("std::ofstream (\\\\?\\ path)", "parity fix: raw streams", os.is_open() && os.good(), (unsigned long)errno); }
 
 #ifdef PROBE_WITH_SQLITE
     { std::string db = ntarget + ".sqlite";
