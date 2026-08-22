@@ -170,7 +170,10 @@ public:
     /// Return true if the file exists and is readable
     static bool readable(const std::string& file);
 
-    /// Return true if the file is writable
+    /// Return true if @p file can be written to. If it exists, this is a direct permission
+    /// check; if it does not exist, this checks whether its containing directory would accept
+    /// a newly created file there (verified with a uniquely named probe file, never touching
+    /// @p file itself), so a non-existent path can report true.
     static bool writable(const std::string& file);
 
     /// Return true if the given path specifies a directory
