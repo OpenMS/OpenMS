@@ -26,5 +26,7 @@ curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/ma
 # These are only needed in CI:
 choco install -y --no-progress \
   ccache \
-  rclone \
-  rsync
+  rclone
+
+# Use an older version of rsync to match the server:
+choco install -y --no-progress --version 6.2.7 rsync
