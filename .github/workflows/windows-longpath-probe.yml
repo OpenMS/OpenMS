@@ -29,22 +29,24 @@ jobs:
           New-ItemProperty -Path $k -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
           Write-Host "LongPathsEnabled after  = $((Get-ItemProperty -Path $k -Name LongPathsEnabled).LongPathsEnabled)"
 
-      # Optional: real SQLite to test against. If unavailable the probe still runs,
-      # just without the sqlite3_open row. The previous run silently produced no lib
-      # because VCPKG_INSTALLATION_ROOT was not set, so locate vcpkg explicitly.
+      # Optional: real SQLite to test against. The probe still runs without it.
+      # Two previous runs produced no lib and finished in ~1s, so make the failure
+      # visible: VCPKG_INSTALLATION_ROOT *is* set (C:\vcpkg) on this image, so the
+      # earlier "not set" diagnosis was wrong and the real cause is still unknown.
       - name: Get SQLite via vcpkg
-        id: sqlite
         continue-on-error: true
         shell: pwsh
         run: |
           $root = $env:VCPKG_INSTALLATION_ROOT
-          if (-not $root -or -not (Test-Path $root)) { $root = 'C:\vcpkg' }
-          Write-Host "using vcpkg root: $root"
-          if (-not (Test-Path "$root\vcpkg.exe")) { throw "vcpkg.exe not found under $root" }
-          & "$root\vcpkg.exe" install sqlite3:x64-windows
-          if ($LASTEXITCODE -ne 0) { throw "vcpkg install failed ($LASTEXITCODE)" }
+          if (-not $root) { $root = 'C:\vcpkg' }
+          Write-Host "root=$root  vcpkg.exe exists: $(Test-Path "$root\vcpkg.exe")"
+          if (Test-Path "$root\vcpkg.exe") {
+            & "$root\vcpkg.exe" install sqlite3:x64-windows 2>&1 | Tee-Object -Variable out | Out-Host
+            Write-Host "vcpkg exit code: $LASTEXITCODE"
+          }
+          $lib = "$root\installed\x64-windows\lib\sqlite3.lib"
+          Write-Host "sqlite3.lib exists: $(Test-Path $lib)"
           "VCPKG_ROOT_RESOLVED=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "lib present: $(Test-Path "$root\installed\x64-windows\lib\sqlite3.lib")"
 
       - name: Build and run the probe (without, then with, a longPathAware manifest)
         shell: pwsh

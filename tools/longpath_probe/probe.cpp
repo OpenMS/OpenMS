@@ -22,7 +22,7 @@
 // Build twice: once plain, once with longpath.manifest embedded. Compare.
 
 #include <windows.h>
-#include <io.h>       // _waccess_s, _wsopen_s, _close
+#include <io.h>       // _waccess_s, _wsopen_s, _close, _wunlink
 #include <fcntl.h>    // _O_CREAT / _O_EXCL / _O_WRONLY
 #include <share.h>    // _SH_DENYNO
 #include <sys/stat.h> // _S_IREAD / _S_IWRITE
@@ -122,7 +122,10 @@ int main()
     { const std::wstring pp = L"\\\\?\\" + wtarget + L".excl";
       int fd = -1; errno = 0;
       const int e = _wsopen_s(&fd, pp.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
-      bool ok = (e == 0 && fd >= 0); if (fd >= 0) _close(fd);
+      bool ok = (e == 0 && fd >= 0);
+      if (fd >= 0) _close(fd);
+      _wunlink(pp.c_str());   // must delete: both binaries share a cwd, and _O_EXCL
+                              // would otherwise report EEXIST on the second run
       row("_wsopen_s (\\\\?\\ prefix)", "parity fix: writable() probe", ok, (unsigned long)(ok ? 0 : errno)); }
 
     { std::ofstream os{fs::path(L"\\\\?\\" + wtarget)};
