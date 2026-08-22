@@ -61,6 +61,9 @@ General:
     with lb == ub; glp_intopt then returns GLP_EBOUND and leaves every column at zero, and the
     unchecked return value turned that into a silently empty selection. They are now typed FIXED.
     No effect on the COIN-OR and HiGHS backends, which treat the two types identically (#9940)
+  - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
+    "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
+    The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
