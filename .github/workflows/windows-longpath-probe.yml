@@ -1,0 +1,72 @@
+# INVESTIGATION ONLY -- delete this workflow and tools/longpath_probe/ once the
+# question is answered. It builds nothing from OpenMS and gates no merge.
+#
+# Measures which file APIs survive a >MAX_PATH path on a real Windows runner, and
+# whether a `longPathAware` manifest changes the outcome. tools/longpath_probe/probe.cpp
+# carries the source citations behind each expectation.
+name: windows-longpath-probe
+
+on:
+  push:
+    branches: [claude/windows-longpath-probe]
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Emulate a Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+
+      - name: Report and enable LongPathsEnabled
+        shell: pwsh
+        run: |
+          $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem'
+          $before = (Get-ItemProperty -Path $k -Name LongPathsEnabled -ErrorAction SilentlyContinue).LongPathsEnabled
+          Write-Host "LongPathsEnabled before = $before"
+          New-ItemProperty -Path $k -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
+          Write-Host "LongPathsEnabled after  = $((Get-ItemProperty -Path $k -Name LongPathsEnabled).LongPathsEnabled)"
+
+      # Optional: a real SQLite to test against. If this fails the probe still runs,
+      # just without the sqlite3_open row.
+      - name: Get SQLite via vcpkg
+        id: sqlite
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          Write-Host "VCPKG_INSTALLATION_ROOT = $env:VCPKG_INSTALLATION_ROOT"
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install sqlite3:x64-windows
+          if ($LASTEXITCODE -ne 0) { throw "vcpkg install failed" }
+
+      - name: Build and run the probe (without, then with, a longPathAware manifest)
+        shell: pwsh
+        run: |
+          $inc = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\include"
+          $lib = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib"
+          $bin = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin"
+          $sqliteOk = Test-Path "$lib\sqlite3.lib"
+          Write-Host "sqlite3.lib present: $sqliteOk"
+
+          $common = @('/nologo','/EHsc','/std:c++17','tools\longpath_probe\probe.cpp')
+          $defs   = @(); $link = @()
+          if ($sqliteOk) {
+            $defs += '/DPROBE_WITH_SQLITE'; $defs += "/I$inc"
+            $link += "/LIBPATH:$lib"; $link += 'sqlite3.lib'
+            $env:PATH = "$bin;$env:PATH"
+          }
+
+          & cl @common @defs '/Fe:probe_plain.exe' '/link' @link
+          if ($LASTEXITCODE -ne 0) { throw "build (plain) failed" }
+
+          & cl @common @defs '/DPROBE_MANIFEST' '/Fe:probe_manifest.exe' '/link' @link `
+              '/MANIFEST:EMBED' '/MANIFESTINPUT:tools\longpath_probe\longpath.manifest'
+          if ($LASTEXITCODE -ne 0) { throw "build (manifest) failed" }
+
+          Write-Host ""
+          Write-Host "================= NO MANIFEST ================="
+          & .\probe_plain.exe
+          Write-Host ""
+          Write-Host "================= WITH MANIFEST ==============="
+          & .\probe_manifest.exe
