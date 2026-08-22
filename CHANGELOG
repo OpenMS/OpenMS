@@ -1142,6 +1142,20 @@ Build System:
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
+  - CI: the compiler build cache now actually gets written. actions/cache only saves in its post step when
+    the primary key missed, but the build workflow used a static key, so the cache was populated once and
+    then restored stale on every later run -- every build recompiled from scratch. Restore and save are now
+    split (actions/cache/restore + actions/cache/save) with a per-run primary key, which guarantees a miss
+    so the save step always fires, while a restore-keys ladder still prefers the newest cache for the
+    current branch, then develop, then any branch; ccache statistics are printed after each build so a cold
+    cache is visible in the log instead of only in wall-clock time (#9887)
+  - CI: doc-validate now pins ruff to 0.16.2 instead of installing whatever astral-sh/ruff-action resolves
+    to latest, and doc/pyopenms/ruff.toml selects the pyOpenMS documentation's lint rules explicitly. Ruff
+    0.16 widened its default lint selection from 59 to 413 rules, which turned the job red with no commit
+    of ours in between (#9899, #9906)
+  - Tests: TOPP_OpenSwathWorkflow_17_cache wrote to the same output file names as TOPP_OpenSwathWorkflow_17,
+    so the two tests could collide when a Windows nightly run scheduled them concurrently; the cache variant
+    now uses its own file names (#9937)
   - Tests: the 19 assertions on QPX Parquet output were `cmake -E sha256sum` calls that compared the hash to
     nothing, so only file existence was asserted -- a regression emptying a table, renaming every run or
     dropping a column was invisible. They now assert the schema and a row-count floor via the new ParquetDiff
