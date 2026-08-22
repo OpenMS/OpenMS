@@ -1212,6 +1212,10 @@ Build System:
     an empty/degenerate result with no error. solve() now stores a normalised status for all three
     backends and logs an error on failure; getStatus() is reliable on the COIN-OR path as well (it
     previously always returned UNDEFINED), and the call sites check it before using the solution (#9944)
+  - BREAKING (pyOpenMS): the low-level LPWrapper class (with its SolverParam and nested enums) is no
+    longer exposed in pyOpenMS. It is an internal LP/MILP backend wrapper used only by C++ algorithms,
+    had no Python consumers, and its solve()/getStatus() contract is easy to misuse; Python users should
+    use the high-level algorithms (e.g. MRMFeatureSelector, FeatureDecharger) instead (#9944)
   - Security patterns added to .gitignore (#8545); configure return value checking in CI packaging (#8515);
     Claude GitHub Actions workflows added for CI automation (#8675, #8676); removed leftover traces of the
     removed doc_internal target (#2256)

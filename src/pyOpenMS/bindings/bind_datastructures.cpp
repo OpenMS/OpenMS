@@ -22,7 +22,6 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
@@ -455,136 +454,15 @@ The following formats are supported:
         ;
 
     // -----------------------------------------------------------------------
-    // SolverParam (LPWrapper::SolverParam)
+    // LPWrapper (and its SolverParam / nested enums) is intentionally NOT wrapped.
+    //
+    // It is a low-level internal wrapper around the LP/MILP backend (GLPK/COIN-OR/HiGHS)
+    // used only by C++ algorithms (MRMFeatureSelector, ILPDCWrapper). It has no Python
+    // consumers, and its solve()/getStatus() contract is easy to misuse (see issue #9944:
+    // a discarded solver status silently turns solver failures into all-zero results).
+    // Python users should use the high-level algorithms instead. Do not re-add a binding
+    // here without a concrete Python use case.
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::LPWrapper::SolverParam>(m, "SolverParam",
-        "Parameters for LP/MIP solver configuration")
-        .def(nb::init<>())
-        .def_rw("message_level", &OpenMS::LPWrapper::SolverParam::message_level)
-        .def_rw("branching_tech", &OpenMS::LPWrapper::SolverParam::branching_tech)
-        .def_rw("backtrack_tech", &OpenMS::LPWrapper::SolverParam::backtrack_tech)
-        .def_rw("preprocessing_tech", &OpenMS::LPWrapper::SolverParam::preprocessing_tech)
-        .def_rw("enable_feas_pump_heuristic", &OpenMS::LPWrapper::SolverParam::enable_feas_pump_heuristic)
-        .def_rw("enable_gmi_cuts", &OpenMS::LPWrapper::SolverParam::enable_gmi_cuts)
-        .def_rw("enable_mir_cuts", &OpenMS::LPWrapper::SolverParam::enable_mir_cuts)
-        .def_rw("enable_cov_cuts", &OpenMS::LPWrapper::SolverParam::enable_cov_cuts)
-        .def_rw("enable_clq_cuts", &OpenMS::LPWrapper::SolverParam::enable_clq_cuts)
-        .def_rw("mip_gap", &OpenMS::LPWrapper::SolverParam::mip_gap)
-        .def_rw("time_limit", &OpenMS::LPWrapper::SolverParam::time_limit)
-        .def_rw("output_freq", &OpenMS::LPWrapper::SolverParam::output_freq)
-        .def_rw("output_delay", &OpenMS::LPWrapper::SolverParam::output_delay)
-        .def_rw("enable_presolve", &OpenMS::LPWrapper::SolverParam::enable_presolve)
-        .def_rw("enable_binarization", &OpenMS::LPWrapper::SolverParam::enable_binarization)
-        ;
-
-    // -----------------------------------------------------------------------
-    // LPWrapper
-    // -----------------------------------------------------------------------
-    auto lpwrapper_class = nb::class_<OpenMS::LPWrapper>(m, "LPWrapper", "A wrapper class for linear programming (LP) solvers")
-        .def(nb::init<>())
-        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const std::string& name) { return self.addRow(row_indices, row_values, name); }, "row_indices"_a, "row_values"_a, "name"_a, "Adds a row to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self) { return self.addColumn(); }, "Adds an empty column to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const std::string& name) { return self.addColumn(column_indices, column_values, name); }, "column_indices"_a, "column_values"_a, "name"_a, "Adds a column to the LP matrix, returns index")
-        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const std::string& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addRow(row_indices, row_values, name, lower_bound, upper_bound, type); }, "row_indices"_a, "row_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a row with boundaries to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const std::string& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addColumn(column_indices, column_values, name, lower_bound, upper_bound, type); }, "column_indices"_a, "column_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a column with boundaries to the LP matrix, returns index")
-        .def("deleteRow", [](OpenMS::LPWrapper& self, int index) { return self.deleteRow(index); }, "index"_a, "Delete index-th row")
-        .def("setColumnName", [](OpenMS::LPWrapper& self, int index, const std::string& name) { return self.setColumnName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th column")
-        .def("getColumnName", [](OpenMS::LPWrapper& self, int index) { return self.getColumnName(index); }, "index"_a, "Returns name of the index-th column")
-        .def("getRowName", [](OpenMS::LPWrapper& self, int index) { return self.getRowName(index); }, "index"_a, "Sets name of the index-th row")
-        .def("getRowIndex", [](OpenMS::LPWrapper& self, const std::string& name) { return self.getRowIndex(name); }, "name"_a, "Returns index of the row with name")
-        .def("getColumnIndex", [](OpenMS::LPWrapper& self, const std::string& name) { return self.getColumnIndex(name); }, "name"_a, "Returns index of the column with name")
-        .def("getColumnUpperBound", [](OpenMS::LPWrapper& self, int index) { return self.getColumnUpperBound(index); }, "index"_a, "Returns column's upper bound")
-        .def("getColumnLowerBound", [](OpenMS::LPWrapper& self, int index) { return self.getColumnLowerBound(index); }, "index"_a, "Returns column's lower bound")
-        .def("getRowUpperBound", [](OpenMS::LPWrapper& self, int index) { return self.getRowUpperBound(index); }, "index"_a, "Returns row's upper bound")
-        .def("getRowLowerBound", [](OpenMS::LPWrapper& self, int index) { return self.getRowLowerBound(index); }, "index"_a, "Returns row's lower bound")
-        .def("setRowName", [](OpenMS::LPWrapper& self, int index, const std::string& name) { return self.setRowName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th row")
-        .def("setColumnBounds", [](OpenMS::LPWrapper& self, int index, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.setColumnBounds(index, lower_bound, upper_bound, type); }, "index"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Sets column bounds")
-        .def("setRowBounds", [](OpenMS::LPWrapper& self, int index, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.setRowBounds(index, lower_bound, upper_bound, type); }, "index"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Sets row bounds")
-        .def("setColumnType", [](OpenMS::LPWrapper& self, int index, OpenMS::LPWrapper::VariableType type) { return self.setColumnType(index, type); }, "index"_a, "type"_a, "Sets column/variable type.")
-        .def("getColumnType", [](OpenMS::LPWrapper& self, int index) { return self.getColumnType(index); }, "index"_a, "Returns column/variable type.")
-        .def("setObjective", [](OpenMS::LPWrapper& self, int index, double obj_value) { return self.setObjective(index, obj_value); }, "index"_a, "obj_value"_a, "Sets objective value for column with index")
-        .def("getObjective", [](OpenMS::LPWrapper& self, int index) { return self.getObjective(index); }, "index"_a, "Returns objective value for column with index")
-        .def("setObjectiveSense", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::Sense sense) { return self.setObjectiveSense(sense); }, "sense"_a, "Sets objective direction")
-        .def("getObjectiveSense", [](OpenMS::LPWrapper& self) { return self.getObjectiveSense(); }, "Returns objective sense")
-        .def("getNumberOfColumns", [](OpenMS::LPWrapper& self) { return self.getNumberOfColumns(); }, "Returns number of columns")
-        .def("getNumberOfRows", [](OpenMS::LPWrapper& self) { return self.getNumberOfRows(); }, "Returns number of rows")
-        .def("setElement", [](OpenMS::LPWrapper& self, int row_index, int column_index, double value) { return self.setElement(row_index, column_index, value); }, "row_index"_a, "column_index"_a, "value"_a, "Sets the element")
-        .def("getElement", [](OpenMS::LPWrapper& self, int row_index, int column_index) { return self.getElement(row_index, column_index); }, "row_index"_a, "column_index"_a, "Returns the element")
-        .def("readProblem", [](OpenMS::LPWrapper& self, const std::string& filename, const std::string& format) { return self.readProblem(filename, format); }, "filename"_a, "format"_a)
-        .def("writeProblem", [](const OpenMS::LPWrapper& self, const std::string& filename, OpenMS::LPWrapper::WriteFormat format) { return self.writeProblem(filename, format); }, "filename"_a, "format"_a,
-            R"doc(
-Write LP formulation to a file
-:param filename: Output filename, if the filename ends with '.gz' it will be compressed
-:param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
-)doc")
-        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, size_t verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0,
-            R"doc(
-Solve problems, parameters like enabled heuristics can be given via solver_param
-The verbose level (0,1,2) determines if the solver prints status messages and internals.
-The raw return value is backend specific; prefer getStatus() to check whether the solution is usable.
-:param solver_param: Parameters of the solver introduced by SolverParam
-:param verbose_level: Sets verbose level
-:return: backend-specific status code (GLPK: 0 on success; COIN-OR: CbcModel::status(); HiGHS: HighsStatus)
-)doc")
-        .def("getStatus", [](OpenMS::LPWrapper& self) { return self.getStatus(); },
-            R"doc(
-Returns the normalised solution status of the last solve() call (reliable for all backends)
-:return: status: 1 - undefined, 2 - (integer) feasible (no optimality proven), 4 - no (integer) feasible solution, 5 - (integer) optimal
-)doc")
-        .def("getObjectiveValue", [](OpenMS::LPWrapper& self) { return self.getObjectiveValue(); },
-            R"doc(
-Returns the objective value of the solution
-:return: The optimal objective value after solving
-)doc")
-        .def("getColumnValue", [](OpenMS::LPWrapper& self, int index) { return self.getColumnValue(index); }, "index"_a)
-        .def("getNumberOfNonZeroEntriesInRow", [](OpenMS::LPWrapper& self, int idx) { return self.getNumberOfNonZeroEntriesInRow(idx); }, "idx"_a)
-        .def("getMatrixRow", [](OpenMS::LPWrapper& self, int idx) { std::vector<int> indexes; self.getMatrixRow(idx, indexes); return indexes; }, "idx"_a)
-        .def("getSolver", [](const OpenMS::LPWrapper& self) { return self.getSolver(); }, "Returns currently active solver")
-        ;
-    // LPWrapper_Type enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Type>(lpwrapper_class, "LPWrapper_Type", nb::is_arithmetic())
-        .value("UNBOUNDED", OpenMS::LPWrapper::Type::UNBOUNDED)
-        .value("LOWER_BOUND_ONLY", OpenMS::LPWrapper::Type::LOWER_BOUND_ONLY)
-        .value("UPPER_BOUND_ONLY", OpenMS::LPWrapper::Type::UPPER_BOUND_ONLY)
-        .value("DOUBLE_BOUNDED", OpenMS::LPWrapper::Type::DOUBLE_BOUNDED)
-        .value("FIXED", OpenMS::LPWrapper::Type::FIXED)
-        .export_values();
-    // VariableType enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::VariableType>(lpwrapper_class, "VariableType", nb::is_arithmetic())
-        .value("CONTINUOUS", OpenMS::LPWrapper::VariableType::CONTINUOUS)
-        .value("INTEGER", OpenMS::LPWrapper::VariableType::INTEGER)
-        .value("BINARY", OpenMS::LPWrapper::VariableType::BINARY)
-        .export_values();
-    // Sense enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Sense>(lpwrapper_class, "Sense", nb::is_arithmetic())
-        .value("MIN", OpenMS::LPWrapper::Sense::MIN)
-        .value("MAX", OpenMS::LPWrapper::Sense::MAX)
-        .export_values();
-    // WriteFormat enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::WriteFormat>(lpwrapper_class, "WriteFormat", nb::is_arithmetic())
-        .value("FORMAT_LP", OpenMS::LPWrapper::WriteFormat::FORMAT_LP)
-        .value("FORMAT_MPS", OpenMS::LPWrapper::WriteFormat::FORMAT_MPS)
-        .value("FORMAT_GLPK", OpenMS::LPWrapper::WriteFormat::FORMAT_GLPK)
-        .export_values();
-    // SOLVER enum nested under LPWrapper
-    {
-    auto solver_enum = nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic());
-    solver_enum.value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK);
-#ifdef OPENMS_HAS_COINOR
-    solver_enum.value("SOLVER_COINOR", OpenMS::LPWrapper::SOLVER::SOLVER_COINOR);
-#endif
-#ifdef OPENMS_HAS_HIGHS
-    solver_enum.value("SOLVER_HIGHS", OpenMS::LPWrapper::SOLVER::SOLVER_HIGHS);
-#endif
-    solver_enum.export_values();
-    }
-    // SolverStatus enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus", nb::is_arithmetic())
-        .value("UNDEFINED", OpenMS::LPWrapper::SolverStatus::UNDEFINED)
-        .value("OPTIMAL", OpenMS::LPWrapper::SolverStatus::OPTIMAL)
-        .value("FEASIBLE", OpenMS::LPWrapper::SolverStatus::FEASIBLE)
-        .value("NO_FEASIBLE_SOL", OpenMS::LPWrapper::SolverStatus::NO_FEASIBLE_SOL)
-        .export_values();
 
     // -----------------------------------------------------------------------
     // LogConfigHandler
