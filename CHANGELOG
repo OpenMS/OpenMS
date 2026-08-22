@@ -64,8 +64,10 @@ General:
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
-  - Removed the stale developer runners under src/tests/topp/ProteomicsLFQTestScripts (hardcoded
-    personal paths, not run by CI) and the ProteomicsLFQ documentation line that pointed to them
+    (#9945)
+  - Removed the unregistered developer runners under src/tests/topp/ProteomicsLFQTestScripts,
+    which no CTest target ran (run_lfq.sh and run_BSA.sh were additionally hardwired to personal
+    machine paths), and the ProteomicsLFQ documentation line that pointed to them (#9945)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -1089,8 +1091,8 @@ Documentation:
 Build System:
   - Removed the developer script tools/checker.php. Covered by .clang-format now.
   - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
-  - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker.
-  - Removed the PHP class-test scaffolding tools (tools/create_test.php, correct_test.php, common_functions.php, tools/README) and the doc_xml Doxygen target / Doxyfile_xml that only fed them; new class tests follow the template in the developer FAQ.
+  - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).
+  - Removed the PHP class-test scaffolding tools (tools/create_test.php, correct_test.php, common_functions.php, tools/README) and the doc_xml Doxygen target / Doxyfile_xml that only fed them; new class tests follow the template in the developer FAQ (#9945).
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
     <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
