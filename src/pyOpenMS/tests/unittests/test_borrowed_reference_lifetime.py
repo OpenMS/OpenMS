@@ -328,17 +328,24 @@ def test_terminal_modification_is_interned_not_aliased(setter):
     mod = _well_formed_mod("Grill" + setter[3:8])
     getattr(seq, setter)(mod)
 
-    stored = (
-        seq.getNTerminalModification()
-        if setter.startswith("setN")
-        else seq.getCTerminalModification()
-    )
-    assert stored is not mod, "modification was stored by reference instead of interned"
+    def read_stored():
+        return (
+            seq.getNTerminalModification()
+            if setter.startswith("setN")
+            else seq.getCTerminalModification()
+        )
 
+    # The getter itself now always copies (see OWNERSHIP.md), so `stored is not mod`
+    # would pass either way and cannot detect raw-pointer storage. What still can:
+    # drop the Python object and read the sequence back -- if the raw pointer had
+    # been stored, this reads freed memory.
+    stored_id = read_stored().getFullId()
     expected = seq.toString()
     del mod
     _churn()
     assert seq.toString() == expected
+    assert read_stored().getFullId() == stored_id, \
+        "modification was stored by reference instead of interned"
 
 
 def test_terminal_modification_accepts_both_keyword_spellings():
