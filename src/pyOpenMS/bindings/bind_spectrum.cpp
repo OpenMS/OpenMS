@@ -16,6 +16,8 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <nanobind/make_iterator.h>
+
+#include <algorithm>   // std::copy in installIonMobilityArray
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -70,10 +72,25 @@ inline OpenMS::DataArrays::FloatDataArray makeIonMobilityArray(nb::object values
 // here rather than passed in, because a preceding metadata='clear' may have dropped arrays and
 // shifted it.
 inline void installIonMobilityArray(OpenMS::MSSpectrum& self, OpenMS::DataArrays::FloatDataArray fda) {
-    if (self.containsIMData()) {
-        self.getFloatDataArrays()[self.getIMData().first] = std::move(fda);
-    } else {
+    if (!self.containsIMData()) {
         self.getFloatDataArrays().push_back(std::move(fda));
+        return;
+    }
+    auto& dest = self.getFloatDataArrays()[self.getIMData().first];
+    // Move-assigning a FloatDataArray deallocates the destination's float buffer -- the class
+    // derives from std::vector<float> -- which dangles any zero-copy view a caller already holds.
+    // get_drift_time_array_view() and FloatDataArray.get_data_view() both capture arr.data() and
+    // keep only the owning Python object alive, not the buffer, so they cannot notice the free.
+    // When the replacement is the same length the buffer can be reused, which keeps those views
+    // valid and simply lets them observe the new values.
+    if (dest.size() == fda.size()) {
+        std::copy(fda.begin(), fda.end(), dest.begin());
+        // replace the metadata as the move-assignment did, without touching the float storage
+        static_cast<OpenMS::MetaInfoDescription&>(dest) =
+            std::move(static_cast<OpenMS::MetaInfoDescription&>(fda));
+    } else {
+        // the array changes length, so its storage must be replaced; views into it cannot survive
+        dest = std::move(fda);
     }
 }
 

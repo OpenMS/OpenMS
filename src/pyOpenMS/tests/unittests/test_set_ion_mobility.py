@@ -235,3 +235,53 @@ def test_sortByPosition_carries_the_written_array_along():
 
     assert np.allclose(spec.get_peaks()[0], [100.0, 200.0, 300.0])
     assert np.allclose(spec.get_drift_time_array(), [0.1, 0.2, 0.3])
+
+
+def test_replacing_the_array_does_not_free_a_live_view():
+    """Replacing an equal-length IM array must not deallocate the buffer under a live view.
+
+    ``FloatDataArray`` derives from ``std::vector<float>``, so move-assigning a replacement over
+    it freed the destination's storage -- while ``get_drift_time_array_view()`` had already handed
+    numpy a pointer into exactly that storage, keeping only the spectrum alive and not the buffer.
+    Reading the view afterwards was a use-after-free with the ownership graph fully intact.
+    """
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks(np.array([100.0, 200.0, 300.0]), np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    spec.set_drift_time_array(np.array([1.0, 2.0, 3.0], dtype=np.float32),
+                              pyopenms.DriftTimeUnit.MILLISECOND)
+
+    view = spec.get_drift_time_array_view()
+    spec.set_drift_time_array(np.array([4.0, 5.0, 6.0], dtype=np.float32),
+                              pyopenms.DriftTimeUnit.MILLISECOND)
+
+    # the view stays valid and observes the new values, as it would for any in-place write
+    assert np.allclose(view, [4.0, 5.0, 6.0])
+    assert np.allclose(spec.get_drift_time_array(), [4.0, 5.0, 6.0])
+
+
+def test_replacing_the_array_still_replaces_the_unit():
+    """The in-place path must carry the metadata across, not just the values."""
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks(np.array([100.0, 200.0]), np.array([1.0, 2.0], dtype=np.float32))
+    spec.set_drift_time_array(np.array([1.0, 2.0], dtype=np.float32),
+                              pyopenms.DriftTimeUnit.MILLISECOND)
+    assert spec.get_drift_time_array_unit() == pyopenms.DriftTimeUnit.MILLISECOND
+
+    spec.set_drift_time_array(np.array([3.0, 4.0], dtype=np.float32),
+                              pyopenms.DriftTimeUnit.VSSC)
+    assert spec.get_drift_time_array_unit() == pyopenms.DriftTimeUnit.VSSC
+    assert np.allclose(spec.get_drift_time_array(), [3.0, 4.0])
+
+
+def test_replacing_with_a_different_length_still_works():
+    """A length change must replace the storage; only the equal-length path can reuse it."""
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks(np.array([100.0, 200.0, 300.0]), np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    spec.set_drift_time_array(np.array([1.0, 2.0, 3.0], dtype=np.float32),
+                              pyopenms.DriftTimeUnit.MILLISECOND)
+
+    spec.set_peaks(np.array([100.0, 200.0]), np.array([1.0, 2.0], dtype=np.float32),
+                   ion_mobility=np.array([7.0, 8.0], dtype=np.float32),
+                   ion_mobility_unit=pyopenms.DriftTimeUnit.MILLISECOND)
+
+    assert np.allclose(spec.get_drift_time_array(), [7.0, 8.0])
