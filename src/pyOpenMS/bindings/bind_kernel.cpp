@@ -1580,7 +1580,7 @@ RangeManagerMobInt
 
 The representation of a 1D ion mobilogram.
 Raw data access is provided by `get_peaks`, `get_peaks_struct`, and `set_peaks`.
-Iterations yields access to underlying peak objects but is slower
+Indexing and iteration yield copies of the peaks; write changes back with mob[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 Usage:
 .. code-block:: python
@@ -1615,12 +1615,12 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
-        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::Mobilogram& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D& {
+        .def("__getitem__", [](const OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the peak at index i")
         .def("__setitem__", [](OpenMS::Mobilogram& self, size_t i, const OpenMS::MobilityPeak1D& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -3387,12 +3387,12 @@ This class supports direct iteration in Python.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
-        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature & {
+        .def("__getitem__", [](const OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the consensus feature at index i")
         .def("__setitem__", [](OpenMS::ConsensusMap& self, size_t i, const OpenMS::ConsensusFeature& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -3593,12 +3593,12 @@ Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)
 )doc")
         
-        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature & {
+        .def("__getitem__", [](const OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the feature at index i")
         .def("__setitem__", [](OpenMS::FeatureMap& self, size_t i, const OpenMS::Feature& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;

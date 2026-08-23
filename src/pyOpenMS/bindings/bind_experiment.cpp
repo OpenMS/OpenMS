@@ -106,13 +106,13 @@ mz, intensities = spectrum.get_peaks()
         .def("setSpectra", [](OpenMS::MSExperiment& self, std::vector<OpenMS::MSSpectrum>& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Sets the spectrum list")
         .def("addSpectrum", [](OpenMS::MSExperiment& self, const OpenMS::MSSpectrum& spectrum) { return self.addSpectrum(spectrum); }, "spectrum"_a, "Adds a spectrum to the experiment")
         .def("addSpectrum", [](OpenMS::MSExperiment& self, OpenMS::MSSpectrum& spectrum) { return self.addSpectrum(spectrum); }, "spectrum"_a, "Adds a spectrum to the experiment")
-        .def("getSpectra", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum> & { return self.getSpectra(); }, nb::rv_policy::reference_internal, "Returns the list of spectra")
+        .def("getSpectra", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum> { return self.getSpectra(); }, "Returns a copy of the list of spectra")
         .def("setChromatograms", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::MSChromatogram>& chromatograms) { return self.setChromatograms(chromatograms); }, "chromatograms"_a, "Sets the chromatogram list")
         .def("setChromatograms", [](OpenMS::MSExperiment& self, std::vector<OpenMS::MSChromatogram>& chromatograms) { return self.setChromatograms(chromatograms); }, "chromatograms"_a, "Sets the chromatogram list")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, const OpenMS::MSChromatogram& chromatogram) { return self.addChromatogram(chromatogram); }, "chromatogram"_a, "Adds a chromatogram to the experiment")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, OpenMS::MSChromatogram& chrom) { return self.addChromatogram(chrom); }, "chrom"_a, "Adds a chromatogram to the experiment")
-        .def("getChromatograms", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Returns the list of chromatograms")
-        .def("getChromatogram", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram& { return self.getChromatogram(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single chromatogram by index")
+        .def("getChromatograms", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); }, "Returns a copy of the list of chromatograms")
+        .def("getChromatogram", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram { return self.getChromatogram(id); }, "id"_a, "Returns a copy of a single chromatogram by index")
         .def("getNrSpectra", [](const OpenMS::MSExperiment& self) { return self.getNrSpectra(); }, "Returns the number of MS spectra")
         .def("getNrChromatograms", [](const OpenMS::MSExperiment& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms")
         .def("getMSLevels", [](const OpenMS::MSExperiment& self) { return self.getMSLevels(); }, "Returns a sorted list of unique MS levels in the experiment")
@@ -137,18 +137,18 @@ mz, intensities = spectrum.get_peaks()
         .def("getFractionIdentifier", [](const OpenMS::MSExperiment& self) { return self.getFractionIdentifier(); }, "Returns fraction identifier")
         .def("setFractionIdentifier", [](OpenMS::MSExperiment& self, const std::string& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
 
-        .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSExperiment>(), "MSExperiment_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::MSExperiment>(), "MSExperiment_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::MSExperiment& self) { return self.size(); })
 
-        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+        .def("__getitem__", [](const OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, "i"_a, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the spectrum at index i")
         .def("__setitem__", [](OpenMS::MSExperiment& self, size_t i, const OpenMS::MSSpectrum& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets spectrum at index i")
-        .def("getSpectrum", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum& { return self.getSpectrum(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single spectrum by index")
+        .def("getSpectrum", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum { return self.getSpectrum(id); }, "id"_a, "Returns a copy of a single spectrum by index")
 
         .def("get2DPeakData", [](const OpenMS::MSExperiment& self,
                                 double min_rt, double max_rt,

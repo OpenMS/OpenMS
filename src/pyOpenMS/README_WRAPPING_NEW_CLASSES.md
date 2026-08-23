@@ -218,32 +218,42 @@ for Python-managed lifetime, then construct `nb::ndarray` with the capsule as ow
 
 For classes that behave like containers:
 
+**Ownership rule:** element access returns an **owned value**, never an alias into
+the container's storage. Writes go back through `__setitem__`. An alias would let
+Python outlive the storage it points at (the container reallocates on `push_back`,
+`resize`, `clear`, or a metadata-path sort) and would silently follow the *slot*
+rather than the element across a sort. See `OWNERSHIP_PROPOSAL.md` and issue #9792.
+
 ```cpp
-// Iteration
-// nb::keep_alive<0, 1>() is MANDATORY: the iterator object stores raw C++
-// iterators into `self` and holds no reference to it. Without it,
-// `it = iter(make_container())` leaves `it` pointing into freed memory
-// (use-after-free) as soon as the temporary container is collected.
-// rv_policy::reference_internal governs the *elements* only, not the iterator.
+// Iteration -- yields copies (rv_policy::copy)
+// nb::keep_alive<0, 1>() is MANDATORY and is a SEPARATE concern from the policy:
+// the iterator object stores raw C++ iterators into `self` and holds no reference
+// to it. Without it, `it = iter(make_container())` leaves `it` pointing into freed
+// memory (use-after-free) as soon as the temporary container is collected.
+// The rv_policy governs the *elements* the iterator yields, not the iterator.
 .def("__iter__", [](OpenMS::MyContainer& self) {
-    return nb::make_iterator<nb::rv_policy::reference_internal>(
+    return nb::make_iterator<nb::rv_policy::copy>(
         nb::handle(), "MyContainer_iter", self.begin(), self.end());
 }, nb::keep_alive<0, 1>())
 
 // Length
 .def("__len__", [](const OpenMS::MyContainer& self) { return self.size(); })
 
-// Indexing
-.def("__getitem__", [](OpenMS::MyContainer& self, size_t i) -> OpenMS::Element& {
+// Indexing -- returns a copy; note the value return type, not `Element&`
+.def("__getitem__", [](const OpenMS::MyContainer& self, size_t i) -> OpenMS::Element {
     if (i >= self.size()) throw nb::index_error();
-    return self[i];
-}, nb::rv_policy::reference_internal)
+    return self[i];  // by value: element access yields an owned copy
+}, "i"_a, "Returns a copy of the element at index i")
 
+// Writing back is how callers mutate the container
 .def("__setitem__", [](OpenMS::MyContainer& self, size_t i, const OpenMS::Element& val) {
     if (i >= self.size()) throw nb::index_error();
     self[i] = val;
 }, "i"_a, "val"_a)
 ```
+
+Returning `Element&` with `rv_policy::reference_internal` is the pattern this
+codebase moved away from; do not reintroduce it for element access.
 
 ## Step 7: Pointers That C++ Keeps
 

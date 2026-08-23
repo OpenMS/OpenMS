@@ -62,7 +62,7 @@ RangeManagerRtInt
 
 The representation of a chromatogram.
 Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-Iterations yields access to underlying peak objects but is slower
+Indexing and iteration yield copies of the peaks; write changes back with chrom[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 See help(ChromatogramSettings) for information about meta-information
 Usage:
@@ -132,12 +132,12 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
         .def("setDataProcessing", [](OpenMS::MSChromatogram& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
         .def("getDataProcessing", [](OpenMS::MSChromatogram& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns the description of the applied processing")
 
-        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSChromatogram>(), "MSChromatogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::MSChromatogram>(), "MSChromatogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::MSChromatogram& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak& {
+        .def("__getitem__", [](const OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the peak at index i")
         .def("__setitem__", [](OpenMS::MSChromatogram& self, size_t i, const OpenMS::ChromatogramPeak& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
