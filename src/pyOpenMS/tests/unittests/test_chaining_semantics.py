@@ -1,33 +1,36 @@
 """Where a chained read or write lands, and where it silently does not (issue #9792).
 
-Two kinds of accessor exist side by side, and a chain mixes them freely:
+The rule is uniform: **every getter returns an owned copy**. A write therefore
+lands only in the object you are holding, and reaches its parent only when you
+put it back with the matching setter.
 
-* **Container access** -- ``exp[i]``, iteration, ``at``/``front``/``back``,
-  ``getSpectrum(i)``, and every getter returning a *collection*
-  (``getPrecursors()``, ``getHits()``, ``getFloatDataArrays()``) -- returns
-  **owned copies**. Writes through them do not reach the container.
-* **Single sub-object accessors** -- ``getInstrumentSettings()``,
-  ``getAcquisitionInfo()``, ``getSourceFile()`` -- still return a **live
-  reference** into whatever object you are holding. Writes through them land in
-  that object.
+    s = exp[0]                                  # a copy
+    settings = s.getInstrumentSettings()        # a copy of the copy
+    settings.setZoomScan(True)
+    s.setInstrumentSettings(settings)           # into the spectrum we hold
+    exp[0] = s                                  # into the experiment
 
-So a write lands exactly when the chain from a variable you hold to the target
-crosses no container access. Reads are always safe: nanobind keeps the parent
-alive for as long as the returned object lives, including when the parent is a
-temporary produced mid-chain.
+Two kinds of accessor still return live references, and both are self-evident
+at the call site:
 
-These tests pin that boundary so it cannot drift silently.
+* a **fluent builder** returning itself for chaining (``ParquetFilter.eq(...).andNext()``)
+* a **database lookup** returning a shared, process-lifetime entry
+  (``ResidueDB``, ``ModificationsDB``)
+
+Reads are always safe, including through a temporary produced mid-chain:
+nanobind keeps the parent alive for as long as the object taken from it lives.
+
+These tests pin the boundary so it cannot drift silently.
 """
 
 import pytest
 
 
 # --------------------------------------------------------------------------
-# Reads are safe everywhere, including through a temporary
+# Reads are safe everywhere
 # --------------------------------------------------------------------------
 
 def test_read_chain_through_container_is_safe():
-    """exp[0] is a temporary; the settings alias into it and must stay readable."""
     from pyopenms import MSExperiment, MSSpectrum
 
     exp = MSExperiment()
@@ -35,41 +38,34 @@ def test_read_chain_through_container_is_safe():
     spec.setRT(1.0)
     exp.addSpectrum(spec)
 
-    # the temporary from exp[0] is kept alive by the returned settings object
     assert exp[0].getInstrumentSettings().getZoomScan() in (True, False)
     assert exp[0].getRT() == pytest.approx(1.0)
 
 
 # --------------------------------------------------------------------------
-# Writes: land on a held object, lost through a container access
+# Every chained write is discarded -- there is no exception to learn
 # --------------------------------------------------------------------------
 
-def test_member_chain_on_held_object_lands():
-    """No container access in the chain, so the write reaches the spectrum."""
+def test_chained_write_on_held_object_is_discarded():
+    """Even with no container in the chain: getInstrumentSettings() returns a copy."""
     from pyopenms import MSSpectrum
 
     spec = MSSpectrum()
     spec.getInstrumentSettings().setZoomScan(True)
-    assert spec.getInstrumentSettings().getZoomScan() is True
+    assert spec.getInstrumentSettings().getZoomScan() is False
 
 
-def test_member_chain_through_container_is_lost():
-    """exp[0] is a copy, so the settings edited are the copy's and are discarded."""
+def test_chained_write_through_container_is_discarded():
     from pyopenms import MSExperiment, MSSpectrum
 
     exp = MSExperiment()
-    spec = MSSpectrum()
-    spec.getInstrumentSettings().setZoomScan(False)
-    exp.addSpectrum(spec)
+    exp.addSpectrum(MSSpectrum())
 
     exp[0].getInstrumentSettings().setZoomScan(True)
-    assert exp[0].getInstrumentSettings().getZoomScan() is False, (
-        "a write through a container access must not reach the container"
-    )
+    assert exp[0].getInstrumentSettings().getZoomScan() is False
 
 
-def test_collection_getter_chain_is_lost():
-    """getPrecursors() returns copies, so editing one does not touch the spectrum."""
+def test_collection_getter_chain_is_discarded():
     from pyopenms import MSSpectrum, Precursor
 
     spec = MSSpectrum()
@@ -81,7 +77,7 @@ def test_collection_getter_chain_is_lost():
     assert spec.getPrecursors()[0].getMZ() == pytest.approx(500.0)
 
 
-def test_iteration_write_is_lost():
+def test_iteration_write_is_discarded():
     from pyopenms import MSExperiment, MSSpectrum
 
     exp = MSExperiment()
@@ -96,30 +92,40 @@ def test_iteration_write_is_lost():
 
 
 # --------------------------------------------------------------------------
-# The supported route: hold it, edit it, put it back
+# The supported route: hold it, edit it, put it back -- at every level
 # --------------------------------------------------------------------------
 
-def test_write_back_lands_including_nested_edits():
-    """One write-back carries both the scalar and the nested sub-object edit."""
+def test_write_back_one_level():
+    from pyopenms import MSSpectrum
+
+    spec = MSSpectrum()
+    settings = spec.getInstrumentSettings()
+    settings.setZoomScan(True)
+    spec.setInstrumentSettings(settings)
+    assert spec.getInstrumentSettings().getZoomScan() is True
+
+
+def test_write_back_two_levels():
+    """A nested edit needs a write-back at each level it crossed."""
     from pyopenms import MSExperiment, MSSpectrum
 
     exp = MSExperiment()
     spec = MSSpectrum()
     spec.setRT(1.0)
-    spec.getInstrumentSettings().setZoomScan(False)
     exp.addSpectrum(spec)
 
-    s = exp[0]                                   # a copy we now hold
+    s = exp[0]
     s.setRT(77.0)
-    s.getInstrumentSettings().setZoomScan(True)  # lands in the copy
-    exp[0] = s                                   # and the copy replaces the element
+    settings = s.getInstrumentSettings()
+    settings.setZoomScan(True)
+    s.setInstrumentSettings(settings)
+    exp[0] = s
 
     assert exp[0].getRT() == pytest.approx(77.0)
     assert exp[0].getInstrumentSettings().getZoomScan() is True
 
 
 def test_write_back_over_iteration():
-    """The index form is what replaces `for s in exp: s.setRT(...)`."""
     from pyopenms import MSExperiment, MSSpectrum
 
     exp = MSExperiment()
@@ -148,3 +154,15 @@ def test_collection_write_back():
     precs[0].setMZ(999.0)
     spec.setPrecursors(precs)
     assert spec.getPrecursors()[0].getMZ() == pytest.approx(999.0)
+
+
+# --------------------------------------------------------------------------
+# The two documented exceptions
+# --------------------------------------------------------------------------
+
+def test_fluent_builder_still_chains():
+    """A builder returns itself, so chaining is the whole point and must keep working."""
+    from pyopenms import ParquetFilter
+
+    f = ParquetFilter()
+    assert f.eq("ms_level", 1).andNext().eq("charge", 2) is not None

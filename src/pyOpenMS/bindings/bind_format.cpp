@@ -280,7 +280,7 @@ chromatograms
         .def("getChromatogram", [](OpenMS::CachedmzML& self, size_t id) { return self.getChromatogram(id); }, "id"_a)
         .def("getNrSpectra", [](const OpenMS::CachedmzML& self) { return self.getNrSpectra(); })
         .def("getNrChromatograms", [](const OpenMS::CachedmzML& self) { return self.getNrChromatograms(); })
-        .def("getMetaData", [](const OpenMS::CachedmzML& self) -> const OpenMS::MSExperiment & { return self.getMetaData(); }, nb::rv_policy::reference_internal)
+        .def("getMetaData", [](const OpenMS::CachedmzML& self) -> OpenMS::MSExperiment { return self.getMetaData(); })
         .def_static("store", [](const std::string& filename, const OpenMS::MSExperiment& map) { return OpenMS::CachedmzML::store(filename, map); }, "filename"_a, "map"_a)
 
         .def_static("load", [](const std::string& filename, OpenMS::CachedmzML& cached) {
@@ -392,13 +392,13 @@ Note: Methods taking std::ostream are not directly exposed. Use file-based workf
         .def("getSizeOnly", [](const OpenMS::FeatureFileOptions& self) { return self.getSizeOnly(); }, "Returns whether or not to load only meta data")
         .def("setRTRange", [](OpenMS::FeatureFileOptions& self, const OpenMS::DRange<1>& range) { return self.setRTRange(range); }, "range"_a, "Restricts the range of RT values for peaks to load")
         .def("hasRTRange", [](const OpenMS::FeatureFileOptions& self) { return self.hasRTRange(); }, "Returns true if an RT range has been set")
-        .def("getRTRange", [](const OpenMS::FeatureFileOptions& self) -> const OpenMS::DRange<1> & { return self.getRTRange(); }, nb::rv_policy::reference_internal, "Returns the RT range")
+        .def("getRTRange", [](const OpenMS::FeatureFileOptions& self) -> OpenMS::DRange<1> { return self.getRTRange(); }, "Returns the RT range")
         .def("setMZRange", [](OpenMS::FeatureFileOptions& self, const OpenMS::DRange<1>& range) { return self.setMZRange(range); }, "range"_a, "Restricts the range of MZ values for peaks to load")
         .def("hasMZRange", [](const OpenMS::FeatureFileOptions& self) { return self.hasMZRange(); }, "Returns true if an MZ range has been set")
-        .def("getMZRange", [](const OpenMS::FeatureFileOptions& self) -> const OpenMS::DRange<1> & { return self.getMZRange(); }, nb::rv_policy::reference_internal, "Returns the MZ range")
+        .def("getMZRange", [](const OpenMS::FeatureFileOptions& self) -> OpenMS::DRange<1> { return self.getMZRange(); }, "Returns the MZ range")
         .def("setIntensityRange", [](OpenMS::FeatureFileOptions& self, const OpenMS::DRange<1>& range) { return self.setIntensityRange(range); }, "range"_a, "Restricts the range of intensity values for peaks to load")
         .def("hasIntensityRange", [](const OpenMS::FeatureFileOptions& self) { return self.hasIntensityRange(); }, "Returns true if an intensity range has been set")
-        .def("getIntensityRange", [](const OpenMS::FeatureFileOptions& self) -> const OpenMS::DRange<1> & { return self.getIntensityRange(); }, nb::rv_policy::reference_internal, "Returns the intensity range")
+        .def("getIntensityRange", [](const OpenMS::FeatureFileOptions& self) -> OpenMS::DRange<1> { return self.getIntensityRange(); }, "Returns the intensity range")
         ;
 
     // -----------------------------------------------------------------------
@@ -447,7 +447,7 @@ Checks whether the given file type is supported
 :param type: The file type to check
 :returns: True if the file type is supported
 )doc")
-        .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Access to the options for loading/storing")
+        .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Access to the options for loading/storing")
         .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
         .def("loadFeatures", [](OpenMS::FileHandler& self, const std::string& filename) { OpenMS::FeatureMap map; self.loadFeatures(filename, map); return map; }, "filename"_a,
             R"doc(
@@ -504,7 +504,7 @@ Computes a SHA-1 hash of the file content
         }, "output_filename"_a, "requested_type"_a,
            "Checks consistency of output file type from filename and requested type. Returns consistent type or UNKNOWN on conflict")
 
-        .def("getFeatOptions", [](OpenMS::FileHandler& self) -> OpenMS::FeatureFileOptions& { return self.getFeatOptions(); }, nb::rv_policy::reference_internal,
+        .def("getFeatOptions", [](OpenMS::FileHandler& self) -> OpenMS::FeatureFileOptions { return self.getFeatOptions(); },
             "Mutable access to the feature file options for loading/storing")
         .def("setFeatOptions", [](OpenMS::FileHandler& self, const OpenMS::FeatureFileOptions& opts) { self.setFeatOptions(opts); }, "options"_a,
             "Set feature file options for loading/storing")
@@ -834,8 +834,8 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
             nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSImagingExperiment as imzML (.imzML + .ibd); coordinates come from its MSImagingGeometry")
-        .def("getOptions", [](OpenMS::ImzMLFile& self) -> OpenMS::PeakFileOptions& { return self.getOptions(); },
-             nb::rv_policy::reference_internal, "Returns the options for loading")
+        .def("getOptions", [](OpenMS::ImzMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); },
+             "Returns the options for loading")
         .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },
              "Set PeakFileOptions for filtering during load")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
@@ -903,7 +903,7 @@ to all spectra and chromatogram offsets
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IndexedMzMLFileLoader>(m, "IndexedMzMLFileLoader", "A class to load an indexedmzML file")
         .def(nb::init<>())
-        .def("getOptions", [](OpenMS::IndexedMzMLFileLoader& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
+        .def("getOptions", [](OpenMS::IndexedMzMLFileLoader& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Returns the options for loading/storing")
         .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a)
         .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
@@ -1657,16 +1657,16 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("getWriteSupplementalData", [](const OpenMS::PeakFileOptions& self) { return self.getWriteSupplementalData(); }, "Returns whether or not to write supplemental peak data in MzData files")
         .def("setRTRange", [](OpenMS::PeakFileOptions& self, const OpenMS::DRange<1>& range) { return self.setRTRange(range); }, "range"_a, "Restricts the range of RT values for peaks to load")
         .def("hasRTRange", [](const OpenMS::PeakFileOptions& self) { return self.hasRTRange(); }, "Returns true if an RT range has been set")
-        .def("getRTRange", [](const OpenMS::PeakFileOptions& self) -> const OpenMS::DRange<1> & { return self.getRTRange(); }, nb::rv_policy::reference_internal, "Returns the RT range")
+        .def("getRTRange", [](const OpenMS::PeakFileOptions& self) -> OpenMS::DRange<1> { return self.getRTRange(); }, "Returns the RT range")
         .def("setMZRange", [](OpenMS::PeakFileOptions& self, const OpenMS::DRange<1>& range) { return self.setMZRange(range); }, "range"_a, "Restricts the range of MZ values for peaks to load")
         .def("hasMZRange", [](const OpenMS::PeakFileOptions& self) { return self.hasMZRange(); }, "Returns true if an MZ range has been set")
-        .def("getMZRange", [](const OpenMS::PeakFileOptions& self) -> const OpenMS::DRange<1> & { return self.getMZRange(); }, nb::rv_policy::reference_internal, "Returns the MZ range")
+        .def("getMZRange", [](const OpenMS::PeakFileOptions& self) -> OpenMS::DRange<1> { return self.getMZRange(); }, "Returns the MZ range")
         .def("setIntensityRange", [](OpenMS::PeakFileOptions& self, const OpenMS::DRange<1>& range) { return self.setIntensityRange(range); }, "range"_a, "Restricts the range of intensity values for peaks to load")
         .def("hasIntensityRange", [](const OpenMS::PeakFileOptions& self) { return self.hasIntensityRange(); }, "Returns true if an intensity range has been set")
-        .def("getIntensityRange", [](const OpenMS::PeakFileOptions& self) -> const OpenMS::DRange<1> & { return self.getIntensityRange(); }, nb::rv_policy::reference_internal, "Returns the intensity range")
+        .def("getIntensityRange", [](const OpenMS::PeakFileOptions& self) -> OpenMS::DRange<1> { return self.getIntensityRange(); }, "Returns the intensity range")
         .def("setPrecursorMZRange", [](OpenMS::PeakFileOptions& self, const OpenMS::DRange<1>& range) { return self.setPrecursorMZRange(range); }, "range"_a, "Restricts the range of precursor m/z values for MS2+ spectra to load")
         .def("hasPrecursorMZRange", [](const OpenMS::PeakFileOptions& self) { return self.hasPrecursorMZRange(); }, "Returns true if a precursor m/z range has been set")
-        .def("getPrecursorMZRange", [](const OpenMS::PeakFileOptions& self) -> const OpenMS::DRange<1> & { return self.getPrecursorMZRange(); }, nb::rv_policy::reference_internal, "Returns the precursor m/z range")
+        .def("getPrecursorMZRange", [](const OpenMS::PeakFileOptions& self) -> OpenMS::DRange<1> { return self.getPrecursorMZRange(); }, "Returns the precursor m/z range")
         .def("setMSLevels", [](OpenMS::PeakFileOptions& self, const std::vector<int>& levels) { return self.setMSLevels(levels); }, "levels"_a, "Sets the desired MS levels for peaks to load")
         .def("addMSLevel", [](OpenMS::PeakFileOptions& self, int level) { return self.addMSLevel(level); }, "level"_a, "Adds a desired MS level for peaks to load")
         .def("clearMSLevels", [](OpenMS::PeakFileOptions& self) { return self.clearMSLevels(); }, "Clears the MS levels")
@@ -1867,7 +1867,7 @@ the expected size is not set correctly
         .def("getNrSpectraWritten", [](OpenMS::PlainMSDataWritingConsumer& self) { return self.getNrSpectraWritten(); }, "Returns the number of spectra written")
         .def("getNrChromatogramsWritten", [](OpenMS::PlainMSDataWritingConsumer& self) { return self.getNrChromatogramsWritten(); }, "Returns the number of chromatograms written")
         .def("setOptions", [](OpenMS::PlainMSDataWritingConsumer& self, const OpenMS::PeakFileOptions& opt) { return self.setOptions(opt); }, "opt"_a)
-        .def("getOptions", [](OpenMS::PlainMSDataWritingConsumer& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal)
+        .def("getOptions", [](OpenMS::PlainMSDataWritingConsumer& self) -> OpenMS::PeakFileOptions { return self.getOptions(); })
         ;
 
     // -----------------------------------------------------------------------

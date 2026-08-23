@@ -100,7 +100,7 @@ interpolation
         .def("__deepcopy__", [](const OpenMS::InterpolationModel& self, nb::dict) { return OpenMS::InterpolationModel(self); }, "memo"_a)
         .def("getIntensity", [](const OpenMS::InterpolationModel& self, const OpenMS::DPosition<1>& pos) { return self.getIntensity(pos); }, "pos"_a, "Access model predicted intensity at position 'pos'")
         .def("getIntensity", [](const OpenMS::InterpolationModel& self, double coord) { return self.getIntensity(coord); }, "coord"_a, "Access model predicted intensity at position 'pos'")
-        .def("getInterpolation", [](const OpenMS::InterpolationModel& self) -> const OpenMS::Math::LinearInterpolation<> & { return self.getInterpolation(); }, nb::rv_policy::reference_internal, "Returns the interpolation class")
+        .def("getInterpolation", [](const OpenMS::InterpolationModel& self) -> OpenMS::Math::LinearInterpolation<> { return self.getInterpolation(); }, "Returns the interpolation class")
         .def("getScalingFactor", [](const OpenMS::InterpolationModel& self) { return self.getScalingFactor(); }, "Returns the interpolation class")
         .def("setOffset", [](OpenMS::InterpolationModel& self, double offset) { return self.setOffset(offset); }, "offset"_a, "Sets the offset of the model")
         .def("getCenter", [](const OpenMS::InterpolationModel& self) { return self.getCenter(); }, 
@@ -145,7 +145,7 @@ InterpolationModel
 Returns the "center" of the model, particular definition (depends on the derived model)
 )doc")
         .def("getIntensity", [](const OpenMS::EmgModel& self, const OpenMS::DPosition<1>& pos) { return self.getIntensity(pos); }, "pos"_a, "Access model predicted intensity at position 'pos'")
-        .def("getInterpolation", [](const OpenMS::EmgModel& self) -> const OpenMS::Math::LinearInterpolation<> & { return self.getInterpolation(); }, nb::rv_policy::reference_internal, "Returns the interpolation class")
+        .def("getInterpolation", [](const OpenMS::EmgModel& self) -> OpenMS::Math::LinearInterpolation<> { return self.getInterpolation(); }, "Returns the interpolation class")
         .def("getScalingFactor", [](const OpenMS::EmgModel& self) { return self.getScalingFactor(); }, "Returns the interpolation class")
         .def("setInterpolationStep", [](OpenMS::EmgModel& self, double interpolation_step) { return self.setInterpolationStep(interpolation_step); }, "interpolation_step"_a, "Sets the interpolation step for the linear interpolation of the model")
         .def("setScalingFactor", [](OpenMS::EmgModel& self, double scaling) { return self.setScalingFactor(scaling); }, "scaling"_a, "Sets the scaling factor of the model")
@@ -188,7 +188,7 @@ Peak widening is achieved by either a Gaussian or Lorentzian shape
         .def("getFormula", [](OpenMS::IsotopeModel& self) { return self.getFormula(); }, "Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)")
         .def("setSamples", [](OpenMS::IsotopeModel& self, const OpenMS::EmpiricalFormula& formula) { return self.setSamples(formula); }, "formula"_a, "Set sample/supporting points of interpolation")
         .def("getCenter", [](const OpenMS::IsotopeModel& self) { return self.getCenter(); })
-        .def("getIsotopeDistribution", [](const OpenMS::IsotopeModel& self) -> const OpenMS::IsotopeDistribution & { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, 
+        .def("getIsotopeDistribution", [](const OpenMS::IsotopeModel& self) -> OpenMS::IsotopeDistribution { return self.getIsotopeDistribution(); }, 
             R"doc(
 Get the center of the Isotope model
 This is a m/z-value not necessarily the monoisotopic mass

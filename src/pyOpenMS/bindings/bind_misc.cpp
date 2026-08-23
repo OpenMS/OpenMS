@@ -256,8 +256,8 @@ NB_MODULE(_pyopenms_misc, m) {
         .def("__copy__", [](const OpenMS::DefaultParamHandler& self) { return OpenMS::DefaultParamHandler(self); })
         .def("__deepcopy__", [](const OpenMS::DefaultParamHandler& self, nb::dict) { return OpenMS::DefaultParamHandler(self); }, "memo"_a)
         .def("setParameters", [](OpenMS::DefaultParamHandler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::DefaultParamHandler& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::DefaultParamHandler& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
+        .def("getParameters", [](const OpenMS::DefaultParamHandler& self) -> OpenMS::Param { return self.getParameters(); }, "Returns the parameters")
+        .def("getDefaults", [](const OpenMS::DefaultParamHandler& self) -> OpenMS::Param { return self.getDefaults(); }, "Returns the default parameters")
         .def("getName", [](const OpenMS::DefaultParamHandler& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::DefaultParamHandler& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::DefaultParamHandler& self) -> const std::vector<std::string> & { return self.getSubsections(); })
@@ -397,7 +397,7 @@ C++ implementation of the Biosaur2 feature detection workflow.
         .def(nb::init<>())
         .def("setMSData", [](OpenMS::Biosaur2Algorithm& self, const OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Set the MS data used for feature detection (copy version)")
         .def("setMSData", [](OpenMS::Biosaur2Algorithm& self, OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Set the MS data used for feature detection (copy version)")
-        .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Get non-const reference to MS data")
+        .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns a copy of MS data")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { nb::gil_scoped_release release; return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; { nb::gil_scoped_release release; self.run(feature_map, hills, peptide_features); } return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
         ;
@@ -681,12 +681,12 @@ ff.run(library, fm, path_to_file)
 #   df2 = FeatureFinderAlgorithmMetaboIdent.compounds_to_df(compounds)
 )doc")
         .def(nb::init<>())
-        .def("getMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Returns spectra")
+        .def("getMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns spectra")
         .def("setMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, const OpenMS::MSExperiment& m) { return self.setMSData(m); }, "m"_a, "Sets spectra")
         .def("setMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, OpenMS::MSExperiment& m) { return self.setMSData(m); }, "m"_a, "Sets spectra")
-        .def("getChromatograms", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Retrieves chromatograms (empty if run was not executed)")
-        .def("getLibrary", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const OpenMS::TargetedExperiment & { return self.getLibrary(); }, nb::rv_policy::reference_internal, "Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)")
-        .def("getTransformations", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const OpenMS::TransformationDescription & { return self.getTransformations(); }, nb::rv_policy::reference_internal, "Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)")
+        .def("getChromatograms", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Retrieves chromatograms (empty if run was not executed)")
+        .def("getLibrary", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::TargetedExperiment { return self.getLibrary(); }, "Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)")
+        .def("getTransformations", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::TransformationDescription { return self.getTransformations(); }, "Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)")
         .def("getNShared", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) { return self.getNShared(); }, "Retrieves number of features with shared identifications")
         .def("run", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self,
                        const std::vector<OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
@@ -764,11 +764,11 @@ Run feature detection
 :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
 )doc")
         .def("runOnCandidates", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::FeatureMap& features) { return self.runOnCandidates(features); }, "features"_a, "Run feature detection on identified features (e.g. loaded from an IdXML file)")
-        .def("getMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Returns ms data as MSExperiment")
+        .def("getMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns ms data as MSExperiment")
         .def("setMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Sets ms data")
         .def("setMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Sets ms data")
-        .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Returns chromatogram data as MSExperiment")
-        .def("getLibrary", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::TargetedExperiment & { return self.getLibrary(); }, nb::rv_policy::reference_internal, "Returns constructed assay library")
+        .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Returns chromatogram data as MSExperiment")
+        .def("getLibrary", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::TargetedExperiment { return self.getLibrary(); }, "Returns constructed assay library")
         ;
 
     // -----------------------------------------------------------------------
@@ -835,7 +835,7 @@ A map feature grouping algorithm for unlabeled data
 FeatureGroupingAlgorithm
 )doc")
         .def(nb::init<>())
-        .def("getResultMap", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self) -> OpenMS::ConsensusMap & { return self.getResultMap(); }, nb::rv_policy::reference_internal)
+        .def("getResultMap", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self) -> OpenMS::ConsensusMap { return self.getResultMap(); })
         .def("group", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("addToGroup", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, int map_id, const OpenMS::FeatureMap& feature_map) { return self.addToGroup(map_id, feature_map); }, "map_id"_a, "feature_map"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
@@ -1681,7 +1681,7 @@ and the data can be accessed through getData()
         .def("setExpectedSize", [](OpenMS::MSDataStoringConsumer& self, size_t s_size, size_t c_size) { return self.setExpectedSize(s_size, c_size); }, "s_size"_a, "c_size"_a, "Sets expected size")
         .def("consumeSpectrum", [](OpenMS::MSDataStoringConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         .def("consumeChromatogram", [](OpenMS::MSDataStoringConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a)
-        .def("getData", [](const OpenMS::MSDataStoringConsumer& self) -> const OpenMS::MSExperiment & { return self.getData(); }, nb::rv_policy::reference_internal)
+        .def("getData", [](const OpenMS::MSDataStoringConsumer& self) -> OpenMS::MSExperiment { return self.getData(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -1969,7 +1969,7 @@ Compute protein abundances.
 Peptide abundances must be computed first with quantifyPeptides().
 Optional protein inference information can be supplied via proteins.
 )doc")
-        .def("getStatistics", [](OpenMS::PeptideAndProteinQuant& self) -> const OpenMS::PeptideAndProteinQuant::Statistics & { return self.getStatistics(); }, nb::rv_policy::reference_internal,
+        .def("getStatistics", [](OpenMS::PeptideAndProteinQuant& self) -> OpenMS::PeptideAndProteinQuant::Statistics { return self.getStatistics(); },
             "Get summary statistics on quantification")
         .def("getPeptideResults", [](OpenMS::PeptideAndProteinQuant& self) { return self.getPeptideResults(); },
             "Get peptide abundance results as a dict mapping AASequence to PeptideData")
@@ -2446,7 +2446,7 @@ ProgressLogger
             return exp;
         }, "filename"_a, "Loads a DTA2D file into an MSExperiment")
         .def("store", [](OpenMS::DTA2DFile& self, const std::string& filename, const OpenMS::PeakMap& map) { self.store(filename, map); }, "filename"_a, "map"_a, "Stores an MSExperiment to a DTA2D file")
-        .def("getOptions", [](OpenMS::DTA2DFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal)
+        .def("getOptions", [](OpenMS::DTA2DFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); })
         .def("storeTIC", [](const OpenMS::DTA2DFile& self, const std::string& filename, const OpenMS::MSExperiment& map) { self.storeTIC(filename, map); }, "filename"_a, "map"_a, "Store TIC to file")
         ;
 
@@ -2598,7 +2598,7 @@ Constructors
         .def("__deepcopy__", [](const OpenMS::FLASHDeconvAlgorithm& self, nb::dict) { return OpenMS::FLASHDeconvAlgorithm(self); }, "memo"_a)
         .def("getTolerances", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getTolerances(); }, "Get calculated decoy averagine. Call after run() is called.")
         .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map) { std::vector<OpenMS::DeconvolvedSpectrum> deconvolved_spectra; std::vector<OpenMS::FLASHHelperClasses::MassFeature> deconvolved_feature; { nb::gil_scoped_release release; self.run(map, deconvolved_spectra, deconvolved_feature); } return nb::make_tuple(deconvolved_spectra, deconvolved_feature); }, "map"_a)
-        .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getAveragine(); }, nb::rv_policy::reference_internal, 
+        .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, 
             R"doc(
 Run FLASHDeconv algorithm for input_map and store deconvolved_spectra and deconvolved_features.
 :param input_map: The input MSExperiment containing spectra to deconvolve
@@ -2606,7 +2606,7 @@ Run FLASHDeconv algorithm for input_map and store deconvolved_spectra and deconv
 :param deconvolved_features: Output vector to store mass features
 Averagine access
 )doc")
-        .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getDecoyAveragine(); }, nb::rv_policy::reference_internal, "Get calculated averagine. Call after run() is called.")
+        .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getDecoyAveragine(); }, "Get calculated averagine. Call after run() is called.")
         .def("getNoiseDecoyWeight", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getNoiseDecoyWeight(); }, "Get mass tolerances per MS level.")
         .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, size_t index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get noise decoy weight determined during q-value calculation.")
         ;
@@ -2638,8 +2638,8 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
-        .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap & { return self.getFeatureMap(); }, nb::rv_policy::reference_internal)
-        .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap & { return self.getConsensusMap(); }, nb::rv_policy::reference_internal)
+        .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap { return self.getFeatureMap(); })
+        .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap { return self.getConsensusMap(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -2749,7 +2749,7 @@ ProgressLogger
         .def("fillCalibrants", [](OpenMS::InternalCalibration& self, const OpenMS::PeptideIdentificationList& pep_ids, double tol_ppm) {
             return self.fillCalibrants(pep_ids, tol_ppm);
         }, "pep_ids"_a, "tol_ppm"_a, "Extract calibrants from peptide identifications")
-        .def("getCalibrationPoints", [](const OpenMS::InternalCalibration& self) -> const OpenMS::CalibrationData & { return self.getCalibrationPoints(); }, nb::rv_policy::reference_internal, 
+        .def("getCalibrationPoints", [](const OpenMS::InternalCalibration& self) -> OpenMS::CalibrationData { return self.getCalibrationPoints(); }, 
             R"doc(
 Extract calibrants from identifications\n
 Extracts only the first hit from each peptide identification
@@ -3757,7 +3757,7 @@ Constructors
         .def("__copy__", [](const OpenMS::SpectralDeconvolution& self) { return OpenMS::SpectralDeconvolution(self); })
         .def("__deepcopy__", [](const OpenMS::SpectralDeconvolution& self, nb::dict) { return OpenMS::SpectralDeconvolution(self); }, "memo"_a)
         .def("performSpectrumDeconvolution", [](OpenMS::SpectralDeconvolution& self, const OpenMS::MSSpectrum& spec, int scan_number, const OpenMS::PeakGroup& precursor_peak_group) { return self.performSpectrumDeconvolution(spec, scan_number, precursor_peak_group); }, "spec"_a, "scan_number"_a, "precursor_peak_group"_a)
-        .def("getDeconvolvedSpectrum", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::DeconvolvedSpectrum & { return self.getDeconvolvedSpectrum(); }, nb::rv_policy::reference_internal, 
+        .def("getDeconvolvedSpectrum", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::DeconvolvedSpectrum { return self.getDeconvolvedSpectrum(); }, 
             R"doc(
 Main deconvolution function that generates the deconvolved spectrum.
 :param spec: The original spectrum
@@ -3765,7 +3765,7 @@ Main deconvolution function that generates the deconvolved spectrum.
 :param precursor_peak_group: Precursor peak group (for MS2+)
 Result access
 )doc")
-        .def("getAveragine", [](OpenMS::SpectralDeconvolution& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getAveragine(); }, nb::rv_policy::reference_internal, "Return the deconvolved spectrum after performSpectrumDeconvolution is called")
+        .def("getAveragine", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Return the deconvolved spectrum after performSpectrumDeconvolution is called")
         .def("setAveragine", [](OpenMS::SpectralDeconvolution& self, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg) { return self.setAveragine(avg); }, "avg"_a, "Get calculated averagine. Call after calculateAveragine is called.")
         .def("setTargetMasses", [](OpenMS::SpectralDeconvolution& self, const std::vector<double>& masses, bool exclude) { return self.setTargetMasses(masses, exclude); }, "masses"_a, "exclude"_a = false, "Set the precalculated averagine")
         .def("calculateAveragine", [](OpenMS::SpectralDeconvolution& self, bool use_RNA_averagine) { return self.calculateAveragine(use_RNA_averagine); }, "use_RNA_averagine"_a, "Set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.")
@@ -4600,7 +4600,7 @@ for cf in cm:
 print(cf.getRT(), cf.getMZ(), cf.getIntensity())
 )doc")
         .def(nb::init<>())
-        .def("getOptions", [](OpenMS::ConsensusXMLFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Mutable access to the options for loading/storing")
+        .def("getOptions", [](OpenMS::ConsensusXMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Mutable access to the options for loading/storing")
 
         .def("load", [](OpenMS::ConsensusXMLFile& self, const std::string& filename, OpenMS::ConsensusMap& map) {
             nb::gil_scoped_release release;
@@ -4630,7 +4630,7 @@ print(feature.getRT(), feature.getMZ(), feature.getIntensity())
 )doc")
         .def(nb::init<>())
         .def("loadSize", [](OpenMS::FeatureXMLFile& self, const std::string& filename) { return self.loadSize(filename); }, "filename"_a, "Counts the number of features in the file without loading the full data")
-        .def("getOptions", [](OpenMS::FeatureXMLFile& self) -> OpenMS::FeatureFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Access to the options for loading/storing")
+        .def("getOptions", [](OpenMS::FeatureXMLFile& self) -> OpenMS::FeatureFileOptions { return self.getOptions(); }, "Access to the options for loading/storing")
         .def("setOptions", [](OpenMS::FeatureXMLFile& self, const OpenMS::FeatureFileOptions& p0) { return self.setOptions(p0); }, "Setter for options for loading/storing")
 
         .def("load", [](OpenMS::FeatureXMLFile& self, const std::string& filename, OpenMS::FeatureMap& map) {
@@ -4706,7 +4706,7 @@ ProgressLogger
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MzDataFile& self) { return OpenMS::MzDataFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzDataFile& self, nb::dict) { return OpenMS::MzDataFile(self); }, "memo"_a)
-        .def("getOptions", [](OpenMS::MzDataFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
+        .def("getOptions", [](OpenMS::MzDataFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzDataFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
         .def("load", [](OpenMS::MzDataFile& self, const std::string& filename) { OpenMS::MSExperiment map; { nb::gil_scoped_release release; self.load(filename, map); } return map; }, "filename"_a)
         .def("load", [](OpenMS::MzDataFile& self, const std::string& filename, OpenMS::MSExperiment& map) { nb::gil_scoped_release release; self.load(filename, map); }, "filename"_a, "map"_a, "Loads a map from a MzData file into the given MSExperiment")
@@ -4795,7 +4795,7 @@ MzMLFile().store("filtered.mzML", exp)
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MzMLFile& self) { return OpenMS::MzMLFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzMLFile& self, nb::dict) { return OpenMS::MzMLFile(self); }, "memo"_a)
-        .def("getOptions", [](OpenMS::MzMLFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
+        .def("getOptions", [](OpenMS::MzMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzMLFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only")
 
         .def("load", [](OpenMS::MzMLFile& self, const std::string& filename, OpenMS::MSExperiment& exp) {
@@ -4860,7 +4860,7 @@ MzXMLFile().load("test.mzXML", exp)
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MzXMLFile& self) { return OpenMS::MzXMLFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzXMLFile& self, nb::dict) { return OpenMS::MzXMLFile(self); }, "memo"_a)
-        .def("getOptions", [](OpenMS::MzXMLFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
+        .def("getOptions", [](OpenMS::MzXMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzXMLFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
 
         .def("load", [](OpenMS::MzXMLFile& self, const std::string& filename, OpenMS::MSExperiment& exp) {
@@ -5226,7 +5226,7 @@ XMLFile
         .def("setNumberOfThreads", [](OpenMS::XTandemInfile& self, unsigned int threads) { return self.setNumberOfThreads(threads); }, "threads"_a)
         .def("getNumberOfThreads", [](const OpenMS::XTandemInfile& self) { return self.getNumberOfThreads(); })
         .def("setModifications", [](OpenMS::XTandemInfile& self, const OpenMS::ModificationDefinitionsSet& mods) { return self.setModifications(mods); }, "mods"_a)
-        .def("getModifications", [](const OpenMS::XTandemInfile& self) -> const OpenMS::ModificationDefinitionsSet & { return self.getModifications(); }, nb::rv_policy::reference_internal)
+        .def("getModifications", [](const OpenMS::XTandemInfile& self) -> OpenMS::ModificationDefinitionsSet { return self.getModifications(); })
         .def("setOutputFilename", [](OpenMS::XTandemInfile& self, const std::string& output) { return self.setOutputFilename(output); }, "output"_a)
         .def("getOutputFilename", [](const OpenMS::XTandemInfile& self) { return self.getOutputFilename(); })
         .def("setInputFilename", [](OpenMS::XTandemInfile& self, const std::string& input_file) { return self.setInputFilename(input_file); }, "input_file"_a)

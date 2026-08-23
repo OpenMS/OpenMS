@@ -286,11 +286,11 @@ Usage:
             [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); },
             [](OpenMS::MSSpectrum& self, const std::string& v) { self.setNativeID(v); },
             "The native identifier for the spectrum, used by the acquisition software")
-        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
+        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns a copy of the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::MSSpectrum& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
+        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns a copy of the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::MSSpectrum& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> const OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns a const reference to the source file")
+        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns a copy of the source file")
         .def("setSourceFile", [](OpenMS::MSSpectrum& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
         .def("getPrecursors", [](const OpenMS::MSSpectrum& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); }, "Returns a copy of the precursors")
         .def("setPrecursors", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Precursor>& precursors) { return self.setPrecursors(precursors); }, "precursors"_a, "Sets the precursors")

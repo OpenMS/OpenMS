@@ -417,10 +417,10 @@ Constructors
         .def("__copy__", [](const OpenMS::DeconvolvedSpectrum& self) { return OpenMS::DeconvolvedSpectrum(self); })
         .def("__deepcopy__", [](const OpenMS::DeconvolvedSpectrum& self, nb::dict) { return OpenMS::DeconvolvedSpectrum(self); }, "memo"_a)
         .def("toSpectrum", [](OpenMS::DeconvolvedSpectrum& self, int to_charge, double tol, bool retain_undeconvolved) { return self.toSpectrum(to_charge, tol, retain_undeconvolved); }, "to_charge"_a, "tol"_a = 10.0, "retain_undeconvolved"_a = false)
-        .def("getOriginalSpectrum", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::MSSpectrum & { return self.getOriginalSpectrum(); }, nb::rv_policy::reference_internal, "Returns the original spectrum")
-        .def("getPrecursorPeakGroup", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::PeakGroup & { return self.getPrecursorPeakGroup(); }, nb::rv_policy::reference_internal, "Returns the precursor peak group (MSn, n>1)")
+        .def("getOriginalSpectrum", [](const OpenMS::DeconvolvedSpectrum& self) -> OpenMS::MSSpectrum { return self.getOriginalSpectrum(); }, "Returns the original spectrum")
+        .def("getPrecursorPeakGroup", [](const OpenMS::DeconvolvedSpectrum& self) -> OpenMS::PeakGroup { return self.getPrecursorPeakGroup(); }, "Returns the precursor peak group (MSn, n>1)")
         .def("getPrecursorCharge", [](const OpenMS::DeconvolvedSpectrum& self) { return self.getPrecursorCharge(); }, "Returns the precursor charge")
-        .def("getPrecursor", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::Precursor & { return self.getPrecursor(); }, nb::rv_policy::reference_internal, "Returns the precursor peak")
+        .def("getPrecursor", [](const OpenMS::DeconvolvedSpectrum& self) -> OpenMS::Precursor { return self.getPrecursor(); }, "Returns the precursor peak")
         .def("getCurrentMaxMass", [](const OpenMS::DeconvolvedSpectrum& self, double max_mass) { return self.getCurrentMaxMass(max_mass); }, "max_mass"_a, "Returns the current max mass")
         .def("getCurrentMinMass", [](const OpenMS::DeconvolvedSpectrum& self, double min_mass) { return self.getCurrentMinMass(min_mass); }, "min_mass"_a, "Returns the current min mass")
         .def("getCurrentMaxAbsCharge", [](const OpenMS::DeconvolvedSpectrum& self, int max_abs_charge) { return self.getCurrentMaxAbsCharge(max_abs_charge); }, "max_abs_charge"_a, "Returns the current max charge")
@@ -1196,7 +1196,7 @@ and 0 means no correlation.
         .def("calcMIPrecursorContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorContrastScore(); })
         .def("calcMIPrecursorCombinedScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorCombinedScore(); })
         .def("calcSeparateMIContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcSeparateMIContrastScore(); })
-        .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> const OpenMS::Matrix<double>& { return self.getMIMatrix(); }, nb::rv_policy::reference_internal, "Returns the MI matrix")
+        .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> OpenMS::Matrix<double> { return self.getMIMatrix(); }, "Returns the MI matrix")
         ;
 
     // -----------------------------------------------------------------------
@@ -2626,7 +2626,7 @@ production ions
         .def("getCVs", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::CV> { return self.getCVs(); })
         .def("addCV", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::CV& cv) { return self.addCV(cv); }, "cv"_a)
         .def("setTargetCVTerms", [](OpenMS::TargetedExperiment& self, const OpenMS::CVTermList& cv_terms) { return self.setTargetCVTerms(cv_terms); }, "cv_terms"_a)
-        .def("getTargetCVTerms", [](const OpenMS::TargetedExperiment& self) -> const OpenMS::CVTermList & { return self.getTargetCVTerms(); }, nb::rv_policy::reference_internal)
+        .def("getTargetCVTerms", [](const OpenMS::TargetedExperiment& self) -> OpenMS::CVTermList { return self.getTargetCVTerms(); })
         .def("addTargetCVTerm", [](OpenMS::TargetedExperiment& self, const OpenMS::CVTerm& cv_term) { return self.addTargetCVTerm(cv_term); }, "cv_term"_a)
         .def("setTargetMetaValue", [](OpenMS::TargetedExperiment& self, const std::string& name, const OpenMS::DataValue& value) { return self.setTargetMetaValue(name, value); }, "name"_a, "value"_a)
         .def("setContacts", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Contact>& contacts) { return self.setContacts(contacts); }, "contacts"_a)
@@ -2724,7 +2724,7 @@ production ions
         .def("__copy__", [](const OpenMS::TransformationDescription& self) { return OpenMS::TransformationDescription(self); })
         .def("__deepcopy__", [](const OpenMS::TransformationDescription& self, nb::dict) { return OpenMS::TransformationDescription(self); }, "memo"_a)
         .def("getModelType", [](const OpenMS::TransformationDescription& self) { return self.getModelType(); }, "Gets the type of the fitted model")
-        .def("getModelParameters", [](const OpenMS::TransformationDescription& self) -> const OpenMS::Param & { return self.getModelParameters(); }, nb::rv_policy::reference_internal, "Returns the model parameters")
+        .def("getModelParameters", [](const OpenMS::TransformationDescription& self) -> OpenMS::Param { return self.getModelParameters(); }, "Returns the model parameters")
         .def("invert", [](OpenMS::TransformationDescription& self) { return self.invert(); }, "Computes an (approximate) inverse of the transformation")
         .def("getDeviations", [](const OpenMS::TransformationDescription& self, bool do_apply, bool do_sort) { std::vector<double> diffs; self.getDeviations(diffs, do_apply, do_sort); return diffs; }, "do_apply"_a = false, "do_sort"_a = true)
         .def("getStatistics", [](const OpenMS::TransformationDescription& self) { return self.getStatistics(); }, 
@@ -2793,7 +2793,7 @@ TransformationModel
         .def("unWeightDatum", [](const OpenMS::TransformationModelLinear& self, const double& datum, const std::string& weight) { return self.unWeightDatum(datum, weight); }, "datum"_a, "weight"_a, "Apply the reverse of the weighting function to the data")
         .def("getValidXWeights", [](const OpenMS::TransformationModelLinear& self) { return self.getValidXWeights(); }, "Returns a list of valid x weight function stringss")
         .def("getValidYWeights", [](const OpenMS::TransformationModelLinear& self) { return self.getValidYWeights(); }, "Returns a list of valid y weight function strings")
-        .def("getParameters", [](const OpenMS::TransformationModelLinear& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelLinear& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
 
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelLinear::getDefaultParameters(params);
@@ -3102,7 +3102,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     nb::class_<OpenMS::TransformationModelBSpline>(m, "TransformationModelBSpline", "B-spline model for transformations")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelBSpline& self, double value) { return self.evaluate(value); }, "value"_a)
-        .def("getParameters", [](const OpenMS::TransformationModelBSpline& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelBSpline& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
         .def("weightData", [](OpenMS::TransformationModelBSpline& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
             self.weightData(data);
             return data;
@@ -3128,7 +3128,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     nb::class_<OpenMS::TransformationModelLowess>(m, "TransformationModelLowess", "Lowess model for transformations")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelLowess& self, double value) { return self.evaluate(value); }, "value"_a)
-        .def("getParameters", [](const OpenMS::TransformationModelLowess& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelLowess& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
         .def("weightData", [](OpenMS::TransformationModelLowess& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
             self.weightData(data);
             return data;
@@ -3259,7 +3259,7 @@ TransformationModel
 )doc")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelInterpolated& self, double value) { return self.evaluate(value); }, "value"_a)
-        .def("getParameters", [](const OpenMS::TransformationModelInterpolated& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelInterpolated& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
         .def("weightData", [](OpenMS::TransformationModelInterpolated& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
             self.weightData(data);
             return data;
