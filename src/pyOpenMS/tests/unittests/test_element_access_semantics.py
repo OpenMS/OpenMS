@@ -217,11 +217,10 @@ def test_held_feature_unaffected_by_sort():
 
 
 # --------------------------------------------------------------------------
-# Boundary: surfaces that still alias, pinned deliberately
+# Vector-returning getters also hand back owned values
 # --------------------------------------------------------------------------
 
-def test_peptide_identification_gethits_still_aliases():
-    """getHits() is a reference-returned vector, outside this change's scope."""
+def test_peptide_identification_gethits_returns_copies():
     from pyopenms import PeptideIdentification, PeptideHit
 
     pid = PeptideIdentification()
@@ -231,10 +230,13 @@ def test_peptide_identification_gethits_still_aliases():
 
     hits = pid.getHits()
     hits[0].setScore(99.0)
+    assert pid.getHits()[0].getScore() == pytest.approx(1.0), "getHits() aliased"
+
+    pid.setHits(hits)  # write-back is the supported route
     assert pid.getHits()[0].getScore() == pytest.approx(99.0)
 
 
-def test_protein_identification_gethits_still_aliases():
+def test_protein_identification_gethits_returns_copies():
     from pyopenms import ProteinIdentification, ProteinHit
 
     prot = ProteinIdentification()
@@ -244,4 +246,58 @@ def test_protein_identification_gethits_still_aliases():
 
     hits = prot.getHits()
     hits[0].setScore(99.0)
+    assert prot.getHits()[0].getScore() == pytest.approx(1.0), "getHits() aliased"
+
+    prot.setHits(hits)
     assert prot.getHits()[0].getScore() == pytest.approx(99.0)
+
+
+def test_float_data_arrays_return_copies():
+    from pyopenms import MSSpectrum, FloatDataArray
+
+    spec = MSSpectrum()
+    spec.set_peaks(([100.0, 200.0], [10.0, 20.0]))
+    fda = FloatDataArray()
+    fda.setName("sn")
+    fda.push_back(1.0)
+    fda.push_back(2.0)
+    spec.setFloatDataArrays([fda])
+
+    arrays = spec.getFloatDataArrays()
+    arrays[0].setName("changed")
+    assert spec.getFloatDataArrays()[0].getName() == "sn", "getFloatDataArrays() aliased"
+
+    spec.setFloatDataArrays(arrays)
+    assert spec.getFloatDataArrays()[0].getName() == "changed"
+
+
+def test_precursors_return_copies():
+    from pyopenms import MSSpectrum, Precursor
+
+    spec = MSSpectrum()
+    p = Precursor()
+    p.setMZ(500.0)
+    spec.setPrecursors([p])
+
+    precs = spec.getPrecursors()
+    precs[0].setMZ(999.0)
+    assert spec.getPrecursors()[0].getMZ() == pytest.approx(500.0), "getPrecursors() aliased"
+
+    spec.setPrecursors(precs)
+    assert spec.getPrecursors()[0].getMZ() == pytest.approx(999.0)
+
+
+def test_feature_subordinates_return_copies():
+    from pyopenms import Feature
+
+    f = Feature()
+    sub = Feature()
+    sub.setRT(1.0)
+    f.setSubordinates([sub])
+
+    subs = f.getSubordinates()
+    subs[0].setRT(42.0)
+    assert f.getSubordinates()[0].getRT() == pytest.approx(1.0), "getSubordinates() aliased"
+
+    f.setSubordinates(subs)
+    assert f.getSubordinates()[0].getRT() == pytest.approx(42.0)

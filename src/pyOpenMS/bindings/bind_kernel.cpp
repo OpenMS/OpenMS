@@ -192,7 +192,7 @@ NB_MODULE(_pyopenms_kernel, m) {
         .def("getBinSize", [](const OpenMS::BinnedSpectrum& self) { return self.getBinSize(); }, "Returns the bin size")
         .def("getBinSpread", [](const OpenMS::BinnedSpectrum& self) { return self.getBinSpread(); }, "Returns the bin spread")
         .def("getOffset", [](const OpenMS::BinnedSpectrum& self) { return self.getOffset(); }, "Returns offset")
-        .def("getPrecursors", [](OpenMS::BinnedSpectrum& self) -> std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal)
+        .def("getPrecursors", [](OpenMS::BinnedSpectrum& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); })
         .def_static("isCompatible", [](const OpenMS::BinnedSpectrum& a, const OpenMS::BinnedSpectrum& b) { return OpenMS::BinnedSpectrum::isCompatible(a, b); }, "a"_a, "b"_a)
         ;
 
@@ -811,9 +811,9 @@ about an LC-MS/MS injection.
         .def(nb::self != nb::self)
         .def("getSample", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Sample & { return self.getSample(); }, nb::rv_policy::reference_internal, "Returns a reference to the sample description")
         .def("setSample", [](OpenMS::ExperimentalSettings& self, const OpenMS::Sample& sample) { return self.setSample(sample); }, "sample"_a, "Sets the sample description")
-        .def("getSourceFiles", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::SourceFile> & { return self.getSourceFiles(); }, nb::rv_policy::reference_internal, "Returns a reference to the source data file")
+        .def("getSourceFiles", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::SourceFile> { return self.getSourceFiles(); }, "Returns a copy of the source data file")
         .def("setSourceFiles", [](OpenMS::ExperimentalSettings& self, const std::vector<OpenMS::SourceFile>& source_files) { return self.setSourceFiles(source_files); }, "source_files"_a, "Sets the source data file")
-        .def("getContacts", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::ContactPerson> & { return self.getContacts(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of contact persons")
+        .def("getContacts", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::ContactPerson> { return self.getContacts(); }, "Returns a copy of the list of contact persons")
         .def("setContacts", [](OpenMS::ExperimentalSettings& self, const std::vector<OpenMS::ContactPerson>& contacts) { return self.setContacts(contacts); }, "contacts"_a, "Sets the list of contact persons")
         .def("getInstrument", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Instrument & { return self.getInstrument(); }, nb::rv_policy::reference_internal, "Returns a reference to the MS instrument description")
         .def("setInstrument", [](OpenMS::ExperimentalSettings& self, const OpenMS::Instrument& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "Sets the MS instrument description")
@@ -2074,7 +2074,7 @@ Returns the peptide sequence
 Sets the peptide sequence
 :param sequence: The peptide amino acid sequence
 )doc")
-        .def("getPeptideEvidences", [](const OpenMS::PeptideHit& self) -> const std::vector<OpenMS::PeptideEvidence> & { return self.getPeptideEvidences(); }, nb::rv_policy::reference_internal, 
+        .def("getPeptideEvidences", [](const OpenMS::PeptideHit& self) -> std::vector<OpenMS::PeptideEvidence> { return self.getPeptideEvidences(); }, 
             R"doc(
 Returns the charge state of the peptide
 :return: Charge state (e.g., 2 for doubly charged)
@@ -2128,7 +2128,7 @@ Interpretation depends on the score type (check isHigherScoreBetter)
 Sets the PSM score
 :param score: The search engine score to set
 )doc")
-        .def("getPeakAnnotations", [](OpenMS::PeptideHit& self) -> std::vector<OpenMS::PeptideHit::PeakAnnotation> & { return self.getPeakAnnotations(); }, nb::rv_policy::reference_internal, 
+        .def("getPeakAnnotations", [](OpenMS::PeptideHit& self) -> std::vector<OpenMS::PeptideHit::PeakAnnotation> { return self.getPeakAnnotations(); }, 
             R"doc(
 Sets fragment ion annotations
 :param annotations: Fragment peak annotations
@@ -2243,7 +2243,7 @@ Returns the precursor m/z value
 Set the spectrum reference (native ID) for this identification.
 :param ref: Spectrum reference string (native ID)
 )doc")
-        .def("getHits", [](OpenMS::PeptideIdentification& self) -> std::vector<OpenMS::PeptideHit> & { return self.getHits(); }, nb::rv_policy::reference_internal)
+        .def("getHits", [](OpenMS::PeptideIdentification& self) -> std::vector<OpenMS::PeptideHit> { return self.getHits(); })
         .def("insertHit", [](OpenMS::PeptideIdentification& self, const OpenMS::PeptideHit& hit) { return self.insertHit(hit); }, "hit"_a, 
             R"doc(
 Returns all peptide hits (candidate sequences)
@@ -2619,13 +2619,13 @@ MetaInfoInterface
         .def_static("getAllNamesOfPeakMassType", []() { return OpenMS::ProteinIdentification::getAllNamesOfPeakMassType(); }, "Returns all peak mass type names known to OpenMS")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getHits", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinHit> & { return self.getHits(); }, nb::rv_policy::reference_internal, "Returns the protein hits")
+        .def("getHits", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinHit> { return self.getHits(); }, "Returns the protein hits")
         .def("insertHit", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinHit& input) { return self.insertHit(input); }, "input"_a, "Appends a protein hit")
         .def("insertHit", [](OpenMS::ProteinIdentification& self, OpenMS::ProteinHit& input) { return self.insertHit(input); }, "input"_a, "Appends a protein hit")
         .def("setHits", [](OpenMS::ProteinIdentification& self, const std::vector<OpenMS::ProteinHit>& hits) { return self.setHits(hits); }, "hits"_a, "Sets the protein hits")
-        .def("getProteinGroups", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> & { return self.getProteinGroups(); }, nb::rv_policy::reference_internal, "Returns the protein groups")
+        .def("getProteinGroups", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> { return self.getProteinGroups(); }, "Returns the protein groups")
         .def("insertProteinGroup", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinIdentification::ProteinGroup& group) { return self.insertProteinGroup(group); }, "group"_a, "Appends a new protein group")
-        .def("getIndistinguishableProteins", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> & { return self.getIndistinguishableProteins(); }, nb::rv_policy::reference_internal, "Returns the indistinguishable proteins")
+        .def("getIndistinguishableProteins", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> { return self.getIndistinguishableProteins(); }, "Returns the indistinguishable proteins")
         .def("insertIndistinguishableProteins", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinIdentification::ProteinGroup& group) { return self.insertIndistinguishableProteins(group); }, "group"_a, "Appends new indistinguishable proteins")
         .def("getSignificanceThreshold", [](const OpenMS::ProteinIdentification& self) { return self.getSignificanceThreshold(); }, "Returns the protein significance threshold value")
         .def("setSignificanceThreshold", [](OpenMS::ProteinIdentification& self, double value) { return self.setSignificanceThreshold(value); }, "value"_a, "Sets the protein significance threshold value")
@@ -3182,12 +3182,12 @@ MetaInfoInterface
         .def("setAcquisitionInfo", [](OpenMS::SpectrumSettings& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
         .def("getSourceFile", [](OpenMS::SpectrumSettings& self) -> OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns a const reference to the source file")
         .def("setSourceFile", [](OpenMS::SpectrumSettings& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursors", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal, "Returns a const reference to the precursors")
+        .def("getPrecursors", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); }, "Returns a copy of the precursors")
         .def("setPrecursors", [](OpenMS::SpectrumSettings& self, const std::vector<OpenMS::Precursor>& precursors) { return self.setPrecursors(precursors); }, "precursors"_a, "Sets the precursors")
-        .def("getProducts", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Product> & { return self.getProducts(); }, nb::rv_policy::reference_internal, "Returns a const reference to the products")
+        .def("getProducts", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Product> { return self.getProducts(); }, "Returns a copy of the products")
         .def("setProducts", [](OpenMS::SpectrumSettings& self, const std::vector<OpenMS::Product>& products) { return self.setProducts(products); }, "products"_a, "Sets the products")
         .def("setDataProcessing", [](OpenMS::SpectrumSettings& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
-        .def("getDataProcessing", [](OpenMS::SpectrumSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
+        .def("getDataProcessing", [](OpenMS::SpectrumSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); })
         
         .def("__hash__", [](const OpenMS::SpectrumSettings& self) { return std::hash<OpenMS::SpectrumSettings>{}(self); })
         ;
@@ -3374,12 +3374,12 @@ This class supports direct iteration in Python.
         .def("getMaxMZ", [](const OpenMS::ConsensusMap& self) { return self.getMaxMZ(); }, "Get the maximum m/z value")
         .def("getMinIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
         .def("getMaxIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
-        .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> & { return self.getProteinIdentifications(); }, nb::rv_policy::reference_internal, "Returns the protein identification runs stored in this map")
+        .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); }, "Returns the protein identification runs stored in this map")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
         .def("getUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self) -> OpenMS::PeptideIdentificationList & { return self.getUnassignedPeptideIdentifications(); }, nb::rv_policy::reference_internal, "Returns peptide identifications that are not assigned to any consensus feature")
         .def("setUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self, const OpenMS::PeptideIdentificationList& unassigned_peptide_identifications) { return self.setUnassignedPeptideIdentifications(unassigned_peptide_identifications); }, "unassigned_peptide_identifications"_a, "Sets the unassigned PeptideIdentificationList")
-        .def("getDataProcessing", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::DataProcessing> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns a const reference to the description of the applied data processing")
+        .def("getDataProcessing", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::DataProcessing> { return self.getDataProcessing(); }, "Returns a copy of the description of the applied data processing")
         .def("setDataProcessing", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::DataProcessing>& processing_method) { return self.setDataProcessing(processing_method); }, "processing_method"_a, "Sets the description of the applied data processing")
         .def("setPrimaryMSRunPath", [](OpenMS::ConsensusMap& self, const std::vector<std::string>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file paths to the primary MS run (stored in ColumnHeaders)")
         .def("setPrimaryMSRunPath", [](OpenMS::ConsensusMap& self, const std::vector<std::string>& s, OpenMS::MSExperiment& e) { return self.setPrimaryMSRunPath(s, e); }, "s"_a, "e"_a)
@@ -3564,7 +3564,7 @@ Useful for mass-based grouping or analysis
 Sorts features by overall quality score in ascending order
 Higher quality scores indicate better feature detection confidence
 )doc")
-        .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> & { return self.getProteinIdentifications(); }, nb::rv_policy::reference_internal)
+        .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); })
         .def("setProteinIdentifications", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, 
             R"doc(
 Returns the protein identification runs stored in this map
@@ -3582,7 +3582,7 @@ Returns peptide identifications that are not assigned to any feature
 :return: Unassigned peptide identification results
 These are peptide IDs that could not be matched to features, possibly due to feature detection issues or filtering
 )doc")
-        .def("getDataProcessing", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::DataProcessing> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
+        .def("getDataProcessing", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::DataProcessing> { return self.getDataProcessing(); })
         .def("setDataProcessing", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::DataProcessing>& processing_method) { return self.setDataProcessing(processing_method); }, "processing_method"_a, "Sets the description of the applied data processing")
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<std::string>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)")
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<std::string>& s, OpenMS::MSExperiment& e) { return self.setPrimaryMSRunPath(s, e); }, "s"_a, "e"_a, "Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`")
@@ -3750,7 +3750,7 @@ Get access to the underlying features through getFeatureList()
         .def("computeMonoisotopicConsensus", [](OpenMS::ConsensusFeature& self) { return self.computeMonoisotopicConsensus(); }, "Computes and updates the consensus position, intensity, and charge")
         .def("addRatio", [](OpenMS::ConsensusFeature& self, const OpenMS::ConsensusFeature::Ratio& r) { return self.addRatio(r); }, "r"_a, "Connects a ratio to the ConsensusFeature.")
         .def("setRatios", [](OpenMS::ConsensusFeature& self, std::vector<OpenMS::ConsensusFeature::Ratio>& rs) { return self.setRatios(rs); }, "rs"_a, "Connects the ratios to the ConsensusFeature.")
-        .def("getRatios", [](OpenMS::ConsensusFeature& self) -> std::vector<OpenMS::ConsensusFeature::Ratio> & { return self.getRatios(); }, nb::rv_policy::reference_internal, "Get the ratio vector.")
+        .def("getRatios", [](OpenMS::ConsensusFeature& self) -> std::vector<OpenMS::ConsensusFeature::Ratio> { return self.getRatios(); }, "Get the ratio vector.")
         .def("size", [](const OpenMS::ConsensusFeature& self) { return self.size(); }, "Returns the number of feature handles in this consensus feature")
         .def("clear", [](OpenMS::ConsensusFeature& self) { return self.clear(); }, "Clears all feature handles from this consensus feature")
         .def("empty", [](const OpenMS::ConsensusFeature& self) { return self.empty(); }, "Returns True if this consensus feature contains no feature handles")
@@ -3841,7 +3841,7 @@ Sets the quality score for a specific dimension
 :param index: The dimension index (0 for RT, 1 for m/z)
 :param q: Quality score to set (typically 0-1 range)
 )doc")
-        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> & { return self.getConvexHulls(); }, nb::rv_policy::reference_internal,
+        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> { return self.getConvexHulls(); },
             R"doc(
 Returns the convex hulls of individual mass traces
 :return: List of convex hulls, one for each isotopic mass trace
@@ -3867,7 +3867,7 @@ Checks if the feature's convex hulls enclose a given position
 This uses the feature's convex hull representation to determine spatial containment
 )doc")
         .def(nb::self == nb::self)
-        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> & { return self.getSubordinates(); }, nb::rv_policy::reference_internal,
+        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> { return self.getSubordinates(); },
             R"doc(
 Returns subordinate features (e.g., isotopic peaks)
 :return: List of subordinate features associated with this feature
