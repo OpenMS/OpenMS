@@ -513,6 +513,30 @@ def test_mrm_transition_group_write_back():
     assert group.getTransitionsMuteable()[0].getName() == "edited"
 
 
+def test_mrm_transition_group_write_back_keeps_lookup_keys():
+    """The keyed collections carry a key -> index map the setters must not invalidate."""
+    from pyopenms import MRMTransitionGroupCP, MSChromatogram
+
+    group = MRMTransitionGroupCP()
+    chrom = MSChromatogram()
+    chrom.setNativeID("native_id")
+    group.addChromatogram(chrom, "custom_key")   # key deliberately differs from the native ID
+
+    edited = group.getChromatograms()
+    edited[0].setMetaValue("k", 1)
+    group.setChromatograms(edited)
+
+    assert group.hasChromatogram("custom_key"), "the caller's key was dropped"
+    assert not group.hasChromatogram("native_id"), "the collection was silently re-keyed"
+    assert group.getChromatogram("custom_key").getMetaValue("k") == 1
+
+    # A size change would leave the key map pointing at the wrong (or no) element.
+    for wrong_size in ([], list(edited) + list(edited)):
+        with pytest.raises(ValueError):
+            group.setChromatograms(wrong_size)
+    assert len(group.getChromatograms()) == 1 and group.hasChromatogram("custom_key")
+
+
 def test_terminal_modifications_do_not_alias_modifications_db():
     from pyopenms import AASequence
 

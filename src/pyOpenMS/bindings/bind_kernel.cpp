@@ -120,23 +120,24 @@ static_assert(MobilityPeak1DLayout::position_offset == 0 && MobilityPeak1DLayout
 
 // MRMTransitionGroup keeps three key -> index maps (transition_map_,
 // chromatogram_map_, precursor_chromatogram_map_) alongside its vectors, and the
-// keyed getters index through them. Replacing a vector in place would leave those
-// indices stale, so wholesale replacement goes through the keyed add* API -- keyed
-// by native ID, matching what MRMTransitionGroup::subset() does internally.
-template <class TransitionGroupT, class TransitionT, class ChromatogramT>
-void replaceMRMTransitionGroupContents_(TransitionGroupT& self,
-                                        const std::vector<TransitionT>& transitions,
-                                        const std::vector<ChromatogramT>& chromatograms,
-                                        const std::vector<ChromatogramT>& precursor_chromatograms,
-                                        const std::vector<OpenMS::MRMFeature>& features)
+// keyed getters index through them. The class exposes no way to enumerate or
+// rebuild those maps, so a replacement can only stay consistent if it preserves
+// positions: element i keeps its key, and every key keeps pointing at a valid
+// index. That is exactly the read/edit/put-back case these setters exist for.
+// Growing or shrinking a keyed collection goes through addTransition() /
+// addChromatogram() / addPrecursorChromatogram(), which assign the key.
+template <class ElementT>
+void replaceKeyedMRMCollection_(std::vector<ElementT>& target,
+                                const std::vector<ElementT>& value,
+                                const char* what)
 {
-    TransitionGroupT rebuilt;
-    rebuilt.setTransitionGroupID(self.getTransitionGroupID());
-    for (const auto& transition : transitions) { rebuilt.addTransition(transition, transition.getNativeID()); }
-    for (const auto& chromatogram : chromatograms) { rebuilt.addChromatogram(chromatogram, chromatogram.getNativeID()); }
-    for (const auto& chromatogram : precursor_chromatograms) { rebuilt.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID()); }
-    for (const auto& feature : features) { rebuilt.addFeature(feature); }
-    self = rebuilt;
+    if (target.size() != value.size())
+    {
+        throw nb::value_error(
+            (std::string("cannot change the number of ") + what +
+             " this way: the key lookup would go stale. Use the matching add*() method.").c_str());
+    }
+    target = value;
 }
 
 
@@ -321,17 +322,17 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("setTransitionGroupID", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string tr_gr_id) { self.setTransitionGroupID(tr_gr_id); }, "tr_gr_id"_a)
         .def("getTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getTransitions(); })
         .def("getTransitionsMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::ReactionMonitoringTransition> { return self.getTransitionsMuteable(); })
-        .def("setTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::ReactionMonitoringTransition>& value) { replaceMRMTransitionGroupContents_(self, value, self.getChromatograms(), self.getPrecursorChromatograms(), self.getFeatures()); }, "value"_a, "Replaces the whole transition list (write-back for getTransitionsMuteable)")
+        .def("setTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::ReactionMonitoringTransition>& value) { replaceKeyedMRMCollection_(self.getTransitionsMuteable(), value, "transitions"); }, "value"_a, "Replaces the whole transition list (write-back for getTransitionsMuteable)")
         .def("addTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::ReactionMonitoringTransition transition, std::string key) { self.addTransition(transition, key); }, "transition"_a, "key"_a)
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
         .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
-        .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceMRMTransitionGroupContents_(self, self.getTransitions(), value, self.getPrecursorChromatograms(), self.getFeatures()); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
+        .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getChromatograms(), value, "chromatograms"); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
         .def("addChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getChromatogram(key); }, "key"_a)
         .def("hasChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasChromatogram(key); }, "key"_a)
         .def("getPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getPrecursorChromatograms(); })
-        .def("setPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceMRMTransitionGroupContents_(self, self.getTransitions(), self.getChromatograms(), value, self.getFeatures()); }, "value"_a, "Replaces the whole precursor chromatogram list (write-back for getPrecursorChromatograms)")
+        .def("setPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getPrecursorChromatograms(), value, "precursor chromatograms"); }, "value"_a, "Replaces the whole precursor chromatogram list (write-back for getPrecursorChromatograms)")
         .def("addPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addPrecursorChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getPrecursorChromatogram(key); }, "key"_a)
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
@@ -366,17 +367,17 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("setTransitionGroupID", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string tr_gr_id) { self.setTransitionGroupID(tr_gr_id); }, "tr_gr_id"_a)
         .def("getTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getTransitions(); })
         .def("getTransitionsMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenSwath::LightTransition> { return self.getTransitionsMuteable(); })
-        .def("setTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenSwath::LightTransition>& value) { replaceMRMTransitionGroupContents_(self, value, self.getChromatograms(), self.getPrecursorChromatograms(), self.getFeatures()); }, "value"_a, "Replaces the whole transition list (write-back for getTransitionsMuteable)")
+        .def("setTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenSwath::LightTransition>& value) { replaceKeyedMRMCollection_(self.getTransitionsMuteable(), value, "transitions"); }, "value"_a, "Replaces the whole transition list (write-back for getTransitionsMuteable)")
         .def("addTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenSwath::LightTransition transition, std::string key) { self.addTransition(transition, key); }, "transition"_a, "key"_a)
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
         .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
-        .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceMRMTransitionGroupContents_(self, self.getTransitions(), value, self.getPrecursorChromatograms(), self.getFeatures()); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
+        .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getChromatograms(), value, "chromatograms"); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
         .def("addChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getChromatogram(key); }, "key"_a)
         .def("hasChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasChromatogram(key); }, "key"_a)
         .def("getPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getPrecursorChromatograms(); })
-        .def("setPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceMRMTransitionGroupContents_(self, self.getTransitions(), self.getChromatograms(), value, self.getFeatures()); }, "value"_a, "Replaces the whole precursor chromatogram list (write-back for getPrecursorChromatograms)")
+        .def("setPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getPrecursorChromatograms(), value, "precursor chromatograms"); }, "value"_a, "Replaces the whole precursor chromatogram list (write-back for getPrecursorChromatograms)")
         .def("addPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addPrecursorChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getPrecursorChromatogram(key); }, "key"_a)
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
