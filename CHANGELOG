@@ -109,6 +109,21 @@ PyOpenMS:
     - PEP 561 type stubs (.pyi), smaller binaries, faster builds and better error messages
     - along the way: ~50 mutable-reference output parameter bugs fixed and ~100 missing default
       arguments restored
+  - BREAKING: getters return owned copies again, restoring the 3.5 (Cython) semantics that the initial
+    nanobind port had turned into live aliases (#9792, #9794)
+    - element access (spec[i], for peak in spec, exp.getSpectrum(i)), vector getters (getSpectra(),
+      getHits(), getPrecursors(), getFloatDataArrays(), ...) and single sub-object getters
+      (getInstrumentSettings(), getPrecursor(), getParameters(), ...) all hand out copies
+    - one rule for every getter: read it, edit it, put it back -- e.g.
+      s = exp.getSpectrum(0); s.setRT(1.0); exp[0] = s
+    - closes the use-after-free and silent-corruption classes from #9792: an alias no longer dangles
+      when the container reallocates (push_back) and no longer silently re-labels a different element
+      when the container is sorted (sortByRT); AASequence element access no longer exposes mutable
+      handles into the process-wide ResidueDB
+    - see src/pyOpenMS/OWNERSHIP.md for the full rule, the two documented exceptions (fluent builders
+      and database lookups) and the migration patterns
+  - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
+    when the replacement array has the same length (#9792)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
     handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions (get_df() -> to_df(), get_df_columns()
