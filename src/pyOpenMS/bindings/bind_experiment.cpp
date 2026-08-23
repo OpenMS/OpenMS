@@ -651,8 +651,11 @@ and a simple sum-based ion image extraction.
     .def("getNumberOfSpectra", &OpenMS::MSImagingExperiment::getNumberOfSpectra)
     .def("hasPixel", &OpenMS::MSImagingExperiment::hasPixel, "x"_a, "y"_a)
     .def(
-      "getSpectrum", [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& { return self.getSpectrum(x, y); },
-      "x"_a, "y"_a, nb::rv_policy::reference_internal)
+      "getSpectrum",
+      [](const OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum {
+        return self.getSpectrum(x, y);  // by value: element access yields an owned copy
+      },
+      "x"_a, "y"_a, "Returns a copy of the spectrum at pixel (x, y)")
     .def("extractIonImage", nb::overload_cast<double, double>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a, "tolerance_ppm"_a)
     .def("extractIonImage", nb::overload_cast<double, double, OpenMS::Size>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a,
          "tolerance_ppm"_a, "region_id"_a)

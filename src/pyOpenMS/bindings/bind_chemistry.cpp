@@ -207,7 +207,10 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
 )doc")
         .def("getCTerminalModificationName", [](const OpenMS::AASequence& self) { return self.getCTerminalModificationName(); }, "Returns the name (ID) of the C-terminal modification, or an empty string if none is set")
         .def("getCTerminalModification", [](const OpenMS::AASequence& self) { return self.getCTerminalModification(); }, nb::rv_policy::reference_internal, "Returns a copy of the name C-terminal modification object, or None")
-        .def("getResidue", [](const OpenMS::AASequence& self, size_t index) -> const OpenMS::Residue & { return self.getResidue(index); }, "index"_a, nb::rv_policy::reference_internal, "Returns the residue at position index")
+        .def("getResidue", [](const OpenMS::AASequence& self, size_t index) -> OpenMS::Residue {
+            if (index >= self.size()) throw nb::index_error();
+            return self.getResidue(index);  // by value, for the ResidueDB reason given on __getitem__
+        }, "index"_a, "Returns a copy of the residue at position index")
         .def(nb::self + nb::self)
         .def("size", [](const OpenMS::AASequence& self) { return self.size(); }, "Returns the number of residues")
         .def("getPrefix", [](const OpenMS::AASequence& self, size_t index) { return self.getPrefix(index); }, "index"_a, "Returns a peptide sequence of the first index residues")
@@ -2196,7 +2199,10 @@ the fixed and variable modifications given to the constructor
         .def("__copy__", [](const OpenMS::ims::IMSAlphabet& self) { return OpenMS::ims::IMSAlphabet(self); })
         .def("__deepcopy__", [](const OpenMS::ims::IMSAlphabet& self, nb::dict) { return OpenMS::ims::IMSAlphabet(self); }, "memo"_a)
         .def("size", [](const OpenMS::ims::IMSAlphabet& self) { return self.size(); })
-        .def("getElement", [](const OpenMS::ims::IMSAlphabet& self, size_t index) -> const OpenMS::ims::IMSElement& { return self.getElement(index); }, "index"_a, nb::rv_policy::reference_internal)
+        .def("getElement", [](const OpenMS::ims::IMSAlphabet& self, size_t index) -> OpenMS::ims::IMSElement {
+            if (index >= self.size()) throw nb::index_error();
+            return self.getElement(index);  // by value: indexed element access yields an owned copy
+        }, "index"_a, "Returns a copy of the element at index")
         .def("getName", [](const OpenMS::ims::IMSAlphabet& self, size_t index) { return self.getName(index); }, "index"_a)
         .def("getMass", [](const OpenMS::ims::IMSAlphabet& self, size_t index) { return self.getMass(index); }, "index"_a)
         .def("hasName", [](const OpenMS::ims::IMSAlphabet& self, const std::string& name) { return self.hasName(name); }, "name"_a)

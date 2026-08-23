@@ -569,15 +569,17 @@ This class supports direct iteration in Python.
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a)
-        .def("at", [](OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification& {
-            return self.at(i);
-        }, "i"_a, nb::rv_policy::reference_internal, "Returns reference to element at index (with bounds checking)")
-        .def("front", [](OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification& {
+        .def("at", [](const OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification {
+            return self.at(i);  // by value; std::vector::at still supplies the bounds check
+        }, "i"_a, "Returns a copy of the element at index (with bounds checking)")
+        .def("front", [](const OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification {
+            if (self.empty()) throw nb::index_error();  // front() on an empty vector is UB
             return self.front();
-        }, nb::rv_policy::reference_internal, "Returns reference to first element")
-        .def("back", [](OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification& {
+        }, "Returns a copy of the first element")
+        .def("back", [](const OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification {
+            if (self.empty()) throw nb::index_error();  // back() on an empty vector is UB
             return self.back();
-        }, nb::rv_policy::reference_internal, "Returns reference to last element")
+        }, "Returns a copy of the last element")
         .def("__repr__", [](const OpenMS::PeptideIdentificationList& self) {
             return "PeptideIdentificationList(size=" + std::to_string(self.size()) + ")";
         })
