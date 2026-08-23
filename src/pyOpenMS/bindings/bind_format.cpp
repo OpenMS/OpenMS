@@ -1605,33 +1605,6 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("in_", [](OpenMS::ParquetFilter& self, const std::string& column, const std::vector<std::string>& values) -> OpenMS::ParquetFilter & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
         ;
 
-    // -----------------------------------------------------------------------
-    // ParquetFilterBuilder
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ParquetFilterBuilder>(m, "ParquetFilterBuilder", "OpenMS class ParquetFilterBuilder")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ParquetFilterBuilder &>())
-        .def("__copy__", [](const OpenMS::ParquetFilterBuilder& self) { return OpenMS::ParquetFilterBuilder(self); })
-        .def("__deepcopy__", [](const OpenMS::ParquetFilterBuilder& self, nb::dict) { return OpenMS::ParquetFilterBuilder(self); }, "memo"_a)
-        .def("andNext", [](OpenMS::ParquetFilterBuilder& self) -> OpenMS::ParquetFilterBuilder & { return self.andNext(); }, nb::rv_policy::reference_internal)
-        .def("orNext", [](OpenMS::ParquetFilterBuilder& self) -> OpenMS::ParquetFilterBuilder & { return self.orNext(); }, nb::rv_policy::reference_internal)
-        .def("eq", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ne", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("lt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("le", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("gt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ge", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("eq", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ne", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("lt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("le", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("gt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ge", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("filter", [](const OpenMS::ParquetFilterBuilder& self) -> OpenMS::ParquetFilter { return self.filter(); }, "Returns a copy of the filter built so far")
-        .def("empty", [](const OpenMS::ParquetFilterBuilder& self) { return self.empty(); })
-        .def("in_", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::vector<OpenMS::Int64>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
-        .def("in_", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::vector<std::string>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
-        ;
 
     // -----------------------------------------------------------------------
     // PeakFileOptions
