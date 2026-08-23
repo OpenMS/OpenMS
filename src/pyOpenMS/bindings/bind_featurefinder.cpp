@@ -332,10 +332,10 @@ Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPick
         .def(nb::init<>())
         .def("size", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); }, "Returns the number of mass traces")
         .def("__len__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i) -> const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& {
+        .def("__getitem__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i) -> OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the mass trace at index i")
         .def("getPeakCount", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getPeakCount(); }, "Returns the peak count of all traces")
         .def("getTheoreticalmaxPosition", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getTheoreticalmaxPosition(); }, "Returns the theoretical maximum trace index")
         .def("updateBaseline", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { self.updateBaseline(); }, "Sets the baseline to the lowest contained peak of the trace")

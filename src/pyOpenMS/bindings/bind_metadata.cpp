@@ -529,10 +529,10 @@ This class supports direct iteration in Python.
             return self.size();
         }, "Returns the number of peptide identifications")
 
-        .def("__getitem__", [](OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification& {
+        .def("__getitem__", [](const OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the identification at index i")
 
         .def("append", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentification& id) {
             self.push_back(id);
@@ -563,7 +563,7 @@ This class supports direct iteration in Python.
             return self.size();
         })
         .def("__iter__", [](OpenMS::PeptideIdentificationList& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::PeptideIdentificationList>(), "PeptideIdentificationList_iter", self.begin(), self.end());
+            return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::PeptideIdentificationList>(), "PeptideIdentificationList_iter", self.begin(), self.end());
         }, nb::keep_alive<0, 1>())
         .def("__setitem__", [](OpenMS::PeptideIdentificationList& self, size_t i, const OpenMS::PeptideIdentification& val) {
             if (i >= self.size()) throw nb::index_error();

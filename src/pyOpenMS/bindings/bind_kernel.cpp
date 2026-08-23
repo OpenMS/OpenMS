@@ -551,10 +551,10 @@ MetaInfoInterface
             self.resize(n);
         }, "n"_a, "Resize the AcquisitionInfo")
 
-        .def("__getitem__", [](OpenMS::AcquisitionInfo& self, size_t i) -> OpenMS::Acquisition& {
+        .def("__getitem__", [](const OpenMS::AcquisitionInfo& self, size_t i) -> OpenMS::Acquisition {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, "i"_a, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the acquisition at index i")
 
         .def("__setitem__", [](OpenMS::AcquisitionInfo& self, size_t i, const OpenMS::Acquisition& acq) {
             if (i >= self.size()) throw nb::index_error();

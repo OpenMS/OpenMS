@@ -223,12 +223,15 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::AASequence& self) { return std::hash<OpenMS::AASequence>{}(self); })
-        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::AASequence& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::AASequence& self, size_t i) -> const OpenMS::Residue & { 
+        .def("__getitem__", [](const OpenMS::AASequence& self, size_t i) -> OpenMS::Residue {
             if (i >= self.size()) throw nb::index_error();
+            // by value. AASequence stores const Residue* into ResidueDB (AASequence.h:622), so a
+            // reference here aliased a process-lifetime database entry that nanobind exposes as
+            // mutable -- editing it would corrupt the Residue for every other sequence.
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        }, "i"_a, "Returns a copy of the residue at index i")
 
         .def(nb::init<>(), "Default constructor - creates empty sequence")
         .def(nb::init<const OpenMS::AASequence&>(), "Copy constructor")
@@ -858,12 +861,12 @@ IsotopePatternGenerator
         .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
-        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D & {
+        .def("__getitem__", [](const OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the peak at index i")
         .def("__repr__", [](const OpenMS::IsotopeDistribution& self) {
             std::ostringstream oss;
             oss << "IsotopeDistribution(num_isotopes=" << self.size()

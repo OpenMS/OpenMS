@@ -301,3 +301,80 @@ def test_feature_subordinates_return_copies():
 
     f.setSubordinates(subs)
     assert f.getSubordinates()[0].getRT() == pytest.approx(42.0)
+
+
+# --------------------------------------------------------------------------
+# Containers found later: same policy, one with a sharper motivation
+# --------------------------------------------------------------------------
+
+def test_aasequence_residue_access_does_not_corrupt_residuedb():
+    """AASequence stores const Residue* into the process-lifetime ResidueDB.
+
+    A reference here aliased a database entry that nanobind exposes as mutable,
+    so editing it changed the Residue for every sequence in the process --
+    including ones constructed later. Copies remove the route entirely.
+    """
+    from pyopenms import AASequence
+
+    seq = AASequence.fromString("PEPTIDE")
+    res = seq[0]
+    original = res.getFullName()
+    res.setFullName("CORRUPTED")
+
+    assert seq[0].getFullName() == original, "AASequence[i] aliased the ResidueDB entry"
+    # a sequence built afterwards must be unaffected too
+    assert AASequence.fromString("PEPTIDE")[0].getFullName() == original
+
+
+def test_aasequence_iteration_returns_copies():
+    from pyopenms import AASequence
+
+    seq = AASequence.fromString("PEPTIDE")
+    original = [r.getFullName() for r in seq]
+    for r in seq:
+        r.setFullName("CORRUPTED")
+    assert [r.getFullName() for r in seq] == original
+
+
+def test_isotopedistribution_getitem_returns_copy():
+    from pyopenms import IsotopeDistribution
+
+    dist = IsotopeDistribution()
+    dist.insert(100.0, 1.0)
+    dist.insert(101.0, 0.5)
+
+    peak = dist[0]
+    peak.setMZ(999.0)
+    assert dist[0].getMZ() == pytest.approx(100.0), "IsotopeDistribution[i] aliased"
+
+
+def test_acquisitioninfo_getitem_returns_copy():
+    from pyopenms import AcquisitionInfo, Acquisition
+
+    info = AcquisitionInfo()
+    acq = Acquisition()
+    acq.setMetaValue("key", 1)
+    info.push_back(acq)
+
+    got = info[0]
+    got.setMetaValue("key", 42)
+    assert info[0].getMetaValue("key") == 1, "AcquisitionInfo[i] aliased"
+
+    info[0] = got  # write-back is the supported route
+    assert info[0].getMetaValue("key") == 42
+
+
+def test_peptide_identification_list_getitem_returns_copy():
+    from pyopenms import PeptideIdentificationList, PeptideIdentification
+
+    lst = PeptideIdentificationList()
+    pid = PeptideIdentification()
+    pid.setRT(1.0)
+    lst.push_back(pid)
+
+    got = lst[0]
+    got.setRT(99.0)
+    assert lst[0].getRT() == pytest.approx(1.0), "PeptideIdentificationList[i] aliased"
+
+    lst[0] = got
+    assert lst[0].getRT() == pytest.approx(99.0)
