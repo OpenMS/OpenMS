@@ -310,6 +310,20 @@ endif()
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+endif()
+
+# Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
+# THERMO_FAIMS_DIA_TEST_DATA or downloaded by ENABLE_THERMO_FAIMS_DIA_TESTS.
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA)
+  # Normalize manually supplied native paths (especially Windows paths with
+  # backslashes) before embedding the value as a C/C++ string literal.
+  file(TO_CMAKE_PATH "${THERMO_FAIMS_DIA_TEST_DATA}" _thermo_faims_dia_test_data)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
+endif()
+
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND
+    (THERMO_RAW_TEST_DATA OR THERMO_FAIMS_DIA_TEST_DATA))
   set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
 
   # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
