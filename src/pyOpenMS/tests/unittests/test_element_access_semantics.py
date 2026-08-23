@@ -318,22 +318,23 @@ def test_aasequence_residue_access_does_not_corrupt_residuedb():
 
     seq = AASequence.fromString("PEPTIDE")
     res = seq[0]
-    original = res.getFullName()
-    res.setFullName("CORRUPTED")
+    original = res.getName()
+    res.setName("CORRUPTED")
 
-    assert seq[0].getFullName() == original, "AASequence[i] aliased the ResidueDB entry"
-    # a sequence built afterwards must be unaffected too
-    assert AASequence.fromString("PEPTIDE")[0].getFullName() == original
+    assert seq[0].getName() == original, "AASequence[i] aliased the ResidueDB entry"
+    # a sequence built afterwards must be unaffected too -- this is the part that
+    # proves the shared database itself was not edited
+    assert AASequence.fromString("PEPTIDE")[0].getName() == original
 
 
 def test_aasequence_iteration_returns_copies():
     from pyopenms import AASequence
 
     seq = AASequence.fromString("PEPTIDE")
-    original = [r.getFullName() for r in seq]
+    original = [r.getName() for r in seq]
     for r in seq:
-        r.setFullName("CORRUPTED")
-    assert [r.getFullName() for r in seq] == original
+        r.setName("CORRUPTED")
+    assert [r.getName() for r in seq] == original
 
 
 def test_isotopedistribution_getitem_returns_copy():
@@ -343,9 +344,12 @@ def test_isotopedistribution_getitem_returns_copy():
     dist.insert(100.0, 1.0)
     dist.insert(101.0, 0.5)
 
-    peak = dist[0]
+    # a default-constructed distribution already holds one element, so the first
+    # inserted peak is at index 1
+    original = dist[1].getMZ()
+    peak = dist[1]
     peak.setMZ(999.0)
-    assert dist[0].getMZ() == pytest.approx(100.0), "IsotopeDistribution[i] aliased"
+    assert dist[1].getMZ() == pytest.approx(original), "IsotopeDistribution[i] aliased"
 
 
 def test_acquisitioninfo_getitem_returns_copy():
