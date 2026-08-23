@@ -83,9 +83,27 @@ See issue #9792 for the full analysis.
 
 The table above has two rules, not one, and which one applies is not visible at
 the call site: `getPrecursors()` copies while `getInstrumentSettings()` does not,
-and nothing in the names says so. The single sub-object getters are the last
-group still returning references (~166 bindings). Converting them too would
-reduce this document to its first sentence, at the cost of making
-`algo.getParameters().setValue(...)` a silent no-op — a common idiom. That
-decision is still open; until it is made, prefer the write-back form
-everywhere, since it is correct under either rule.
+and nothing in the names says so.
+
+The split is real but it is not a rule about *your* code. A collection getter
+produced one alias per element, while a single sub-object sits at a fixed offset
+inside its parent and cannot be invalidated on its own — so the two needed
+different treatment for **memory safety**. What you experience is a different
+question, "does my write stick?", and on that axis the split is arbitrary.
+
+The single sub-object getters are the last group still returning references
+(~166 bindings). Converting them too would reduce this document to its first
+sentence. Two things worth knowing about what that would cost:
+
+* Across this entire repository, exactly **two lines** of Python chain a write
+  through such a getter (`chrom.getPrecursor().setMZ(...)` and its `getProduct()`
+  sibling, in one test).
+* The idiom usually cited as the reason not to — `algo.getParameters().setValue(...)`
+  — **already does not work**, and no code here uses it.
+  `DefaultParamHandler::setParameters()` applies defaults, validates and then
+  calls `updateMembers_()`, which is where an algorithm copies parameter values
+  into its own members. Editing the Param in place skips all of that, so the
+  algorithm never sees the change. `setParameters()` was always required.
+
+Until the decision is made, prefer the write-back form everywhere: it is correct
+under either rule, and for parameters it is the only form that has ever worked.
