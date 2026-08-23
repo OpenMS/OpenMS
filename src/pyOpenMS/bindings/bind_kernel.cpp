@@ -1347,7 +1347,7 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        })
         .def("__setitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i, float val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -1456,7 +1456,7 @@ Used for storing per-peak integer annotations.
         .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        })
         .def("__setitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i, int val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -2402,7 +2402,7 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
         .def("setDriftTimeWindowUpperOffset", [](OpenMS::Precursor& self, double drift_time) { return self.setDriftTimeWindowUpperOffset(drift_time); }, "drift_time"_a, "Sets the upper offset from the target ion mobility")
         .def("getCharge", [](const OpenMS::Precursor& self) { return self.getCharge(); }, "Returns the charge")
         .def("setCharge", [](OpenMS::Precursor& self, int charge) { return self.setCharge(charge); }, "charge"_a, "Sets the charge")
-        .def("getPossibleChargeStates", [](OpenMS::Precursor& self) -> std::vector<int> & { return self.getPossibleChargeStates(); }, nb::rv_policy::reference_internal, "Returns the possible charge states")
+        .def("getPossibleChargeStates", [](OpenMS::Precursor& self) -> std::vector<int> & { return self.getPossibleChargeStates(); }, "Returns the possible charge states")
         .def("setPossibleChargeStates", [](OpenMS::Precursor& self, const std::vector<int>& possible_charge_states) { return self.setPossibleChargeStates(possible_charge_states); }, "possible_charge_states"_a, "Sets the possible charge states")
         .def("getUnchargedMass", [](const OpenMS::Precursor& self) { return self.getUnchargedMass(); }, "Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged")
         
@@ -3224,7 +3224,7 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> std::string& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        })
         .def("__setitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i, const std::string& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;

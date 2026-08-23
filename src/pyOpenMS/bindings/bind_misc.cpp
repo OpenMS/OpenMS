@@ -260,7 +260,7 @@ NB_MODULE(_pyopenms_misc, m) {
         .def("getDefaults", [](const OpenMS::DefaultParamHandler& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
         .def("getName", [](const OpenMS::DefaultParamHandler& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::DefaultParamHandler& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::DefaultParamHandler& self) -> const std::vector<std::string> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("getSubsections", [](const OpenMS::DefaultParamHandler& self) -> const std::vector<std::string> & { return self.getSubsections(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -2233,8 +2233,8 @@ ProgressLogger
         .def("writeMetadata", [](OpenMS::Internal::CachedMzMLHandler& self, OpenMS::MSExperiment exp, const std::string& out_meta, bool addCacheMetaValue) { return self.writeMetadata(exp, out_meta, addCacheMetaValue); }, "exp"_a, "out_meta"_a, "addCacheMetaValue"_a = false, "Write only the meta data of an MSExperiment")
         .def("readMemdump", [](const OpenMS::Internal::CachedMzMLHandler& self, const std::string& filename) { OpenMS::MSExperiment exp_reading; self.readMemdump(exp_reading, filename); return exp_reading; }, "filename"_a, "Read all spectra from a dump from the disk")
         .def("createMemdumpIndex", [](OpenMS::Internal::CachedMzMLHandler& self, const std::string& filename) { return self.createMemdumpIndex(filename); }, "filename"_a, "Create an index on the location of all the spectra and chromatograms")
-        .def("getSpectraIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getSpectraIndex(); }, nb::rv_policy::reference_internal)
-        .def("getChromatogramIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getChromatogramIndex(); }, nb::rv_policy::reference_internal)
+        .def("getSpectraIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getSpectraIndex(); })
+        .def("getChromatogramIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getChromatogramIndex(); })
         ;
 
     // -----------------------------------------------------------------------

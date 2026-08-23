@@ -1672,7 +1672,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("clearMSLevels", [](OpenMS::PeakFileOptions& self) { return self.clearMSLevels(); }, "Clears the MS levels")
         .def("hasMSLevels", [](const OpenMS::PeakFileOptions& self) { return self.hasMSLevels(); }, "Returns true, if MS levels have been set")
         .def("containsMSLevel", [](const OpenMS::PeakFileOptions& self, int level) { return self.containsMSLevel(level); }, "level"_a, "Returns true, if MS level `level` has been set")
-        .def("getMSLevels", [](const OpenMS::PeakFileOptions& self) -> const std::vector<int> & { return self.getMSLevels(); }, nb::rv_policy::reference_internal, "Returns the set MS levels")
+        .def("getMSLevels", [](const OpenMS::PeakFileOptions& self) -> const std::vector<int> & { return self.getMSLevels(); }, "Returns the set MS levels")
         .def("setCompression", [](OpenMS::PeakFileOptions& self, bool compress) { return self.setCompression(compress); }, "compress"_a, "Sets if data should be compressed when writing")
         .def("getCompression", [](const OpenMS::PeakFileOptions& self) { return self.getCompression(); }, "Returns true, if data should be compressed when writing")
         .def("setFillData", [](OpenMS::PeakFileOptions& self, bool only) { return self.setFillData(only); }, "only"_a, "Sets whether to fill the actual data into the container (spectrum/chromatogram)")
@@ -2095,7 +2095,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__copy__", [](const OpenMS::XICParquetFile& self) { return OpenMS::XICParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XICParquetFile& self, nb::dict) { return OpenMS::XICParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH chromatogram Parquet files (.xic).")
-        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
 
         .def("getColumns", [](const OpenMS::XICParquetFile& self) {
             std::vector<std::string> columns;
@@ -2294,7 +2294,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
-        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
 
         .def("getColumns", [](const OpenMS::XIMParquetFile& self) {
             std::vector<std::string> columns;
@@ -2506,7 +2506,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__copy__", [](const OpenMS::XIPMParquetFile& self) { return OpenMS::XIPMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIPMParquetFile& self, nb::dict) { return OpenMS::XIPMParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH peak-map Parquet files (.xipm).")
-        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
 
         .def("getColumns", [](const OpenMS::XIPMParquetFile& self) {
             std::vector<std::string> columns;

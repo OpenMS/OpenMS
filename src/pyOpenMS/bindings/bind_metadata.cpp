@@ -241,10 +241,10 @@ run.setPeptideIdentifications(my_peptide_ids)
         .def("__deepcopy__", [](const OpenMS::Gradient& self, nb::dict) { return OpenMS::Gradient(self); }, "memo"_a)
         .def("addEluent", [](OpenMS::Gradient& self, const std::string& eluent) { return self.addEluent(eluent); }, "eluent"_a, "Adds an eluent at the end of the eluent array")
         .def("clearEluents", [](OpenMS::Gradient& self) { return self.clearEluents(); }, "Removes all eluents")
-        .def("getEluents", [](const OpenMS::Gradient& self) -> const std::vector<std::string> & { return self.getEluents(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of eluents")
+        .def("getEluents", [](const OpenMS::Gradient& self) -> const std::vector<std::string> & { return self.getEluents(); }, "Returns a reference to the list of eluents")
         .def("addTimepoint", [](OpenMS::Gradient& self, int timepoint) { return self.addTimepoint(timepoint); }, "timepoint"_a, "Adds a timepoint at the end of the timepoint array")
         .def("clearTimepoints", [](OpenMS::Gradient& self) { return self.clearTimepoints(); }, "Removes all timepoints")
-        .def("getTimepoints", [](const OpenMS::Gradient& self) -> const std::vector<int> & { return self.getTimepoints(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of timepoints")
+        .def("getTimepoints", [](const OpenMS::Gradient& self) -> const std::vector<int> & { return self.getTimepoints(); }, "Returns a reference to the list of timepoints")
         .def("setPercentage", [](OpenMS::Gradient& self, const std::string& eluent, int timepoint, unsigned int percentage) { return self.setPercentage(eluent, timepoint, percentage); }, "eluent"_a, "timepoint"_a, "percentage"_a, "Sets the percentage of 'eluent' at 'timepoint'")
         .def("getPercentage", [](const OpenMS::Gradient& self, const std::string& eluent, int timepoint) { return self.getPercentage(eluent, timepoint); }, "eluent"_a, "timepoint"_a, "Returns a const reference to the percentages")
         .def("clearPercentages", [](OpenMS::Gradient& self) { return self.clearPercentages(); }, "Sets all percentage values to 0")
@@ -316,7 +316,7 @@ Check if the mapping is empty.
 Get the number of identifier mappings.
 :return: Number of identifiers in the mapping
 )doc")
-        .def("getMSRunPaths", [](const OpenMS::IdentifierMSRunMapper& self, const std::string& identifier) -> const std::vector<std::string> & { return self.getMSRunPaths(identifier); }, "identifier"_a, nb::rv_policy::reference_internal,
+        .def("getMSRunPaths", [](const OpenMS::IdentifierMSRunMapper& self, const std::string& identifier) -> const std::vector<std::string> & { return self.getMSRunPaths(identifier); }, "identifier"_a,
             R"doc(
 Get the MS run paths associated with the given identifier.
 :param identifier: ProteinIdentification identifier
