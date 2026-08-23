@@ -83,17 +83,20 @@ class SimpleOpenMSSpectraFactory:
 
     @staticmethod
     def getSpectrumAccessOpenMSPtr(exp):
+      # exp[i] and getChromatograms() hand out owned copies (see OWNERSHIP.md), so
+      # stop at the first "cached_data" marker rather than copying the whole run.
       is_cached = False
 
       for i in range(exp.size()):
-        for dp in exp[i].getDataProcessing():
-          if dp.metaValueExists("cached_data"):
-            is_cached = True
+        if any(dp.metaValueExists("cached_data") for dp in exp[i].getDataProcessing()):
+          is_cached = True
+          break
 
-      for chrom in exp.getChromatograms():
-        for dp in chrom.getDataProcessing():
-          if dp.metaValueExists("cached_data"):
+      if not is_cached:
+        for chrom in exp.getChromatograms():
+          if any(dp.metaValueExists("cached_data") for dp in chrom.getDataProcessing()):
             is_cached = True
+            break
 
       if is_cached:
         return SpectrumAccessOpenMSCached( exp.getLoadedFilePath() )

@@ -197,7 +197,11 @@ instance primarily contains a sequence of residues.
 Sets the N-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
 )doc")
         .def("getNTerminalModificationName", [](const OpenMS::AASequence& self) { return self.getNTerminalModificationName(); }, "Returns the name (ID) of the N-terminal modification, or an empty string if none is set")
-        .def("getNTerminalModification", [](const OpenMS::AASequence& self) { return self.getNTerminalModification(); }, nb::rv_policy::reference_internal, "Returns a copy of the name N-terminal modification object, or None")
+        .def("getNTerminalModification", [](const OpenMS::AASequence& self) -> std::optional<OpenMS::ResidueModification> {
+            const OpenMS::ResidueModification* mod = self.getNTerminalModification();
+            if (mod == nullptr) return std::nullopt;
+            return *mod;  // by value: never hand out a mutable alias into ModificationsDB
+        }, "Returns a copy of the N-terminal modification object, or None if not modified")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, const std::string& modification) { return self.setCTerminalModification(modification); }, "modification"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setCTerminalModification(*modification); }, "modification"_a, "Sets the C-terminal modification. The modification is interned into ModificationsDB, so a copy is stored rather than the object passed in")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, const OpenMS::ResidueModification& mod) { return self.setCTerminalModification(mod); }, "mod"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
@@ -206,7 +210,11 @@ Sets the N-terminal modification by the monoisotopic mass difference it introduc
 Sets the C-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
 )doc")
         .def("getCTerminalModificationName", [](const OpenMS::AASequence& self) { return self.getCTerminalModificationName(); }, "Returns the name (ID) of the C-terminal modification, or an empty string if none is set")
-        .def("getCTerminalModification", [](const OpenMS::AASequence& self) { return self.getCTerminalModification(); }, nb::rv_policy::reference_internal, "Returns a copy of the name C-terminal modification object, or None")
+        .def("getCTerminalModification", [](const OpenMS::AASequence& self) -> std::optional<OpenMS::ResidueModification> {
+            const OpenMS::ResidueModification* mod = self.getCTerminalModification();
+            if (mod == nullptr) return std::nullopt;
+            return *mod;  // by value: never hand out a mutable alias into ModificationsDB
+        }, "Returns a copy of the C-terminal modification object, or None if not modified")
         .def("getResidue", [](const OpenMS::AASequence& self, size_t index) -> OpenMS::Residue {
             if (index >= self.size()) throw nb::index_error();
             return self.getResidue(index);  // by value, for the ResidueDB reason given on __getitem__
@@ -1728,7 +1736,11 @@ non-integer weights with an error allowed
         .def("getAverageWeight", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getAverageWeight(res_type); }, "res_type"_a)
         .def("setMonoWeight", [](OpenMS::Residue& self, double weight) { return self.setMonoWeight(weight); }, "weight"_a, "Sets monoisotopic weight of the residue (must be full, with N and C-terminus)")
         .def("getMonoWeight", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getMonoWeight(res_type); }, "res_type"_a)
-        .def("getModification", [](const OpenMS::Residue& self) { return self.getModification(); }, nb::rv_policy::reference_internal)
+        .def("getModification", [](const OpenMS::Residue& self) -> std::optional<OpenMS::ResidueModification> {
+            const OpenMS::ResidueModification* mod = self.getModification();
+            if (mod == nullptr) return std::nullopt;
+            return *mod;  // by value: never hand out a mutable alias into ModificationsDB
+        }, "Returns a copy of the modification, or None if unmodified")
         .def("setModification", [](OpenMS::Residue& self, const std::string& name) { return self.setModification(name); }, "name"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
         .def("setModification", [](OpenMS::Residue& self, OpenMS::ResidueModification * mod) { return self.setModification(*mod); }, "mod"_a, "Sets the modification. The modification is interned into ModificationsDB, so a copy is stored rather than the object passed in")
         .def("setModification", [](OpenMS::Residue& self, const OpenMS::ResidueModification& mod) { return self.setModification(mod); }, "mod"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
@@ -2148,7 +2160,12 @@ the fixed and variable modifications given to the constructor
         .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(requireDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 3' modification. It must come from RibonucleotideDB, since NASequence stores it by reference")
         .def("hasFivePrimeMod", &OpenMS::NASequence::hasFivePrimeMod, "Returns true if the sequence has a 5' modification")
         .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
-        .def("getSequence", [](const OpenMS::NASequence& self) { return self.getSequence(); }, nb::rv_policy::reference_internal, "Returns the sequence of ribonucleotides")
+        .def("getSequence", [](const OpenMS::NASequence& self) -> std::vector<OpenMS::Ribonucleotide> {
+            std::vector<OpenMS::Ribonucleotide> out;
+            out.reserve(self.size());
+            for (const OpenMS::Ribonucleotide* r : self.getSequence()) { if (r != nullptr) out.push_back(*r); }
+            return out;  // by value: never hand out mutable aliases into RibonucleotideDB
+        }, "Returns a copy of the sequence of ribonucleotides")
         .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) {
             std::vector<const OpenMS::Ribonucleotide*> checked;
             checked.reserve(seq.size());

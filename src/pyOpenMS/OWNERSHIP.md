@@ -63,22 +63,26 @@ This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
 `RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
 container classes have no such attributes.
 
-## Three further exceptions, all visible at the call site
+## Three exceptions, all visible at the call site
 
 | | Example | Why |
 |---|---|---|
 | **Fluent builders** | `ParquetFilter().eq("ms_level", 1).andNext()` | returns *itself* so the chain continues — that is the API |
-| **Database lookups** | `ResidueDB`, `ModificationsDB` entries | a shared, process-lifetime entry, not part of your object |
+| **Asking a database for its entry** | `ResidueDB().getResidue("A")`, `ModificationsDB().getModification(...)` | you asked the shared, process-lifetime database for *its* entry |
 | **Shared pointers** | `spec.getDataProcessing()` | the list is a copy, but its entries are `shared_ptr`s that keep pointing at the same `DataProcessing` |
 
 The first two are not a getter handing you part of an object it owns, which is
-what the rule above is about.
+what the rule above is about. Note the second is narrow: it covers the database
+singletons' own lookups. A database entry reached through *your* object —
+`seq[0]`, `seq.getNTerminalModification()`, `residue.getModification()`,
+`na_seq.getSequence()` — is a copy like everything else, so editing it cannot
+corrupt the database for the rest of the process.
 
-The third is: `getDataProcessing()` copies the *list*, so appending to or
-removing from the returned list does not touch the object — but the
-`DataProcessing` entries inside it are shared by design (OpenMS deliberately
-lets many spectra reference one provenance record instead of duplicating it),
-so editing an entry in place *is* visible through the object:
+The third exception is a real one: `getDataProcessing()` copies the *list*, so
+appending to or removing from the returned list does not touch the object — but
+the `DataProcessing` entries inside it are shared by design (OpenMS deliberately
+lets many spectra reference one provenance record instead of duplicating it), so
+editing an entry in place *is* visible through the object:
 
 ```python
 dp = spec.getDataProcessing()
@@ -90,6 +94,11 @@ applies here as the safe habit: build the list you want and call
 `setDataProcessing()`. This affects the five `getDataProcessing()` getters
 (`MSSpectrum`, `MSChromatogram`, `SpectrumSettings`, `ChromatogramSettings`,
 `MetaInfoDescription`) and nothing else.
+
+Outside these three, no getter hands out a live alias. The remaining
+`reference_internal` policies in the bindings are all zero-copy numpy views
+(`get_peaks_view()` and friends), where the policy keeps the owning object alive
+for as long as the view exists — which is what makes those views safe.
 
 ## Why it works this way
 
@@ -107,9 +116,14 @@ Returning owned values removes all of them, and restores what 3.5 did.
 
 See issue #9792 for the full analysis.
 
-## Migrating from 3.6.0
+## Migrating
 
-If your code assigned through a getter and relied on it landing, add the
+Code written for 3.5 (or earlier) needs no changes: those releases copied too,
+so it already writes back where it has to. Only code written against a 3.6.0
+*development* build can be affected — aliasing was introduced and removed inside
+the same unreleased cycle, so no released version ever behaved that way.
+
+If such code assigned through a getter and relied on it landing, add the
 write-back:
 
 ```python

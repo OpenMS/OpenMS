@@ -422,7 +422,7 @@ Pixels are masked-out by default; setIntensity marks them present.
     .def("getIntensity", &OpenMS::IonImage::getIntensity, "x"_a, "y"_a, "Intensity at (x, y); 0.0 if never set. Raises on out-of-bounds.")
     .def("setIntensity", &OpenMS::IonImage::setIntensity, "x"_a, "y"_a, "intensity"_a, "Stores intensity at (x, y) and marks the cell valid.")
     .def("setMzRange", &OpenMS::IonImage::setMzRange, "range"_a, "Records the m/z window the image was extracted from.")
-    .def("getMzRange", &OpenMS::IonImage::getMzRange, nb::rv_policy::reference_internal, "m/z window the image was extracted from.")
+    .def("getMzRange", &OpenMS::IonImage::getMzRange, "m/z window the image was extracted from.")
 
     .def(
       "get_data",
@@ -616,8 +616,8 @@ structured numpy view of all pixels at once.
              })
         .def("addRegion", &OpenMS::MSImagingGeometry::addRegion, "region"_a)
         .def("removeRegion", &OpenMS::MSImagingGeometry::removeRegion, "id"_a)
-        .def("getRegions", &OpenMS::MSImagingGeometry::getRegions, nb::rv_policy::reference_internal)
-        .def("getRegion", &OpenMS::MSImagingGeometry::getRegion, "id"_a, nb::rv_policy::reference_internal)
+        .def("getRegions", &OpenMS::MSImagingGeometry::getRegions)
+        .def("getRegion", &OpenMS::MSImagingGeometry::getRegion, "id"_a)
         .def("getNumberOfRegions", &OpenMS::MSImagingGeometry::getNumberOfRegions)
         .def("regionOf", &OpenMS::MSImagingGeometry::regionOf, "x"_a, "y"_a)
         .def("getRegionPixels", &OpenMS::MSImagingGeometry::getRegionPixels, "id"_a)

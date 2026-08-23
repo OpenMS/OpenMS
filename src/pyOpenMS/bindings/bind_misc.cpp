@@ -1098,8 +1098,8 @@ Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' 
         "Identifies an IDRipper output file")
         .def("getIdentRunIdx", &OpenMS::IDRipper::RipFileIdentifier::getIdentRunIdx, "Get identification run index")
         .def("getFileOriginIdx", &OpenMS::IDRipper::RipFileIdentifier::getFileOriginIdx, "Get file origin index")
-        .def("getOriginFullname", &OpenMS::IDRipper::RipFileIdentifier::getOriginFullname, nb::rv_policy::reference_internal, "Get origin full name")
-        .def("getOutputBasename", &OpenMS::IDRipper::RipFileIdentifier::getOutputBasename, nb::rv_policy::reference_internal, "Get output base name")
+        .def("getOriginFullname", &OpenMS::IDRipper::RipFileIdentifier::getOriginFullname, "Get origin full name")
+        .def("getOutputBasename", &OpenMS::IDRipper::RipFileIdentifier::getOutputBasename, "Get output base name")
         ;
 
     // -----------------------------------------------------------------------
@@ -1107,8 +1107,8 @@ Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' 
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IDRipper::RipFileContent>(m, "RipFileContent",
         "Represents the content of an IDRipper output file")
-        .def("getProteinIdentifications", &OpenMS::IDRipper::RipFileContent::getProteinIdentifications, nb::rv_policy::reference_internal, "Get protein identifications")
-        .def("getPeptideIdentifications", &OpenMS::IDRipper::RipFileContent::getPeptideIdentifications, nb::rv_policy::reference_internal, "Get peptide identifications")
+        .def("getProteinIdentifications", &OpenMS::IDRipper::RipFileContent::getProteinIdentifications, "Get protein identifications")
+        .def("getPeptideIdentifications", &OpenMS::IDRipper::RipFileContent::getPeptideIdentifications, "Get peptide identifications")
         ;
 
     // -----------------------------------------------------------------------

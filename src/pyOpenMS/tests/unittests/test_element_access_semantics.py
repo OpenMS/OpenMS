@@ -469,3 +469,105 @@ def test_data_processing_entries_are_shared_pointers():
     entries[0].setMetaValue("note", "after")
     assert spec.getDataProcessing()[0].getMetaValue("note") == "after", \
         "shared_ptr entries no longer alias -- OWNERSHIP.md needs updating"
+
+
+# ---------------------------------------------------------------------------
+# Getters bound as &Class::method (rather than a lambda) were a separate shape
+# that the first conversion sweeps did not reach. These pin the ones that used
+# to hand out live aliases.
+# ---------------------------------------------------------------------------
+
+def test_mrm_transition_group_write_back():
+    """getFeaturesMuteable() & friends copy; the matching setters write back."""
+    from pyopenms import (MRMTransitionGroupCP, MRMFeature, MSChromatogram,
+                          ReactionMonitoringTransition)
+
+    group = MRMTransitionGroupCP()
+
+    feature = MRMFeature()
+    feature.setMetaValue("score", 0.0)
+    group.addFeature(feature)
+    features = group.getFeaturesMuteable()
+    features[0].setMetaValue("score", 1.0)
+    assert group.getFeaturesMuteable()[0].getMetaValue("score") == 0.0, \
+        "getFeaturesMuteable() aliased the stored features"
+    group.setFeatures(features)
+    assert group.getFeaturesMuteable()[0].getMetaValue("score") == 1.0
+
+    chrom = MSChromatogram()
+    chrom.setNativeID("c1")
+    group.addChromatogram(chrom, "c1")
+    chroms = group.getChromatograms()
+    chroms[0].setNativeID("edited")
+    assert group.getChromatograms()[0].getNativeID() == "c1"
+    group.setChromatograms(chroms)
+    assert group.getChromatograms()[0].getNativeID() == "edited"
+
+    transition = ReactionMonitoringTransition()
+    transition.setName("t1")
+    group.addTransition(transition, "t1")
+    transitions = group.getTransitionsMuteable()
+    transitions[0].setName("edited")
+    assert group.getTransitionsMuteable()[0].getName() == "t1"
+    group.setTransitions(transitions)
+    assert group.getTransitionsMuteable()[0].getName() == "edited"
+
+
+def test_terminal_modifications_do_not_alias_modifications_db():
+    from pyopenms import AASequence
+
+    plain = AASequence.fromString("PEPTIDE")
+    assert plain.getNTerminalModification() is None
+    assert plain.getCTerminalModification() is None
+
+    seq = AASequence.fromString(".(Acetyl)PEPTIDE")
+    mod = seq.getNTerminalModification()
+    assert mod is not None
+    original = mod.getDiffMonoMass()
+    mod.setDiffMonoMass(999.0)
+    assert AASequence.fromString(".(Acetyl)PEPTIDE").getNTerminalModification().getDiffMonoMass() \
+        == pytest.approx(original), "editing the returned modification reached ModificationsDB"
+
+
+def test_residue_modification_is_a_copy():
+    from pyopenms import AASequence
+
+    assert AASequence.fromString("PEPTIDE")[0].getModification() is None
+    residue = AASequence.fromString("PEM(Oxidation)TIDE")[2]
+    assert residue.getModification() is not None
+
+
+def test_nasequence_getsequence_does_not_alias_ribonucleotide_db():
+    from pyopenms import NASequence
+
+    seq = NASequence.fromString("AAUC")
+    ribos = seq.getSequence()
+    assert len(ribos) == 4
+    original = NASequence.fromString("AAUC").getSequence()[0].getName()
+    ribos[0].setName("CORRUPTED")
+    assert NASequence.fromString("AAUC").getSequence()[0].getName() == original, \
+        "editing a returned ribonucleotide reached RibonucleotideDB"
+
+
+def test_param_entry_and_node_finders_return_copies():
+    from pyopenms import Param, ParamNode
+
+    param = Param()
+    param.setValue("a:b", 1)
+    entry = param.getEntry("a:b")
+    entry.description = "changed"
+    assert param.getEntry("a:b").description != "changed", "Param.getEntry() aliased"
+
+    # both finders returned raw pointers before; a miss is None, not a dangling alias
+    node = ParamNode()
+    assert node.findEntryRecursive("missing") is None
+    assert node.findParentOf("missing") is None
+
+
+def test_imaging_geometry_getters_return_copies():
+    from pyopenms import MSImagingGeometry, MSImagingRegion
+
+    geom = MSImagingGeometry()
+    geom.addRegion(MSImagingRegion.rectangle(1, "r", 0, 0, 1, 1))
+    assert geom.getRegions()[0] is not geom.getRegions()[0]
+    assert geom.getRegion(1) is not geom.getRegion(1)

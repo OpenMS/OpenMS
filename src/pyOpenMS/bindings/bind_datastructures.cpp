@@ -806,7 +806,7 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def(nb::self == nb::self)
         .def("getValue", [](const OpenMS::Param& self, const std::string& key) { return self.getValue(key); }, "key"_a, "Returns the value of the parameter specified by key. Raises exception if not found")
         .def("getValueType", [](const OpenMS::Param& self, const std::string& key) { return self.getValueType(key); }, "key"_a, "Returns the type of the parameter specified by key. Raises exception if not found")
-        .def("getEntry", [](const OpenMS::Param& self, const std::string& key) -> const OpenMS::Param::ParamEntry & { return self.getEntry(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
+        .def("getEntry", [](const OpenMS::Param& self, const std::string& key) -> OpenMS::Param::ParamEntry { return self.getEntry(key); }, "key"_a, "Returns a copy of the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
         .def("getDescription", [](const OpenMS::Param& self, const std::string& key) { return self.getDescription(key); }, "key"_a, "Returns the description of the parameter specified by key")
         .def("exists", [](const OpenMS::Param& self, const std::string& key) { return self.exists(key); }, "key"_a, "Returns True if the parameter exists, False otherwise")
         .def("addTag", [](OpenMS::Param& self, const std::string& key, const std::string& tag) { return self.addTag(key, tag); }, "key"_a, "tag"_a, "Adds a tag to the entry specified by key (e.g., 'advanced', 'required', 'input file')")
@@ -993,12 +993,16 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("size", &OpenMS::Param::ParamNode::size)
         .def("suffix", &OpenMS::Param::ParamNode::suffix, "key"_a)
         .def("__eq__", &OpenMS::Param::ParamNode::operator==)
-        .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> OpenMS::Param::ParamEntry* {
-            return self.findEntryRecursive(name);
-        }, "name"_a, nb::rv_policy::reference_internal, "Finds an entry by name recursively")
-        .def("findParentOf", [](OpenMS::Param::ParamNode& self, const std::string& name) -> OpenMS::Param::ParamNode* {
-            return self.findParentOf(name);
-        }, "name"_a, nb::rv_policy::reference_internal, "Finds the parent node of the entry with the given name")
+        .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> std::optional<OpenMS::Param::ParamEntry> {
+            const OpenMS::Param::ParamEntry* entry = self.findEntryRecursive(name);
+            if (entry == nullptr) return std::nullopt;
+            return *entry;  // by value: element access yields an owned copy
+        }, "name"_a, "Returns a copy of the entry found by name, or None if there is no such entry")
+        .def("findParentOf", [](OpenMS::Param::ParamNode& self, const std::string& name) -> std::optional<OpenMS::Param::ParamNode> {
+            const OpenMS::Param::ParamNode* node = self.findParentOf(name);
+            if (node == nullptr) return std::nullopt;
+            return *node;  // by value: element access yields an owned copy
+        }, "name"_a, "Returns a copy of the parent node of the named entry, or None if there is no such entry")
         .def("insert", [](OpenMS::Param::ParamNode& self, const OpenMS::Param::ParamNode& node, const std::string& prefix) {
             self.insert(node, prefix);
         }, "node"_a, "prefix"_a = "", "Inserts a node")
@@ -1391,7 +1395,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("getAdductBase", &OpenMS::MassExplainer::getAdductBase,
             "Get the current set of allowed adducts")
         .def("getCompomerById", &OpenMS::MassExplainer::getCompomerById, "id"_a,
-            nb::rv_policy::reference_internal, "Get a specific compomer by its ID")
+            "Returns a copy of the compomer with the given ID")
         .def("query", [](const OpenMS::MassExplainer& self, OpenMS::Int net_charge, float mass_to_explain, float mass_delta, float thresh_log_p) {
             std::vector<OpenMS::Compomer>::const_iterator first, last;
             OpenMS::SignedSize count = self.query(net_charge, mass_to_explain, mass_delta, thresh_log_p, first, last);
@@ -1434,7 +1438,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::OSWTransition&>())
         .def(nb::init<const std::string&, const OpenMS::UInt32, const float, const char, const bool>(),
             "annotation"_a, "id"_a, "product_mz"_a, "type"_a, "is_decoy"_a)
-        .def("getAnnotation", &OpenMS::OSWTransition::getAnnotation, nb::rv_policy::reference_internal)
+        .def("getAnnotation", &OpenMS::OSWTransition::getAnnotation)
         .def("getID", &OpenMS::OSWTransition::getID)
         .def("getProductMZ", &OpenMS::OSWTransition::getProductMZ)
         .def("getType", [](const OpenMS::OSWTransition& self) { return std::string(1, self.getType()); })
@@ -1452,7 +1456,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("getRTRightWidth", &OpenMS::OSWPeakGroup::getRTRightWidth)
         .def("getRTDelta", &OpenMS::OSWPeakGroup::getRTDelta)
         .def("getQValue", &OpenMS::OSWPeakGroup::getQValue)
-        .def("getTransitionIDs", &OpenMS::OSWPeakGroup::getTransitionIDs, nb::rv_policy::reference_internal)
+        .def("getTransitionIDs", &OpenMS::OSWPeakGroup::getTransitionIDs)
         ;
 
     // -----------------------------------------------------------------------
@@ -1461,11 +1465,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     nb::class_<OpenMS::OSWPeptidePrecursor>(m, "OSWPeptidePrecursor", "A peptide with a charge state")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OSWPeptidePrecursor&>())
-        .def("getSequence", &OpenMS::OSWPeptidePrecursor::getSequence, nb::rv_policy::reference_internal)
+        .def("getSequence", &OpenMS::OSWPeptidePrecursor::getSequence)
         .def("getCharge", &OpenMS::OSWPeptidePrecursor::getCharge)
         .def("isDecoy", &OpenMS::OSWPeptidePrecursor::isDecoy)
         .def("getPCMz", &OpenMS::OSWPeptidePrecursor::getPCMz)
-        .def("getFeatures", &OpenMS::OSWPeptidePrecursor::getFeatures, nb::rv_policy::reference_internal)
+        .def("getFeatures", &OpenMS::OSWPeptidePrecursor::getFeatures)
         ;
 
     // -----------------------------------------------------------------------
@@ -1474,9 +1478,9 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     nb::class_<OpenMS::OSWProtein>(m, "OSWProtein", "A protein containing one or more peptides")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OSWProtein&>())
-        .def("getAccession", &OpenMS::OSWProtein::getAccession, nb::rv_policy::reference_internal)
+        .def("getAccession", &OpenMS::OSWProtein::getAccession)
         .def("getID", &OpenMS::OSWProtein::getID)
-        .def("getPeptidePrecursors", &OpenMS::OSWProtein::getPeptidePrecursors, nb::rv_policy::reference_internal)
+        .def("getPeptidePrecursors", &OpenMS::OSWProtein::getPeptidePrecursors)
         ;
 
     // -----------------------------------------------------------------------
@@ -1486,11 +1490,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<>())
         .def("addTransition", [](OpenMS::OSWData& self, const OpenMS::OSWTransition& tr) { self.addTransition(tr); }, "tr"_a)
         .def("addProtein", [](OpenMS::OSWData& self, OpenMS::OSWProtein prot) { self.addProtein(std::move(prot)); }, "prot"_a)
-        .def("getProteins", &OpenMS::OSWData::getProteins, nb::rv_policy::reference_internal)
+        .def("getProteins", &OpenMS::OSWData::getProteins)
         .def("transitionCount", &OpenMS::OSWData::transitionCount)
-        .def("getTransition", &OpenMS::OSWData::getTransition, "id"_a, nb::rv_policy::reference_internal)
+        .def("getTransition", &OpenMS::OSWData::getTransition, "id"_a)
         .def("setSqlSourceFile", &OpenMS::OSWData::setSqlSourceFile, "filename"_a)
-        .def("getSqlSourceFile", &OpenMS::OSWData::getSqlSourceFile, nb::rv_policy::reference_internal)
+        .def("getSqlSourceFile", &OpenMS::OSWData::getSqlSourceFile)
         .def("setRunID", &OpenMS::OSWData::setRunID, "run_id"_a)
         .def("getRunID", &OpenMS::OSWData::getRunID)
         .def("clear", &OpenMS::OSWData::clear)

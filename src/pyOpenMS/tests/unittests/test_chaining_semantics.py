@@ -38,7 +38,7 @@ def test_read_chain_through_container_is_safe():
     spec.setRT(1.0)
     exp.addSpectrum(spec)
 
-    assert exp[0].getInstrumentSettings().getZoomScan() in (True, False)
+    assert exp[0].getInstrumentSettings().getZoomScan() is False
     assert exp[0].getRT() == pytest.approx(1.0)
 
 
