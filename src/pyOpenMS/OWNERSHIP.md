@@ -42,7 +42,28 @@ mz, intensity = spec.get_peaks()
 spec.set_peaks(mz * 1.0001, intensity)
 ```
 
-## The two exceptions, both visible at the call site
+## Attributes are not getters
+
+A handful of plain data-holder structs expose their members as Python
+**attributes** rather than through `getX()`. Those behave the way Python
+attributes normally do — they *are* the object, so edits land and you can assign
+to them directly:
+
+```python
+pair.target.setRT(5.0)      # lands — `target` is an attribute, not a getter
+pair.target = other         # also fine
+```
+
+So the full picture is two lines, and they match ordinary Python intuition:
+
+> **A method hands you a copy — write it back with the matching setter.**
+> **An attribute is the object itself — edit or assign it directly.**
+
+This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
+`RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
+container classes have no such attributes.
+
+## Two further exceptions, both visible at the call site
 
 | | Example | Why |
 |---|---|---|

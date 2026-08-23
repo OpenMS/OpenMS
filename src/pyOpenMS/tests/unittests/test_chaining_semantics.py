@@ -166,3 +166,16 @@ def test_fluent_builder_still_chains():
 
     f = ParquetFilter()
     assert f.eq("ms_level", 1).andNext().eq("charge", 2) is not None
+
+
+def test_struct_attributes_are_live_not_copies():
+    """Plain data-holder structs expose members as attributes, which behave as
+    Python attributes do: they are the object, so edits land. This is the one
+    place the copy rule does not apply, and it is pinned so it cannot drift."""
+    from pyopenms import AQS_featureConcentration
+
+    fc = AQS_featureConcentration()
+    fc.feature.setRT(42.0)
+    assert fc.feature.getRT() == pytest.approx(42.0), (
+        "attribute access must stay live; only getters return copies"
+    )
