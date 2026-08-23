@@ -105,11 +105,12 @@
             "name": "ci-base",
             "hidden": true,
             "cacheVariables": {
-                "WITH_GUI": "OFF",
+                "WITH_GUI": "ON",
+                "ENABLE_DOCS": "ON",
                 "WITH_THERMO_RAW":"ON",
                 "ENABLE_THERMO_RAW_TESTS": "OFF",
                 "ENABLE_TUTORIALS": "OFF",
-                "WITH_ONNX": "ON",
+                "WITH_ONNX": "OFF",
                 "WITH_OPENTIMS":"ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
                 "WITH_WNETALIGN": "ON",
@@ -120,7 +121,7 @@
                 "USE_EXTERNAL_EOLBSPLINE":"ON",
                 "WITH_HDF5": "OFF",
                 "PYOPENMS":"OFF",
-                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims;onnxruntime"
+                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims"
             }
         },
         {
@@ -251,7 +252,6 @@
                 "ci-base"
             ],
             "cacheVariables": {
-                "ENABLE_DOCS": "OFF",
                 "WITH_THERMO_RAW":"OFF",
                 "ENABLE_THERMO_RAW_TESTS": "OFF"
             }
@@ -264,10 +264,7 @@
                 "macos-arm64-base",
                 "release-base",
                 "ci-base"
-            ],
-            "cacheVariables": {
-                "ENABLE_DOCS": "OFF"
-            }
+            ]
         },
         {
             "name": "windows-x64-ci",
@@ -277,10 +274,7 @@
                 "windows-x64-base",
                 "release-base",
                 "ci-base"
-            ],
-            "cacheVariables": {
-                "ENABLE_DOCS": "OFF"
-            }
+            ]
         }
     ],
     "buildPresets": [
@@ -361,6 +355,13 @@
             }
         },
         {
+            "name": "test-base-ci",
+            "hidden": true,
+            "execution": {
+                "jobs": 4
+            }
+        },
+        {
             "name": "linux-x64-debug",
             "configurePreset": "linux-x64-debug",
             "inherits": "test-base"
@@ -423,22 +424,22 @@
         {
             "name": "linux-x64-ci",
             "configurePreset": "linux-x64-ci",
-            "inherits": "test-base"
+            "inherits": ["test-base","test-base-ci"]
         },
         {
             "name": "linux-arm64-ci",
             "configurePreset": "linux-arm64-ci",
-            "inherits": "test-base"
+            "inherits": ["test-base","test-base-ci"]
         },
         {
             "name": "macos-arm64-ci",
             "configurePreset": "macos-arm64-ci",
-            "inherits": "test-base"
+            "inherits": ["test-base","test-base-ci"]
         },
         {
             "name": "windows-x64-ci",
             "configurePreset": "windows-x64-ci",
-            "inherits": "test-base"
+            "inherits": ["test-base","test-base-ci"]
         }
     ]
 }
