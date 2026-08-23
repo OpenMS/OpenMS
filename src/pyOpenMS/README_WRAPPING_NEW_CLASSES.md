@@ -218,7 +218,7 @@ for Python-managed lifetime, then construct `nb::ndarray` with the capsule as ow
 
 For classes that behave like containers:
 
-**Ownership rule:** element access returns an **owned value**, never an alias into
+**Ownership rule** (user-facing summary: `OWNERSHIP.md`)**:** element access returns an **owned value**, never an alias into
 the container's storage. Writes go back through `__setitem__`. An alias would let
 Python outlive the storage it points at (the container reallocates on `push_back`,
 `resize`, `clear`, or a metadata-path sort) and would silently follow the *slot*
