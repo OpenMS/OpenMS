@@ -1,7 +1,7 @@
 """
 Regression tests for element-access ownership semantics.
 
-Policy (see src/pyOpenMS/OWNERSHIP_PROPOSAL.md and issue #9792): indexing and
+Policy (see src/pyOpenMS/OWNERSHIP.md and issue #9792): indexing and
 iterating a container returns an **owned value**, never a live alias into the
 container's storage. Writes go back through ``__setitem__``.
 
@@ -382,3 +382,90 @@ def test_peptide_identification_list_getitem_returns_copy():
 
     lst[0] = got
     assert lst[0].getRT() == pytest.approx(99.0)
+
+
+# ---------------------------------------------------------------------------
+# Every getter that hands out a copy needs a route back in. These pin the
+# write-back paths that were missing when the getters were converted.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("cls_name", ["DTA2DFile", "ConsensusXMLFile", "MzMLFile",
+                                      "MzXMLFile", "MzDataFile", "FileHandler"])
+def test_file_options_round_trip(cls_name):
+    import pyopenms
+
+    handler = getattr(pyopenms, cls_name)()
+
+    opts = handler.getOptions()
+    opts.setMSLevels([2])
+    handler.setOptions(opts)
+    assert list(handler.getOptions().getMSLevels()) == [2]
+
+    # the getter itself is a copy -- editing it must not reach the file object
+    stray = handler.getOptions()
+    stray.setMSLevels([3])
+    assert list(handler.getOptions().getMSLevels()) == [2], \
+        f"{cls_name}.getOptions() aliased"
+
+
+@pytest.mark.parametrize("kind,ref", [("Protein", "P1"), ("Peptide", "PEP1"),
+                                      ("Compound", "C1")])
+def test_targeted_experiment_by_ref_returns_copy(kind, ref):
+    import pyopenms
+
+    exp = pyopenms.TargetedExperiment()
+    entry = getattr(pyopenms, kind)()
+    entry.id = ref
+    getattr(exp, f"set{kind}s")([entry])
+
+    got = getattr(exp, f"get{kind}ByRef")(ref)
+    got.id = "MUTATED"
+    assert getattr(exp, f"get{kind}ByRef")(ref).id == ref, \
+        f"get{kind}ByRef aliased the stored entry"
+
+    # write-back through the list setter is the supported route
+    entries = getattr(exp, f"get{kind}s")()
+    entries[0].id = "CHANGED"
+    getattr(exp, f"set{kind}s")(entries)
+    assert getattr(exp, f"get{kind}ByRef")("CHANGED").id == "CHANGED"
+
+
+def test_mass_traces_supports_write_back():
+    from pyopenms import MassTraces
+
+    traces = MassTraces()
+    assert len(traces) == 0
+
+    # MassTrace (the FeatureFinderAlgorithmPicked helper struct) is not wrapped,
+    # so no element can be handed in or out today. What this pins is that the
+    # container protocol stays symmetric: a copy-returning __getitem__ is always
+    # paired with a __setitem__, so a caller who can get an element can put it back.
+    assert hasattr(MassTraces, "__getitem__")
+    assert hasattr(MassTraces, "__setitem__")
+    assert "trace" in MassTraces.__setitem__.__doc__
+    with pytest.raises(IndexError):
+        traces[0]
+
+
+def test_data_processing_entries_are_shared_pointers():
+    """The one documented aliasing carve-out (see OWNERSHIP.md).
+
+    getDataProcessing() copies the list, but its entries are shared_ptrs, so an
+    in-place edit of an entry is visible through the owner. Pinned here so the
+    documented behaviour and the actual behaviour cannot drift apart.
+    """
+    from pyopenms import MSSpectrum, DataProcessing
+
+    spec = MSSpectrum()
+    dp = DataProcessing()
+    dp.setMetaValue("note", "before")
+    spec.setDataProcessing([dp])
+
+    entries = spec.getDataProcessing()
+    entries.append(DataProcessing())
+    assert len(spec.getDataProcessing()) == 1, "the returned list is not a copy"
+
+    entries = spec.getDataProcessing()
+    entries[0].setMetaValue("note", "after")
+    assert spec.getDataProcessing()[0].getMetaValue("note") == "after", \
+        "shared_ptr entries no longer alias -- OWNERSHIP.md needs updating"

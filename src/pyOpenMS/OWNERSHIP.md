@@ -63,15 +63,33 @@ This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
 `RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
 container classes have no such attributes.
 
-## Two further exceptions, both visible at the call site
+## Three further exceptions, all visible at the call site
 
 | | Example | Why |
 |---|---|---|
 | **Fluent builders** | `ParquetFilter().eq("ms_level", 1).andNext()` | returns *itself* so the chain continues — that is the API |
 | **Database lookups** | `ResidueDB`, `ModificationsDB` entries | a shared, process-lifetime entry, not part of your object |
+| **Shared pointers** | `spec.getDataProcessing()` | the list is a copy, but its entries are `shared_ptr`s that keep pointing at the same `DataProcessing` |
 
-Neither is a getter handing you part of an object it owns, which is what the
-rule above is about.
+The first two are not a getter handing you part of an object it owns, which is
+what the rule above is about.
+
+The third is: `getDataProcessing()` copies the *list*, so appending to or
+removing from the returned list does not touch the object — but the
+`DataProcessing` entries inside it are shared by design (OpenMS deliberately
+lets many spectra reference one provenance record instead of duplicating it),
+so editing an entry in place *is* visible through the object:
+
+```python
+dp = spec.getDataProcessing()
+dp[0].setMetaValue("note", "x")   # reaches spec, and every other spectrum sharing that record
+```
+
+Deep-copying on read would break that sharing, so the write-back rule still
+applies here as the safe habit: build the list you want and call
+`setDataProcessing()`. This affects the five `getDataProcessing()` getters
+(`MSSpectrum`, `MSChromatogram`, `SpectrumSettings`, `ChromatogramSettings`,
+`MetaInfoDescription`) and nothing else.
 
 ## Why it works this way
 

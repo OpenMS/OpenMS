@@ -336,6 +336,10 @@ Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPick
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // by value: element access yields an owned copy
         }, "i"_a, "Returns a copy of the mass trace at index i")
+        .def("__setitem__", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i, const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = trace;
+        }, "i"_a, "trace"_a, "Writes a mass trace back to index i")
         .def("getPeakCount", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getPeakCount(); }, "Returns the peak count of all traces")
         .def("getTheoreticalmaxPosition", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getTheoreticalmaxPosition(); }, "Returns the theoretical maximum trace index")
         .def("updateBaseline", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { self.updateBaseline(); }, "Sets the baseline to the lowest contained peak of the trace")

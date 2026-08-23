@@ -574,7 +574,7 @@ MetaInfoInterface
         .def("replaceCVTerm", [](OpenMS::CVTermList& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
         .def("replaceCVTerms", [](OpenMS::CVTermList& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a)
         .def("consumeCVTerms", [](OpenMS::CVTermList& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::CVTermList& self) -> std::map<std::string, std::vector<OpenMS::CVTerm>> { return self.getCVTerms(); }, "Returns the accession string of the term")
+        .def("getCVTerms", [](const OpenMS::CVTermList& self) -> std::map<std::string, std::vector<OpenMS::CVTerm>> { return self.getCVTerms(); }, "Returns a copy of the CV terms, keyed by CV accession")
         .def("addCVTerm", [](OpenMS::CVTermList& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
         .def("setCVTerms", [](OpenMS::CVTermList& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self == nb::self)

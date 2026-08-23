@@ -204,7 +204,7 @@ void def_CVTermList(Class& cls)
         }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
         .def("getCVTerms", [](const T& self) -> std::map<std::string, std::vector<OpenMS::CVTerm>> {
             return self.getCVTerms();
-        }, "Returns the accession string of the term")
+        }, "Returns a copy of the CV terms, keyed by CV accession")
         .def("addCVTerm", [](T& self, const OpenMS::CVTerm& term) {
             return self.addCVTerm(term);
         }, "term"_a, "Adds a CV term")

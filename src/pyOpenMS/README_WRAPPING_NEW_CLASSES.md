@@ -222,7 +222,7 @@ For classes that behave like containers:
 the container's storage. Writes go back through `__setitem__`. An alias would let
 Python outlive the storage it points at (the container reallocates on `push_back`,
 `resize`, `clear`, or a metadata-path sort) and would silently follow the *slot*
-rather than the element across a sort. See `OWNERSHIP_PROPOSAL.md` and issue #9792.
+rather than the element across a sort. See `OWNERSHIP.md` and issue #9792.
 
 ```cpp
 // Iteration -- yields copies (rv_policy::copy)
@@ -233,7 +233,7 @@ rather than the element across a sort. See `OWNERSHIP_PROPOSAL.md` and issue #97
 // The rv_policy governs the *elements* the iterator yields, not the iterator.
 .def("__iter__", [](OpenMS::MyContainer& self) {
     return nb::make_iterator<nb::rv_policy::copy>(
-        nb::handle(), "MyContainer_iter", self.begin(), self.end());
+        nb::type<OpenMS::MyContainer>(), "MyContainer_iter", self.begin(), self.end());
 }, nb::keep_alive<0, 1>())
 
 // Length

@@ -2446,7 +2446,8 @@ ProgressLogger
             return exp;
         }, "filename"_a, "Loads a DTA2D file into an MSExperiment")
         .def("store", [](OpenMS::DTA2DFile& self, const std::string& filename, const OpenMS::PeakMap& map) { self.store(filename, map); }, "filename"_a, "map"_a, "Stores an MSExperiment to a DTA2D file")
-        .def("getOptions", [](OpenMS::DTA2DFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); })
+        .def("getOptions", [](OpenMS::DTA2DFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns a copy of the options for loading/storing")
+        .def("setOptions", [](OpenMS::DTA2DFile& self, const OpenMS::PeakFileOptions& options) { self.getOptions() = options; }, "options"_a, "Sets the options for loading/storing")
         .def("storeTIC", [](const OpenMS::DTA2DFile& self, const std::string& filename, const OpenMS::MSExperiment& map) { self.storeTIC(filename, map); }, "filename"_a, "map"_a, "Store TIC to file")
         ;
 
@@ -2596,19 +2597,12 @@ Constructors
         .def(nb::init<const OpenMS::FLASHDeconvAlgorithm &>())
         .def("__copy__", [](const OpenMS::FLASHDeconvAlgorithm& self) { return OpenMS::FLASHDeconvAlgorithm(self); })
         .def("__deepcopy__", [](const OpenMS::FLASHDeconvAlgorithm& self, nb::dict) { return OpenMS::FLASHDeconvAlgorithm(self); }, "memo"_a)
-        .def("getTolerances", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getTolerances(); }, "Get calculated decoy averagine. Call after run() is called.")
+        .def("getTolerances", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getTolerances(); }, "Get mass tolerances per MS level.")
         .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map) { std::vector<OpenMS::DeconvolvedSpectrum> deconvolved_spectra; std::vector<OpenMS::FLASHHelperClasses::MassFeature> deconvolved_feature; { nb::gil_scoped_release release; self.run(map, deconvolved_spectra, deconvolved_feature); } return nb::make_tuple(deconvolved_spectra, deconvolved_feature); }, "map"_a)
-        .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, 
-            R"doc(
-Run FLASHDeconv algorithm for input_map and store deconvolved_spectra and deconvolved_features.
-:param input_map: The input MSExperiment containing spectra to deconvolve
-:param deconvolved_spectra: Output vector to store deconvolved spectra
-:param deconvolved_features: Output vector to store mass features
-Averagine access
-)doc")
-        .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getDecoyAveragine(); }, "Get calculated averagine. Call after run() is called.")
-        .def("getNoiseDecoyWeight", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getNoiseDecoyWeight(); }, "Get mass tolerances per MS level.")
-        .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, size_t index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get noise decoy weight determined during q-value calculation.")
+        .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Get calculated averagine. Call after calculateAveragine() is called.")
+        .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getDecoyAveragine(); }, "Get calculated decoy averagine. Call after calculateAveragine() is called.")
+        .def("getNoiseDecoyWeight", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getNoiseDecoyWeight(); }, "Get the noise decoy weight determined during q-value calculation.")
+        .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, size_t index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get the scan number of the index-th spectrum in map.")
         ;
     def_ProgressLogger<OpenMS::FLASHDeconvAlgorithm>(flashdeconvalgorithm_class);
 
@@ -3757,21 +3751,14 @@ Constructors
         .def("__copy__", [](const OpenMS::SpectralDeconvolution& self) { return OpenMS::SpectralDeconvolution(self); })
         .def("__deepcopy__", [](const OpenMS::SpectralDeconvolution& self, nb::dict) { return OpenMS::SpectralDeconvolution(self); }, "memo"_a)
         .def("performSpectrumDeconvolution", [](OpenMS::SpectralDeconvolution& self, const OpenMS::MSSpectrum& spec, int scan_number, const OpenMS::PeakGroup& precursor_peak_group) { return self.performSpectrumDeconvolution(spec, scan_number, precursor_peak_group); }, "spec"_a, "scan_number"_a, "precursor_peak_group"_a)
-        .def("getDeconvolvedSpectrum", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::DeconvolvedSpectrum { return self.getDeconvolvedSpectrum(); }, 
-            R"doc(
-Main deconvolution function that generates the deconvolved spectrum.
-:param spec: The original spectrum
-:param scan_number: Scan number from input spectrum
-:param precursor_peak_group: Precursor peak group (for MS2+)
-Result access
-)doc")
-        .def("getAveragine", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Return the deconvolved spectrum after performSpectrumDeconvolution is called")
-        .def("setAveragine", [](OpenMS::SpectralDeconvolution& self, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg) { return self.setAveragine(avg); }, "avg"_a, "Get calculated averagine. Call after calculateAveragine is called.")
-        .def("setTargetMasses", [](OpenMS::SpectralDeconvolution& self, const std::vector<double>& masses, bool exclude) { return self.setTargetMasses(masses, exclude); }, "masses"_a, "exclude"_a = false, "Set the precalculated averagine")
-        .def("calculateAveragine", [](OpenMS::SpectralDeconvolution& self, bool use_RNA_averagine) { return self.calculateAveragine(use_RNA_averagine); }, "use_RNA_averagine"_a, "Set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.")
-        .def("setToleranceEstimation", [](OpenMS::SpectralDeconvolution& self) { return self.setToleranceEstimation(); }, "Precalculate averagine (for predefined mass bins) to speed up averagine generation")
-        .def_static("getNominalMass", [](double mass) { return OpenMS::SpectralDeconvolution::getNominalMass(mass); }, "mass"_a, "Set target decoy type for the SpectralDeconvolution run")
-        .def_static("getCosine", [](const std::vector<float>& a, int a_start, int a_end, const OpenMS::IsotopeDistribution& b, int offset, int min_iso_len) { return OpenMS::SpectralDeconvolution::getCosine(a, a_start, a_end, b, offset, min_iso_len); }, "a"_a, "a_start"_a, "a_end"_a, "b"_a, "offset"_a, "min_iso_len"_a, "Convert double mass to nominal mass (integer)")
+        .def("getDeconvolvedSpectrum", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::DeconvolvedSpectrum { return self.getDeconvolvedSpectrum(); }, "Returns a copy of the deconvolved spectrum after performSpectrumDeconvolution() is called")
+        .def("getAveragine", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Get calculated averagine. Call after calculateAveragine() is called.")
+        .def("setAveragine", [](OpenMS::SpectralDeconvolution& self, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg) { return self.setAveragine(avg); }, "avg"_a, "Set the precalculated averagine")
+        .def("setTargetMasses", [](OpenMS::SpectralDeconvolution& self, const std::vector<double>& masses, bool exclude) { return self.setTargetMasses(masses, exclude); }, "masses"_a, "exclude"_a = false, "Set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all MS levels.")
+        .def("calculateAveragine", [](OpenMS::SpectralDeconvolution& self, bool use_RNA_averagine) { return self.calculateAveragine(use_RNA_averagine); }, "use_RNA_averagine"_a, "Precalculate averagine (for predefined mass bins) to speed up averagine generation")
+        .def("setToleranceEstimation", [](OpenMS::SpectralDeconvolution& self) { return self.setToleranceEstimation(); }, "Widen the maximum Dalton tolerance, as needed when estimating tolerance")
+        .def_static("getNominalMass", [](double mass) { return OpenMS::SpectralDeconvolution::getNominalMass(mass); }, "mass"_a, "Convert a double mass to nominal mass (integer)")
+        .def_static("getCosine", [](const std::vector<float>& a, int a_start, int a_end, const OpenMS::IsotopeDistribution& b, int offset, int min_iso_len) { return OpenMS::SpectralDeconvolution::getCosine(a, a_start, a_end, b, offset, min_iso_len); }, "a"_a, "a_start"_a, "a_end"_a, "b"_a, "offset"_a, "min_iso_len"_a, "Cosine similarity between a and the isotope distribution b")
         .def_static("getIsotopeCosineAndIsoOffset", [](double mono_mass, const std::vector<float>& per_isotope_intensities, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg, int iso_int_shift, int window_width, const std::vector<double>& excluded_masses) {
             int offset = 0;
             auto cosine = OpenMS::SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mono_mass, per_isotope_intensities, offset, avg, iso_int_shift, window_width, excluded_masses);
@@ -4600,7 +4587,8 @@ for cf in cm:
 print(cf.getRT(), cf.getMZ(), cf.getIntensity())
 )doc")
         .def(nb::init<>())
-        .def("getOptions", [](OpenMS::ConsensusXMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Mutable access to the options for loading/storing")
+        .def("getOptions", [](OpenMS::ConsensusXMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns a copy of the options for loading/storing")
+        .def("setOptions", [](OpenMS::ConsensusXMLFile& self, const OpenMS::PeakFileOptions& options) { self.getOptions() = options; }, "options"_a, "Sets the options for loading/storing")
 
         .def("load", [](OpenMS::ConsensusXMLFile& self, const std::string& filename, OpenMS::ConsensusMap& map) {
             nb::gil_scoped_release release;
