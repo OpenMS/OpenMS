@@ -1080,6 +1080,11 @@ Documentation:
     matrices for label-free, fractionated, TMT and SILAC experiments, documents the parser
     rules and the "replicate" column-naming convention that determines what a condition is,
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
+  - New vcpkg dependency-management guide (doc/doxygen/install/install-vcpkg.doxygen): what vcpkg is and
+    how OpenMS uses it (vcpkg.json, vcpkg-configuration.json), how the vcpkg-overlays/ directory provides
+    custom/patched ports and triplets not available in the public registry, building with the
+    CMakePresets.json presets vs. manual configuration, and enabling optional features via
+    VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
   - Removed the developer script tools/checker.php. Covered by .clang-format now (tools/create_test.php and tools/correct_test.php remain).
@@ -1110,6 +1115,8 @@ Build System:
       applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
       SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
       configure time roughly in half by skipping the debug variant of every port (#9800)
+    - Main CI build/test workflow switched from contrib/system dependencies to vcpkg, using the same
+      vcpkg-aware CMakePresets.json presets and binary cache as the dedicated vcpkg CI workflow (#9927)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for
