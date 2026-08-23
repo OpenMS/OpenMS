@@ -282,7 +282,9 @@ def test_ms_imaging_experiment_extract_region():
     from pyopenms import MSImagingRegion
 
     mie = _make_fixture()
-    mie.getGeometry().addRegion(MSImagingRegion.rectangle(1, "col0", 0, 0, 0, 1))
+    geom = mie.getGeometry()
+    geom.addRegion(MSImagingRegion.rectangle(1, "col0", 0, 0, 0, 1))
+    mie.setGeometry(geom)
     img = mie.extractIonImage(500.0, 200.0, 1)   # region overload (3 args)
 
     assert img.getWidth() == 2 and img.getHeight() == 2   # global dims

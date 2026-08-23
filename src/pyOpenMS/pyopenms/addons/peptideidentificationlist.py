@@ -849,6 +849,8 @@ def update_scores_from_df(self, df, main_score_name):
     """Updates scores in PeptideIdentification objects from a DataFrame."""
     for index, row in df.iterrows():
         pid_index = int(row["P_ID"])
+        # self[i] and getHits() both return owned copies, so every level edited here
+        # has to be written back explicitly -- see src/pyOpenMS/OWNERSHIP.md
         pi = self[pid_index]
         pi.setScoreType(main_score_name)
         hits = pi.getHits()
@@ -856,6 +858,7 @@ def update_scores_from_df(self, df, main_score_name):
             best_hit = hits[0]
             best_hit.setScore(float(row[main_score_name]))
             pi.setHits([best_hit] + list(hits[1:]))
+        self[pid_index] = pi
 
     return self
 
