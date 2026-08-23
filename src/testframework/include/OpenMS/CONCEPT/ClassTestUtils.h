@@ -8,20 +8,11 @@
 
 #pragma once
 
-// Standard-library-only utilities owned by the class-test framework.
-//
-// The framework deliberately depends on nothing but the C++ standard library, so
-// that the tests of every OpenMS library (including ones that do not link
-// libOpenMS, like OpenSwathAlgo) can use it. The few utilities it needs are
-// therefore implemented here rather than taken from libOpenMS. Two of them
-// duplicate libOpenMS behavior on purpose and must not drift:
-//
-//  * detail::appendNumeric mirrors OpenMS::StringUtils' appendNumeric
-//    (src/openms/source/DATASTRUCTURES/StringUtils.cpp) so that
-//    TEST_EQUAL(std::string, <number>) stringifies numbers exactly like
-//    StringUtils::toStr() does. The ~720-test suite is the oracle for this.
-//  * writtenDigits mirrors OpenMS::writtenDigits (OpenMS/CONCEPT/Types.h) for
-//    the types TEST_REAL_SIMILAR is used with.
+// Standard-library-only utilities owned by the class-test framework (no libOpenMS
+// dependency). Two mirror libOpenMS behavior and must not drift:
+//  * detail::appendNumeric <-> StringUtils' appendNumeric (StringUtils.cpp): so
+//    TEST_EQUAL(std::string, <number>) formats exactly like StringUtils::toStr().
+//  * writtenDigits <-> OpenMS::writtenDigits (OpenMS/CONCEPT/Types.h).
 
 #include <charconv>
 #include <cmath>
@@ -42,18 +33,12 @@ namespace OpenMS
     namespace ClassTest
     {
       /**
-        @brief Number of decimal digits to print for a value in TEST_REAL_SIMILAR.
+        @brief Decimal digits to print for a value in TEST_REAL_SIMILAR reports.
 
-        The framework's own version of OpenMS::writtenDigits (OpenMS/CONCEPT/Types.h),
-        so that tests of libraries that do not link libOpenMS can use TEST_REAL_SIMILAR.
-        Class types convertible to double (e.g. DataValue, ParamValue) are printed
-        like a double, exactly as the former writtenDigits<DataValue> specialization did.
-
-        Deliberate divergence from the old writtenDigits, affecting only the precision
-        of values printed in TEST_REAL_SIMILAR reports (never the pass/fail decision):
-        ParamValue now prints with double precision (15) instead of the generic
-        fallback (6), and long/unsigned long print with their own digits10 instead of
-        being clamped to int's (9).
+        Framework copy of OpenMS::writtenDigits; class types convertible to double
+        (DataValue, ParamValue) print like a double. Diverges from the old version in
+        report precision only (never pass/fail): ParamValue prints at 15 not 6, and
+        long/unsigned long use their own digits10 not int's.
       */
       template <typename T>
       constexpr int writtenDigits(const T& = T())
@@ -80,10 +65,8 @@ namespace OpenMS
       /**
         @brief Whether TEST_REAL_SIMILAR may convert a value of this type to double.
 
-        True for floating-point types and for class types implicitly convertible to
-        double (e.g. DataValue, ParamValue) -- the framework does not need to know
-        those types by name. Anything else (integers, strings, ...) is rejected at
-        runtime with "does not have a floating point type", as before.
+        True for floating-point and class types implicitly convertible to double
+        (DataValue, ParamValue); anything else is rejected at runtime, as before.
       */
       template <typename T>
       constexpr bool isRealType(const T&)
@@ -140,12 +123,10 @@ namespace OpenMS
           return out;
         }
 
-        /// Append a double/float/long double via std::to_chars.
-        /// VERBATIM copy of appendNumeric in src/openms/source/DATASTRUCTURES/StringUtils.cpp --
-        /// TEST_EQUAL(std::string, <number>) must format numbers exactly like
-        /// StringUtils::toStr(). Keep the two in sync; do not "improve" this one.
-        /// NaN is output as "NaN" (uppercase), infinities as "inf"/"-inf".
-        /// Trailing zeros are trimmed but at least one digit after '.' is kept.
+        /// Append a double/float/long double via std::to_chars. VERBATIM copy of
+        /// appendNumeric in StringUtils.cpp -- must format exactly like
+        /// StringUtils::toStr(); keep in sync, do not "improve". NaN -> "NaN",
+        /// inf -> "inf"/"-inf"; trailing zeros trimmed, one digit kept after '.'.
         template <typename T>
         inline void appendNumeric(T value, std::string& target, int precision, bool fixed_format)
         {
@@ -234,10 +215,9 @@ namespace OpenMS
           }
         }
 
-        ///@name The stringification used by TEST_EQUAL(std::string, x).
-        /// Mirrors the StringUtils::toStr overload set (which mirrored the converting
-        /// constructors of the removed OpenMS::String), so e.g. TEST_EQUAL(some_string, 114)
-        /// keeps comparing against "114" and doubles keep their full-precision format.
+        ///@name Stringification for TEST_EQUAL(std::string, x). Mirrors the
+        /// StringUtils::toStr overloads, so TEST_EQUAL(some_string, 114) compares
+        /// against "114" and doubles keep full precision.
         //@{
         inline std::string toString(const std::string& s) { return s; }
         inline std::string toString(std::string_view sv) { return std::string(sv); }
@@ -268,15 +248,13 @@ namespace OpenMS
         }
         //@}
 
-        /// Is 'os << t' well-formed? (Checked in this header's context plus ADL, so a
-        /// vector<T> counts as streamable only via ADL-found operators, e.g. for T in
-        /// namespace OpenMS with <OpenMS/DATASTRUCTURES/ListUtilsIO.h> included.)
+        /// Is 'os << t' well-formed? (this header's context + ADL, so vector<T> is
+        /// streamable only via an ADL operator, e.g. ListUtilsIO.h for OpenMS types.)
         template <typename T>
         concept Streamable = requires(std::ostream& os, const T& t) { os << t; };
 
         /// Print a value in a TEST_EQUAL/TEST_NOT_EQUAL failure report: directly if
-        /// streamable; ranges of printable elements as "[e1, e2, ...]" (the format
-        /// OpenMS/DATASTRUCTURES/ListUtilsIO.h prints vectors in); otherwise a placeholder.
+        /// streamable; ranges as "[e1, e2, ...]" (like ListUtilsIO.h); else a placeholder.
         template <typename T>
         void printValue(std::ostream& os, const T& v)
         {
@@ -315,11 +293,9 @@ namespace OpenMS
           }
         }
 
-        /// Convert a UTF-8 std::string to std::filesystem::path safely on all platforms.
-        /// Copy of OpenMS::to_path (OpenMS/SYSTEM/PathUtils.h), kept here so the framework
-        /// needs no OpenMS header. On Windows, std::filesystem::path(std::string) uses the
-        /// current code page, not UTF-8, so construct from u8string; if the bytes are not
-        /// valid UTF-8 (e.g. a filename from argv in the ANSI code page), fall back.
+        /// UTF-8 std::string -> std::filesystem::path. Copy of OpenMS::to_path
+        /// (OpenMS/SYSTEM/PathUtils.h): on Windows construct from u8string (not the
+        /// current code page), falling back to the native page for non-UTF-8 bytes.
         inline std::filesystem::path to_path(const std::string& s)
         {
 #ifdef _WIN32

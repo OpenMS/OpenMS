@@ -8,13 +8,10 @@
 
 #pragma once
 
-// The class-test framework depends on the C++ standard library ONLY -- no
-// libOpenMS headers, no third-party headers. This is what lets the tests of
-// every OpenMS library (including ones that do not link libOpenMS, like
-// OpenSwathAlgo) use it, and keeps test recompiles cheap. The few utilities
-// the framework needs are its own (see ClassTestUtils.h); OpenMS-specific
-// behavior (exception naming, unique-ID seeding) is registered from the test
-// projects (see src/tests/class_tests/openms/source/OpenMSTestSupport.cpp).
+// Std-only: no libOpenMS or third-party headers, so tests of every OpenMS library
+// (incl. ones that don't link libOpenMS, like OpenSwathAlgo) can use it and
+// recompiles stay cheap. Utilities are its own (ClassTestUtils.h); OpenMS behavior
+// is registered by the test projects (openms/source/OpenMSTestSupport.cpp).
 #include <OpenMS/CONCEPT/ClassTestUtils.h>
 #include <OpenMS/CONCEPT/MacrosTest.h>
 

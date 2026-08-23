@@ -10,9 +10,8 @@
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
-// The framework depends on the C++ standard library only (see ClassTest.h).
-// OpenMS-specific behavior (exception naming, unique-ID seeding) is registered
-// by the test projects, see src/tests/class_tests/openms/source/OpenMSTestSupport.cpp.
+// Std-only (see ClassTest.h); OpenMS behavior is registered by the test projects
+// (openms/source/OpenMSTestSupport.cpp).
 #include <cstdlib>      // std::getenv, exit
 #include <exception>    // std::exception, current-exception handling
 #include <filesystem>
@@ -92,10 +91,8 @@ namespace OpenMS::Internal::ClassTest
         }
       }
 
-      // NOTE: must only be called while an exception is being handled (i.e. from
-      // inside a catch block): both the translators and the fallback below rethrow
-      // the current exception with a bare `throw;`, which calls std::terminate if
-      // no exception is active.
+      // Call only from inside a catch block: the translators and the fallback use a
+      // bare `throw;`, which calls std::terminate if no exception is active.
       std::string describeCaughtException()
       {
         for (int i = 0; i < translator_count; ++i)

@@ -17,10 +17,10 @@ namespace OpenMS
   /// On Windows, std::filesystem::path(std::string) uses the current code page, not UTF-8,
   /// so we explicitly construct from u8string. If the bytes are not valid UTF-8 (e.g., a
   /// filename from argv in the ANSI code page), fall back to the native code page.
-  /// The guard is the compiler-provided _WIN32 (not OPENMS_WINDOWSPLATFORM from
-  /// <OpenMS/config.h>): this header deliberately includes nothing that defines the
-  /// latter, and keying an inline function on a macro the including TU may or may not
-  /// have seen would silently select the wrong branch (and violate the ODR).
+  /// Guard on the compiler's _WIN32, not OPENMS_WINDOWSPLATFORM: this header pulls
+  /// in nothing that defines the latter, so keying an inline function on it would
+  /// select the wrong branch in TUs that haven't seen <OpenMS/config.h> (an ODR
+  /// violation).
   inline std::filesystem::path to_path(const std::string& s)
   {
 #ifdef _WIN32

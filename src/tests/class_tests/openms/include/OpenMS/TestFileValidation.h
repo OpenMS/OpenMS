@@ -8,13 +8,10 @@
 
 #pragma once
 
-// XML schema validation of the temporary files a test creates.
-//
-// This lives in the class-test project rather than in the test framework
-// (OpenMSTestFramework) on purpose: validation needs the FORMAT layer, while the
-// framework must stay usable by tests of libraries that do not have it. It is
-// header-only, so a test that wants its output validated just includes it and
-// calls #VALIDATE_TMP_FILES before END_TEST -- nothing to link, nothing to register.
+// XML schema validation of the temporary files a test creates. Lives in the
+// class-test project, not the framework: validation needs the FORMAT layer, which
+// the framework must stay free of. Header-only -- a test includes it and calls
+// #VALIDATE_TMP_FILES before END_TEST; nothing to link or register.
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Types.h>            // Size

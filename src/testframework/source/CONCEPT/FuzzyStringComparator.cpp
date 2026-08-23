@@ -7,11 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
-// The framework depends on the C++ standard library only (see ClassTest.h); the
-// handful of libOpenMS utilities this file used are duplicated in the unnamed
-// namespace below, each with a pointer to its source of truth.
-// note: include every std header used here explicitly -- which ones arrive transitively
-// differs between standard libraries (libc++ provides fewer than libstdc++)
+// Std-only (see ClassTest.h): the libOpenMS utilities this file used are copied
+// into the unnamed namespace below, each pointing at its source of truth. Include
+// every std header used -- transitive availability differs (libc++ vs libstdc++).
 #include <cctype>       // isspace
 #include <cerrno>       // errno in the strtod fallback
 #include <charconv>     // std::from_chars
