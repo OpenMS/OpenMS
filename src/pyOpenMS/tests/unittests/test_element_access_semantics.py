@@ -534,7 +534,13 @@ def test_residue_modification_is_a_copy():
 
     assert AASequence.fromString("PEPTIDE")[0].getModification() is None
     residue = AASequence.fromString("PEM(Oxidation)TIDE")[2]
-    assert residue.getModification() is not None
+    mod = residue.getModification()
+    assert mod is not None
+
+    original = mod.getDiffMonoMass()
+    mod.setDiffMonoMass(999.0)
+    assert AASequence.fromString("PEM(Oxidation)TIDE")[2].getModification().getDiffMonoMass() \
+        == pytest.approx(original), "editing the returned modification reached ModificationsDB"
 
 
 def test_nasequence_getsequence_does_not_alias_ribonucleotide_db():

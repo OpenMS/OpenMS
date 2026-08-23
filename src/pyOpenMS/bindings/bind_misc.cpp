@@ -2599,8 +2599,8 @@ Constructors
         .def("__deepcopy__", [](const OpenMS::FLASHDeconvAlgorithm& self, nb::dict) { return OpenMS::FLASHDeconvAlgorithm(self); }, "memo"_a)
         .def("getTolerances", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getTolerances(); }, "Get mass tolerances per MS level.")
         .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map) { std::vector<OpenMS::DeconvolvedSpectrum> deconvolved_spectra; std::vector<OpenMS::FLASHHelperClasses::MassFeature> deconvolved_feature; { nb::gil_scoped_release release; self.run(map, deconvolved_spectra, deconvolved_feature); } return nb::make_tuple(deconvolved_spectra, deconvolved_feature); }, "map"_a)
-        .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Get calculated averagine. Call after calculateAveragine() is called.")
-        .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getDecoyAveragine(); }, "Get calculated decoy averagine. Call after calculateAveragine() is called.")
+        .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Get calculated averagine. Call after run().")
+        .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getDecoyAveragine(); }, "Get calculated decoy averagine. Call after run().")
         .def("getNoiseDecoyWeight", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getNoiseDecoyWeight(); }, "Get the noise decoy weight determined during q-value calculation.")
         .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, size_t index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get the scan number of the index-th spectrum in map.")
         ;

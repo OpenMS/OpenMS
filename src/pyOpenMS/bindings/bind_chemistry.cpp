@@ -2163,7 +2163,12 @@ the fixed and variable modifications given to the constructor
         .def("getSequence", [](const OpenMS::NASequence& self) -> std::vector<OpenMS::Ribonucleotide> {
             std::vector<OpenMS::Ribonucleotide> out;
             out.reserve(self.size());
-            for (const OpenMS::Ribonucleotide* r : self.getSequence()) { if (r != nullptr) out.push_back(*r); }
+            for (const OpenMS::Ribonucleotide* r : self.getSequence())
+            {
+                // skipping a null would silently shift every later position
+                if (r == nullptr) { throw nb::value_error("sequence contains an unset ribonucleotide"); }
+                out.push_back(*r);
+            }
             return out;  // by value: never hand out mutable aliases into RibonucleotideDB
         }, "Returns a copy of the sequence of ribonucleotides")
         .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) {

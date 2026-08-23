@@ -95,10 +95,14 @@ applies here as the safe habit: build the list you want and call
 (`MSSpectrum`, `MSChromatogram`, `SpectrumSettings`, `ChromatogramSettings`,
 `MetaInfoDescription`) and nothing else.
 
-Outside these three, no getter hands out a live alias. The remaining
-`reference_internal` policies in the bindings are all zero-copy numpy views
-(`get_peaks_view()` and friends), where the policy keeps the owning object alive
-for as long as the view exists — which is what makes those views safe.
+Outside these three, no *getter* hands out a live alias. `reference_internal`
+does still appear in the bindings, in two places that are not getters: the
+zero-copy numpy views (`get_peaks_view()` and friends), where the policy keeps
+the owning object alive for as long as the view exists — which is what makes
+those views safe — and the in-place operators and fluent builders above
+(`AASequence.__iadd__`, `EmpiricalFormula.__iadd__` / `__isub__` /
+`addChargeAdduct`, the `ParquetFilter` chain), which hand back the very object
+they were called on. A future audit of `reference_internal` should expect both.
 
 ## Why it works this way
 
