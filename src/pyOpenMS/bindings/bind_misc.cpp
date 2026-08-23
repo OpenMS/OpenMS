@@ -2743,22 +2743,7 @@ ProgressLogger
         .def("fillCalibrants", [](OpenMS::InternalCalibration& self, const OpenMS::PeptideIdentificationList& pep_ids, double tol_ppm) {
             return self.fillCalibrants(pep_ids, tol_ppm);
         }, "pep_ids"_a, "tol_ppm"_a, "Extract calibrants from peptide identifications")
-        .def("getCalibrationPoints", [](const OpenMS::InternalCalibration& self) -> OpenMS::CalibrationData { return self.getCalibrationPoints(); }, 
-            R"doc(
-Extract calibrants from identifications\n
-Extracts only the first hit from each peptide identification
-Hits are sorted beforehand
-Ambiguities should be resolved before, e.g. using IDFilter\n
-Unassigned peptide identifications are also taken into account!
-RT and m/z are naturally taken from the IDs, since to feature is assigned
-If you do not want these IDs, remove them from the feature map before calling this function\n
-A filtering step is done in the m/z dimension using 'tol_ppm'
-Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
-larger outliers are removed before accepting an ID as calibrant
-:param pep_ids: Peptide ids (e.g. from an idXML file)
-:param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
-:return: Number of calibration masses found
-)doc")
+        .def("getCalibrationPoints", [](const OpenMS::InternalCalibration& self) -> OpenMS::CalibrationData { return self.getCalibrationPoints(); }, "Returns a copy of the container of calibration points")
         .def_static("applyTransformation", [](std::vector<OpenMS::Precursor> pcs, const OpenMS::MZTrafoModel& trafo) {
             OpenMS::InternalCalibration::applyTransformation(pcs, trafo);
             return pcs;
@@ -3199,33 +3184,26 @@ print(entry.identifier)
         .def("load", [](const OpenMS::PEFFFile& self, const std::string& filename) { std::vector<OpenMS::PEFFEntry> entries; std::vector<OpenMS::PEFFDatabaseMetadata> headers; self.load(filename, entries, headers); return std::make_tuple(entries, headers); }, "filename"_a)
         .def("readStart", [](OpenMS::PEFFFile& self, const std::string& filename) { return self.readStart(filename); }, "filename"_a, 
             R"doc(
-Stores entries to a PEFF file with the given header
-:param filename: The output file path
-:param entries: The entries to store
-:param header: The database metadata header
-)doc")
-        .def("readNext", [](OpenMS::PEFFFile& self, OpenMS::PEFFEntry& entry) { return self.readNext(entry); }, "entry"_a, 
-            R"doc(
 Prepares a PEFF file for streamed reading using readNext()
+:param filename: The PEFF file to read
 :raises:
 Exception:FileNotFound is thrown if the file does not exist
 Exception:FileNotReadable is thrown if the file cannot be read
 )doc")
-        .def("getHeaders", [](const OpenMS::PEFFFile& self) -> std::vector<OpenMS::PEFFDatabaseMetadata> { return self.getHeaders(); }, 
+        .def("readNext", [](OpenMS::PEFFFile& self, OpenMS::PEFFEntry& entry) { return self.readNext(entry); }, "entry"_a, 
             R"doc(
-Reads the next PEFF entry from file
-:return: True if entry was read; False if EOF was reached
-)doc")
-        .def("atEnd", [](const OpenMS::PEFFFile& self) { return self.atEnd(); }, "Returns the headers parsed during readStart()")
-        .def("writeStart", [](OpenMS::PEFFFile& self, const std::string& filename, const OpenMS::PEFFDatabaseMetadata& header) { return self.writeStart(filename, header); }, "filename"_a, "header"_a, "Returns True if the end of the file has been reached")
-        .def("writeStart", [](OpenMS::PEFFFile& self, const std::string& filename, const std::vector<OpenMS::PEFFDatabaseMetadata>& headers) { return self.writeStart(filename, headers); }, "filename"_a, "headers"_a, "Returns True if the end of the file has been reached")
-        .def("writeNext", [](OpenMS::PEFFFile& self, const OpenMS::PEFFEntry& entry) { return self.writeNext(entry); }, "entry"_a, 
-            R"doc(
-Prepares a PEFF file for streamed writing using writeNext()
+Reads the next PEFF entry from the file
+:param entry: Output for the next entry
+:return: True if an entry was read, False if EOF was reached
 :raises:
-Exception:UnableToCreateFile is thrown if the file cannot be created
+Exception:ParseError is thrown if parsing fails
 )doc")
-        .def("writeEnd", [](OpenMS::PEFFFile& self) { return self.writeEnd(); }, "Writes the next PEFF entry to the file")
+        .def("getHeaders", [](const OpenMS::PEFFFile& self) -> std::vector<OpenMS::PEFFDatabaseMetadata> { return self.getHeaders(); }, "Returns a copy of the headers parsed during readStart()")
+        .def("atEnd", [](const OpenMS::PEFFFile& self) { return self.atEnd(); }, "Returns True if the end of the file has been reached")
+        .def("writeStart", [](OpenMS::PEFFFile& self, const std::string& filename, const OpenMS::PEFFDatabaseMetadata& header) { return self.writeStart(filename, header); }, "filename"_a, "header"_a, "Prepares a PEFF file for streamed writing using writeNext()")
+        .def("writeStart", [](OpenMS::PEFFFile& self, const std::string& filename, const std::vector<OpenMS::PEFFDatabaseMetadata>& headers) { return self.writeStart(filename, headers); }, "filename"_a, "headers"_a, "Prepares a PEFF file for streamed writing using writeNext()")
+        .def("writeNext", [](OpenMS::PEFFFile& self, const OpenMS::PEFFEntry& entry) { return self.writeNext(entry); }, "entry"_a, "Writes the next PEFF entry to the file")
+        .def("writeEnd", [](OpenMS::PEFFFile& self) { return self.writeEnd(); }, "Closes the output file (called automatically in the destructor)")
         .def_static("isPEFFFile", [](const std::string& filename) { return OpenMS::PEFFFile::isPEFFFile(filename); }, "filename"_a)
         .def_static("toProForma", [](const OpenMS::PEFFEntry& entry) { return OpenMS::PEFFFile::toProForma(entry); }, "entry"_a)
         .def("store", [](const OpenMS::PEFFFile& self, const std::string& filename, const std::vector<OpenMS::PEFFEntry>& entries, const OpenMS::PEFFDatabaseMetadata& header) { self.store(filename, entries, header); }, "filename"_a, "entries"_a, "header"_a, "Store PEFF file with single header")
