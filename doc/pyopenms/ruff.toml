@@ -1,0 +1,58 @@
+# Ruff configuration for the pyOpenMS documentation sources.
+#
+# Ruff 0.16 widened its *default* lint selection from 59 rules to 413. Because
+# the doc-validate workflow ran an unpinned `astral-sh/ruff-action`, that
+# widening turned the build-sphinx job red with no commit in between
+# (OpenMS/OpenMS#9899). Selecting the rules explicitly here makes the lint
+# result independent of whichever ruff version happens to be installed.
+#
+# The selection is E4/E7/E9/F -- ruff's pre-0.16 default, i.e. the rules these
+# sources were written against -- plus every further rule group that is
+# currently clean, so the whole file is a no-op for the tree as it stands.
+# Verified green on ruff 0.15.9 and 0.16.2.
+#
+# Deliberately NOT selected, because these sources are teaching examples rather
+# than library code and the rules fight that on purpose:
+#   T20  26 findings -- `print()` is the point of an example script
+#   N    29 findings -- example variable naming
+#   ARG  14 findings -- unused arguments in Sphinx extension callbacks
+#   RUF   7 findings -- unpacked-but-unused names that show what an API returns
+#   UP   11, BLE 3, SIM 4, B 2, PTH 3, DTZ 1, S 1 -- see #9899
+# Adopting any of them is a separate, deliberate decision: extend `select` and
+# fix (or `per-file-ignores`) the findings in the same change. `I` (import
+# sorting) is the cheapest of these -- 4 findings, all auto-fixable.
+#
+# `Q` (flake8-quotes) is omitted rather than ignored: ruff documents Q000-Q004
+# as conflicting with its own formatter, which already normalises quotes.
+
+[lint]
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "ASYNC",
+    "C4",
+    "EXE",
+    "FA",
+    "FLY",
+    "INT",
+    "ISC",
+    "LOG",
+    "PERF",
+    "PGH",
+    "PIE",
+    "PT",
+    "PYI",
+    "RET",
+    "TRY",
+    "W",
+    "YTT",
+]
+
+# Documented as conflicting with the ruff formatter, which is the authority on
+# both points here. See https://docs.astral.sh/ruff/formatter/.
+ignore = [
+    "W191",   # tab-indentation
+    "ISC002", # multi-line implicit string concatenation
+]

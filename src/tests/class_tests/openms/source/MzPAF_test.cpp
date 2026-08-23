@@ -79,6 +79,46 @@ START_SECTION(Ion with charge)
 }
 END_SECTION
 
+START_SECTION(Ion with negative charge)
+{
+  // negative mode: nucleic acid fragments are always negatively charged, so the charge carries a sign.
+  // Without this the parser stopped at the '-' and reported INVALID_CHARGE, so toString() produced names
+  // that parse() could not read back.
+  MzPAFAnnotation ann = MzPAF::parse("c1^-1");
+  TEST_EQUAL(ann.ion_series, MzPAFIonSeries::C)
+  TEST_EQUAL(ann.ordinal.value(), 1)
+  TEST_EQUAL(ann.charge.has_value(), true)
+  TEST_EQUAL(ann.charge.value(), -1)
+  TEST_STRING_EQUAL(MzPAF::toString(ann), "c1^-1")
+
+  ann = MzPAF::parse("a3^-2");
+  TEST_EQUAL(ann.charge.value(), -2)
+  TEST_STRING_EQUAL(MzPAF::toString(ann), "a3^-2")
+
+  // an explicit '+' means the same as no sign
+  ann = MzPAF::parse("y4^+3");
+  TEST_EQUAL(ann.charge.value(), 3)
+  TEST_STRING_EQUAL(MzPAF::toString(ann), "y4^3")
+
+  // a caret with only a sign and no number is still an error
+  TEST_EQUAL(MzPAF::tryParse("y4^-").has_value(), false)
+  TEST_EQUAL(MzPAF::tryParse("y4^").has_value(), false)
+
+  // what toString() writes, parse() reads back -- for every charge, either polarity
+  for (int z : {-5, -2, -1, 1, 2, 5})
+  {
+    MzPAFAnnotation a;
+    a.ion_series = MzPAFIonSeries::Y;
+    a.ordinal = 4;
+    a.charge = z;
+    const std::string written = MzPAF::toString(a);
+    const std::optional<MzPAFAnnotation> read_back = MzPAF::tryParse(written);
+    TEST_EQUAL(read_back.has_value(), true)
+    if (read_back.has_value()) { TEST_EQUAL(read_back->charge.value(), z) }
+  }
+}
+END_SECTION
+
 START_SECTION(Ion with neutral loss)
 {
   MzPAFAnnotation ann = MzPAF::parse("b2-H2O");
