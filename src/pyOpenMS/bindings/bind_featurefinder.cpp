@@ -222,7 +222,7 @@ for a group of matching peptide features
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass>>())
-        .def("getDeltaMasses", [](OpenMS::MultiplexDeltaMasses& self) -> std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass> & { return self.getDeltaMasses(); }, nb::rv_policy::reference_internal)
+        .def("getDeltaMasses", [](OpenMS::MultiplexDeltaMasses& self) -> std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass> { return self.getDeltaMasses(); })
         ;
 
     // -----------------------------------------------------------------------

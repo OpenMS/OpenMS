@@ -1366,7 +1366,7 @@ labeling methods like TMT and iTRAQ use reporter ions for multiplexed
 quantitation of peptides/proteins across multiple samples
 DefaultParamHandler
 )doc")
-        .def("getChannelInformation", [](const OpenMS::IsobaricQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::IsobaricQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::IsobaricQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getReferenceChannel", [](const OpenMS::IsobaricQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
 
@@ -1439,7 +1439,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return OpenMS::ItraqEightPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::ItraqEightPlexQuantitationMethod& self, nb::dict) { return OpenMS::ItraqEightPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
@@ -1457,7 +1457,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return OpenMS::ItraqFourPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::ItraqFourPlexQuantitationMethod& self, nb::dict) { return OpenMS::ItraqFourPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
@@ -1767,7 +1767,7 @@ DefaultParamHandler
         .def(nb::init<>())
         .def(nb::init<std::string, int, std::map<std::string, double>>())
         .def("generateKnockoutDeltaMasses", [](OpenMS::MultiplexDeltaMassesGenerator& self) { return self.generateKnockoutDeltaMasses(); })
-        .def("getDeltaMassesList", [](const OpenMS::MultiplexDeltaMassesGenerator& self) -> const std::vector<OpenMS::MultiplexDeltaMasses> & { return self.getDeltaMassesList(); }, nb::rv_policy::reference_internal)
+        .def("getDeltaMassesList", [](const OpenMS::MultiplexDeltaMassesGenerator& self) -> std::vector<OpenMS::MultiplexDeltaMasses> { return self.getDeltaMassesList(); })
         .def("getLabelShort", [](OpenMS::MultiplexDeltaMassesGenerator& self, const std::string& label) { return self.getLabelShort(label); }, "label"_a)
         .def("getLabelLong", [](OpenMS::MultiplexDeltaMassesGenerator& self, const std::string& label) { return self.getLabelLong(label); }, "label"_a)
         ;
@@ -3217,7 +3217,7 @@ Prepares a PEFF file for streamed reading using readNext()
 Exception:FileNotFound is thrown if the file does not exist
 Exception:FileNotReadable is thrown if the file cannot be read
 )doc")
-        .def("getHeaders", [](const OpenMS::PEFFFile& self) -> const std::vector<OpenMS::PEFFDatabaseMetadata> & { return self.getHeaders(); }, nb::rv_policy::reference_internal, 
+        .def("getHeaders", [](const OpenMS::PEFFFile& self) -> std::vector<OpenMS::PEFFDatabaseMetadata> { return self.getHeaders(); }, 
             R"doc(
 Reads the next PEFF entry from file
 :return: True if entry was read; False if EOF was reached
@@ -4049,7 +4049,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::TMTEighteenPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return OpenMS::TMTEighteenPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self, nb::dict) { return OpenMS::TMTEighteenPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
@@ -4069,7 +4069,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::TMTElevenPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return OpenMS::TMTElevenPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::TMTElevenPlexQuantitationMethod& self, nb::dict) { return OpenMS::TMTElevenPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
@@ -4089,7 +4089,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return OpenMS::TMTSixPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::TMTSixPlexQuantitationMethod& self, nb::dict) { return OpenMS::TMTSixPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::TMTSixPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::TMTSixPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
@@ -4109,7 +4109,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::TMTSixteenPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return OpenMS::TMTSixteenPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self, nb::dict) { return OpenMS::TMTSixteenPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
@@ -4129,7 +4129,7 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod &>())
         .def("__copy__", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return OpenMS::TMTTenPlexQuantitationMethod(self); })
         .def("__deepcopy__", [](const OpenMS::TMTTenPlexQuantitationMethod& self, nb::dict) { return OpenMS::TMTTenPlexQuantitationMethod(self); }, "memo"_a)
-        .def("getChannelInformation", [](const OpenMS::TMTTenPlexQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
+        .def("getChannelInformation", [](const OpenMS::TMTTenPlexQuantitationMethod& self) -> std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> { return self.getChannelInformation(); }, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")

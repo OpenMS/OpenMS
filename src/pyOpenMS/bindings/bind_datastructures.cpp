@@ -204,7 +204,7 @@ depending on axis labelling
         .def("__deepcopy__", [](const OpenMS::ConvexHull2D& self, nb::dict) { return OpenMS::ConvexHull2D(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("clear", [](OpenMS::ConvexHull2D& self) { return self.clear(); }, "Removes all points")
-        .def("getHullPoints", [](const OpenMS::ConvexHull2D& self) -> const std::vector<OpenMS::DPosition<2>> & { return self.getHullPoints(); }, nb::rv_policy::reference_internal, "Accessor for the outer points")
+        .def("getHullPoints", [](const OpenMS::ConvexHull2D& self) -> const std::vector<OpenMS::DPosition<2>> & { return self.getHullPoints(); }, "Accessor for the outer points")
         .def("setHullPoints", [](OpenMS::ConvexHull2D& self, const std::vector<OpenMS::DPosition<2>>& points) { return self.setHullPoints(points); }, "points"_a, "Accessor for the outer(!) points (no checking is performed if this is actually a convex hull)")
         .def("getBoundingBox", [](const OpenMS::ConvexHull2D& self) { return self.getBoundingBox(); }, "Returns the bounding box of the feature hull points")
         .def("addPoint", [](OpenMS::ConvexHull2D& self, const OpenMS::DPosition<2>& point) { return self.addPoint(point); }, "point"_a, "Adds a point to the hull if it is not already contained. Returns if the point was added. This will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)")
@@ -840,7 +840,7 @@ Checks current parameter entries against given defaults.
 Validates types, string restrictions, and numeric ranges. Raises exception on invalid parameters
 )doc")
         .def("setValidStrings", [](OpenMS::Param& self, const std::string& key, const std::vector<std::basic_string<char>>& strings) { return self.setValidStrings(key, strings); }, "key"_a, "strings"_a, "Sets the list of valid string values for the parameter (checked by checkDefaults)")
-        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the list of valid string values for the parameter")
+        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, "Returns the list of valid string values for the parameter")
         .def("setMinInt", [](OpenMS::Param& self, const std::string& key, int min) { return self.setMinInt(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for an integer parameter")
         .def("setMaxInt", [](OpenMS::Param& self, const std::string& key, int max) { return self.setMaxInt(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for an integer parameter")
         .def("setMinFloat", [](OpenMS::Param& self, const std::string& key, double min) { return self.setMinFloat(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for a float parameter")
@@ -1255,11 +1255,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("setCVReferences", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVReference>& cv_references) { self.setCVReferences(cv_references); }, "cv_references"_a, "Sets the CV references")
-        .def("getCVReferences", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVReference>& { return self.getCVReferences(); }, nb::rv_policy::reference_internal, "Returns the CV references")
+        .def("getCVReferences", [](const OpenMS::CVMappings& self) -> std::vector<OpenMS::CVReference> { return self.getCVReferences(); }, "Returns the CV references")
         .def("addCVReference", [](OpenMS::CVMappings& self, const OpenMS::CVReference& cv_reference) { self.addCVReference(cv_reference); }, "cv_reference"_a, "Adds a CV reference")
         .def("hasCVReference", [](OpenMS::CVMappings& self, const std::string& identifier) { return self.hasCVReference(identifier); }, "identifier"_a, "Returns true if a CV reference with the given identifier exists")
         .def("setMappingRules", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVMappingRule>& cv_mapping_rules) { self.setMappingRules(cv_mapping_rules); }, "cv_mapping_rules"_a, "Sets the mapping rules")
-        .def("getMappingRules", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVMappingRule>& { return self.getMappingRules(); }, nb::rv_policy::reference_internal, "Returns the mapping rules")
+        .def("getMappingRules", [](const OpenMS::CVMappings& self) -> std::vector<OpenMS::CVMappingRule> { return self.getMappingRules(); }, "Returns the mapping rules")
         .def("addMappingRule", [](OpenMS::CVMappings& self, const OpenMS::CVMappingRule& cv_mapping_rule) { self.addMappingRule(cv_mapping_rule); }, "cv_mapping_rule"_a, "Adds a mapping rule")
         ;
 
