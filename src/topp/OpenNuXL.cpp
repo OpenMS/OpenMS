@@ -154,7 +154,6 @@ struct NuXLLinearRescore
        << "missed_cleavages"
        << "NuXL:ladder_score"
        << "variable_modifications"; // TODO: eval
-       //<< "nr_candidates";
 
     ///////////////////////////////////////// SVM score recalibration
     // find size of minority class and create map with highest score at the top/beginning
@@ -354,7 +353,6 @@ struct NuXLLinearRescore
              const PeptideHit& ph = phits[psm_rank];
              bool is_target = !ph.isDecoy();
              double score = ph.getScore();
-             // predictors["score"].push_back(score);
              predictors["length"].push_back(ph.getSequence().size());
              for (auto & f : feature_set_)
              {
@@ -373,9 +371,6 @@ struct NuXLLinearRescore
         SimpleSVM svm;
         Param svm_param = svm.getParameters();        
         svm_param.setValue("kernel", "linear");
-//        svm_param.setValue("kernel", "RBF");
-//        svm_param.setValue("log2_C", ListUtils::create<double>("0"));
-//        svm_param.setValue("log2_gamma", ListUtils::create<double>("1"));
         svm.setParameters(svm_param);
         svm.setup(predictors, labels);
         vector<SimpleSVM::Prediction> predictions;
@@ -383,19 +378,6 @@ struct NuXLLinearRescore
         svm.predict(predictions);
         std::map<std::string, double> feature_weights;
         svm.getFeatureWeights(feature_weights);
- /*
-        cout << "Feature weights:" << endl;
-        for (const auto& m : feature_weights)
-        {
-          cout << m.first << "\t" << m.second << endl;
-        }
-        cout << "Feature scaling:" << endl;
-        auto feature_scaling = svm.getScaling();
-        for (const auto& m : feature_scaling)
-        {
-          cout << m.first << "\t" << m.second.first << "\t" << m.second.second << endl;
-        }
-*/
         size_t psm_index(0);
         for (size_t index = 0; index != peptide_ids.size(); ++index)
         {
@@ -407,7 +389,6 @@ struct NuXLLinearRescore
            }
           peptide_ids[index].sort();    
         }
-        // IdXMLFile().store(out_idxml + "_svm.idXML", protein_ids, peptide_ids);
       }
 
   }
@@ -641,7 +622,6 @@ struct NuXLRTPrediction
 
     auto param = svm.getParameters();
     param.setValue("kernel", "RBF");
-    //param.setValue("kernel", "linear");
     svm.setParameters(param);
 
     svm.setup(x, y, false); // set up regression and train
@@ -658,7 +638,6 @@ struct NuXLRTPrediction
         double err = preds[i].outcome - pid.getRT();
         ph.setMetaValue("RT_error", err);
         ph.setMetaValue("RT_predict", preds[i].outcome);
-        // std::cout << preds[i].label << " " << pid.getRT() << " " << err << std::endl;
         ++i; 
         if (!all_hits) break;
       }
@@ -1557,7 +1536,6 @@ protected:
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
     err = Morph > 2 ? err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
 
-    //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
     const double p_random_match = 1e-3;
     OPENMS_PRECONDITION(n_theoretical_peaks > 0, "Error: no theoretical peaks are generated");
     modds = matchOddsScore_(n_theoretical_peaks, matches, p_random_match);
@@ -1744,11 +1722,9 @@ protected:
 
   // match b-ions
     for (const auto& t : matches_z_fa) // for best 3 adducts
-//    for (Size z = 1; z <= max_z; ++z)
     {
      const Size z = get<1>(t);
      const NuXLFragmentAdductDefinition & fa = get<2>(t);
-//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
      {
        n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
 
@@ -1787,11 +1763,9 @@ protected:
     vector<double> a_ions(b_ions.size(), 0.0);
 
     for (const auto& t : matches_z_fa) // for best 3 adducts
-//    for (Size z = 1; z <= max_z; ++z)
     {
      const Size z = get<1>(t);
      const NuXLFragmentAdductDefinition & fa = get<2>(t);
-//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
       {
         n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
 
@@ -1829,11 +1803,9 @@ protected:
  
     // match y-ions
     for (const auto& t : matches_z_fa) // for best 3 adducts
-//    for (Size z = 1; z <= max_z; ++z)
     {
      const Size z = get<1>(t);
      const NuXLFragmentAdductDefinition & fa = get<2>(t);
-//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
       {
         n_theoretical_XL_peaks += partial_loss_template_z1_y_ions.size() - 1;
 
@@ -2046,10 +2018,8 @@ protected:
           {
             score += exp_spectrum[index].getIntensity();      
             peak_matched[index] = true;
-//            matches++;
           }
         } 
-//        ++n_theoretical_XL_peaks;
       };
 
     static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight();
@@ -2123,12 +2093,8 @@ protected:
 
     plss_im_MIC /= TIC;
 
-    // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-//    plss_err = plss_Morph > 2 ? plss_err : fragment_mass_tolerance;
-
     assert(n_theoretical_XL_peaks != 0);
 
-    //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
     const double p_random_match = 1e-3;
     plss_modds = matchOddsScore_(n_theoretical_XL_peaks, matches, p_random_match);
     n_theoretical_peaks += n_theoretical_XL_peaks;
@@ -2142,7 +2108,6 @@ protected:
     const bool isXL, 
     const double nucleotide_mass_tags
 */
-    //, const double fraction_of_top50annotated
     )
   {
       return ah.modds + ah.pl_modds;
@@ -2188,7 +2153,6 @@ static void scoreXLIons_(
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
 
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
-    //const double exp_pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
 
     if (!all_possible_marker_ion_sub_score_spectrum_z1.empty())
     {
@@ -2199,9 +2163,6 @@ static void scoreXLIons_(
                                              all_possible_marker_ion_sub_score_spectrum_z1,
                                              all_possible_marker_ion_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
-
-      // count marker ions
-//      n_theoretical_peaks += marker_ions_sub_score_spectrum_z1.size();
     }
 
     scoreShiftedLadderIons_(
@@ -2310,11 +2271,8 @@ static void scoreXLIons_(
       std::set<std::string> tags;
       getTag(spec, tags);
       if (tags.empty()) return "";
-      //cout << "Ntags:" << tags.size() << endl;
-      //for (const auto & s: tags) { cout << s << endl; }
       const auto longest = std::max_element(tags.cbegin(), tags.cend(),
         [](const std::string& lhs, const std::string& rhs) { return lhs.size() < rhs.size(); });
-      //cout << "longest:" << *longest << endl;
       return *longest;
     }
 
@@ -2397,34 +2355,6 @@ static void scoreXLIons_(
     double wTop50 = 0.0;
   };
 
-/*
-  class SmallestElements
-  {
-  private:
-    int max_size_;
-  public:
-    priority_queue<size_t, std::vector<size_t>, std::greater<size_t>> pq;
-    explicit SmallestElements(size_t size): 
-      max_size_(size)
-    {
-    }
-
-    void tryAdd(size_t v)
-    {
-       if ((int)pq.size() < max_size_)
-       {
-         pq.push(v);
-         return;
-       }
-       if (v < pq.top())
-       {
-         pq.pop(); //get rid of the root
-         pq.push(v); //priority queue will automatically restructure
-       }
-    }
-  };
-*/
-
   RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
   {
     if (spectrum.empty()) return {0.0, 0, 1e10};
@@ -2447,8 +2377,6 @@ static void scoreXLIons_(
     {
       if (peak_matched[i]) avg_int += spectrum[i].getIntensity() / matched;
     }
-//    cout << "Matched.: " << matched << endl;
-//    cout << "Avg.: " << avg_int << endl;
 
     for (size_t i = 0; i != spectrum.size(); ++i)
     {
@@ -2461,38 +2389,6 @@ static void scoreXLIons_(
     r.explained_peak_fraction = matched / (double)spectrum.size();
     return r;
   }
-/*
-  RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
-  {
-    double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
-    SmallestElements top7ranks(7);
-    RankScores r;
-    for (size_t i = 0; i != peak_matched.size(); ++i)
-    {
-      if (!peak_matched[i]) 
-      {
-        continue;
-      }
-      else
-      { 
-        const double rank = 1 + spectrum.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX][i]; // ranks start at 0 -> add 1
-        r.rp += 1.0/matched * log((double)rank);
-        top7ranks.tryAdd(rank);         
-      }
-    }
-
-    size_t median = peak_matched.size() / 2; // init to number of peaks / 2
-    for (size_t i = 1; i <= 4;  ++i)
-    {
-      if (top7ranks.pq.empty()) break;
-      median = top7ranks.pq.top();
-      top7ranks.pq.pop();
-    }
-    r.wTop50 = median;
-    r.rp = exp(r.rp - 1.0 / matched * lgamma(matched+1)); // = rp / lowest possible rp given number of matches
-    return r;
-  }
-*/
 
   static map<std::string, vector<vector<double>>> fragment_adduct2block_if_masses_present;
 
@@ -3001,53 +2897,6 @@ static void scoreXLIons_(
     return std::tie(b.start, b.end) < std::tie(a.start, b.end); 
   }   
 
-/*
-  double getAreaOfIntervalUnion_(std::vector<Interval_> i)
-  { 
-    if (i.empty()) return 0.0;
-
-    // sort the intervals in increasing order of start time 
-    std::sort(i.begin(), i.end(), IntervalGreater_); 
-  
-    // create an empty stack of intervals 
-    std::stack<Interval_> s; 
-  
-    // push the first interval to stack 
-    s.push(i[0]); 
-  
-    // Start from the next interval and merge if necessary 
-    for (const Interval_& interval : i)
-    { 
-        // get interval from stack top 
-        Interval_ top = s.top(); 
-  
-        // if current interval is not overlapping with stack top, 
-        // push it to the stack 
-        if (top.end < interval.start) 
-        {
-          s.push(interval); 
-        }
-        else if (top.end < interval.end) 
-        { 
-          // merge: update the end time of top 
-          top.end = interval.end; 
-          s.pop(); 
-          s.push(top); 
-        } 
-    } 
-  
-    // calculate area
-    double area{};
-    while (!s.empty()) 
-    { 
-       Interval_ t = s.top(); 
-       area += t.end - t.start; 
-       s.pop(); 
-    } 
-    return area; 
-  } 
-*/
-
   /* @brief Filter spectra to remove noise.
 
      - Remove zero intensities
@@ -3062,10 +2911,6 @@ static void scoreXLIons_(
      - Calculate TIC of filtered spectrum
    */
   void preprocessSpectra_(PeakMap& exp, 
-/*
-    double fragment_mass_tolerance,
-    bool fragment_mass_tolerance_unit_ppm,
-*/
     bool single_charge_spectra, 
     bool annotate_charge,
     double window_size,
@@ -3105,10 +2950,6 @@ static void scoreXLIons_(
     // remove empty spectra as they can cause trouble downstream
     auto& sp = exp.getSpectra();
     sp.erase(std::remove_if(sp.begin(), sp.end(), [](const MSSpectrum& s) { return s.empty(); }), exp.end());
-/*
-    SqrtMower sqrt_mower_filter;
-    sqrt_mower_filter.filterPeakMap(exp);
-*/
     Normalizer normalizer;
     normalizer.filterPeakMap(exp);
 
@@ -3205,27 +3046,6 @@ static void scoreXLIons_(
       double TIC = spec.calculateTIC();
       spec.getFloatDataArrays()[0].push_back(TIC);
       spec.getFloatDataArrays()[0].setName("TIC");
-/*
-      vector<Interval_> is;
-      const double precursor_mass = spec.getPrecursors()[0].getMZ() * spec.getPrecursors()[0].getCharge();
-      for (const auto& p : spec)
-      {
-        const double mz = p.getMZ();
-        if (mz > precursor_mass) break; // don't consider peaks after precursor mass
-        const double tol = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * mz : fragment_mass_tolerance;
-        Interval_ a;
-        a.start = mz - tol;
-        a.end = mz + tol;
-        is.push_back(a);
-      }
-      spec.getFloatDataArrays().resize(2);
-      spec.getFloatDataArrays()[1].setName("P_RANDOM_MATCH");
-      const double area_of_union = getAreaOfIntervalUnion_(is);
-      const double p_random_match = std::max(area_of_union / precursor_mass, 1e-6); // cap at low value
-      spec.getFloatDataArrays()[1].resize(1);
-      //cout << p_random_match << " " << area_of_union << " " << precursor_mass << " " << spec.getNativeID()  << endl;
-      spec.getFloatDataArrays()[1][0] = p_random_match;
-*/
     }
 
 #ifdef DEBUG_OpenNuXL
@@ -3355,7 +3175,6 @@ static void scoreXLIons_(
 
           if (precursor_na_adduct == "none") 
           {
-//            const double tags = exp[scan_index].getFloatDataArrays()[1][0];
             ah.score = OpenNuXL::calculateCombinedScore(ah/*, false, tags*/);
             continue;
           }
@@ -3441,7 +3260,6 @@ static void scoreXLIons_(
                                     partial_loss_sub_score,
                                     marker_ions_sub_score,
                                     plss_MIC, 
-                 //                   plss_err, 
                                     plss_Morph,
                                     plss_modds);
 
@@ -3458,7 +3276,6 @@ static void scoreXLIons_(
           ah.marker_ions_score = marker_ions_sub_score;
           ah.partial_loss_score = partial_loss_sub_score;
           // combined score
-//          const double tags = exp[scan_index].getFloatDataArrays()[2][0];
           ah.score = OpenNuXL::calculateCombinedScore(ah/*, true, tags*/);
 
         } 
@@ -3828,35 +3645,6 @@ static void scoreXLIons_(
         }
       }
     }
-/*
-    // one hot encoding of adduct
-    set<string> identified_adducts;
-    for (auto & pid : peptide_ids)
-    {
-      for (auto & ph : pid.getHits())
-      {
-        identified_adducts.insert(ph.getMetaValue("NuXL:NA").toString());
-      }
-    } 
-
-    for (auto& s : identified_adducts)
-    {
-      feature_set_ << std::string("NuXL:MS1Adduct_") + s;
-    }
-
-    for (auto & pid : peptide_ids)
-    {
-      for (auto & ph : pid.getHits())
-      {
-        string adduct = ph.getMetaValue("NuXL:NA");
-        for (auto& s : identified_adducts)
-        {
-          size_t one_hot = (adduct == s) ? 1 : 0;
-          ph.setMetaValue(std::string("NuXL:MS1Adduct_") + s, one_hot);
-        }
-      }
-    } 
-*/
 
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
@@ -4458,8 +4246,6 @@ static void scoreXLIons_(
     double max_pl_modds = 0.01;
     double max_modds = 0.01;
     double max_mass_error_p = 0.01;
-//    double max_wTop50 = 0;
-//    double max_length = 0;
 
     PeptideIdentificationList pids{peptide_ids};
     for (auto& pid : pids)
@@ -4468,12 +4254,9 @@ static void scoreXLIons_(
       auto hits = pid.getHits();
       for (auto& h : hits)
       {
-//        if (h.getSequence().size() > max_length) max_length = h.getSequence().size();
-
         if ((double)h.getMetaValue("NuXL:pl_modds") > max_pl_modds) max_pl_modds = h.getMetaValue("NuXL:pl_modds");
         if ((double)h.getMetaValue("NuXL:modds") > max_modds) max_modds = h.getMetaValue("NuXL:modds");
         if ((double)h.getMetaValue("NuXL:mass_error_p") > max_mass_error_p) max_mass_error_p = h.getMetaValue("NuXL:mass_error_p");
-//        if ((double)h.getMetaValue("NuXL:wTop50") > max_wTop50) max_wTop50 = h.getMetaValue("NuXL:wTop50");
       }
     }
 
@@ -4489,12 +4272,8 @@ static void scoreXLIons_(
           const double pl_modds = (double)h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
           const double modds = (double)h.getMetaValue("NuXL:modds") / max_modds;
           const double pc_err = (double)h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
-//          const double wTop50 = (double)h.getMetaValue("NuXL:wTop50") / max_wTop50;
-//          const double length = (double)h.getSequence().size() / max_length;
           const double w1 = (1.0 - p) * modds + p * pl_modds;
           const double w2 = (1.0 - q) * w1 + q * pc_err;
-//          const double w2 = (1.0 - q) * w1 - q * length;
-//          const double w2 = (1.0 - q) * w1 - q * wTop50;
           h.setScore(w2);
         }
         pid.setHits(hits);
@@ -4514,7 +4293,6 @@ static void scoreXLIons_(
       IDFilter::filterHitsByScore(xl_pi, 0.1); // 10% XL FDR, TODO: pROC
       IDFilter::removeEmptyIdentifications(xl_pi);
       IDFilter::removeEmptyIdentifications(pep_pi);
-      //cout << "p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
       if (xl_pi.size() + pep_pi.size() > most_XLs)
       {
         most_XLs = xl_pi.size() + pep_pi.size();
@@ -4533,12 +4311,8 @@ static void scoreXLIons_(
         const double pl_modds = (double)h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
         const double modds = (double)h.getMetaValue("NuXL:modds") / max_modds;
         const double pc_err = (double)h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
-//        const double length = (double)h.getSequence().size() / max_length;
-//        const double wTop50 = (double)h.getMetaValue("NuXL:wTop50") / max_wTop50;
         const double w1 = (1.0 - best_p) * modds + best_p * pl_modds;
         const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
-//        const double w2 = (1.0 - best_q) * w1 + best_q * length;
-//        const double w2 = (1.0 - best_q) * w1 - best_q * wTop50;
         h.setScore(w2);
       }
       pid.setHits(hits);
@@ -5239,8 +5013,6 @@ static void scoreXLIons_(
     const double window_size = getDoubleOption_("window_size");
     const size_t peak_count = getIntOption_("peak_count");
     preprocessSpectra_(spectra, 
-    //                   fragment_mass_tolerance, 
-    //                   fragment_mass_tolerance_unit_ppm, 
                        false, // keep charge as is
                        true, window_size, peak_count, purities); // annotate charge  
     progresslogger.endProgress();
@@ -5318,9 +5090,6 @@ static void scoreXLIons_(
         {
           if (aas.size() <= 2) { e.sequence += aas.toUnmodifiedString(); continue; }
 
-          // static const DecoyGenerator dg;
-          // e.sequence += dg.reversePeptides(aas, enzyme).toUnmodifiedString();
-          
           DecoyGenerator dg; // important to create inside the loop with same seed. Otherwise same peptides end up creating different decoys -> much more decoys than targets
           dg.setSeed(4711);
           for (Size i = 0; i < decoy_factor; ++i) // decoy_factor = how many decoys to generate per target
@@ -5511,7 +5280,6 @@ static void scoreXLIons_(
                     // count candidate for spectrum
   #pragma omp atomic
                     ++nr_candidates[scan_index];
-                    //const double exp_pc_mass = l->first;
                     const int & isotope_error = l->second.second;
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
@@ -5554,8 +5322,6 @@ static void scoreXLIons_(
                     );                  
 
                     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
-      
-  //                  total_loss_score = total_loss_score - 0.22 * (double)cit->size();
 
                     if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_total_MIC)) { continue; }
 
@@ -5594,8 +5360,6 @@ static void scoreXLIons_(
                     ah.wTop50 = rankscores.wTop50;
 
                     // do we have at least one ladder peak
-  //                  const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, vector<double>());
-
                     const XLTags longest_tags = getLongestABYLadderWithShift(b_ions, y_ions, vector<double>(), vector<double>());
 
   #ifdef FILTER_BAD_SCORES_ID_TAGS
@@ -5606,7 +5370,6 @@ static void scoreXLIons_(
                     ah.tag_shifted = longest_tags.tag_shifted;
 
                     // combined score
-                    //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                     ah.n_theoretical_peaks = n_theoretical_peaks;
 
 // count matched peaks for spectrum
@@ -5614,7 +5377,6 @@ static void scoreXLIons_(
                     matched_peaks[scan_index] += (size_t)ah.Morph;
                          
                     ah.score = OpenNuXL::calculateCombinedScore(ah/*false, tags*/);
-                    //ah.score = OpenNuXL::calculateFastScore(ah); does this work too
 
   #ifdef DEBUG_OpenNuXL
                     OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -5656,11 +5418,6 @@ static void scoreXLIons_(
                     marker_ions_sub_score_spectrum_z1,
                     marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
-
-                  //cout << "'" << precursor_na_adduct << "'" << endl;
-                  //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
-                  //                StringUtils::toStr("FATAL: No feasible adducts for " + precursor_na_adduct).c_str());
-
 
                   // Do we have (nucleotide) specific fragmentation adducts? for the current NA adduct on the precursor?
                   // If so, generate spectra for shifted ion series
@@ -5849,7 +5606,6 @@ static void scoreXLIons_(
 
 
                       // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
-  //                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
                       const XLTags longest_tags = getLongestABYLadderWithShift(b_ions, y_ions, b_xl_ions, y_xl_ions);
 
   #ifdef FILTER_BAD_SCORES_ID_TAGS
@@ -5860,7 +5616,6 @@ static void scoreXLIons_(
                       ah.tag_shifted = longest_tags.tag_shifted;
 
                       // combined score
-                      //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                       ah.n_theoretical_peaks = n_theoretical_peaks;
 
 #pragma omp atomic
@@ -5958,7 +5713,6 @@ static void scoreXLIons_(
     spectra.clear(true);
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
-    //auto [IM_format, IM_unit] = getMS2IMType(spectra);
 
     // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
@@ -5968,8 +5722,6 @@ static void scoreXLIons_(
     // Note: if IM_unit == DriftTimeUnit::CCS, data is already in correct format
 
     preprocessSpectra_(spectra, 
-    //                   fragment_mass_tolerance, 
-    //                   fragment_mass_tolerance_unit_ppm, 
                        false, // no single charge (false)
                        true, window_size, peak_count, purities); // annotate charge (true)
 
@@ -6182,33 +5934,12 @@ static void scoreXLIons_(
           std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
           return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
         };
-     
-/*
-        // all medians 
-        auto metaMean = [](const PeptideIdentificationList & peptide_ids, const std::string name)->double
-        {
-          vector<double> decoy_XL_scores;
-          for (const auto & pi : peptide_ids)
-          {
-            for (const auto & ph : pi.getHits())
-            {
-              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-              if (!is_XL) continue; // skip linear peptides as these don't have the XL values set
-              if (!ph.isDecoy()) continue;
-              double score = ph.getMetaValue(name);
-              decoy_XL_scores.push_back(score); 
-            }
-          }
-          std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
-          return Math::mean(decoy_XL_scores.begin(), decoy_XL_scores.end());
-        };
-*/
+
         map<std::string, double> medians;
         for (const std::string mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
         {
            medians[mn] = metaMedian(peptide_ids, mn);
            OPENMS_LOG_DEBUG << "median(" << mn << "):" << medians[mn] << endl;
-           //medians[mn] = metaMean(peptide_ids, mn);
         }
 
         size_t imputed(0);
@@ -6239,24 +5970,13 @@ static void scoreXLIons_(
       }
 
 
-      // q-value at PSM level irrespective of class (XL/non-XL)
-      //fdr.QValueAtPSMLevel(peptide_ids); 
-
       if (optimize)
       {
         OPENMS_LOG_INFO << "Parameter optimization." << endl;
-        //optimizeFDR(peptide_ids);
         NuXLLinearRescore::apply(peptide_ids);
         OPENMS_LOG_DEBUG << "done." << endl;
       }
-     
-/* 
-      PeptideIdentificationList pep_pi, xl_pi;
-      fdr.calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
-      fdr.mergePeptidesAndXLs(pep_pi, xl_pi, peptide_ids);
-      xl_pi.clear();
-      pep_pi.clear();
-*/
+
      vector<string> positive_weights_features = 
         { "NuXL:mass_error_p", 
           "NuXL:total_loss_score", 
@@ -6553,7 +6273,6 @@ static void scoreXLIons_(
                                   float &partial_loss_sub_score,
                                   float &marker_ions_sub_score,
                                   float &plss_MIC, 
-                                  //float &plss_err, 
                                   float &plss_Morph,
                                   float &plss_modds) 
   {
@@ -6596,10 +6315,6 @@ static void scoreXLIons_(
       plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
       plss_Morph = pl_sub_scores.score;
 
-      // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-//      plss_err = plss_Morph > 2 ? pl_sub_scores.err_ppm : fragment_mass_tolerance;
-
-      //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
       const double p_random_match = 1e-3;
       plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph, p_random_match);
     }
