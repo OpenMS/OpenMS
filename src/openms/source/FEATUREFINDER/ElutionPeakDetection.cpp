@@ -78,8 +78,6 @@ namespace OpenMS
       snr = signal_area / noise_area;
     }
 
-    // std::cout << "snr " << snr << " ";
-
     return snr;
   }
 
@@ -93,8 +91,6 @@ namespace OpenMS
       double smoothed_apex_int(tr.getMaxIntensity(true));
       snr = smoothed_apex_int / noise_level;
     }
-
-    // std::cout << "snr " << snr << " ";
 
     return snr;
   }
@@ -366,7 +362,6 @@ namespace OpenMS
     {
       if (count_mt >= lower_quartile_idx && count_mt <= upper_quartile_idx)
       {
-        // std::cout << "pw added " << width_pair.first << '\n';
         filt_mtraces.push_back(mt_vec[width_pair.second]);
       }
       ++count_mt;
@@ -399,7 +394,6 @@ namespace OpenMS
     std::cout << "*****\n";
     for (const auto& peak : mt)
     {
-      // std::cout << peak.getIntensity() << " " << mt.getSmoothedIntensities()[i] << '\n';
       ++i;
     }
     std::cout << "*****\n";
@@ -593,31 +587,6 @@ namespace OpenMS
     }
     mt.setSmoothedIntensities(smoothed_intensities);
     //alternative end
-
-    // std::cout << "win_size elution: " << scan_time << " " << win_size << '\n';
-
-    // if there is no previous FWHM estimation... do it now
-    //    if (win_size == 0)
-    //    {
-    //        mt.estimateFWHM(false); // estimate FWHM
-    //        win_size = mt.getFWHMScansNum();
-    //    }
-
-    // use one global window size for all mass traces to smooth
-    //  std::vector<double> rts, ints;
-    //
-    //  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
-    //  {
-    //      rts.push_back(c_it->getRT());
-    //      ints.push_back(c_it->getIntensity());
-    //  }
-    //  LowessSmoothing lowess_smooth;
-    //  Param lowess_params;
-    //  lowess_params.setValue("window_size", win_size);
-    //  lowess_smooth.setParameters(lowess_params);
-    //  std::vector<double> smoothed_data;
-    //  lowess_smooth.smoothData(rts, ints, smoothed_data);
-    //  mt.setSmoothedIntensities(smoothed_data);
   }
 
   void ElutionPeakDetection::updateMembers_()

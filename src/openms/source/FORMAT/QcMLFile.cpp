@@ -398,8 +398,6 @@ namespace OpenMS
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        //~ std::cout << qit->name << "setexists" << std::endl;
-        //~ std::cout << qpname << "qpname" << std::endl;
         if (qpname == qit->cvAcc)
         {
           ids.push_back(qit->id);
@@ -477,13 +475,11 @@ namespace OpenMS
     if (existsRun(r))
     {
       std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
-      //~ cout << "remove from " << r << endl;
       while (qit != runQualityAts_[r].end())
       {
         if (qit->cvAcc == at)
         {
           qit = runQualityAts_[r].erase(qit);
-          //~ cout << "remove  " << at << endl;
         }
         else
         {
@@ -590,7 +586,6 @@ namespace OpenMS
         if ((qpname == qit->name) || (qpname == qit->cvAcc))
         {
           return qit->toCSVString("\t");
-          //~ return qit->toXMLString(1);
         }
       }
     }
@@ -612,7 +607,6 @@ namespace OpenMS
         if ((qpname == qit->name) || (qpname == qit->cvAcc))
         {
           return qit->toCSVString("\t");
-          //~ return qit->toXMLString(1);
         }
       }
     }
@@ -894,7 +888,6 @@ namespace OpenMS
     {
       //chars may be split to several chunks => concatenate them
       at_.binary += sm_.convert(chars);
-      //~ at_.binary = "bla";
     }
   }
 
@@ -903,7 +896,6 @@ namespace OpenMS
     static set<std::string> to_ignore;
     if (to_ignore.empty())
     {
-      //~ to_ignore.insert("binary");
     }
 
     tag_ = sm_.convert(qname);
@@ -958,7 +950,6 @@ namespace OpenMS
       if (name_.empty())
       {
         name_ = run_id_;
-        //~ name_ =StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         //TODO give warning that a run should have a name cv!!!
       }
       registerRun(run_id_, name_);
@@ -978,7 +969,6 @@ namespace OpenMS
       if (name_.empty())
       {
         name_ = run_id_;
-        //~ name_ =StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         //TODO give warning that a run should have a name cv!!!
       }
       registerSet(run_id_, name_, names_);
@@ -1458,7 +1448,6 @@ namespace OpenMS
       {
         ProteinIdentification::SearchParameters params = prot_ids[0].getSearchParameters();
         vector<std::string> var_mods = params.variable_modifications;
-        //~ boost::regex re("(?<=[KR])(?=[^P])");
       
         std::string msid_ref = base_name + "_msid";
         QcMLFile::QualityParameter qp;
@@ -1667,14 +1656,12 @@ namespace OpenMS
         at.colTypes.emplace_back("Charge");
         at.colTypes.emplace_back("TheoreticalWeight");
         at.colTypes.emplace_back("delta_ppm");
-  //      at.colTypes.push_back("S/N");
         for (UInt w = 0; w < var_mods.size(); ++w)
         {
           { std::string vmod = std::string(var_mods[w]); StringUtils::substitute(vmod, ' ', '_'); at.colTypes.push_back(vmod); }
         }
 
         std::vector<double> deltas;
-        //~ prot_ids[0].getSearchParameters();
         for (PeptideIdentification& pep_id : pep_ids)
         {
           if (!pep_id.getHits().empty())
@@ -1695,12 +1682,10 @@ namespace OpenMS
               if (res.isModified() && res.getModificationName() != "Carbamidomethyl")
               {
                 temp = res.getModificationName() + " (" + res.getOneLetterCode()  + ")";
-                //cout<<res.getModification()<<endl;
                 for (UInt w = 0; w < var_mods.size(); ++w)
                 {
                   if (temp == var_mods[w])
                   {
-                    //cout<<temp;
                     pep_mods[w] += 1;
                   }
                 }
@@ -1838,7 +1823,6 @@ namespace OpenMS
         at.colTypes.emplace_back("IDs");
         UInt fiter = 0;
         UInt ided = 0;
-        //ofstream out(outputfile_name.c_str());
         while (fiter < feature_map.size())
         {
           std::vector<std::string> row;
@@ -1905,7 +1889,6 @@ namespace OpenMS
           {
             if (abs(feature_map[fiter].getRT() - feature_map[k].getRT()) < 0.1)
             {
-              //~ cout << fiter << endl;
               map_tmp.push_back(feature_map[k]);
             }
             else
@@ -1933,7 +1916,6 @@ namespace OpenMS
       {
         at = QcMLFile::Attachment();
         qp.name = "consensuspoints"; ///< Name
-        //~ qp.id = base_name + "_consensuses"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "feature mapper results"
 
@@ -1971,9 +1953,6 @@ namespace OpenMS
 
   void QcMLFile::store(const std::string& filename) const 
   {
-    //~ startProgress(0, 0, "storing qcML file");
-    //~ progress_ = 0;
-    //~ setProgress(++progress_);
 
     //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
     std::string xslt;
@@ -2001,7 +1980,6 @@ namespace OpenMS
 
     os.precision(writtenDigits<double>(0.0));
 
-    //~ setProgress(++progress_);
     //header & xslt
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";

@@ -221,8 +221,6 @@ struct SIPPeptide
 
   double feature_mz = -1.; ///< mz of feature apex [s]
 
-  //Size feature_scan_number; ///< scan number
-
   Int charge = 0; ///< charge of the peptide feature
 
   double mass_diff = 0.; // 13C or 15N mass difference
@@ -314,7 +312,6 @@ public:
 
     const size_t n = x.size();
 
-    //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
     if (debug)
@@ -933,7 +930,6 @@ public:
       }
 
       Size n_all_peptides = all_peptides.size(); // # of different (on sequence level) unique and non-unique peptides
-      //Size n_ambigous_peptides = ambigous_peptides.size();
       Size n_unambigous_proteins = unambigous_proteins.size();
 
       // determine median global LR of whole group
@@ -2233,8 +2229,6 @@ protected:
 
     pattern_end = tmp_pattern_it;
     intensities_end = tmp_intensity_it;
-
-    //cout << "after: " << std::distance(pattern_begin, pattern_end) << " " << min_offset << " " << max_offset << endl;
   }
 
   ///< Calculates the correlation between measured isotopic_intensities and the theoretical isotopic patterns for all incorporation rates
@@ -2354,7 +2348,6 @@ protected:
         continue;
       }
 
-      // cout << ii << "\t" << std::distance(intensities_end, intensities_begin) << "\t" << std::distance(intensities_begin, isotopic_intensities.begin()) << "\t" << std::distance(intensities_end, isotopic_intensities.begin()) << endl;
       if (std::isnan(correlation_score))
       {
         correlation_score = 0.0;
@@ -2611,7 +2604,6 @@ protected:
         seeds_rt.push_back(rt_before);
       }
     }
-    //cout << "Seeds size:" << seeds_rt.size() << endl;
     return seeds_rt;
   }
 
@@ -2818,12 +2810,9 @@ protected:
         if (mc_it->second >= min_corr_threshold && md_it->second >= min_decomposition_weight)
         {
           seeds_weight_rate_pair.insert(make_pair(md_it->second, md_it->first));
-          //cout << "Seeds insert: " << md_it->second << " " << md_it->first << endl;
         }
       }
     }
-
-    // cout << "Seeds: " << seeds_weight_rate_pair.size() << endl;
 
     // seeds_weight_rate_pair contains the seeds ordered by their decomposition weight
     while (!seeds_weight_rate_pair.empty())
@@ -2831,8 +2820,6 @@ protected:
       // pop last element from set
       set<pair<double, double> >::iterator last_element = --seeds_weight_rate_pair.end();
       pair<double, double> current_seed = *last_element;
-
-      //cout << current_seed.first << " " << current_seed.second << endl;
 
       // find weights in window to merge, remove from seed map. maybe also remove from original map depending on whether we want to quantify the weight only 1 time
       const double rate = current_seed.second;
@@ -2842,8 +2829,6 @@ protected:
 
       MapRateToScoreType::const_iterator low = map_rate_to_decomposition_weight.lower_bound(rate - weight_merge_window - 1e-4);
       MapRateToScoreType::const_iterator high = map_rate_to_decomposition_weight.lower_bound(rate + weight_merge_window + 1e-4);
-
-      // cout << "Distance: " << std::distance(low, high) << endl;;
 
       MapRateToScoreType::const_iterator l1 = low;
       MapRateToScoreType::const_iterator h1 = high;
@@ -3020,12 +3005,9 @@ protected:
 
     std::string labeling_element = getStringOption_("labeling_element");
 
-    //bool plot_merged = getFlag_("plot_merged");
     bool report_natural_peptides = getFlag_("report_natural_peptides");
     bool use_unassigned_ids = getFlag_("use_unassigned_ids");
     bool use_averagine_ids = getFlag_("use_averagine_ids");
-
-    //std::string debug_patterns_name = getStringOption_("debug_patterns_name");
 
     double correlation_threshold = getDoubleOption_("correlation_threshold");
 
@@ -3146,7 +3128,6 @@ protected:
         PeakMap::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
         PeakMap::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
         Size index = std::distance(map_rt_begin, rt_begin);
-        //cout << "Blacklist Index: " << index << endl;
         blacklist_idx.push_back(index);
       }
 
@@ -3160,7 +3141,6 @@ protected:
 
           double precursor_mz = peak_map[i].getPrecursors()[0].getMZ();
           int precursor_charge = peak_map[i].getPrecursors()[0].getCharge();
-          //double precursor_mass = (double)precursor_charge * precursor_mz - (double)precursor_charge * Constants::PROTON_MASS_U;
 
           // add averagine id to pseudo feature
           PeptideHit pseudo_hit;

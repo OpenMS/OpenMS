@@ -56,7 +56,6 @@ namespace OpenMS::Internal
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger) :
       logger_(logger),
       cv_(ControlledVocabulary::getPSIMSCV()),
-      //~ ms_exp_(0),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id),
       schema_version_(version),
@@ -88,7 +87,6 @@ namespace OpenMS::Internal
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger) :
       logger_(logger),
       cv_(ControlledVocabulary::getPSIMSCV()),
-      //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
       schema_version_(version),
@@ -205,8 +203,6 @@ namespace OpenMS::Internal
       catch (xercesc::XMLException& e)
       {
         char* message = xercesc::XMLString::transcode(e.getMessage());
-        //          ostringstream errBuf;
-        //          errBuf << "Error parsing file: " << message << flush;
         OPENMS_LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
         XMLString::release(&message);
       }
@@ -323,8 +319,6 @@ namespace OpenMS::Internal
       catch (xercesc::XMLException& e)
       {
         char* message = xercesc::XMLString::transcode(e.getMessage());
-//          ostringstream errBuf;
-//          errBuf << "Error parsing file: " << message << flush;
         OPENMS_LOG_ERROR << "XERCES error traversing DOM: " << message << flush << endl;
         XMLString::release(&message);
       }
@@ -371,16 +365,9 @@ namespace OpenMS::Internal
           DOMElement* asl_p = xmlDoc->createElement(CONST_XMLCH("AnalysisSoftwareList"));
           for (vector<ProteinIdentification>::const_iterator pi = cpro_id_->begin(); pi != cpro_id_->end(); ++pi)
           {
-//                  search_engine_version_ = pi->getSearchEngineVersion();
-//                  search_engine_ = pi->getSearchEngine();
           }
           buildAnalysisSoftwareList_(asl_p);
           rootElem->appendChild(asl_p);
-
-//              // * AnalysisSampleCollection *
-//              DOMElement* asc_p = xmlDoc->createElement(CONST_XMLCH("AnalysisSampleCollection"));
-//              buildAnalysisSampleCollection_(asc_p);
-//              rootElem->appendChild(asc_p);
 
           // * SequenceCollection *
           DOMElement* sc_p = xmlDoc->createElement(CONST_XMLCH("SequenceCollection"));
@@ -754,11 +741,9 @@ namespace OpenMS::Internal
           DOMElement* element_pep = dynamic_cast<xercesc::DOMElement*>(current_pep);
           std::string id = StringManager::convert(element_pep->getAttribute(CONST_XMLCH("id")));
 
-          //DOMNodeList* pep_sib = element_pep->getChildNodes();
           AASequence aas;
           try
           {
-            //aas = parsePeptideSiblings_(pep_sib);
             try
             {
               aas = parsePeptideSiblings_(element_pep);
@@ -963,16 +948,6 @@ namespace OpenMS::Internal
                 }
                 delete val;
 
-//                double massDelta = 0;
-//                try
-//                {
-//                  massDelta = boost::lexical_cast<double>(StringManager::convert(sm->getAttribute(CONST_XMLCH("massDelta"))));
-//                }
-//                catch (...)
-//                {
-//                    OPENMS_LOG_ERROR << "Could not cast ModificationParam massDelta from " << StringManager::convert(sm->getAttribute(CONST_XMLCH("massDelta")));
-//                }
-
                 std::string mname;
                 CVTermList specificity_rules;
                 DOMElement* sub = sm->getFirstElementChild();
@@ -1095,17 +1070,6 @@ namespace OpenMS::Internal
                 }
                 sp.missed_cleavages = missedCleavages;
 
-//                std::string semiSpecific = StringManager::convert(enzyme->getAttribute(CONST_XMLCH("semiSpecific"))); //xsd:boolean
-//                std::string cTermGain = StringManager::convert(enzyme->getAttribute(CONST_XMLCH("cTermGain")));
-//                std::string nTermGain = StringManager::convert(enzyme->getAttribute(CONST_XMLCH("nTermGain")));
-//                int minDistance = -1;
-//                try
-//                {
-//                  minDistance = StringUtils::toInt32(StringManager::convert(enzyme->getAttribute(CONST_XMLCH("minDistance"))));
-//                }
-//                catch (...)
-//                {
-//                    OPENMS_LOG_WARN << "Search engine settings for 'minDistance' unreadable." << endl;
 //                }
                 enzymename = "UNKNOWN";
                 DOMElement* sub = enzyme->getFirstElementChild();
@@ -1209,9 +1173,6 @@ namespace OpenMS::Internal
             {
               search_engine = as_map_[swr].name;
               search_engine_version = as_map_[swr].version;
-//              std::string identi = search_engine+"_"+si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getDate()+"T"
-//                      +si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getTime();
-//              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setIdentifier(identi);
               auto& pro = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]);
               pro.setSearchEngine(search_engine);
               pro.setSearchEngineVersion(search_engine_version);
@@ -1258,7 +1219,6 @@ namespace OpenMS::Internal
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             DateTime releaseDate;
-//            releaseDate.set(StringManager::convert(element_in->getAttribute(CONST_XMLCH("releaseDate"))));
             std::string version = StringManager::convert(element_in->getAttribute(CONST_XMLCH("version")));
             std::string dbname;
             DOMElement* element_dbn = element_in->getFirstElementChild();
@@ -1311,7 +1271,6 @@ namespace OpenMS::Internal
           // Found element node: re-cast as element
           DOMElement* element_lis = dynamic_cast<xercesc::DOMElement*>(current_lis);
           std::string id = StringManager::convert(element_lis->getAttribute(CONST_XMLCH("id")));
-//          std::string name = StringManager::convert(element_res->getAttribute(CONST_XMLCH("name")));
 
           DOMElement* element_res = element_lis->getFirstElementChild();
           while (element_res)
@@ -1964,30 +1923,6 @@ namespace OpenMS::Internal
 
         const std::string& peptide_ref = unique_peptides[pep];
 
-        // Debug output
-//        cout << "peptides: ";
-//        for (Size k = 0; k < peptides.size(); ++k)
-//        {
-//          cout << "nr." << k << ": " << peptides[k] << "\t";
-//        }
-//        cout << endl << "unique peptides: ";
-//        for (Size k = 0; k < unique_peptides.size(); ++k)
-//        {
-//          cout << "nr." << k << ": " << unique_peptides[k] << "\t";
-//        }
-//        cout << endl << "alpha: " << alpha[0];
-//        if (beta.size() > 0)
-//        {
-//          cout << "\t beta: " << beta[0];
-//        }
-//        cout << endl;
-//        cout << "xl_type: " << xl_type << "\tphs_size: " << phs.size() << endl;
-//        cout << "phs0: " << phs[0].getSequence().toString() << endl;
-//        if (phs.size() > 1)
-//        {
-//          cout << "phs1: " << phs[1].getSequence().toString() << endl;
-//        }
-
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<std::string, std::string>::iterator, multimap<std::string, std::string>::iterator> pev_its;
         pev_its = p_pv_map_.equal_range(peptide_ref);
@@ -2082,7 +2017,6 @@ namespace OpenMS::Internal
       std::string name = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("name")));
 
       long double calculatedMassToCharge = toDoubleOrNaN_(StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedMassToCharge"))));
-//      long double calculatedPI = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedPI"))).toDouble();
       int chargeState = 0;
       try
       {
@@ -2112,8 +2046,6 @@ namespace OpenMS::Internal
       }
 
       std::string peptide_ref = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("peptide_ref")));
-//      std::string sample_ref = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("sample_ref")));
-//      std::string massTable_ref = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("massTable_ref")));
 
       XSValue::Status status;
       std::unique_ptr<XSValue> val(XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("passThreshold")), XSValue::dt_boolean, status));
@@ -2316,14 +2248,7 @@ namespace OpenMS::Internal
           // Found element node: re-cast as element
           DOMElement* element_pr = dynamic_cast<xercesc::DOMElement*>(current_pr);
 
-//          std::string id = StringManager::convert(element_pr->getAttribute(CONST_XMLCH("id")));
-//          pair<CVTermList, map<std::string, DataValue> > params = parseParamGroup_(current_pr->getChildNodes());
-
           // TODO @mths : this needs to be a ProteinIdentification for the ProteinDetectionListElement which is not mandatory and used in downstream analysis ProteinInference etc.
-//          pro_id_->push_back(ProteinIdentification());
-//          pro_id_->back().setSearchEngine(search_engine_);
-//          pro_id_->back().setSearchEngineVersion(search_engine_version_);
-//          pro_id_->back().setIdentifier(search_engine_);
 
           //      SearchParameters  search_parameters_
           //      DateTime  date_
@@ -2345,8 +2270,6 @@ namespace OpenMS::Internal
 
     void MzIdentMLDOMHandler::parseProteinAmbiguityGroupElement_(DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification)
     {
-//      std::string id = StringManager::convert(proteinAmbiguityGroupElement->getAttribute(CONST_XMLCH("id")));
-//      pair<CVTermList, map<std::string, DataValue> > params = parseParamGroup_(proteinAmbiguityGroupElement->getChildNodes());
 
       //fill pro_id_->back() with content,
       DOMElement* child = proteinAmbiguityGroupElement->getFirstElementChild();
@@ -2363,8 +2286,6 @@ namespace OpenMS::Internal
     void MzIdentMLDOMHandler::parseProteinDetectionHypothesisElement_(DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification)
     {
       std::string dBSequence_ref = StringManager::convert(proteinDetectionHypothesisElement->getAttribute(CONST_XMLCH("dBSequence_ref")));
-
-//      pair<CVTermList, map<std::string, DataValue> > params = parseParamGroup_(proteinDetectionHypothesisElement->getChildNodes());
 
       DBSequence& db = db_sq_map_[dBSequence_ref];
 
@@ -2554,14 +2475,10 @@ namespace OpenMS::Internal
               index = inferred_index;
             }
 
-            //double monoisotopicMassDelta = StringManager::convert(element_dbs->getAttribute(CONST_XMLCH("monoisotopicMassDelta")));
-
             if (xl_ms_search_) // special case: XL-MS search results
             {
               std::string pep_id = StringManager::convert(peptide->getAttribute(CONST_XMLCH("id")));
-              //DOMNodeList* cvParams = element_sib->getElementsByTagName(CONST_XMLCH("cvParam"));
               DOMElement* cvp = element_sib->getFirstElementChild();
-              //for (XMLSize_t i = 0; i < cvParams.length(); ++i)
               bool donor_acceptor_found = false;
               bool xlink_mod_found = false;
 
