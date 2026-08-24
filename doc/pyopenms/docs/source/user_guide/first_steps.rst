@@ -234,17 +234,15 @@ slower):
 Copies, Not References
 **********************
 
-Before writing your own scripts, there is one rule about pyOpenMS objects
-worth learning early: **everything you take out of a container is your own
-copy**. Whether you use indexing (``exp[0]``), iteration (``for spec in
-exp:``) or a getter (``exp.getSpectrum(0)``, ``spec.getPrecursors()``), the
-object you receive is an independent snapshot -- like a photocopy of one
-page from a binder. You can read it, keep it and edit it freely, and the
-container will not change behind your back (nor will your object change
-when the container does).
+pyOpenMS containers use **value semantics** for element access: every
+object you retrieve is an independent copy. Whether you use indexing
+(``exp[0]``), iteration (``for spec in exp:``) or a getter
+(``exp.getSpectrum(0)``, ``spec.getPrecursors()``), the returned object
+owns its own data. Editing it does not modify the container, and later
+changes to the container do not affect objects retrieved earlier.
 
-The consequence surprises many newcomers: editing the copy does *not* edit
-the experiment.
+A common pitfall follows directly from this: editing the copy does *not*
+edit the experiment.
 
 .. code-block:: python
 
@@ -272,10 +270,10 @@ To change data inside a container, follow the pattern
 
 Why does pyOpenMS work this way? Because the alternative -- handing out
 live references into the container's internal storage -- makes ordinary
-code dangerous: appending one spectrum can reallocate the container's
-memory and turn every previously returned spectrum into a crash waiting to
-happen, and sorting would silently re-label objects you are still holding.
-With copies, nothing you hold ever becomes invalid.
+code unsafe: appending a spectrum can reallocate the container's memory
+and invalidate every previously returned object (a use-after-free), and
+sorting would silently re-bind held objects to different elements. With
+copies, nothing you hold ever becomes invalid.
 
 Two things complete the picture:
 
