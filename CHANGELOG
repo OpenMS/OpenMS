@@ -61,6 +61,14 @@ General:
     with lb == ub; glp_intopt then returns GLP_EBOUND and leaves every column at zero, and the
     unchecked return value turned that into a silently empty selection. They are now typed FIXED.
     No effect on the COIN-OR and HiGHS backends, which treat the two types identically (#9940)
+  - Fix: LP/ILP solver failures are no longer silent. LPWrapper::getStatus() now reports the real
+    solution status on the COIN-OR backend (it unconditionally returned UNDEFINED there, and the raw
+    solve() return value cannot signal failure: COIN-OR and HiGHS report a completed run even for a
+    proven-infeasible model). LPWrapper::solve() logs a warning whenever no feasible solution was
+    produced, and its callers (MRMFeatureSelector, ILPDCWrapper/Decharger) now check getStatus() and
+    throw an informative exception instead of reading the all-zero non-solution back as valid output
+    - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
+    empty results (#9944)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
