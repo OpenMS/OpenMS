@@ -168,6 +168,11 @@ PyOpenMS:
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720); backward
     compatibility restored for the file I/O methods of IdXMLFile, PepXMLFile and MzIdentMLFile (#8553);
     getAAFrequencies() loop bug in the AASequence addon (#8502)
+  - Fix: a build with -DWITH_WNETALIGN=OFF produced a pyOpenMS that could not be imported at all
+    (undefined WNetMatcher symbol in _pyopenms_misc), because the WNet bindings referenced symbols
+    that are excluded from libOpenMS by that option. The WNetMatcher and FeatureGroupingAlgorithmWNet
+    bindings are now compiled only when WNet support is built, mirroring the BrukerTimsFile /
+    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946)
   - Docs: type hints in the docstrings of 133 functions (#8483), docstring format validation tests
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
