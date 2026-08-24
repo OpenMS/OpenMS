@@ -120,8 +120,8 @@ PyOpenMS:
       when the container reallocates (push_back) and no longer silently re-labels a different element
       when the container is sorted (sortByRT); AASequence element access no longer exposes mutable
       handles into the process-wide ResidueDB
-    - see src/pyOpenMS/OWNERSHIP.md for the full rule, the three documented exceptions (fluent
-      builders, database lookups, and shared DataProcessing entries) and the migration patterns
+    - see src/pyOpenMS/OWNERSHIP.md for the full rule and the three documented exceptions (fluent
+      builders, database lookups, and shared DataProcessing entries)
     - opt-in aliasing access is available under an explicit naming scheme: <singular>_view(i) for one
       element (spectrum_view(i), feature_view(i), chromatogram_view(i)), <singular>_views() for the
       collection, and iter_<singular>_views() for iteration; the get_ prefix is reserved for owned
