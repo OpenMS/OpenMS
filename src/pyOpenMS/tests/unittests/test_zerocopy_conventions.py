@@ -3,6 +3,7 @@
 Convention:
   _view  = typed zero-copy column view, returns empty ndarray<T> if empty
   _struct = structured zero-copy record view, returns empty structured ndarray if empty
+  get_*  = owned copy; the ones documented "as numpy array" must return ndarrays
 
 No public methods should use _as_view suffix.
 """
@@ -130,6 +131,77 @@ def test_struct_view_reads_the_same_values_as_the_scalar_accessors():
     arr = mob.peaks_struct()
     assert [p.getMobility() for p in mob] == list(arr['mobility'])
     assert [p.getIntensity() for p in mob] == list(arr['intensity'])
+
+
+def test_copy_accessors_return_numpy_arrays():
+    """Accessors documented to return numpy *copies* must return ndarrays, not lists.
+
+    Nearly every test that exercises these goes through np.allclose()/len(),
+    which accept plain Python lists just as well -- so a binding regression
+    that fell back to the std::vector caster (a list of Python scalars) would
+    slip through while silently changing dtype, memory cost, and vectorized
+    semantics. This pins the concrete array contract of each copy accessor.
+
+    (The OpenSwath interchange getters -- OSSpectrum.get_mz_array() etc. --
+    intentionally return lists; their ndarray path is the *_array_view()
+    family, covered in test_OpenSwathDataStructures.py. StringDataArray
+    holds strings, so its get_data() is a list by design.)
+    """
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks(([100.0, 200.0], [1.0, 2.0]))
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks(([10.0, 20.0], [3.0, 4.0]))
+    mob = pyopenms.Mobilogram()
+    mob.set_peaks(([0.5, 0.75], [5.0, 6.0]))
+
+    # get_peaks(): (position float64, intensity float32) on all three containers
+    for container in (spec, chrom, mob):
+        pos, intensity = container.get_peaks()
+        assert isinstance(pos, np.ndarray)
+        assert pos.dtype == np.float64
+        assert isinstance(intensity, np.ndarray)
+        assert intensity.dtype == np.float32
+
+    # MSSpectrum column copies
+    mz = spec.get_mz_array()
+    assert isinstance(mz, np.ndarray)
+    assert mz.dtype == np.float64
+    inten = spec.get_intensity_array()
+    assert isinstance(inten, np.ndarray)
+    assert inten.dtype == np.float32
+
+    # Typed data-array copies
+    fda = pyopenms.FloatDataArray()
+    fda.push_back(1.5)
+    arr = fda.get_data()
+    assert isinstance(arr, np.ndarray)
+    assert arr.dtype == np.float32
+
+    ida = pyopenms.IntegerDataArray()
+    ida.push_back(7)
+    arr = ida.get_data()
+    assert isinstance(arr, np.ndarray)
+    assert arr.dtype == np.int32
+
+    # Matrix copy
+    mat = pyopenms.MatrixDouble(2, 3, 1.5)
+    m = mat.get_matrix()
+    assert isinstance(m, np.ndarray)
+    assert m.dtype == np.float64
+    assert m.shape == (2, 3)
+
+    # Experiment-level bulk export
+    spec.setMSLevel(1)
+    spec.setRT(5.0)
+    exp = pyopenms.MSExperiment()
+    exp.addSpectrum(spec)
+    triple = exp.get2DPeakData(0.0, 1e9, 0.0, 1e9, 1)
+    assert all(isinstance(a, np.ndarray) for a in triple)
+    assert all(a.dtype == np.float32 for a in triple)
+    rt, mz2, inten2 = exp.get2DPeakDataLong(0.0, 1e9, 0.0, 1e9, 1)
+    assert isinstance(rt, np.ndarray) and rt.dtype == np.float64
+    assert isinstance(mz2, np.ndarray) and mz2.dtype == np.float64
+    assert isinstance(inten2, np.ndarray) and inten2.dtype == np.float32
 
 
 def test_no_public_as_view_methods():
