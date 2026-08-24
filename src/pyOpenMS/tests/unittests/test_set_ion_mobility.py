@@ -280,8 +280,11 @@ def test_replacing_with_a_different_length_still_works():
     spec.set_drift_time_array(np.array([1.0, 2.0, 3.0], dtype=np.float32),
                               pyopenms.DriftTimeUnit.MILLISECOND)
 
+    # Shrink the peaks while keeping the (now stale, 3-long) drift array, so
+    # the next call hits set_drift_time_array's own length-change branch.
     spec.set_peaks(np.array([100.0, 200.0]), np.array([1.0, 2.0], dtype=np.float32),
-                   ion_mobility=np.array([7.0, 8.0], dtype=np.float32),
-                   ion_mobility_unit=pyopenms.DriftTimeUnit.MILLISECOND)
+                   metadata="keep")
+    spec.set_drift_time_array(np.array([7.0, 8.0], dtype=np.float32),
+                              pyopenms.DriftTimeUnit.MILLISECOND)
 
     assert np.allclose(spec.get_drift_time_array(), [7.0, 8.0])

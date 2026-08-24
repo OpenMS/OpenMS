@@ -159,7 +159,7 @@ def test_collection_write_back():
 
 
 # --------------------------------------------------------------------------
-# The two documented exceptions
+# The documented exceptions (see OWNERSHIP.md)
 # --------------------------------------------------------------------------
 
 def test_fluent_builder_still_chains():

@@ -93,6 +93,20 @@ def test_nasequence_terminal_mod_rejects_foreign_ribonucleotide(setter):
         getattr(seq, setter)(_foreign_ribo())
 
 
+@pytest.mark.parametrize("setter,getter", [
+    ("setFivePrimeMod", "getFivePrimeMod"),
+    ("setThreePrimeMod", "getThreePrimeMod"),
+])
+def test_nasequence_terminal_mod_cleared_with_none(setter, getter):
+    """The C++ setters store nullptr as "no modification", so None clears."""
+    seq = pyopenms.NASequence.fromString("AUGC")
+    getattr(seq, setter)(_db_ribo(b"A"))
+    assert getattr(seq, getter)() is not None
+
+    getattr(seq, setter)(None)
+    assert getattr(seq, getter)() is None
+
+
 def test_nasequence_setsequence_rejects_foreign_element():
     seq = pyopenms.NASequence.fromString("AUGC")
     good = _db_ribo(b"A")
@@ -147,8 +161,6 @@ def test_aasequence_setmodification_rejects_out_of_range_index(index):
     "call",
     [
         lambda: pyopenms.NASequence.fromString("AUGC").set(0, None),
-        lambda: pyopenms.NASequence.fromString("AUGC").setFivePrimeMod(None),
-        lambda: pyopenms.NASequence.fromString("AUGC").setThreePrimeMod(None),
         lambda: pyopenms.EnzymaticDigestion().setEnzyme(None),
         lambda: pyopenms.RNaseDigestion().setEnzyme(None),
         lambda: pyopenms.AASequence.fromString("PEPTIDE").setNTerminalModification(None),
@@ -156,13 +168,21 @@ def test_aasequence_setmodification_rejects_out_of_range_index(index):
         lambda: pyopenms.Residue().setModification(None),
     ],
     ids=[
-        "NASequence.set", "setFivePrimeMod", "setThreePrimeMod", "EnzymaticDigestion.setEnzyme",
+        "NASequence.set", "EnzymaticDigestion.setEnzyme",
         "RNaseDigestion.setEnzyme", "setNTerminalModification", "setCTerminalModification",
         "Residue.setModification",
     ],
 )
 def test_none_is_rejected_not_dereferenced(call):
-    """The guarded setters dereference their argument, so None must never reach them."""
+    """The guarded setters dereference their argument, so None must never reach them.
+
+    NASequence.setFivePrimeMod/setThreePrimeMod are deliberately absent: their
+    C++ setters store the pointer without dereferencing and nullptr means "no
+    modification", so None is the documented way to clear them (tested in
+    test_nasequence_terminal_mod_cleared_with_none). AASequence's terminal
+    setters stay here because their pointer overload dereferences; clearing
+    those goes through setNTerminalModification("").
+    """
     with pytest.raises((TypeError, ValueError)):
         call()
 

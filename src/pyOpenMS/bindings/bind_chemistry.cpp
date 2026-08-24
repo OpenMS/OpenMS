@@ -2180,8 +2180,15 @@ the fixed and variable modifications given to the constructor
             if (mod == nullptr) return std::nullopt;
             return *mod;  // by value: never hand out a mutable alias into RibonucleotideDB
         }, "Returns a copy of the 3' modification, or None if not set")
-        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setFivePrimeMod(resolveDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 5' modification, resolved by its code against RibonucleotideDB (NASequence stores the database entry)")
-        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(resolveDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 3' modification, resolved by its code against RibonucleotideDB (NASequence stores the database entry)")
+        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) {
+            // The C++ setter stores the pointer as-is and nullptr means "no
+            // modification", so None clears; anything else is resolved to the
+            // database's own entry first.
+            self.setFivePrimeMod(mod == nullptr ? nullptr : resolveDBRibonucleotide_(mod));
+        }, "mod"_a.none(), "Sets the 5' modification, resolved by its code against RibonucleotideDB (NASequence stores the database entry). Pass None to clear it")
+        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) {
+            self.setThreePrimeMod(mod == nullptr ? nullptr : resolveDBRibonucleotide_(mod));
+        }, "mod"_a.none(), "Sets the 3' modification, resolved by its code against RibonucleotideDB (NASequence stores the database entry). Pass None to clear it")
         .def("hasFivePrimeMod", &OpenMS::NASequence::hasFivePrimeMod, "Returns true if the sequence has a 5' modification")
         .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
         .def("getSequence", [](const OpenMS::NASequence& self) -> std::vector<OpenMS::Ribonucleotide> {
