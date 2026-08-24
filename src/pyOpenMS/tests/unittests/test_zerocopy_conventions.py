@@ -192,7 +192,9 @@ def test_deprecated_mv_aliases_emit_warning():
         arr = fda.get_data_mv()
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
-        assert "data_view" in str(w[0].message)
+        message = str(w[0].message)
+        assert "data_view" in message
+        assert "get_data_view" not in message, "message points at a removed name"
     assert arr is not None
     assert arr.dtype == np.float32
 
@@ -203,5 +205,7 @@ def test_deprecated_mv_aliases_emit_warning():
         view = mat.get_matrix_mv()
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
-        assert "matrix_view" in str(w[0].message)
+        message = str(w[0].message)
+        assert "matrix_view" in message
+        assert "get_matrix_view" not in message, "message points at a removed name"
     assert view is not None
