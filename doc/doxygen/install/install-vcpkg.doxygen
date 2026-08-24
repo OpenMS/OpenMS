@@ -47,13 +47,13 @@
       A C++23-capable compiler is required; see @ref install_linux_compiler
       for the minimum supported GCC/Clang versions.
 
-      \snippet "../../tools/ci/deps-vcpkg-ubuntu.sh" installation_documentation
+      \snippet "../../tools/ci/deps-ubuntu.sh" installation_documentation
 
     @subsection install_vcpkg_prereqs_macos macOS
  
       A C++23-capable Xcode installation is required; see @ref required_apps.
       
-      \snippet "../../tools/ci/deps-vcpkg-macos.sh" installation_documentation
+      \snippet "../../tools/ci/deps-macos.sh" installation_documentation
 
     @section install_vcpkg_build Building OpenMS with vcpkg
 
