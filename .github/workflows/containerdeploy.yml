@@ -217,21 +217,22 @@ jobs:
             for digest_file in "${digest_dir}"/*; do
               sources+=("${image_repo}@sha256:$(basename "${digest_file}")")
             done
-            docker buildx imagetools create --tag "${image_repo}:${TAG}" "${sources[@]}"
-            ## Fail loudly if the pushed manifest list misses a platform instead
-            ## of publishing a silently single-arch tag again. Keep this list in
-            ## sync with the deploy-docker matrix.
-            local platforms
-            platforms="$(docker buildx imagetools inspect \
-              --format '{{range .Manifest.Manifests}}{{if .Platform}}{{.Platform.OS}}/{{.Platform.Architecture}}{{"\n"}}{{end}}{{end}}' \
-              "${image_repo}:${TAG}")"
-            echo "${image_repo}:${TAG} contains platforms:" "${platforms}"
+            ## Validate the merged manifest list on a dry run BEFORE tagging:
+            ## if a platform is missing (e.g. this list drifted from the
+            ## deploy-docker matrix), the previously published tag is left
+            ## untouched instead of being overwritten with an incomplete
+            ## manifest list.
+            local merged platforms
+            merged="$(docker buildx imagetools create --dry-run --tag "${image_repo}:${TAG}" "${sources[@]}")"
+            platforms="$(jq -r '.manifests[].platform | "\(.os)/\(.architecture)"' <<< "${merged}")"
+            echo "${image_repo}:${TAG} will contain platforms:" "${platforms}"
             for platform in linux/amd64 linux/arm64; do
               if ! grep -qx "${platform}" <<< "${platforms}"; then
-                echo "::error::${image_repo}:${TAG} is missing platform ${platform}"
+                echo "::error::Merged manifest list for ${image_repo}:${TAG} would be missing platform ${platform}; leaving the existing tag untouched"
                 exit 1
               fi
             done
+            docker buildx imagetools create --tag "${image_repo}:${TAG}" "${sources[@]}"
           }
           create_manifest library "${REPO_BASE}-library"
           ## The tools image is published under two names (see deploy-docker);
