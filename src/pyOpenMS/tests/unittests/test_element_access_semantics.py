@@ -601,3 +601,123 @@ def test_imaging_geometry_getters_return_copies():
     geom.addRegion(MSImagingRegion.rectangle(1, "r", 0, 0, 1, 1))
     assert geom.getRegions()[0] is not geom.getRegions()[0]
     assert geom.getRegion(1) is not geom.getRegion(1)
+
+
+# ---------------------------------------------------------------------------
+# NASequence element access: the stored elements are pointers into the
+# process-wide RibonucleotideDB, so every accessor has to copy, and the
+# setters resolve copies back to database entries by code.
+# ---------------------------------------------------------------------------
+
+def test_nasequence_element_access_does_not_alias_ribonucleotide_db():
+    from pyopenms import NASequence
+
+    original = NASequence.fromString("AAUC")[0].getName()
+
+    seq = NASequence.fromString("AAUC")
+    seq[0].setName("CORRUPTED")                       # __getitem__
+    seq.get(0).setName("CORRUPTED")                   # get()
+    for ribo in seq:                                  # __iter__
+        ribo.setName("CORRUPTED")
+    assert NASequence.fromString("AAUC")[0].getName() == original, \
+        "editing an accessed ribonucleotide reached RibonucleotideDB"
+    assert seq[0].getName() == original
+
+
+def test_nasequence_write_back_round_trip():
+    """setSequence(getSequence()) must work: setters resolve copies by code."""
+    from pyopenms import NASequence, Ribonucleotide
+
+    seq = NASequence.fromString("AAUC")
+    seq.setSequence(seq.getSequence())
+    assert seq.toString() == "AAUC"
+
+    seq.set(0, seq.getSequence()[2])                  # put a copied 'U' at position 0
+    assert seq.toString() == "UAUC"
+
+    # a ribonucleotide whose code is not in the database is still rejected
+    with pytest.raises(ValueError):
+        seq.set(0, Ribonucleotide())
+
+
+def test_nasequence_terminal_mods_are_copies():
+    from pyopenms import NASequence
+
+    assert NASequence.fromString("AAUC").getFivePrimeMod() is None
+    assert NASequence.fromString("AAUC").getThreePrimeMod() is None
+
+
+# ---------------------------------------------------------------------------
+# MSExperiment.getSpectrum(i)/getChromatogram(i) wrap an unchecked C++
+# spectra_[i]; the copy conversion made an out-of-bounds read unconditional,
+# so the binding has to bounds-check like __getitem__ does.
+# ---------------------------------------------------------------------------
+
+def test_msexperiment_named_getters_bounds_checked():
+    from pyopenms import MSExperiment
+
+    exp = MSExperiment()
+    with pytest.raises(IndexError):
+        exp.getSpectrum(0)
+    with pytest.raises(IndexError):
+        exp.getChromatogram(0)
+
+
+# ---------------------------------------------------------------------------
+# MSImagingExperiment: the per-pixel getter copies, so a per-pixel setter is
+# the write-back route.
+# ---------------------------------------------------------------------------
+
+def test_imaging_experiment_per_pixel_write_back():
+    from pyopenms import (MSExperiment, MSSpectrum, MSImagingExperiment,
+                          MSImagingGeometry)
+
+    exp = MSExperiment()
+    for _ in range(3):
+        spec = MSSpectrum()
+        spec.setRT(1.0)
+        exp.addSpectrum(spec)
+    geom = MSImagingGeometry()
+    geom.setDimensions(2, 2)
+    geom.addPixel(0, 0, 0)
+    geom.addPixel(1, 0, 1)
+    geom.addPixel(0, 1, 2)
+    mie = MSImagingExperiment(exp)
+    mie.setGeometry(geom)
+
+    got = mie.getSpectrum(0, 1)
+    got.setRT(99.0)
+    assert mie.getSpectrum(0, 1).getRT() == 1.0, "per-pixel getter aliases"
+    mie.setSpectrum(0, 1, got)
+    assert mie.getSpectrum(0, 1).getRT() == 99.0
+    assert mie.getSpectrum(0, 0).getRT() == 1.0, "wrong pixel touched"
+    with pytest.raises(Exception):
+        mie.setSpectrum(1, 1, got)                    # pixel not in the geometry
+
+
+# ---------------------------------------------------------------------------
+# SimpleOpenMSSpectraFactory: probes the cached_data marker C++-side (no
+# per-spectrum copies) and both branches resolve their class names. The
+# factory was unreachable before -- both branches raised NameError -- so this
+# is the first test to actually call it.
+# ---------------------------------------------------------------------------
+
+def test_spectrum_access_factory():
+    from pyopenms import (SimpleOpenMSSpectraFactory, MSExperiment, MSSpectrum,
+                          SpectrumAccessOpenMS, DataProcessing)
+
+    exp = MSExperiment()
+    exp.addSpectrum(MSSpectrum())
+    assert exp._contains_cached_data_marker() is False
+    access = SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr(exp)
+    assert isinstance(access, SpectrumAccessOpenMS)
+
+    marked = MSSpectrum()
+    processing = DataProcessing()
+    processing.setMetaValue("cached_data", 1)
+    marked.setDataProcessing([processing])
+    exp.addSpectrum(marked)
+    assert exp._contains_cached_data_marker() is True
+    # SpectrumAccessOpenMSCached is not wrapped in the nanobind port yet
+    with pytest.raises(NotImplementedError):
+        SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr(exp)

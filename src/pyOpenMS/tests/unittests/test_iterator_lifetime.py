@@ -162,6 +162,14 @@ CONTAINERS = [
 
 IDS = [c[0] for c in CONTAINERS]
 
+# NASequence.__iter__ materialises owned Ribonucleotide copies up front: its
+# stored elements are pointers into the process-wide RibonucleotideDB, so
+# yielding them live would alias the shared database. A self-contained
+# iterator has nothing to keep alive, so the keep-alive refcount edge is not
+# expected for it. The two "outlives" tests below still pin its safety
+# directly (they iterate after the container is gone and compare values).
+MATERIALIZING = {"NASequence"}
+
 
 def _expected(factory, extract):
     """Reference values, read while the container is provably alive.
@@ -186,6 +194,9 @@ def test_iterator_holds_a_reference_to_its_container(name, factory, extract):
     increments the container's refcount for as long as the iterator lives, so a
     missing annotation fails here deterministically, with no UB involved.
     """
+    if name in MATERIALIZING:
+        pytest.skip("%s.__iter__ yields owned copies; no keep-alive edge needed" % name)
+
     container = factory()
 
     before = sys.getrefcount(container)

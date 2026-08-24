@@ -112,7 +112,10 @@ mz, intensities = spectrum.get_peaks()
         .def("addChromatogram", [](OpenMS::MSExperiment& self, const OpenMS::MSChromatogram& chromatogram) { return self.addChromatogram(chromatogram); }, "chromatogram"_a, "Adds a chromatogram to the experiment")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, OpenMS::MSChromatogram& chrom) { return self.addChromatogram(chrom); }, "chrom"_a, "Adds a chromatogram to the experiment")
         .def("getChromatograms", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); }, "Returns a copy of the list of chromatograms")
-        .def("getChromatogram", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram { return self.getChromatogram(id); }, "id"_a, "Returns a copy of a single chromatogram by index")
+        .def("getChromatogram", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram {
+            if (id >= self.getNrChromatograms()) throw nb::index_error(); // C++ getChromatogram is an unchecked chromatograms_[id]
+            return self.getChromatogram(id);
+        }, "id"_a, "Returns a copy of a single chromatogram by index")
         .def("getNrSpectra", [](const OpenMS::MSExperiment& self) { return self.getNrSpectra(); }, "Returns the number of MS spectra")
         .def("getNrChromatograms", [](const OpenMS::MSExperiment& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms")
         .def("getMSLevels", [](const OpenMS::MSExperiment& self) { return self.getMSLevels(); }, "Returns a sorted list of unique MS levels in the experiment")
@@ -121,6 +124,25 @@ mz, intensities = spectrum.get_peaks()
         .def("spectrumRanges", [](const OpenMS::MSExperiment& self) -> OpenMS::SpectrumRangeManager { return self.spectrumRanges(); }, "Returns a copy of the spectrum range manager")
         .def("chromatogramRanges", [](const OpenMS::MSExperiment& self) -> OpenMS::ChromatogramRangeManager { return self.chromatogramRanges(); }, "Returns a copy of the chromatogram range manager")
         .def("getSample", [](const OpenMS::MSExperiment& self) -> OpenMS::Sample { return self.getSample(); }, "Returns a copy of the sample description")
+        .def("_contains_cached_data_marker", [](const OpenMS::MSExperiment& self) {
+            // C++-side scan so the Python caller does not have to copy every
+            // spectrum just to inspect DataProcessing metadata.
+            for (const auto& spec : self.getSpectra())
+            {
+                for (const auto& dp : spec.getDataProcessing())
+                {
+                    if (dp && dp->metaValueExists("cached_data")) { return true; }
+                }
+            }
+            for (const auto& chrom : self.getChromatograms())
+            {
+                for (const auto& dp : chrom.getDataProcessing())
+                {
+                    if (dp && dp->metaValueExists("cached_data")) { return true; }
+                }
+            }
+            return false;
+        }, "Returns True if any spectrum or chromatogram carries the 'cached_data' DataProcessing marker")
         .def("setSample", [](OpenMS::MSExperiment& self, const OpenMS::Sample& sample) { return self.setSample(sample); }, "sample"_a, "Sets the sample description")
         .def("getSourceFiles", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::SourceFile> { return self.getSourceFiles(); }, "Returns a copy of the source data file")
         .def("setSourceFiles", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::SourceFile>& source_files) { return self.setSourceFiles(source_files); }, "source_files"_a, "Sets the source data file")
@@ -148,7 +170,10 @@ mz, intensities = spectrum.get_peaks()
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets spectrum at index i")
-        .def("getSpectrum", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum { return self.getSpectrum(id); }, "id"_a, "Returns a copy of a single spectrum by index")
+        .def("getSpectrum", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum {
+            if (id >= self.getNrSpectra()) throw nb::index_error(); // C++ getSpectrum is an unchecked spectra_[id]
+            return self.getSpectrum(id);
+        }, "id"_a, "Returns a copy of a single spectrum by index")
 
         .def("get2DPeakData", [](const OpenMS::MSExperiment& self,
                                 double min_rt, double max_rt,
@@ -656,6 +681,12 @@ and a simple sum-based ion image extraction.
         return self.getSpectrum(x, y);  // by value: element access yields an owned copy
       },
       "x"_a, "y"_a, "Returns a copy of the spectrum at pixel (x, y)")
+    .def(
+      "setSpectrum",
+      [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y, const OpenMS::MSSpectrum& spectrum) {
+        self.getSpectrum(x, y) = spectrum;  // write-back for the copy-returning getter; validates the pixel
+      },
+      "x"_a, "y"_a, "spectrum"_a, "Replaces the spectrum at pixel (x, y)")
     .def("extractIonImage", nb::overload_cast<double, double>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a, "tolerance_ppm"_a)
     .def("extractIonImage", nb::overload_cast<double, double, OpenMS::Size>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a,
          "tolerance_ppm"_a, "region_id"_a)

@@ -10,12 +10,14 @@ put it back with the matching setter.
     s.setInstrumentSettings(settings)           # into the spectrum we hold
     exp[0] = s                                  # into the experiment
 
-Two kinds of accessor still return live references, and both are self-evident
+A few accessors still return live references, and each is self-evident
 at the call site:
 
 * a **fluent builder** returning itself for chaining (``ParquetFilter.eq(...).andNext()``)
 * a **database lookup** returning a shared, process-lifetime entry
   (``ResidueDB``, ``ModificationsDB``)
+* **shared pointers**: ``getDataProcessing()`` copies the list, but its entries
+  are ``shared_ptr``\ s to provenance records shared across spectra by design
 
 Reads are always safe, including through a temporary produced mid-chain:
 nanobind keeps the parent alive for as long as the object taken from it lives.

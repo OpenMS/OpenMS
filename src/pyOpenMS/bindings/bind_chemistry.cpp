@@ -73,13 +73,17 @@ namespace
                            "collected. Obtain the " + kind + " from " + db + " instead.").c_str());
   }
 
-  const OpenMS::Ribonucleotide* requireDBRibonucleotide_(const OpenMS::Ribonucleotide* r)
+  const OpenMS::Ribonucleotide* resolveDBRibonucleotide_(const OpenMS::Ribonucleotide* r)
   {
     if (r != nullptr)
     {
       try
       {
-        if (OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode()) == r) { return r; }
+        // Resolve by code: getters hand out owned copies, so the round trip
+        // (setSequence(getSequence()), set(i, seq[i]), ...) arrives here with a
+        // Python-owned pointer. What gets stored is always the DB's own entry
+        // for that code -- never the caller's pointer -- so nothing can dangle.
+        return OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode());
       }
       catch (const OpenMS::Exception::ElementNotFound&)
       {
@@ -2135,29 +2139,49 @@ the fixed and variable modifications given to the constructor
         .def("__eq__", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) { return self == other; }, "other"_a)
         .def("__ne__", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) { return self != other; }, "other"_a)
         .def("__len__", [](const OpenMS::NASequence& self) { return self.size(); })
-        .def("__getitem__", [](const OpenMS::NASequence& self, size_t i) -> const OpenMS::Ribonucleotide* {
+        .def("__getitem__", [](const OpenMS::NASequence& self, size_t i) -> OpenMS::Ribonucleotide {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference, "i"_a)
+            const OpenMS::Ribonucleotide* r = self[i];
+            if (r == nullptr) { throw nb::value_error("sequence contains an unset ribonucleotide"); }
+            return *r;  // by value: never hand out a mutable alias into RibonucleotideDB
+        }, "i"_a, "Returns a copy of the ribonucleotide at index i")
         .def("__iter__", [](const OpenMS::NASequence& self) {
-            return nb::make_iterator<nb::rv_policy::reference>(nb::type<OpenMS::NASequence>(), "NASequence_iter",
-                self.begin(), self.end());
-        }, nb::keep_alive<0, 1>())
-        .def("get", [](OpenMS::NASequence& self, size_t index) -> const OpenMS::Ribonucleotide* {
+            // Materialise owned copies first: the stored elements are pointers into
+            // RibonucleotideDB, and yielding them would alias the shared database.
+            std::vector<OpenMS::Ribonucleotide> out;
+            out.reserve(self.size());
+            for (const OpenMS::Ribonucleotide* r : self.getSequence())
+            {
+                if (r == nullptr) { throw nb::value_error("sequence contains an unset ribonucleotide"); }
+                out.push_back(*r);
+            }
+            return nb::iter(nb::cast(out));
+        })
+        .def("get", [](OpenMS::NASequence& self, size_t index) -> OpenMS::Ribonucleotide {
             if (index >= self.size()) throw nb::index_error(); // NASequence::get is an unchecked seq_[index]
-            return self.get(index);
-        }, "index"_a, nb::rv_policy::reference, "Returns the ribonucleotide at the given index")
+            const OpenMS::Ribonucleotide* r = self.get(index);
+            if (r == nullptr) { throw nb::value_error("sequence contains an unset ribonucleotide"); }
+            return *r;  // by value: never hand out a mutable alias into RibonucleotideDB
+        }, "index"_a, "Returns a copy of the ribonucleotide at the given index")
         .def("getPrefix", [](const OpenMS::NASequence& self, size_t length) { return self.getPrefix(length); }, "length"_a, "Returns the prefix of the given length")
         .def("getSuffix", [](const OpenMS::NASequence& self, size_t length) { return self.getSuffix(length); }, "length"_a, "Returns the suffix of the given length")
         .def("getSubsequence", [](const OpenMS::NASequence& self, size_t start, size_t length) { return self.getSubsequence(start, length); }, "start"_a, "length"_a, "Returns a subsequence starting at start with the given length")
         .def("set", [](OpenMS::NASequence& self, size_t index, const OpenMS::Ribonucleotide* r) {
             if (index >= self.size()) throw nb::index_error(); // NASequence::set is an unchecked seq_[index]
-            self.set(index, requireDBRibonucleotide_(r));
-        }, "index"_a, "ribonucleotide"_a, "Sets the ribonucleotide at the given index. It must come from RibonucleotideDB, since NASequence stores it by reference")
-        .def("getFivePrimeMod", [](const OpenMS::NASequence& self) -> const OpenMS::Ribonucleotide* { return self.getFivePrimeMod(); }, nb::rv_policy::reference, "Returns the 5' modification, or None if not set")
-        .def("getThreePrimeMod", [](const OpenMS::NASequence& self) -> const OpenMS::Ribonucleotide* { return self.getThreePrimeMod(); }, nb::rv_policy::reference, "Returns the 3' modification, or None if not set")
-        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setFivePrimeMod(requireDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 5' modification. It must come from RibonucleotideDB, since NASequence stores it by reference")
-        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(requireDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 3' modification. It must come from RibonucleotideDB, since NASequence stores it by reference")
+            self.set(index, resolveDBRibonucleotide_(r));
+        }, "index"_a, "ribonucleotide"_a, "Sets the ribonucleotide at the given index, resolved by its code against RibonucleotideDB (NASequence stores the database entry)")
+        .def("getFivePrimeMod", [](const OpenMS::NASequence& self) -> std::optional<OpenMS::Ribonucleotide> {
+            const OpenMS::Ribonucleotide* mod = self.getFivePrimeMod();
+            if (mod == nullptr) return std::nullopt;
+            return *mod;  // by value: never hand out a mutable alias into RibonucleotideDB
+        }, "Returns a copy of the 5' modification, or None if not set")
+        .def("getThreePrimeMod", [](const OpenMS::NASequence& self) -> std::optional<OpenMS::Ribonucleotide> {
+            const OpenMS::Ribonucleotide* mod = self.getThreePrimeMod();
+            if (mod == nullptr) return std::nullopt;
+            return *mod;  // by value: never hand out a mutable alias into RibonucleotideDB
+        }, "Returns a copy of the 3' modification, or None if not set")
+        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setFivePrimeMod(resolveDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 5' modification, resolved by its code against RibonucleotideDB (NASequence stores the database entry)")
+        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(resolveDBRibonucleotide_(mod)); }, "mod"_a, "Sets the 3' modification, resolved by its code against RibonucleotideDB (NASequence stores the database entry)")
         .def("hasFivePrimeMod", &OpenMS::NASequence::hasFivePrimeMod, "Returns true if the sequence has a 5' modification")
         .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
         .def("getSequence", [](const OpenMS::NASequence& self) -> std::vector<OpenMS::Ribonucleotide> {
@@ -2174,9 +2198,9 @@ the fixed and variable modifications given to the constructor
         .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) {
             std::vector<const OpenMS::Ribonucleotide*> checked;
             checked.reserve(seq.size());
-            for (const auto* r : seq) { checked.push_back(requireDBRibonucleotide_(r)); }
+            for (const auto* r : seq) { checked.push_back(resolveDBRibonucleotide_(r)); }
             self.setSequence(checked);
-        }, "seq"_a, "Sets the sequence of ribonucleotides. Each must come from RibonucleotideDB, since NASequence stores them by reference")
+        }, "seq"_a, "Sets the sequence of ribonucleotides, each resolved by its code against RibonucleotideDB (NASequence stores the database entries)")
         .def("__repr__", [](const OpenMS::NASequence& self) {
             std::ostringstream oss;
             oss << "NASequence(sequence='" << std::string(self.toString())

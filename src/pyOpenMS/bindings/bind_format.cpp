@@ -505,7 +505,7 @@ Computes a SHA-1 hash of the file content
            "Checks consistency of output file type from filename and requested type. Returns consistent type or UNKNOWN on conflict")
 
         .def("getFeatOptions", [](OpenMS::FileHandler& self) -> OpenMS::FeatureFileOptions { return self.getFeatOptions(); },
-            "Mutable access to the feature file options for loading/storing")
+            "Returns a copy of the feature file options for loading/storing")
         .def("setFeatOptions", [](OpenMS::FileHandler& self, const OpenMS::FeatureFileOptions& opts) { self.setFeatOptions(opts); }, "options"_a,
             "Set feature file options for loading/storing")
 

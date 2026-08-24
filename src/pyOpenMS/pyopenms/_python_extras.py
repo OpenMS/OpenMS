@@ -83,24 +83,20 @@ class SimpleOpenMSSpectraFactory:
 
     @staticmethod
     def getSpectrumAccessOpenMSPtr(exp):
-        # exp[i] and getChromatograms() hand out owned copies (see OWNERSHIP.md), so
-        # stop at the first "cached_data" marker rather than copying the whole run.
-        is_cached = False
+        # Deferred import: this module is loaded from pyopenms/__init__.py, so the
+        # binding names are not importable at module level. (Both branches below
+        # raised NameError before this import existed -- nothing ever called them.)
+        from . import SpectrumAccessOpenMS
 
-        for i in range(exp.size()):
-            if any(dp.metaValueExists("cached_data") for dp in exp[i].getDataProcessing()):
-                is_cached = True
-                break
-
-        if not is_cached:
-            for chrom in exp.getChromatograms():
-                if any(dp.metaValueExists("cached_data") for dp in chrom.getDataProcessing()):
-                    is_cached = True
-                    break
-
-        if is_cached:
-            return SpectrumAccessOpenMSCached( exp.getLoadedFilePath() )
-        else:
-            return SpectrumAccessOpenMS( exp )
+        # Scans C++-side: exp[i] and getChromatograms() hand out owned copies
+        # (see OWNERSHIP.md), so probing the marker from Python would copy
+        # every spectrum in the run just to read DataProcessing metadata.
+        if exp._contains_cached_data_marker():
+            raise NotImplementedError(
+                "This experiment carries the 'cached_data' marker, but "
+                "SpectrumAccessOpenMSCached is not wrapped in the nanobind port yet. "
+                "Load the data uncached, or use SpectrumAccessOpenMSInMemory."
+            )
+        return SpectrumAccessOpenMS(exp)
 
 

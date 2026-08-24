@@ -120,8 +120,8 @@ PyOpenMS:
       when the container reallocates (push_back) and no longer silently re-labels a different element
       when the container is sorted (sortByRT); AASequence element access no longer exposes mutable
       handles into the process-wide ResidueDB
-    - see src/pyOpenMS/OWNERSHIP.md for the full rule, the two documented exceptions (fluent builders
-      and database lookups) and the migration patterns
+    - see src/pyOpenMS/OWNERSHIP.md for the full rule, the three documented exceptions (fluent
+      builders, database lookups, and shared DataProcessing entries) and the migration patterns
   - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
     when the replacement array has the same length (#9792)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
