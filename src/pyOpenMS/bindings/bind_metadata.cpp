@@ -533,7 +533,7 @@ This class supports direct iteration in Python.
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // by value: element access yields an owned copy
         }, "i"_a, "Returns a copy of the identification at index i")
-        .def("get_peptide_identification_view", [](OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification& {
+        .def("peptide_identification_view", [](OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal, "i"_a,

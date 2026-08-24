@@ -2868,7 +2868,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("get_data", [](const OSBDA& self) {
             return self.data;
         }, "Access to a copy of the underlying data")
-        .def("get_data_view", [](nb::object self_obj) -> nb::object {
+        .def("data_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSBDA&>(self_obj);
             double* data_ptr = self.data.empty() ? nullptr : self.data.data();
             size_t shape[] = {self.data.size()};
@@ -2949,7 +2949,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get m/z array as list")
-        .def("get_mz_array_view", [](OSSpec& self) -> nb::object {
+        .def("mz_array_view", [](OSSpec& self) -> nb::object {
             auto mz_arr = self.getMZArray();
             if (!mz_arr || mz_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -2965,7 +2965,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get intensity array as list")
-        .def("get_intensity_array_view", [](OSSpec& self) -> nb::object {
+        .def("intensity_array_view", [](OSSpec& self) -> nb::object {
             auto int_arr = self.getIntensityArray();
             if (!int_arr || int_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -2981,7 +2981,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return nb::none();
             return nb::cast(arr->data);
         }, "Get drift time array or None")
-        .def("get_drift_time_array_view", [](OSSpec& self) -> nb::object {
+        .def("drift_time_array_view", [](OSSpec& self) -> nb::object {
             auto arr = self.getDriftTimeArray();
             if (!arr || arr->data.empty()) {
                 size_t shape[] = {0};
@@ -3041,7 +3041,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get intensity array as list")
-        .def("get_time_array_view", [](OSChrom& self) -> nb::object {
+        .def("time_array_view", [](OSChrom& self) -> nb::object {
             auto time_arr = self.getTimeArray();
             if (!time_arr || time_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -3052,7 +3052,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, owner).cast();
         }, "Get time array as writable view (empty array if no data)")
-        .def("get_intensity_array_view", [](OSChrom& self) -> nb::object {
+        .def("intensity_array_view", [](OSChrom& self) -> nb::object {
             auto int_arr = self.getIntensityArray();
             if (!int_arr || int_arr->data.empty()) {
                 size_t shape[] = {0};

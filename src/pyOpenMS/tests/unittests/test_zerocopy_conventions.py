@@ -14,25 +14,25 @@ def test_view_returns_empty_array_on_empty():
     """All _view methods return empty arrays (not None) when container is empty."""
     # FloatDataArray
     fda = pyopenms.FloatDataArray()
-    arr = fda.get_data_view()
+    arr = fda.data_view()
     assert isinstance(arr, np.ndarray)
     assert len(arr) == 0
     assert arr.dtype == np.float32
 
     # IntegerDataArray
     ida = pyopenms.IntegerDataArray()
-    arr = ida.get_data_view()
+    arr = ida.data_view()
     assert isinstance(arr, np.ndarray)
     assert len(arr) == 0
     assert arr.dtype == np.int32
 
     # MSSpectrum drift time (no IM data — None is correct here, data doesn't exist)
     spec = pyopenms.MSSpectrum()
-    assert spec.get_drift_time_array_view() is None
+    assert spec.drift_time_array_view() is None
 
     # MatrixDouble (empty)
     mat = pyopenms.MatrixDouble()
-    arr = mat.get_matrix_view()
+    arr = mat.matrix_view()
     assert isinstance(arr, np.ndarray)
     assert arr.size == 0
 
@@ -42,7 +42,7 @@ def test_view_returns_typed_array():
     fda = pyopenms.FloatDataArray()
     fda.push_back(1.0)
     fda.push_back(2.0)
-    arr = fda.get_data_view()
+    arr = fda.data_view()
     assert arr.dtype == np.float32
     assert arr.shape == (2,)
     # Direct arithmetic works on _view arrays
@@ -53,19 +53,19 @@ def test_view_returns_typed_array():
 def test_struct_returns_empty_array_on_empty():
     """All _struct methods return empty structured array (not None) when container is empty."""
     spec = pyopenms.MSSpectrum()
-    arr = spec.get_peaks_struct()
+    arr = spec.peaks_struct()
     assert isinstance(arr, np.ndarray)
     assert len(arr) == 0
     assert 'mz' in arr.dtype.names
 
     chrom = pyopenms.MSChromatogram()
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
     assert isinstance(arr, np.ndarray)
     assert len(arr) == 0
     assert 'rt' in arr.dtype.names
 
     mob = pyopenms.Mobilogram()
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
     assert isinstance(arr, np.ndarray)
     assert len(arr) == 0
     assert 'mobility' in arr.dtype.names
@@ -78,7 +78,7 @@ def test_struct_returns_structured_array():
     p.setMZ(100.0)
     p.setIntensity(50.0)
     spec.push_back(p)
-    arr = spec.get_peaks_struct()
+    arr = spec.peaks_struct()
     assert arr.dtype.names is not None
     assert 'mz' in arr.dtype.names
     assert 'intensity' in arr.dtype.names
@@ -99,7 +99,7 @@ def test_struct_dtype_matches_cpp_peak_layout():
     mob.set_peaks(([0.5, 0.75], [5.0, 6.0]))
 
     for obj, pos_field in [(spec, 'mz'), (chrom, 'rt'), (mob, 'mobility')]:
-        dt = obj.get_peaks_struct().dtype
+        dt = obj.peaks_struct().dtype
         assert dt.names == (pos_field, 'intensity')
         assert dt.itemsize == 16
         assert dt.fields[pos_field][1] == 0
@@ -115,26 +115,26 @@ def test_struct_view_reads_the_same_values_as_the_scalar_accessors():
     """
     spec = pyopenms.MSSpectrum()
     spec.set_peaks(([100.5, 200.25, 300.125], [11.0, 22.0, 33.0]))
-    arr = spec.get_peaks_struct()
+    arr = spec.peaks_struct()
     assert [p.getMZ() for p in spec] == list(arr['mz'])
     assert [p.getIntensity() for p in spec] == list(arr['intensity'])
 
     chrom = pyopenms.MSChromatogram()
     chrom.set_peaks(([10.5, 20.25, 30.125], [44.0, 55.0, 66.0]))
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
     assert [p.getRT() for p in chrom] == list(arr['rt'])
     assert [p.getIntensity() for p in chrom] == list(arr['intensity'])
 
     mob = pyopenms.Mobilogram()
     mob.set_peaks(([0.5, 0.75, 1.25], [77.0, 88.0, 99.0]))
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
     assert [p.getMobility() for p in mob] == list(arr['mobility'])
     assert [p.getIntensity() for p in mob] == list(arr['intensity'])
 
 
 def test_no_public_as_view_methods():
     """No public methods should use _as_view suffix (removed convention)."""
-    # get_matrix_as_view is an intentional deprecated alias for get_matrix_view
+    # get_matrix_as_view is an intentional deprecated alias for matrix_view
     deprecated_aliases = {
         'MatrixDouble': {'get_matrix_as_view'},
     }
@@ -153,7 +153,7 @@ def test_view_writeback():
     """All _view methods return writable views (modifications affect C++ object)."""
     fda = pyopenms.FloatDataArray()
     fda.push_back(1.0)
-    arr = fda.get_data_view()
+    arr = fda.data_view()
     arr[0] = 42.0
     assert fda[0] == 42.0
 
@@ -165,7 +165,7 @@ def test_struct_writeback():
     p.setMZ(100.0)
     p.setIntensity(50.0)
     spec.push_back(p)
-    arr = spec.get_peaks_struct()
+    arr = spec.peaks_struct()
     arr['intensity'][0] = np.float32(999.0)
     assert spec[0].getIntensity() == np.float32(999.0)
 
@@ -174,7 +174,7 @@ def test_struct_writeback():
     cp.setRT(1.0)
     cp.setIntensity(50.0)
     chrom.push_back(cp)
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
     arr['intensity'][0] = np.float32(999.0)
     _, ints = chrom.get_peaks()
     assert np.isclose(ints[0], np.float32(999.0))
@@ -192,7 +192,7 @@ def test_deprecated_mv_aliases_emit_warning():
         arr = fda.get_data_mv()
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
-        assert "get_data_view" in str(w[0].message)
+        assert "data_view" in str(w[0].message)
     assert arr is not None
     assert arr.dtype == np.float32
 
@@ -203,5 +203,5 @@ def test_deprecated_mv_aliases_emit_warning():
         view = mat.get_matrix_mv()
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
-        assert "get_matrix_view" in str(w[0].message)
+        assert "matrix_view" in str(w[0].message)
     assert view is not None

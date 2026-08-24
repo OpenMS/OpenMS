@@ -519,13 +519,13 @@ def to_feature_qpx(self, qpx_version="1.1", creator="pyopenms", software_provide
 
 
 @addon("ConsensusMap")
-def get_consensus_features_view(self):
-    """Returns a list of live views of all consensus features (see get_consensus_feature_view)."""
-    return [self.get_consensus_feature_view(i) for i in range(self.size())]
+def consensus_feature_views(self):
+    """Returns a list of live views of all consensus features (see consensus_feature_view)."""
+    return [self.consensus_feature_view(i) for i in range(self.size())]
 
 
 @addon("ConsensusMap")
 def iter_consensus_feature_views(self):
-    """Yields live views of the consensus features, one at a time (see get_consensus_feature_view)."""
+    """Yields live views of the consensus features, one at a time (see consensus_feature_view)."""
     for i in range(self.size()):
-        yield self.get_consensus_feature_view(i)
+        yield self.consensus_feature_view(i)

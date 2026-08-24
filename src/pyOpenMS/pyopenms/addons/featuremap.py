@@ -158,13 +158,13 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
 
 
 @addon("FeatureMap")
-def get_features_view(self):
-    """Returns a list of live views of all features (see get_feature_view)."""
-    return [self.get_feature_view(i) for i in range(self.size())]
+def feature_views(self):
+    """Returns a list of live views of all features (see feature_view)."""
+    return [self.feature_view(i) for i in range(self.size())]
 
 
 @addon("FeatureMap")
 def iter_feature_views(self):
-    """Yields live views of the features, one at a time (see get_feature_view)."""
+    """Yields live views of the features, one at a time (see feature_view)."""
     for i in range(self.size()):
-        yield self.get_feature_view(i)
+        yield self.feature_view(i)

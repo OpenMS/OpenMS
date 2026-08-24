@@ -97,7 +97,7 @@ def test_ms_imaging_geometry_basic():
 
 def test_ms_imaging_geometry_pixels_struct():
     g = _make_fixture().getGeometry()
-    pix = g.get_pixels_struct()
+    pix = g.pixels_struct()
     assert pix.dtype.names == ("x", "y", "spectrum_index")
     assert pix.dtype.itemsize == 16
     assert pix.shape == (3,)

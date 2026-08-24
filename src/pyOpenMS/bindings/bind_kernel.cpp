@@ -110,9 +110,9 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// ABI guards for zero-copy structured array access (peaks_struct dtype depends on these).
 // The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
-// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+// is refactored away; it also restates the offsets peaks_struct publishes to Python.
 using MobilityPeak1DLayout = pyopenms::PeakLayout<OpenMS::MobilityPeak1D>;
 static_assert(MobilityPeak1DLayout::position_offset == 0 && MobilityPeak1DLayout::intensity_offset == 8,
     "MobilityPeak1D's structured dtype is documented as mobility (float64) at 0, intensity (float32) at 8");
@@ -327,7 +327,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
         .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
-        .def("get_chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
+        .def("chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
             if (i >= self.getChromatograms().size()) throw nb::index_error();
             return self.getChromatograms()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -344,7 +344,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
         .def("getFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getFeatures(); })
         .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MRMFeature> { return self.getFeaturesMuteable(); })
-        .def("get_feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MRMFeature& {
+        .def("feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MRMFeature& {
             if (i >= self.getFeaturesMuteable().size()) throw nb::index_error();
             return self.getFeaturesMuteable()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -384,7 +384,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
         .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
-        .def("get_chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
+        .def("chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
             if (i >= self.getChromatograms().size()) throw nb::index_error();
             return self.getChromatograms()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -401,7 +401,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
         .def("getFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getFeatures(); })
         .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MRMFeature> { return self.getFeaturesMuteable(); })
-        .def("get_feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MRMFeature& {
+        .def("feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MRMFeature& {
             if (i >= self.getFeaturesMuteable().size()) throw nb::index_error();
             return self.getFeaturesMuteable()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -1431,7 +1431,7 @@ Commonly used for storing ion mobility values or other per-peak float annotation
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_view", [](nb::object self_obj) {
+        .def("data_view", [](nb::object self_obj) {
             // Return a writable view (zero-copy), empty array if empty
             auto& self = nb::cast<OpenMS::DataArrays::FloatDataArray&>(self_obj);
             float* data_ptr = self.empty() ? nullptr : self.data();
@@ -1532,7 +1532,7 @@ Used for storing per-peak integer annotations.
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_view", [](nb::object self_obj) {
+        .def("data_view", [](nb::object self_obj) {
             // Return a writable view (zero-copy), empty array if empty
             auto& self = nb::cast<OpenMS::DataArrays::IntegerDataArray&>(self_obj);
             int32_t* data_ptr = self.empty() ? nullptr : self.data();
@@ -1635,7 +1635,7 @@ etc) is implicit
 RangeManagerMobInt
 
 The representation of a 1D ion mobilogram.
-Raw data access is provided by `get_peaks`, `get_peaks_struct`, and `set_peaks`.
+Raw data access is provided by `get_peaks`, `peaks_struct`, and `set_peaks`.
 Indexing and iteration yield copies of the peaks; write changes back with mob[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 Usage:
@@ -1733,7 +1733,7 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying MobilityPeak1D array (AoS layout).")
 
-        .def("get_peaks_struct",
+        .def("peaks_struct",
             [](nb::object self_obj) -> nb::object {
                 auto& self = nb::cast<OpenMS::Mobilogram&>(self_obj);
                 size_t n = self.size();
@@ -3448,7 +3448,7 @@ This class supports direct iteration in Python.
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // by value: element access yields an owned copy
         }, "i"_a, "Returns a copy of the consensus feature at index i")
-        .def("get_consensus_feature_view", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature& {
+        .def("consensus_feature_view", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -3659,7 +3659,7 @@ After calling this, the map will be empty (size() returns 0)
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // by value: element access yields an owned copy
         }, "i"_a, "Returns a copy of the feature at index i")
-        .def("get_feature_view", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature& {
+        .def("feature_view", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal, "i"_a,

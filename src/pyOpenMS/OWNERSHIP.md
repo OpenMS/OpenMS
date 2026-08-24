@@ -97,7 +97,7 @@ applies here as the safe habit: build the list you want and call
 
 Outside these three, no *getter* hands out a live alias. `reference_internal`
 does still appear in the bindings, in two places that are not getters: the
-zero-copy numpy views (`get_peaks_view()` and friends), where the policy keeps
+zero-copy numpy views (`data_view()`, `peaks_struct()` and friends), where the policy keeps
 the owning object alive for as long as the view exists — which is what makes
 those views safe — and the in-place operators and fluent builders above
 (`AASequence.__iadd__`, `EmpiricalFormula.__iadd__` / `__isub__` /
@@ -107,12 +107,15 @@ they were called on. A future audit of `reference_internal` should expect both.
 ## Opting into views: the `_view` family
 
 When copying is too expensive and you accept the hazards, ask for a **view** —
-an accessor whose *name* announces that it aliases the object's storage:
+an accessor whose *name* announces that it aliases the object's storage. View
+accessors never carry the `get_` prefix: `get_*` always hands you an owned
+copy, `*_view` / `*_views` / `*_struct` always alias. The prefix *is* the
+ownership contract.
 
 | Form | Naming | Example |
 |---|---|---|
-| Single aliased element | singular + `_view` | `exp.get_spectrum_view(i)`, `fm.get_feature_view(i)`, `exp.get_chromatogram_view(i)` |
-| Aliased collection | plural + `_view` | `exp.get_spectra_view()`, `fm.get_features_view()`, `exp.get_chromatograms_view()` |
+| Single aliased element | `<singular>_view(i)` | `exp.spectrum_view(i)`, `fm.feature_view(i)`, `exp.chromatogram_view(i)` |
+| List of aliased elements | `<singular>_views()` | `exp.spectrum_views()`, `fm.feature_views()`, `exp.chromatogram_views()` |
 | Iterator of aliased elements | `iter_<singular>_views()` | `exp.iter_spectrum_views()`, `fm.iter_feature_views()`, `exp.iter_chromatogram_views()` |
 
 The contract, stated once for the whole family:
@@ -130,15 +133,17 @@ for spec in exp.iter_spectrum_views():
     spec.setRT(spec.getRT() + shift)      # lands directly, nothing copied
 ```
 
-The same suffix already marks the zero-copy numpy views (`get_peaks_view()`,
-`get_data_view()`); this extends it to object element access. The family is
+The same convention already marks the zero-copy numpy views (`data_view()`,
+`matrix_view()`, `peaks_struct()`); this extends it to object element access.
+The family is
 available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features),
 `ConsensusMap` (consensus features), `PeptideIdentificationList`
 (identifications), `MRMTransitionGroup` (features, chromatograms), and
 `MSSpectrum`/`MSChromatogram` (float/integer/string data arrays) — where
-`spec.get_float_data_array_view(i).get_data_view()` chains into a fully
-zero-copy numpy view of spectrum-owned storage. Anything *not* named `_view`
-returns a copy, as the rule above says.
+`spec.float_data_array_view(i).data_view()` chains into a fully
+zero-copy numpy view of spectrum-owned storage. Anything named `get_*`
+returns a copy you own, as the rule above says (with only its three
+documented exceptions).
 
 pyOpenMS's own DataFrame exports (`to_df`, `get_ion_df`, ...) iterate views
 internally, so the copy rule costs nothing on those paths.

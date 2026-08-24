@@ -79,7 +79,7 @@ inline void installIonMobilityArray(OpenMS::MSSpectrum& self, OpenMS::DataArrays
     auto& dest = self.getFloatDataArrays()[self.getIMData().first];
     // Move-assigning a FloatDataArray deallocates the destination's float buffer -- the class
     // derives from std::vector<float> -- which dangles any zero-copy view a caller already holds.
-    // get_drift_time_array_view() and FloatDataArray.get_data_view() both capture arr.data() and
+    // drift_time_array_view() and FloatDataArray.data_view() both capture arr.data() and
     // keep only the owning Python object alive, not the buffer, so they cannot notice the free.
     // When the replacement is the same length the buffer can be reused, which keeps those views
     // valid and simply lets them observe the new values.
@@ -148,9 +148,9 @@ inline void setSpectrumPeaks(OpenMS::MSSpectrum& self, nb::object mz_obj, nb::ob
     if (im_array) installIonMobilityArray(self, std::move(*im_array));
 }
 
-// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// ABI guards for zero-copy structured array access (peaks_struct dtype depends on these).
 // The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
-// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+// is refactored away; it also restates the offsets peaks_struct publishes to Python.
 using Peak1DLayout = pyopenms::PeakLayout<OpenMS::Peak1D>;
 static_assert(Peak1DLayout::position_offset == 0 && Peak1DLayout::intensity_offset == 8,
     "Peak1D's structured dtype is documented as mz (float64) at 0, intensity (float32) at 8");
@@ -333,7 +333,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying Peak1D array (AoS layout).")
 
-        .def("get_peaks_struct",
+        .def("peaks_struct",
             [](nb::object self_obj) -> nb::object {
                 auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
                 size_t n = self.size();
@@ -464,7 +464,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns drift time array if ion mobility data exists, else None")
 
-        .def("get_drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+        .def("drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
             // Writable zero-copy view into the IM float data array
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
@@ -496,11 +496,11 @@ array leaves those unset, matching what IMDataConverter produces.
 )doc")
 
         .def("_float_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getFloatDataArrays().size(); })
-        .def("get_float_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::FloatDataArray& {
+        .def("float_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::FloatDataArray& {
             if (i >= self.getFloatDataArrays().size()) throw nb::index_error();
             return self.getFloatDataArrays()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
-            "Returns a live view of the float data array at index i. Chain .get_data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFloatDataArrays()[i].")
+            "Returns a live view of the float data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFloatDataArrays()[i].")
         .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray> {
             return self.getFloatDataArrays();
         }, "Returns the float data arrays")
@@ -510,11 +510,11 @@ array leaves those unset, matching what IMDataConverter produces.
         }, "arrays"_a, "Set the float data arrays")
 
         .def("_integer_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getIntegerDataArrays().size(); })
-        .def("get_integer_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::IntegerDataArray& {
+        .def("integer_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::IntegerDataArray& {
             if (i >= self.getIntegerDataArrays().size()) throw nb::index_error();
             return self.getIntegerDataArrays()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
-            "Returns a live view of the integer data array at index i. Chain .get_data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getIntegerDataArrays()[i].")
+            "Returns a live view of the integer data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getIntegerDataArrays()[i].")
         .def("getIntegerDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray> {
             return self.getIntegerDataArrays();
         }, "Returns the integer data arrays")
@@ -524,11 +524,11 @@ array leaves those unset, matching what IMDataConverter produces.
         }, "arrays"_a, "Set the integer data arrays")
 
         .def("_string_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getStringDataArrays().size(); })
-        .def("get_string_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::StringDataArray& {
+        .def("string_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::StringDataArray& {
             if (i >= self.getStringDataArrays().size()) throw nb::index_error();
             return self.getStringDataArrays()[i];
         }, nb::rv_policy::reference_internal, "i"_a,
-            "Returns a live view of the string data array at index i. Chain .get_data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getStringDataArrays()[i].")
+            "Returns a live view of the string data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getStringDataArrays()[i].")
         .def("getStringDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::StringDataArray> {
             return self.getStringDataArrays();
         }, "Returns the string data arrays")

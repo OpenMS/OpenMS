@@ -341,7 +341,7 @@ Common methods to add for container-like classes:
 - `__repr__()`: Return `f"ClassName(key_prop={value}, ...)"` with important properties
 - `__str__()`: Delegate to `__repr__()` or return simpler output
 - `get_data()`: Return safe copy of data (for DataArray classes)
-- `get_data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Note: `get_data_mv()` is a deprecated alias.
+- `data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Note: `get_data_mv()` is a deprecated alias.
 
 ### Zero-copy API Naming Conventions
 
@@ -353,7 +353,7 @@ When exposing zero-copy numpy access to C++ memory, use these suffixes consisten
 | `_struct` | Structured `ndarray` with named fields | Empty structured `ndarray` (not `None`) | Multiple fields together (e.g. mz + intensity) |
 
 **Rules:**
-- `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `get_drift_time_array_view()` on a spectrum without IM data — returns `None`).
+- `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `drift_time_array_view()` on a spectrum without IM data — returns `None`).
 - `_struct` methods **always** return a structured `ndarray` (empty if container is empty), never `None`.
 - The old `_mv` suffix is **deprecated**; use `_view` for new bindings. Deprecated aliases live in `pyopenms/addons/deprecated_mv_aliases.py`.
 - Do not use `_as_view` for new methods.

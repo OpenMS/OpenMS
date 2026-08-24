@@ -112,7 +112,7 @@ mz, intensities = spectrum.get_peaks()
         .def("addChromatogram", [](OpenMS::MSExperiment& self, const OpenMS::MSChromatogram& chromatogram) { return self.addChromatogram(chromatogram); }, "chromatogram"_a, "Adds a chromatogram to the experiment")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, OpenMS::MSChromatogram& chrom) { return self.addChromatogram(chrom); }, "chrom"_a, "Adds a chromatogram to the experiment")
         .def("getChromatograms", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); }, "Returns a copy of the list of chromatograms")
-        .def("get_chromatogram_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSChromatogram& {
+        .def("chromatogram_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSChromatogram& {
             if (i >= self.getNrChromatograms()) throw nb::index_error();
             return self.getChromatogram(i);
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -175,7 +175,7 @@ mz, intensities = spectrum.get_peaks()
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets spectrum at index i")
-        .def("get_spectrum_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+        .def("spectrum_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
             if (i >= self.getNrSpectra()) throw nb::index_error();
             return self.getSpectrum(i);
         }, nb::rv_policy::reference_internal, "i"_a,
@@ -597,7 +597,7 @@ Regions are either Rectangle based and defined by their x/y minima and maxima or
     = nb::class_<OpenMS::MSImagingGeometry>(m, "MSImagingGeometry", R"doc(
 Pixel grid metadata and (x, y) -> spectrum_index lookup for MSI data.
 
-Coordinates are zero-based. Use get_pixels_struct() for a zero-copy
+Coordinates are zero-based. Use pixels_struct() for a zero-copy
 structured numpy view of all pixels at once.
 )doc")
         .def(nb::init<>())
@@ -620,7 +620,7 @@ structured numpy view of all pixels at once.
         .def("clear", &OpenMS::MSImagingGeometry::clear)
 
         .def(
-          "get_pixels_struct",
+          "pixels_struct",
           [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OpenMS::MSImagingGeometry&>(self_obj);
             const auto& pixels = self.getPixels();

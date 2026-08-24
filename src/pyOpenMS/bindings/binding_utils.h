@@ -312,7 +312,7 @@ void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPol
 /// Drop the data arrays that a peak count of @p n stranded. Only PeakMetadataPolicy::Clear acts.
 ///
 /// Call this *after* the peaks have been written, never before. The incoming intensity/position
-/// arrays may alias the very storage this releases -- FloatDataArray.get_data_view() hands out a
+/// arrays may alias the very storage this releases -- FloatDataArray.data_view() hands out a
 /// zero-copy view into a data array, and getFloatDataArrays() exposes the container's own arrays
 /// by reference -- so releasing it up front would leave the fill loop reading freed memory.
 /// Deferring also means a throwing resize() cannot leave the arrays already dropped.

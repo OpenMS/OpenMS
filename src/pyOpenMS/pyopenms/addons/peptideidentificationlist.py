@@ -851,7 +851,7 @@ def update_scores_from_df(self, df, main_score_name):
         pid_index = int(row["P_ID"])
         # Edit through a live view: setScoreType/setHits land directly, so the
         # only copy is the hits list we actually modify -- see OWNERSHIP.md
-        pi = self.get_peptide_identification_view(pid_index)
+        pi = self.peptide_identification_view(pid_index)
         pi.setScoreType(main_score_name)
         hits = pi.getHits()
         if len(hits) > 0:
@@ -903,13 +903,13 @@ def get_psm_df(self, *args, **kwargs):
 
 
 @addon("PeptideIdentificationList")
-def get_peptide_identifications_view(self):
-    """Returns a list of live views of all identifications (see get_peptide_identification_view)."""
-    return [self.get_peptide_identification_view(i) for i in range(self.size())]
+def peptide_identification_views(self):
+    """Returns a list of live views of all identifications (see peptide_identification_view)."""
+    return [self.peptide_identification_view(i) for i in range(self.size())]
 
 
 @addon("PeptideIdentificationList")
 def iter_peptide_identification_views(self):
-    """Yields live views of the identifications, one at a time (see get_peptide_identification_view)."""
+    """Yields live views of the identifications, one at a time (see peptide_identification_view)."""
     for i in range(self.size()):
-        yield self.get_peptide_identification_view(i)
+        yield self.peptide_identification_view(i)
