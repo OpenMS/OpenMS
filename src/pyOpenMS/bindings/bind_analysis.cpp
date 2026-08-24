@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
@@ -3177,6 +3178,29 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Get chromatogram by index")
         .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
         .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMS& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
+        ;
+
+
+    // -----------------------------------------------------------------------
+    // SpectrumAccessOpenMSCached
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SpectrumAccessOpenMSCached>(m, "SpectrumAccessOpenMSCached",
+        R"doc(Spectrum access backed by an on-disk CachedmzML cache.
+
+Metadata is served from memory; peak data is read on demand from the
+side-car file at ``filename + ".cached"`` (written by ``CachedmzML.store()``),
+so runs far larger than RAM can be processed. Not thread-safe: a single
+file stream is seeked per request, so parallel readers each need their
+own copy of this object.)doc")
+        .def(nb::init<const std::string&>(), "filename"_a)
+        .def("__copy__", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return OpenMS::SpectrumAccessOpenMSCached(self); })
+        .def("__deepcopy__", [](const OpenMS::SpectrumAccessOpenMSCached& self, nb::dict) { return OpenMS::SpectrumAccessOpenMSCached(self); }, "memo"_a)
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrSpectra(); }, "Get number of spectra")
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrChromatograms(); }, "Get number of chromatograms")
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Read one spectrum from the cache file")
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Read one chromatogram from the cache file")
+        .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
+        .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMSCached& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
         ;
 
 
