@@ -188,6 +188,14 @@ Iteration
 
 This iterates through all available :py:class:`~.MSSpectra`, we can also access spectra through the ``[]`` operator:
 
+.. note::
+
+   Iteration and indexing hand out independent copies: keeping or editing a
+   spectrum obtained this way does not modify ``exp``. When you need
+   zero-copy access to a large experiment, iterate live views instead --
+   ``for spec in exp.iter_spectrum_views(): ...`` -- as explained in the
+   `MS data <ms_data.html>`_ chapter.
+
 .. code-block:: python
 
     print("MS Level:", exp[1].ms_level)
