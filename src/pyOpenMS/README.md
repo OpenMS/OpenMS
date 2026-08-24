@@ -356,7 +356,7 @@ When exposing zero-copy access to C++ memory, use these suffixes consistently:
 |--------|---------|----------------|----------|
 | `_view` | Typed 1-D `ndarray<T>` (writable) | Empty `ndarray` (not `None`) | Single array column (mz, intensity, rt…) |
 | `_struct` | Structured `ndarray` with named fields | Empty structured `ndarray` (not `None`) | Multiple fields together (e.g. mz + intensity) |
-| `<singular>_view(i)` / `<singular>_views()` / `iter_<singular>_views()` | Live element view / list / iterator of views (`reference_internal`, parent kept alive) | `IndexError` on out-of-range | Aliasing object element access (`spectrum_view(i)`, `feature_views()`) |
+| `<singular>_view(i)` / `<singular>_views()` / `iter_<singular>_views()` | Live element view / list / iterator of views (`reference_internal`, parent kept alive) | `IndexError` out of range (indexed form); empty list / exhausted iterator (plural forms) | Aliasing object element access (`spectrum_view(i)`, `feature_views()`) |
 
 **Rules:**
 - `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `drift_time_array_view()` on a spectrum without IM data — returns `None`).

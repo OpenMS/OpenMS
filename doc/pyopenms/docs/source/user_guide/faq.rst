@@ -20,7 +20,8 @@ For zero-copy access — reading large data without duplicating it, or
 editing in place — use the *view* accessors, whose names end in ``_view``
 (``exp.spectrum_view(i)``, ``exp.iter_spectrum_views()``); edits through a
 view land directly, but the view is only valid until the container is
-resized or sorted. The rule of thumb: anything called ``get_*`` returns a
+resized or reordered (sorting included). The rule of thumb: anything
+called ``get_*`` returns a
 copy you own; ``_view``/``_views``/``_struct`` methods alias. See the
 `MS data <ms_data.html>`_ chapter for details.
 
