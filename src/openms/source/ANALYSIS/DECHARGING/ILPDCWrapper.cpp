@@ -162,7 +162,6 @@ namespace OpenMS
     /* swap pairs, such that edges are order by cliques (so we can make clean cuts) */
     pairs.swap(pairs_clique_ordered);
 
-    //PairsType pt2 = pairs;
     StopWatch time1;
     time1.start();
 
@@ -279,8 +278,6 @@ namespace OpenMS
       }
       else
       {
-        // DEBUG
-        //std::cerr << " edge " << iColumn << " with " << value << "\n";
       }
     }
 
@@ -325,8 +322,6 @@ namespace OpenMS
       if (score_max < score)
         score_max = score;
 
-      // DEBUG:
-      //std::cerr << "MIP: edge#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
     }
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
@@ -458,8 +453,6 @@ namespace OpenMS
       }
       else
       {
-        // DEBUG
-        //std::cerr << " edge " << iColumn << " with " << value << "\n";
       }
     }
     if (verbose_level > 2)
@@ -467,7 +460,6 @@ namespace OpenMS
 
     for (std::unordered_map<std::string, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {
-      //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
     }
 
     double opt_value = build.getObjectiveValue();
@@ -484,23 +476,10 @@ namespace OpenMS
       e =std::string(getenv("M"));
     if (e.empty())
     {
-      //std::cout << "1";
       score = pair.getCompomer().getLogP();
-      /*double charge_enhance = 0;
-
-      if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
-          charge_enhance += log(0.9); else charge_enhance += log(0.1);
-
-      if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge())
-          charge_enhance += log(0.9); else charge_enhance += log(0.1);
-
-      score += charge_enhance;
-      */
-
     }
     else
     {
-      //std::cout << "2";
       double rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
       // enhance correct charge
       double charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
@@ -509,8 +488,6 @@ namespace OpenMS
                               ? 100 : 1;
       score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
     }
-
-    //std::cout << "logscore: " << score << "\n";
 
     return score;
   }

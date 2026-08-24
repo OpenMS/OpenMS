@@ -143,12 +143,10 @@ namespace OpenMS
         double end_value = dists[end_index];
         double bin_step = fabs(end_value - start_value) / 99.999; //ensure that we have 100 bins
         Math::Histogram<> hist(start_value, end_value, bin_step);
-        //std::cout << "HIST from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
         for (Size i = start_index; i <= end_index; ++i)
         {
           hist.inc(dists[i]);
         }
-        //cout << hist << endl;
         dists.clear();
         //determine median of bins (uniform background distribution)
         vector<Size> bins(hist.begin(), hist.end());
@@ -181,8 +179,6 @@ namespace OpenMS
         }
         double sigma_high = pos - result.x0;
         result.sigma = (sigma_high + sigma_low) / 6.0;
-        //cout << "estimated optimal RT distance (before fit): " << result.x0 << endl;
-        //cout << "estimated allowed deviation (before fit): " << result.sigma*3.0 << endl;
         //--------------------------- do gauss fit ---------------------------
         vector<DPosition<2> > points(hist.size());
         for (Size i = 0; i < hist.size(); ++i)
@@ -230,15 +226,12 @@ namespace OpenMS
           bool mrm_correct_dist(false);
           double frag_mz_diff = fabs(it->getMZ() - it2->getMZ());
 
-          //cerr << it->getRT() << " charge1=" << it->getCharge() << ", charge2=" << it2->getCharge() << ", prec_diff=" << prec_mz_diff << ", frag_diff=" << frag_mz_diff << endl;
-
           if (mrm &&
               it2->getCharge() == it->getCharge() &&
               prec_mz_diff < mz_dev &&
               (frag_mz_diff < mz_dev || fabs(frag_mz_diff - mz_pair_dist) < mz_dev))
           {
             mrm_correct_dist = true;
-            //cerr << "mrm_correct_dist" << endl;
           }
 
           if ((mrm && mrm_correct_dist) || (!mrm &&
@@ -247,7 +240,6 @@ namespace OpenMS
                                             it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev
                                             ))
           {
-            //cerr << "dist correct" << endl;
             double score = sqrt(
               PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist / it->getCharge(), mz_dev, mz_dev) *
               PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
