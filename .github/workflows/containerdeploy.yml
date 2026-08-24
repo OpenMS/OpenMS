@@ -24,6 +24,9 @@ jobs:
   # https://docs.docker.com/build/ci/github-actions/multi-platform/
   deploy-docker:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read # actions/checkout
+      packages: write # push images to ghcr.io
     strategy:
       matrix:
         include:
@@ -181,6 +184,10 @@ jobs:
   merge-docker-manifests:
     runs-on: ubuntu-latest
     needs: deploy-docker
+    permissions:
+      packages: write # push manifest lists to ghcr.io
+      actions: read # for actions/download-artifact
+      artifact-metadata: read # for actions/download-artifact
     steps:
       - name: Download image digests
         uses: actions/download-artifact@v8
@@ -235,6 +242,8 @@ jobs:
   deploy-singularity:
     runs-on: ubuntu-latest
     needs: [deploy-docker, merge-docker-manifests]
+    permissions:
+      packages: write # pull images from and push .sif images to ghcr.io
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
