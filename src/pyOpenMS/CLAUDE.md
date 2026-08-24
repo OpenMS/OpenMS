@@ -22,6 +22,13 @@ cd src/pyOpenMS && pip wheel . --no-build-isolation
 
 ## Wrapping New C++ Classes
 
+**Ownership rule first** (see `OWNERSHIP.md`): every getter, `__getitem__`,
+and iterator returns an owned copy — never bind a getter with
+`rv_policy::reference_internal`. Zero-copy aliasing access is opt-in only,
+under the `_view`/`_views`/`_struct` names (`spectrum_view(i)`,
+`spectrum_views()`, `iter_spectrum_views()`, `data_view()`, `peaks_struct()`);
+the `get_` prefix is reserved for copies.
+
 ### 1. Choose the binding file
 
 Pick `bindings/bind_<domain>.cpp` based on the C++ header path:

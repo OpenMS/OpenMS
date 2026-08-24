@@ -345,12 +345,18 @@ Common methods to add for container-like classes:
 
 ### Zero-copy API Naming Conventions
 
-When exposing zero-copy numpy access to C++ memory, use these suffixes consistently:
+The prefix is the ownership contract: anything called `get_*` (or `getX()`)
+returns a copy the caller owns; aliasing accessors never carry the `get_`
+prefix and end in `_view`, `_views`, or `_struct` (see `OWNERSHIP.md` for the
+full rule and its exceptions).
+
+When exposing zero-copy access to C++ memory, use these suffixes consistently:
 
 | Suffix | Returns | Empty behavior | Use when |
 |--------|---------|----------------|----------|
 | `_view` | Typed 1-D `ndarray<T>` (writable) | Empty `ndarray` (not `None`) | Single array column (mz, intensity, rt…) |
 | `_struct` | Structured `ndarray` with named fields | Empty structured `ndarray` (not `None`) | Multiple fields together (e.g. mz + intensity) |
+| `<singular>_view(i)` / `<singular>_views()` / `iter_<singular>_views()` | Live element view / list / iterator of views (`reference_internal`, parent kept alive) | `IndexError` on out-of-range | Aliasing object element access (`spectrum_view(i)`, `feature_views()`) |
 
 **Rules:**
 - `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `drift_time_array_view()` on a spectrum without IM data — returns `None`).
