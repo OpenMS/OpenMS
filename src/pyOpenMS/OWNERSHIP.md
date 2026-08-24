@@ -104,6 +104,36 @@ those views safe — and the in-place operators and fluent builders above
 `addChargeAdduct`, the `ParquetFilter` chain), which hand back the very object
 they were called on. A future audit of `reference_internal` should expect both.
 
+## Opting into views: the `_view` family
+
+When copying is too expensive and you accept the hazards, ask for a **view** —
+an accessor whose *name* announces that it aliases the object's storage:
+
+| Form | Naming | Example |
+|---|---|---|
+| Single aliased element | singular + `_view` | `exp.get_spectrum_view(i)`, `fm.get_feature_view(i)`, `exp.get_chromatogram_view(i)` |
+| Aliased collection | plural + `_view` | `exp.get_spectra_view()`, `fm.get_features_view()`, `exp.get_chromatograms_view()` |
+| Iterator of aliased elements | `iter_<singular>_views()` | `exp.iter_spectrum_views()`, `fm.iter_feature_views()`, `exp.iter_chromatogram_views()` |
+
+The contract, stated once for the whole family:
+
+* Edits through a view land **immediately** — no write-back needed.
+* Every view keeps its parent object alive automatically, so a view never
+  outlives the storage it points into.
+* A view is only valid until the underlying list is **resized or reordered**:
+  `addSpectrum`, `setSpectra`, `push_back`, `sort*` and friends invalidate every
+  outstanding view into that list. Using a view after that is undefined
+  behaviour — this is the #9792 hazard you are opting into, by name.
+
+```python
+for spec in exp.iter_spectrum_views():
+    spec.setRT(spec.getRT() + shift)      # lands directly, nothing copied
+```
+
+The same suffix already marks the zero-copy numpy views (`get_peaks_view()`,
+`get_data_view()`); this extends it to object element access. Anything *not*
+named `_view` returns a copy, as the rule above says.
+
 ## Why it works this way
 
 Until release 3.5 every one of these returned a copy: the Cython wrapper owned

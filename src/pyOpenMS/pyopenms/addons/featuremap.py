@@ -155,3 +155,16 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
     df = self.to_df(columns=columns, meta_values=meta_values,
                     export_peptide_identifications=export_peptide_identifications)
     return pa.Table.from_pandas(df)
+
+
+@addon("FeatureMap")
+def get_features_view(self):
+    """Returns a list of live views of all features (see get_feature_view)."""
+    return [self.get_feature_view(i) for i in range(self.size())]
+
+
+@addon("FeatureMap")
+def iter_feature_views(self):
+    """Yields live views of the features, one at a time (see get_feature_view)."""
+    for i in range(self.size()):
+        yield self.get_feature_view(i)

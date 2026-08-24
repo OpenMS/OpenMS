@@ -224,6 +224,13 @@ Python outlive the storage it points at (the container reallocates on `push_back
 `resize`, `clear`, or a metadata-path sort) and would silently follow the *slot*
 rather than the element across a sort. See `OWNERSHIP.md` and issue #9792.
 
+If a class needs opt-in aliasing access for performance, follow the `_view`
+naming scheme (documented in `OWNERSHIP.md`): bind the **single-element** view
+in C++ with `nb::rv_policy::reference_internal` (singular + `_view`), and build
+the plural (`get_<plural>_view()`) and iterator (`iter_<singular>_views()`)
+forms as Python addons that call the bound element view per element — that way
+every yielded view inherits the parent keep-alive from the binding.
+
 ```cpp
 // Iteration -- yields copies (rv_policy::copy)
 // nb::keep_alive<0, 1>() is MANDATORY and is a SEPARATE concern from the policy:

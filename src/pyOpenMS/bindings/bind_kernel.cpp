@@ -3630,6 +3630,11 @@ After calling this, the map will be empty (size() returns 0)
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // by value: element access yields an owned copy
         }, "i"_a, "Returns a copy of the feature at index i")
+        .def("get_feature_view", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature& {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the feature list is resized or reordered (add/set/sort operations invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use fm[i].")
         .def("__setitem__", [](OpenMS::FeatureMap& self, size_t i, const OpenMS::Feature& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;

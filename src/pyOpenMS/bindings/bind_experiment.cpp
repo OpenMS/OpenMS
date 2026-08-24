@@ -112,6 +112,11 @@ mz, intensities = spectrum.get_peaks()
         .def("addChromatogram", [](OpenMS::MSExperiment& self, const OpenMS::MSChromatogram& chromatogram) { return self.addChromatogram(chromatogram); }, "chromatogram"_a, "Adds a chromatogram to the experiment")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, OpenMS::MSChromatogram& chrom) { return self.addChromatogram(chrom); }, "chrom"_a, "Adds a chromatogram to the experiment")
         .def("getChromatograms", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); }, "Returns a copy of the list of chromatograms")
+        .def("get_chromatogram_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSChromatogram& {
+            if (i >= self.getNrChromatograms()) throw nb::index_error();
+            return self.getChromatogram(i);
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the chromatogram at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the chromatogram list is resized or reordered (add/set/sort operations invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use getChromatogram(i).")
         .def("getChromatogram", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram {
             if (id >= self.getNrChromatograms()) throw nb::index_error(); // C++ getChromatogram is an unchecked chromatograms_[id]
             return self.getChromatogram(id);
@@ -170,6 +175,11 @@ mz, intensities = spectrum.get_peaks()
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets spectrum at index i")
+        .def("get_spectrum_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+            if (i >= self.getNrSpectra()) throw nb::index_error();
+            return self.getSpectrum(i);
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the spectrum at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (add/set/sort operations invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use getSpectrum(i) or exp[i].")
         .def("getSpectrum", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum {
             if (id >= self.getNrSpectra()) throw nb::index_error(); // C++ getSpectrum is an unchecked spectra_[id]
             return self.getSpectrum(id);

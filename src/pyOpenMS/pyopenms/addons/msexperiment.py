@@ -567,3 +567,29 @@ def get_ion_df(self):
         return pd.DataFrame(columns=['RT', 'mz', 'inty', 'IM'])
     result = np.vstack(all_data)
     return pd.DataFrame(result, columns=['RT', 'mz', 'inty', 'IM'])
+
+
+@addon("MSExperiment")
+def get_spectra_view(self):
+    """Returns a list of live views of all spectra (see get_spectrum_view)."""
+    return [self.get_spectrum_view(i) for i in range(self.getNrSpectra())]
+
+
+@addon("MSExperiment")
+def iter_spectrum_views(self):
+    """Yields live views of the spectra, one at a time (see get_spectrum_view)."""
+    for i in range(self.getNrSpectra()):
+        yield self.get_spectrum_view(i)
+
+
+@addon("MSExperiment")
+def get_chromatograms_view(self):
+    """Returns a list of live views of all chromatograms (see get_chromatogram_view)."""
+    return [self.get_chromatogram_view(i) for i in range(self.getNrChromatograms())]
+
+
+@addon("MSExperiment")
+def iter_chromatogram_views(self):
+    """Yields live views of the chromatograms, one at a time (see get_chromatogram_view)."""
+    for i in range(self.getNrChromatograms()):
+        yield self.get_chromatogram_view(i)

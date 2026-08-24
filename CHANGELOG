@@ -122,6 +122,10 @@ PyOpenMS:
       handles into the process-wide ResidueDB
     - see src/pyOpenMS/OWNERSHIP.md for the full rule, the three documented exceptions (fluent
       builders, database lookups, and shared DataProcessing entries) and the migration patterns
+    - opt-in aliasing access is available under an explicit naming scheme: singular + _view for one
+      element (get_spectrum_view(i), get_feature_view(i), get_chromatogram_view(i)), plural + _view
+      for the collection, and iter_<singular>_views() for iteration; edits through a view land
+      immediately, the parent is kept alive, and resizing/reordering the list invalidates the view
   - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
     when the replacement array has the same length (#9792)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
