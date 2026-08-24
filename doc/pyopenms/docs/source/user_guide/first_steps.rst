@@ -188,14 +188,6 @@ Iteration
 
 This iterates through all available :py:class:`~.MSSpectra`, we can also access spectra through the ``[]`` operator:
 
-.. note::
-
-   Iteration and indexing hand out independent copies: keeping or editing a
-   spectrum obtained this way does not modify ``exp``. When you need
-   zero-copy access to a large experiment, iterate live views instead --
-   ``for spec in exp.iter_spectrum_views(): ...`` -- as explained in the
-   `MS data <ms_data.html>`_ chapter.
-
 .. code-block:: python
 
     print("MS Level:", exp[1].ms_level)
@@ -238,6 +230,64 @@ slower):
     6.0
     4.0
     2.0
+
+Copies, Not References
+**********************
+
+Before writing your own scripts, there is one rule about pyOpenMS objects
+worth learning early: **everything you take out of a container is your own
+copy**. Whether you use indexing (``exp[0]``), iteration (``for spec in
+exp:``) or a getter (``exp.getSpectrum(0)``, ``spec.getPrecursors()``), the
+object you receive is an independent snapshot -- like a photocopy of one
+page from a binder. You can read it, keep it and edit it freely, and the
+container will not change behind your back (nor will your object change
+when the container does).
+
+The consequence surprises many newcomers: editing the copy does *not* edit
+the experiment.
+
+.. code-block:: python
+
+    spec = exp[0]
+    spec.setRT(999.9)      # edits only our copy
+    print(exp[0].getRT())  # the experiment is unchanged
+
+.. code-block:: output
+
+    353.43
+
+To change data inside a container, follow the pattern
+**read it, edit it, put it back**:
+
+.. code-block:: python
+
+    spec = exp[0]        # read it
+    spec.setRT(999.9)    # edit it
+    exp[0] = spec        # put it back
+    print(exp[0].getRT())
+
+.. code-block:: output
+
+    999.9
+
+Why does pyOpenMS work this way? Because the alternative -- handing out
+live references into the container's internal storage -- makes ordinary
+code dangerous: appending one spectrum can reallocate the container's
+memory and turn every previously returned spectrum into a crash waiting to
+happen, and sorting would silently re-label objects you are still holding.
+With copies, nothing you hold ever becomes invalid.
+
+Two things complete the picture:
+
+* **The naming is the contract.** As a rule, anything called ``getX()`` or
+  ``get_*`` returns a copy you own. The deliberate exceptions end in
+  ``_view``, ``_views`` or ``_struct``: those return zero-copy *views* that
+  alias the container's storage for speed -- edits through a view land
+  immediately, but the view is only valid until the container is resized or
+  sorted. Views are introduced in the `MS data <ms_data.html>`_ chapter.
+* **Copies cost time on big objects.** For read-only sweeps over large
+  experiments, iterate views instead of copies:
+  ``for spec in exp.iter_spectrum_views(): ...``.
 
 Total Ion Current Calculation
 *****************************
