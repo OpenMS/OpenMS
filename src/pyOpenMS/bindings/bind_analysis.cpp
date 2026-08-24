@@ -3193,6 +3193,7 @@ so runs far larger than RAM can be processed. Not thread-safe: a single
 file stream is seeked per request, so parallel readers each need their
 own copy of this object.)doc")
         .def(nb::init<const std::string&>(), "filename"_a)
+        .def(nb::init<const OpenMS::SpectrumAccessOpenMSCached &>())
         .def("__copy__", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return OpenMS::SpectrumAccessOpenMSCached(self); })
         .def("__deepcopy__", [](const OpenMS::SpectrumAccessOpenMSCached& self, nb::dict) { return OpenMS::SpectrumAccessOpenMSCached(self); }, "memo"_a)
         .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrSpectra(); }, "Get number of spectra")
@@ -3305,9 +3306,11 @@ TransformationModel
         }, "Get default parameters")
         ;
 
-    // SpectrumAccessOpenMSCached, SpectrumAccessQuadMZTransforming: cannot bind
-    // in analysis because they inherit from ISpectrumAccess/CachedmzML which
-    // are not bound as nanobind base classes. Mark as xfail in tests.
+    // SpectrumAccessQuadMZTransforming: not bound yet (inherits from
+    // SpectrumAccessTransforming). Marked as xfail in tests.
+    // (SpectrumAccessOpenMSCached is bound above -- inheriting from
+    // ISpectrumAccess/CachedmzML does not prevent binding: like the other
+    // SpectrumAccess* classes it is bound without declaring a nanobind base.)
 
     // -----------------------------------------------------------------------
     // ILPDCWrapper
