@@ -193,7 +193,6 @@ namespace OpenMS::Internal
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& filename, const std::string& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      //~ ms_exp_(0),
       pro_id_(nullptr),
       pep_id_(nullptr),
       cpro_id_(&pro_id),
@@ -205,7 +204,6 @@ namespace OpenMS::Internal
     MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& filename, const std::string& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
       cpro_id_(nullptr),
@@ -273,7 +271,6 @@ namespace OpenMS::Internal
         static const char16_t* s_value = u"value";
         static const char16_t* s_unit_accession = u"unitAccession";
         static const char16_t* s_cv_ref = u"cvRef";
-        //~ static const char16_t* s_name = u"name";
         static const char16_t* s_accession = u"accession";
 
         std::string value, unit_accession, cv_ref;
@@ -409,7 +406,6 @@ namespace OpenMS::Internal
         return;
       }
 
-      //error(LOAD, "MzIdentMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
     }
 
     void MzIdentMLHandler::onEndElement(const char16_t* qname)
@@ -647,7 +643,6 @@ namespace OpenMS::Internal
         search_params.removeMetaValue("MS:1001029");
         writeMetaInfos_(sip, search_params, 3);
         sip +=std::string(3, '\t') + R"(<userParam name="charges" unitName="xsd:string" value=")" + search_params.charges + "\"/>\n";
-//        sip +=std::string(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + StringUtils::toStr(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
         if (search_params.fixed_modifications.empty() &&
@@ -1212,7 +1207,6 @@ namespace OpenMS::Internal
         static const boost::regex frag_regex_tweak(R"(\[(?:([\|\w]+)\$)*([abcxyz])(\d+)(?:-(H2O|NH3))*\][(\d+)\+]*)"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
         std::string ionseries_index;
         std::string iontype;
-        //std::string loss_gain;
         std::string loss;
         StringList extra;
         boost::smatch str_matches;
@@ -1229,8 +1223,6 @@ namespace OpenMS::Internal
           // this would happen quite often and flood the output, but we still need them for other output formats
           // TODO find ways to represent additional fragment types or filter out known incompatible types
 
-          // OPENMS_LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          // OPENMS_LOG_WARN << pep.annotation << '\n';
           continue;
         }
         std::string lt = "frag: " + iontype + " ion";
@@ -1375,7 +1367,6 @@ namespace OpenMS::Internal
               const ResidueModification* mod = hit.getSequence()[i].getModification(); // "UNIMOD:" prefix??
               if (mod != nullptr)
               {
-                //~ p += hit.getSequence()[i].getModification() + "\t" +  hit.getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
                 p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
                 p += "\" residues=\"" + hit.getSequence()[i].getOneLetterCode();
                 std::string acc = mod->getUniModAccession();
@@ -1627,7 +1618,6 @@ namespace OpenMS::Internal
         copy_hit.removeMetaValue(Constants::UserParam::TARGET_DECOY);
         writeMetaInfos_(sii_tmp, copy_hit, 5);
 
-        //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
         sii_tmp += "\t\t\t\t</SpectrumIdentificationItem>\n";
         sidres += sii_tmp;
     }
@@ -2267,7 +2257,6 @@ namespace OpenMS::Internal
 
       writeMetaInfos_(sii_tmp, copy_hit, 5);
 
-      //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
       sii_tmp += "\t\t\t\t</SpectrumIdentificationItem>\n";
 
       const double rt = it->getRT();

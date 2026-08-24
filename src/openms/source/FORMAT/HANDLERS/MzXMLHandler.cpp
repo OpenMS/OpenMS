@@ -120,7 +120,6 @@ namespace OpenMS::Internal
 
       std::string tag = sm_.convert(qname);
       open_tags_.push_back(tag);
-      //std::cout << " -- Start -- "<< tag << " -- " << "\n";
 
       //Skip all tags until the the next scan
       if (skip_spectrum_ && tag != "scan")
@@ -257,24 +256,20 @@ namespace OpenMS::Internal
         if (optionalAttributeAsString_(time_string, attributes, s_retentiontime_))
         {
           time_string = StringUtils::suffix(time_string, 'T');
-          //std::cout << "Initial trim: " << time_string << "\n";
           if (StringUtils::has(time_string, 'H'))
           {
             retention_time += 3600 * asDouble_(StringUtils::prefix(time_string, 'H'));
             time_string = StringUtils::suffix(time_string, 'H');
-            //std::cout << "After H: " << time_string << "\n";
           }
           if (StringUtils::has(time_string, 'M'))
           {
             retention_time += 60 * asDouble_(StringUtils::prefix(time_string, 'M'));
             time_string = StringUtils::suffix(time_string, 'M');
-            //std::cout << "After M: " << time_string << "\n";
           }
           if (StringUtils::has(time_string, 'S'))
           {
             retention_time += asDouble_(StringUtils::prefix(time_string, 'S'));
             time_string = StringUtils::suffix(time_string, 'S');
-            //std::cout << "After S: " << time_string << "\n";
           }
         }
 
@@ -507,14 +502,11 @@ namespace OpenMS::Internal
         data_processing_.back()->setMetaValue(name, value);
       }
 
-      //std::cout << " -- !Start -- " << "\n";
     }
 
     void MzXMLHandler::onEndElement(const char16_t* qname)
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
-
-      //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
       static const char16_t* s_mzxml = u"mzXML";
       static const char16_t* s_scan = u"scan";
@@ -541,7 +533,6 @@ namespace OpenMS::Internal
           populateSpectraWithData_();
         }
       }
-      //std::cout << " -- End -- " << "\n";
     }
 
     void MzXMLHandler::onCharacters(const char16_t* chars, Size length)
@@ -590,7 +581,6 @@ namespace OpenMS::Internal
       {
         std::string transcoded_chars = sm_.convert(chars);
         std::string parent_tag = *(open_tags_.end() - 2);
-        //std::cout << "- Comment of parent " << parent_tag << "\n";
 
         if (parent_tag == "msInstrument")
         {
@@ -1085,7 +1075,6 @@ namespace OpenMS::Internal
         {
           next_ms_level = ((*cexp_)[s + 1]).getMSLevel();
         }
-        //std::cout << "scan: " << s << " this: " << ms_level << " next: " << next_ms_level << "\n";
         if (next_ms_level <= ms_level)
         {
           for (Size i = 0; i <= ms_level - next_ms_level && !open_scans.empty(); ++i)
@@ -1149,7 +1138,6 @@ namespace OpenMS::Internal
     {
       typedef SpectrumType::PeakType PeakType;
 
-      //std::cout << "reading scan" << "\n";
       if (spectrum_data.char_rest_.empty()) // no peaks
       {
         return;

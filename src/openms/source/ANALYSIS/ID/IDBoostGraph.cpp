@@ -242,8 +242,6 @@ namespace OpenMS
             continue;
           }
           //TODO consider/calculate missing digests. Probably not here though!
-          //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-          //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
 
           IDPointer prot(accToPHit->second);
           vertex_t protV = addVertexWithLookup_(prot, vertex_map);
@@ -305,8 +303,6 @@ namespace OpenMS
           continue;
         }
         //TODO consider/calculate missing digests. Probably not here though!
-        //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-        //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
 
         IDPointer prot(accToPHit->second);
         vertex_t protV = addVertexWithLookup_(prot, vertex_map);
@@ -325,8 +321,6 @@ namespace OpenMS
 
     {
       // TODO check that the files in the ProteinID run are all in the Exp. Design
-      //StringList files;
-      //proteins.getPrimaryMSRunPath(files); // files merged in the protein identification run to be inferred
       const ConsensusMap::ColumnHeaders& colHeaders = cmap.getColumnHeaders(); // all possible files and labels in the experiment
       //TODO use exp. design to merge fractions
       map<pair<std::string, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
@@ -604,8 +598,6 @@ namespace OpenMS
             continue;
           }
           //TODO consider/calculate missing digests.
-          //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-          //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
           IDPointer prot(accToPHit->second);
           vertex_t protV = addVertexWithLookup_(prot, vertex_map);
           boost::add_edge(protV, pepV, g);
@@ -1283,14 +1275,10 @@ namespace OpenMS
             continue;
 
           //We can't point to protein groups while we fill them. Pointers invalidate in growing vectors.
-          //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
-          //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
           auto grpVID = boost::add_vertex(ProteinGroup{}, curr_cc);
 
           for (auto const &proteinVID : pepsToGrps.second)
           {
-            //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
-            //pg.accessions.push_back(proteinPtr->getAccession());
             boost::add_edge(proteinVID, grpVID, curr_cc);
             for (auto const &pepVID : pepsToGrps.first)
             {
@@ -1301,7 +1289,6 @@ namespace OpenMS
           {
             boost::add_edge(grpVID, pepVID, curr_cc);
           }
-          //pg.probability = -1.0;
         }
 
         // reset iterator to loop through vertices again for peptide clusters
@@ -1437,8 +1424,6 @@ namespace OpenMS
             continue;
 
           //We can't point to protein groups while we fill them. Pointers invalidate in growing vectors.
-          //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
-          //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
           auto grpVID = boost::add_vertex(ProteinGroup{}, curr_cc);
           int nr_targets = 0;
           for (auto const &proteinVID : pepsToGrps.second)
@@ -1446,8 +1431,6 @@ namespace OpenMS
             //check if decoy to count the decoys
             bool target = isTargetProteinOrThrow_(boost::get<ProteinHit*>(curr_cc[proteinVID]));
             if (target) nr_targets++;
-            //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
-            //pg.accessions.push_back(proteinPtr->getAccession());
             boost::add_edge(proteinVID, grpVID, curr_cc);
             for (auto const &pepVID : pepsToGrps.first)
             {
@@ -1735,7 +1718,6 @@ namespace OpenMS
     //TODO Is passing "this" to lambda bad? How can I pass private members then?
     auto labels = boost::make_transform_value_property_map([&](const IDPointer &p) { return boost::apply_visitor(lv, p); },
                                                            boost::get(boost::vertex_bundle, fg));
-    //boost::print_graph(fg);
     boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 

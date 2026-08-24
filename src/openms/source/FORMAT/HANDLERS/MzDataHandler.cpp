@@ -202,7 +202,6 @@ namespace OpenMS::Internal
 
       std::string tag = sm_.convert(qname);
       open_tags_.push_back(tag);
-      //std::cout << "Start: '" << tag << "'" << std::endl;
 
       //determine the parent tag
       std::string parent_tag;
@@ -348,11 +347,9 @@ namespace OpenMS::Internal
       {
         if (options_.getMetadataOnly())
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        //std::cout << Date::now() << " Reserving space for spectra" << std::endl;
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserve(count);
         logger_.startProgress(0, count, "loading mzData file");
-        //std::cout << Date::now() << " done" << std::endl;
       }
       else if (tag == "mzData")
       {
@@ -428,7 +425,6 @@ namespace OpenMS::Internal
         // Note: name is set in closing tag as it is CDATA
         data_to_decode_.resize(data_to_decode_.size() + 1);
       }
-      //std::cout << "end startelement" << std::endl;
     }
 
     void MzDataHandler::onEndElement(const char16_t* qname)
@@ -439,7 +435,6 @@ namespace OpenMS::Internal
       static const char16_t* s_mzdata = u"mzData";
 
       open_tags_.pop_back();
-      //std::cout << "End: '" << sm_.convert(qname) << "'" << std::endl;
 
       if (equal_(qname, s_spectrum))
       {
@@ -483,17 +478,14 @@ namespace OpenMS::Internal
         {
           if (endians_[i] == "big")
           {
-            //std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
             Base64::decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded_double);
           }
           else
           {
-            //std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
             Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
           }
           // push_back the decoded double data - and an empty one into
           // the single-precision vector, so that we don't mess up the index
-          //std::cout << "list size: " << decoded_double.size() << std::endl;
           decoded_double_list_.push_back(decoded_double);
           decoded_list_.emplace_back();
         }
@@ -501,15 +493,12 @@ namespace OpenMS::Internal
         {
           if (endians_[i] == "big")
           {
-            //std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
             Base64::decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded);
           }
           else
           {
-            //std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
             Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded);
           }
-          //std::cout << "list size: " << decoded.size() << std::endl;
           decoded_list_.push_back(decoded);
           decoded_double_list_.emplace_back();
         }
@@ -1436,7 +1425,6 @@ namespace OpenMS::Internal
       {
         warning(LOAD,std::string("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
       }
-      //std::cout << "End of MzDataHander::cvParam_" << std::endl;
     }
 
     inline void MzDataHandler::writeCVS_(std::ostream & os, double value, const std::string & acc, const std::string & name, UInt indent) const

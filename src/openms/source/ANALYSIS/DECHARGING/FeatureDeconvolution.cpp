@@ -449,7 +449,6 @@ namespace OpenMS
                 if (fabs(f1.getRT() - f2.getRT() + md_s->getRTShift()) > rt_diff_max_local)
                   continue;
 
-                //std::cout << md_s->getAdductsAsString() << " neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
                 int left_charges, right_charges;
                 if (is_neg)
                 {
@@ -601,7 +600,6 @@ namespace OpenMS
     // **       DEBUG          ** //
     // -------------------------- //
 
-    //printEdgesOfConnectedFeatures_(888, 889, feature_relation);
     std::map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
     UInt agreeing_fcharge = 0;
     std::vector<Size> f_idx_v(2);
@@ -701,8 +699,6 @@ namespace OpenMS
 
 #ifdef DC_DEVEL
     out_dead.store("ILP_dead_edges.txt"); // TODO disable
-    //std::cout << "Edge score distribution (clean):\n" + StringUtils::concatenate(scores_clean_edge, " ") + "\n(dirty)\n" + StringUtils::concatenate(scores_dirty_edge, " ") + "\n\n";
-    //std::cout << "Edge empirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
 #endif
 
     // END DEBUG
@@ -745,7 +741,6 @@ namespace OpenMS
 
       if (feature_relation[i].isActive())
       {
-        //std::cout << "feature #" << f0_idx << " #" << f1_idx << " ACTIVE q:" << new_q0 << ":" << new_q1 << " score: " << feature_relation[i].getEdgeScore() << " with RT: " << fm_out[f1_idx].getRT() << "\n";
 
         //
         // annotate the affected features
@@ -831,7 +826,6 @@ namespace OpenMS
         cf.setMetaValue("CP",StringUtils::toStr(fm_out[f0_idx].getCharge()) + "(" + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
                         + StringUtils::toStr(fm_out[f1_idx].getCharge()) + "(" + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
                         + std::string("Score: ") + feature_relation[i].getEdgeScore());
-        //cf.computeDechargeConsensus(fm_out);
 #if 1
         // print pairs only
         cons_map_p.push_back(cf);
@@ -844,7 +838,6 @@ namespace OpenMS
           cons_map.push_back(cf);
           clique_register[f0_idx] = cons_map.size() - 1;
           clique_register[f1_idx] = cons_map.size() - 1;
-          //std::cout << "new: F" << f0_idx << " + F" << f1_idx << " are " << (cons_map.size()-1) << "\n";
         }
         else if (target_cf0 != target_cf1)
         {
@@ -852,13 +845,11 @@ namespace OpenMS
           {
             cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
-            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " due to F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1) //** add f1 to the already existing cf of f0
           {
             cons_map[target_cf0].insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
             clique_register[f1_idx] = target_cf0;
-            //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " due to F" << f0_idx << "\n";
           }
           else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
@@ -871,7 +862,6 @@ namespace OpenMS
             cons_map[target_cf0].insert(hst);
             // clear cf1; do NOT delete cf1 (will invalidate higher indices) - do that afterwards
             cons_map[target_cf1].clear();
-            //std::cout << "conflict: F" << f0_idx << " + F" << f1_idx << " --> "<< target_cf0 << "(" << target_cf1 << " killed)" << "\n";
           }
         }
 

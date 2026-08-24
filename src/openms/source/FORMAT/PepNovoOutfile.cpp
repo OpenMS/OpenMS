@@ -94,10 +94,8 @@ namespace OpenMS
     {
       if (mod_it.empty())
         continue;
-      //cout<<*mod_it<<endl;
       if (pnovo_modkey_to_mod_id.contains(mod_it))
       {
-        //cout<<keys_to_id.find(*mod_it)->second<<endl;
         const ResidueModification* tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(mod_it)->second);
         if (StringUtils::prefix(mod_it, 1) == "^" || StringUtils::prefix(mod_it, 1) == "$")
         {
@@ -113,12 +111,10 @@ namespace OpenMS
         if (StringUtils::prefix(mod_it, 1) != "^" && StringUtils::prefix(mod_it, 1) != "$")
         {
           mod_mask_map[mod_it] = StringUtils::prefix(mod_it, 1) + "[" + StringUtils::substr(mod_it, 1) + "]";
-          //cout<<mod_mask_map[*mod_it]<<endl;
         }
         else
         {
           mod_mask_map[mod_it] = "[" + mod_it + "]";
-          //cout<<mod_mask_map[*mod_it]<<endl;
         }
       }
     }
@@ -142,7 +138,6 @@ namespace OpenMS
         }
 
         StringUtils::split(line, ' ', substrings);
-        //std::string index = File::basename(StringUtils::substr(line, line.find(' ', strlen(">> ")) + 1));
         if (substrings.size() < 3)
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns (spectrum Id) in file in line " + StringUtils::toStr(line_number) + std::string(" (should be 2 or more)!"), result_filename);
@@ -157,7 +152,6 @@ namespace OpenMS
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected an index number in line " + StringUtils::toStr(line_number) + " at position 2 (line was: '" + line + "')!", result_filename);
         }
 
-        //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
         if (!index_to_precursor.empty())
@@ -292,7 +286,6 @@ namespace OpenMS
                   StringUtils::substitute(sequence, mask_it->first, "");
                   sequence = mask_it->second + sequence;
                 }
-                //cout<<mask_it->first<<" "<<mask_it->second<<endl;
                 StringUtils::substitute(sequence, mask_it->first, mask_it->second);
               }
               peptide_hit.setSequence(AASequence::fromString(sequence));

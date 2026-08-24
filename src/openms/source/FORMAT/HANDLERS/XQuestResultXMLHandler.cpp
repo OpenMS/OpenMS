@@ -212,21 +212,18 @@ namespace OpenMS::Internal
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
-        //cout << "Parse xQuest search settings" << endl;
         // Decide whether this Block is original xQuest or OpenPepXL
         std::string xquest_version = this->attributeAsString_(attributes, "xquest_version");
         this->is_openpepxl_ = StringUtils::hasSubstring(xquest_version, "OpenPepXL");
 
         // Date and Time of Search
         DateTime date_time;
-        //cout << "Parse Date" << endl;
         this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
         (*this->prot_ids_)[0].setDateTime(date_time);
 
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;
 
-        //cout << "Parse Enzyme" << endl;
         // General
         if (this->is_openpepxl_) // Enzyme via name
         {
@@ -246,7 +243,6 @@ namespace OpenMS::Internal
         std::string tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
         search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
 
-        //cout << "Parse Mods" << endl;
         // variable Modifications
         vector< std::string > variable_mod_list;
         vector< std::string > variable_mod_split;
@@ -275,7 +271,6 @@ namespace OpenMS::Internal
           search_params.fixed_modifications = fixed_mod_list;
         }
 
-        //cout << "Parse decoy stuff" << endl;
         std::string decoy_prefix;
         // if this info is not available, we can assume the decoy string is a prefix, since that is the standard way
         if (!this->optionalAttributeAsString_(decoy_prefix, attributes, "decoy_prefix"))
@@ -341,7 +336,6 @@ namespace OpenMS::Internal
         std::istringstream is_nterm(this->attributeAsString_(attributes, "ntermxlinkable"));
         is_nterm >> ntermxlinkable;
 
-        //cout << "Parse AArequired" << endl;
         std::string aarequired;
         // older xQuest versions only allowed homobifunctional cross-linkers
         if (this->optionalAttributeAsString_(aarequired, attributes, "AArequired") && !aarequired.empty())
@@ -371,7 +365,6 @@ namespace OpenMS::Internal
 
         if (this->is_openpepxl_)
         {
-          //cout << "Parse OPXL specific settings" << endl;
           std::string searched_charges = this->attributeAsString_(attributes, "charges");
           search_params.charges = searched_charges;
           IntList charge_ints = ListUtils::create<Int>(searched_charges);
@@ -392,7 +385,6 @@ namespace OpenMS::Internal
         // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.2616_GUA1354-S15-A-LRRK2_DSG_A4.heavy.2481" mz_precursor="590.556396484375" scantype="light_heavy" charge_precursor="4" Mr_precursor="2358.19648007042" rtsecscans="2231.988:2194.8258"                mzscans="590.556396484375:592.065673828125" >
         // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.1327_GUA1354-S15-A-LRRK2_DSG_A4.heavy.1327" mz_precursor="1008.83288574219" scantype="light"       charge_precursor="3" Mr_precursor="3023.47682782626" rtsecscans="2796.68020000002:2796.68020000002" mzscans="1008.83288574219:1008.83288574219" >
         // <spectrum_search Mr_precursor="1465.880913324" addedMass="0" apriori_pmatch_common="0.0311" apriori_pmatch_xlink="0.0658" charge_precursor="3" ionintensity_stdev="5.73" iontag_ncandidates="240" mean_ionintensity="2.28" mz_precursor="489.63479614" mzscans="489.63479614:493.6600647" ncommonions="71" nxlinkions="102" rtsecscans="2491:2477" scantype="light_heavy" spectrum="aleitner_M1012_006.c.02942.02942.3_aleitner_M1012_006.c.02913.02913.3">
-        //cout << "Parse Spectrum" << endl;
         // Update retention time of light
         StringList rt_split;
         StringUtils::split(this->attributeAsString_(attributes, "rtsecscans"), ":", rt_split);
@@ -418,7 +410,6 @@ namespace OpenMS::Internal
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
         if (!this->is_openpepxl_)
         {
-          //cout << "Parse xQuest Spectrum" << endl;
           if (charge_precursor < this->min_precursor_charge_)
           {
             this->min_precursor_charge_ = charge_precursor;
@@ -452,17 +443,11 @@ namespace OpenMS::Internal
           // read spectrum indices
           if (split_spectrum_light[split_spectrum_light.size()-1].size() > 1)
           {
-            //cout << "Parse Spectrum index version 1" << endl;
-            //cout << endl << split_spectrum_light[split_spectrum_light.size()-1] << endl;
-            //cout << endl << split_spectrum_heavy[split_spectrum_heavy.size()-1] << endl;
             this->spectrum_index_light_ = StringUtils::toInt32(split_spectrum_light[split_spectrum_light.size()-1]);
             this->spectrum_index_heavy_ = StringUtils::toInt32(split_spectrum_heavy[split_spectrum_heavy.size()-1]);
           }
           else
           {
-            //cout << "Parse Spectrum index version 2" << endl;
-            //cout << endl << split_spectrum_light[split_spectrum_light.size()-2] << endl;
-            //cout << endl << split_spectrum_heavy[split_spectrum_heavy.size()-2] << endl;
             this->spectrum_index_light_ = StringUtils::toInt32(split_spectrum_light[split_spectrum_light.size()-2]);
             this->spectrum_index_heavy_ = StringUtils::toInt32(split_spectrum_heavy[split_spectrum_heavy.size()-2]);
           }
@@ -543,7 +528,6 @@ namespace OpenMS::Internal
                 mod_set = true;
                 // do not break to prioritize mods later in the list
                 // the XLMODS results are further down the list and should be prioritized instead of unimod
-                //break;
               }
             }
             if (!mod_set)
@@ -1189,7 +1173,6 @@ namespace OpenMS::Internal
 
           // also remove MetaValues, that we do not need in xquestXML
           ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD);
-          // ph.removeMetaValue("xl_chain");
 
           // these metaValues can be present, e.g. if the data came from loading a xquest.xml file
           // since they are already generated by other methods, they should not be duplicated in the output
