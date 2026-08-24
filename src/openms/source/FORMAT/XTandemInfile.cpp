@@ -231,35 +231,28 @@ namespace OpenMS
       //is set to the dynamic range value. All peaks with values of less that
       //1, using this normalization, are not used. This normalization has the
       //overall effect of setting a threshold value for peak intensities.</note>
-      //writeNote_(os, "spectrum, dynamic range",StringUtils::toStr(dynamic_range_);
 
       //<note type="input" label="spectrum, total peaks">50</note>
       //<note>If this value is 0, it is ignored. If it is greater than zero (lets say 50),
       //then the number of peaks in the spectrum with be limited to the 50 most intense
       //peaks in the spectrum. X! tandem does not do any peak finding: it only
       //limits the peaks used by this parameter, and the dynamic range parameter.</note>
-      //writeNote_(os, "spectrum, total peaks",StringUtils::toStr(total_number_peaks_);
 
       //<note type="input" label="spectrum, maximum parent charge">4</note>
       writeNote_(os, "spectrum, maximum parent charge",StringUtils::toStr(max_precursor_charge_));
 
       // <note type="input" label="spectrum, use noise suppression">yes</note>
-      //writeNote_(os, "spectrum, use noise suppression", noise_suppression_);
 
       //<note type="input" label="spectrum, minimum parent m+h">500.0</note>
-      //writeNote_(os, "spectrum, minimum parent m+h",StringUtils::toStr(precursor_lower_mz_));
 
       //<note type="input" label="spectrum, minimum fragment mz">150.0</note>
-      //writeNote_(os, "spectrum, minimum fragment mz",StringUtils::toStr(fragment_lower_mz_));
 
       //<note type="input" label="spectrum, minimum peaks">15</note>
-      //writeNote_(os, "spectrum, minimum peaks",StringUtils::toStr(min_number_peaks_));
 
       //<note type="input" label="spectrum, threads">1</note>
       writeNote_(os, "spectrum, threads",StringUtils::toStr(number_of_threads_));
 
       //<note type="input" label="spectrum, sequence batch size">1000</note>
-      //writeNote_(os, "spectrum, sequence batch size",StringUtils::toStr(batch_size_));
       ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -285,23 +278,17 @@ namespace OpenMS
       writeNote_(os, "protein, cleavage semi", semi_cleavage_);
 
       //<note type="input" label="protein, modified residue mass file"></note>
-      //writeNote_(os, "protein, modified residue mass file", modified_residue_mass_file_);
 
       //<note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
-      //writeNote_(os, "protein, cleavage C-terminal mass change",StringUtils::toStr(cleavage_c_term_mass_change_));
 
       //<note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
-      //writeNote_(os, "protein, cleavage N-terminal mass change",StringUtils::toStr(cleavage_n_term_mass_change_));
 
       //<note type="input" label="protein, N-terminal residue modification mass">0.0</note>
-      //writeNote_(os, "protein, N-terminal residue modification mass",StringUtils::toStr(protein_n_term_mod_mass_));
 
       //<note type="input" label="protein, C-terminal residue modification mass">0.0</note>
-      //writeNote_(os, "protein, C-terminal residue modification mass",StringUtils::toStr(protein_c_term_mod_mass_));
 
       //<note type="input" label="protein, homolog management">no</note>
       //<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
-      //writeNote_(os, "protein, homolog management", protein_homolog_management_);
 
       // special cases for default (N-terminal) modifications:
       set<std::string> var_mods = modifications_.getVariableModificationNames();
@@ -364,35 +351,22 @@ namespace OpenMS
       //is NOT followed by a P, then either an S or a T, NOT followed by a P.
       //Positive and negative values are allowed.
       //</note>
-      //    writeNote_(os, "residue, potential modification motif", variable_modification_motif_);
       ////////////////////////////////////////////////////////////////////////////////
 
 
       //////////////// model refinement parameters
       //<note type="input" label="refine">yes</note>
-      //writeNote_(os, "refine", refine_);
       //<note type="input" label="refine, modification mass"></note>
-      //writeNote_(os, "refine, modification mass",StringUtils::toStr(refine_mod_mass_));
       //<note type="input" label="refine, sequence path"></note>
-      //writeNote_(os, "refine, sequence path", refine_sequence_path_);
       //<note type="input" label="refine, tic percent">20</note>
-      //writeNote_(os, "refine, tic percent",StringUtils::toStr(refine_tic_percent_));
       //<note type="input" label="refine, spectrum synthesis">yes</note>
-      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_synthesis_);
       //<note type="input" label="refine, maximum valid expectation value">0.1</note>
-      //writeNote_(os, "refine, maximum valid expectation value",StringUtils::toStr(refine_max_valid_evalue_));
       //<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>
-      //writeNote_(os, "refine, potential N-terminus modifications", refine_variable_n_term_mods_);
       //<note type="input" label="refine, potential C-terminus modifications"></note>
-      //writeNote_(os, "refine, potential C-terminus modifications", refine_variable_c_term_mods_);
       //<note type="input" label="refine, unanticipated cleavage">yes</note>
-      //writeNote_(os, "refine, unanticipated cleavage", refine_unanticipated_cleavage_);
       //<note type="input" label="refine, potential modification mass"></note>
-      //writeNote_(os, "refine, potential modification mass",StringUtils::toStr(variable_mod_mass_));
       //<note type="input" label="refine, point mutations">no</note>
-      //writeNote_(os, "refine, point mutations", refine_point_mutations_);
       //<note type="input" label="refine, use potential modifications for full refinement">no</note>
-      //writeNote_(os, "refine, use potential modifications for full refinement", use_var_mod_for_full_refinement_);
       //<note type="input" label="refine, potential modification motif"></note>
       //<note>The format of this parameter is similar to residue, modification mass,
       //with the addition of a modified PROSITE notation sequence motif specification.
@@ -403,44 +377,32 @@ namespace OpenMS
       //Positive and negative values are allowed.
       //</note>
 
-      //writeNote_(os, "refine, potential modification motif", refine_var_mod_motif_);
       ////////////////////////////////////////////////////////////////////////////////
 
 
       //////////////// scoring parameters
       //<note type="input" label="scoring, minimum ion count">4</note>
-      //writeNote_(os, "scoring, minimum ion count",StringUtils::toStr(scoring_min_ion_count_));
       //<note type="input" label="scoring, maximum missed cleavage sites">1</note>
       writeNote_(os, "scoring, maximum missed cleavage sites",StringUtils::toStr(number_of_missed_cleavages_));
       //<note type="input" label="scoring, x ions">no</note>
-      //writeNote_(os, "scoring, x ions", score_x_ions_);
       //<note type="input" label="scoring, y ions">yes</note>
-      //writeNote_(os, "scoring, y ions", score_y_ions_);
       //<note type="input" label="scoring, z ions">no</note>
-      //writeNote_(os, "scoring, z ions", score_z_ions_);
       //<note type="input" label="scoring, a ions">no</note>
-      //writeNote_(os, "scoring, a ions", score_a_ions_);
       //<note type="input" label="scoring, b ions">yes</note>
-      //writeNote_(os, "scoring, b ions", score_b_ions_);
       //<note type="input" label="scoring, c ions">no</note>
-      //writeNote_(os, "scoring, c ions", score_c_ions_);
       //<note type="input" label="scoring, cyclic permutation">no</note>
       //<note>if yes, cyclic peptide sequence permutation is used to pad the scoring histograms</note>
-      //writeNote_(os, "scoring, cyclic permutation", scoring_cyclic_permutation_);
       //<note type="input" label="scoring, include reverse">no</note>
       //<note>if yes, then reversed sequences are searched at the same time as forward sequences</note>
-      //writeNote_(os, "scoring, include reverse", scoring_include_reverse_);
       ////////////////////////////////////////////////////////////////////////////////
 
 
       //////////////// output parameters
       //<note type="input" label="output, log path"></note>
       //<note type="input" label="output, message">...</note>
-      //writeNote_(os, "output, message",StringUtils::toStr("..."));
       //<note type="input" label="output, one sequence copy">no</note>
       //<note type="input" label="output, sequence path"></note>
       //<note type="input" label="output, path">output.xml</note>
-      //writeNote_(os, "output, path", output_filename_);
       //<note type="input" label="output, sort results by">protein</note>
       //<note>values = protein|spectrum (spectrum is the default)</note>
       //<note type="input" label="output, path hashing">yes</note>

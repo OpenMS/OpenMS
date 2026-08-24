@@ -168,15 +168,6 @@ namespace OpenMS::Math
         tmp += (X[i] - x_mean) * (X[i] - x_mean);
       }
 
-      //            cout << "100.0 / abs( x_intercept_ ) " << (100.0 / fabs( x_intercept_ )) << endl;
-      //            cout << "tmp : " << tmp << endl;
-      //            cout << "slope_ " << slope_ << endl;
-      //            cout << "y_mean " << y_mean << endl;
-      //            cout << "N " << N << endl;
-      //            cout << "stand_dev_residuals_ " << stand_dev_residuals_ << endl;
-      //            cout << " (1.0/ (double) N)  " <<  (1.0/ (double) N)  << endl;
-      //            cout << "sx hat " << (stand_dev_residuals_ / slope_) * sqrt(  (1.0/ (double) N) * (y_mean / (slope_ * slope_ * tmp ) ) ) << endl;
-
       // compute relative standard deviation (non-standard formula, taken from Mayr et al. (2006) )
       rsd_ = (100.0 / fabs(x_intercept_)) * (stand_dev_residuals_ / slope_) * sqrt((1.0 / (double) N) * (y_mean / (slope_ * slope_ * tmp)));
 

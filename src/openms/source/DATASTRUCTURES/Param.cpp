@@ -244,13 +244,11 @@ namespace OpenMS
 
   Param::ParamNode* Param::ParamNode::findParentOf(const std::string& local_name)
   {
-    //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << '\n';
     if (local_name.contains(':')) //several subnodes to browse through
     {
         size_t pos = local_name.find(':');
         std::string prefix = StringUtils::substr(local_name, 0, pos);
 
-        //cout << " - Prefix: '" << prefix << "'\n";
         NodeIterator it = findNode(prefix);
         if (it == nodes.end()) //subnode not found
         {
@@ -258,7 +256,6 @@ namespace OpenMS
         }
         //recursively call findNode for the rest of the path
         std::string new_name = StringUtils::substr(local_name, it->name.size() + 1);
-        //cout << " - Next name: '" << new_name << "'\n";
         return it->findParentOf(new_name);
     }
     else // we are in the right child
@@ -301,7 +298,6 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamNode& node, const std::string& prefix)
   {
-    //std::cerr << "INSERT NODE  " << node.name << " (" << prefix << ")\n";
     std::string prefix2 = prefix + node.name;
 
     ParamNode* insert_node = this;
@@ -319,7 +315,6 @@ namespace OpenMS
       {
         insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
-        //std::cerr << " - Created new node: " << insert_node->name << '\n';
       }
       //remove prefix
       prefix2 = StringUtils::substr(prefix2, local_name.size() + 1);
@@ -363,16 +358,13 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamEntry& entry, const std::string& prefix)
   {
-    //std::cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")\n";
     std::string prefix2 = prefix + entry.name;
-    //std::cerr << " - inserting: " << prefix2 << '\n';
 
     ParamNode* insert_node = this;
     while (prefix2.contains(':'))
     {
       size_t pos = prefix2.find(':');
       std::string local_name = StringUtils::substr(prefix2, 0, pos);
-      //std::cerr << " - looking for node: " << name << '\n';
       //look up if the node already exists
       NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
@@ -383,11 +375,9 @@ namespace OpenMS
       {
         insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
-        //std::cerr << " - Created new node: " << insert_node->name << '\n';
       }
       //remove prefix
       prefix2 = StringUtils::substr(prefix2, local_name.size() + 1);
-      //std::cerr << " - new prefix: " << prefix2 << '\n';
     }
 
     // check if the entry exists as ParamNode
@@ -403,7 +393,6 @@ namespace OpenMS
     }
 
     //check if the entry already exists
-    //std::cerr << " - final entry name: " << prefix2 << '\n';
     EntryIterator it = insert_node->findEntry(prefix2);
     if (it != insert_node->entries.end()) //overwrite entry
     {
@@ -566,7 +555,6 @@ namespace OpenMS
 
   void Param::insert(const std::string& prefix, const Param& param)
   {
-    //std::cerr << "INSERT PARAM (" << prefix << ")\n";
     for (Param::ParamNode::NodeIterator it = param.root_.nodes.begin(); it != param.root_.nodes.end(); ++it)
     {
       root_.insert(*it, prefix);
@@ -638,8 +626,6 @@ namespace OpenMS
           const std::string& description_new = defaults.getSectionDescription(real_pathname);
           if (description_old.empty())
           {
-            //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< '\n';
-            //std::cerr << "## " << description_new << '\n';
             setSectionDescription(prefix2 + real_pathname, description_new);
           }
         }
@@ -848,7 +834,6 @@ namespace OpenMS
     std::string prefix2 = prefix;
     if (!prefix2.empty())
     {
-      //StringUtils::ensureLastChar(prefix2, ':');
       if (prefix2.back() != ':')
       {
         prefix2.append(1, ':');
@@ -878,7 +863,6 @@ namespace OpenMS
       {
         arg1_is_option = true;
       }
-      //cout << "Parse: '"<< arg << "' '" << arg1 << "'\n";
 
       //flag (option without text argument)
       if (arg_is_option && arg1_is_option)
@@ -1511,12 +1495,9 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     {
       const Param::ParamNode* node = stack_.back();
 
-      //std::cout << "############ operator++ #### " << node->name << " ## " << current_ << '\n';
-
       //check if there is a next entry in the current node
       if (current_ + 1 < (int)node->entries.size())
       {
-        //std::cout << " - next entry\n";
         ++current_;
         return *this;
       }
@@ -1525,7 +1506,6 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       {
         current_ = -1;
         stack_.push_back(&(node->nodes[0]));
-        //std::cout << " - entering into: " << node->nodes[0].name << '\n';
         //track changes (enter a node)
         trace_.emplace_back(node->nodes[0].name, node->nodes[0].description, true);
 
@@ -1539,18 +1519,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         {
           const Param::ParamNode* last = node;
           stack_.pop_back();
-          //std::cout << " - stack size: " << stack_.size() << '\n';
           //we have reached the end
           if (stack_.empty())
           {
-            //std::cout << " - reached the end\n";
             root_ = nullptr;
             return *this;
           }
           node = stack_.back();
-
-          //std::cout << " - last was: " << last->name << '\n';
-          //std::cout << " - descended to: " << node->name << '\n';
 
           //track changes (leave a node)
           if (!trace_.empty() && trace_.back().name == last->name && trace_.back().opened) // was empty subnode
@@ -1568,7 +1543,6 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           {
             current_ = -1;
             stack_.push_back(&(node->nodes[next_index]));
-            //cout << " - entering into: " << node->nodes[next_index].name  << endl;
             //track changes (enter a node)
             trace_.emplace_back(node->nodes[next_index].name, node->nodes[next_index].description, true);
             break;

@@ -141,7 +141,6 @@ namespace OpenMS
     protein_identification.setSearchEngine(sequest);
     protein_identification.setSearchEngineVersion(sequest_version);
     protein_identification.setIdentifier(identifier);
-//      protein_identification.setScoreType("SEQUEST");
 
     // open the result
     ifstream result_file(result_filename.c_str());
@@ -315,7 +314,6 @@ namespace OpenMS
         // get the protein information
         getACAndACType(substrings[reference_column], accession, accession_type);
         protein_hit.setAccession(accession);
-//              protein_hit.setRank(ac_position_map.size());
         /// @todo simply sum up score? (Martin)
 
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
@@ -338,22 +336,12 @@ namespace OpenMS
 
             StringUtils::trim(line);
             // all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
-            /*if (!StringUtils::hasPrefix(line, "0  ")) // if the line doesn't look like that
-             {
-             stringstream error_message;
-             error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
-             result_file.close();
-             result_file.clear();
-             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str() , result_filename);
-             }*/
             line.erase(0, 3);
 
             getACAndACType(line, accession, accession_type);
             protein_hit.setAccession(accession);
-            // protein_hit.setRank(ac_position_map.size());
             // @todo simply add up score
             // Simply sum up score? (Martin)
-            // protein_hit.setScore(0.0);
 
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
             {
@@ -766,7 +754,6 @@ namespace OpenMS
     Int& xcorr_column,
     Int& sp_column,
     Int& sf_column,
-// Int& P_column,
     Int& ions_column,
     Int& reference_column,
     Int& peptide_column,
@@ -965,7 +952,6 @@ namespace OpenMS
     xcorr_column = -1;
     sp_column = -1;
     sf_column = -1;
-//      P_column = -1;
     ions_column = -1;
     reference_column = -1;
     peptide_column = -1;
@@ -1049,179 +1035,6 @@ namespace OpenMS
     result_file.close();
     result_file.clear();
   }
-
-//  void SequestOutfile::getPValuesFromOutFiles(vector< pair < String, vector< double > > >& out_filenames_and_pvalues)
-//  throw (Exception::FileNotFound&, Exception::ParseError)
-//  {
-//      DateTime datetime;
-//      double
-//          precursor_mz_value(0),
-//          discriminant_score,
-//          xcorr,
-//          rank_sp,
-//          delta_mass;
-//
-//      Size
-//          precursor_mass_type(0),
-//          ion_mass_type(0),
-//          number_of_columns(0),
-//          displayed_peptides(0),
-//          line_number(0),
-//          proteins_per_peptide(0),
-//          peptide_length(0);
-//
-//      Int
-//          charge(0),
-//          number_column(0),
-//          rank_sp_column(0),
-//          id_column(0),
-//          mh_column(0),
-//          delta_cn_column(0),
-//          xcorr_column(0),
-//          sp_column(0),
-//          sf_column(0),
-//          ions_column(0),
-//          reference_column(0),
-//          peptide_column(0),
-//          score_column(0);
-//
-//      String
-//          line,
-//          sequence,
-//          buffer,
-//          out_filename,
-//          database_type;
-//
-//      vector< String > substrings;
-//      vector< double >
-//          delta_cns,
-//          current_discriminant_scores,
-//          pvalues;
-//
-// //       map< String, vector< double > > out_filenames_and_discriminant_scores;
-//      vector< vector< double > > discriminant_scores;
-//      map< double, Size > discriminant_scores_histogram;
-//
-//      for ( vector< pair < String, vector< double > > >::const_iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i )
-//      {
-//          current_discriminant_scores.clear();
-//          readOutHeader(fp_i->first, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, line, line, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
-//
-//          // the charge is allowed from 1 to 3 only
-//          if ( charge < 0 ) charge *= -1;
-//          if ( charge > 3 ) charge = 3;
-//
-//          // reopen the result file
-//          ifstream out_file(out_filename.c_str());
-//          if ( !out_file )
-//          {
-//              throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_filename);
-//          }
-//
-//          while ( getline(out_file, line) ) // skip all lines until the one with '---'
-//          {
-//              if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-//              StringUtils::trim(line);
-//              ++line_number;
-//              if ( StringUtils::hasPrefix(line, "---") ) break;
-//          }
-//
-//          // needed: XCorr, peptide length, delta Cn, rankSp, delta Mass
-//          for ( Size viewed_peptides = 0 ; viewed_peptides < displayed_peptides; )
-//          {
-//              if ( !getline(out_file, line) ) break; // if fewer peptides were found than may be displayed, break
-//              ++line_number;
-//              if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-//              StringUtils::trim(line);
-//              if ( line.empty() ) continue;
-//
-//              getColumns(line, substrings, number_of_columns, reference_column);
-//              ++viewed_peptides;
-//
-//              // check whether the line has enough columns
-//              if (substrings.size() < number_of_columns )
-//              {
-//                  stringstream error_message;
-//                  error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
-//                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str() , out_filename);
-//              }
-//              delta_cns.push_back(substrings[delta_cn_column].toFloat());
-//              xcorr = substrings[xcorr_column].toFloat();
-//              rank_sp = substrings[rank_sp_column].toFloat();
-//              delta_mass = precursor_mz_value - substrings[mh_column].toFloat();
-//              buffer = substrings[peptide_column].substr(2, substrings[peptide_column].length() - 4);
-//              // remove all ptms
-//              for ( std::string::const_iterator c_i = buffer.begin(); c_i != buffer.end(); ++c_i )
-//              {
-//                  if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
-//              }
-//
-//              // compute the discriminant score
-//              peptide_length = min(max_pep_lens_[charge], sequence.length());
-//              discriminant_score = xcorr_weights_[charge] * (log(xcorr) / log(peptide_length * num_frags_[charge]));
-//              discriminant_score += rank_sp_weights_[charge] * log(rank_sp);
-//              discriminant_score += delta_mass_weights_[charge] * abs(delta_mass);
-//              discriminant_score += const_weights_[charge];
-//              current_discriminant_scores.push_back(discriminant_score);
-//
-//              // if there are multiple proteins that belong to this peptide, skip these lines
-//              if ( substrings[reference_column].find_last_of('+') != std::string::npos )
-//              {
-//                  proteins_per_peptide = substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).toInt();
-//                  for ( Size prot = 0; prot < proteins_per_peptide; ++prot ) getline(out_file, line);
-//                  line_number += proteins_per_peptide;
-//              }
-//          }
-//
-//          // close and clear the stream for further use
-//          out_file.close();
-//          out_file.clear();
-//
-//          // if only one delta cn is found, it is set to 1
-//
-//          if ( delta_cns.size() == 1 ) current_discriminant_scores.back() += delta_cn_weights_[charge];
-//          else if ( delta_cns.size() > 1 )
-//          {
-//              // the delta cns are recalculated and the discriminant scores are calculated correspondingly and added to the histogram
-//              vector< double >::iterator ds_i = current_discriminant_scores.begin();
-//              for ( vector< double >::const_iterator dcn_i = delta_cns.begin(); dcn_i != delta_cns.end(); ++dcn_i, ++ds_i )
-//              {
-//                  (*ds_i) += delta_cn_weights_[charge] * (delta_cns.back() - (*dcn_i));
-//                  ++discriminant_scores_histogram[*ds_i]; // bucketing; not yet finished
-//              }
-//          }
-//          // append the discriminant scores
-//          discriminant_scores.push_back(current_discriminant_scores);
-// //           out_filenames_and_discriminant_scores[out_filename] = current_discriminant_scores;
-//      }
-//
-//      // now the p-values can be computed
-//      // fit two normal distributions to the data
-//      Math::BasicStatistics< >
-//          correct,
-//          incorrect;
-//          // unfinished;
-//      correct.setMean();
-//      correct.setVariance();
-//      incorrect.setMean();
-//      incorrect.setVariance();
-//
-// //       for ( map< String, vector< double > >::const_iterator fnds_i = out_filenames_and_discriminant_scores.begin(); fnds_i != out_filenames_and_discriminant_scores.end(); ++fnds_i )
-//      vector< vector< double >::const_iterator dss_i = discriminant_scores.begin();
-//      for ( vector< pair < String, vector< double > > >::iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i, ++dss_i )
-//      {
-//          pvalues.clear();
-// //           for ( vector< double >::const_iterator ds_i = fnds_i->second.begin(); ds_i != fnds_i->second.begin(); ++ds_i )
-//          for ( vector< double >::const_iterator ds_i = dss_i->begin(); ds_i != dss_i->end(); ++ds_i )
-//          {
-//              pvalues.push_back(correct.normalDensity(*ds_i) / (correct.normalDensity(*ds_i) + incorrect.normalDensity(*ds_i)));
-// //               p_correct = exp(-0.5 * pow((*ds_i - mean_correct) / sd, 2)) / (sd_correct * sqrt(2 * pi) );
-// //               p_incorrect = exp(-0.5 * pow((*ds_i - mean_incorrect) / sd, 2)) / (sd_incorrect * sqrt(2 * pi) );
-// //               pvalues.push_back();
-//          }
-//          fp_i->second = pvalues;
-//      }
-//  }
 
   double SequestOutfile::const_weights_[] = {0.646f, -0.959f, -1.460f};
   double SequestOutfile::xcorr_weights_[] = {5.49f, 8.362f, 9.933f};

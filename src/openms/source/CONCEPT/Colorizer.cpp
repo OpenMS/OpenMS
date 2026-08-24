@@ -37,9 +37,6 @@ namespace OpenMS
       // See Colorizer::colorStream_()
       std::cout << undo.undoAll();
       std::cerr << undo.undoAll();
-
-      //std::cout << "\nundone coloring\n";
-      //std::cerr << "\nundone coloring\n";
     }
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -58,21 +55,18 @@ namespace OpenMS
       HANDLE hOut = GetStdHandle(handle);
       if (hOut == INVALID_HANDLE_VALUE)
       {
-        //std::cerr << "no " << handle << "\n";
         return GetLastError();
       }
 
       DWORD dwMode = 0;
       if (!GetConsoleMode(hOut, &dwMode))
       {
-        //std::cerr << "no mode get for " << handle << "\n";
         return GetLastError();
       }
 
       dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
       if (!SetConsoleMode(hOut, dwMode))
       {
-        //std::cerr << "no mode set for " << handle << "\n";
         return GetLastError();
       }
       return dwMode;
@@ -97,7 +91,6 @@ namespace OpenMS
     HANDLE hOut = GetStdHandle(h_stream);
     if (hOut == INVALID_HANDLE_VALUE)
     {
-      //std::cerr << "no handle for " << h_stream << "\n";
       return false;
     }
 
@@ -148,7 +141,6 @@ namespace OpenMS
       }
     }
     // color cout/cerr if visible, or any other stream (mostly for testing purposes)
-    // debug: stream << "(" << ANSI_command + 2 << ") ";
     stream << ANSI_command;
   }
 

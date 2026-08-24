@@ -90,11 +90,8 @@ protected:
     // search for each EIC and add up
     for (Size i = 0; i < pc_mzs.size(); ++i)
     {
-      //cerr << "start" << endl;
       double pc_ms2_rt = pc_ms2_rts[i];
       double pc_mz = pc_mzs[i];
-
-      //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
       double mz_da = mztol * pc_mzs[i] / 1e6; // mz tolerance in Dalton
       double rt_start = pc_ms2_rts[i] - rttol / 2.0;
@@ -118,7 +115,6 @@ protected:
 
       Size length = std::max(rts1.size(), rts2.size()) / 2.0;
 
-      //cout << length << endl;
       if (length == 0)
       {
         cerr << "WARNING: no MS1 scans in retention time window found in both maps (mz: " << pc_mzs[i] << " / rt: " << pc_ms2_rts[i] << ")" << endl;
@@ -158,8 +154,6 @@ protected:
       double total_itensity2 = std::accumulate(XIC2.begin(), XIC2.end(), 0.0);
 
       double ratio = total_itensity2 / (total_itensity1 + 1);
-
-      //cout << pc_ms2_rt << "/" << pc_mz << " has ratio: " << ratio << " determined on " << length << " bins" << endl;
 
       if (ratio < 1.0 / fold_change)
       {
@@ -214,7 +208,6 @@ protected:
       {
         if (!exp_treatment[i].getPrecursors().empty())
         {
-          // cout << i << endl;
           double pc_mz = exp_treatment[i].getPrecursors()[0].getMZ();
           double ms2_rt = exp_treatment[i].getRT(); // use rt of MS2
           pc_mzs.push_back(pc_mz);

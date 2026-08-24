@@ -363,7 +363,6 @@ namespace OpenMS
   {
     CoarseIsotopePatternGenerator solver(hypo_ints.size());
     auto isodist = solver.estimateFromPeptideWeight(mol_weight);
-    // isodist.renormalize();
 
     const IsotopeDistribution::ContainerType& averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
@@ -451,8 +450,6 @@ namespace OpenMS
     // belongs ...
     double predict = isotope_filt_svm_->predict(features);
 
-    // std::cout << "predict: " << predict << '\n';
-
     return (predict == 2.0) ? 1 : 0;
   }
 
@@ -507,16 +504,11 @@ namespace OpenMS
     double mz1(tr1.getCentroidMZ());
     double mz2(tr2.getCentroidMZ());
 
-    // double centered_mz(std::fabs(mz2 - mz1) - mu);
     double diff_mz(std::fabs(mz2 - mz1));
 
     double mt_sigma1(tr1.getCentroidSD());
     double mt_sigma2(tr2.getCentroidSD());
-    // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
     double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
-
-    // double score_sigma_old(std::sqrt(sd*sd + mt_variances));
 
     double mz_score(0.0);
 
@@ -528,8 +520,6 @@ namespace OpenMS
     {
       mz_score = scoreMZByExpectedMean_(iso_pos, charge, diff_mz, mt_variances);
     }
-
-    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
 
     return mz_score;
   }
@@ -553,8 +543,6 @@ namespace OpenMS
 
     //standard deviation including the estimated isotope deviation
     double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
-
-    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << '\n';
 
     if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
     {
@@ -614,20 +602,10 @@ namespace OpenMS
     std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
     std::pair<Size, Size> tr2_fwhm_idx(tr2.getFWHMborders());
 
-    //    std::cout << tr1_fwhm_idx.first << " " << tr1_fwhm_idx.second << '\n';
-    //    std::cout << tr2_fwhm_idx.first << " " << tr2_fwhm_idx.second << '\n';
-
-    //    Size tr1_fwhm_size(tr1_fwhm_idx.second - tr1_fwhm_idx.first);
-    //    Size tr2_fwhm_size(tr2_fwhm_idx.second - tr2_fwhm_idx.first);
-
-    //    double max_length = (tr1_fwhm_size > tr2_fwhm_size) ? tr1_fwhm_size : tr2_fwhm_size;
-
     double tr1_length(tr1.getFWHM());
     double tr2_length(tr2.getFWHM());
     double max_length = std::max(tr1_length, tr2_length);
     double min_length = std::min(tr1_length, tr2_length);
-
-    // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << '\n';
 
     // Extract peak shape between FWHM borders for both peaks
     for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
@@ -777,10 +755,6 @@ namespace OpenMS
       fh_tmp.addMassTrace(*candidates[0]);
       fh_tmp.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity);
 
-      // double mono_iso_rt(candidates[0]->getCentroidRT());
-      // double mono_iso_mz(candidates[0]->getCentroidMZ());
-      // double mono_iso_int(candidates[0]->computePeakArea());
-
       Size last_iso_idx(0);
       Size iso_pos_max(static_cast<Size>(std::floor(charge * local_mz_range_)));
       for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos)
@@ -793,9 +767,6 @@ namespace OpenMS
         Size best_idx(0);
         for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
         {
-          // double tmp_iso_rt(candidates[mt_idx]->getCentroidRT());
-          // double tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
-          // double tmp_iso_int(candidates[mt_idx]->computePeakArea());
 
 #ifdef FFM_DEBUG
           std::cout << "scoring " << candidates[0]->getLabel() << " " << candidates[0]->getCentroidMZ() << 
@@ -979,7 +950,6 @@ namespace OpenMS
     std::map<std::string, bool> trace_excl_map;
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
     {
-      // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << '\n';
       std::vector<std::string> labels(feat_hypos[hypo_idx].getLabels());
       bool trace_coll = false;   // trace collision?
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
@@ -1015,8 +985,6 @@ namespace OpenMS
         pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
       }
     
-      // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << '\n';
-
       if (pass_isotope_filter == 0) // not passing filter
       {
         continue;

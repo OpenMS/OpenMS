@@ -669,17 +669,6 @@ namespace OpenMS
         fitter->setParameters(trace_fitter_params);
         fitter->fit(traces);
 
-#if 0
-        TraceFitter<PeakType>* alt_fitter = new GaussTraceFitter<PeakType>();
-        Param alt_p;
-        alt_p.setValue("max_iteration", max_iterations);
-
-        alt_fitter->setParameters(alt_p);
-        alt_fitter->fit(traces);
-
-        OPENMS_LOG_DEBUG << "EGH:   " << fitter->getCenter() << " " << fitter->getHeight() << '\n';
-        OPENMS_LOG_DEBUG << "GAUSS: " << alt_fitter->getCenter() << " " << alt_fitter->getHeight() << '\n';
-#endif
         // what should come out
         // left "sigma"
         // right "sigma"

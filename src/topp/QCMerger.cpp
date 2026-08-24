@@ -125,66 +125,6 @@ protected:
 
     if (!setname.empty())
     {
-//        // make #ms2 set stats
-//        std::vector<std::string> ms2nums_strings;
-//        qcmlfile.collectSetParameter(setname,"QC:0000007", ms2nums_strings);
-//        std::vector<Int> ms2nums;
-//        for (std::vector<std::string>::iterator it = ms2nums_strings.begin(); it != ms2nums_strings.end(); ++it) //transform is too ugly and errorprone
-//        {
-//          ms2nums.push_back(StringUtils::toInt32(*it));
-//        }
-
-//        std::sort(ms2nums.begin(), ms2nums.end());
-
-//        if (ms2nums.size()>0)
-//        {
-//          std::map<std::string, std::string> nums;
-//          std::map<std::string, std::string> nams;
-//          //~ min,q1,q2,q3,max
-//          nums["QC:0000043"] =StringUtils::toStr(ms2nums.front());
-//          nams["QC:0000043"] = "min ms2 number";
-//          nums["QC:0000044"] =StringUtils::toStr(OpenMS::Math::quantile1st(ms2nums.begin(), ms2nums.end(),true));
-//          nams["QC:0000044"] = "Q1 ms2 number";
-//          nums["QC:0000045"] =StringUtils::toStr(OpenMS::Math::median(ms2nums.begin(), ms2nums.end(), true));
-//          nams["QC:0000045"] = "Q2 ms2 number";
-//          nums["QC:0000046"] =StringUtils::toStr(OpenMS::Math::quantile3rd(ms2nums.begin(), ms2nums.end(),true));
-//          nams["QC:0000046"] = "Q3 ms2 number";
-//          nums["QC:0000047"] =StringUtils::toStr(ms2nums.back());
-//          nams["QC:0000047"] = "max ms2 number";
-
-//          addBoxPlotQPs(nums, nams, setname, qcmlfile);
-//        }
-
-//        // make #id-psm set stats
-//        std::vector<std::string> idnums_strings;
-//        qcmlfile.collectSetParameter(setname,"QC:0000029", idnums_strings);
-//        std::vector<Int> idnums;
-//        for (std::vector<std::string>::iterator it = idnums_strings.begin(); it != idnums_strings.end(); ++it) //transform is too ugly and errorprone
-//        {
-//          idnums.push_back(StringUtils::toInt32(*it));
-//        }
-
-//        std::sort(idnums.begin(), idnums.end());
-
-//        if (idnums.size()>0)
-//        {
-//          std::map<std::string, std::string> nums;
-//          std::map<std::string, std::string> nams;
-//          //~ min,q1,q2,q3,max
-
-//          nums["QC:0000053"] =StringUtils::toStr(idnums.front());
-//          nams["QC:0000053"] = "min id numbers";
-//          nums["QC:0000054"] =StringUtils::toStr(OpenMS::Math::quantile1st(idnums.begin(), idnums.end()));
-//          nams["QC:0000054"] = "Q1 id numbers";
-//          nums["QC:0000055"] =StringUtils::toStr(OpenMS::Math::median(idnums.begin(), idnums.end()));
-//          nams["QC:0000055"] = "Q2 id numbers";
-//          nums["QC:0000056"] =StringUtils::toStr(OpenMS::Math::quantile3rd(idnums.begin(), idnums.end()));
-//          nams["QC:0000056"] = "Q3 id numbers";
-//          nums["QC:0000057"] =StringUtils::toStr(idnums.back());
-//          nams["QC:0000057"] = "max id number";
-
-//          addBoxPlotQPs(nums, nams, setname, qcmlfile);
-//        }
     }
 
     qcmlfile.store(out);

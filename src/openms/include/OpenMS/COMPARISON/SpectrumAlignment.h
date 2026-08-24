@@ -16,9 +16,6 @@
 #include <utility>
 #include <algorithm>
 
-#define ALIGNMENT_DEBUG
-#undef  ALIGNMENT_DEBUG
-
 namespace OpenMS
 {
 
@@ -92,7 +89,6 @@ public:
         Size left_ptr(1);
         Size last_i(0), last_j(0);
 
-        //Size off_band_counter(0);
         for (Size i = 1; i <= s1.size(); ++i)
         {
           double pos1(s1[i - 1].getMZ());
@@ -150,10 +146,6 @@ public:
               score_left += (i - 1 + j) * tolerance;
             }
 
-    #ifdef ALIGNMENT_DEBUG
-          cerr << i << " " << j << " " << left_ptr << " " << pos1 << " " << pos2 << " " << score_align << " " << score_left << " " << score_up << endl;
-    #endif
-
           if (score_align <= score_up && score_align <= score_left && diff_align <= tolerance)
           {
              matrix[i][j] = score_align;
@@ -182,61 +174,6 @@ public:
         }
       }
 
-          //last_i = s1.size() + 1;
-          //last_j = s2.size() + 1;
-
-          //cerr << last_i << " " << last_j << endl;
-
-    #ifdef ALIGNMENT_DEBUG
-    #if 0
-          cerr << "TheMatrix: " << endl << " \t  \t";
-          for (Size j = 0; j != s2.size(); ++j)
-          {
-        cerr << s2[j].getPosition()[0] << " \t";
-          }
-          cerr << endl;
-          for (Size i = 0; i <= s1.size(); ++i)
-          {
-        if (i != 0)
-        {
-          cerr << s1[i - 1].getPosition()[0] << " \t";
-        }
-        else
-        {
-          cerr << " \t";
-        }
-        for (Size j = 0; j <= s2.size(); ++j)
-        {
-          if (matrix.has(i) && matrix[i].has(j))
-          {
-            if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
-            {
-              cerr << "\\";
-            }
-            else
-            {
-              if (traceback[i][j].first == i - 1 && traceback[i][j].second == j)
-              {
-            cerr << "|";
-              }
-              else
-              {
-            cerr << "-";
-              }
-            }
-
-            cerr << matrix[i][j] << "  \t";
-          }
-          else
-          {
-            cerr << "-1  \t";
-          }
-        }
-        cerr << endl;
-          }
-    #endif
-    #endif
-
       // do traceback
       Size i = last_i;
       Size j = last_j;
@@ -256,29 +193,6 @@ public:
 
       std::reverse(alignment.begin(), alignment.end());
 
-      #ifdef ALIGNMENT_DEBUG
-      #if 0
-          // print alignment
-          cerr << "Alignment (size=" << alignment.size() << "): " << endl;
-
-          Size i_s1(0), i_s2(0);
-          for (vector<pair<Size, Size> >::const_reverse_iterator it = alignment.rbegin(); it != alignment.rend(); ++it, ++i_s1, ++i_s2)
-          {
-        while (i_s1 < it->first - 1)
-        {
-          cerr << i_s1 << " " << s1[i_s1].getPosition()[0] << " " << s1[i_s1].getIntensity() << endl;
-          i_s1++;
-        }
-        while (i_s2 < it->second - 1)
-        {
-          cerr << " \t " <<  i_s2 << " " << s2[i_s2].getPosition()[0] << " " << s2[i_s2].getIntensity() << endl;
-          i_s2++;
-        }
-        cerr << "(" << s1[it->first - 1].getPosition()[0] << " <-> " << s2[it->second - 1].getPosition()[0] << ") ("
-             << it->first << "|" << it->second << ") (" << s1[it->first - 1].getIntensity() << "|" << s2[it->second - 1].getIntensity() << ")" << endl;
-          }
-      #endif
-      #endif
       }
       else  // relative alignment (ppm tolerance)
       {        
