@@ -171,32 +171,8 @@ global `ResidueDB`, so editing it changed that residue for every sequence in the
 process.
 
 Returning owned values removes all of them, and restores what 3.5 did.
+Aliasing was introduced and removed inside the same unreleased development
+cycle, so no released version ever behaved differently and existing code
+needs no changes.
 
 See issue #9792 for the full analysis.
-
-## Migrating
-
-Code written for 3.5 (or earlier) needs no changes: those releases copied too,
-so it already writes back where it has to. Only code written against a 3.6.0
-*development* build can be affected — aliasing was introduced and removed inside
-the same unreleased cycle, so no released version ever behaved that way.
-
-If such code assigned through a getter and relied on it landing, add the
-write-back:
-
-```python
-# before
-exp[0].setRT(5.0)
-for s in exp: s.setRT(0.0)
-spec.getPrecursors()[0].setMZ(500.0)
-
-# after
-s = exp[0]; s.setRT(5.0); exp[0] = s
-for i in range(len(exp)):
-    s = exp[i]; s.setRT(0.0); exp[i] = s
-p = spec.getPrecursors(); p[0].setMZ(500.0); spec.setPrecursors(p)
-```
-
-Nothing raises when you get this wrong — the write is simply discarded — so it
-is worth grepping for `get...().set...(` and for assignments to `[...]` results
-when upgrading.
