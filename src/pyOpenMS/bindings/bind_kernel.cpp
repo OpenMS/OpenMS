@@ -327,6 +327,12 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
         .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
+        .def("get_chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
+            if (i >= self.getChromatograms().size()) throw nb::index_error();
+            return self.getChromatograms()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the chromatogram at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the chromatogram list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getChromatograms()[i].")
+        .def("_chromatogram_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getChromatograms().size(); })
         .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getChromatograms(), value, "chromatograms"); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
         .def("addChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getChromatogram(key); }, "key"_a)
@@ -338,6 +344,12 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
         .def("getFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getFeatures(); })
         .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MRMFeature> { return self.getFeaturesMuteable(); })
+        .def("get_feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MRMFeature& {
+            if (i >= self.getFeaturesMuteable().size()) throw nb::index_error();
+            return self.getFeaturesMuteable()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the feature list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFeaturesMuteable()[i].")
+        .def("_feature_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getFeatures().size(); })
         .def("setFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MRMFeature>& value) { self.getFeaturesMuteable() = value; }, "value"_a, "Replaces the whole feature list (write-back for getFeaturesMuteable)")
         .def("addFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MRMFeature feature) { self.addFeature(feature); }, "feature"_a)
         .def("getBestFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getBestFeature(); })
@@ -372,6 +384,12 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
         .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
+        .def("get_chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
+            if (i >= self.getChromatograms().size()) throw nb::index_error();
+            return self.getChromatograms()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the chromatogram at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the chromatogram list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getChromatograms()[i].")
+        .def("_chromatogram_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getChromatograms().size(); })
         .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getChromatograms(), value, "chromatograms"); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
         .def("addChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getChromatogram(key); }, "key"_a)
@@ -383,6 +401,12 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
         .def("getFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getFeatures(); })
         .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MRMFeature> { return self.getFeaturesMuteable(); })
+        .def("get_feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MRMFeature& {
+            if (i >= self.getFeaturesMuteable().size()) throw nb::index_error();
+            return self.getFeaturesMuteable()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the feature list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFeaturesMuteable()[i].")
+        .def("_feature_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getFeatures().size(); })
         .def("setFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MRMFeature>& value) { self.getFeaturesMuteable() = value; }, "value"_a, "Replaces the whole feature list (write-back for getFeaturesMuteable)")
         .def("addFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MRMFeature feature) { self.addFeature(feature); }, "feature"_a)
         .def("getBestFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getBestFeature(); })
@@ -3424,6 +3448,11 @@ This class supports direct iteration in Python.
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // by value: element access yields an owned copy
         }, "i"_a, "Returns a copy of the consensus feature at index i")
+        .def("get_consensus_feature_view", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature& {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the consensus feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the consensus feature list is resized or reordered. The parent object is kept alive automatically. For an owned copy use cm[i].")
         .def("__setitem__", [](OpenMS::ConsensusMap& self, size_t i, const OpenMS::ConsensusFeature& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;

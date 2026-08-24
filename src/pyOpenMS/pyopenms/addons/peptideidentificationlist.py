@@ -26,13 +26,13 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
 
     count = len(self)
     if not export_unidentified:
-        count = sum(len(pep.getHits()) > 0 for pep in self)
+        count = sum(len(pep.getHits()) > 0 for pep in self.iter_peptide_identification_views())
 
     # get all possible metavalues
     metavals = []
     types = []
     mainscorename = "score"
-    for pep in self:
+    for pep in self.iter_peptide_identification_views():
         hits = pep.getHits()
         if len(hits) != 0:
             mvs = []
@@ -49,7 +49,7 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
             types.append('?')
         else:
             found = False
-            for p in self:
+            for p in self.iter_peptide_identification_views():
                 hits = p.getHits()
                 if len(hits) != 0:
                     if hits[0].metaValueExists(k_str):
@@ -144,7 +144,7 @@ def df_columns(self, decode_ontology=True):
     # Get all possible metavalues and main score name
     metavals = []
     mainscorename = "score"
-    for pep in self:
+    for pep in self.iter_peptide_identification_views():
         hits = pep.getHits()
         if hits:
             mvs = []
@@ -849,16 +849,15 @@ def update_scores_from_df(self, df, main_score_name):
     """Updates scores in PeptideIdentification objects from a DataFrame."""
     for index, row in df.iterrows():
         pid_index = int(row["P_ID"])
-        # self[i] and getHits() both return owned copies, so every level edited here
-        # has to be written back explicitly -- see src/pyOpenMS/OWNERSHIP.md
-        pi = self[pid_index]
+        # Edit through a live view: setScoreType/setHits land directly, so the
+        # only copy is the hits list we actually modify -- see OWNERSHIP.md
+        pi = self.get_peptide_identification_view(pid_index)
         pi.setScoreType(main_score_name)
         hits = pi.getHits()
         if len(hits) > 0:
             best_hit = hits[0]
             best_hit.setScore(float(row[main_score_name]))
             pi.setHits([best_hit] + list(hits[1:]))
-        self[pid_index] = pi
 
     return self
 
@@ -901,3 +900,16 @@ def get_psm_df(self, *args, **kwargs):
         DeprecationWarning, stacklevel=2
     )
     return self.to_psm_df(*args, **kwargs)
+
+
+@addon("PeptideIdentificationList")
+def get_peptide_identifications_view(self):
+    """Returns a list of live views of all identifications (see get_peptide_identification_view)."""
+    return [self.get_peptide_identification_view(i) for i in range(self.size())]
+
+
+@addon("PeptideIdentificationList")
+def iter_peptide_identification_views(self):
+    """Yields live views of the identifications, one at a time (see get_peptide_identification_view)."""
+    for i in range(self.size()):
+        yield self.get_peptide_identification_view(i)

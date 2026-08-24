@@ -6,9 +6,8 @@ from . import addon
 @addon("MRMTransitionGroupCP")
 def chromatogram_df_columns(self, columns='default', export_meta_values=True):
     """Returns a list of column names that to_chromatogram_df() would produce."""
-    chroms = self.getChromatograms()
-    if chroms:
-        return chroms[0].df_columns(columns=columns, export_meta_values=export_meta_values)
+    if self._chromatogram_count():
+        return self.get_chromatogram_view(0).df_columns(columns=columns, export_meta_values=export_meta_values)
     return ['rt', 'intensity', 'precursor_mz', 'precursor_charge', 'product_mz', 'native_id']
 
 
@@ -19,7 +18,7 @@ def feature_df_columns(self, columns='default'):
 
     if columns == 'all':
         meta_values = set()
-        for f in self.getFeatures():
+        for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
             for m in mvs:
@@ -150,3 +149,55 @@ def get_feature_df_columns(self, *args, **kwargs):
     warnings.warn("get_feature_df_columns() is deprecated. Use feature_df_columns() instead.",
                   DeprecationWarning, stacklevel=2)
     return self.feature_df_columns(*args, **kwargs)
+
+
+@addon("MRMTransitionGroupCP")
+def get_features_view(self):
+    """Returns a list of live views of all features (see get_feature_view)."""
+    return [self.get_feature_view(i) for i in range(self._feature_count())]
+
+
+@addon("MRMTransitionGroupCP")
+def iter_feature_views(self):
+    """Yields live views of the features, one at a time (see get_feature_view)."""
+    for i in range(self._feature_count()):
+        yield self.get_feature_view(i)
+
+
+@addon("MRMTransitionGroupCP")
+def get_chromatograms_view(self):
+    """Returns a list of live views of all chromatograms (see get_chromatogram_view)."""
+    return [self.get_chromatogram_view(i) for i in range(self._chromatogram_count())]
+
+
+@addon("MRMTransitionGroupCP")
+def iter_chromatogram_views(self):
+    """Yields live views of the chromatograms, one at a time (see get_chromatogram_view)."""
+    for i in range(self._chromatogram_count()):
+        yield self.get_chromatogram_view(i)
+
+
+@addon("LightMRMTransitionGroupCP")
+def get_features_view(self):
+    """Returns a list of live views of all features (see get_feature_view)."""
+    return [self.get_feature_view(i) for i in range(self._feature_count())]
+
+
+@addon("LightMRMTransitionGroupCP")
+def iter_feature_views(self):
+    """Yields live views of the features, one at a time (see get_feature_view)."""
+    for i in range(self._feature_count()):
+        yield self.get_feature_view(i)
+
+
+@addon("LightMRMTransitionGroupCP")
+def get_chromatograms_view(self):
+    """Returns a list of live views of all chromatograms (see get_chromatogram_view)."""
+    return [self.get_chromatogram_view(i) for i in range(self._chromatogram_count())]
+
+
+@addon("LightMRMTransitionGroupCP")
+def iter_chromatogram_views(self):
+    """Yields live views of the chromatograms, one at a time (see get_chromatogram_view)."""
+    for i in range(self._chromatogram_count()):
+        yield self.get_chromatogram_view(i)

@@ -148,3 +148,42 @@ def to_arrow(self, columns=None, export_meta_values=True):
     """Returns an Apache Arrow Table representation."""
     import pyarrow as pa
     return pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
+
+
+@addon("MSChromatogram")
+def get_float_data_arrays_view(self):
+    """Returns a list of live views of the float data arrays (see get_float_data_array_view)."""
+    return [self.get_float_data_array_view(i) for i in range(self._float_data_array_count())]
+
+
+@addon("MSChromatogram")
+def iter_float_data_array_views(self):
+    """Yields live views of the float data arrays (see get_float_data_array_view)."""
+    for i in range(self._float_data_array_count()):
+        yield self.get_float_data_array_view(i)
+
+
+@addon("MSChromatogram")
+def get_integer_data_arrays_view(self):
+    """Returns a list of live views of the integer data arrays (see get_integer_data_array_view)."""
+    return [self.get_integer_data_array_view(i) for i in range(self._integer_data_array_count())]
+
+
+@addon("MSChromatogram")
+def iter_integer_data_array_views(self):
+    """Yields live views of the integer data arrays (see get_integer_data_array_view)."""
+    for i in range(self._integer_data_array_count()):
+        yield self.get_integer_data_array_view(i)
+
+
+@addon("MSChromatogram")
+def get_string_data_arrays_view(self):
+    """Returns a list of live views of the string data arrays (see get_string_data_array_view)."""
+    return [self.get_string_data_array_view(i) for i in range(self._string_data_array_count())]
+
+
+@addon("MSChromatogram")
+def iter_string_data_array_views(self):
+    """Yields live views of the string data arrays (see get_string_data_array_view)."""
+    for i in range(self._string_data_array_count()):
+        yield self.get_string_data_array_view(i)

@@ -547,7 +547,7 @@ def get_ion_df(self):
     """Returns a DataFrame with RT, mz, intensity, and ion mobility columns for MS1 spectra."""
     import pandas as pd
     all_data = []
-    for spec in self:
+    for spec in self.iter_spectrum_views():
         if spec.getMSLevel() != 1:
             continue
         mz, inty = spec.get_peaks()

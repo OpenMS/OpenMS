@@ -288,3 +288,41 @@ def get_base_peak(self) -> Tuple[float, float]:
     idx = np.argmax(intensity)
     return (mz[idx], intensity[idx])
 
+
+@addon("MSSpectrum")
+def get_float_data_arrays_view(self):
+    """Returns a list of live views of the float data arrays (see get_float_data_array_view)."""
+    return [self.get_float_data_array_view(i) for i in range(self._float_data_array_count())]
+
+
+@addon("MSSpectrum")
+def iter_float_data_array_views(self):
+    """Yields live views of the float data arrays (see get_float_data_array_view)."""
+    for i in range(self._float_data_array_count()):
+        yield self.get_float_data_array_view(i)
+
+
+@addon("MSSpectrum")
+def get_integer_data_arrays_view(self):
+    """Returns a list of live views of the integer data arrays (see get_integer_data_array_view)."""
+    return [self.get_integer_data_array_view(i) for i in range(self._integer_data_array_count())]
+
+
+@addon("MSSpectrum")
+def iter_integer_data_array_views(self):
+    """Yields live views of the integer data arrays (see get_integer_data_array_view)."""
+    for i in range(self._integer_data_array_count()):
+        yield self.get_integer_data_array_view(i)
+
+
+@addon("MSSpectrum")
+def get_string_data_arrays_view(self):
+    """Returns a list of live views of the string data arrays (see get_string_data_array_view)."""
+    return [self.get_string_data_array_view(i) for i in range(self._string_data_array_count())]
+
+
+@addon("MSSpectrum")
+def iter_string_data_array_views(self):
+    """Yields live views of the string data arrays (see get_string_data_array_view)."""
+    for i in range(self._string_data_array_count()):
+        yield self.get_string_data_array_view(i)

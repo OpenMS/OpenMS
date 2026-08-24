@@ -131,8 +131,17 @@ for spec in exp.iter_spectrum_views():
 ```
 
 The same suffix already marks the zero-copy numpy views (`get_peaks_view()`,
-`get_data_view()`); this extends it to object element access. Anything *not*
-named `_view` returns a copy, as the rule above says.
+`get_data_view()`); this extends it to object element access. The family is
+available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features),
+`ConsensusMap` (consensus features), `PeptideIdentificationList`
+(identifications), `MRMTransitionGroup` (features, chromatograms), and
+`MSSpectrum`/`MSChromatogram` (float/integer/string data arrays) — where
+`spec.get_float_data_array_view(i).get_data_view()` chains into a fully
+zero-copy numpy view of spectrum-owned storage. Anything *not* named `_view`
+returns a copy, as the rule above says.
+
+pyOpenMS's own DataFrame exports (`to_df`, `get_ion_df`, ...) iterate views
+internally, so the copy rule costs nothing on those paths.
 
 ## Why it works this way
 

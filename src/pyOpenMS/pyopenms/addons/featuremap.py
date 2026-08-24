@@ -16,7 +16,7 @@ def df_columns(self, columns='default', export_peptide_identifications=True):
 
     if columns == 'all':
         meta_values = set()
-        for f in self:
+        for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
             for m in mvs:
@@ -50,7 +50,7 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
 
     if meta_values == 'all':
         meta_values_set = set()
-        for f in self:
+        for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
             for m in mvs:
@@ -60,7 +60,7 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
         meta_values = []
 
     rows = []
-    for f in self:
+    for f in self.iter_feature_views():
         # Compute bounding box from hull points
         hull_pts = f.getConvexHull().getHullPoints()
         if len(hull_pts) > 0:
@@ -141,7 +141,7 @@ def get_assigned_peptide_identifications(self):
     """Returns all PeptideIdentifications assigned to features in this map."""
     from pyopenms._pyopenms_metadata import PeptideIdentificationList
     result = PeptideIdentificationList()
-    for f in self:
+    for f in self.iter_feature_views():
         pep_ids = f.getPeptideIdentifications()
         for pid in pep_ids:
             result.push_back(pid)

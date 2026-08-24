@@ -125,7 +125,10 @@ PyOpenMS:
     - opt-in aliasing access is available under an explicit naming scheme: singular + _view for one
       element (get_spectrum_view(i), get_feature_view(i), get_chromatogram_view(i)), plural + _view
       for the collection, and iter_<singular>_views() for iteration; edits through a view land
-      immediately, the parent is kept alive, and resizing/reordering the list invalidates the view
+      immediately, the parent is kept alive, and resizing/reordering the list invalidates the view.
+      Available on MSExperiment, FeatureMap, ConsensusMap, PeptideIdentificationList,
+      MRMTransitionGroup and the MSSpectrum/MSChromatogram data arrays; the built-in DataFrame
+      exports iterate views internally (spectrum iteration ~100x faster than copying)
   - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
     when the replacement array has the same length (#9792)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
