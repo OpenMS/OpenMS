@@ -93,7 +93,14 @@ Deep-copying on read would break that sharing, so the write-back rule still
 applies here as the safe habit: build the list you want and call
 `setDataProcessing()`. This affects the five `getDataProcessing()` getters
 (`MSSpectrum`, `MSChromatogram`, `SpectrumSettings`, `ChromatogramSettings`,
-`MetaInfoDescription`) and nothing else.
+`MetaInfoDescription`) — and, in the same category, the OpenSwath
+interchange types, whose C++ data model is `shared_ptr` throughout:
+`OSSpectrum`/`OSChromatogram` accessors (`getMZArray()`,
+`getIntensityArray()`, `getTimeArray()`, `getDriftTimeArray()`,
+`get_data_arrays()`) and the `ISpectrumAccess` implementations'
+`getSpectrumById()`/`getChromatogramById()` hand back shared pointers
+because sharing those arrays between pipeline stages without copying is
+the point of that data model. Nothing else shares.
 
 Outside these three, no *getter* hands out a live alias. `reference_internal`
 does still appear in the bindings, in three places that are not getters: the
