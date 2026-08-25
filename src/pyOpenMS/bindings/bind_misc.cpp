@@ -3,6 +3,7 @@
 
 #include "all_casters.h"
 #include "nanobind_ms_data_consumer.h"
+#include <OpenMS/config.h> // for WITH_WNETALIGN
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
@@ -37,9 +38,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+#ifdef WITH_WNETALIGN
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
+#endif
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -842,6 +845,7 @@ FeatureGroupingAlgorithm
         .def("setReference", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, int map_id, const OpenMS::FeatureMap& map) { self.setReference(map_id, map); }, "map_id"_a, "map"_a)
         ;
 
+#ifdef WITH_WNETALIGN
     // -----------------------------------------------------------------------
     // WNetMatcher
     // -----------------------------------------------------------------------
@@ -874,6 +878,10 @@ a minimum-cost network flow problem. Returns 1-to-1 matched index pairs.
 This provides a minimal, FeatureMap-independent interface to the WNetAlign
 algorithm. For feature-level grouping across multiple maps, use
 FeatureGroupingAlgorithmWNet instead.
+
+This class is only available when OpenMS is built with
+``WITH_WNETALIGN=ON`` (the default). Use
+``hasattr(pyopenms, "WNetMatcher")`` to feature-detect at runtime.
 )doc")
         .def_static("match", &OpenMS::WNetMatcher::match,
             "positions_a"_a, "intensities_a"_a,
@@ -898,6 +906,11 @@ Finds pairwise optimal 1-to-1 feature matchings via minimum-cost network
 flow on (m/z, RT) positions; the subsequent merge across multiple maps is
 heuristic and not globally optimal.
 
+This class is only available when OpenMS is built with
+``WITH_WNETALIGN=ON`` (the default). Use
+``hasattr(pyopenms, "FeatureGroupingAlgorithmWNet")`` to feature-detect
+at runtime.
+
 FeatureGroupingAlgorithm
 )doc")
         .def(nb::init<>(), "Construct a FeatureGroupingAlgorithmWNet with default parameters")
@@ -914,6 +927,7 @@ FeatureGroupingAlgorithm
             "maps"_a, "out"_a,
             "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
+#endif // WITH_WNETALIGN
 
     // -----------------------------------------------------------------------
     // File

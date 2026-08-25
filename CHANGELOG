@@ -61,6 +61,14 @@ General:
     with lb == ub; glp_intopt then returns GLP_EBOUND and leaves every column at zero, and the
     unchecked return value turned that into a silently empty selection. They are now typed FIXED.
     No effect on the COIN-OR and HiGHS backends, which treat the two types identically (#9940)
+  - Fix: LP/ILP solver failures are no longer silent. LPWrapper::getStatus() now reports the real
+    solution status on the COIN-OR backend (it unconditionally returned UNDEFINED there, and the raw
+    solve() return value cannot signal failure: COIN-OR and HiGHS report a completed run even for a
+    proven-infeasible model). LPWrapper::solve() logs a warning whenever no feasible solution was
+    produced, and its callers (MRMFeatureSelector, ILPDCWrapper/Decharger) now check getStatus() and
+    throw an informative exception instead of reading the all-zero non-solution back as valid output
+    - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
+    empty results (#9944)
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
@@ -175,6 +183,11 @@ PyOpenMS:
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720); backward
     compatibility restored for the file I/O methods of IdXMLFile, PepXMLFile and MzIdentMLFile (#8553);
     getAAFrequencies() loop bug in the AASequence addon (#8502)
+  - Fix: a build with -DWITH_WNETALIGN=OFF produced a pyOpenMS that could not be imported at all
+    (undefined WNetMatcher symbol in _pyopenms_misc), because the WNet bindings referenced symbols
+    that are excluded from libOpenMS by that option. The WNetMatcher and FeatureGroupingAlgorithmWNet
+    bindings are now compiled only when WNet support is built, mirroring the BrukerTimsFile /
+    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946)
   - Docs: type hints in the docstrings of 133 functions (#8483), docstring format validation tests
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
@@ -1087,6 +1100,11 @@ Documentation:
     matrices for label-free, fractionated, TMT and SILAC experiments, documents the parser
     rules and the "replicate" column-naming convention that determines what a condition is,
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
+  - New vcpkg dependency-management guide (doc/doxygen/install/install-vcpkg.doxygen): what vcpkg is and
+    how OpenMS uses it (vcpkg.json, vcpkg-configuration.json), how the vcpkg-overlays/ directory provides
+    custom/patched ports and triplets not available in the public registry, building with the
+    CMakePresets.json presets vs. manual configuration, and enabling optional features via
+    VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
   - Removed the developer script tools/checker.php. Covered by .clang-format now.
@@ -1119,6 +1137,8 @@ Build System:
       applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
       SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
       configure time roughly in half by skipping the debug variant of every port (#9800)
+    - Main CI build/test workflow switched from contrib/system dependencies to vcpkg, using the same
+      vcpkg-aware CMakePresets.json presets and binary cache as the dedicated vcpkg CI workflow (#9927)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for
