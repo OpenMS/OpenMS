@@ -22,6 +22,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <algorithm>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -36,6 +37,8 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_experiment, m)
 {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSExperiment>(m, "_MSExperimentIter");
   m.doc() = "pyOpenMS experiment bindings";
 
   // -----------------------------------------------------------------------
@@ -164,7 +167,7 @@ mz, intensities = spectrum.get_peaks()
         .def("getFractionIdentifier", [](const OpenMS::MSExperiment& self) { return self.getFractionIdentifier(); }, "Returns fraction identifier")
         .def("setFractionIdentifier", [](OpenMS::MSExperiment& self, const std::string& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
 
-        .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::MSExperiment>(), "MSExperiment_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSExperiment>(self); })
         .def("__len__", [](OpenMS::MSExperiment& self) { return self.size(); })
 
         .def("__getitem__", [](const OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum {

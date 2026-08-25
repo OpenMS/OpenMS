@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -50,6 +51,8 @@ static_assert(ChromatogramPeakLayout::position_offset == 0 && ChromatogramPeakLa
     "ChromatogramPeak's structured dtype is documented as rt (float64) at 0, intensity (float32) at 8");
 
 NB_MODULE(_pyopenms_chromatogram, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSChromatogram>(m, "_MSChromatogramIter");
     m.doc() = "pyOpenMS chromatogram bindings";
 
     // -----------------------------------------------------------------------
@@ -132,7 +135,7 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
         .def("setDataProcessing", [](OpenMS::MSChromatogram& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
         .def("getDataProcessing", [](OpenMS::MSChromatogram& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); }, "Returns the description of the applied processing")
 
-        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::MSChromatogram>(), "MSChromatogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSChromatogram>(self); })
         .def("__len__", [](OpenMS::MSChromatogram& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak {
             if (i >= self.size()) throw nb::index_error();

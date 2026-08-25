@@ -92,6 +92,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -107,6 +108,9 @@ namespace nb = nanobind;
 using namespace nb::literals;
 
 NB_MODULE(_pyopenms_analysis, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::DeconvolvedSpectrum>(m, "_DeconvolvedSpectrumIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::PeakGroup>(m, "_PeakGroupIter");
     m.doc() = "pyOpenMS analysis bindings";
 
     // -----------------------------------------------------------------------
@@ -448,7 +452,7 @@ Constructors
         .def(nb::self < nb::self)
         .def(nb::self > nb::self)
         .def(nb::self == nb::self)
-        .def("__iter__", [](OpenMS::DeconvolvedSpectrum& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::DeconvolvedSpectrum>(), "DeconvolvedSpectrum_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::DeconvolvedSpectrum>(self); })
         .def("__len__", [](OpenMS::DeconvolvedSpectrum& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::DeconvolvedSpectrum& self, size_t i) -> OpenMS::PeakGroup {
             if (i >= self.size()) throw nb::index_error();
@@ -1927,7 +1931,7 @@ Constructors
         .def("reserve", [](OpenMS::PeakGroup& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for n peaks")
         .def("empty", [](const OpenMS::PeakGroup& self) { return self.empty(); }, "Returns true if no peaks")
         .def("sort", [](OpenMS::PeakGroup& self) { return self.sort(); }, "Sorts peaks by log m/z")
-        .def("__iter__", [](OpenMS::PeakGroup& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::PeakGroup>(), "PeakGroup_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::PeakGroup>(self); })
         .def("__len__", [](OpenMS::PeakGroup& self) { return self.size(); })
 
         .def("getMonoMass", &OpenMS::PeakGroup::getMonoMass, "Returns the monoisotopic mass")

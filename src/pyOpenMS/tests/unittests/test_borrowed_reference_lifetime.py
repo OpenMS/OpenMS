@@ -107,6 +107,31 @@ def test_nasequence_terminal_mod_cleared_with_none(setter, getter):
     assert getattr(seq, getter)() is None
 
 
+def test_nasequence_set_rejects_modified_ribonucleotide():
+    """An edited Ribonucleotide copy must fail loudly, not be silently replaced.
+
+    NASequence stores RibonucleotideDB's own entry for the code, so accepting
+    an edited copy would silently discard the edits. (The edit is made on a
+    copy: mutating the alias returned by _db_ribo would corrupt the
+    process-wide DB entry.)
+    """
+    seq = pyopenms.NASequence.fromString("AUGC")
+    r = pyopenms.Ribonucleotide(_db_ribo(b"G"))
+    r.setAvgMass(999.9)
+    with pytest.raises(ValueError, match="differs from the RibonucleotideDB"):
+        seq.set(0, r)
+    assert seq.toString() == "AUGC"
+
+
+def test_nasequence_terminal_mod_rejects_modified_ribonucleotide():
+    seq = pyopenms.NASequence.fromString("AUGC")
+    r = pyopenms.Ribonucleotide(_db_ribo(b"A"))
+    r.setName("customized")
+    with pytest.raises(ValueError, match="differs from the RibonucleotideDB"):
+        seq.setFivePrimeMod(r)
+    assert seq.getFivePrimeMod() is None
+
+
 def test_nasequence_setsequence_rejects_foreign_element():
     seq = pyopenms.NASequence.fromString("AUGC")
     good = _db_ribo(b"A")

@@ -32,6 +32,13 @@ Reading through a temporary works — `exp[0].getInstrumentSettings().getZoomSca
 is well-defined, because the parent stays alive for as long as the object you
 took from it. Only writes are discarded.
 
+The same holds while iterating. `for spec in exp:` walks the container by
+index, taking an owned copy per step against the container's *current* size,
+so mutating the container inside the loop is defined exactly like mutating a
+Python list during iteration: appended elements are visited, shrinking ends
+the loop early. (`Param` has no index access; its iterator snapshots owned
+entry copies up front instead.)
+
 Reads are not free, though. `exp[0].getRT()` copies a whole spectrum to read one
 number, and `consumer.getData()` copies an entire experiment. Fetch once into a
 variable rather than calling repeatedly in a loop, and for bulk numeric work use

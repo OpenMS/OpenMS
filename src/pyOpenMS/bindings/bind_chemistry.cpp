@@ -46,6 +46,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -83,7 +84,18 @@ namespace
         // (setSequence(getSequence()), set(i, seq[i]), ...) arrives here with a
         // Python-owned pointer. What gets stored is always the DB's own entry
         // for that code -- never the caller's pointer -- so nothing can dangle.
-        return OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode());
+        const OpenMS::Ribonucleotide* db_entry =
+            OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode());
+        // Storing the DB entry would silently discard any edits the caller
+        // made to their copy, so a mismatch must fail loudly instead.
+        if (!(*db_entry == *r))
+        {
+          throw nb::value_error(("Ribonucleotide '" + r->getCode() + "' differs from the RibonucleotideDB "
+                                 "entry with the same code. NASequence stores database entries, so the edits "
+                                 "on this copy would be silently lost. Register the modified ribonucleotide "
+                                 "in RibonucleotideDB under its own code instead.").c_str());
+        }
+        return db_entry;
       }
       catch (const OpenMS::Exception::ElementNotFound&)
       {
@@ -147,6 +159,9 @@ namespace
 } // namespace
 
 NB_MODULE(_pyopenms_chemistry, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::AASequence>(m, "_AASequenceIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::IsotopeDistribution>(m, "_IsotopeDistributionIter");
     m.doc() = "pyOpenMS chemistry bindings";
 
     // -----------------------------------------------------------------------
@@ -238,7 +253,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::AASequence& self) { return std::hash<OpenMS::AASequence>{}(self); })
-        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::AASequence>(self); })
         .def("__len__", [](OpenMS::AASequence& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::AASequence& self, size_t i) -> OpenMS::Residue {
             if (i >= self.size()) throw nb::index_error();
@@ -876,7 +891,7 @@ IsotopePatternGenerator
         .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
-        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::IsotopeDistribution>(self); })
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D {
             if (i >= self.size()) throw nb::index_error();

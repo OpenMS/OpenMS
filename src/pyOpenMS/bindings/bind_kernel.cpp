@@ -75,6 +75,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -142,6 +143,10 @@ void replaceKeyedMRMCollection_(std::vector<ElementT>& target,
 
 
 NB_MODULE(_pyopenms_kernel, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::Mobilogram>(m, "_MobilogramIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::ConsensusMap>(m, "_ConsensusMapIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::FeatureMap>(m, "_FeatureMapIter");
     m.doc() = "pyOpenMS kernel bindings";
 
 
@@ -1671,7 +1676,7 @@ The mobilogram is sorted with respect to position (mobility). Meta data arrays w
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
-        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::Mobilogram>(self); })
         .def("__len__", [](OpenMS::Mobilogram& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D {
             if (i >= self.size()) throw nb::index_error();
@@ -3445,7 +3450,7 @@ This class supports direct iteration in Python.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
-        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::ConsensusMap>(self); })
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature {
             if (i >= self.size()) throw nb::index_error();
@@ -3656,7 +3661,7 @@ Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)
 )doc")
         
-        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::FeatureMap>(self); })
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature {
             if (i >= self.size()) throw nb::index_error();
