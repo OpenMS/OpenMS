@@ -518,6 +518,29 @@ namespace OpenMS
     // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
 
+    // Both configurations depend only on the fragment tolerance, so they are
+    // shared read-only by every thread of the loop below: getSpectrum() and
+    // getSpectrumAlignment() are const and hold no mutable state (the scoring
+    // loop in scoreSpectraAgainstIndex_ shares one generator the same way).
+    // The alignment tolerance mirrors the search's fragment tolerance so the
+    // reported FRAGMENT_ERROR_MEDIAN_PPM is not polluted by far-off spurious
+    // matches — SpectrumAlignment's default is 0.3 Da absolute, which is ~30×
+    // looser than a typical 20 ppm search.
+    TheoreticalSpectrumGenerator tsg;
+    {
+      Param tsg_param(tsg.getParameters());
+      tsg_param.setValue("add_metainfo", "true");
+      tsg_param.setValue("add_first_prefix_ion", "true");
+      tsg.setParameters(tsg_param);
+    }
+    SpectrumAlignment sa;
+    {
+      Param sa_param(sa.getParameters());
+      sa_param.setValue("tolerance", fragment_mass_tolerance);
+      sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
+      sa.setParameters(sa_param);
+    }
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -554,27 +577,12 @@ namespace OpenMS
           ph.setSequence(ah.sequence);
 
           // Generate theoretical spectrum + alignment for annotations that need it.
-          // The alignment tolerance mirrors the search's fragment tolerance so the
-          // reported FRAGMENT_ERROR_MEDIAN_PPM is not polluted by far-off spurious
-          // matches — SpectrumAlignment's default is 0.3 Da absolute, which is ~30×
-          // looser than a typical 20 ppm search.
           std::vector<std::pair<Size, Size>> alignment;
           MSSpectrum theoretical_spec;
           if (need_alignment)
           {
-            TheoreticalSpectrumGenerator tsg;
-            Param tsg_param(tsg.getParameters());
-            tsg_param.setValue("add_metainfo", "true");
-            tsg_param.setValue("add_first_prefix_ion", "true");
-            tsg.setParameters(tsg_param);
-
             const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
-            SpectrumAlignment sa;
-            Param sa_param(sa.getParameters());
-            sa_param.setValue("tolerance", fragment_mass_tolerance);
-            sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
-            sa.setParameters(sa_param);
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
 
@@ -1112,8 +1120,9 @@ namespace OpenMS
     // Hoisted out of the omp parallel block: clang with `default(none)` forbids
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
+    const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1227,6 +1236,20 @@ namespace OpenMS
         }
 
         annotated_hits[scan_index].push_back(std::move(ah));
+      }
+
+      // Prune to top-N per spectrum to bound memory: up to
+      // scoring:max_candidates_per_spectrum hits (each owning a heap AASequence)
+      // would otherwise stay resident until postProcessHits_ truncates them.
+      // Correct because all of this spectrum's candidates are appended above and
+      // scores are independent of the chunk a candidate came from: a hit outside
+      // the top-N here can never re-enter it.
+      auto& hits = annotated_hits[scan_index];
+      if (hits.size() > keep)
+      {
+        std::partial_sort(hits.begin(), hits.begin() + keep, hits.end(), AnnotatedHit_::hasBetterScore);
+        hits.resize(keep);
+        hits.shrink_to_fit();
       }
     }
     endProgress();
@@ -1649,8 +1672,10 @@ namespace OpenMS
     // Capture the mod-match tolerance reflecting the current (post-calibration)
     // member state. This fires unconditionally — even for closed searches that
     // won't invoke OpenSearchModificationAnalysis — so tests can observe whether
-    // calibration wiring reaches the helper regardless of search mode. The OSMA
-    // call sites below read from this field instead of re-computing.
+    // calibration wiring reaches the helper regardless of search mode. search()
+    // itself does not run OSMA: the searchWithModificationAnalysis wrappers run it
+    // on the PSMs returned here and read this field instead of re-computing (by
+    // then restore_fi_params() has reset the members to user-configured values).
     last_mod_match_tolerance_used_ = computeModMatchTolerance_();
 
     // create spectrum generator — forward the ion-series toggles so scoring
@@ -1714,31 +1739,6 @@ namespace OpenMS
     endProgress();
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
-
-    // Perform modification analysis for open search results
-    if (open_search)
-    {
-      OPENMS_LOG_INFO << "[ProSE] Performing open search modification analysis..." << std::endl;
-      startProgress(0, 1, "Analyzing modification patterns...");
-
-      OpenSearchModificationAnalysis mod_analyzer;
-      // Read from last_mod_match_tolerance_used_ (captured earlier post-calibration,
-      // pre-restoration) rather than re-computing: by now the restore_fi_params()
-      // call at the end of search() has already reset members to user-configured
-      // values, so computeModMatchTolerance_() would return the wrong value here.
-      auto modification_summaries = mod_analyzer.analyzeModifications(
-        peptide_ids,
-        last_mod_match_tolerance_used_,
-        precursor_mass_tolerance_unit_ == "ppm",
-        false, // no smoothing
-        ""     // no output file for in-memory search
-      );
-
-      OPENMS_LOG_INFO << "[ProSE] Found " << modification_summaries.size()
-                      << " modification patterns in open search results." << std::endl;
-
-      endProgress();
-    }
 
     // reindex peptides to proteins.
     // The PeptideIndexer drops peptides whose termini do not match the configured
@@ -2936,13 +2936,19 @@ namespace OpenMS
       uint16_t best_charge = 0;
       float best_mean_error = 0;
 
+      // Reused across this spectrum's candidates — same rationale as the main
+      // scoring loop: a fresh PeakSpectrum per candidate churns its DataArrays
+      // (ion names / charges filled by add_metainfo) on the heap.
+      PeakSpectrum theo;
+
       for (const auto& sms : top_sms.hits_)
       {
         AASequence seq = fragment_index.reconstructModifiedSequence(
             fragment_index.getPeptides()[sms.peptide_idx_], db);
-        PeakSpectrum theo;
+        // Clear peaks + data arrays before refilling; getSpectrum appends to
+        // whatever is there. Its output is already sorted with add_metainfo=true.
+        theo.clear(true);
         tsg.getSpectrum(theo, seq, 1, 1);
-        theo.sortByPosition();
 
         HyperScore::PSMDetail detail;
         double score = HyperScore::computeWithDetail(
