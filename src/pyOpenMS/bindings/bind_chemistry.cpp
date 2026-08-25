@@ -46,6 +46,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -158,6 +159,9 @@ namespace
 } // namespace
 
 NB_MODULE(_pyopenms_chemistry, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::AASequence>(m, "_AASequenceIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::IsotopeDistribution>(m, "_IsotopeDistributionIter");
     m.doc() = "pyOpenMS chemistry bindings";
 
     // -----------------------------------------------------------------------
@@ -249,7 +253,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::AASequence& self) { return std::hash<OpenMS::AASequence>{}(self); })
-        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::AASequence>(self); })
         .def("__len__", [](OpenMS::AASequence& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::AASequence& self, size_t i) -> OpenMS::Residue {
             if (i >= self.size()) throw nb::index_error();
@@ -887,7 +891,7 @@ IsotopePatternGenerator
         .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
-        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::IsotopeDistribution>(self); })
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D {
             if (i >= self.size()) throw nb::index_error();

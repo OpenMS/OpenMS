@@ -162,13 +162,14 @@ CONTAINERS = [
 
 IDS = [c[0] for c in CONTAINERS]
 
-# NASequence.__iter__ materialises owned Ribonucleotide copies up front: its
-# stored elements are pointers into the process-wide RibonucleotideDB, so
-# yielding them live would alias the shared database. A self-contained
-# iterator has nothing to keep alive, so the keep-alive refcount edge is not
-# expected for it. The two "outlives" tests below still pin its safety
-# directly (they iterate after the container is gone and compare values).
-MATERIALIZING = {"NASequence"}
+# These __iter__ implementations materialise owned copies up front, so a
+# self-contained iterator has nothing to keep alive and the refcount edge is
+# not expected. NASequence must not yield its elements live (they are
+# pointers into the process-wide RibonucleotideDB); Param walks an entry tree
+# with no index access, so it snapshots instead. The two "outlives" tests
+# below still pin their safety directly (they iterate after the container is
+# gone and compare values).
+MATERIALIZING = {"NASequence", "Param"}
 
 
 def _expected(factory, extract):
@@ -187,15 +188,17 @@ def _expected(factory, extract):
 
 @pytest.mark.parametrize("name,factory,extract", CONTAINERS, ids=IDS)
 def test_iterator_holds_a_reference_to_its_container(name, factory, extract):
-    """The keep-alive edge must be observable, not merely probable.
+    """The parent-retention edge must be observable, not merely probable.
 
-    The other tests in this file provoke undefined behaviour and rely on it
-    manifesting.  This one checks the annotation directly: nb::keep_alive<0, 1>()
-    increments the container's refcount for as long as the iterator lives, so a
-    missing annotation fails here deterministically, with no UB involved.
+    The other tests in this file provoke lifetime bugs and rely on them
+    manifesting.  This one checks the mechanism directly: the index-based
+    value iterator stores a strong reference to its container (the `owner`
+    field in index_value_iterator.h), which increments the container's
+    refcount for as long as the iterator lives, so a dropped reference fails
+    here deterministically, with no UB involved.
     """
     if name in MATERIALIZING:
-        pytest.skip("%s.__iter__ yields owned copies; no keep-alive edge needed" % name)
+        pytest.skip("%s.__iter__ snapshots owned copies; no retention edge needed" % name)
 
     container = factory()
 
@@ -204,7 +207,7 @@ def test_iterator_holds_a_reference_to_its_container(name, factory, extract):
     during = sys.getrefcount(container)
     assert during == before + 1, (
         "%s.__iter__ did not retain its container "
-        "(refcount %d -> %d); nb::keep_alive<0, 1>() is missing" % (name, before, during)
+        "(refcount %d -> %d); the iterator's owner reference is missing" % (name, before, during)
     )
 
     del it

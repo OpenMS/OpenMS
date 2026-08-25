@@ -16,6 +16,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 
 #include <algorithm>   // std::copy in installIonMobilityArray
 #include <nanobind/nanobind.h>
@@ -156,6 +157,8 @@ static_assert(Peak1DLayout::position_offset == 0 && Peak1DLayout::intensity_offs
     "Peak1D's structured dtype is documented as mz (float64) at 0, intensity (float32) at 8");
 
 NB_MODULE(_pyopenms_spectrum, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSSpectrum>(m, "_MSSpectrumIter");
     m.doc() = "pyOpenMS spectrum bindings";
 
     // -----------------------------------------------------------------------
@@ -299,7 +302,7 @@ Usage:
         .def("setDataProcessing", [](OpenMS::MSSpectrum& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
         .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); })
 
-        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::MSSpectrum>(), "MSSpectrum_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSSpectrum>(self); })
         .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
 
         .def("getIMData", [](const OpenMS::MSSpectrum& self) {

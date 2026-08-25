@@ -24,6 +24,7 @@
 #include <OpenMS/METADATA/USI.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -38,6 +39,8 @@ namespace nb = nanobind;
 using namespace nb::literals;
 
 NB_MODULE(_pyopenms_metadata, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::PeptideIdentificationList>(m, "_PeptideIdentificationListIter");
     m.doc() = "pyOpenMS metadata bindings";
 
     // -----------------------------------------------------------------------
@@ -567,9 +570,7 @@ This class supports direct iteration in Python.
         .def("__len__", [](const OpenMS::PeptideIdentificationList& self) {
             return self.size();
         })
-        .def("__iter__", [](OpenMS::PeptideIdentificationList& self) {
-            return nb::make_iterator<nb::rv_policy::copy>(nb::type<OpenMS::PeptideIdentificationList>(), "PeptideIdentificationList_iter", self.begin(), self.end());
-        }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::PeptideIdentificationList>(self); })
         .def("__setitem__", [](OpenMS::PeptideIdentificationList& self, size_t i, const OpenMS::PeptideIdentification& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
