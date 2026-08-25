@@ -1,6 +1,6 @@
 """MRMTransitionGroupCP addon methods for DataFrame support."""
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("MRMTransitionGroupCP")
@@ -151,53 +151,11 @@ def get_feature_df_columns(self, *args, **kwargs):
     return self.feature_df_columns(*args, **kwargs)
 
 
-@addon("MRMTransitionGroupCP")
-def feature_views(self):
-    """Returns a list of live views of all features (see feature_view)."""
-    return [self.feature_view(i) for i in range(self._feature_count())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MRMTransitionGroupCP", "feature", "_feature_count", "features")
+register_element_views("MRMTransitionGroupCP", "chromatogram", "_chromatogram_count", "chromatograms")
+register_element_views("LightMRMTransitionGroupCP", "feature", "_feature_count", "features")
+register_element_views("LightMRMTransitionGroupCP", "chromatogram", "_chromatogram_count", "chromatograms")
 
 
-@addon("MRMTransitionGroupCP")
-def iter_feature_views(self):
-    """Yields live views of the features, one at a time (see feature_view)."""
-    for i in range(self._feature_count()):
-        yield self.feature_view(i)
-
-
-@addon("MRMTransitionGroupCP")
-def chromatogram_views(self):
-    """Returns a list of live views of all chromatograms (see chromatogram_view)."""
-    return [self.chromatogram_view(i) for i in range(self._chromatogram_count())]
-
-
-@addon("MRMTransitionGroupCP")
-def iter_chromatogram_views(self):
-    """Yields live views of the chromatograms, one at a time (see chromatogram_view)."""
-    for i in range(self._chromatogram_count()):
-        yield self.chromatogram_view(i)
-
-
-@addon("LightMRMTransitionGroupCP")
-def feature_views(self):
-    """Returns a list of live views of all features (see feature_view)."""
-    return [self.feature_view(i) for i in range(self._feature_count())]
-
-
-@addon("LightMRMTransitionGroupCP")
-def iter_feature_views(self):
-    """Yields live views of the features, one at a time (see feature_view)."""
-    for i in range(self._feature_count()):
-        yield self.feature_view(i)
-
-
-@addon("LightMRMTransitionGroupCP")
-def chromatogram_views(self):
-    """Returns a list of live views of all chromatograms (see chromatogram_view)."""
-    return [self.chromatogram_view(i) for i in range(self._chromatogram_count())]
-
-
-@addon("LightMRMTransitionGroupCP")
-def iter_chromatogram_views(self):
-    """Yields live views of the chromatograms, one at a time (see chromatogram_view)."""
-    for i in range(self._chromatogram_count()):
-        yield self.chromatogram_view(i)

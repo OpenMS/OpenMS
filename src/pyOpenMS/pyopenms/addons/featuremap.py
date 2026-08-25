@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("FeatureMap")
@@ -157,14 +157,8 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
     return pa.Table.from_pandas(df)
 
 
-@addon("FeatureMap")
-def feature_views(self):
-    """Returns a list of live views of all features (see feature_view)."""
-    return [self.feature_view(i) for i in range(self.size())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("FeatureMap", "feature", "size", "features")
 
 
-@addon("FeatureMap")
-def iter_feature_views(self):
-    """Yields live views of the features, one at a time (see feature_view)."""
-    for i in range(self.size()):
-        yield self.feature_view(i)

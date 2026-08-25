@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from . import addon
+from . import addon, register_element_views
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -289,40 +289,10 @@ def get_base_peak(self) -> Tuple[float, float]:
     return (mz[idx], intensity[idx])
 
 
-@addon("MSSpectrum")
-def float_data_array_views(self):
-    """Returns a list of live views of the float data arrays (see float_data_array_view)."""
-    return [self.float_data_array_view(i) for i in range(self._float_data_array_count())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSSpectrum", "float_data_array", "_float_data_array_count", "float data arrays")
+register_element_views("MSSpectrum", "integer_data_array", "_integer_data_array_count", "integer data arrays")
+register_element_views("MSSpectrum", "string_data_array", "_string_data_array_count", "string data arrays")
 
 
-@addon("MSSpectrum")
-def iter_float_data_array_views(self):
-    """Yields live views of the float data arrays (see float_data_array_view)."""
-    for i in range(self._float_data_array_count()):
-        yield self.float_data_array_view(i)
-
-
-@addon("MSSpectrum")
-def integer_data_array_views(self):
-    """Returns a list of live views of the integer data arrays (see integer_data_array_view)."""
-    return [self.integer_data_array_view(i) for i in range(self._integer_data_array_count())]
-
-
-@addon("MSSpectrum")
-def iter_integer_data_array_views(self):
-    """Yields live views of the integer data arrays (see integer_data_array_view)."""
-    for i in range(self._integer_data_array_count()):
-        yield self.integer_data_array_view(i)
-
-
-@addon("MSSpectrum")
-def string_data_array_views(self):
-    """Returns a list of live views of the string data arrays (see string_data_array_view)."""
-    return [self.string_data_array_view(i) for i in range(self._string_data_array_count())]
-
-
-@addon("MSSpectrum")
-def iter_string_data_array_views(self):
-    """Yields live views of the string data arrays (see string_data_array_view)."""
-    for i in range(self._string_data_array_count()):
-        yield self.string_data_array_view(i)
