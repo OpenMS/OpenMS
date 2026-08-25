@@ -111,6 +111,18 @@ foreach(t ${Boost_dependent_tests})
   endforeach()
 endforeach()
 
+# Tests for classes that live in a TOPP tool's subdirectory (src/topp/<Tool>/)
+# link against the tool's static helper library, which also provides the
+# include path for the moved headers (see executables.cmake). These tests are
+# only part of TEST_executables when the tool itself is being built.
+if(TARGET DatabaseSuitability_lib)
+  target_link_libraries(DBSuitability_test DatabaseSuitability_lib)
+endif()
+if(TARGET CometAdapter_lib)
+  target_link_libraries(CometModification_test CometAdapter_lib)
+  target_link_libraries(CometNativeIDRemapper_test CometAdapter_lib)
+endif()
+
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
 # Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal

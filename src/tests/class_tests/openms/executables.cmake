@@ -19,7 +19,6 @@ set(concept_executables_list
 )
 set(qc_executables_list
   Contaminants_test
-  DBSuitability_test
   FeatureSummary_test
   FragmentMassError_test
   FWHM_test
@@ -117,7 +116,6 @@ set(metadata_executables_list
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
-  CometNativeIDRemapper_test
   SpectrumNativeIDParser_test
   PeptideEvidence_test
   PeptideHit_test
@@ -530,7 +528,6 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
-  CometModification_test
   ConfidenceScoring_test
   ConsensusIDAlgorithmAverage_test
   ConsensusIDAlgorithmBest_test
@@ -804,6 +801,26 @@ set(Boost_dependent_tests
   TransitionPQPFile_test
 )
 
+#------------------------------------------------------------------------------
+# Tests for classes that live in a TOPP tool's subdirectory (src/topp/<Tool>/)
+# instead of the OpenMS library. Each such tool provides a static helper
+# library <Tool>_lib with the tool-specific classes (see the tool's
+# CMakeLists.txt); the tests link against it (see ../CMakeLists.txt).
+# They can only be built when the corresponding tool is part of the build,
+# i.e. with BUILD_TOPP_TOOLS=ON.
+set(topp_tool_class_tests)
+if(TARGET DatabaseSuitability_lib)
+  list(APPEND topp_tool_class_tests
+    DBSuitability_test
+  )
+endif()
+if(TARGET CometAdapter_lib)
+  list(APPEND topp_tool_class_tests
+    CometModification_test
+    CometNativeIDRemapper_test
+  )
+endif()
+
 ### collect test executables
 set(TEST_executables
     ${concept_executables_list}
@@ -823,4 +840,5 @@ set(TEST_executables
     ${imaging_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
+    ${topp_tool_class_tests}
 )

@@ -41,14 +41,15 @@ namespace OpenMS
   * Allows for multiple usage of the compute function. The result of each call is stored internally in a vector.
   * Therefore old results will not be overridden by a new call. This vector then can be returned using getResults().
   *
-  * This class serves as the library representation of @ref TOPP_DatabaseSuitability
+  * This class implements the algorithm behind @ref TOPP_DatabaseSuitability and lives
+  * in the tool's source directory (src/topp/DatabaseSuitability) since it is only used there.
   */
-  class OPENMS_DLLAPI DBSuitability:
+  class DBSuitability:
     public DefaultParamHandler
   {
   public:
     /// struct to store results
-    struct OPENMS_DLLAPI SuitabilityData
+    struct SuitabilityData
     {
       /// number of times the top hit is considered to be a deNovo hit
       Size num_top_novo = 0;

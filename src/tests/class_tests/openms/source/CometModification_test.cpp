@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/ID/CometModification.h>
+#include <CometModification.h>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>

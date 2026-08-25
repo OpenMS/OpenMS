@@ -369,6 +369,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 ## TOPP Tool Development
 
 - Add new tool source (e.g., `src/topp/<Tool>.cpp`) and register in `src/topp/executables.cmake`.
+- Classes used by only a single tool belong in a tool subdirectory `src/topp/<Tool>/` (with its own `CMakeLists.txt`) instead of the OpenMS library; compile them into the static helper library `<Tool>_lib` so class tests can link against them (pattern: `src/topp/DatabaseSuitability/`, `src/topp/CometAdapter/`; test registration: `src/tests/class_tests/openms/executables.cmake`). Such classes are not installed, not part of libOpenMS (no `OPENMS_DLLAPI`), and not wrapped in pyOpenMS.
 - Register tool in `src/openms/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
 - Define parameters in `registerOptionsAndFlags_()`; read with `getStringOption_` and related helpers.
 - Document the tool and add to `doc/doxygen/public/TOPP.doxygen` where applicable.

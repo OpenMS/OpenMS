@@ -6,7 +6,7 @@
 // $Authors: Copilot $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/CometModification.h>
+#include "CometModification.h"
 
 namespace OpenMS
 {

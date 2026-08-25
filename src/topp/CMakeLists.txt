@@ -14,8 +14,10 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 # add all the tools. We support two modes
 # 1. either as single MyToolName.cpp file
 # 2. via a subfolder MyToolName/ with MyToolName/MyToolName.cpp and (optionally) additional header/source files
+#    Use this mode for classes which are so specific to a single tool that they do not belong
+#    into the OpenMS library (and e.g. should not be wrapped in pyOpenMS).
 include(executables.cmake)
-foreach(i ${TOPP_executables})  
+foreach(i ${TOPP_executables})
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
 #[[
@@ -35,8 +37,21 @@ set(tool_sources
   additional_header2.h
 )
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
+openms_add_executable_compiler_flags(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
-#]] 
+
+# If the additional classes have class tests (src/tests/class_tests/openms), compile them
+# into a static helper library '${PROJECT_NAME}_lib' instead and link both the tool and the
+# tests against it (see src/topp/DatabaseSuitability or src/topp/CometAdapter for the full
+# pattern and the corresponding test registration in class_tests/openms/executables.cmake):
+add_library(${PROJECT_NAME}_lib STATIC additional_file1.cpp ...)
+openms_add_library_compiler_flags(${PROJECT_NAME}_lib)
+target_include_directories(${PROJECT_NAME}_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME}_lib PUBLIC OpenMS)
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp)
+openms_add_executable_compiler_flags(${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
+#]]
   else()
     add_executable(${i} ${i}.cpp)
     target_link_libraries(${i} OpenMS)

@@ -14,7 +14,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/DBSuitability.h>
+#include <DBSuitability.h>
 
 #include <vector>
 

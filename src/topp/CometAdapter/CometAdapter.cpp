@@ -24,14 +24,14 @@
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/CometNativeIDRemapper.h>
+#include "CometNativeIDRemapper.h"
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/ANALYSIS/ID/CometModification.h>
+#include "CometModification.h"
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <unordered_map>

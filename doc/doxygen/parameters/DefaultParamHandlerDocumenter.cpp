@@ -103,7 +103,6 @@
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
-#include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/FEATUREFINDER/BiGaussModel.h>
@@ -352,7 +351,6 @@ int main(int argc, char** argv)
   DOCME(ConsensusIDAlgorithmPEPMatrix);
   DOCME(ConsensusIDAlgorithmRanks);
   DOCME(ConsensusIDAlgorithmWorst);
-  DOCME(DBSuitability);
   DOCME(DiaPrescore);
   DOCME(DIAScoring);
   DOCME(ElutionModelFitter);

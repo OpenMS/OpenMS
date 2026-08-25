@@ -41,9 +41,10 @@ namespace OpenMS
   encoded by the @c 'n' / @c 'c' character in the residue string (per
   Comet convention, e.g. @c "42.010565 nK 0 3 -1 0 0 0.0").
 
-  @ingroup Analysis_ID
+  This helper is specific to @ref TOPP_CometAdapter and lives in the tool's
+  source directory (src/topp/CometAdapter) rather than in the OpenMS library.
 */
-struct OPENMS_DLLAPI CometModification
+struct CometModification
 {
   /// Absolute tolerance used by @ref isMergeableWith when comparing the @ref mass field.
   static constexpr double MASS_TOLERANCE = 1e-6;

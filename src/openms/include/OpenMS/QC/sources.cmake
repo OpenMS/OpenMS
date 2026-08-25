@@ -20,7 +20,6 @@ set(sources_list_h
   QCBase.h
   RTAlignment.h
   SpectrumCount.h
-  DBSuitability.h
   TIC.h
 )
 

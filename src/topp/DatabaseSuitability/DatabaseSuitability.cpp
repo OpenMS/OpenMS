@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/QC/DBSuitability.h>
+#include "DBSuitability.h"
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <algorithm>

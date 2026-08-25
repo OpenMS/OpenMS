@@ -20,7 +20,6 @@ set(sources_list
   QCBase.cpp
   RTAlignment.cpp
   SpectrumCount.cpp
-  DBSuitability.cpp
   TIC.cpp
 )
 

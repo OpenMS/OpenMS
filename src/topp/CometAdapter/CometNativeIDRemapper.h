@@ -31,7 +31,8 @@ namespace OpenMS
   This namespace exposes that rewrite/restore pair as a small, SDK-free, testable unit so the round-trip
   can be verified without a Comet binary or vendor data.
 
-  @ingroup Metadata
+  This helper is specific to @ref TOPP_CometAdapter and lives in the tool's
+  source directory (src/topp/CometAdapter) rather than in the OpenMS library.
 */
 namespace CometNativeIDRemapper
 {
