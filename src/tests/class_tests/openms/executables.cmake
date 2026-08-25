@@ -741,7 +741,8 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
-    SwathQC_test
+    OpenSwathPercolatorScoring_test
+  SwathQC_test
     IonMobilityScoring_test
     CachedMzML_test
     CachedMzMLHandler_test

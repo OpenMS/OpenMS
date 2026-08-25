@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenSwathPercolatorScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>

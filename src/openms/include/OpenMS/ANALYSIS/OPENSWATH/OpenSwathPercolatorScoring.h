@@ -47,7 +47,7 @@ namespace OpenMS
 
     @ingroup TargetedQuantitation
   */
-  class OpenSwathPercolatorScoring :
+  class OPENMS_DLLAPI OpenSwathPercolatorScoring :
     public DefaultParamHandler
   {
   public:
@@ -65,7 +65,7 @@ namespace OpenMS
     static const std::array<std::string, static_cast<Size>(Level::SIZE_OF_LEVEL)> names_of_level;
 
     /// Small execution summary returned by score()
-    struct ScoreSummary
+    struct OPENMS_DLLAPI ScoreSummary
     {
       Size total_rows = 0;
       Size target_rows = 0;

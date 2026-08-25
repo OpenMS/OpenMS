@@ -9,8 +9,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include "Contaminants.h"
 #include <algorithm>
-#include <include/OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <include/OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace std;
 

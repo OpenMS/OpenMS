@@ -16,7 +16,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
-#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
@@ -38,6 +37,17 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// OSW stores unique IDs as signed 64-bit integers with the sign bit cleared
+    /// (same convention as Internal::SqliteHelper::clearSignBit in libOpenMS'
+    /// private SQLite implementation header, which tool code must not include).
+    inline UInt64 clearSignBit(UInt64 value)
+    {
+      return value & ~(1ULL << 63);
+    }
+  }
+
   namespace
   {
     using OpenMS::Size;
@@ -322,7 +332,7 @@ namespace OpenMS
   {
     OpenSwathLibraryIDNormalizer::validateCanonicalIDs(assay_library);
 
-    const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
+    const UInt64 run_id_clean = clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
     std::unique_ptr<File::TempDir> temp_dir;
     std::string base_dir = output_path;
@@ -602,7 +612,7 @@ namespace OpenMS
     for (Size idx = 0; idx < feature_map.size(); ++idx)
     {
       const Feature& feature = feature_map[idx];
-      const int64_t feature_id = Internal::SqliteHelper::clearSignBit(feature.getUniqueId());
+      const int64_t feature_id = clearSignBit(feature.getUniqueId());
       if (!feature.metaValueExists("PeptideRef"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

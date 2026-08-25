@@ -30,6 +30,7 @@ set(sources_list
   OpenSwathScores.cpp
   OpenSwathScoring.cpp
   OpenSwathOSWParquetReader.cpp
+OpenSwathPercolatorScoring.cpp
   OpenSwathOSWWriter.cpp
   PeakMapExtractor.cpp
   TransitionListEvidenceFilter.cpp

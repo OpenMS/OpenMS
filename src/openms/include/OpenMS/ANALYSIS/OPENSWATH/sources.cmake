@@ -34,6 +34,7 @@ set(sources_list_h
   OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathOSWParquetReader.h
+OpenSwathPercolatorScoring.h
   OpenSwathOSWWriter.h
   TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h

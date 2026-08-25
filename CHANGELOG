@@ -79,8 +79,8 @@ General:
     MascotRemoteQuery (MascotAdapterOnline); ModifiedNASequenceGenerator (NucleicAcidSearchEngine);
     OpenSwathMatrixExporter, OpenSwathParquetExporter and OpenSwathResultsExporter
     (OpenSwathExport); the OpenSwathGene/Peptide/Peptidoform/ProteinInference classes
-    (OpenSwathInfer); OpenSwathPercolatorScoring (OpenSwathPercolatorScoring);
-    OpenSwathOSWParquetWriter (OpenSwathWorkflow); ParquetTableComparator (ParquetDiff);
+    (OpenSwathInfer); OpenSwathOSWParquetWriter (OpenSwathWorkflow);
+    ParquetTableComparator (ParquetDiff);
     DDAWorkflowCommons (ProteomicsLFQ); and the QC metrics Contaminants, FWHM, FragmentMassError,
     MQEvidenceExporter, MQMsmsExporter, MQExporterHelper, Ms2SpectrumStats, MzCalibration,
     PeptideMass and RTAlignment (QualityControl)

@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include "OpenSwathPercolatorScoring.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
