@@ -201,68 +201,14 @@ if (TARGET OpenSwathOSWParquetReader_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
-if (TARGET OpenSwathOSWParquetWriter_test)
-  target_link_libraries(OpenSwathOSWParquetWriter_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathOSWParquetRoundTrip_test)
-  target_link_libraries(OpenSwathOSWParquetRoundTrip_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathExport_test)
-  target_link_libraries(OpenSwathExport_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathPercolatorScoring_test)
-  target_link_libraries(OpenSwathPercolatorScoring_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-  #Test calls sqlite3 directly, so linkage required.
-  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
-    target_link_libraries(OpenSwathPercolatorScoring_test unofficial::sqlite3::sqlite3)
-  elseif(TARGET SQLite::SQLite3)
-    target_link_libraries(OpenSwathPercolatorScoring_test SQLite::SQLite3)
-  elseif(TARGET SQLiteCpp)
-    target_link_libraries(OpenSwathPercolatorScoring_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
-  elseif(TARGET sqlite3)
-    target_link_libraries(OpenSwathPercolatorScoring_test sqlite3)
-  endif()
-endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
-if (TARGET OpenSwathResultsExporter_test)
-  target_link_libraries(OpenSwathResultsExporter_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathParquetExporter_test)
-  target_link_libraries(OpenSwathParquetExporter_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
 if (TARGET ArrowIOHelpers_test)
   target_link_libraries(ArrowIOHelpers_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-# Builds its fixture tables with arrow::*Builder rather than through an exporter, so it needs
-# Arrow itself, not just what OpenMS re-exports -- the same reason QPXValueValidation_test does.
-if (TARGET ParquetTableComparator_test)
-  target_link_libraries(ParquetTableComparator_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )

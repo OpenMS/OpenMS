@@ -57,7 +57,6 @@ MSPFile.h
 MSPGenericFile.h
 MSstatsFile.h
 MascotGenericFile.h
-MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
@@ -77,7 +76,6 @@ ParamCTDFile.h
 ParamCWLFile.h
 ParamJSONFile.h
 ParamXMLFile.h
-ParquetTableComparator.h
 PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h

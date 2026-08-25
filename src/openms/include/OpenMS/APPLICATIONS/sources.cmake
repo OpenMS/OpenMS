@@ -4,7 +4,6 @@ set(directory include/OpenMS/APPLICATIONS)
 ### list all header files of the directory here
 set(sources_list_h
 ConsoleUtils.h
-INIUpdater.h
 MapAlignerBase.h
 OpenSwathBase.h
 ParameterInformation.h

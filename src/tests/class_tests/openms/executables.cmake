@@ -18,21 +18,12 @@ set(concept_executables_list
   UniqueIdInterface_test
 )
 set(qc_executables_list
-  Contaminants_test
   FeatureSummary_test
-  FragmentMassError_test
-  FWHM_test
   IdentificationSummary_test
   MissedCleavages_test
   Ms2IdentificationRate_test
-  Ms2SpectrumStats_test
-  MQEvidenceExporter_test
-  MQMsmsExporter_test
-  MzCalibration_test
-  PeptideMass_test
   PSMExplainedIonCurrent_test
   QCBase_test
-  RTAlignment_test
   SpectrumCount_test
   TIC_test
 )
@@ -234,7 +225,6 @@ set(format_executables_list
   MSPGenericFile_test
   MSstatsFile_test
   MascotGenericFile_test
-  MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
   MRMFeaturePickerFile_test
@@ -347,8 +337,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ConsensusMapArrowIO_test
   PSMArrowIO_test
   ArrowSchemaRegistry_test
-  ArrowIOHelpers_test
-  ParquetTableComparator_test)
+  ArrowIOHelpers_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -366,7 +355,6 @@ set(math_executables_list
   CrossValidation_test
   Histogram_test
   KernelDensityEstimation_test
-  LevelContextInference_test
   LinearInterpolation_test
   LinearRegression_test
   LinearRegressionWithoutIntercept_test
@@ -486,7 +474,6 @@ set(chemistry_executables_list
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
-  ModifiedNASequenceGenerator_test
   MonosaccharideDB_test
   IonNaming_test
   MzPAF_test
@@ -567,7 +554,6 @@ set(analysis_executables_list
   IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
   IonIdentityMolecularNetworking_test
-  DDAWorkflowCommons_test
   IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
   IsobaricChannelExtractor_test
@@ -613,7 +599,6 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   NeedlemanWunsch_test
-  NeighborSeq_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
@@ -654,7 +639,6 @@ if(WITH_WNETALIGN)
 endif()
 
 set(applications_executables_list
-  INIUpdater_test
   #MapAlignerBase_test
   SearchEngineBase_test
   TOPPBase_test
@@ -755,9 +739,6 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
-    OpenSwathExport_test
-    OpenSwathPercolatorScoring_test
-    PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test
@@ -770,11 +751,6 @@ endif(NOT DISABLE_OPENSWATH)
 if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
-  list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
-  list(APPEND swath_executables_list OpenSwathMatrixExporter_test)
-  list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
-  list(APPEND swath_executables_list OpenSwathResultsExporter_test)
-  list(APPEND swath_executables_list OpenSwathParquetExporter_test)
 endif()
 
 set(Boost_dependent_tests

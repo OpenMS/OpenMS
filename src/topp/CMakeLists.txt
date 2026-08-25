@@ -17,6 +17,35 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 #    Use this mode for classes which are so specific to a single tool that they do not belong
 #    into the OpenMS library (and e.g. should not be wrapped in pyOpenMS).
 include(executables.cmake)
+
+#------------------------------------------------------------------------------
+# Support for class tests living in a tool's subdirectory (tests/): a shared
+# OpenMS/test_config.h (whose data path points to the central class test data
+# directory) plus a macro to register such a test with CTest.
+set(CF_OPENMS_TEST_DATA_PATH "${OpenMS_TOPP_SOURCE_DIR}/../tests/class_tests/openms/data/")
+configure_file(${OpenMS_TOPP_SOURCE_DIR}/../tests/class_tests/openms/include/OpenMS/test_config.h.in
+               ${OpenMS_TOPP_BINARY_DIR}/tool_tests_include/OpenMS/test_config.h)
+
+# Registers tests/<test_name>.cpp of the calling tool subdirectory as a class
+# test executable linked against the tool's helper library <tool_lib>. The
+# tests honor the same switches as the library class tests. Note:
+# ENABLE_CLASS_TESTING is declared in src/tests, which is processed after
+# src/topp - hence the 'NOT DEFINED' fallback to its default ON.
+macro(openms_add_tool_class_test test_name tool_lib)
+  if((NOT DEFINED ENABLE_CLASS_TESTING OR ENABLE_CLASS_TESTING) AND "${PACKAGE_TYPE}" STREQUAL "none")
+    add_executable(${test_name} tests/${test_name}.cpp)
+    openms_add_executable_compiler_flags(${test_name})
+    target_link_libraries(${test_name} ${tool_lib})
+    target_include_directories(${test_name} PRIVATE ${OpenMS_TOPP_BINARY_DIR}/tool_tests_include)
+    # keep the test binaries out of the bin/ directory holding the TOPP tools
+    set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    add_test(NAME ${test_name} COMMAND $<TARGET_FILE:${test_name}>)
+    if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+      set_target_properties(${test_name} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+    endif()
+  endif()
+endmacro()
+
 foreach(i ${TOPP_executables})
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
@@ -53,9 +82,7 @@ target_link_libraries(${PROJECT_NAME}_lib PUBLIC OpenMS)
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp)
 openms_add_executable_compiler_flags(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
-add_executable(MyClass_test tests/MyClass_test.cpp)
-target_link_libraries(MyClass_test ${PROJECT_NAME}_lib)
-add_test(NAME MyClass_test COMMAND $<TARGET_FILE:MyClass_test>)
+openms_add_tool_class_test(MyClass_test ${PROJECT_NAME}_lib) # expects tests/MyClass_test.cpp
 #]]
   else()
     add_executable(${i} ${i}.cpp)
@@ -72,8 +99,6 @@ endforeach(i)
 
 # special requirements of some tools
 target_link_libraries(FileMerger Boost::regex)
-target_link_libraries(DecoyDatabase Boost::regex)
-target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
 target_link_libraries(MetaProSIP Eigen3::Eigen)
 
