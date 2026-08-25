@@ -83,7 +83,18 @@ namespace
         // (setSequence(getSequence()), set(i, seq[i]), ...) arrives here with a
         // Python-owned pointer. What gets stored is always the DB's own entry
         // for that code -- never the caller's pointer -- so nothing can dangle.
-        return OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode());
+        const OpenMS::Ribonucleotide* db_entry =
+            OpenMS::RibonucleotideDB::getInstance()->getRibonucleotide(r->getCode());
+        // Storing the DB entry would silently discard any edits the caller
+        // made to their copy, so a mismatch must fail loudly instead.
+        if (!(*db_entry == *r))
+        {
+          throw nb::value_error(("Ribonucleotide '" + r->getCode() + "' differs from the RibonucleotideDB "
+                                 "entry with the same code. NASequence stores database entries, so the edits "
+                                 "on this copy would be silently lost. Register the modified ribonucleotide "
+                                 "in RibonucleotideDB under its own code instead.").c_str());
+        }
+        return db_entry;
       }
       catch (const OpenMS::Exception::ElementNotFound&)
       {
