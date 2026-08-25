@@ -1400,9 +1400,9 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         
         .def("__len__", [](OpenMS::DataArrays::FloatDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.size(); }, "Returns the number of elements")
-        .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float& {
+        .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
+            return self[i];  // by value: element access yields an owned copy
         })
         .def("__setitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i, float val) {
             if (i >= self.size()) throw nb::index_error();
@@ -1509,9 +1509,9 @@ Used for storing per-peak integer annotations.
         
         .def("__len__", [](OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); }, "Returns the number of elements")
-        .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int& {
+        .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
+            return self[i];  // by value: element access yields an owned copy
         })
         .def("__setitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i, int val) {
             if (i >= self.size()) throw nb::index_error();
@@ -3276,8 +3276,11 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         
         .def("__len__", [](OpenMS::DataArrays::StringDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::StringDataArray& self) { return self.size(); }, "Returns the number of elements")
-        .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> std::string& {
+        .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> std::string {
             if (i >= self.size()) throw nb::index_error();
+            // by value: costs one extra string copy vs. returning const&, accepted
+            // so the signature states the copy rule (the caster builds a new
+            // Python str either way)
             return self[i];
         })
         .def("__setitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i, const std::string& val) {

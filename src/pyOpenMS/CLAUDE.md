@@ -27,7 +27,12 @@ and iterator returns an owned copy — never bind a getter with
 `rv_policy::reference_internal`. Zero-copy aliasing access is opt-in only,
 under the `_view`/`_views`/`_struct` names (`spectrum_view(i)`,
 `spectrum_views()`, `iter_spectrum_views()`, `data_view()`, `peaks_struct()`);
-the `get_` prefix is reserved for copies.
+the `get_` prefix is reserved for copies. Caster-handled types (arithmetic,
+`std::string`, vectors) are copied into new independent Python objects
+regardless of the C++ return type — the aliasing hazard exists only for
+bound classes. Return scalars and strings by value so the signature states
+the contract; vector returns may stay `const&` (the list caster copies
+anyway, and by-value would copy twice).
 
 ### 1. Choose the binding file
 
