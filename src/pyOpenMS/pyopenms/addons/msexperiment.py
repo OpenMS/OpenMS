@@ -217,7 +217,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
         all_pmz, all_pch, all_pint = [], [], []
         all_ilo, all_iup, all_im = [], [], []
 
-        for spec_idx, spec in enumerate(exp):
+        for spec_idx, spec in enumerate(exp.iter_spectrum_views()):  # zero-copy read of each spectrum
             ms_level = spec.getMSLevel()
             if ms_level not in ms_levels:
                 continue
@@ -293,7 +293,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
         all_pmz, all_pch, all_pint = [], [], []
         all_ilo, all_iup, all_im = [], [], []
 
-        for spec_idx, spec in enumerate(exp):
+        for spec_idx, spec in enumerate(exp.iter_spectrum_views()):  # zero-copy read of each spectrum
             ms_level = spec.getMSLevel()
             if ms_level not in ms_levels:
                 continue
@@ -445,7 +445,7 @@ def get_massql_df(self, ion_mobility=False):
         return 0
 
     def _get_spec_arrays(mslevel):
-        for scan_num, spec in enumerate(self):
+        for scan_num, spec in enumerate(self.iter_spectrum_views()):  # zero-copy read of each spectrum
             if spec.getMSLevel() == mslevel:
                 mz, inty = spec.get_peaks()
                 mz = np.asarray(mz, dtype=np.float64)
@@ -468,7 +468,7 @@ def get_massql_df(self, ion_mobility=False):
                 yield ndarr
 
     def _get_ion_spec_arrays(mslevel):
-        for scan_num, spec in enumerate(self):
+        for scan_num, spec in enumerate(self.iter_spectrum_views()):  # zero-copy read of each spectrum
             if spec.getMSLevel() == mslevel:
                 mz, inty = spec.get_peaks()
                 mz = np.asarray(mz, dtype=np.float64)
