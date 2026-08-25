@@ -40,10 +40,12 @@ add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the ma
 openms_add_executable_compiler_flags(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
 
-# If the additional classes have class tests (src/tests/class_tests/openms), compile them
-# into a static helper library '${PROJECT_NAME}_lib' instead and link both the tool and the
-# tests against it (see src/topp/DatabaseSuitability or src/topp/CometAdapter for the full
-# pattern and the corresponding test registration in class_tests/openms/executables.cmake):
+# If the additional classes have class tests, compile the classes into a static helper
+# library '${PROJECT_NAME}_lib' instead, link both the tool and the tests against it, and
+# put the tests into a 'tests/' subfolder next to the tool: since src/topp is built on top
+# of libOpenMS, the tool registers its own class tests with CTest instead of adding them
+# to src/tests/class_tests/openms (see src/topp/DatabaseSuitability or src/topp/CometAdapter
+# for the full pattern, including the ENABLE_CLASS_TESTING/PACKAGE_TYPE guard):
 add_library(${PROJECT_NAME}_lib STATIC additional_file1.cpp ...)
 openms_add_library_compiler_flags(${PROJECT_NAME}_lib)
 target_include_directories(${PROJECT_NAME}_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -51,6 +53,9 @@ target_link_libraries(${PROJECT_NAME}_lib PUBLIC OpenMS)
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp)
 openms_add_executable_compiler_flags(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
+add_executable(MyClass_test tests/MyClass_test.cpp)
+target_link_libraries(MyClass_test ${PROJECT_NAME}_lib)
+add_test(NAME MyClass_test COMMAND $<TARGET_FILE:MyClass_test>)
 #]]
   else()
     add_executable(${i} ${i}.cpp)

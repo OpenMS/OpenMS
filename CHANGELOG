@@ -70,11 +70,12 @@ General:
     - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
     empty results (#9944)
   - Classes that are specific to a single TOPP tool can now live in the tool's source subdirectory
-    (src/topp/<Tool>/) instead of the OpenMS library; their class tests keep working by linking the
-    tool's static helper library <Tool>_lib (see src/topp/CMakeLists.txt for the pattern). First
-    movers: DBSuitability (DatabaseSuitability) as well as CometModification and
-    CometNativeIDRemapper (CometAdapter) - these are no longer part of libOpenMS and its installed
-    headers (none of them were wrapped in pyOpenMS)
+    (src/topp/<Tool>/) instead of the OpenMS library, compiled into the tool's static helper
+    library <Tool>_lib; their class tests move along into src/topp/<Tool>/tests/ and are
+    registered by the tool itself (see src/topp/CMakeLists.txt for the pattern). First movers:
+    DBSuitability (DatabaseSuitability) as well as CometModification and CometNativeIDRemapper
+    (CometAdapter) - these are no longer part of libOpenMS and its installed headers (none of them
+    were wrapped in pyOpenMS)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
