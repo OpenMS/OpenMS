@@ -39,7 +39,7 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
    - Hand-maintained nanobind C++ bindings (no code generation)
    - 13 domain-based modules compiled in parallel
    - Pure Python addon system for DataFrame export and convenience methods
-   - Custom type casters for OpenMS::String, DataValue, ParamValue, DPosition
+   - Custom type casters for std::string, DataValue, ParamValue, DPosition
    - Integration with scientific Python ecosystem (numpy, pandas, pyarrow)
    - Located in `src/pyOpenMS/`; see `src/pyOpenMS/CLAUDE.md` for detailed binding guide
 

@@ -59,9 +59,9 @@ Now you can export your all files for FBMN and IIMN.
 
     # for FFBM
     oms.GNPSMGFFile().store(
-        oms.String(consensusXML_file),
-        [file.encode() for file in mzML_files],
-        oms.String("MS2data.mgf"),
+        consensusXML_file,
+        mzML_files,
+        "MS2data.mgf",
     )
     oms.GNPSQuantificationFile().store(consensus_map, "FeatureQuantificationTable.txt")
     oms.GNPSMetaValueFile().store(consensus_map, "MetaValueTable.tsv")

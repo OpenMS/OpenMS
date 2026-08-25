@@ -315,7 +315,7 @@
   aq.setQuantMethods(methods);
 
   // Prepare standards with known concentrations
-  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
+  std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
   // ... populate from standard samples ...
 
   // Fit calibration curves (with optional outlier removal)

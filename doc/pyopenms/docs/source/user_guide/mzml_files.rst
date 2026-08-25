@@ -120,9 +120,8 @@ Alternatively, we could also use pyOpenMS to decode the same data:
         + b"AAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA="
     )
 
-    out = []
-    oms.Base64().decode64(
-        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False
+    out = oms.Base64().decode64(
+        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False
     )
     print(out)
 .. code-block:: output
@@ -140,24 +139,21 @@ This allows us thus to manually decode the data. We can use pyOpenMS to encode a
         + b"AAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA="
     )
 
-    out = []
-    oms.Base64().decode64(
-        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False
+    out = oms.Base64().decode64(
+        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False
     )
     print(out)
 
-    data = oms.String()
-    oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, False)
+    data = oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False)
     print(data)
 
-    oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, True)
+    data = oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, True)
     print(data)
 
-    data = oms.String()
-    oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, False)
+    data = oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False)
     print(data)
 
-    oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, True)
+    data = oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, True)
     print(data)
 
 .. code-block:: output
