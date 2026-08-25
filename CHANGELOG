@@ -466,6 +466,12 @@ TOPP tools:
         critical section, so the parallel-for over the protein database scales across threads
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
+    OpenNuXL:
+      - Fix: cross-link localization dropped a residue entirely when its shifted a/b-ion evidence was
+        deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
+        residue before) -- the y-ion evidence for that residue was then never evaluated. The
+        plausibility rules are now applied per ion series, so a residue supported by a consistent
+        shifted y-ion ladder is localized even without prefix-ion support
     PSMFeatureExtractor:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
