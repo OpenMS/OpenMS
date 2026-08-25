@@ -724,7 +724,9 @@ namespace OpenMS
         // 1. if cross-link on AA, then the prefix or suffix ending at this AA must be shifted
         // 2. if the previous AA in the prefix / suffix had a stronger shifted signal, then the current on is not the correct one
         // 3. if the current AA is cross-linked, then the previous AA is not cross-linked and we should observe an unshifted prefix / suffix ion
-        // Sum up all intensities of shifted prefix / suffix ions
+        // Sum up all intensities of shifted prefix / suffix ions.
+        // Rules 2 and 3 are checked per ion series: implausible prefix (a/b) evidence must not
+        // discard suffix (y) evidence for the same AA, and vice versa.
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
           sites_sum_score[i] = 0.0;
@@ -733,19 +735,25 @@ namespace OpenMS
           if (n_shifts[i] > 0)
           {
             // Rules apply only for a3,b3 and higher ions (because we rarely observe a1,b1 ions we can't check for Rule 3)
-            if (i >= 2 && n_shifts[i - 1] > n_shifts[i]) continue; // Stronger signal from shifted AA before the current one? Then skip it.
-            if (i >= 2 && n_noshifts[i - 1] == 0) continue; // continue if unshifted AA is missing before (left of) the shifted one.
-            // sum up all intensities from this position and all longer prefixes that also carry the NA
-            for (Size j = i; j != sites_sum_score.size(); ++j) { sites_sum_score[i] += n_shifts[j]; }
+            const bool stronger_shifted_before = (i >= 2 && n_shifts[i - 1] > n_shifts[i]); // Stronger signal from shifted AA before the current one? Then skip it.
+            const bool unshifted_before_missing = (i >= 2 && n_noshifts[i - 1] == 0); // skip if unshifted AA is missing before (left of) the shifted one.
+            if (!stronger_shifted_before && !unshifted_before_missing)
+            {
+              // sum up all intensities from this position and all longer prefixes that also carry the NA
+              for (Size j = i; j != sites_sum_score.size(); ++j) { sites_sum_score[i] += n_shifts[j]; }
+            }
           }
 
           if (c_shifts[i] > 0)
           {
             // Rules apply only for y3 and higher ions (because we rarely observe y1 ions we can't check for Rule 3)
-            if (i < c_shifts.size()-2 && c_shifts[i + 1] > c_shifts[i]) continue; // AA after has higher intensity and also shifted? Then skip it.
-            if (i < c_noshifts.size()-2 && c_noshifts[i + 1] == 0) continue; // continue if unshifted AA is missing before (right of) the shifted one.
-            // sum up all intensities from this position and all longer suffixes that also carry the NA
-            for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
+            const bool stronger_shifted_after = (i < c_shifts.size()-2 && c_shifts[i + 1] > c_shifts[i]); // AA after has higher intensity and also shifted? Then skip it.
+            const bool unshifted_after_missing = (i < c_noshifts.size()-2 && c_noshifts[i + 1] == 0); // skip if unshifted AA is missing after (right of) the shifted one.
+            if (!stronger_shifted_after && !unshifted_after_missing)
+            {
+              // sum up all intensities from this position and all longer suffixes that also carry the NA
+              for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
+            }
           }
         }
 #ifdef DEBUG_OpenNuXL
