@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("MSExperiment")
@@ -569,27 +569,9 @@ def get_ion_df(self):
     return pd.DataFrame(result, columns=['RT', 'mz', 'inty', 'IM'])
 
 
-@addon("MSExperiment")
-def spectrum_views(self):
-    """Returns a list of live views of all spectra (see spectrum_view)."""
-    return [self.spectrum_view(i) for i in range(self.getNrSpectra())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSExperiment", "spectrum", "getNrSpectra", "spectra")
+register_element_views("MSExperiment", "chromatogram", "getNrChromatograms", "chromatograms")
 
 
-@addon("MSExperiment")
-def iter_spectrum_views(self):
-    """Yields live views of the spectra, one at a time (see spectrum_view)."""
-    for i in range(self.getNrSpectra()):
-        yield self.spectrum_view(i)
-
-
-@addon("MSExperiment")
-def chromatogram_views(self):
-    """Returns a list of live views of all chromatograms (see chromatogram_view)."""
-    return [self.chromatogram_view(i) for i in range(self.getNrChromatograms())]
-
-
-@addon("MSExperiment")
-def iter_chromatogram_views(self):
-    """Yields live views of the chromatograms, one at a time (see chromatogram_view)."""
-    for i in range(self.getNrChromatograms()):
-        yield self.chromatogram_view(i)

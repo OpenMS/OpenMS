@@ -3,7 +3,7 @@
 from __future__ import annotations
 import numpy as np
 import warnings
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("PeptideIdentificationList")
@@ -902,14 +902,8 @@ def get_psm_df(self, *args, **kwargs):
     return self.to_psm_df(*args, **kwargs)
 
 
-@addon("PeptideIdentificationList")
-def peptide_identification_views(self):
-    """Returns a list of live views of all identifications (see peptide_identification_view)."""
-    return [self.peptide_identification_view(i) for i in range(self.size())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("PeptideIdentificationList", "peptide_identification", "size", "identifications")
 
 
-@addon("PeptideIdentificationList")
-def iter_peptide_identification_views(self):
-    """Yields live views of the identifications, one at a time (see peptide_identification_view)."""
-    for i in range(self.size()):
-        yield self.peptide_identification_view(i)

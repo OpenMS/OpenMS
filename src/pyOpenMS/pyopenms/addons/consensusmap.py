@@ -1,7 +1,7 @@
 """ConsensusMap addon methods for DataFrame support."""
 import numpy as np
 from collections import defaultdict as _defaultdict
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("ConsensusMap")
@@ -518,14 +518,8 @@ def to_feature_qpx(self, qpx_version="1.1", creator="pyopenms", software_provide
     }
 
 
-@addon("ConsensusMap")
-def consensus_feature_views(self):
-    """Returns a list of live views of all consensus features (see consensus_feature_view)."""
-    return [self.consensus_feature_view(i) for i in range(self.size())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("ConsensusMap", "consensus_feature", "size", "consensus features")
 
 
-@addon("ConsensusMap")
-def iter_consensus_feature_views(self):
-    """Yields live views of the consensus features, one at a time (see consensus_feature_view)."""
-    for i in range(self.size()):
-        yield self.consensus_feature_view(i)

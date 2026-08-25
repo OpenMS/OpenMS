@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("MSChromatogram")
@@ -150,40 +150,10 @@ def to_arrow(self, columns=None, export_meta_values=True):
     return pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
 
 
-@addon("MSChromatogram")
-def float_data_array_views(self):
-    """Returns a list of live views of the float data arrays (see float_data_array_view)."""
-    return [self.float_data_array_view(i) for i in range(self._float_data_array_count())]
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSChromatogram", "float_data_array", "_float_data_array_count", "float data arrays")
+register_element_views("MSChromatogram", "integer_data_array", "_integer_data_array_count", "integer data arrays")
+register_element_views("MSChromatogram", "string_data_array", "_string_data_array_count", "string data arrays")
 
 
-@addon("MSChromatogram")
-def iter_float_data_array_views(self):
-    """Yields live views of the float data arrays (see float_data_array_view)."""
-    for i in range(self._float_data_array_count()):
-        yield self.float_data_array_view(i)
-
-
-@addon("MSChromatogram")
-def integer_data_array_views(self):
-    """Returns a list of live views of the integer data arrays (see integer_data_array_view)."""
-    return [self.integer_data_array_view(i) for i in range(self._integer_data_array_count())]
-
-
-@addon("MSChromatogram")
-def iter_integer_data_array_views(self):
-    """Yields live views of the integer data arrays (see integer_data_array_view)."""
-    for i in range(self._integer_data_array_count()):
-        yield self.integer_data_array_view(i)
-
-
-@addon("MSChromatogram")
-def string_data_array_views(self):
-    """Returns a list of live views of the string data arrays (see string_data_array_view)."""
-    return [self.string_data_array_view(i) for i in range(self._string_data_array_count())]
-
-
-@addon("MSChromatogram")
-def iter_string_data_array_views(self):
-    """Yields live views of the string data arrays (see string_data_array_view)."""
-    for i in range(self._string_data_array_count()):
-        yield self.string_data_array_view(i)
