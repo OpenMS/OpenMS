@@ -38,6 +38,7 @@
 #include <cmath>
 #include <functional>
 #include <mutex>
+#include <string_view>
 #include <unordered_map>
 #include <boost/sort/sort.hpp>
 
@@ -912,8 +913,8 @@ namespace OpenMS
         {
           // skip peptides containing unknown or ambiguous AA codes (X, B, Z)
           {
-            const auto sub = StringUtils::substr(protein.sequence, digested_peptide.first, digested_peptide.second);
-            if (sub.find_first_of("XBZ") != string::npos)
+            const std::string_view sub(protein.sequence.data() + digested_peptide.first, digested_peptide.second);
+            if (sub.find_first_of("XBZ") != std::string_view::npos)
             {
               #pragma omp atomic
               skipped_peptides++;
