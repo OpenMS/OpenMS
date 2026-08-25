@@ -747,8 +747,9 @@ namespace OpenMS
           if (c_shifts[i] > 0)
           {
             // Rules apply only for y3 and higher ions (because we rarely observe y1 ions we can't check for Rule 3)
-            const bool stronger_shifted_after = (i < c_shifts.size()-2 && c_shifts[i + 1] > c_shifts[i]); // AA after has higher intensity and also shifted? Then skip it.
-            const bool unshifted_after_missing = (i < c_noshifts.size()-2 && c_noshifts[i + 1] == 0); // skip if unshifted AA is missing after (right of) the shifted one.
+            // i + 2 < size instead of i < size - 2: the right-hand side underflows for one-residue peptides
+            const bool stronger_shifted_after = (i + 2 < c_shifts.size() && c_shifts[i + 1] > c_shifts[i]); // AA after has higher intensity and also shifted? Then skip it.
+            const bool unshifted_after_missing = (i + 2 < c_noshifts.size() && c_noshifts[i + 1] == 0); // skip if unshifted AA is missing after (right of) the shifted one.
             if (!stronger_shifted_after && !unshifted_after_missing)
             {
               // sum up all intensities from this position and all longer suffixes that also carry the NA
