@@ -1,14 +1,13 @@
 """MRMTransitionGroupCP addon methods for DataFrame support."""
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("MRMTransitionGroupCP")
 def chromatogram_df_columns(self, columns='default', export_meta_values=True):
     """Returns a list of column names that to_chromatogram_df() would produce."""
-    chroms = self.getChromatograms()
-    if chroms:
-        return chroms[0].df_columns(columns=columns, export_meta_values=export_meta_values)
+    if self._chromatogram_count():
+        return self.chromatogram_view(0).df_columns(columns=columns, export_meta_values=export_meta_values)
     return ['rt', 'intensity', 'precursor_mz', 'precursor_charge', 'product_mz', 'native_id']
 
 
@@ -19,7 +18,7 @@ def feature_df_columns(self, columns='default'):
 
     if columns == 'all':
         meta_values = set()
-        for f in self.getFeatures():
+        for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
             for m in mvs:
@@ -36,7 +35,7 @@ def to_chromatogram_df(self, columns=None, export_meta_values=True):
         import pandas as pd
     except ImportError:
         raise ImportError("pandas is required for to_chromatogram_df(). Install with: pip install pandas")
-    chroms = self.getChromatograms()
+    chroms = self.chromatogram_views()  # zero-copy read; to_df() only reads
     out = [c.to_df(columns=columns, export_meta_values=export_meta_values) for c in chroms]
     if out:
         return pd.concat(out, ignore_index=True)
@@ -68,7 +67,7 @@ def to_feature_df(self, columns=None, meta_values=None):
         vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values_list]
         yield tuple((f.getUniqueId(), f.getRT(), f.getIntensity(), f.getOverallQuality(), *vals))
 
-    features = self.getFeatures()
+    features = self.feature_views()  # zero-copy read; the generators below only read
     mddtypes = [('feature_id', np.dtype('uint64')), ('rt', 'f'), ('intensity', 'f'), ('quality', 'f')]
 
     if meta_values is not None:
@@ -150,3 +149,13 @@ def get_feature_df_columns(self, *args, **kwargs):
     warnings.warn("get_feature_df_columns() is deprecated. Use feature_df_columns() instead.",
                   DeprecationWarning, stacklevel=2)
     return self.feature_df_columns(*args, **kwargs)
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MRMTransitionGroupCP", "feature", "_feature_count", "features")
+register_element_views("MRMTransitionGroupCP", "chromatogram", "_chromatogram_count", "chromatograms")
+register_element_views("LightMRMTransitionGroupCP", "feature", "_feature_count", "features")
+register_element_views("LightMRMTransitionGroupCP", "chromatogram", "_chromatogram_count", "chromatograms")
+
+

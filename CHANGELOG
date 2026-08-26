@@ -69,6 +69,21 @@ General:
     with lb == ub; glp_intopt then returns GLP_EBOUND and leaves every column at zero, and the
     unchecked return value turned that into a silently empty selection. They are now typed FIXED.
     No effect on the COIN-OR and HiGHS backends, which treat the two types identically (#9940)
+  - Fix: LP/ILP solver failures are no longer silent. LPWrapper::getStatus() now reports the real
+    solution status on the COIN-OR backend (it unconditionally returned UNDEFINED there, and the raw
+    solve() return value cannot signal failure: COIN-OR and HiGHS report a completed run even for a
+    proven-infeasible model). LPWrapper::solve() logs a warning whenever no feasible solution was
+    produced, and its callers (MRMFeatureSelector, ILPDCWrapper/Decharger) now check getStatus() and
+    throw an informative exception instead of reading the all-zero non-solution back as valid output
+    - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
+    empty results (#9944)
+  - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
+    "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
+    The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
+    (#9945)
+  - Removed the unregistered developer runners under src/tests/topp/ProteomicsLFQTestScripts,
+    which no CTest target ran (run_lfq.sh and run_BSA.sh were additionally hardwired to personal
+    machine paths), and the ProteomicsLFQ documentation line that pointed to them (#9945)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -117,10 +132,33 @@ PyOpenMS:
     - PEP 561 type stubs (.pyi), smaller binaries, faster builds and better error messages
     - along the way: ~50 mutable-reference output parameter bugs fixed and ~100 missing default
       arguments restored
+  - BREAKING: getters return owned copies again, restoring the 3.5 (Cython) semantics that the initial
+    nanobind port had turned into live aliases (#9792, #9794)
+    - element access (spec[i], for peak in spec, exp.getSpectrum(i)), vector getters (getSpectra(),
+      getHits(), getPrecursors(), getFloatDataArrays(), ...) and single sub-object getters
+      (getInstrumentSettings(), getPrecursor(), getParameters(), ...) all hand out copies
+    - one rule for every getter: read it, edit it, put it back -- e.g.
+      s = exp.getSpectrum(0); s.setRT(1.0); exp[0] = s
+    - closes the use-after-free and silent-corruption classes from #9792: an alias no longer dangles
+      when the container reallocates (push_back) and no longer silently re-labels a different element
+      when the container is sorted (sortByRT); AASequence element access no longer exposes mutable
+      handles into the process-wide ResidueDB
+    - see src/pyOpenMS/OWNERSHIP.md for the full rule and the three documented exceptions (fluent
+      builders, database lookups, and shared DataProcessing entries)
+    - opt-in aliasing access is available under an explicit naming scheme: <singular>_view(i) for one
+      element (spectrum_view(i), feature_view(i), chromatogram_view(i)), <singular>_views() for the
+      collection, and iter_<singular>_views() for iteration; the get_ prefix is reserved for owned
+      copies, so aliasing accessors never carry it; edits through a view land
+      immediately, the parent is kept alive, and resizing/reordering the list invalidates the view.
+      Available on MSExperiment, FeatureMap, ConsensusMap, PeptideIdentificationList,
+      MRMTransitionGroup and the MSSpectrum/MSChromatogram data arrays; the built-in DataFrame
+      exports iterate views internally (spectrum iteration ~100x faster than copying)
+  - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
+    when the replacement array has the same length (#9792)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
     handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions (get_df() -> to_df(), get_df_columns()
-    -> df_columns(), ...) and zero-copy _mv methods renamed to _view (get_data_mv() -> get_data_view());
+    -> df_columns(), ...) and zero-copy _mv methods renamed to _view (get_data_mv() -> data_view());
     deprecated aliases are provided for both (#8655, #8857)
   - DataFrame / Arrow support: to_df() for MSSpectrum, MSChromatogram, Mobilogram, MSExperiment,
     ConsensusMap, FeatureMap and PeptideIdentificationList, get_chromatogram_df()/get_feature_df() for
@@ -145,7 +183,7 @@ PyOpenMS:
     (#8525); DRange1 (#8504)
   - Ion mobility: the per-peak IM dimension can now be written, not just read -- set_im_data() /
     set_drift_time_array() take the unit explicitly instead of requiring the magic data-array name;
-    get_drift_time_array()/get_drift_time_unit() accessors and zero-copy get_peaks_struct() for
+    get_drift_time_array()/get_drift_time_unit() accessors and zero-copy peaks_struct() for
     MSChromatogram and Mobilogram (#8423, #8825, #8842, #9792)
   - Static methods modernized with the @staticmethod decorator (#8562); MSSpectrum.getType(bool)
     wrapped (#8589)
@@ -160,7 +198,7 @@ PyOpenMS:
     binary arrays); the data arrays are now resized/cleared along with the peaks (#9792, #9795)
   - Fix: get_drift_time_unit() returned the scalar per-spectrum unit even when guarding on the per-peak
     array, so it reported NONE for correctly labelled frames; both representations are now handled (#9792)
-  - Fix: the zero-copy get_peaks_struct() dtype derived its field offsets instead of reading them, so an
+  - Fix: the zero-copy peaks_struct() dtype derived its field offsets instead of reading them, so an
     ABI change would have gone unnoticed; offsets are now taken from the C++ members (#9792)
   - Fix: AASequence.__str__() returns the peptide sequence instead of the repr format, and copy
     constructor dispatch was corrected for AASequence and 11 further classes (ProteinHit, Software,
@@ -176,6 +214,11 @@ PyOpenMS:
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720); backward
     compatibility restored for the file I/O methods of IdXMLFile, PepXMLFile and MzIdentMLFile (#8553);
     getAAFrequencies() loop bug in the AASequence addon (#8502)
+  - Fix: a build with -DWITH_WNETALIGN=OFF produced a pyOpenMS that could not be imported at all
+    (undefined WNetMatcher symbol in _pyopenms_misc), because the WNet bindings referenced symbols
+    that are excluded from libOpenMS by that option. The WNetMatcher and FeatureGroupingAlgorithmWNet
+    bindings are now compiled only when WNet support is built, mirroring the BrukerTimsFile /
+    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946)
   - Docs: type hints in the docstrings of 133 functions (#8483), docstring format validation tests
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
@@ -454,6 +497,12 @@ TOPP tools:
         critical section, so the parallel-for over the protein database scales across threads
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
+    OpenNuXL:
+      - Fix: cross-link localization dropped a residue entirely when its shifted a/b-ion evidence was
+        deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
+        residue before) -- the y-ion evidence for that residue was then never evaluated. The
+        plausibility rules are now applied per ion series, so a residue supported by a consistent
+        shifted y-ion ladder is localized even without prefix-ion support
     PSMFeatureExtractor:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
@@ -1088,10 +1137,17 @@ Documentation:
     matrices for label-free, fractionated, TMT and SILAC experiments, documents the parser
     rules and the "replicate" column-naming convention that determines what a condition is,
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
+  - New vcpkg dependency-management guide (doc/doxygen/install/install-vcpkg.doxygen): what vcpkg is and
+    how OpenMS uses it (vcpkg.json, vcpkg-configuration.json), how the vcpkg-overlays/ directory provides
+    custom/patched ports and triplets not available in the public registry, building with the
+    CMakePresets.json presets vs. manual configuration, and enabling optional features via
+    VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
-  - Removed the developer script tools/checker.php. Covered by .clang-format now (tools/create_test.php and tools/correct_test.php remain).
+  - Removed the developer script tools/checker.php. Covered by .clang-format now.
   - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
+  - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).
+  - Removed the PHP class-test scaffolding tools (tools/create_test.php, correct_test.php, common_functions.php, tools/README) and the doc_xml Doxygen target / Doxyfile_xml that only fed them; new class tests follow the template in the developer FAQ (#9945).
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
     <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
@@ -1118,6 +1174,8 @@ Build System:
       applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
       SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
       configure time roughly in half by skipping the debug variant of every port (#9800)
+    - Main CI build/test workflow switched from contrib/system dependencies to vcpkg, using the same
+      vcpkg-aware CMakePresets.json presets and binary cache as the dedicated vcpkg CI workflow (#9927)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for

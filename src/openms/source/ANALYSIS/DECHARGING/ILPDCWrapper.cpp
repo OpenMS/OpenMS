@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
@@ -269,6 +270,13 @@ namespace OpenMS
     param.enable_presolve = true;
 
     build.solve(param);
+    const LPWrapper::SolverStatus solution_status = build.getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    { // without this check a failed solve would silently deactivate all edges (see issue #9944)
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The ILP solver did not find a feasible charge assignment (solver status: " +
+        StringUtils::toStr(static_cast<Int>(solution_status)) + ").");
+    }
 
     for (UInt iColumn = 0; iColumn < margin_right - margin_left; ++iColumn)
     {
@@ -435,10 +443,17 @@ namespace OpenMS
     time1.start();
     build.solve(param);
     time1.stop();
+    const LPWrapper::SolverStatus solution_status = build.getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    { // without this check a failed solve would silently deactivate all edges (see issue #9944)
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The ILP solver did not find a feasible charge assignment (solver status: " +
+        StringUtils::toStr(static_cast<Int>(solution_status)) + ").");
+    }
     if (verbose_level > 0)
       OPENMS_LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
                << " with objective value: " << build.getObjectiveValue() << "."
-               << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
+               << " Status: " << (solution_status == LPWrapper::OPTIMAL ? " Finished" : " Not finished")
                << std::endl;
 
     // variable values

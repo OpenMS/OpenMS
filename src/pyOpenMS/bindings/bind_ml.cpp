@@ -94,11 +94,11 @@ LocalClustering
     nb::class_<OpenMS::GridBasedCluster>(m, "GridBasedCluster", "basic data structure for clustering")
         .def(nb::init<OpenMS::DPosition<2>, OpenMS::DBoundingBox<2>, std::vector<int>, int, std::vector<int>>())
         .def(nb::init<OpenMS::DPosition<2>, OpenMS::DBoundingBox<2>, std::vector<int>>())
-        .def("getCentre", [](const OpenMS::GridBasedCluster& self) -> const OpenMS::DPosition<2> & { return self.getCentre(); }, nb::rv_policy::reference_internal, "Returns cluster centre")
-        .def("getBoundingBox", [](const OpenMS::GridBasedCluster& self) -> const OpenMS::DBoundingBox<2> & { return self.getBoundingBox(); }, nb::rv_policy::reference_internal, "Returns bounding box")
-        .def("getPoints", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPoints(); }, nb::rv_policy::reference_internal, "Returns indices of points in cluster")
+        .def("getCentre", [](const OpenMS::GridBasedCluster& self) -> OpenMS::DPosition<2> { return self.getCentre(); }, "Returns cluster centre")
+        .def("getBoundingBox", [](const OpenMS::GridBasedCluster& self) -> OpenMS::DBoundingBox<2> { return self.getBoundingBox(); }, "Returns bounding box")
+        .def("getPoints", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPoints(); }, "Returns indices of points in cluster")
         .def("getPropertyA", [](const OpenMS::GridBasedCluster& self) { return self.getPropertyA(); }, "Returns property A")
-        .def("getPropertiesB", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPropertiesB(); }, nb::rv_policy::reference_internal, "Returns properties B of all points")
+        .def("getPropertiesB", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPropertiesB(); }, "Returns properties B of all points")
         ;
 
     // -----------------------------------------------------------------------
@@ -114,7 +114,7 @@ LocalClustering
         .def("addValue", [](OpenMS::Math::LinearInterpolation<double, double>& self, double pos, double value) { self.addValue(pos, value); }, "pos"_a, "value"_a, "Adds a value at the given position")
         .def("derivative", [](const OpenMS::Math::LinearInterpolation<double, double>& self, double pos) { return self.derivative(pos); }, "pos"_a, "Returns the derivative at position")
         .def("empty", [](const OpenMS::Math::LinearInterpolation<double, double>& self) { return self.empty(); }, "Returns true if the data is empty")
-        .def("getData", [](OpenMS::Math::LinearInterpolation<double, double>& self) -> std::vector<double>& { return self.getData(); }, nb::rv_policy::reference_internal, "Returns the data vector")
+        .def("getData", [](OpenMS::Math::LinearInterpolation<double, double>& self) -> std::vector<double>& { return self.getData(); }, "Returns the data vector")
         .def("setData", [](OpenMS::Math::LinearInterpolation<double, double>& self, const std::vector<double>& data) { self.setData(data); }, "data"_a, "Sets the data")
         .def("getScale", [](const OpenMS::Math::LinearInterpolation<double, double>& self) { return self.getScale(); }, "Returns the scale")
         .def("setScale", [](OpenMS::Math::LinearInterpolation<double, double>& self, double scale) { self.setScale(scale); }, "scale"_a, "Sets the scale")
