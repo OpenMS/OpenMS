@@ -169,8 +169,31 @@ private:
 
     /** @brief Computes the noise in windows for two input arrays and stores the median intensity in the result (internal)
      *
-     * Note that int_array is copied on purpose, since it is modified while sorting, a copy is needed.
+     * The x-axis (@p mz_array) is partitioned into @p result.size() consecutive,
+     * non-overlapping windows of width @p window_length_ starting at @p mz_start.
+     * For each window the median of the intensities falling into it is stored in
+     * @p result. Windows whose median is exactly 0 (e.g. empty windows) receive an
+     * imputed fallback value derived from the mean and standard deviation of the
+     * whole intensity array.
      *
+     * @param[in] mz_array Positions along the separation axis, in ascending
+     *   (sorted) order. Units depend on the caller: Thomson (m/z) for spectra,
+     *   seconds (retention time) for chromatograms. Must contain > 2 elements and
+     *   have the same length as @p int_array. The values are only required to be
+     *   monotonically non-decreasing (they are searched with std::lower_bound).
+     * @param[in] int_array Intensities (arbitrary units, expected non-negative),
+     *   one per @p mz_array entry, in the same order. Passed <b>by value on
+     *   purpose</b>: computeMedian_ reorders it in place while selecting medians,
+     *   so a private copy is required and the caller's array is left untouched.
+     * @param[out] result Pre-sized (by the caller) to the number of windows to
+     *   evaluate; its size alone determines how many windows are produced. On
+     *   return, result[i] holds the median intensity of the i-th window
+     *   (same units as @p int_array), i.e. the noise estimate for the m/z range
+     *   [mz_start + i*window_length_, mz_start + (i+1)*window_length_).
+     * @param[in] mz_start Position (same units as @p mz_array) of the left edge of
+     *   the very first window. Typically mz_array.front() for the "even" set of
+     *   windows, or mz_array.front() - window_length_/2 for the half-shifted "odd"
+     *   set; hence it may legitimately lie below mz_array.front().
     */
     void computeNoiseInWindows_(const std::vector<double>& mz_array, std::vector<double> int_array, std::vector<double> & result, double mz_start);
 
