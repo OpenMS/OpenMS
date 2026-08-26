@@ -187,8 +187,10 @@ private:
      *   so a private copy is required and the caller's array is left untouched.
      * @param[out] result Pre-sized (by the caller) to the number of windows to
      *   evaluate; its size alone determines how many windows are produced. On
-     *   return, result[i] holds the median intensity of the i-th window
-     *   (same units as @p int_array), i.e. the noise estimate for the m/z range
+     *   return, result[i] holds the noise estimate for the i-th window (same units
+     *   as @p int_array): the median intensity of that window, or the imputed
+     *   fallback value (see above) when that median is exactly 0. Window i spans
+     *   the coordinate range
      *   [mz_start + i*window_length_, mz_start + (i+1)*window_length_).
      * @param[in] mz_start Position (same units as @p mz_array) of the left edge of
      *   the very first window. Typically mz_array.front() for the "even" set of
