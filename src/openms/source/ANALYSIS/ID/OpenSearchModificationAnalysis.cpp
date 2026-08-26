@@ -416,18 +416,20 @@ namespace OpenMS
     const size_t n = deltas.size();
     std::vector<double> smoothed_counts(n, 0.0);
 
-    // Perform Gaussian smoothing
+    // Perform Gaussian smoothing. deltas is ascending (extracted from the ordered
+    // histogram), so the points within 3 standard deviations form a contiguous
+    // range located by binary search — an open-search histogram has 1e4-1e5 bins
+    // and a full O(n^2) scan would dominate the analysis.
+    const double cutoff = 3.0 * sigma;
     for (size_t i = 0; i < n; ++i)
     {
       double weight_sum = 0.0;
 
-      for (size_t j = 0; j < n; ++j)
+      const size_t j_begin = std::lower_bound(deltas.begin(), deltas.end(), deltas[i] - cutoff) - deltas.begin();
+      const size_t j_end = std::upper_bound(deltas.begin(), deltas.end(), deltas[i] + cutoff) - deltas.begin();
+      for (size_t j = j_begin; j < j_end; ++j)
       {
         double mz_diff = deltas[i] - deltas[j];
-
-        // Ignore points beyond 3 standard deviations
-        if (std::abs(mz_diff) > 3.0 * sigma)
-          continue;
 
         double weight = gaussian_(mz_diff, sigma);
         smoothed_counts[i] += weight * counts[j];
