@@ -1145,7 +1145,7 @@ namespace OpenMS
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
