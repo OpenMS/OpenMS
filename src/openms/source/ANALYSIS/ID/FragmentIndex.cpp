@@ -1465,9 +1465,24 @@ namespace OpenMS
       for (UInt32 rel : touched_ids) match_counts[rel] = 0;
       touched_ids.clear();
 
-      // Grow-only: resize value-initializes just the new tail, and the reset above already
-      // restored every older cell to zero.
-      if (window > match_counts.size()) match_counts.resize(window);
+      // Release the high-water table once this thread enters genuinely-small-window
+      // territory (a closed search following an open search): the open-search table is
+      // O(index) per thread and would otherwise stay resident for the thread's lifetime.
+      // Gated on the CURRENT window being small, not on a ratio, so consecutive
+      // open-search blocks (whose window sizes legitimately vary with precursor mass)
+      // never churn; a fresh vector is all-zero, preserving the reset invariant.
+      constexpr size_t SMALL_WINDOW = 32768;       // closed-search windows are ~1e3-1e4
+      constexpr size_t RELEASE_BYTES = 1u << 20;   // keep tables below ~1 MB regardless
+      if (window < SMALL_WINDOW && match_counts.size() * sizeof(uint32_t) > RELEASE_BYTES)
+      {
+        std::vector<uint32_t>(window).swap(match_counts);
+        touched_ids.shrink_to_fit();
+        emit_ids.clear();
+        emit_ids.shrink_to_fit();
+      }
+      // Grow-only otherwise: resize value-initializes just the new tail, and the reset
+      // above already restored every older cell to zero.
+      else if (window > match_counts.size()) match_counts.resize(window);
 
       // Loop-invariant: same cap as the previous per-peak std::min(). A precursor charge of
       // 0 yields an empty fragment-charge loop, hence no candidates — as before.
