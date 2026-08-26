@@ -419,6 +419,20 @@ namespace OpenMS
       // complexity proxy (cf. MS2Rescore's "ln_total_intensity")
       inline const std::string LN_TOTAL_INTENSITY = "ln_total_intensity";
 
+      // User parameter name for a binomial fragment-match score, -10*log10 P(X >= matched) with
+      // X ~ Binomial(#theoretical ions, peak density). The statistical model behind Andromeda and
+      // MS Amanda; independent of the hyperscore's factorial/intensity-product formulation.
+      inline const std::string BINOMIAL_MATCH_SCORE = "binomial_match_score";
+
+      // User parameter name for the Tailor-calibrated score: the hit's score divided by a low-order
+      // quantile of the same spectrum's candidate score distribution (Sulc et al. 2020). Per-spectrum
+      // calibration by division, which unlike a difference also absorbs the distribution's width.
+      inline const std::string TAILOR_SCORE = "tailor_score";
+
+      // User parameter name for the fraction of the spectrum's most intense peaks that the PSM
+      // explains. Uses intensity *rank* rather than summed intensity.
+      inline const std::string TOP_PEAKS_EXPLAINED_FRACTION = "top_peaks_explained_fraction";
+
       /** User parameter name to indicate a peptide q-value
               String
       */

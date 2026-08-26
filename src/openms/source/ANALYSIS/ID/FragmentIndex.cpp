@@ -2502,7 +2502,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                 Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
                                 Constants::UserParam::COMPLEMENTARY_IONS_FRACTION,
                                 Constants::UserParam::LN_EXPLAINED_INTENSITY,
-                                Constants::UserParam::LN_TOTAL_INTENSITY}
+                                Constants::UserParam::LN_TOTAL_INTENSITY,
+                                Constants::UserParam::BINOMIAL_MATCH_SCORE,
+                                Constants::UserParam::TAILOR_SCORE,
+                                Constants::UserParam::TOP_PEAKS_EXPLAINED_FRACTION}
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
