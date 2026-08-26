@@ -254,7 +254,10 @@ namespace OpenMS
       "decoy-augmented database — sample size is tied to chunk_size so calibration memory "
       "respects the same budget as main-search chunks. In multi-file mode (-in a.mzML b.mzML), "
       "the chunk-major path builds each chunk's fragment index once and scores all files "
-      "against it before moving to the next chunk.");
+      "against it before moving to the next chunk. Note that chunk_size bounds only the "
+      "fragment-index memory: the chunk-major schedule holds ALL input files' preprocessed "
+      "MS2 spectra in memory for the whole search, so budget for their sum as well, or split "
+      "very large cohorts across separate ProSE invocations.");
     defaults_.setMinInt("database:chunk_size", 0);
 
     defaults_.setSectionDescription("calibration",
@@ -364,15 +367,22 @@ namespace OpenMS
   // static
   void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
-    // filter MS2 map
-    // remove 0 intensities
+    // Intensity threshold + normalization used to run here as two extra SERIAL full-map
+    // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
+    // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
+    // neither iterates chromatograms. They are therefore applied at the top of the parallel
+    // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
+    // the peak data. Both objects are configured once here and shared across the OpenMP
+    // threads, exactly like window_mower_filter / nlargest_filter below:
+    // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
+    // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
+    // same idempotent same-value write the already-shared WindowMower performs.
     ThresholdMower threshold_mower_filter;
-    threshold_mower_filter.filterPeakMap(exp);
-
     Normalizer normalizer;
-    normalizer.filterPeakMap(exp);
 
-    // sort by rt
+    // sort by rt; done before the loop because sortSpectra(false) only permutes whole
+    // spectra (it does not touch peak order, see MSExperiment::sortSpectra) and therefore
+    // commutes with the per-spectrum filters that now run inside the loop.
     exp.sortSpectra(false);
 
     // filter settings
@@ -417,9 +427,13 @@ namespace OpenMS
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
+      // remove 0 intensities, then normalize (formerly two serial full-map passes)
+      threshold_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      normalizer.filterPeakSpectrum(exp[exp_index]);
+
       // sort by mz
       exp[exp_index].sortByPosition();
 
@@ -518,6 +532,38 @@ namespace OpenMS
     // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
 
+    // Both configurations depend only on the fragment tolerance, so they are
+    // shared read-only by every thread of the loop below: getSpectrum() and
+    // getSpectrumAlignment() are const and hold no mutable state (the scoring
+    // loop in scoreSpectraAgainstIndex_ shares one generator the same way).
+    // The alignment tolerance mirrors the search's fragment tolerance so the
+    // reported FRAGMENT_ERROR_MEDIAN_PPM is not polluted by far-off spurious
+    // matches — SpectrumAlignment's default is 0.3 Da absolute, which is ~30×
+    // looser than a typical 20 ppm search.
+    TheoreticalSpectrumGenerator tsg;
+    {
+      Param tsg_param(tsg.getParameters());
+      tsg_param.setValue("add_metainfo", "true");
+      tsg_param.setValue("add_first_prefix_ion", "true");
+      // Mirror the configured ion series so annotation features (fragment error,
+      // peak annotations, longest ion run, MIC) are computed on the same
+      // theoretical spectrum the candidate was scored against.
+      tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
+      tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
+      tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
+      tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
+      tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
+      tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+      tsg.setParameters(tsg_param);
+    }
+    SpectrumAlignment sa;
+    {
+      Param sa_param(sa.getParameters());
+      sa_param.setValue("tolerance", fragment_mass_tolerance);
+      sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
+      sa.setParameters(sa_param);
+    }
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -554,27 +600,12 @@ namespace OpenMS
           ph.setSequence(ah.sequence);
 
           // Generate theoretical spectrum + alignment for annotations that need it.
-          // The alignment tolerance mirrors the search's fragment tolerance so the
-          // reported FRAGMENT_ERROR_MEDIAN_PPM is not polluted by far-off spurious
-          // matches — SpectrumAlignment's default is 0.3 Da absolute, which is ~30×
-          // looser than a typical 20 ppm search.
           std::vector<std::pair<Size, Size>> alignment;
           MSSpectrum theoretical_spec;
           if (need_alignment)
           {
-            TheoreticalSpectrumGenerator tsg;
-            Param tsg_param(tsg.getParameters());
-            tsg_param.setValue("add_metainfo", "true");
-            tsg_param.setValue("add_first_prefix_ion", "true");
-            tsg.setParameters(tsg_param);
-
             const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
-            SpectrumAlignment sa;
-            Param sa_param(sa.getParameters());
-            sa_param.setValue("tolerance", fragment_mass_tolerance);
-            sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
-            sa.setParameters(sa_param);
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
 
@@ -1112,8 +1143,9 @@ namespace OpenMS
     // Hoisted out of the omp parallel block: clang with `default(none)` forbids
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
+    const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol)
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1227,6 +1259,20 @@ namespace OpenMS
         }
 
         annotated_hits[scan_index].push_back(std::move(ah));
+      }
+
+      // Prune to top-N per spectrum to bound memory: up to
+      // scoring:max_candidates_per_spectrum hits (each owning a heap AASequence)
+      // would otherwise stay resident until postProcessHits_ truncates them.
+      // Correct because all of this spectrum's candidates are appended above and
+      // scores are independent of the chunk a candidate came from: a hit outside
+      // the top-N here can never re-enter it.
+      auto& hits = annotated_hits[scan_index];
+      if (hits.size() > keep)
+      {
+        std::partial_sort(hits.begin(), hits.begin() + keep, hits.end(), AnnotatedHit_::hasBetterScore);
+        hits.resize(keep);
+        hits.shrink_to_fit();
       }
     }
     endProgress();
@@ -1649,8 +1695,10 @@ namespace OpenMS
     // Capture the mod-match tolerance reflecting the current (post-calibration)
     // member state. This fires unconditionally — even for closed searches that
     // won't invoke OpenSearchModificationAnalysis — so tests can observe whether
-    // calibration wiring reaches the helper regardless of search mode. The OSMA
-    // call sites below read from this field instead of re-computing.
+    // calibration wiring reaches the helper regardless of search mode. search()
+    // itself does not run OSMA: the searchWithModificationAnalysis wrappers run it
+    // on the PSMs returned here and read this field instead of re-computing (by
+    // then restore_fi_params() has reset the members to user-configured values).
     last_mod_match_tolerance_used_ = computeModMatchTolerance_();
 
     // create spectrum generator — forward the ion-series toggles so scoring
@@ -1714,31 +1762,6 @@ namespace OpenMS
     endProgress();
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
-
-    // Perform modification analysis for open search results
-    if (open_search)
-    {
-      OPENMS_LOG_INFO << "[ProSE] Performing open search modification analysis..." << std::endl;
-      startProgress(0, 1, "Analyzing modification patterns...");
-
-      OpenSearchModificationAnalysis mod_analyzer;
-      // Read from last_mod_match_tolerance_used_ (captured earlier post-calibration,
-      // pre-restoration) rather than re-computing: by now the restore_fi_params()
-      // call at the end of search() has already reset members to user-configured
-      // values, so computeModMatchTolerance_() would return the wrong value here.
-      auto modification_summaries = mod_analyzer.analyzeModifications(
-        peptide_ids,
-        last_mod_match_tolerance_used_,
-        precursor_mass_tolerance_unit_ == "ppm",
-        false, // no smoothing
-        ""     // no output file for in-memory search
-      );
-
-      OPENMS_LOG_INFO << "[ProSE] Found " << modification_summaries.size()
-                      << " modification patterns in open search results." << std::endl;
-
-      endProgress();
-    }
 
     // reindex peptides to proteins.
     // The PeptideIndexer drops peptides whose termini do not match the configured
@@ -2007,14 +2030,16 @@ namespace OpenMS
   // all input spectrum files. Each input file produces its own SearchResult
   // (with per-file modification analysis); a final aggregate SearchResult is
   // computed by pooling all per-file PSMs and running modification analysis
-  // once on the pooled set.
+  // once on the pooled set. build_pooled_aggregate == false suppresses keeping
+  // that pooled PSM copy (see the header for the exact contract).
   // =====================================================================
   ProSEAlgorithm::MultiFileSearchResult
   ProSEAlgorithm::searchWithModificationAnalysis(
       const std::vector<std::string>& in_spectra_files,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const std::vector<std::string>& output_base_names,
-      const std::string& aggregate_base_name) const
+      const std::string& aggregate_base_name,
+      bool build_pooled_aggregate) const
   {
     if (!output_base_names.empty() && output_base_names.size() != in_spectra_files.size())
     {
@@ -2540,23 +2565,36 @@ namespace OpenMS
       return mfres;
     }
 
-    // Merge per-file identifications into a single aggregate using
-    // IDMergerAlgorithm — the canonical OpenMS pattern for cross-file protein
-    // inference (mirrors ConsensusMapMergerAlgorithm::mergeAllIDRuns in
-    // ProteomicsLFQ). This deduplicates ProteinHits by accession (union) and
-    // remaps all PeptideIdentification identifiers to the merged run. No
-    // PeptideIndexing re-run needed: per-file searches already linked
-    // peptides to proteins.
-    IDMergerAlgorithm merger;
-    for (const auto& pf : mfres.per_file)
+    // Pooling copies every per-file PSM a second time. Skip it entirely when the caller
+    // does not want the pooled set AND nothing here needs it: only the open-search
+    // aggregate modification analysis below consumes it, so in closed search a
+    // build_pooled_aggregate == false caller gets the same almost-empty aggregate as the
+    // single-file fast path above. In open search the pooled set is built, analyzed and
+    // then released again (see the release block after the analysis).
+    const bool need_pooled = build_pooled_aggregate || mfres.aggregate.is_open_search;
+
+    if (need_pooled)
     {
-      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-      merger.insertRuns(pf.protein_ids, pf.peptide_ids);
+      // Merge per-file identifications into a single aggregate using
+      // IDMergerAlgorithm — the canonical OpenMS pattern for cross-file protein
+      // inference (mirrors ConsensusMapMergerAlgorithm::mergeAllIDRuns in
+      // ProteomicsLFQ). This deduplicates ProteinHits by accession (union) and
+      // remaps all PeptideIdentification identifiers to the merged run. No
+      // PeptideIndexing re-run needed: per-file searches already linked
+      // peptides to proteins.
+      // The COPY overload is mandatory here: per_file is returned to the caller and must
+      // stay intact, so nothing may be moved out of it.
+      IDMergerAlgorithm merger;
+      for (const auto& pf : mfres.per_file)
+      {
+        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+        merger.insertRuns(pf.protein_ids, pf.peptide_ids);
+      }
+      ProteinIdentification merged_proteins;
+      merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
+      mfres.aggregate.protein_ids = {std::move(merged_proteins)};
+      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
     }
-    ProteinIdentification merged_proteins;
-    merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
-    mfres.aggregate.protein_ids = {std::move(merged_proteins)};
-    mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
 
     // Note: protein inference + FDR on the aggregate is left to the caller
     // (e.g., the TOPP tool's -out_merged option) so that per-file outputs
@@ -2587,6 +2625,18 @@ namespace OpenMS
       );
     }
 
+    // The pooled PSMs were only needed as input to the analysis above; release the second
+    // copy again so a caller that asked for no pooled aggregate does not pay for it. The
+    // analysis result stays. Leaves the aggregate exactly as in the single-file fast path
+    // (only is_open_search / exit_code populated), as documented on MultiFileSearchResult.
+    if (!build_pooled_aggregate)
+    {
+      mfres.aggregate.peptide_ids.clear();
+      mfres.aggregate.peptide_ids.shrink_to_fit();
+      mfres.aggregate.protein_ids.clear();
+      mfres.aggregate.protein_ids.shrink_to_fit();
+    }
+
     return mfres;
   }
 
@@ -2602,14 +2652,15 @@ namespace OpenMS
       const std::vector<std::string>& in_spectra_files,
       const std::string& in_db,
       const std::vector<std::string>& output_base_names,
-      const std::string& aggregate_base_name) const
+      const std::string& aggregate_base_name,
+      bool build_pooled_aggregate) const
   {
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
-      in_spectra_files, fasta_db, output_base_names, aggregate_base_name);
+      in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
 
     mfres.shared.database_file = in_db;
 
@@ -2936,13 +2987,19 @@ namespace OpenMS
       uint16_t best_charge = 0;
       float best_mean_error = 0;
 
+      // Reused across this spectrum's candidates — same rationale as the main
+      // scoring loop: a fresh PeakSpectrum per candidate churns its DataArrays
+      // (ion names / charges filled by add_metainfo) on the heap.
+      PeakSpectrum theo;
+
       for (const auto& sms : top_sms.hits_)
       {
         AASequence seq = fragment_index.reconstructModifiedSequence(
             fragment_index.getPeptides()[sms.peptide_idx_], db);
-        PeakSpectrum theo;
+        // Clear peaks + data arrays before refilling; getSpectrum appends to
+        // whatever is there. Its output is already sorted with add_metainfo=true.
+        theo.clear(true);
         tsg.getSpectrum(theo, seq, 1, 1);
-        theo.sortByPosition();
 
         HyperScore::PSMDetail detail;
         double score = HyperScore::computeWithDetail(

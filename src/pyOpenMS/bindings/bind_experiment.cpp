@@ -22,6 +22,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <algorithm>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -36,6 +37,8 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_experiment, m)
 {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSExperiment>(m, "_MSExperimentIter");
   m.doc() = "pyOpenMS experiment bindings";
 
   // -----------------------------------------------------------------------
@@ -98,7 +101,7 @@ mz, intensities = spectrum.get_peaks()
         .def("isSorted", [](const OpenMS::MSExperiment& self, bool check_mz) { return self.isSorted(check_mz); }, "check_mz"_a = true, "Checks if all spectra are sorted with respect to ascending RT")
         .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all data and meta data")
         .def("clearMetaDataArrays", [](OpenMS::MSExperiment& self) { return self.clearMetaDataArrays(); }, "Clears the meta data arrays of all contained spectra")
-        .def("getExperimentalSettings", [](OpenMS::MSExperiment& self) -> OpenMS::ExperimentalSettings & { return self.getExperimentalSettings(); }, nb::rv_policy::reference_internal, "Returns the meta information of this experiment")
+        .def("getExperimentalSettings", [](OpenMS::MSExperiment& self) -> OpenMS::ExperimentalSettings { return self.getExperimentalSettings(); }, "Returns the meta information of this experiment")
         .def("getPrimaryMSRunPath", [](const OpenMS::MSExperiment& self) { std::vector<std::string> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "References to the first MS file(s) after conversions. Used to trace results back to original data.")
         .def("getPrecursorSpectrum", [](const OpenMS::MSExperiment& self, int zero_based_index) { return self.getPrecursorSpectrum(zero_based_index); }, "zero_based_index"_a, "Returns the index of the precursor spectrum for spectrum at index @p zero_based_index")
         .def("swap", [](OpenMS::MSExperiment& self, OpenMS::MSExperiment& from) { return self.swap(from); }, "from"_a, "Swaps the content of this experiment with another")
@@ -106,49 +109,84 @@ mz, intensities = spectrum.get_peaks()
         .def("setSpectra", [](OpenMS::MSExperiment& self, std::vector<OpenMS::MSSpectrum>& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Sets the spectrum list")
         .def("addSpectrum", [](OpenMS::MSExperiment& self, const OpenMS::MSSpectrum& spectrum) { return self.addSpectrum(spectrum); }, "spectrum"_a, "Adds a spectrum to the experiment")
         .def("addSpectrum", [](OpenMS::MSExperiment& self, OpenMS::MSSpectrum& spectrum) { return self.addSpectrum(spectrum); }, "spectrum"_a, "Adds a spectrum to the experiment")
-        .def("getSpectra", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum> & { return self.getSpectra(); }, nb::rv_policy::reference_internal, "Returns the list of spectra")
+        .def("getSpectra", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum> { return self.getSpectra(); }, "Returns a copy of the list of spectra")
         .def("setChromatograms", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::MSChromatogram>& chromatograms) { return self.setChromatograms(chromatograms); }, "chromatograms"_a, "Sets the chromatogram list")
         .def("setChromatograms", [](OpenMS::MSExperiment& self, std::vector<OpenMS::MSChromatogram>& chromatograms) { return self.setChromatograms(chromatograms); }, "chromatograms"_a, "Sets the chromatogram list")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, const OpenMS::MSChromatogram& chromatogram) { return self.addChromatogram(chromatogram); }, "chromatogram"_a, "Adds a chromatogram to the experiment")
         .def("addChromatogram", [](OpenMS::MSExperiment& self, OpenMS::MSChromatogram& chrom) { return self.addChromatogram(chrom); }, "chrom"_a, "Adds a chromatogram to the experiment")
-        .def("getChromatograms", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Returns the list of chromatograms")
-        .def("getChromatogram", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram& { return self.getChromatogram(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single chromatogram by index")
+        .def("getChromatograms", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); }, "Returns a copy of the list of chromatograms")
+        .def("chromatogram_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSChromatogram& {
+            if (i >= self.getNrChromatograms()) throw nb::index_error();
+            return self.getChromatogram(i);
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the chromatogram at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the chromatogram list is resized or reordered (add/set/sort operations invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use getChromatogram(i).")
+        .def("getChromatogram", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram {
+            if (id >= self.getNrChromatograms()) throw nb::index_error(); // C++ getChromatogram is an unchecked chromatograms_[id]
+            return self.getChromatogram(id);
+        }, "id"_a, "Returns a copy of a single chromatogram by index")
         .def("getNrSpectra", [](const OpenMS::MSExperiment& self) { return self.getNrSpectra(); }, "Returns the number of MS spectra")
         .def("getNrChromatograms", [](const OpenMS::MSExperiment& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms")
         .def("getMSLevels", [](const OpenMS::MSExperiment& self) { return self.getMSLevels(); }, "Returns a sorted list of unique MS levels in the experiment")
         .def("calculateTIC", [](const OpenMS::MSExperiment& self, float rt_bin_size, unsigned int ms_level) { return self.calculateTIC(rt_bin_size, ms_level); }, "rt_bin_size"_a = 0, "ms_level"_a = 1, "Returns the total ion chromatogram")
         .def("clear", [](OpenMS::MSExperiment& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clear all spectra data and meta data (if called with True)")
-        .def("spectrumRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::SpectrumRangeManager & { return self.spectrumRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the spectrum range manager")
-        .def("chromatogramRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::ChromatogramRangeManager & { return self.chromatogramRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the chromatogram range manager")
-        .def("getSample", [](const OpenMS::MSExperiment& self) -> const OpenMS::Sample & { return self.getSample(); }, nb::rv_policy::reference_internal, "Returns a reference to the sample description")
+        .def("spectrumRanges", [](const OpenMS::MSExperiment& self) -> OpenMS::SpectrumRangeManager { return self.spectrumRanges(); }, "Returns a copy of the spectrum range manager")
+        .def("chromatogramRanges", [](const OpenMS::MSExperiment& self) -> OpenMS::ChromatogramRangeManager { return self.chromatogramRanges(); }, "Returns a copy of the chromatogram range manager")
+        .def("getSample", [](const OpenMS::MSExperiment& self) -> OpenMS::Sample { return self.getSample(); }, "Returns a copy of the sample description")
+        .def("_contains_cached_data_marker", [](const OpenMS::MSExperiment& self) {
+            // C++-side scan so the Python caller does not have to copy every
+            // spectrum just to inspect DataProcessing metadata.
+            for (const auto& spec : self.getSpectra())
+            {
+                for (const auto& dp : spec.getDataProcessing())
+                {
+                    if (dp && dp->metaValueExists("cached_data")) { return true; }
+                }
+            }
+            for (const auto& chrom : self.getChromatograms())
+            {
+                for (const auto& dp : chrom.getDataProcessing())
+                {
+                    if (dp && dp->metaValueExists("cached_data")) { return true; }
+                }
+            }
+            return false;
+        }, "Returns True if any spectrum or chromatogram carries the 'cached_data' DataProcessing marker")
         .def("setSample", [](OpenMS::MSExperiment& self, const OpenMS::Sample& sample) { return self.setSample(sample); }, "sample"_a, "Sets the sample description")
-        .def("getSourceFiles", [](const OpenMS::MSExperiment& self) -> const std::vector<OpenMS::SourceFile> & { return self.getSourceFiles(); }, nb::rv_policy::reference_internal, "Returns a reference to the source data file")
+        .def("getSourceFiles", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::SourceFile> { return self.getSourceFiles(); }, "Returns a copy of the source data file")
         .def("setSourceFiles", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::SourceFile>& source_files) { return self.setSourceFiles(source_files); }, "source_files"_a, "Sets the source data file")
-        .def("getContacts", [](const OpenMS::MSExperiment& self) -> const std::vector<OpenMS::ContactPerson> & { return self.getContacts(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of contact persons")
+        .def("getContacts", [](const OpenMS::MSExperiment& self) -> std::vector<OpenMS::ContactPerson> { return self.getContacts(); }, "Returns a copy of the list of contact persons")
         .def("setContacts", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::ContactPerson>& contacts) { return self.setContacts(contacts); }, "contacts"_a, "Sets the list of contact persons")
-        .def("getInstrument", [](const OpenMS::MSExperiment& self) -> const OpenMS::Instrument & { return self.getInstrument(); }, nb::rv_policy::reference_internal, "Returns a reference to the MS instrument description")
+        .def("getInstrument", [](const OpenMS::MSExperiment& self) -> OpenMS::Instrument { return self.getInstrument(); }, "Returns a copy of the MS instrument description")
         .def("setInstrument", [](OpenMS::MSExperiment& self, const OpenMS::Instrument& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "Sets the MS instrument description")
-        .def("getHPLC", [](const OpenMS::MSExperiment& self) -> const OpenMS::HPLC & { return self.getHPLC(); }, nb::rv_policy::reference_internal, "Returns a reference to the description of the HPLC run")
+        .def("getHPLC", [](const OpenMS::MSExperiment& self) -> OpenMS::HPLC { return self.getHPLC(); }, "Returns a copy of the description of the HPLC run")
         .def("setHPLC", [](OpenMS::MSExperiment& self, const OpenMS::HPLC& hplc) { return self.setHPLC(hplc); }, "hplc"_a, "Sets the description of the HPLC run")
-        .def("getDateTime", [](const OpenMS::MSExperiment& self) -> const OpenMS::DateTime & { return self.getDateTime(); }, nb::rv_policy::reference_internal, "Returns the date the experiment was performed")
+        .def("getDateTime", [](const OpenMS::MSExperiment& self) -> OpenMS::DateTime { return self.getDateTime(); }, "Returns the date the experiment was performed")
         .def("setDateTime", [](OpenMS::MSExperiment& self, const OpenMS::DateTime& date) { return self.setDateTime(date); }, "date"_a, "Sets the date the experiment was performed")
         .def("getComment", [](const OpenMS::MSExperiment& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::MSExperiment& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
         .def("getFractionIdentifier", [](const OpenMS::MSExperiment& self) { return self.getFractionIdentifier(); }, "Returns fraction identifier")
         .def("setFractionIdentifier", [](OpenMS::MSExperiment& self, const std::string& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
 
-        .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSExperiment>(), "MSExperiment_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSExperiment>(self); })
         .def("__len__", [](OpenMS::MSExperiment& self) { return self.size(); })
 
-        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+        .def("__getitem__", [](const OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, "i"_a, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the spectrum at index i")
         .def("__setitem__", [](OpenMS::MSExperiment& self, size_t i, const OpenMS::MSSpectrum& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
         }, "i"_a, "val"_a, "Sets spectrum at index i")
-        .def("getSpectrum", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum& { return self.getSpectrum(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single spectrum by index")
+        .def("spectrum_view", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+            if (i >= self.getNrSpectra()) throw nb::index_error();
+            return self.getSpectrum(i);
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the spectrum at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (add/set/sort operations invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use getSpectrum(i) or exp[i].")
+        .def("getSpectrum", [](const OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum {
+            if (id >= self.getNrSpectra()) throw nb::index_error(); // C++ getSpectrum is an unchecked spectra_[id]
+            return self.getSpectrum(id);
+        }, "id"_a, "Returns a copy of a single spectrum by index")
 
         .def("get2DPeakData", [](const OpenMS::MSExperiment& self,
                                 double min_rt, double max_rt,
@@ -422,7 +460,7 @@ Pixels are masked-out by default; setIntensity marks them present.
     .def("getIntensity", &OpenMS::IonImage::getIntensity, "x"_a, "y"_a, "Intensity at (x, y); 0.0 if never set. Raises on out-of-bounds.")
     .def("setIntensity", &OpenMS::IonImage::setIntensity, "x"_a, "y"_a, "intensity"_a, "Stores intensity at (x, y) and marks the cell valid.")
     .def("setMzRange", &OpenMS::IonImage::setMzRange, "range"_a, "Records the m/z window the image was extracted from.")
-    .def("getMzRange", &OpenMS::IonImage::getMzRange, nb::rv_policy::reference_internal, "m/z window the image was extracted from.")
+    .def("getMzRange", &OpenMS::IonImage::getMzRange, "m/z window the image was extracted from.")
 
     .def(
       "get_data",
@@ -562,7 +600,7 @@ Regions are either Rectangle based and defined by their x/y minima and maxima or
     = nb::class_<OpenMS::MSImagingGeometry>(m, "MSImagingGeometry", R"doc(
 Pixel grid metadata and (x, y) -> spectrum_index lookup for MSI data.
 
-Coordinates are zero-based. Use get_pixels_struct() for a zero-copy
+Coordinates are zero-based. Use pixels_struct() for a zero-copy
 structured numpy view of all pixels at once.
 )doc")
         .def(nb::init<>())
@@ -585,7 +623,7 @@ structured numpy view of all pixels at once.
         .def("clear", &OpenMS::MSImagingGeometry::clear)
 
         .def(
-          "get_pixels_struct",
+          "pixels_struct",
           [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OpenMS::MSImagingGeometry&>(self_obj);
             const auto& pixels = self.getPixels();
@@ -616,8 +654,8 @@ structured numpy view of all pixels at once.
              })
         .def("addRegion", &OpenMS::MSImagingGeometry::addRegion, "region"_a)
         .def("removeRegion", &OpenMS::MSImagingGeometry::removeRegion, "id"_a)
-        .def("getRegions", &OpenMS::MSImagingGeometry::getRegions, nb::rv_policy::reference_internal)
-        .def("getRegion", &OpenMS::MSImagingGeometry::getRegion, "id"_a, nb::rv_policy::reference_internal)
+        .def("getRegions", &OpenMS::MSImagingGeometry::getRegions)
+        .def("getRegion", &OpenMS::MSImagingGeometry::getRegion, "id"_a)
         .def("getNumberOfRegions", &OpenMS::MSImagingGeometry::getNumberOfRegions)
         .def("regionOf", &OpenMS::MSImagingGeometry::regionOf, "x"_a, "y"_a)
         .def("getRegionPixels", &OpenMS::MSImagingGeometry::getRegionPixels, "id"_a)
@@ -640,19 +678,28 @@ and a simple sum-based ion image extraction.
     .def(
       "__deepcopy__", [](const OpenMS::MSImagingExperiment& self, nb::dict) { return OpenMS::MSImagingExperiment(self); }, "memo"_a)
     .def(
-      "getMSExperiment", [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSExperiment& { return self.getMSExperiment(); },
-      nb::rv_policy::reference_internal)
+      "getMSExperiment", [](const OpenMS::MSImagingExperiment& self) -> OpenMS::MSExperiment { return self.getMSExperiment(); },
+      "Returns a copy of the owned MSExperiment")
     .def("setMSExperiment", &OpenMS::MSImagingExperiment::setMSExperiment, "exp"_a, "Replaces the owned MSExperiment without touching the geometry.")
     .def(
-      "getGeometry", [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry& { return self.getGeometry(); },
-      nb::rv_policy::reference_internal)
+      "getGeometry", [](const OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
+      "Returns a copy of the imaging geometry")
     .def("setGeometry", &OpenMS::MSImagingExperiment::setGeometry, "geom"_a)
     .def("getNumberOfPixels", &OpenMS::MSImagingExperiment::getNumberOfPixels)
     .def("getNumberOfSpectra", &OpenMS::MSImagingExperiment::getNumberOfSpectra)
     .def("hasPixel", &OpenMS::MSImagingExperiment::hasPixel, "x"_a, "y"_a)
     .def(
-      "getSpectrum", [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& { return self.getSpectrum(x, y); },
-      "x"_a, "y"_a, nb::rv_policy::reference_internal)
+      "getSpectrum",
+      [](const OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum {
+        return self.getSpectrum(x, y);  // by value: element access yields an owned copy
+      },
+      "x"_a, "y"_a, "Returns a copy of the spectrum at pixel (x, y)")
+    .def(
+      "setSpectrum",
+      [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y, const OpenMS::MSSpectrum& spectrum) {
+        self.getSpectrum(x, y) = spectrum;  // write-back for the copy-returning getter; validates the pixel
+      },
+      "x"_a, "y"_a, "spectrum"_a, "Replaces the spectrum at pixel (x, y)")
     .def("extractIonImage", nb::overload_cast<double, double>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a, "tolerance_ppm"_a)
     .def("extractIonImage", nb::overload_cast<double, double, OpenMS::Size>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a,
          "tolerance_ppm"_a, "region_id"_a)

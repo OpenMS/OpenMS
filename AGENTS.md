@@ -31,7 +31,7 @@ ctest -R MyTest -V
 - **CMAKE_PREFIX_PATH separators** (per [CMake docs](https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html)): When passing via `-D` option, use semicolons (`;`) as list separators (e.g., `-DCMAKE_PREFIX_PATH="/path/one;/path/two"`). Environment variables use OS-native separators (`:` on Unix, `;` on Windows).
 - **Build**: CMake 3.24+, out-of-tree builds in `OpenMS-build/`
 - **Testing**: CTest, GoogleTest-style macros, pytest for Python
-- **Style**: `.clang-format` in repo root, cpplint via `ENABLE_STYLE_TESTING=ON`
+- **Style**: `.clang-format` in repo root
 - **Platforms**: Linux, macOS (Apple Clang), Windows (MSVC 2019+)
 
 ## Repository Layout
@@ -67,7 +67,7 @@ OpenMS/
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
 - **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
 - pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON`.
-- Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
+- Style checks: formatting is `.clang-format`. Static analysis runs in CI (the `cppcheck-test` workflow), not from the build system.
 
 **Required dependencies:**
 - XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR, GLPK, or HiGHS (LP solver; use `-DLP_SOLVER=AUTO/COIN/GLPK/HIGHS`), ZLIB, BZip2, libcurl
@@ -133,7 +133,6 @@ OpenMS/
 - Use `NEW_TMP_FILE` for each output file in tests; avoid side effects in comparison macros.
 - Run with `ctest`, use `-R` for subset, `-V/-VV` for verbosity, `-C` for multi-config generators.
 - Use `FuzzyDiff` for numeric comparisons; keep test data small; use whitelist for unstable lines.
-- Test templates: `tools/create_test.php` (requires `make xml`).
 - `START_SECTION` macro pitfalls: wrap template methods with 2+ arguments in parentheses.
 - Prefer `TEST_TRUE(expr)`/`TEST_FALSE(expr)` over `TEST_EQUAL(expr, true)`/`TEST_EQUAL(expr, false)` when checking boolean results (clearer intent and better failure messages).
 - pyOpenMS tests: `ctest -R pyopenms` or `pytest` with `PYTHONPATH=/path/to/OpenMS-build/pyOpenMS` (run outside the source tree to avoid shadowing).
@@ -411,7 +410,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Commit tags: NOP, DOC, COMMENT, API, INTERNAL, FEATURE, FIX, TEST, FORMAT, PARAM, IO, LOG, GUI, RESOURCE, BUILD.
 - PR checklist: update `AUTHORS` and `CHANGELOG`, run/extend tests, update pyOpenMS bindings when needed.
 - Minimize pushes on open PRs (CI is heavy).
-- Run `tools/checker.php` and/or `ENABLE_STYLE_TESTING` for local checks.
+- Run clang-format for local style checks.
 
 **Commit message example:**
 **Formatting rules (C++):**
@@ -525,9 +524,6 @@ ctest -R <ClassName> -V
 
 # For pyOpenMS changes
 cd OpenMS-build && ctest -R pyopenms -V
-
-# Style check
-cmake --build OpenMS-build --target test_style
 ```
 
 ## Key Documentation
