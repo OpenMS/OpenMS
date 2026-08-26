@@ -523,12 +523,12 @@ Solve problems, parameters like enabled heuristics can be given via solver_param
 The verbose level (0,1,2) determines if the solver prints status messages and internals
 :param solver_param: Parameters of the solver introduced by SolverParam
 :param verbose_level: Sets verbose level
-:return: solver dependent
+:return: the raw return code of the backend solver (solver dependent); use getStatus() to check portably whether a feasible solution was found
 )doc")
         .def("getStatus", [](OpenMS::LPWrapper& self) { return self.getStatus(); },
             R"doc(
-Returns solution status
-:return: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+Returns solution status; call after solve(). Only OPTIMAL and FEASIBLE indicate that a usable solution exists
+:return: status: 1 - undefined, 2 - integer feasible (no optimality proven), 4 - no integer feasible solution, 5 - integer optimal
 )doc")
         .def("getObjectiveValue", [](OpenMS::LPWrapper& self) { return self.getObjectiveValue(); },
             R"doc(

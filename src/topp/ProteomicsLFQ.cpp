@@ -159,9 +159,6 @@ Output (at least one required; each output is optional individually):
   - consensusXML file for visualization and further processing in OpenMS (@p out_cxml)
   - QPX Parquet collection (@p out_qpx)
 
-
-Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
-
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProteomicsLFQ.cli
 <B>INI file documentation of this tool:</B>
