@@ -67,11 +67,13 @@ START_SECTION((void load(const std::string& filename, std::vector<UniProtEntry>&
   // the canonical 30-residue sequence is the one we get.
   TEST_EQUAL(e1.sequence.size(), 30)
 
-  // Four features: signal peptide, modified residue, disulfide bond, sequence variant.
-  TEST_EQUAL(e1.features.size(), 4)
+  // Six features: signal peptide, modified residue, disulfide bond, sequence
+  // variant, and two splice variants.
+  TEST_EQUAL(e1.features.size(), 6)
 
   const UniProtFeature& f_sig = e1.features[0];
   TEST_EQUAL(f_sig.type, "signal peptide")
+  TEST_EQUAL(f_sig.id, "")  // no id attribute on this feature
   TEST_EQUAL(f_sig.has_range, true)
   TEST_EQUAL(f_sig.begin, 1)
   TEST_EQUAL(f_sig.end,   10)
@@ -95,6 +97,42 @@ START_SECTION((void load(const std::string& filename, std::vector<UniProtEntry>&
   TEST_EQUAL(f_var.has_position, true)
   TEST_EQUAL(f_var.position, 30)
 
+  // Splice variants: replacement (original+variation) and plain deletion, both
+  // carrying the feature id that isoform definitions reference.
+  const UniProtFeature& f_vsp1 = e1.features[4];
+  TEST_EQUAL(f_vsp1.type, "splice variant")
+  TEST_EQUAL(f_vsp1.id, "VSP_001")
+  TEST_EQUAL(f_vsp1.original, "SEQ")
+  TEST_EQUAL(f_vsp1.variation, "T")
+  TEST_EQUAL(f_vsp1.has_range, true)
+  TEST_EQUAL(f_vsp1.begin, 2)
+  TEST_EQUAL(f_vsp1.end,   4)
+
+  const UniProtFeature& f_vsp2 = e1.features[5];
+  TEST_EQUAL(f_vsp2.type, "splice variant")
+  TEST_EQUAL(f_vsp2.id, "VSP_002")
+  TEST_EQUAL(f_vsp2.original, "")
+  TEST_EQUAL(f_vsp2.variation, "")
+  TEST_EQUAL(f_vsp2.has_range, true)
+  TEST_EQUAL(f_vsp2.begin, 26)
+  TEST_EQUAL(f_vsp2.end,   30)
+
+  // Isoform definitions from the alternative-products comment: only the first
+  // <id> and first <name> are kept; sequence type/ref attributes are verbatim.
+  TEST_EQUAL(e1.isoforms.size(), 3)
+  TEST_EQUAL(e1.isoforms[0].id, "P00001-1")
+  TEST_EQUAL(e1.isoforms[0].name, "1")
+  TEST_EQUAL(e1.isoforms[0].sequence_type, "displayed")
+  TEST_EQUAL(e1.isoforms[0].sequence_ref, "")
+  TEST_EQUAL(e1.isoforms[1].id, "P00001-2")
+  TEST_EQUAL(e1.isoforms[1].name, "2")
+  TEST_EQUAL(e1.isoforms[1].sequence_type, "described")
+  TEST_EQUAL(e1.isoforms[1].sequence_ref, "VSP_001 VSP_002")
+  TEST_EQUAL(e1.isoforms[2].id, "P00001-3")
+  TEST_EQUAL(e1.isoforms[2].name, "3")
+  TEST_EQUAL(e1.isoforms[2].sequence_type, "external")
+  TEST_EQUAL(e1.isoforms[2].sequence_ref, "")
+
   // ── Entry 2: TrEMBL ──────────────────────────────────────────────
   const UniProtEntry& e2 = entries[1];
   TEST_EQUAL(e2.dataset, "TrEMBL")
@@ -102,6 +140,7 @@ START_SECTION((void load(const std::string& filename, std::vector<UniProtEntry>&
   TEST_EQUAL(e2.name, "TEST2_HUMAN")
   TEST_EQUAL(e2.sequence, "MSEQE")
   TEST_EQUAL(e2.features.size(), 0)
+  TEST_EQUAL(e2.isoforms.size(), 0)
 END_SECTION
 
 START_SECTION((void loadStreaming(const std::string& filename, const std::function<void(UniProtEntry&&)>& callback)))

@@ -53,6 +53,21 @@ with @c -ptmlist. Canonical OBO names come from <em>PSI-MOD.obo</em> (bundled)
 and an optional <em>unimod.obo</em>; without them, names fall back to the
 UniProt @c ptmlist.txt ID and a warning is printed.
 
+UniProt alternative products (isoforms) are expanded into their own PEFF
+entries: every isoform whose sequence is "described" by
+<code>\<feature type="splice variant"\></code> records is reconstructed from
+the canonical sequence (a referenced region without a replacement is deleted,
+one with a <code>\<variation\></code> is substituted) and emitted directly
+after its parent entry, e.g. <code>\>sp:P02768-2 \\PName=(Isoform 2 of
+Albumin) ...</code>, with gene/taxonomy/mnemonic metadata inherited from the
+parent (mirroring UniProt's isoform FASTA convention, which carries no
+per-isoform PE/SV). The isoform flagged "displayed" is identical to the
+canonical sequence and is not emitted again; isoforms typed "external" or
+"not described" have no reconstructable sequence and are reported in the log.
+Position-based annotations are not propagated to isoform entries because
+UniProt feature coordinates refer to the canonical sequence only. Disable
+isoform expansion with @c -omit_isoforms.
+
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
 auto-detected by the underlying parser).
 
@@ -384,6 +399,100 @@ namespace
       out.push_back(c);
     }
     return out;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Isoform reconstruction (UniProt "alternative products")
+  // ──────────────────────────────────────────────────────────────────
+
+  /// One reconstructed isoform, ready for emission as its own PEFF entry.
+  struct IsoformEntry
+  {
+    std::string accession;  ///< isoform accession, e.g. "P02768-2"
+    std::string name;       ///< isoform &lt;name&gt;, e.g. "2" or "VEGF121"
+    std::string sequence;   ///< canonical sequence with the referenced splice variants applied
+  };
+
+  /// Split a UniProt @c ref attribute ("VSP_1 VSP_2") on whitespace.
+  std::vector<std::string> splitRefs(const std::string& ref)
+  {
+    std::vector<std::string> out;
+    std::string cur;
+    for (char c : ref)
+    {
+      if (std::isspace(static_cast<unsigned char>(c)))
+      {
+        if (!cur.empty()) { out.push_back(cur); cur.clear(); }
+      }
+      else cur.push_back(c);
+    }
+    if (!cur.empty()) out.push_back(cur);
+    return out;
+  }
+
+  /// Apply the splice-variant features referenced by @p iso to @p canonical.
+  /// A referenced range without a <variation> is deleted; one with a <variation>
+  /// is replaced (a longer replacement extends the sequence). Features are
+  /// applied C- to N-terminal so an application cannot shift the coordinates of
+  /// the ones still pending. On any inconsistency (unknown ref, unknown or
+  /// out-of-bounds coordinates, overlapping features, <original> text not
+  /// matching the canonical sequence) @p error is set and "" returned.
+  std::string buildIsoformSequence(const UniProtIsoform& iso, const std::string& canonical,
+                                   const std::unordered_map<std::string, const UniProtFeature*>& vsp_by_id,
+                                   std::string& error)
+  {
+    struct Span { int begin; int end; const UniProtFeature* feature; };
+    std::vector<Span> spans;
+    for (const std::string& r : splitRefs(iso.sequence_ref))
+    {
+      auto it = vsp_by_id.find(r);
+      if (it == vsp_by_id.end())
+      {
+        error = "references unknown splice variant feature '" + r + "'";
+        return {};
+      }
+      const UniProtFeature* f = it->second;
+      const int begin = f->has_range ? f->begin : f->position;
+      const int end = f->has_range ? f->end : f->position;
+      if (begin < 1 || end < begin || end > static_cast<int>(canonical.size()))
+      {
+        error = "splice variant '" + r + "' has invalid range " + std::to_string(begin) + "-" + std::to_string(end);
+        return {};
+      }
+      if (!f->original.empty()
+          && canonical.compare(begin - 1, static_cast<size_t>(end - begin + 1), f->original) != 0)
+      {
+        error = "splice variant '" + r + "' <original> does not match the canonical sequence at "
+                + std::to_string(begin) + "-" + std::to_string(end);
+        return {};
+      }
+      spans.push_back(Span{begin, end, f});
+    }
+    if (spans.empty())
+    {
+      error = "references no splice variant features";
+      return {};
+    }
+    std::sort(spans.begin(), spans.end(), [](const Span& x, const Span& y) { return x.begin > y.begin; });
+    for (size_t i = 1; i < spans.size(); ++i)
+    {
+      if (spans[i].end >= spans[i - 1].begin)
+      {
+        error = "splice variants '" + spans[i].feature->id + "' and '" + spans[i - 1].feature->id + "' overlap";
+        return {};
+      }
+    }
+    std::string seq = canonical;
+    for (const Span& s : spans)
+    {
+      seq.replace(static_cast<size_t>(s.begin - 1), static_cast<size_t>(s.end - s.begin + 1), s.feature->variation);
+    }
+    if (seq.empty())
+    {
+      error = "reconstructed sequence is empty";
+      return {};
+    }
+    return seq;
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -769,6 +878,19 @@ namespace
     out << "# //\n";
   }
 
+  /// Write @p seq wrapped at 60 characters per line.
+  void writeWrappedSequence(std::ostream& out, const std::string& seq)
+  {
+    constexpr int kWidth = 60;
+    const int seq_len = static_cast<int>(seq.size());
+    for (int offset = 0; offset < seq_len; offset += kWidth)
+    {
+      const int take = std::min(kWidth, seq_len - offset);
+      out.write(seq.data() + offset, take);
+      out << "\n";
+    }
+  }
+
   /// Tracks how often the OBO-name lookup fell back to the UniProt ptmlist ID.
   /// Total occurrences vs. distinct missed accessions — "2886 occurrences across
   /// 30 distinct accessions" tells the user the OBO is ~30 terms out of date
@@ -1015,16 +1137,35 @@ namespace
     }
 
     out << "\n";
+    writeWrappedSequence(out, e.sequence);
+  }
 
-    // Sequence, 60 chars per line.
-    constexpr int kWidth = 60;
-    const std::string& seq = e.sequence;
-    for (int offset = 0; offset < seq_len; offset += kWidth)
-    {
-      const int take = std::min(kWidth, seq_len - offset);
-      out.write(seq.data() + offset, take);
-      out << "\n";
-    }
+  /// Write the descriptor + sequence for one reconstructed isoform entry.
+  /// Mirrors UniProt's isoform FASTA convention: "Isoform <name> of <parent name>"
+  /// with gene / taxonomy / mnemonic inherited from the parent and no SV/EV/PE
+  /// (UniProt versions isoform sequences with the parent entry, not separately).
+  /// Position-based annotations are not propagated: UniProt feature coordinates
+  /// refer to the canonical sequence, not to the spliced one.
+  void writeIsoformPeffEntry(std::ostream& out, const UniProtEntry& parent, const IsoformEntry& iso,
+                             const std::string& prefix)
+  {
+    out << ">" << prefix << ":" << iso.accession;
+
+    auto tag_kv = [&](const std::string& key, const std::string& value) {
+      out << " \\" << key << "=" << value;
+    };
+
+    std::string pname = "Isoform " + (iso.name.empty() ? iso.accession : iso.name);
+    if (!parent.full_name.empty()) pname += " of " + parent.full_name;
+    tag_kv("PName", std::string("(") + escapePeff(pname) + ")");
+    if (!parent.primary_gene.empty()) tag_kv("GName", escapePeff(parent.primary_gene));
+    if (!parent.ncbi_tax_id.empty())  tag_kv("NcbiTaxId", escapePeff(parent.ncbi_tax_id));
+    if (!parent.tax_name.empty())     tag_kv("TaxName", escapePeff(parent.tax_name));
+    tag_kv("Length", std::to_string(iso.sequence.size()));
+    if (!parent.name.empty()) tag_kv("ID", escapePeff(parent.name));
+
+    out << "\n";
+    writeWrappedSequence(out, iso.sequence);
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -1036,12 +1177,14 @@ namespace
     UniProtEntry source;
     EntryAnnotations annotations;
     std::string prefix;       ///< sp/tr or user override
+    std::vector<IsoformEntry> isoforms;  ///< reconstructed alternative products (emitted after the entry)
   };
 
-  /// Prepare one entry: classify features, merge halfcys, (Option B) stamp IDs.
+  /// Prepare one entry: classify features, merge halfcys, (Option B) stamp IDs,
+  /// and reconstruct the emittable isoform sequences.
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
-                             bool record_variants)
+                             bool record_variants, bool record_isoforms)
   {
     PreparedEntry pe;
     pe.source = std::move(e);
@@ -1059,6 +1202,43 @@ namespace
       uint32_t next_id = 0;
       assignAnnotationIds(pe.annotations, pe.source.sequence, next_id,
                           record_processing, record_aa_mods, record_variants);
+    }
+
+    if (record_isoforms && !pe.source.isoforms.empty())
+    {
+      std::unordered_map<std::string, const UniProtFeature*> vsp_by_id;
+      for (const auto& f : pe.source.features)
+      {
+        if (f.type == "splice variant" && !f.id.empty()) vsp_by_id.emplace(f.id, &f);
+      }
+      for (const auto& iso : pe.source.isoforms)
+      {
+        // The "displayed" isoform IS the canonical sequence that was just emitted.
+        if (iso.sequence_type == "displayed") continue;
+        if (iso.sequence_type != "described")
+        {
+          // "external" (sequence lives in another entry) / "not described": nothing to reconstruct.
+          OPENMS_LOG_INFO << "UniPEFF: " << pe.source.accession << " isoform "
+                          << (iso.id.empty() ? std::string("<no id>") : iso.id)
+                          << " has sequence type '" << iso.sequence_type << "'; not emitted." << std::endl;
+          continue;
+        }
+        if (iso.id.empty())
+        {
+          OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession
+                          << " described isoform without <id>; omitted." << std::endl;
+          continue;
+        }
+        std::string error;
+        std::string seq = buildIsoformSequence(iso, pe.source.sequence, vsp_by_id, error);
+        if (!error.empty())
+        {
+          OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession << " isoform " << iso.id << " "
+                          << error << "; omitted." << std::endl;
+          continue;
+        }
+        pe.isoforms.push_back(IsoformEntry{iso.id, iso.name, std::move(seq)});
+      }
     }
     return pe;
   }
@@ -1108,6 +1288,7 @@ protected:
     registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
+    registerFlag_("omit_isoforms", "Skip the additional PEFF entries for UniProt isoforms (alternative products whose sequences are reconstructed from splice-variant features).");
   }
 
   ExitCodes main_(int, const char**) override
@@ -1120,10 +1301,12 @@ protected:
     const bool omit_proc             = getFlag_("omit_molecular_processing");
     const bool omit_aa               = getFlag_("omit_amino_acid_modifications");
     const bool omit_var              = getFlag_("omit_sequence_variations");
+    const bool omit_iso              = getFlag_("omit_isoforms");
 
     const bool record_processing = !omit_proc;
     const bool record_aa_mods    = !omit_aa;
     const bool record_variants   = !omit_var;
+    const bool record_isoforms   = !omit_iso;
 
     // PEFF is a plain-text format; we do not (yet) write directly into a compressed
     // container, and TOPPBase's format validation accepts `.peff.gz` etc. via its
@@ -1198,6 +1381,7 @@ protected:
     std::vector<std::string> prefixes;  // first-seen order
     size_t skipped_no_accession = 0;
     size_t skipped_no_sequence = 0;
+    size_t isoforms_written = 0;
 
     auto cleanup_spools = [&]() {
       for (auto& [_, s] : spools)
@@ -1225,7 +1409,8 @@ protected:
           return;
         }
         PreparedEntry pe = prepareEntry(std::move(entry), ptms, prefix_override, option_b,
-                                        record_processing, record_aa_mods, record_variants);
+                                        record_processing, record_aa_mods, record_variants,
+                                        record_isoforms);
         auto it = spools.find(pe.prefix);
         if (it == spools.end())
         {
@@ -1248,6 +1433,14 @@ protected:
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
         ++it->second.count;
+        // Isoform entries follow their parent immediately and count towards
+        // this prefix's `# NumberOfEntries=` like any other entry.
+        for (const IsoformEntry& iso : pe.isoforms)
+        {
+          writeIsoformPeffEntry(it->second.out, pe.source, iso, pe.prefix);
+          ++it->second.count;
+          ++isoforms_written;
+        }
       });
     }
     if (spool_open_failed)
@@ -1262,10 +1455,16 @@ protected:
       OPENMS_LOG_WARN << "UniPEFF: skipped " << skipped_no_accession << " entries with no accession." << std::endl;
     }
 
-    int writable = 0;
-    for (const auto& [_, s] : spools) writable += s.count;
+    int total_written = 0;
+    for (const auto& [_, s] : spools) total_written += s.count;
+    const int writable = total_written - static_cast<int>(isoforms_written);
     OPENMS_LOG_INFO << "UniPEFF: parsed " << (writable + static_cast<int>(skipped_no_accession + skipped_no_sequence))
                     << " UniProtKB entries (" << writable << " writable)." << std::endl;
+    if (isoforms_written > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: wrote " << isoforms_written
+                      << " isoform entries reconstructed from alternative products." << std::endl;
+    }
     if (writable == 0)
     {
       cleanup_spools();
