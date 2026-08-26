@@ -677,7 +677,7 @@ namespace
       {
         OPENMS_LOG_WARN << "UniPEFF: " << accession << " disulfide bond " << positionOrUnknown(pos_a)
                         << "-" << positionOrUnknown(pos_b) << " exceeds sequence length " << seq_len
-                        << "; connectivity omitted." << std::endl;
+                        << "; connectivity omitted.\n";
         d.valid = false;
       }
     }
