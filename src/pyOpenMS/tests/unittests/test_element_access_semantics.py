@@ -718,6 +718,37 @@ def test_spectrum_access_factory():
     marked.setDataProcessing([processing])
     exp.addSpectrum(marked)
     assert exp._contains_cached_data_marker() is True
-    # SpectrumAccessOpenMSCached is not wrapped in the nanobind port yet
-    with pytest.raises(NotImplementedError):
-        SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr(exp)
+
+
+def test_spectrum_access_factory_cached_branch(tmp_path):
+    """The factory returns the disk-backed accessor for cached experiments.
+
+    Full round trip: cache an experiment with CachedmzML.store (which stamps
+    the 'cached_data' marker into the metadata file), reload the metadata,
+    and check the factory hands back a working SpectrumAccessOpenMSCached
+    that decodes the original peaks from the .cached side-car.
+    """
+    from pyopenms import (SimpleOpenMSSpectraFactory, MSExperiment, MSSpectrum,
+                          SpectrumAccessOpenMSCached, CachedmzML, MzMLFile)
+
+    exp = MSExperiment()
+    spec = MSSpectrum()
+    spec.setRT(41.5)
+    spec.set_peaks(([100.0, 200.0, 300.0], [10.0, 20.0, 30.0]))
+    exp.addSpectrum(spec)
+
+    meta_file = str(tmp_path / "cached_run.mzML")
+    CachedmzML.store(meta_file, exp)
+
+    reloaded = MSExperiment()
+    MzMLFile().load(meta_file, reloaded)
+    assert reloaded._contains_cached_data_marker() is True
+
+    access = SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr(reloaded)
+    assert isinstance(access, SpectrumAccessOpenMSCached)
+    assert access.getNrSpectra() == 1
+
+    decoded = access.getSpectrumById(0)
+    assert list(decoded.get_mz_array()) == [100.0, 200.0, 300.0]
+    assert list(decoded.get_intensity_array()) == [10.0, 20.0, 30.0]
+    assert access.getSpectraByRT(41.5, 1.0) == [0]

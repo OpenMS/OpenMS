@@ -86,17 +86,16 @@ class SimpleOpenMSSpectraFactory:
         # Deferred import: this module is loaded from pyopenms/__init__.py, so the
         # binding names are not importable at module level. (Both branches below
         # raised NameError before this import existed -- nothing ever called them.)
-        from . import SpectrumAccessOpenMS
+        from . import SpectrumAccessOpenMS, SpectrumAccessOpenMSCached
 
         # Scans C++-side: exp[i] and getChromatograms() hand out owned copies
         # (see OWNERSHIP.md), so probing the marker from Python would copy
         # every spectrum in the run just to read DataProcessing metadata.
         if exp._contains_cached_data_marker():
-            raise NotImplementedError(
-                "This experiment carries the 'cached_data' marker, but "
-                "SpectrumAccessOpenMSCached is not wrapped in the nanobind port yet. "
-                "Load the data uncached, or use SpectrumAccessOpenMSInMemory."
-            )
+            # Same contract as the C++ factory: the metadata file the
+            # experiment was loaded from must have its ".cached" side-car
+            # next to it, or the constructor raises.
+            return SpectrumAccessOpenMSCached(exp.getLoadedFilePath())
         return SpectrumAccessOpenMS(exp)
 
 

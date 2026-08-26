@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
@@ -3185,6 +3186,30 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
 
 
     // -----------------------------------------------------------------------
+    // SpectrumAccessOpenMSCached
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SpectrumAccessOpenMSCached>(m, "SpectrumAccessOpenMSCached",
+        R"doc(Spectrum access backed by an on-disk CachedmzML cache.
+
+Metadata is served from memory; peak data is read on demand from the
+side-car file at ``filename + ".cached"`` (written by ``CachedmzML.store()``),
+so runs far larger than RAM can be processed. Not thread-safe: a single
+file stream is seeked per request, so parallel readers each need their
+own copy of this object.)doc")
+        .def(nb::init<const std::string&>(), "filename"_a)
+        .def(nb::init<const OpenMS::SpectrumAccessOpenMSCached &>())
+        .def("__copy__", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return OpenMS::SpectrumAccessOpenMSCached(self); })
+        .def("__deepcopy__", [](const OpenMS::SpectrumAccessOpenMSCached& self, nb::dict) { return OpenMS::SpectrumAccessOpenMSCached(self); }, "memo"_a)
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrSpectra(); }, "Get number of spectra")
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrChromatograms(); }, "Get number of chromatograms")
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Read one spectrum from the cache file")
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Read one chromatogram from the cache file")
+        .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
+        .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMSCached& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
+        ;
+
+
+    // -----------------------------------------------------------------------
     // SpectrumAccessOpenMSInMemory
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SpectrumAccessOpenMSInMemory>(m, "SpectrumAccessOpenMSInMemory", "OpenMS class SpectrumAccessOpenMSInMemory")
@@ -3285,9 +3310,11 @@ TransformationModel
         }, "Get default parameters")
         ;
 
-    // SpectrumAccessOpenMSCached, SpectrumAccessQuadMZTransforming: cannot bind
-    // in analysis because they inherit from ISpectrumAccess/CachedmzML which
-    // are not bound as nanobind base classes. Mark as xfail in tests.
+    // SpectrumAccessQuadMZTransforming: not bound yet (inherits from
+    // SpectrumAccessTransforming). Marked as xfail in tests.
+    // (SpectrumAccessOpenMSCached is bound above -- inheriting from
+    // ISpectrumAccess/CachedmzML does not prevent binding: like the other
+    // SpectrumAccess* classes it is bound without declaring a nanobind base.)
 
     // -----------------------------------------------------------------------
     // ILPDCWrapper

@@ -155,6 +155,9 @@ PyOpenMS:
       exports iterate views internally (spectrum iteration ~100x faster than copying)
   - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
     when the replacement array has the same length (#9792)
+  - SpectrumAccessOpenMSCached wrapped (on-disk cached spectrum access for OpenSWATH-style workflows);
+    SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr() now returns it for experiments carrying
+    the cached_data marker instead of raising
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
     handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions (get_df() -> to_df(), get_df_columns()
