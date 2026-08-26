@@ -21,12 +21,14 @@ namespace OpenMS::Internal
 
     Streams individual &lt;entry&gt; elements into UniProtEntry POD instances and
     delivers each via a callback at &lt;/entry&gt;. Implements the same scoping
-    rules as the upstream C# UniPEFF tool: isoform sequences (missing the
-    "length" attribute on &lt;sequence&gt;) and the &lt;comment type="alternative
-    products"&gt; subtree are skipped, &lt;gene&gt; and &lt;organism&gt; are scanned via
-    bounded depth tracking so their inner &lt;name&gt; elements never leak into the
-    top-level "entry mnemonic" capture, and &lt;feature&gt; contents are buffered
-    and classified at the closing tag rather than incrementally.
+    rules as the upstream C# UniPEFF tool: only the canonical &lt;sequence&gt;
+    (carrying a "length" attribute) is captured, &lt;gene&gt; and &lt;organism&gt; are
+    scanned via bounded depth tracking so their inner &lt;name&gt; elements never
+    leak into the top-level "entry mnemonic" capture, and &lt;feature&gt; contents
+    are buffered and classified at the closing tag rather than incrementally.
+    The &lt;comment type="alternative products"&gt; subtree is parsed into
+    UniProtIsoform records (id, name, sequence type and splice-variant refs);
+    everything else inside it is ignored.
   */
   class OPENMS_DLLAPI UniProtXMLHandler :
     public XMLHandler
@@ -49,7 +51,9 @@ namespace OpenMS::Internal
       TaxName,
       Sequence,
       FeatureOriginal,
-      FeatureVariation
+      FeatureVariation,
+      IsoformId,
+      IsoformName
     };
 
     /// Build a handler that delivers each parsed UniProtEntry to @p callback.
@@ -76,9 +80,10 @@ namespace OpenMS::Internal
     int recommended_name_depth_{0};     ///< &lt;protein&gt;/&lt;recommendedName&gt;
     int gene_depth_{0};                 ///< &lt;gene&gt;
     int organism_depth_{0};             ///< &lt;organism&gt;
-    int alt_products_depth_{0};         ///< &lt;comment type="alternative products"&gt; (whole subtree skipped)
+    int alt_products_depth_{0};         ///< &lt;comment type="alternative products"&gt; (isoform definitions harvested, rest ignored)
+    int isoform_depth_{0};              ///< &lt;isoform&gt; inside the alternative-products comment
     int feature_depth_{0};              ///< &lt;feature&gt;
-    int sequence_depth_{0};             ///< &lt;sequence length="..."&gt; (only the canonical sequence; isoform &lt;sequence&gt; ignored)
+    int sequence_depth_{0};             ///< &lt;sequence length="..."&gt; (only the canonical sequence; isoform &lt;sequence&gt; elements have no content)
 
     /// Captures the &lt;fullName&gt; the first time we encounter it inside
     /// &lt;protein&gt;/&lt;recommendedName&gt;; later &lt;fullName&gt; elements (e.g. alternative names) are skipped.
@@ -92,6 +97,9 @@ namespace OpenMS::Internal
 
     /// Per-feature working state (used between startElement("feature") and endElement("feature")).
     UniProtFeature current_feature_;
+
+    /// Per-isoform working state (used between startElement("isoform") and endElement("isoform")).
+    UniProtIsoform current_isoform_;
 
     /// Whether the next &lt;name&gt; encountered inside the current &lt;gene&gt; subtree is a primary name.
     bool gene_name_is_primary_{false};

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF isoform-expansion fixture (issue #9830). Canonical P77777 is 40 aa:
+       1-10  MKTAYIAKQR
+      11-20  QISFVKSHFS
+      21-30  RQLEERLGLI
+      31-40  EVQAPILSRV
+     Emitted isoforms (in document order):
+       P77777-2  ref=VSP_A            deletion 11-20                    -> 30 aa
+       P77777-3  ref="VSP_B VSP_C"    replace 5-8 YIAK->W + delete 31-40 -> 27 aa
+                                      (applied C- to N-terminal; also tests
+                                      first-<name> capture with a synonym)
+       P77777-4  ref=VSP_D            single-position 40 V->VPRACK       -> 45 aa
+     Skipped isoforms (each must produce a log line, never an entry):
+       P77777-1  displayed (identical to the canonical entry)
+       P77777-5  sequence type "not described"
+       P77777-6  dangling ref VSP_MISSING
+       P77777-7  VSP_E <original> does not match the canonical sequence
+       P77777-8  VSP_A and VSP_F overlap
+       P77777-9  sequence type "external"
+       P77777-10 VSP_G range 35-100 exceeds the 40 aa canonical sequence
+     Entry Q11111 has only a "displayed" isoform -> no additional entries. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="5">
+    <accession>P77777</accession>
+    <name>ISO1_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Splice-happy test protein</fullName>
+      </recommendedName>
+    </protein>
+    <gene>
+      <name type="primary">ISOG</name>
+    </gene>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="evidence at protein level"/>
+    <comment type="alternative products">
+      <event type="alternative splicing"/>
+      <isoform>
+        <id>P77777-1</id>
+        <name>1</name>
+        <sequence type="displayed"/>
+      </isoform>
+      <isoform>
+        <id>P77777-2</id>
+        <name>2</name>
+        <sequence type="described" ref="VSP_A"/>
+      </isoform>
+      <isoform>
+        <id>P77777-3</id>
+        <name>3</name>
+        <name>Gamma</name>
+        <sequence type="described" ref="VSP_B VSP_C"/>
+      </isoform>
+      <isoform>
+        <id>P77777-4</id>
+        <name>Alpha</name>
+        <sequence type="described" ref="VSP_D"/>
+      </isoform>
+      <isoform>
+        <id>P77777-5</id>
+        <name>5</name>
+        <sequence type="not described"/>
+      </isoform>
+      <isoform>
+        <id>P77777-6</id>
+        <name>6</name>
+        <sequence type="described" ref="VSP_MISSING"/>
+      </isoform>
+      <isoform>
+        <id>P77777-7</id>
+        <name>7</name>
+        <sequence type="described" ref="VSP_E"/>
+      </isoform>
+      <isoform>
+        <id>P77777-8</id>
+        <name>8</name>
+        <sequence type="described" ref="VSP_A VSP_F"/>
+      </isoform>
+      <isoform>
+        <id>P77777-9</id>
+        <name>9</name>
+        <sequence type="external"/>
+      </isoform>
+      <isoform>
+        <id>P77777-10</id>
+        <name>10</name>
+        <sequence type="described" ref="VSP_G"/>
+      </isoform>
+    </comment>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="13"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_A" description="In isoform 2 and isoform 8.">
+      <location>
+        <begin position="11"/>
+        <end position="20"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_B" description="In isoform 3.">
+      <original>YIAK</original>
+      <variation>W</variation>
+      <location>
+        <begin position="5"/>
+        <end position="8"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_C" description="In isoform 3.">
+      <original>EVQAPILSRV</original>
+      <location>
+        <begin position="31"/>
+        <end position="40"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_D" description="In isoform Alpha.">
+      <original>V</original>
+      <variation>VPRACK</variation>
+      <location>
+        <position position="40"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_E" description="In isoform 7 (deliberate original mismatch).">
+      <original>XXXX</original>
+      <variation>Q</variation>
+      <location>
+        <begin position="21"/>
+        <end position="24"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_F" description="In isoform 8 (overlaps VSP_A).">
+      <location>
+        <begin position="15"/>
+        <end position="25"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_G" description="In isoform 10 (out of bounds).">
+      <location>
+        <begin position="35"/>
+        <end position="100"/>
+      </location>
+    </feature>
+    <sequence length="40" mass="4600" version="1">MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRV</sequence>
+  </entry>
+  <entry dataset="TrEMBL" version="1">
+    <accession>Q11111</accession>
+    <name>ISO2_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Displayed-only test protein</fullName>
+      </recommendedName>
+    </protein>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="predicted"/>
+    <comment type="alternative products">
+      <event type="alternative splicing"/>
+      <isoform>
+        <id>Q11111-1</id>
+        <name>1</name>
+        <sequence type="displayed"/>
+      </isoform>
+    </comment>
+    <sequence length="20" mass="2200" version="1">MDEQNNTEMTFQIQRIYTKD</sequence>
+  </entry>
+</uniprot>
