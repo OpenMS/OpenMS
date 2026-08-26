@@ -130,14 +130,29 @@ jobs:
             )
           fi
 
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # The deep GitHub Actions checkout/preset path leaves NSIS staging paths
+            # (build/<preset>/_CPack_Packages/win64/NSIS/<package-name>/...) only a few
+            # characters under Windows' 260-char MAX_PATH; a heavily templated symbol's
+            # generated doc/graph file can push a single path over the limit and abort
+            # makensis.exe. Stage the package under a short path instead.
+            export CPACK_PACKAGE_DIRECTORY="C:/cp"
+          fi
+
           cmake "${cmake_options[@]}" ../..
 
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
-              cat _CPack_Packages/win64/NSIS/NSISOutput.log
+              cat "$CPACK_PACKAGE_DIRECTORY/_CPack_Packages/win64/NSIS/NSISOutput.log"
             fi
 
             exit 1
+          fi
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Move the installer back next to the build tree, where the artifact
+            # upload step expects to find it.
+            mv "$CPACK_PACKAGE_DIRECTORY"/*.exe .
           fi
 
       # Notarize macOS packages for Gatekeeper approval

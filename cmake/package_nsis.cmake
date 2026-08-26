@@ -68,6 +68,14 @@ if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME
 else()
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Win${PLATFORM}")
 endif()
+
+## NSIS stages the installer under CPACK_PACKAGE_DIRECTORY/_CPack_Packages/<platform>/NSIS/<package-name>/...
+## Combined with a deep build directory (e.g. nested CI checkout + preset binary dirs), the staged path to a
+## generated doc/graph file can exceed Windows' 260-character MAX_PATH, aborting makensis.exe. Allow CI to
+## point staging at a short path (e.g. "C:/cp") without affecting the default local-build behavior.
+if((DEFINED ENV{CPACK_PACKAGE_DIRECTORY}) AND (NOT "$ENV{CPACK_PACKAGE_DIRECTORY}" STREQUAL ""))
+  set(CPACK_PACKAGE_DIRECTORY "$ENV{CPACK_PACKAGE_DIRECTORY}")
+endif()
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 
 ## Create own target because you cannot "depend" on the internal target 'package'
