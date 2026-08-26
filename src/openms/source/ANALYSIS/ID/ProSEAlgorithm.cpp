@@ -602,9 +602,13 @@ namespace OpenMS
       annotation_ln_num_candidates = true;
       annotation_matched_ion_current_fraction = true;
       annotation_complementary_ions_fraction = true;
-      annotation_binomial_match_score = true;
-      annotation_tailor_score = true;
-      annotation_top_peaks_explained = true;
+      // NOTE: BINOMIAL_MATCH_SCORE, TAILOR_SCORE and TOP_PEAKS_EXPLAINED_FRACTION are also
+      // opt-in. Each clearly improves on the *original* feature set (t = 1.4 / 1.1 / 4.8 on
+      // timsTOF, 3.7 / 3.5 / 3.4 on Q Exactive HF), but none adds anything once the
+      // candidate-pool and structural features below are present: against that default the
+      // best of them reaches only |t| = 1.8, and all three together give t = -1.08 (timsTOF)
+      // and +0.53 (Q Exactive HF). They measure separation that the default set already
+      // captures, so enabling them by default would cost annotation size for no gain.
       // NOTE: LN_EXPLAINED_INTENSITY and LN_TOTAL_INTENSITY are deliberately NOT part of "ALL".
       // They are opt-in only. Benchmarked on a Bruker timsTOF HeLa run and a Q Exactive HF
       // ProteoBench run, each rescored under five Percolator seeds, neither feature produced a
