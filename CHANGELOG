@@ -538,8 +538,10 @@ TOPP tools:
       FAIMS CVs are preserved through ID mapping, multiplet completion and linking. A protein's
       reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps (#8992).
-    - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
-      annotations; optional annotation identifiers and external unimod.obo (#9649).
+    - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification, variant and
+      disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
+      half-cystine labels; optional global 1-based annotation identifiers and external
+      unimod.obo (#9649, #9829).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
