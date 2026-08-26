@@ -157,7 +157,12 @@ namespace OpenMS
         Constants::UserParam::MATCHED_SUFFIX_IONS,
         Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
         Constants::UserParam::MATCHED_ION_CURRENT,
-        Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM}
+        Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM,
+        Constants::UserParam::DELTA_SCORE_WORST,
+        Constants::UserParam::HYPERSCORE_ZSCORE,
+        Constants::UserParam::LN_NUM_CANDIDATES,
+        Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+        Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
       );
 
     defaults_.setSectionDescription("annotate", "Annotation Options");
