@@ -8,24 +8,18 @@
 
 #pragma once
 
-// Avoid OpenMS includes here at all costs
-// When the included headers are changed, *all* tests have to be recompiled!
-// Use the ClassTest class if you need add high-level functionality.
-// Includes in ClassTest.cpp are ok...
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h> // for StringUtils::toStr in TEST_EQUAL
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
+// Std-only: no libOpenMS or third-party headers, so tests of every OpenMS library
+// (incl. ones that don't link libOpenMS, like OpenSwathAlgo) can use it and
+// recompiles stay cheap. Utilities are its own (ClassTestUtils.h); OpenMS behavior
+// is registered by the test projects (openms/source/OpenMSTestSupport.cpp).
+#include <OpenMS/CONCEPT/ClassTestUtils.h>
 #include <OpenMS/CONCEPT/MacrosTest.h>
-#include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/config.h>
 
-#include <cstring>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <type_traits>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
 
@@ -45,74 +39,28 @@ namespace OpenMS
     namespace ClassTest
     {
 
-      /**
-       @brief Validates the given files against the XML schema (if available)
-       @return If all files passed the validation
-       */
-      bool OPENMS_DLLAPI
-      validate(const std::vector<std::string>& file_names);
-
       /// Creates a temporary file name from the test name and the line with the specified extension
-      std::string OPENMS_DLLAPI
+      std::string
       createTmpFileName(const std::string& file, int line, const std::string& extension = "");
 
-      /// This overload returns true; @c float is a floating point type.
-      inline bool OPENMS_DLLAPI
-      isRealType(float)
-      {
-        return true;
-      }
-
-      /// This overload returns true; @c double is a floating point type.
-      inline bool OPENMS_DLLAPI
-      isRealType(double)
-      {
-        return true;
-      }
-
-      /// This overload returns true; @c long @c double is a floating point type.
-      inline bool OPENMS_DLLAPI
-      isRealType(long double)
-      {
-        return true;
-      }
-
-      /// This overload returns true; @c ParamValue will be converted to double by #TEST_REAL_SIMILAR.
-      inline bool OPENMS_DLLAPI
-      isRealType(const ParamValue&)
-      {
-          return true;
-      }
-
-      /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.
-      inline bool OPENMS_DLLAPI
-      isRealType(const DataValue&)
-      {
-        return true;
-      }
-
-      /// This catch-all template returns false; it will be instantiated for non-floating point types.
-      template <typename T>
-      inline bool
-      isRealType(const T&)
-      {
-        return false;
-      }
+      // isRealType() and writtenDigits() -- used by #TEST_REAL_SIMILAR -- are provided
+      // by ClassTestUtils.h. They classify by convertibility to double, so the framework
+      // does not need to know library value types (DataValue, ParamValue, ...) by name.
 
       /** @brief Compare floating point numbers using @em absdiff_max_allowed and
        @em ratio_max_allowed.
 
        Side effects: Updates #fuzzy_message.
        */
-      void OPENMS_DLLAPI
+      void
       testRealSimilar(const char* file, int line, long double number_1,
                       const char* number_1_stringified,
-                      bool number_1_is_realtype, Int number_1_written_digits,
+                      bool number_1_is_realtype, int number_1_written_digits,
                       long double number_2, const char* number_2_stringified,
-                      bool /* number_2_is_realtype */, Int number_2_written_digits);
+                      bool /* number_2_is_realtype */, int number_2_written_digits);
 
       /// used by testRealSimilar()
-      bool OPENMS_DLLAPI
+      bool
       isRealSimilar(long double number_1, long double number_2);
 
       /**@brief Compare strings using @em absdiff_max_allowed and @em ratio_max_allowed.
@@ -122,7 +70,7 @@ namespace OpenMS
        Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
        and #line_num_2_max.
        */
-      void OPENMS_DLLAPI
+      void
       testStringSimilar(const char* file, int line,
                         const std::string& string_1,
                         const char* string_1_stringified,
@@ -130,7 +78,7 @@ namespace OpenMS
                         const char* string_2_stringified);
 
       /// used by TEST_STRING_EQUAL
-      void OPENMS_DLLAPI
+      void
       testStringEqual(const char* file, int line,
                       const std::string& string_1,
                       const char* string_1_stringified,
@@ -142,16 +90,16 @@ namespace OpenMS
        Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
        and #line_num_2_max.
        */
-      bool OPENMS_DLLAPI
+      bool
       isFileSimilar(const std::string& filename_1,
                     const std::string& filename_2);
 
       /// make sure we have a newline before results from first subtest
-      void OPENMS_DLLAPI
+      void
       initialNewline();
 
       /// print the text, each line gets a prefix, the marked line number gets a special prefix
-      void OPENMS_DLLAPI
+      void
       printWithPrefix(const std::string& text, const int marked = -1);
 
       /**
@@ -163,7 +111,7 @@ namespace OpenMS
          @param[in] argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
          @param[in] argv0 Name of the executable (for debug output)
       */
-      void OPENMS_DLLAPI mainInit(const char* version, const char* class_name, int argc, const char* argv0);
+      void mainInit(const char* version, const char* class_name, int argc, const char* argv0);
 
       /**
         @brief Test if two files are exactly equal (used in TEST_FILE_EQUAL macro)
@@ -174,102 +122,102 @@ namespace OpenMS
         @param[in] filename_stringified The expression used as the first macro argument
         @param[in] templatename_stringified The expression used as the second macro argument
       */
-      void OPENMS_DLLAPI filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
+      void filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
 
       /// removed all temporary files created with the NEW_TMP_FILE macro
-      void OPENMS_DLLAPI removeTempFiles();
+      void removeTempFiles();
       
       /// set the whitelist_
-      void OPENMS_DLLAPI
+      void
       setWhitelist(const char* const /* file */, const int line,
                    const std::string& whitelist);
 
       /// Maximum ratio of numbers allowed, see #TOLERANCE_RELATIVE.
-      extern OPENMS_DLLAPI double ratio_max_allowed;
+      extern double ratio_max_allowed;
 
       /// Maximum ratio of numbers observed so far, see #TOLERANCE_RELATIVE.
-      extern OPENMS_DLLAPI double ratio_max;
+      extern double ratio_max;
 
       /// Recent ratio of numbers, see #TOLERANCE_RELATIVE.
-      extern OPENMS_DLLAPI double ratio;
+      extern double ratio;
 
       /// Maximum absolute difference of numbers allowed, see #TOLERANCE_ABSOLUTE.
-      extern OPENMS_DLLAPI double absdiff_max_allowed;
+      extern double absdiff_max_allowed;
 
       /// Maximum difference of numbers observed so far, see #TOLERANCE_ABSOLUTE.
-      extern OPENMS_DLLAPI double absdiff_max;
+      extern double absdiff_max;
 
       /// Recent absolute difference of numbers, see #TOLERANCE_ABSOLUTE.
-      extern OPENMS_DLLAPI double absdiff;
+      extern double absdiff;
 
-      extern OPENMS_DLLAPI int line_num_1_max;
-      extern OPENMS_DLLAPI int line_num_2_max;
+      extern int line_num_1_max;
+      extern int line_num_2_max;
 
       /// Verbosity level ( "-v" is 1 and "-V" is 2 )
-      extern OPENMS_DLLAPI int verbose;
+      extern int verbose;
 
       /// Status of the whole test
-      extern OPENMS_DLLAPI bool all_tests;
+      extern bool all_tests;
 
       /// Status of the current subsection
-      extern OPENMS_DLLAPI bool test;
+      extern bool test;
 
       /// Status of last elementary test
-      extern OPENMS_DLLAPI bool this_test;
+      extern bool this_test;
 
       /// (Used by various macros. Indicates a rough category of the exception being caught.)
-      extern OPENMS_DLLAPI int exception;
+      extern int exception;
 
       /// (Used by various macros.  Stores the "name" of the exception, if applicable.)
-      extern OPENMS_DLLAPI std::string exception_name;
+      extern std::string exception_name;
 
       /// (Used by various macros.  Stores the "message" of the exception, if applicable.)
-      extern OPENMS_DLLAPI std::string exception_message;
+      extern std::string exception_message;
 
       /// Name of current subsection
-      extern OPENMS_DLLAPI std::string test_name;
+      extern std::string test_name;
 
       /// Line where current subsection started
-      extern OPENMS_DLLAPI int start_section_line;
+      extern int start_section_line;
 
       /// Line of current elementary test
-      extern OPENMS_DLLAPI int test_line;
+      extern int test_line;
 
       /// Version string supplied with #START_TEST
-      extern OPENMS_DLLAPI const char* version_string;
+      extern const char* version_string;
 
       /// List of tmp file names (these will be cleaned up, see #NEW_TMP_FILE)
-      extern OPENMS_DLLAPI std::vector<std::string> tmp_file_list;
+      extern std::vector<std::string> tmp_file_list;
 
       /// List of all failed lines for summary at the end of the test
-      extern OPENMS_DLLAPI std::vector<UInt> failed_lines_list;
+      extern std::vector<unsigned int> failed_lines_list;
 
       /// Questionable file tested by #TEST_FILE_EQUAL
-      extern OPENMS_DLLAPI std::ifstream infile;
+      extern std::ifstream infile;
 
       /// Template (correct) file used by #TEST_FILE_EQUAL
-      extern OPENMS_DLLAPI std::ifstream templatefile;
+      extern std::ifstream templatefile;
 
       /// (A variable used by #TEST_FILE_EQUAL)
-      extern OPENMS_DLLAPI bool equal_files;
+      extern bool equal_files;
 
       /// (A buffer for one line from a file. Used by #TEST_FILE_EQUAL.)
-      extern OPENMS_DLLAPI char line_buffer[65536];
+      extern char line_buffer[65536];
 
       /// Counter for the number of elementary tests within the current subsection.
-      extern OPENMS_DLLAPI int test_count;
+      extern int test_count;
 
       /// See #ADD_MESSAGE.
-      extern OPENMS_DLLAPI std::string add_message;
+      extern std::string add_message;
 
       /**@brief Last message from a fuzzy comparison.  Written by
        #isRealSimilar(), #testStringSimilar(), #isFileSimilar().  Read by
        #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR, #TEST_FILE_SIMILAR;
        */
-      extern OPENMS_DLLAPI std::string fuzzy_message;
+      extern std::string fuzzy_message;
 
       /// (Flags whether a new line is in place, depending on context and verbosity setting.  Used by initialNewline() and some macros.)
-      extern OPENMS_DLLAPI bool newline;
+      extern bool newline;
 
       template <typename T1, typename T2>
       void
@@ -283,10 +231,11 @@ namespace OpenMS
         // For std::string targets, stringify the comparison value rather than
         // constructing std::string(expression_2): the old OpenMS::String had
         // numeric/char converting constructors (e.g. String(114) == "114") that
-        // std::string lacks. StringUtils::toStr reproduces that behavior.
+        // std::string lacks. detail::toString reproduces that behavior (and must
+        // format numbers exactly like StringUtils::toStr, see ClassTestUtils.h).
         if constexpr (std::is_same_v<T1, std::string>)
         {
-          this_test = bool(expression_1 == StringUtils::toStr(expression_2));
+          this_test = bool(expression_1 == detail::toString(expression_2));
         }
         else
         {
@@ -312,7 +261,10 @@ namespace OpenMS
             }
             else
             {
-              stdcout << expression_1 << "', expected '" << expression_2 << "'\n";
+              detail::printValue(stdcout, expression_1);
+              stdcout << "', expected '";
+              detail::printValue(stdcout, expression_2);
+              stdcout << "'\n";
             }
           }
           if (!this_test)
@@ -322,7 +274,7 @@ namespace OpenMS
         }
       }
 
-      void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      inline void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
       {
         ++test_count;
         test_line = line;
@@ -345,7 +297,7 @@ namespace OpenMS
         }
       }
 
-      void testFalse(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      inline void testFalse(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
       {
         ++test_count;
         test_line = line;
@@ -389,7 +341,13 @@ namespace OpenMS
             {
               stdcout << static_cast<int>(expression_1) << "', forbidden is '" << static_cast<int>(expression_2) << "'\n";
             }
-            else { stdcout << expression_1 << "', expected '" << expression_2 << "'\n"; }
+            else
+            {
+              detail::printValue(stdcout, expression_1);
+              stdcout << "', forbidden is '";
+              detail::printValue(stdcout, expression_2);
+              stdcout << "'\n";
+            }
           }
           if (!this_test)
           {
@@ -398,12 +356,44 @@ namespace OpenMS
         }
       }
 
-      
-      void OPENMS_DLLAPI printLastException(std::ostream& out);
-      
-      int OPENMS_DLLAPI endTestPostProcess(std::ostream& out);
 
-      void OPENMS_DLLAPI endSectionPostProcess(std::ostream& out, const int line);
+      /**
+        @brief Translator producing a description of the currently handled exception.
+
+        Called with an exception being handled (rethrow it with @c throw; internally).
+        If the translator recognizes the type, it writes a one-line description
+        (e.g. name, origin, message) into @p description and returns true;
+        otherwise it returns false and must leave @p description alone.
+
+        The framework itself knows only @c std::exception. Test projects register
+        translators for their library's exception hierarchy -- see
+        src/tests/class_tests/openms/source/OpenMSTestSupport.cpp -- which is how
+        failure reports show OpenMS exception names without the framework
+        depending on libOpenMS. (Same design as Catch2's exception translators.)
+      */
+      using ExceptionTranslator = bool (*)(std::string& description);
+
+      /// Register an exception translator (idempotent; bounded, first-come first-served).
+      void registerExceptionTranslator(ExceptionTranslator translator);
+
+      /// Whether TEST_PRECONDITION/POSTCONDITION_VIOLATED actually run their command.
+      /// Off by default; the test-support TU of the library under test enables it when
+      /// the library was built with its precondition checks active (OPENMS_ASSERTIONS),
+      /// so the expectation always matches the library's real behavior.
+      bool preconditionTestsEnabled();
+
+      /// See preconditionTestsEnabled().
+      void setPreconditionTestsEnabled(bool enabled);
+
+      /// Describe the exception currently being handled: registered translators first,
+      /// then std::exception's what(), then a generic fallback.
+      std::string describeCaughtException();
+
+      void printLastException(std::ostream& out);
+
+      int endTestPostProcess(std::ostream& out);
+
+      void endSectionPostProcess(std::ostream& out, const int line);
     }
   }
 }
@@ -414,19 +404,51 @@ namespace TEST = OpenMS::Internal::ClassTest;
 /**
  @defgroup ClassTest Class test macros
 
- @brief These macros are used by the test programs in the subdirectory
- <code>OpenMS/source/TEST</code>.
+ @brief The macros of OpenMS' class-test framework (library
+ <code>OpenMSTestFramework</code>), used by the test programs under
+ <code>src/tests/class_tests/</code>.
 
- On successful operation the test program will print out the message "PASSED",
- otherwise "FAILED".
+ The framework lives in its own static library, <code>OpenMSTestFramework</code>
+ (<code>src/testframework/</code>), and depends on the C++ standard library
+ ONLY — it does not link or include libOpenMS. That is what lets the tests of
+ every OpenMS library (including ones that do not link libOpenMS, such as
+ OpenSwathAlgo) use the same macros, and it keeps the framework working
+ unchanged when libOpenMS is split into smaller libraries.
 
- If called with the @b -v option, the test program prints verbose information
- about subsections.
+ A test program is one translation unit: #START_TEST / #END_TEST wrap the whole
+ program, #START_SECTION / #END_SECTION wrap each subtest, and the elementary
+ macros (#TEST_EQUAL, #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR,
+ #TEST_FILE_EQUAL, #TEST_FILE_SIMILAR, #TEST_EXCEPTION, ...) record results.
+ On success the program prints "PASSED", otherwise "FAILED" plus the failing
+ lines. With <code>-v</code> it prints information about subsections, with
+ <code>-V</code> (or the environment variable
+ <code>OPENMS_TEST_VERBOSE=True</code>) about every elementary test.
 
- If called with the @b -V option, the test program prints even more verbose
- information for every elementary test.
+ Because the framework knows nothing about the library under test,
+ library-specific behavior is <em>registered</em> by the test project
+ (see <code>src/tests/class_tests/openms/source/OpenMSTestSupport.cpp</code>,
+ compiled into every openms/openms_gui test executable):
 
- The implementation is done in namespace #OpenMS::Internal::ClassTest.
+ - OpenMS::Internal::ClassTest::registerExceptionTranslator() — so failure
+   reports show the name and origin of unexpected OpenMS exceptions (the
+   framework itself only knows <code>std::exception</code>);
+ - OpenMS::Internal::ClassTest::setPreconditionTestsEnabled() — so
+   #TEST_PRECONDITION_VIOLATED / #TEST_POSTCONDITION_VIOLATED expect a throw
+   exactly when the library's #OPENMS_PRECONDITION checks are compiled in;
+ - OpenMS::UniqueIdGenerator seeding, so unique IDs written into test output
+   files are reproducible against the reference files.
+
+ Values in failure reports print via <code>operator<<</code> found at the
+ macro-expansion site (so any type your test can see prints as usual);
+ #TEST_REAL_SIMILAR accepts floating point values and class types implicitly
+ convertible to <code>double</code> (e.g. DataValue, ParamValue) — no
+ registration needed.
+
+ Schema validation of temporary files is explicit: tests that write XML call
+ #VALIDATE_TMP_FILES (or #VALIDATE_FILE) from
+ <code>OpenMS/TestFileValidation.h</code> in the openms class-test project —
+ it needs the FORMAT layer and therefore deliberately does not live in the
+ framework.
 
  To create a test, follow the guidelines in @ref developer_faq (section "How to add a new class test").
  Look at existing test files in src/tests/class_tests/ for examples.
@@ -434,10 +456,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @ingroup Concept
 
  */
-//@{
-
-//@name test and subtest
-//@{
+/** @{ */
 
 /**	@brief Begin of the test program for a given class.  @sa #END_TEST.
 
@@ -452,10 +471,11 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  The #START_TEST macro should be the first one to call in a test program. It
  opens a global <code>try</code> block to catch any unwanted exceptions.  If
- any of these exceptions occurs, all tests fail.  Exceptions defined by
- %OpenMS (i.e. exception classes derived from Exception::BaseException)
- provide some additional information that is evaluated by the #END_TEST
- macro.  The #END_TEST macro also closes the <code>try</code> block.  This
+ any of these exceptions occurs, all tests fail. The report describes the
+ caught exception via the registered exception translators (see
+ OpenMS::Internal::ClassTest::registerExceptionTranslator), so e.g. %OpenMS
+ exceptions are reported with their name and origin.  The #END_TEST macro
+ also closes the <code>try</code> block.  This
  <code>try</code> block should never catch an exception!  All exceptions that
  are thrown due to some malfunction in one of the member functions should be
  caught by the <code>try</code> block created by #START_SECTION and
@@ -539,10 +559,10 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  This macro closes the <code>try</code> block opened by #START_SECTION, so
  #START_SECTION and #END_SECTION have to be balanced, or some ugly
- compile-time errors will occur.  #END_SECTION first tries to catch all
- <code>OpenMS::Exception</code>s (i.e. exceptions derived from
- OpenMS::Exception::BaseException).  If this fails, it tries to catch any
- exception.  After the exception is caught, the execution will continue with
+ compile-time errors will occur.  #END_SECTION catches any exception and
+ reports it via the registered exception translators (see
+ OpenMS::Internal::ClassTest::registerExceptionTranslator).
+ After the exception is caught, the execution will continue with
  the next subtest, but the current subtest is marked as failed (as is the
  whole test program).
 
@@ -558,8 +578,6 @@ namespace TEST = OpenMS::Internal::ClassTest;
   } \
   TEST::endSectionPostProcess(stdcout, __LINE__);
 
-
-//@}
 
 /**	@brief Generic equality macro.
 
@@ -666,7 +684,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @hideinitializer
  */
-#define TEST_REAL_SIMILAR(a, b) TEST::testRealSimilar(__FILE__, __LINE__, (a), (# a), TEST::isRealType(a), writtenDigits(a), (b), (# b), TEST::isRealType(b), writtenDigits(b));
+#define TEST_REAL_SIMILAR(a, b) TEST::testRealSimilar(__FILE__, __LINE__, (a), (# a), TEST::isRealType(a), TEST::writtenDigits(a), (b), (# b), TEST::isRealType(b), TEST::writtenDigits(b));
 
 /**	@brief std::string similarity macro.
 
@@ -713,13 +731,13 @@ namespace TEST = OpenMS::Internal::ClassTest;
         {                                                                                 \
           stdcout << " +  line " << __LINE__                                              \
                     << ":  TEST_FILE_SIMILAR(" # a "," # b "):  absolute: "               \
-                    << precisionWrapper(TEST::absdiff)                                    \
+                    << TEST::precisionWrapper(TEST::absdiff)                                    \
                     << " ("                                                               \
-                    << precisionWrapper(TEST::absdiff_max_allowed)                        \
+                    << TEST::precisionWrapper(TEST::absdiff_max_allowed)                        \
                     << "), relative: "                                                    \
-                    << precisionWrapper(TEST::ratio)                                      \
+                    << TEST::precisionWrapper(TEST::ratio)                                      \
                     << " ("                                                               \
-                    << precisionWrapper(TEST::ratio_max_allowed)                          \
+                    << TEST::precisionWrapper(TEST::ratio_max_allowed)                          \
                     << ")\n";                                                             \
           stdcout << "message: \n";                                                       \
           stdcout << TEST::fuzzy_message;                                                 \
@@ -815,19 +833,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       TEST::exception = 1;                                                                \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException& e)                                         \
-    {                                                                                     \
-      TEST::exception = 2;                                                                \
-      TEST::exception_name = e.getName();                                                 \
-    }                                                                                     \
-    catch (const std::exception& e)                                                       \
-    {                                                                                     \
-      TEST::exception = 3;                                                                \
-      TEST::exception_name = e.what();                                                    \
-    }                                                                                     \
     catch (...)                                                                           \
     {                                                                                     \
-      TEST::exception = 4;                                                                \
+      /* the framework knows only std::exception; registered translators (see  */         \
+      /* OpenMSTestSupport.cpp) describe library exception types by name       */         \
+      TEST::exception = 2;                                                                \
+      TEST::exception_name = TEST::describeCaughtException();                             \
     }                                                                                     \
     TEST::this_test = (TEST::exception == 1);                                             \
     TEST::test = TEST::test && TEST::this_test;                                           \
@@ -856,19 +867,6 @@ namespace TEST = OpenMS::Internal::ClassTest;
                   << TEST::exception_name << "\"\n";                                     \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
-      case 3:                                                                             \
-        stdcout << " -  line " << TEST::test_line <<                                    \
-          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-          "): wrong exception thrown!  \""                                                  \
-                  << TEST::exception_name << "\"\n";                                     \
-        TEST::failed_lines_list.push_back(TEST::test_line);                               \
-        break;                                                                            \
-      case 4:                                                                             \
-        stdcout << " -  line " << TEST::test_line <<                                    \
-          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-          "): wrong exception thrown!\n";                                                 \
-        TEST::failed_lines_list.push_back(TEST::test_line);                               \
-        break;                                                                            \
       }                                                                                   \
     }                                                                                     \
   }
@@ -877,35 +875,49 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
   This macro checks if a precondition violation is detected while executing the command,
   similar to <code>TEST_EXCEPTION(Exception::Precondition,command)</code>.
-  However the test is executed only when the #OPENMS_PRECONDITION macros are active,
-  i.e., when compiling in Debug mode.  (See Macros.h)
+  However the test is executed only when the library's #OPENMS_PRECONDITION macros
+  are active; the test project registers that fact via setPreconditionTestsEnabled()
+  (see OpenMSTestSupport.cpp), keyed on the same OPENMS_ASSERTIONS the library
+  uses (see Macros.h).
 
  @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
-#ifdef OPENMS_ASSERTIONS
-#define TEST_PRECONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Precondition, command);
-#else
-#define TEST_PRECONDITION_VIOLATED(command) STATUS("TEST_PRECONDITION_VIOLATED(" # command ")  -  skipped");
-#endif
+#define TEST_PRECONDITION_VIOLATED(command)                                               \
+  {                                                                                       \
+    if (TEST::preconditionTestsEnabled())                                                 \
+    {                                                                                     \
+      TEST_EXCEPTION(Exception::Precondition, command);                                   \
+    }                                                                                     \
+    else                                                                                  \
+    {                                                                                     \
+      STATUS("TEST_PRECONDITION_VIOLATED(" # command ")  -  skipped");                    \
+    }                                                                                     \
+  }
 
 /** @brief Postcondition test macro
 
   This macro checks if a postcondition violation is detected while executing the command,
   similar to <code>TEST_EXCEPTION(Exception::Postcondition,command)</code>.
-  However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
-  i.e., when compiling in Debug mode.  (See Macros.h)
+  However the test is executed only when the library's #OPENMS_POSTCONDITION macros
+  are active; see #TEST_PRECONDITION_VIOLATED for how that is determined.
 
  @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
-#ifdef OPENMS_ASSERTIONS
-#define TEST_POSTCONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Postcondition, command);
-#else
-#define TEST_POSTCONDITION_VIOLATED(command) STATUS("TEST_POSTCONDITION_VIOLATED(" # command ")  -  skipped");
-#endif
+#define TEST_POSTCONDITION_VIOLATED(command)                                               \
+  {                                                                                       \
+    if (TEST::preconditionTestsEnabled())                                                 \
+    {                                                                                     \
+      TEST_EXCEPTION(Exception::Postcondition, command);                                   \
+    }                                                                                     \
+    else                                                                                  \
+    {                                                                                     \
+      STATUS("TEST_POSTCONDITION_VIOLATED(" # command ")  -  skipped");                    \
+    }                                                                                     \
+  }
 
 
 /**	@brief Exception test macro (with test for exception message).
@@ -942,14 +954,10 @@ namespace TEST = OpenMS::Internal::ClassTest;
       }                                                                                   \
       else TEST::exception = 1;                                                           \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException& e)                                         \
-    {                                                                                     \
-      TEST::exception = 2;                                                                \
-      TEST::exception_name = e.getName();                                                 \
-    }                                                                                     \
     catch (...)                                                                           \
     {                                                                                     \
-      TEST::exception = 3;                                                                \
+      TEST::exception = 2;                                                                \
+      TEST::exception_name = TEST::describeCaughtException();                             \
     }                                                                                     \
     TEST::this_test = (TEST::exception == 1);                                             \
     TEST::test = TEST::test && TEST::this_test;                                           \
@@ -978,12 +986,6 @@ namespace TEST = OpenMS::Internal::ClassTest;
           ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
           "): wrong exception thrown!  \"" <<                                               \
           TEST::exception_name << "\"\n";                                                \
-        TEST::failed_lines_list.push_back(TEST::test_line);                               \
-        break;                                                                            \
-      case 3:                                                                             \
-        stdcout << " -  line " << TEST::test_line <<                                    \
-          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-          "): wrong exception thrown!\n";                                                 \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 4:                                                                             \
@@ -1091,4 +1093,4 @@ namespace TEST = OpenMS::Internal::ClassTest;
 #define NOT_TESTABLE                                                                      \
   TEST::test_count = 1;
 
-//@} // end of ClassTest
+/** @} */ // end of defgroup ClassTest

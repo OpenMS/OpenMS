@@ -46,6 +46,14 @@ General:
     variable or an old side-by-side install can no longer hijack resolution (most relevant on Windows).
     File::find reports the resolved data directory and where it came from when a file is missing
     (#9635, #9636, #9650)
+  - The class-test framework (ClassTest.h macros, FuzzyStringComparator) was moved out of libOpenMS
+    into its own standard-library-only static library, OpenMSTestFramework. Include paths and
+    installed header locations are unchanged; the ~50 framework symbols leave the libOpenMS ABI, and
+    the FuzzyDiff tool and all class tests link the new library. Tests of libraries that do not link
+    libOpenMS (e.g. OpenSwathAlgo) now build without libOpenMS in their link closure. Schema
+    validation of NEW_TMP_FILE outputs is now explicit (VALIDATE_TMP_FILES; the 26 tests that
+    validated files call it), unique-ID seeding and OpenMS exception naming are registered by the
+    test projects (OpenMSTestSupport.cpp), and the unused Internal::OpenMS_locale global was removed
   - Fix: File::writable() is no longer destructive and no longer reports false negatives under
     concurrency. It used to answer "does it exist?" and "may I write it?" with two separate
     queries, so a concurrent process could change the path in between and make it wrongly report
