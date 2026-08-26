@@ -482,19 +482,49 @@ namespace OpenMS
     // in a side vector (one float per spectrum) to avoid adding a field to every
     // AnnotatedHit_ candidate during scoring.
     std::vector<float> delta_scores(annotated_hits.size(), 0.0f);
-#pragma omp parallel for default(none) shared(annotated_hits, top_hits, delta_scores)
+    // Side vectors for candidate-pool statistics, computed the same way as delta_scores
+    // (before truncation to top_hits, one value per spectrum):
+    //  - delta_scores_worst: best - worst candidate score (Comet deltaLCn analogue)
+    //  - hyperscore_zscores: how much of an outlier the best score is relative to the
+    //    mean/SD of the *other* candidates — a lightweight statistical-significance
+    //    proxy, since HyperScore (unlike e.g. MS-GF+'s SpecEValue) has no closed-form e-value
+    //  - ln_num_candidates: ln(1 + number of candidates), a search-space-size proxy
+    std::vector<float> delta_scores_worst(annotated_hits.size(), 0.0f);
+    std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
+    std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits, delta_scores, delta_scores_worst, hyperscore_zscores, ln_num_candidates)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       auto& hits = annotated_hits[scan_index];
 
-      // O(N) pass: find top-2 scores for delta. Leaves partial_sort unchanged.
-      double best_score = 0.0, second_best_score = 0.0;
+      // O(N) pass: find best/second-best/worst scores and sum/sum-of-squares over all
+      // candidates. Leaves partial_sort unchanged.
+      double best_score = -std::numeric_limits<double>::infinity();
+      double second_best_score = -std::numeric_limits<double>::infinity();
+      double worst_score = std::numeric_limits<double>::infinity();
+      double sum = 0.0, sumsq = 0.0;
       for (const auto& h : hits)
       {
         if (h.score > best_score) { second_best_score = best_score; best_score = h.score; }
         else if (h.score > second_best_score) { second_best_score = h.score; }
+        if (h.score < worst_score) { worst_score = h.score; }
+        sum += h.score;
+        sumsq += h.score * h.score;
       }
+      if (hits.empty()) { best_score = 0.0; second_best_score = 0.0; worst_score = 0.0; }
+      if (!std::isfinite(second_best_score)) { second_best_score = 0.0; } // single-candidate spectrum: no second-best
+
       delta_scores[scan_index] = static_cast<float>(best_score - second_best_score);
+      delta_scores_worst[scan_index] = static_cast<float>(best_score - worst_score);
+      ln_num_candidates[scan_index] = static_cast<float>(std::log1p(static_cast<double>(hits.size())));
+
+      const Size n_rest = hits.size() > 0 ? hits.size() - 1 : 0;
+      if (n_rest > 0)
+      {
+        const double mean_rest = (sum - best_score) / static_cast<double>(n_rest);
+        const double var_rest = std::max(0.0, (sumsq - best_score * best_score) / static_cast<double>(n_rest) - mean_rest * mean_rest);
+        hyperscore_zscores[scan_index] = static_cast<float>((best_score - mean_rest) / (std::sqrt(var_rest) + 1e-6));
+      }
 
       // sort and keep n best elements according to score (unchanged)
       Size topn = top_hits > hits.size() ? hits.size() : top_hits;
@@ -513,6 +543,11 @@ namespace OpenMS
     bool annotation_longest_ion_run = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE) != annotate_psm_.end();
     bool annotation_matched_ion_current = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT) != annotate_psm_.end();
     bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end();
+    bool annotation_delta_score_worst = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::DELTA_SCORE_WORST) != annotate_psm_.end();
+    bool annotation_hyperscore_zscore = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::HYPERSCORE_ZSCORE) != annotate_psm_.end();
+    bool annotation_ln_num_candidates = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_NUM_CANDIDATES) != annotate_psm_.end();
+    bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
+    bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
 
     // "ALL" adds all annotations
     if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
@@ -527,10 +562,17 @@ namespace OpenMS
       annotation_longest_ion_run = true;
       annotation_matched_ion_current = true;
       annotation_fragment_annotations = true;
+      annotation_delta_score_worst = true;
+      annotation_hyperscore_zscore = true;
+      annotation_ln_num_candidates = true;
+      annotation_matched_ion_current_fraction = true;
+      annotation_complementary_ions_fraction = true;
     }
 
-    // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
-    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
+    // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
+    // normalized MIC, and complementary ion pairs
+    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
+      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -663,8 +705,23 @@ namespace OpenMS
 
           ph.setMetaValue(Constants::UserParam::DELTA_SCORE, delta_scores[scan_index]);
 
-          // Fragment annotations, longest ion run, and MIC all iterate the alignment + ion names
-          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current)
+          if (annotation_delta_score_worst)
+          {
+            ph.setMetaValue(Constants::UserParam::DELTA_SCORE_WORST, delta_scores_worst[scan_index]);
+          }
+          if (annotation_hyperscore_zscore)
+          {
+            ph.setMetaValue(Constants::UserParam::HYPERSCORE_ZSCORE, hyperscore_zscores[scan_index]);
+          }
+          if (annotation_ln_num_candidates)
+          {
+            ph.setMetaValue(Constants::UserParam::LN_NUM_CANDIDATES, ln_num_candidates[scan_index]);
+          }
+
+          // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
+          // ion pairs all iterate the alignment + ion names
+          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
+            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
@@ -677,12 +734,13 @@ namespace OpenMS
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
             std::vector<int> prefix_ordinals, suffix_ordinals;
             double matched_ion_current = 0.0;
+            const bool need_mic = annotation_matched_ion_current || annotation_matched_ion_current_fraction;
+            const bool need_ordinals = annotation_longest_ion_run || annotation_complementary_ions_fraction;
             // Dedup guard for MIC: in ppm-alignment mode a single experimental
             // peak can match multiple theoretical peaks (e.g. b-ion and near
             // isotope), so we must sum each exp_idx at most once. Sized only
             // when MIC is actually requested.
-            std::vector<char> counted_exp_peaks(
-                annotation_matched_ion_current ? spec.size() : 0, 0);
+            std::vector<char> counted_exp_peaks(need_mic ? spec.size() : 0, 0);
             peak_annotations.reserve(alignment.size());
 
             for (const auto& [theo_idx, exp_idx] : alignment)
@@ -697,13 +755,13 @@ namespace OpenMS
                 peak_annotations.push_back(pa);
               }
 
-              if (annotation_matched_ion_current && !counted_exp_peaks[exp_idx])
+              if (need_mic && !counted_exp_peaks[exp_idx])
               {
                 matched_ion_current += spec[exp_idx].getIntensity();
                 counted_exp_peaks[exp_idx] = 1;
               }
 
-              if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
+              if (need_ordinals && ion_names[theo_idx].size() >= 2)
               {
                 const std::string& name = ion_names[theo_idx];
                 const char c = name[0];
@@ -733,9 +791,17 @@ namespace OpenMS
               ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
             }
 
-            if (annotation_longest_ion_run)
+            if (annotation_matched_ion_current_fraction)
             {
-              // Compute longest consecutive run across prefix and suffix series
+              const double tic = spec.calculateTIC();
+              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION, tic > 0 ? matched_ion_current / tic : 0.0);
+            }
+
+            if (need_ordinals)
+            {
+              // Compute longest consecutive run across prefix and suffix series.
+              // Sorts + deduplicates each ordinal vector in place (a backbone position
+              // matched by multiple ion types, e.g. a3 and b3, counts once).
               auto longestRun = [](std::vector<int>& v) -> int {
                 if (v.empty()) return 0;
                 std::sort(v.begin(), v.end());
@@ -748,8 +814,33 @@ namespace OpenMS
                 }
                 return best;
               };
-              int longest = std::max(longestRun(prefix_ordinals), longestRun(suffix_ordinals));
-              ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, longest);
+              int longest_prefix = longestRun(prefix_ordinals);
+              int longest_suffix = longestRun(suffix_ordinals);
+
+              if (annotation_longest_ion_run)
+              {
+                ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, std::max(longest_prefix, longest_suffix));
+              }
+
+              if (annotation_complementary_ions_fraction)
+              {
+                // A prefix ion at backbone position i (a_i/b_i/c_i) is complementary to a
+                // suffix ion at position (peptide_length - i) (x/y/z at the same cleavage
+                // site). Andromeda-style structural signal, distinct from the independently
+                // computed prefix/suffix fractions above.
+                const int pep_len = static_cast<int>(ah.sequence.size());
+                double complementary_fraction = 0.0;
+                if (pep_len > 1)
+                {
+                  Size n_complementary = 0;
+                  for (int p : prefix_ordinals)
+                  {
+                    if (std::binary_search(suffix_ordinals.begin(), suffix_ordinals.end(), pep_len - p)) { ++n_complementary; }
+                  }
+                  complementary_fraction = static_cast<double>(n_complementary) / static_cast<double>(pep_len - 1);
+                }
+                ph.setMetaValue(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION, complementary_fraction);
+              }
             }
           }
 
@@ -841,6 +932,11 @@ namespace OpenMS
     if (annotation_matched_prefix_ions) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS);
     if (annotation_matched_suffix_ions) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS);
     if (annotation_matched_ion_current) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT);
+    if (annotation_matched_ion_current_fraction) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
+    if (annotation_complementary_ions_fraction) feature_set.push_back(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+    if (annotation_delta_score_worst) feature_set.push_back(Constants::UserParam::DELTA_SCORE_WORST);
+    if (annotation_hyperscore_zscore) feature_set.push_back(Constants::UserParam::HYPERSCORE_ZSCORE);
+    if (annotation_ln_num_candidates) feature_set.push_back(Constants::UserParam::LN_NUM_CANDIDATES);
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
     // note: precursor error is calculated by percolator itself

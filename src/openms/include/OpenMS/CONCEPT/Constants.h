@@ -393,6 +393,23 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
+      // User parameter name for a delta score between the best and the worst-scoring candidate for a spectrum
+      inline const std::string DELTA_SCORE_WORST = "delta_score_worst";
+
+      // User parameter name for the z-score of the best candidate's score relative to the
+      // mean/SD of the other (non-best) candidates scored for the same spectrum
+      inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
+
+      // User parameter name for the natural log of the number of candidates scored for a spectrum
+      inline const std::string LN_NUM_CANDIDATES = "ln_num_candidates";
+
+      // User parameter name for the matched ion current normalized by the spectrum's total ion current
+      inline const std::string MATCHED_ION_CURRENT_FRACTION = "matched_ion_current_fraction";
+
+      // User parameter name for the fraction of cleavage sites where both a prefix ion and its
+      // complementary suffix ion were matched
+      inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
+
       /** User parameter name to indicate a peptide q-value
               String
       */
