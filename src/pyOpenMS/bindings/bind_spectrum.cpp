@@ -16,6 +16,9 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
+
+#include <algorithm>   // std::copy in installIonMobilityArray
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -70,10 +73,25 @@ inline OpenMS::DataArrays::FloatDataArray makeIonMobilityArray(nb::object values
 // here rather than passed in, because a preceding metadata='clear' may have dropped arrays and
 // shifted it.
 inline void installIonMobilityArray(OpenMS::MSSpectrum& self, OpenMS::DataArrays::FloatDataArray fda) {
-    if (self.containsIMData()) {
-        self.getFloatDataArrays()[self.getIMData().first] = std::move(fda);
-    } else {
+    if (!self.containsIMData()) {
         self.getFloatDataArrays().push_back(std::move(fda));
+        return;
+    }
+    auto& dest = self.getFloatDataArrays()[self.getIMData().first];
+    // Move-assigning a FloatDataArray deallocates the destination's float buffer -- the class
+    // derives from std::vector<float> -- which dangles any zero-copy view a caller already holds.
+    // drift_time_array_view() and FloatDataArray.data_view() both capture arr.data() and
+    // keep only the owning Python object alive, not the buffer, so they cannot notice the free.
+    // When the replacement is the same length the buffer can be reused, which keeps those views
+    // valid and simply lets them observe the new values.
+    if (dest.size() == fda.size()) {
+        std::copy(fda.begin(), fda.end(), dest.begin());
+        // replace the metadata as the move-assignment did, without touching the float storage
+        static_cast<OpenMS::MetaInfoDescription&>(dest) =
+            std::move(static_cast<OpenMS::MetaInfoDescription&>(fda));
+    } else {
+        // the array changes length, so its storage must be replaced; views into it cannot survive
+        dest = std::move(fda);
     }
 }
 
@@ -131,14 +149,16 @@ inline void setSpectrumPeaks(OpenMS::MSSpectrum& self, nb::object mz_obj, nb::ob
     if (im_array) installIonMobilityArray(self, std::move(*im_array));
 }
 
-// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// ABI guards for zero-copy structured array access (peaks_struct dtype depends on these).
 // The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
-// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+// is refactored away; it also restates the offsets peaks_struct publishes to Python.
 using Peak1DLayout = pyopenms::PeakLayout<OpenMS::Peak1D>;
 static_assert(Peak1DLayout::position_offset == 0 && Peak1DLayout::intensity_offset == 8,
     "Peak1D's structured dtype is documented as mz (float64) at 0, intensity (float32) at 8");
 
 NB_MODULE(_pyopenms_spectrum, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSSpectrum>(m, "_MSSpectrumIter");
     m.doc() = "pyOpenMS spectrum bindings";
 
     // -----------------------------------------------------------------------
@@ -151,7 +171,7 @@ RangeManagerMzInt
 
 The representation of a 1D spectrum.
 Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-Iterations yields access to underlying peak objects but is slower
+Indexing and iteration yield copies of the peaks; write changes back with spec[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 See help(SpectrumSettings) for information about meta-information
 Usage:
@@ -269,20 +289,20 @@ Usage:
             [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); },
             [](OpenMS::MSSpectrum& self, const std::string& v) { self.setNativeID(v); },
             "The native identifier for the spectrum, used by the acquisition software")
-        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
+        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns a copy of the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::MSSpectrum& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
+        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns a copy of the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::MSSpectrum& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> const OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns a const reference to the source file")
+        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns a copy of the source file")
         .def("setSourceFile", [](OpenMS::MSSpectrum& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursors", [](const OpenMS::MSSpectrum& self) -> const std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal, "Returns a const reference to the precursors")
+        .def("getPrecursors", [](const OpenMS::MSSpectrum& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); }, "Returns a copy of the precursors")
         .def("setPrecursors", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Precursor>& precursors) { return self.setPrecursors(precursors); }, "precursors"_a, "Sets the precursors")
-        .def("getProducts", [](const OpenMS::MSSpectrum& self) -> const std::vector<OpenMS::Product> & { return self.getProducts(); }, nb::rv_policy::reference_internal, "Returns a const reference to the products")
+        .def("getProducts", [](const OpenMS::MSSpectrum& self) -> std::vector<OpenMS::Product> { return self.getProducts(); }, "Returns a copy of the products")
         .def("setProducts", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Product>& products) { return self.setProducts(products); }, "products"_a, "Sets the products")
         .def("setDataProcessing", [](OpenMS::MSSpectrum& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
-        .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
+        .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); })
 
-        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSSpectrum>(), "MSSpectrum_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSSpectrum>(self); })
         .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
 
         .def("getIMData", [](const OpenMS::MSSpectrum& self) {
@@ -316,7 +336,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying Peak1D array (AoS layout).")
 
-        .def("get_peaks_struct",
+        .def("peaks_struct",
             [](nb::object self_obj) -> nb::object {
                 auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
                 size_t n = self.size();
@@ -447,7 +467,7 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns drift time array if ion mobility data exists, else None")
 
-        .def("get_drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+        .def("drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
             // Writable zero-copy view into the IM float data array
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
@@ -478,25 +498,43 @@ acquired at one drift time rather than a per-peak annotation; a frame carrying a
 array leaves those unset, matching what IMDataConverter produces.
 )doc")
 
-        .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
+        .def("_float_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getFloatDataArrays().size(); })
+        .def("float_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::FloatDataArray& {
+            if (i >= self.getFloatDataArrays().size()) throw nb::index_error();
+            return self.getFloatDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the float data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFloatDataArrays()[i].")
+        .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray> {
             return self.getFloatDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the float data arrays")
+        }, "Returns the float data arrays")
 
         .def("setFloatDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::FloatDataArray>& arrays) {
             self.setFloatDataArrays(arrays);
         }, "arrays"_a, "Set the float data arrays")
 
-        .def("getIntegerDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray>& {
+        .def("_integer_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getIntegerDataArrays().size(); })
+        .def("integer_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::IntegerDataArray& {
+            if (i >= self.getIntegerDataArrays().size()) throw nb::index_error();
+            return self.getIntegerDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the integer data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getIntegerDataArrays()[i].")
+        .def("getIntegerDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray> {
             return self.getIntegerDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the integer data arrays")
+        }, "Returns the integer data arrays")
 
         .def("setIntegerDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::IntegerDataArray>& arrays) {
             self.setIntegerDataArrays(arrays);
         }, "arrays"_a, "Set the integer data arrays")
 
-        .def("getStringDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::StringDataArray>& {
+        .def("_string_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getStringDataArrays().size(); })
+        .def("string_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::StringDataArray& {
+            if (i >= self.getStringDataArrays().size()) throw nb::index_error();
+            return self.getStringDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the string data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getStringDataArrays()[i].")
+        .def("getStringDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::StringDataArray> {
             return self.getStringDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the string data arrays")
+        }, "Returns the string data arrays")
 
         .def("setStringDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
             self.setStringDataArrays(arrays);
