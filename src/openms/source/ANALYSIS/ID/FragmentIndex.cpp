@@ -1468,12 +1468,14 @@ namespace OpenMS
       // Release the high-water table once this thread enters genuinely-small-window
       // territory (a closed search following an open search): the open-search table is
       // O(index) per thread and would otherwise stay resident for the thread's lifetime.
-      // Gated on the CURRENT window being small, not on a ratio, so consecutive
-      // open-search blocks (whose window sizes legitimately vary with precursor mass)
-      // never churn; a fresh vector is all-zero, preserving the reset invariant.
-      constexpr size_t SMALL_WINDOW = 32768;       // closed-search windows are ~1e3-1e4
-      constexpr size_t RELEASE_BYTES = 1u << 20;   // keep tables below ~1 MB regardless
-      if (window < SMALL_WINDOW && match_counts.size() * sizeof(uint32_t) > RELEASE_BYTES)
+      // Gated on closed-search mode AND the current window being small: high-mass
+      // precursors in the thin tail of the index can produce sub-threshold windows
+      // MID-open-search, and releasing there would make the next ordinary spectrum
+      // re-allocate the table. A fresh vector is all-zero, preserving the reset invariant.
+      constexpr size_t small_window = 32768;       // closed-search windows are ~1e3-1e4
+      constexpr size_t release_bytes = 1u << 20;   // keep tables below ~1 MB regardless
+      if (!isOpenSearchMode_() && window < small_window
+          && match_counts.size() * sizeof(uint32_t) > release_bytes)
       {
         std::vector<uint32_t>(window).swap(match_counts);
         touched_ids.shrink_to_fit();
