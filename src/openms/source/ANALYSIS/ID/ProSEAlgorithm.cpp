@@ -367,15 +367,22 @@ namespace OpenMS
   // static
   void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
-    // filter MS2 map
-    // remove 0 intensities
+    // Intensity threshold + normalization used to run here as two extra SERIAL full-map
+    // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
+    // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
+    // neither iterates chromatograms. They are therefore applied at the top of the parallel
+    // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
+    // the peak data. Both objects are configured once here and shared across the OpenMP
+    // threads, exactly like window_mower_filter / nlargest_filter below:
+    // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
+    // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
+    // same idempotent same-value write the already-shared WindowMower performs.
     ThresholdMower threshold_mower_filter;
-    threshold_mower_filter.filterPeakMap(exp);
-
     Normalizer normalizer;
-    normalizer.filterPeakMap(exp);
 
-    // sort by rt
+    // sort by rt; done before the loop because sortSpectra(false) only permutes whole
+    // spectra (it does not touch peak order, see MSExperiment::sortSpectra) and therefore
+    // commutes with the per-spectrum filters that now run inside the loop.
     exp.sortSpectra(false);
 
     // filter settings
@@ -420,9 +427,13 @@ namespace OpenMS
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
+      // remove 0 intensities, then normalize (formerly two serial full-map passes)
+      threshold_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      normalizer.filterPeakSpectrum(exp[exp_index]);
+
       // sort by mz
       exp[exp_index].sortByPosition();
 
@@ -2019,14 +2030,16 @@ namespace OpenMS
   // all input spectrum files. Each input file produces its own SearchResult
   // (with per-file modification analysis); a final aggregate SearchResult is
   // computed by pooling all per-file PSMs and running modification analysis
-  // once on the pooled set.
+  // once on the pooled set. build_pooled_aggregate == false suppresses keeping
+  // that pooled PSM copy (see the header for the exact contract).
   // =====================================================================
   ProSEAlgorithm::MultiFileSearchResult
   ProSEAlgorithm::searchWithModificationAnalysis(
       const std::vector<std::string>& in_spectra_files,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const std::vector<std::string>& output_base_names,
-      const std::string& aggregate_base_name) const
+      const std::string& aggregate_base_name,
+      bool build_pooled_aggregate) const
   {
     if (!output_base_names.empty() && output_base_names.size() != in_spectra_files.size())
     {
@@ -2552,23 +2565,36 @@ namespace OpenMS
       return mfres;
     }
 
-    // Merge per-file identifications into a single aggregate using
-    // IDMergerAlgorithm — the canonical OpenMS pattern for cross-file protein
-    // inference (mirrors ConsensusMapMergerAlgorithm::mergeAllIDRuns in
-    // ProteomicsLFQ). This deduplicates ProteinHits by accession (union) and
-    // remaps all PeptideIdentification identifiers to the merged run. No
-    // PeptideIndexing re-run needed: per-file searches already linked
-    // peptides to proteins.
-    IDMergerAlgorithm merger;
-    for (const auto& pf : mfres.per_file)
+    // Pooling copies every per-file PSM a second time. Skip it entirely when the caller
+    // does not want the pooled set AND nothing here needs it: only the open-search
+    // aggregate modification analysis below consumes it, so in closed search a
+    // build_pooled_aggregate == false caller gets the same almost-empty aggregate as the
+    // single-file fast path above. In open search the pooled set is built, analyzed and
+    // then released again (see the release block after the analysis).
+    const bool need_pooled = build_pooled_aggregate || mfres.aggregate.is_open_search;
+
+    if (need_pooled)
     {
-      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-      merger.insertRuns(pf.protein_ids, pf.peptide_ids);
+      // Merge per-file identifications into a single aggregate using
+      // IDMergerAlgorithm — the canonical OpenMS pattern for cross-file protein
+      // inference (mirrors ConsensusMapMergerAlgorithm::mergeAllIDRuns in
+      // ProteomicsLFQ). This deduplicates ProteinHits by accession (union) and
+      // remaps all PeptideIdentification identifiers to the merged run. No
+      // PeptideIndexing re-run needed: per-file searches already linked
+      // peptides to proteins.
+      // The COPY overload is mandatory here: per_file is returned to the caller and must
+      // stay intact, so nothing may be moved out of it.
+      IDMergerAlgorithm merger;
+      for (const auto& pf : mfres.per_file)
+      {
+        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+        merger.insertRuns(pf.protein_ids, pf.peptide_ids);
+      }
+      ProteinIdentification merged_proteins;
+      merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
+      mfres.aggregate.protein_ids = {std::move(merged_proteins)};
+      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
     }
-    ProteinIdentification merged_proteins;
-    merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
-    mfres.aggregate.protein_ids = {std::move(merged_proteins)};
-    mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
 
     // Note: protein inference + FDR on the aggregate is left to the caller
     // (e.g., the TOPP tool's -out_merged option) so that per-file outputs
@@ -2599,6 +2625,18 @@ namespace OpenMS
       );
     }
 
+    // The pooled PSMs were only needed as input to the analysis above; release the second
+    // copy again so a caller that asked for no pooled aggregate does not pay for it. The
+    // analysis result stays. Leaves the aggregate exactly as in the single-file fast path
+    // (only is_open_search / exit_code populated), as documented on MultiFileSearchResult.
+    if (!build_pooled_aggregate)
+    {
+      mfres.aggregate.peptide_ids.clear();
+      mfres.aggregate.peptide_ids.shrink_to_fit();
+      mfres.aggregate.protein_ids.clear();
+      mfres.aggregate.protein_ids.shrink_to_fit();
+    }
+
     return mfres;
   }
 
@@ -2614,14 +2652,15 @@ namespace OpenMS
       const std::vector<std::string>& in_spectra_files,
       const std::string& in_db,
       const std::vector<std::string>& output_base_names,
-      const std::string& aggregate_base_name) const
+      const std::string& aggregate_base_name,
+      bool build_pooled_aggregate) const
   {
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
-      in_spectra_files, fasta_db, output_base_names, aggregate_base_name);
+      in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
 
     mfres.shared.database_file = in_db;
 
