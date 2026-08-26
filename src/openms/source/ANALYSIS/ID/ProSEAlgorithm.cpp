@@ -162,7 +162,9 @@ namespace OpenMS
         Constants::UserParam::HYPERSCORE_ZSCORE,
         Constants::UserParam::LN_NUM_CANDIDATES,
         Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
-        Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
+        Constants::UserParam::COMPLEMENTARY_IONS_FRACTION,
+        Constants::UserParam::LN_EXPLAINED_INTENSITY,
+        Constants::UserParam::LN_TOTAL_INTENSITY}
       );
 
     defaults_.setSectionDescription("annotate", "Annotation Options");
@@ -553,6 +555,8 @@ namespace OpenMS
     bool annotation_ln_num_candidates = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_NUM_CANDIDATES) != annotate_psm_.end();
     bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
+    bool annotation_ln_explained_intensity = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_EXPLAINED_INTENSITY) != annotate_psm_.end();
+    bool annotation_ln_total_intensity = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_TOTAL_INTENSITY) != annotate_psm_.end();
 
     // "ALL" adds all annotations
     if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
@@ -572,12 +576,16 @@ namespace OpenMS
       annotation_ln_num_candidates = true;
       annotation_matched_ion_current_fraction = true;
       annotation_complementary_ions_fraction = true;
+      annotation_ln_explained_intensity = true;
+      annotation_ln_total_intensity = true;
     }
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
-    // normalized MIC, and complementary ion pairs
+    // normalized MIC, log-MIC, and complementary ion pairs. ln_total_intensity depends only on
+    // the experimental spectrum, so it does not require an alignment.
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
-      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction
+      || annotation_ln_explained_intensity;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -634,6 +642,11 @@ namespace OpenMS
         }
 
         Size charge = spec.getPrecursors()[0].getCharge();
+
+        // Spectrum-level quantity, identical for every candidate of this spectrum, so it is
+        // computed once here rather than per hit.
+        const double spectrum_tic =
+          (annotation_matched_ion_current_fraction || annotation_ln_total_intensity) ? spec.calculateTIC() : 0.0;
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
@@ -739,7 +752,8 @@ namespace OpenMS
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
             std::vector<int> prefix_ordinals, suffix_ordinals;
             double matched_ion_current = 0.0;
-            const bool need_mic = annotation_matched_ion_current || annotation_matched_ion_current_fraction;
+            const bool need_mic = annotation_matched_ion_current || annotation_matched_ion_current_fraction
+              || annotation_ln_explained_intensity;
             const bool need_ordinals = annotation_longest_ion_run || annotation_complementary_ions_fraction;
             // Dedup guard for MIC: in ppm-alignment mode a single experimental
             // peak can match multiple theoretical peaks (e.g. b-ion and near
@@ -798,8 +812,13 @@ namespace OpenMS
 
             if (annotation_matched_ion_current_fraction)
             {
-              const double tic = spec.calculateTIC();
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION, tic > 0 ? matched_ion_current / tic : 0.0);
+              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+                              spectrum_tic > 0 ? matched_ion_current / spectrum_tic : 0.0);
+            }
+
+            if (annotation_ln_explained_intensity)
+            {
+              ph.setMetaValue(Constants::UserParam::LN_EXPLAINED_INTENSITY, std::log1p(matched_ion_current));
             }
 
             if (need_ordinals)
@@ -847,6 +866,12 @@ namespace OpenMS
                 ph.setMetaValue(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION, complementary_fraction);
               }
             }
+          }
+
+          // Spectrum-level intensity feature (no alignment needed)
+          if (annotation_ln_total_intensity)
+          {
+            ph.setMetaValue(Constants::UserParam::LN_TOTAL_INTENSITY, std::log1p(spectrum_tic));
           }
 
           // Add isotope error metavalue (always; exposed as Percolator feature)
@@ -938,6 +963,8 @@ namespace OpenMS
     if (annotation_matched_suffix_ions) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS);
     if (annotation_matched_ion_current) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT);
     if (annotation_matched_ion_current_fraction) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
+    if (annotation_ln_explained_intensity) feature_set.push_back(Constants::UserParam::LN_EXPLAINED_INTENSITY);
+    if (annotation_ln_total_intensity) feature_set.push_back(Constants::UserParam::LN_TOTAL_INTENSITY);
     if (annotation_complementary_ions_fraction) feature_set.push_back(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
     if (annotation_delta_score_worst) feature_set.push_back(Constants::UserParam::DELTA_SCORE_WORST);
     if (annotation_hyperscore_zscore) feature_set.push_back(Constants::UserParam::HYPERSCORE_ZSCORE);
