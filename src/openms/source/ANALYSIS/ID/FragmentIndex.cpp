@@ -1040,7 +1040,12 @@ namespace OpenMS
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z)\n";
       }
 
-      // Merge per-thread peptide vectors
+      // Merge per-thread peptide vectors.
+      // Deliberately left as reserve + sequential insert, unlike the fragment merge in build():
+      // fi_peptides_ is ~66 MB even for a human proteome, so the transient 2x costs little,
+      // and the sort below keys only on (precursor_mz_, protein_idx) — which does NOT cover
+      // mod_bitmask_ / sequence_ — so equal-key peptides are distinguishable and their
+      // relative order (hence every downstream peptide index) depends on this concatenation.
       size_t total_peptides = 0;
       for (int t = 0; t < num_threads; ++t) total_peptides += thread_peptides[t].size();
       fi_peptides_.reserve(total_peptides);
@@ -1553,10 +1558,13 @@ namespace OpenMS
         if (match_counts[rel] >= emit_min) emit_ids.push_back(rel);
       }
 
-      // Ascending peptide index is the order the dense per-block array had; trimHits' sort
-      // is unstable, so the input order decides which of several equal-key candidates ends
-      // up in the top-N. Relative and global ids differ by the constant candidates_range.first,
-      // so sorting the relative ids yields the same ascending global order.
+      // Ascending peptide index is the order the dense per-block array had. Emitting in that
+      // order keeps the fi_peptides_ / fasta_entries accesses of the downstream scoring pass
+      // sequential; correctness no longer rides on it, because trimHits' comparator now ends
+      // in peptide_idx_ and therefore admits no equal-key candidates at all on this path — the
+      // top-N cut is the same whatever order the blocks appended in. Relative and global ids
+      // differ by the constant candidates_range.first, so sorting the relative ids yields the
+      // same ascending global order.
       std::sort(emit_ids.begin(), emit_ids.end());
 
       for (UInt32 rel : emit_ids)
@@ -1571,43 +1579,46 @@ namespace OpenMS
 
   void FragmentIndex::trimHits(OpenMS::FragmentIndex::SpectrumMatchesTopN& init_hits) const
   {
+      // Single ranking predicate for both branches below (they used to carry two copies of it,
+      // which is exactly how they would drift apart). Keys, most significant first:
+      //   1. num_matched_      descending — more matched fragments wins
+      //   2. |isotope_error_|  ascending  — prefer the assignment closest to monoisotopic
+      //   3. isotope_error_    ascending  — resolve -k vs +k by sign instead of by luck
+      //   4. precursor_charge_ ascending
+      //   5. peptide_idx_      ascending  — final key, added so that neither std::sort nor
+      //      std::partial_sort (both unstable) can let the arrangement of the input decide
+      //      which of several equally scored candidates survives the top-N cut. On the
+      //      non-SNES path this makes the comparator a strict total order: two hits sharing
+      //      all five keys would have to be the same peptide at the same isotope error and
+      //      charge, i.e. the same (charge, iso) block, and queryPeaks emits each peptide at
+      //      most once per block. querySpectrumSNES_ can still emit one mother twice within a
+      //      block at two different Σ (sigma_delta_) values; those remain tied here, but their
+      //      emission order is itself fixed, so the outcome is reproducible either way.
+      auto by_rank = [](const SpectrumMatch& a, const SpectrumMatch& b)
+      {
+        if (a.num_matched_ != b.num_matched_)
+        {
+          return a.num_matched_ > b.num_matched_;
+        }
+        // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
+        const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
+        const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
+        if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
+        if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
+        if (a.precursor_charge_ != b.precursor_charge_) return a.precursor_charge_ < b.precursor_charge_;
+        return a.peptide_idx_ < b.peptide_idx_;
+      };
+
       if (init_hits.hits_.size() > max_processed_hits_)
       {
-        std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](const SpectrumMatch& a,const SpectrumMatch& b){
-          if (a.num_matched_ != b.num_matched_)
-          {
-            return a.num_matched_ > b.num_matched_;
-          }
-          else
-          {
-            // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
-            const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
-            const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
-            if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
-            if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
-            return a.precursor_charge_ < b.precursor_charge_;
-          }
-        });
+        std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_,
+                          init_hits.hits_.end(), by_rank);
 
         init_hits.hits_.resize(max_processed_hits_);
       }
       else
       {
-        std::sort(init_hits.hits_.begin(), init_hits.hits_.end(), [](const SpectrumMatch& a, const SpectrumMatch& b) {
-          if (a.num_matched_ != b.num_matched_)
-          {
-            return a.num_matched_ > b.num_matched_;
-          }
-          else
-          {
-            // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
-            const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
-            const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
-            if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
-            if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
-            return a.precursor_charge_ < b.precursor_charge_;
-          }
-        });
+        std::sort(init_hits.hits_.begin(), init_hits.hits_.end(), by_rank);
       }
       if (init_hits.hits_.size() > 0  )
       {
