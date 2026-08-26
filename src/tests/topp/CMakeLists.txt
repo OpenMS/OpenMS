@@ -3323,8 +3323,11 @@ set_tests_properties("TOPP_OpenPepXL_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXL
 
 #------------------------------------------------------------------------------
 # UniPEFF tests — convert UniProtKB XML to PEFF and byte-exact-diff against
-# golden output produced by the upstream C# UniPEFF tool (feat/merge-half-cystines
-# branch). The PSI-MOD / Unimod OBO files are overridden because the test fixture
+# golden output. The goldens originate from the upstream C# UniPEFF tool
+# (feat/merge-half-cystines branch) but intentionally diverge since #9829:
+# annotation identifiers are 1-based, and the default (no-flag) output labels
+# disulfide-bonded half-cystines and emits \DisulfideBond connectivity.
+# The PSI-MOD / Unimod OBO files are overridden because the test fixture
 # uses synthetic accessions whose canonical names diverge from the real CVs.
 add_test("TOPP_UniPEFF_1" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_1_output_A.peff)

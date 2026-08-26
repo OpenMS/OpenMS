@@ -646,8 +646,11 @@ TOPP tools:
       library; supports Da and ppm m/z tolerances, L1/L2/Linf metrics and intensity normalization (#8992)
     - UniPEFF: converts UniProtKB XML databases (.xml/.xml.gz) to PEFF 1.0 with PName/GName/NcbiTaxId/
       TaxName/Length/SV/EV/PE/ID/AltAC metadata, ModRes*, VariantSimple/VariantComplex, Processed and
-      (with -AnnotationIdentifiers) DisulfideBond annotations; modification accessions are resolved via
-      the bundled UniProt ptmlist.txt, PSI-MOD.obo and an optional unimod.obo (#9649)
+      DisulfideBond annotations; disulfide connectivity is reported by default with 1-based, bond-ordered
+      labels on the participating half-cystines (with -annotation_identifiers, every annotation instead
+      carries a global sequential 1-based id and DisulfideBond references those); modification accessions
+      are resolved via the bundled UniProt ptmlist.txt, PSI-MOD.obo and an optional unimod.obo
+      (#9649, #9829)
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference for OpenSWATH analyses (#9280)
     - OpenSwathExport: exports OpenSwathWorkflow results to TSV/Parquet (#9377)
     - OpenSwathPercolatorScoring: scores OpenSwathWorkflow results with Percolator (#9695)
