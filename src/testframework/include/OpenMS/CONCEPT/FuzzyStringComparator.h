@@ -8,12 +8,15 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h> 
-#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
-
+#include <fstream>
+#include <istream>
 #include <map>
+#include <ostream>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace OpenMS
 {
@@ -21,14 +24,14 @@ namespace OpenMS
   {
     namespace ClassTest
     {
-      void OPENMS_DLLAPI testStringSimilar(const char * file,
+      void testStringSimilar(const char * file,
                                            int line,
                                            const std::string & string_1,
                                            const char * string_1_stringified,
                                            const std::string & string_2,
                                            const char * string_2_stringified);
 
-      bool OPENMS_DLLAPI isFileSimilar(const std::string &,
+      bool isFileSimilar(const std::string &,
                                        const std::string &);
     }
   }
@@ -36,10 +39,10 @@ namespace OpenMS
   /**
     @brief Fuzzy comparison of strings, tolerates numeric differences.
   */
-  class OPENMS_DLLAPI FuzzyStringComparator
+  class FuzzyStringComparator
   {
 
-    friend void OPENMS_DLLAPI
+    friend void
     Internal::ClassTest::testStringSimilar(
       const char * file,
       int line,
@@ -48,7 +51,7 @@ namespace OpenMS
       const std::string & string_2,
       const char * string_2_stringified);
 
-    friend bool OPENMS_DLLAPI
+    friend bool
     Internal::ClassTest::isFileSimilar(const std::string &,
                                        const std::string &);
 
@@ -90,13 +93,13 @@ public:
     void setAcceptableAbsolute(const double rhs);
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    const StringList & getWhitelist() const;
+    const std::vector<std::string> & getWhitelist() const;
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    StringList & getWhitelist();
+    std::vector<std::string> & getWhitelist();
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    void setWhitelist(const StringList & rhs);
+    void setWhitelist(const std::vector<std::string> & rhs);
 
     /// Matched white list. If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
     void setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs); 
@@ -338,9 +341,9 @@ protected:
     bool use_prefix_;
 
     /// Whitelist
-    StringList whitelist_;
+    std::vector<std::string> whitelist_;
     /// Occurrences of whitelist entries
-    std::map<std::string, UInt> whitelist_cases_;
+    std::map<std::string, unsigned int> whitelist_cases_;
 
     /// Alternative Whitelist
     std::vector< std::pair<std::string, std::string> > matched_whitelist_; 

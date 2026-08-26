@@ -8,29 +8,18 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
-#include <iomanip>
-#include <fstream>
-
+// Std-only (see ClassTest.h); OpenMS behavior is registered by the test projects
+// (openms/source/OpenMSTestSupport.cpp).
+#include <cstdlib>      // std::getenv, exit
+#include <exception>    // std::exception, current-exception handling
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <system_error> // std::error_code
 
 namespace OpenMS::Internal::ClassTest
 {
@@ -62,8 +51,68 @@ namespace OpenMS::Internal::ClassTest
       std::string fuzzy_message;
       std::string test_name;
       std::vector<std::string> tmp_file_list;
-      std::vector<UInt> failed_lines_list;
-      StringList whitelist;
+      std::vector<unsigned int> failed_lines_list;
+      std::vector<std::string> whitelist;
+
+      namespace
+      {
+        // Registered exception translators (see ClassTest.h). A small fixed array is
+        // plenty: one per library-under-test project.
+        constexpr int max_translators = 8;
+        ExceptionTranslator translators[max_translators] = {};
+        int translator_count = 0;
+      }
+
+      namespace
+      {
+        bool precondition_tests_enabled = false;
+      }
+
+      bool preconditionTestsEnabled()
+      {
+        return precondition_tests_enabled;
+      }
+
+      void setPreconditionTestsEnabled(bool enabled)
+      {
+        precondition_tests_enabled = enabled;
+      }
+
+      void registerExceptionTranslator(ExceptionTranslator translator)
+      {
+        if (translator == nullptr) return;
+        for (int i = 0; i < translator_count; ++i)
+        {
+          if (translators[i] == translator) return; // idempotent
+        }
+        if (translator_count < max_translators)
+        {
+          translators[translator_count++] = translator;
+        }
+      }
+
+      // Call only from inside a catch block: the translators and the fallback use a
+      // bare `throw;`, which calls std::terminate if no exception is active.
+      std::string describeCaughtException()
+      {
+        for (int i = 0; i < translator_count; ++i)
+        {
+          std::string description;
+          if (translators[i](description)) return description;
+        }
+        try
+        {
+          throw; // rethrow the exception currently being handled
+        }
+        catch (const std::exception& e)
+        {
+          return std::string("std::exception - Message: ") + e.what();
+        }
+        catch (...)
+        {
+          return "unidentified exception - No message.";
+        }
+      }
 
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
@@ -74,7 +123,6 @@ namespace OpenMS::Internal::ClassTest
           if (std::string(pverbose) == "True") TEST::verbose = 2;
         }
 
-        OpenMS::UniqueIdGenerator::setSeed(2453440375);
         TEST::version_string = version;
 
         if (argc > 1)
@@ -109,8 +157,8 @@ namespace OpenMS::Internal::ClassTest
             TEST_FILE__template_line = TEST::line_buffer;
             TEST::infile.getline(TEST::line_buffer, 65535);
             TEST_FILE__line = TEST::line_buffer;
-            StringUtils::trim(TEST_FILE__template_line); // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
-            StringUtils::trim(TEST_FILE__line);          // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
+            detail::trim(TEST_FILE__template_line); // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
+            detail::trim(TEST_FILE__line);          // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
             if (TEST_FILE__template_line != TEST_FILE__line)
             {
               TEST::equal_files = false;
@@ -182,14 +230,18 @@ namespace OpenMS::Internal::ClassTest
                     << " )\n";
             TEST::failed_lines_list.push_back(TEST::test_line);
           }
-        } 
+        }
       }
 
       void removeTempFiles()
       {
-        for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)
+        for (std::size_t i = 0; i < TEST::tmp_file_list.size(); ++i)
           {
-            if (!OpenMS::File::remove(TEST::tmp_file_list[i]))
+            // NEW_TMP_FILE only registers the *name*; the test may never have created
+            // the file, so a missing file is fine (like OpenMS::File::remove).
+            const std::filesystem::path p = detail::to_path(TEST::tmp_file_list[i]);
+            std::error_code ec;
+            if (std::filesystem::exists(p, ec) && !std::filesystem::remove(p, ec))
             {
               stdcout << "Warning: unable to remove temporary file '"
                       << TEST::tmp_file_list[i]
@@ -203,13 +255,13 @@ namespace OpenMS::Internal::ClassTest
       setWhitelist(const char* const /* file */, const int line,
                    const std::string& whitelist_)
       {
-        TEST::whitelist = ListUtils::create<std::string>(whitelist_);
+        TEST::whitelist = detail::split(whitelist_, ',');
 
         if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))
         {
           TEST::initialNewline();
           stdcout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
-                    << "\"):   whitelist is: " << ListUtils::concatenate(TEST::whitelist, ", ") << '\n';
+                    << "\"):   whitelist is: " << detail::join(TEST::whitelist, ", ") << '\n';
         }
         return;
       }
@@ -239,134 +291,11 @@ namespace OpenMS::Internal::ClassTest
         return;
       }
 
-      bool
-      validate(const std::vector<std::string>& file_names)
-      {
-        std::cout << "checking (created temporary files)...\n";
-        bool passed_all = true;
-        for (Size i = 0; i < file_names.size(); ++i)
-        {
-          if (File::exists(file_names[i]))
-          {
-            FileTypes::Type type = FileHandler::getType(file_names[i]);
-            bool passed_single = true;
-            bool skipped = false;
-            switch (type)
-            {
-            case FileTypes::MZML:
-            {
-              if (!MzMLFile().isValid(file_names[i]))
-              {
-                std::cout << " - Error: mzML file does not validate against XML schema '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              StringList errors, warnings;
-              if (!MzMLFile().isSemanticallyValid(file_names[i], errors,
-                                                  warnings))
-              {
-                std::cout << " - Error: mzML file semantically invalid '" << file_names[i] << "'\n";
-                for (Size j = 0; j < errors.size(); ++j)
-                {
-                  std::cout << "Error - " << errors[j] << '\n';
-                }
-                passed_single = false;
-              }
-            }
-            break;
-
-            case FileTypes::MZDATA:
-              if (!MzDataFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::MZXML:
-              if (!MzXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::FEATUREXML:
-              if (!FeatureXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::IDXML:
-              if (!IdXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::CONSENSUSXML:
-              if (!ConsensusXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::INI:
-              if (!ParamXMLFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid Param file '" << file_names[i] << "'\n";
-                passed_single = false;
-              }
-              break;
-
-            case FileTypes::TRANSFORMATIONXML:
-              if (!TransformationXMLFile().isValid(file_names[i], std::cerr))
-              {
-
-                passed_single = false;
-              }
-              break;
-
-            default:
-              skipped = true;
-              break;
-            }
-            //output for single file
-            if (skipped)
-            {
-              std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
-            }
-            else if (passed_single)
-            {
-              std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
-            }
-            else
-            {
-              passed_all = false;
-              std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
-            }
-          }
-        }
-        //output for all files        
-        if (passed_all)
-        {
-          std::cout << ": passed" << std::endl << '\n';
-        }
-        else
-        {
-          std::cout << ": failed" << std::endl << '\n';
-        }
-        return passed_all;
-      }
-
       std::string
       createTmpFileName(const std::string& file, int line, const std::string& extension)
       {
         std::filesystem::path fp(file);
-        std::string filename = (std::string(fp.stem().string())) + '_' + StringUtils::toStr(line) + ".tmp" + extension;
+        std::string filename = (std::string(fp.stem().string())) + '_' + std::to_string(line) + ".tmp" + extension;
         TEST::tmp_file_list.push_back(filename);
         TEST::initialNewline();
         stdcout << "    creating new temporary filename '"
@@ -378,8 +307,8 @@ namespace OpenMS::Internal::ClassTest
       }
 
       void testRealSimilar(const char* /*file*/, int line,
-                           long double number_1, const char* number_1_stringified, bool number_1_is_realtype, Int number_1_written_digits,
-                           long double number_2, const char* number_2_stringified, bool /* number_2_is_realtype */, Int number_2_written_digits
+                           long double number_1, const char* number_1_stringified, bool number_1_is_realtype, int number_1_written_digits,
+                           long double number_2, const char* number_2_stringified, bool /* number_2_is_realtype */, int number_2_written_digits
                            )
       {
         TEST::initialNewline();
@@ -578,7 +507,7 @@ namespace OpenMS::Internal::ClassTest
             stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
                     << string_1_stringified << ',' << string_2_stringified
                     << "): got \"" << string_1 << "\", expected \"" << string_2
-                    << "\"\n";            
+                    << "\"\n";
             }
           }
           else
@@ -624,7 +553,7 @@ namespace OpenMS::Internal::ClassTest
 
         TEST::initialNewline();
         if (TEST::this_test)
-        {          
+        {
           if (TEST::verbose > 1)
           {
             stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
@@ -681,56 +610,39 @@ namespace OpenMS::Internal::ClassTest
 
       void printLastException(std::ostream& out)
       {
-        std::exception_ptr ex = std::current_exception();
+        TEST::this_test = false;
+        TEST::test = false;
+        TEST::all_tests = false;
+        TEST::initialNewline();
+        // A registered translator (e.g. for OpenMS exceptions) yields the complete
+        // one-line description; the fallbacks below reproduce the framework's
+        // historical report format byte for byte.
+        for (int i = 0; i < translator_count; ++i)
+        {
+          std::string description;
+          if (translators[i](description))
+          {
+            out << "Error: Caught unexpected " << description << '\n';
+            return;
+          }
+        }
         try
         {
-          std::rethrow_exception(ex);
-        } 
-        catch (::OpenMS::Exception::BaseException& e)
+          throw; // rethrow the exception currently being handled
+        }
+        catch (const std::exception& e)
         {
-          TEST::this_test = false;
-          TEST::test = false;
-          TEST::all_tests = false;
-          {
-            TEST::initialNewline();
-            out << "Error: Caught unexpected OpenMS exception of type '" << e.getName() << "'";
-            if ((e.getLine() > 0) && std::strcmp(e.getFile(), ""))
-            {
-              out << " thrown in line " << e.getLine() << " of file '" << e.getFile() << "' in function '" << e.getFunction() << "'";
-            }
-            out << " - Message: " << e.what() << '\n';
-          }
-        } /* catch std:: exceptions */
-        catch (std::exception& e)
-        {
-          TEST::this_test = false;
-          TEST::test = false;
-          TEST::all_tests = false;
-          {
-            TEST::initialNewline();
-            out << "Error: Caught unexpected std::exception\n";
-            out << " - Message: " << e.what() << '\n';
-          }
-        } /* catch all other exceptions */
+          out << "Error: Caught unexpected std::exception\n";
+          out << " - Message: " << e.what() << '\n';
+        }
         catch (...)
         {
-          TEST::this_test = false;
-          TEST::test = false;
-          TEST::all_tests = false;
-          {
-            TEST::initialNewline();
-            out << "Error: Caught unidentified and unexpected exception - No message.\n";
-          }
+          out << "Error: Caught unidentified and unexpected exception - No message.\n";
         }
       }
 
       int endTestPostProcess(std::ostream& out)
       {
-        /* check validity of temporary files if known */
-        if (!TEST::validate(TEST::tmp_file_list))
-        {
-          TEST::all_tests = false;
-        }
         if (TEST::verbose == 0)
         {
           out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them.\n";
@@ -741,7 +653,7 @@ namespace OpenMS::Internal::ClassTest
           if (TEST::add_message != "")
             out << "Message: " << TEST::add_message << '\n';
           out << "Failed lines: ";
-          for (OpenMS::Size i = 0; i < TEST::failed_lines_list.size(); ++i)
+          for (std::size_t i = 0; i < TEST::failed_lines_list.size(); ++i)
           {
             out << TEST::failed_lines_list[i] << " ";
           }
@@ -758,7 +670,7 @@ namespace OpenMS::Internal::ClassTest
           return 0;
         }
       }
-      
+
       void endSectionPostProcess(std::ostream& out, const int line)
       {
         TEST::all_tests = TEST::all_tests && TEST::test;
