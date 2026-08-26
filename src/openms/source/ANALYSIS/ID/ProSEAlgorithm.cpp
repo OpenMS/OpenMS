@@ -576,8 +576,13 @@ namespace OpenMS
       annotation_ln_num_candidates = true;
       annotation_matched_ion_current_fraction = true;
       annotation_complementary_ions_fraction = true;
-      annotation_ln_explained_intensity = true;
-      annotation_ln_total_intensity = true;
+      // NOTE: LN_EXPLAINED_INTENSITY and LN_TOTAL_INTENSITY are deliberately NOT part of "ALL".
+      // They are opt-in only. Benchmarked on a Bruker timsTOF HeLa run and a Q Exactive HF
+      // ProteoBench run, each rescored under five Percolator seeds, neither feature produced a
+      // significant change in target PSMs at 1% FDR -- on their own (Welch t = 0.33 / 0.70 and
+      // 1.99 / 0.66) or on top of the other added features (|t| <= 1.72). Enabling them by
+      // default would grow every PSM's annotation for no measured gain. They remain selectable
+      // via annotate:PSM for data this benchmark did not cover (e.g. ETD/EThcD).
     }
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,

@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/home/user/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,ln_explained_intensity,ln_total_intensity,complementary_ions_fraction,delta_score_worst,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
+				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,delta_score_worst,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
 				<UserParam type="string" name="open_search" value="false"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
@@ -18,7 +18,7 @@
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2026-08-26T20:13:56" search_engine="ProSE" search_engine_version="3.6.0-pre-claude-prose-percolator-rescoring-features-txnsxy-2026-08-26" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2026-08-26T20:55:26" search_engine="ProSE" search_engine_version="3.6.0-pre-claude-prose-percolator-rescoring-features-txnsxy-2026-08-26" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -48,10 +48,8 @@
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="1.781957282219082"/>
 				<UserParam type="float" name="matched_ion_current_fraction" value="0.308665716724222"/>
-				<UserParam type="float" name="ln_explained_intensity" value="1.023154738321924"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="10"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.230769230769231"/>
-				<UserParam type="float" name="ln_total_intensity" value="1.912958517752952"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -74,10 +72,8 @@
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="7.878095272928476"/>
 				<UserParam type="float" name="matched_ion_current_fraction" value="0.382467675228915"/>
-				<UserParam type="float" name="ln_explained_intensity" value="2.183587037704621"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="11"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.185185185185185"/>
-				<UserParam type="float" name="ln_total_intensity" value="3.072603877232593"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -100,10 +96,8 @@
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="8.528975328430533"/>
 				<UserParam type="float" name="matched_ion_current_fraction" value="0.533896463252728"/>
-				<UserParam type="float" name="ln_explained_intensity" value="2.254337191258967"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.272727272727273"/>
-				<UserParam type="float" name="ln_total_intensity" value="2.831739392489154"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
