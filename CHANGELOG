@@ -984,6 +984,12 @@ OpenMS Library:
     - Removed avoidable heavy copies in OpenMP regions and hot loops across OPXLHelper::digestDatabase,
       MultiplexFilteringProfile, MzMLSqliteHandler, SwathFileConsumer, SimpleSearchEngineAlgorithm,
       ProSEAlgorithm and NuXLAnnotateAndLocate (#9686)
+    - ProSEAlgorithm: TheoreticalSpectrumGenerator and SpectrumAlignment used for post-scoring peak
+      annotation are now built once per run instead of per PSM, a redundant open-search
+      modification-analysis pass whose only effect was logging was dropped, each spectrum's candidate
+      list is pruned to max(report:top_hits, 2) as soon as scoring moves past it instead of staying at
+      scoring:max_candidates_per_spectrum, and the calibration pass reuses one spectrum buffer across
+      candidates. Output-identical; closed search ~26% and open search ~30% faster (#9963)
     - PrecursorCorrection::correctToNearestFeature() replaced the Cartesian product over precursors and
       features (8e8 overlap checks, each rebuilding a non-memoized bounding box) with one precomputed
       bounding box per feature and a sweep line over increasing precursor m/z (#4787, #9801)
