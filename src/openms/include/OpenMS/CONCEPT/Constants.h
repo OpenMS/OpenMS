@@ -410,6 +410,15 @@ namespace OpenMS
       // complementary suffix ion were matched
       inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
 
+      // User parameter name for log1p of the matched ion current. Percolator's SVM is linear,
+      // so the log transform of this right-skewed quantity is not redundant with the raw value
+      // (cf. MS2Rescore's "ln_explained_intensity").
+      inline const std::string LN_EXPLAINED_INTENSITY = "ln_explained_intensity";
+
+      // User parameter name for log1p of the spectrum's total ion current, a spectrum-quality /
+      // complexity proxy (cf. MS2Rescore's "ln_total_intensity")
+      inline const std::string LN_TOTAL_INTENSITY = "ln_total_intensity";
+
       /** User parameter name to indicate a peptide q-value
               String
       */

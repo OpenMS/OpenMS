@@ -2500,7 +2500,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                 Constants::UserParam::HYPERSCORE_ZSCORE,
                                 Constants::UserParam::LN_NUM_CANDIDATES,
                                 Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
-                                Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
+                                Constants::UserParam::COMPLEMENTARY_IONS_FRACTION,
+                                Constants::UserParam::LN_EXPLAINED_INTENSITY,
+                                Constants::UserParam::LN_TOTAL_INTENSITY}
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
