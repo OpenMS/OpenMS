@@ -3,7 +3,7 @@
 from __future__ import annotations
 import numpy as np
 import warnings
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("PeptideIdentificationList")
@@ -26,13 +26,13 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
 
     count = len(self)
     if not export_unidentified:
-        count = sum(len(pep.getHits()) > 0 for pep in self)
+        count = sum(len(pep.getHits()) > 0 for pep in self.iter_peptide_identification_views())
 
     # get all possible metavalues
     metavals = []
     types = []
     mainscorename = "score"
-    for pep in self:
+    for pep in self.iter_peptide_identification_views():
         hits = pep.getHits()
         if len(hits) != 0:
             mvs = []
@@ -49,7 +49,7 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
             types.append('?')
         else:
             found = False
-            for p in self:
+            for p in self.iter_peptide_identification_views():
                 hits = p.getHits()
                 if len(hits) != 0:
                     if hits[0].metaValueExists(k_str):
@@ -144,7 +144,7 @@ def df_columns(self, decode_ontology=True):
     # Get all possible metavalues and main score name
     metavals = []
     mainscorename = "score"
-    for pep in self:
+    for pep in self.iter_peptide_identification_views():
         hits = pep.getHits()
         if hits:
             mvs = []
@@ -237,12 +237,12 @@ def to_psm_df(self, export_all_hits=True, include_modifications=True, include_pe
 
 
 @addon("PeptideIdentificationList")
-def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
+def to_qpx(self, qpx_version="1.1", creator="pyOpenMS", software_provider="OpenMS",
            scan_format="scan", **kwargs):
     """
     **EXPERIMENTAL**: Export PSMs as QPX format structure with file metadata and PSMs array.
 
-    :param qpx_version: Version of the QPX format. Default "1.0".
+    :param qpx_version: Version of the QPX format. Default "1.1".
     :param creator: Name of the tool or person who created the file.
     :param software_provider: Name of the software provider.
     :param scan_format: Controls the scan column format.
@@ -849,7 +849,9 @@ def update_scores_from_df(self, df, main_score_name):
     """Updates scores in PeptideIdentification objects from a DataFrame."""
     for index, row in df.iterrows():
         pid_index = int(row["P_ID"])
-        pi = self[pid_index]
+        # Edit through a live view: setScoreType/setHits land directly, so the
+        # only copy is the hits list we actually modify -- see OWNERSHIP.md
+        pi = self.peptide_identification_view(pid_index)
         pi.setScoreType(main_score_name)
         hits = pi.getHits()
         if len(hits) > 0:
@@ -898,3 +900,10 @@ def get_psm_df(self, *args, **kwargs):
         DeprecationWarning, stacklevel=2
     )
     return self.to_psm_df(*args, **kwargs)
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("PeptideIdentificationList", "peptide_identification", "size", "identifications")
+
+

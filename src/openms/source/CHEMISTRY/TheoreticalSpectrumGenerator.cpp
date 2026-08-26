@@ -601,7 +601,7 @@ namespace OpenMS
       }
     }
 
-    for (Size l = 1; l < peptide.size() - 1 - 2; ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2
+    for (Size l = 1; l + 3 < peptide.size(); ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2 (additive form avoids unsigned underflow on short peptides)
     {
       double intensity(1);
 

@@ -136,7 +136,7 @@ protected:
     setMinInt_("batchSize", 0);
 
     registerSubsection_("Library", "Library parameters section");
-    registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction.");
+    registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction, including configurable estimated RT-window floor/ceiling clamps.");
     registerSubsection_("Calibration:RTNormalization", "Parameters for the RTNormalization for iRT peptides.");
     registerSubsection_("Calibration:MassIMCorrection", "Parameters for the m/z and ion mobility calibration.");
     registerSubsection_("MRMMapping", "Parameters for mapping chromatograms to transitions during iRT calibration.");

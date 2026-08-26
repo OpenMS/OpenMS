@@ -1,0 +1,19 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 836c056..4291da2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -90,9 +90,12 @@ if(OPENTIMS_BUILD_LIB)
+     else()
+         set_target_properties(opentims_cpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+         if(OPENTIMS_LINK_SQLITE_STATICALLY)
++	    #Need sqlite.h to compile opentims.h. We only add the include path here, not the
++	    #library, that linking is left to consumers (e.g. OpenMS injects its own bundled sqlite3).
++	    find_package(SQLite3 REQUIRED)
++	    target_include_directories(opentims_cpp PRIVATE
++		    $<TARGET_PROPERTY:SQLite::SQLite3,INTERFACE_INCLUDE_DIRECTORIES>)
+             target_compile_definitions(opentims_cpp PUBLIC OPENTIMS_LINK_SQLITE_STATICALLY)
+-            # Consumer must supply sqlite3 headers and the library
+-            # (e.g. OpenMS injects its own bundled sqlite3).
+         endif()
+     endif()
+ 

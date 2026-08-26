@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  ClassTestUtils_test
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
@@ -8,7 +9,6 @@ set(concept_executables_list
   ProgressLogger_test
   RAIICleanup_test
   StreamHandler_test
-  Types_test
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
@@ -301,7 +301,6 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
-  TriqlerFile_test
   UnimodXMLFile_test
   UniProtXMLFile_test
   XMassFile_test
@@ -335,7 +334,9 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 
-list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
+list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
+  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
   XICParquetFile_test
@@ -348,7 +349,8 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ConsensusMapArrowIO_test
   PSMArrowIO_test
   ArrowSchemaRegistry_test
-  ArrowIOHelpers_test)
+  ArrowIOHelpers_test
+  ParquetTableComparator_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -488,6 +490,7 @@ set(chemistry_executables_list
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
   MonosaccharideDB_test
+  IonNaming_test
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
@@ -729,6 +732,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     PeakMapExtractor_test
     OpenSwathHelper_test
+    OpenSwathLibraryIDNormalizer_test
     OpenSwathOSWWriter_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test

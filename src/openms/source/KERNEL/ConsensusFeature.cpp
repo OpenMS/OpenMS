@@ -128,7 +128,7 @@ namespace OpenMS
   DRange<2> ConsensusFeature::getPositionRange() const
   {
     DPosition<2> min = DPosition<2>::maxPositive();
-    DPosition<2> max = DPosition<2>::minPositive();
+    DPosition<2> max = DPosition<2>::minNegative();
     for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getRT() < min[0])
@@ -154,7 +154,7 @@ namespace OpenMS
   DRange<1> ConsensusFeature::getIntensityRange() const
   {
     DPosition<1> min = DPosition<1>::maxPositive();
-    DPosition<1> max = DPosition<1>::minPositive();
+    DPosition<1> max = DPosition<1>::minNegative();
     for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getIntensity() < min[0])

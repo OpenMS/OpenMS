@@ -16,7 +16,7 @@ on:
         default: false
   push:
     tags:
-      - 'Release*'
+      - 'v[0-9]*'
     branches: [nightly, py_nightly_test]
   pull_request:
     branches: [develop]
@@ -270,7 +270,29 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
+        run: |
+          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
+
+          # These dependencies are need only in this workflow:
+          brew install \
+            uv
+
+          # These are now provided by vcpkg and thus removed from
+          # `tools/ci/deps-macos.sh`:
+          brew install \
+            apache-arrow \
+            boost \
+            cbc \
+            cgl \
+            clp \
+            coinutils \
+            eigen \
+            libomp \
+            libsvm \
+            libzip \
+            sqlite \
+            xerces-c \
+            zstd
 
       # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
       # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the
@@ -529,7 +551,7 @@ jobs:
     name: Upload release to PyPI
     needs: [test-wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/Release')
+    if: github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/v')
     environment:
       name: pypi
       url: https://pypi.org/p/pyopenms
@@ -556,7 +578,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' &&
-        (startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/tags/Release')))
+        (startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/tags/v')))
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -580,7 +602,7 @@ jobs:
           # using them in a path (branch/tag names may contain shell metacharacters).
           sanitize() { printf '%s' "${1//[^a-zA-Z0-9._-]/_}"; }
 
-          if [[ "$GITHUB_REF" == refs/tags/Release* ]]; then
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             folder="release/$(sanitize "$PYOPENMS_VERSION")"
           elif [[ "$GITHUB_REF_NAME" == "nightly" ]]; then
             folder=nightly

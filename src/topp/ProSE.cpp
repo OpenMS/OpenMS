@@ -72,6 +72,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
+@note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
 <B>The command line parameters of this tool are:</B>
@@ -113,7 +114,7 @@ class ProSE :
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
-      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet.", false, true);
+      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet. The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
 
       registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
 
@@ -286,8 +287,11 @@ class ProSE :
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
       // Timer spans search + Percolator + FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
+      // Keep the algorithm's pooled aggregate only where the -out_merged block below consumes it verbatim; with Percolator that block re-merges the rescored per-file results, so the pre-rescoring pool would be waste.
+      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1 && percolator_executable.empty();
       ProSEAlgorithm::MultiFileSearchResult mfres =
-        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name);
+        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
+                                           build_pooled_aggregate);
 
       if (mfres.per_file.size() != in_list.size())
       {
@@ -518,6 +522,9 @@ class ProSE :
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
+      // Per-run QPX scan_format tokens, reconciled for the merged file below. A built table
+      // no longer carries the native IDs, so this has to be collected as we go.
+      std::vector<std::string> qpx_psm_scan_formats;
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
       Size failed_count = 0;
@@ -619,13 +626,26 @@ class ProSE :
         // -- QPX directory output --
         if (!out_qpx_dir.empty())
         {
+          // Wrapped like the sibling modes above: the QPX exporters refuse input they cannot key
+          // (a merged run whose PSMs lack 'id_merge_index', ambiguous feature identities), and an
+          // escaping exception would abort the whole per-file loop rather than failing this mode.
+          try
+          {
           // PSM — build table once, write to file, accumulate same table for merge.
           const std::string qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
           auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (qpx_psm_table)
           {
             qpx_psm_tables.push_back(qpx_psm_table);
-            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file))
+            std::vector<std::string> spec_refs;
+            spec_refs.reserve(result.peptide_ids.size());
+            for (const auto& pid : result.peptide_ids)
+            {
+              if (!pid.getSpectrumReference().empty()) { spec_refs.push_back(pid.getSpectrumReference()); }
+            }
+            const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spec_refs);
+            qpx_psm_scan_formats.push_back(psm_scan_format);
+            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file, ParquetWriteConfig{}, psm_scan_format))
             {
               OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
               input_failed = true;
@@ -639,7 +659,10 @@ class ProSE :
           // Protein groups — independent of PSM result.
           const std::string qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
           auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
-          if (qpx_pg_table)
+          // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to
+          // libOpenMS' implementation, and on Windows its symbols are dllimport, so calling the
+          // member here links on Linux but not on MSVC.
+          if (qpx_pg_table && ArrowIOHelpers::tableRowCount(qpx_pg_table) > 0)
           {
             qpx_pg_tables.push_back(qpx_pg_table);
             if (!ProteinGroupArrowExport::exportToParquet(qpx_pg_table, qpx_pg_file))
@@ -648,9 +671,39 @@ class ProSE :
               input_failed = true;
             }
           }
+          else if (qpx_pg_table)
+          {
+            // No protein groups, so no pg file. Rows come only from getIndistinguishableProteins(),
+            // and ProSE infers proteins in just two places: single-file finalization, which needs
+            // 'FDR:protein' > 0 AND decoys, and the merged path, which needs '-out_merged' with more
+            // than one input. Identification-only runs open neither, so an empty table is the normal
+            // outcome rather than a failure. Writing it anyway produced a schema-valid file saying
+            // "no protein groups", which a consumer cannot tell apart from "inference ran and found
+            // none" - so the file is omitted and the reason logged instead.
+            OPENMS_LOG_INFO << "No protein groups inferred for " << in_file << " — not writing "
+                            << qpx_pg_file << ". Protein inference requires 'FDR:protein' > 0 with "
+                            << "decoys, or '-out_merged' with several inputs." << endl;
+          }
           else
           {
             OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << qpx_pg_file << endl;
+          }
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << ": " << e.what() << endl;
+            input_failed = true;
+          }
+          catch (const std::exception& e)
+          {
+            // Unlike the sibling modes, this one calls into Arrow/Parquet, whose exceptions do
+            // not derive from Exception::BaseException. The write helpers check Status rather
+            // than throwing, but allocation and internal parquet failures still surface here,
+            // and letting one escape would skip the remaining outputs for this input.
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << " (Arrow/Parquet): " << e.what() << endl;
+            input_failed = true;
           }
         }
 
@@ -734,8 +787,31 @@ class ProSE :
       bool merged_ok = true;
       if (!out_qpx_dir.empty())
       {
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet") && merged_ok;
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(qpx_pg_tables,  out_qpx_dir + "/quantms.pg.parquet")  && merged_ok;
+        // Concatenation inherits the first input's schema metadata, i.e. that per-run file's
+        // uuid/creation_date. Stamp a fresh identity so the merged file is its own QPX file.
+        // scan_format only describes the merged file if every contributing run agreed on a
+        // convention; otherwise it is omitted rather than taken from an arbitrary run.
+        std::map<std::string, std::string> psm_extra;
+        std::set<std::string> distinct_formats(qpx_psm_scan_formats.begin(), qpx_psm_scan_formats.end());
+        if (distinct_formats.size() == 1 && !distinct_formats.begin()->empty())
+        {
+          psm_extra["scan_format"] = *distinct_formats.begin();
+        }
+        auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, psm_extra);
+        auto pg_meta  = ArrowIOHelpers::qpxFileMetadata("pg_file");
+        merged_ok = psm_meta && pg_meta && merged_ok;
+        if (psm_meta)
+        {
+          merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
+            qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", ParquetWriteConfig{}, psm_meta) && merged_ok;
+        }
+        // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
+        // an empty merged table would be indistinguishable from an inference that found nothing.
+        if (pg_meta && !qpx_pg_tables.empty())
+        {
+          merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
+            qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+        }
       }
 
       if (!out_parquet_dir.empty())
@@ -762,18 +838,49 @@ class ProSE :
           const std::string decoy_string = mfres.decoy_string;
           const bool decoy_is_prefix = mfres.decoy_is_prefix;
 
-          // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
-          IDMergerAlgorithm merger;
-          for (const auto& pf : mfres.per_file)
-          {
-            if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-            merger.insertRuns(pf.protein_ids, pf.peptide_ids);
-          }
-          ProteinIdentification merged_proteins;
+          vector<ProteinIdentification> merged_protein_ids;
           PeptideIdentificationList merged_peptides;
-          merger.returnResultsAndClear(merged_proteins, merged_peptides);
 
-          vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
+          // Without Percolator nothing has mutated the identifications in mfres.per_file since
+          // the search, and the algorithm already produced exactly this merge: the multi-file
+          // searchWithModificationAnalysis pools with the identical sequence of
+          // insertRuns(pf.protein_ids, pf.peptide_ids) calls over the identical per-file results
+          // and then setPrimaryMSRunPath(in_spectra_files) — so re-merging here would only build
+          // a third copy of every PSM. Consume the aggregate by move instead. (An empty aggregate
+          // means every file failed, or build_pooled_aggregate was false; fall through to the
+          // merger, which reproduces the old result in both cases.)
+          // The only run-level value IDMergerAlgorithm derives from its inputs is 'id_merge_index'
+          // = the first-occurrence rank of a run's primary MS run path (the merged run's own path
+          // is overwritten unconditionally right after this block). That rank is unchanged by the
+          // 'file://<basename>' rewrite -test applies to the per-file runs above, because it maps
+          // the -in paths one-to-one -- unless two -in files in different directories share a
+          // basename, which only -test could ever collapse and which no ProSE test does.
+          if (percolator_executable.empty() && !mfres.aggregate.protein_ids.empty())
+          {
+            merged_protein_ids.emplace_back(std::move(mfres.aggregate.protein_ids[0]));
+            merged_peptides = std::move(mfres.aggregate.peptide_ids);
+            mfres.aggregate.protein_ids.clear();
+            mfres.aggregate.peptide_ids.clear();
+          }
+          else
+          {
+            // Percolator rescored the per-file PSMs after the search, so the algorithm's
+            // pre-rescoring aggregate would be WRONG here (and was not built at all, see
+            // build_pooled_aggregate above): merge the rescored results via IDMergerAlgorithm
+            // (accession dedup + identifier remap). Moving out of per_file is safe: past this
+            // block only pf.stats / pf.exit_code / pf.modification_analysis are read (the
+            // search report and renderRunSummaryYaml), never the identifications.
+            IDMergerAlgorithm merger;
+            for (auto& pf : mfres.per_file)
+            {
+              if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
+              merger.insertRuns(std::move(pf.protein_ids), std::move(pf.peptide_ids));
+            }
+            ProteinIdentification merged_proteins;
+            merger.returnResultsAndClear(merged_proteins, merged_peptides);
+            merged_protein_ids.emplace_back(std::move(merged_proteins));
+          }
+
           merged_protein_ids[0].setPrimaryMSRunPath(in_list);
           // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
           // merged idXML is schema-valid (matches the single-file path in ProSEAlgorithm).

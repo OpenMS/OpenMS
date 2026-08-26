@@ -342,6 +342,165 @@ START_SECTION((bool isSorted() const ))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] sorting reorders string and integer data arrays even when no float data array is present))
+{
+  // Regression test: the fast path of sortByPosition() was guarded on
+  // float_data_arrays_.empty() alone, and the one of sortByIntensity() on the
+  // inverted condition (... && !string_data_arrays_.empty() && !integer_data_arrays_.empty()).
+  // Both left string/integer data arrays in their original order while the peaks were
+  // permuted, silently mis-associating per-peak metadata.
+
+  // peaks in RT order 3,1,2 with intensities 10,30,20; arrays mirror the peak they belong to
+  auto make = []() {
+    MSChromatogram c;
+    ChromatogramPeak p;
+    p.setRT(3.0); p.setIntensity(10.0f); c.push_back(p);
+    p.setRT(1.0); p.setIntensity(30.0f); c.push_back(p);
+    p.setRT(2.0); p.setIntensity(20.0f); c.push_back(p);
+
+    MSChromatogram::StringDataArray sda;
+    sda.push_back("rt3"); sda.push_back("rt1"); sda.push_back("rt2");
+    sda.setName("s1");
+    c.getStringDataArrays().push_back(sda);
+
+    MSChromatogram::IntegerDataArray ida;
+    ida.push_back(3); ida.push_back(1); ida.push_back(2);
+    ida.setName("i1");
+    c.getIntegerDataArrays().push_back(ida);
+    return c;
+  };
+
+  // --- sortByPosition: RT 1,2,3
+  MSChromatogram c = make();
+  TEST_EQUAL(c.getFloatDataArrays().empty(), true) // the condition that used to trigger the bug
+  c.sortByPosition();
+  TEST_REAL_SIMILAR(c[0].getRT(), 1.0)
+  TEST_REAL_SIMILAR(c[1].getRT(), 2.0)
+  TEST_REAL_SIMILAR(c[2].getRT(), 3.0)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt1")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt2")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][2], "rt3")
+  TEST_EQUAL(c.getIntegerDataArrays()[0][0], 1)
+  TEST_EQUAL(c.getIntegerDataArrays()[0][1], 2)
+  TEST_EQUAL(c.getIntegerDataArrays()[0][2], 3)
+  // array names must survive the permutation
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0].getName(), "s1")
+  TEST_STRING_EQUAL(c.getIntegerDataArrays()[0].getName(), "i1")
+
+  // --- sortByIntensity ascending: intensities 10,20,30 -> RT 3,2,1
+  c = make();
+  c.sortByIntensity();
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 10.0)
+  TEST_REAL_SIMILAR(c[1].getIntensity(), 20.0)
+  TEST_REAL_SIMILAR(c[2].getIntensity(), 30.0)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt2")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][2], "rt1")
+  TEST_EQUAL(c.getIntegerDataArrays()[0][0], 3)
+  TEST_EQUAL(c.getIntegerDataArrays()[0][1], 2)
+  TEST_EQUAL(c.getIntegerDataArrays()[0][2], 1)
+
+  // --- sortByIntensity reverse: intensities 30,20,10 -> RT 1,2,3
+  c = make();
+  c.sortByIntensity(true);
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 30.0)
+  TEST_REAL_SIMILAR(c[2].getIntensity(), 10.0)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt1")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][2], "rt3")
+  TEST_EQUAL(c.getIntegerDataArrays()[0][0], 1)
+  TEST_EQUAL(c.getIntegerDataArrays()[0][2], 3)
+
+  // --- sortByIntensity with float arrays present must permute them too
+  c = make();
+  MSChromatogram::FloatDataArray fda;
+  fda.push_back(3.5f); fda.push_back(1.5f); fda.push_back(2.5f);
+  c.getFloatDataArrays().push_back(fda);
+  c.sortByIntensity(true); // descending: 30,20,10 -> RT 1,2,3
+  TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][0], 1.5)
+  TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][1], 2.5)
+  TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][2], 3.5)
+
+  // --- a mis-sized data array must be rejected rather than silently corrupting
+  c = make();
+  c.getIntegerDataArrays()[0].push_back(99); // now 4 entries for 3 peaks
+  TEST_EXCEPTION(Exception::Precondition, c.sortByPosition())
+  // ... and the rejected sort must leave the chromatogram untouched
+  TEST_EQUAL(c.size(), 3)
+  TEST_REAL_SIMILAR(c[0].getRT(), 3.0)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+
+  // --- out-of-range indices are rejected rather than being undefined behaviour
+  c = make();
+  TEST_EXCEPTION(Exception::Precondition, c.select(std::vector<Size>{0, 7}))
+  TEST_EQUAL(c.size(), 3)
+
+  // --- duplicate indices duplicate the values (no moved-from holes)
+  c = make();
+  c.select(std::vector<Size>{0, 0});
+  TEST_EQUAL(c.size(), 2)
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt3")
+
+  // --- stable order across *tied* keys: the data arrays must stay aligned with the peaks
+  //     through the tie, and equal keys must keep their original relative order. Unique keys
+  //     (as above) cannot exercise this. Four peaks with tied RTs and tied intensities; the
+  //     string/integer arrays carry each peak's original identity (A..D / 1..4). The starting
+  //     order is deliberately unsorted by RT, by ascending intensity and by descending
+  //     intensity, so none of the three sorts can short-circuit -- each really permutes.
+  auto make_ties = []() {
+    MSChromatogram c;
+    ChromatogramPeak p;
+    p.setRT(1.0); p.setIntensity(10.0f); c.push_back(p); // A / 1
+    p.setRT(2.0); p.setIntensity(20.0f); c.push_back(p); // B / 2
+    p.setRT(1.0); p.setIntensity(20.0f); c.push_back(p); // C / 3
+    p.setRT(2.0); p.setIntensity(10.0f); c.push_back(p); // D / 4
+
+    MSChromatogram::StringDataArray sda;
+    sda.push_back("A"); sda.push_back("B"); sda.push_back("C"); sda.push_back("D");
+    c.getStringDataArrays().push_back(sda);
+
+    MSChromatogram::IntegerDataArray ida;
+    ida.push_back(1); ida.push_back(2); ida.push_back(3); ida.push_back(4);
+    c.getIntegerDataArrays().push_back(ida);
+    return c;
+  };
+
+  auto check_order = [](const MSChromatogram& c, const std::vector<std::string>& s, const std::vector<Int>& i) {
+    for (Size k = 0; k < s.size(); ++k)
+    {
+      TEST_STRING_EQUAL(c.getStringDataArrays()[0][k], s[k])
+      TEST_EQUAL(c.getIntegerDataArrays()[0][k], i[k])
+    }
+  };
+
+  // sortByPosition: RT ascending; ties (RT=1: A,C) and (RT=2: B,D) keep their original order
+  MSChromatogram ct = make_ties();
+  ct.sortByPosition();
+  TEST_REAL_SIMILAR(ct[0].getRT(), 1.0) TEST_REAL_SIMILAR(ct[1].getRT(), 1.0)
+  TEST_REAL_SIMILAR(ct[2].getRT(), 2.0) TEST_REAL_SIMILAR(ct[3].getRT(), 2.0)
+  check_order(ct, {"A", "C", "B", "D"}, {1, 3, 2, 4});
+
+  // sortByIntensity ascending; ties (I=10: A,D) then (I=20: B,C) keep their original order
+  ct = make_ties();
+  ct.sortByIntensity();
+  check_order(ct, {"A", "D", "B", "C"}, {1, 4, 2, 3});
+
+  // sortByIntensity reverse (descending); ties (I=20: B,C) then (I=10: A,D) keep original order
+  ct = make_ties();
+  ct.sortByIntensity(true);
+  check_order(ct, {"B", "C", "A", "D"}, {2, 3, 1, 4});
+
+  // --- sort(lambda) validates data-array sizes up front, before the predicate runs, so an
+  //     undersized array throws Exception::Precondition instead of being indexed out of bounds
+  //     (the predicate below would read index 2 of a 2-element array).
+  c = make();
+  c.getIntegerDataArrays()[0].pop_back(); // 2 entries for 3 peaks
+  TEST_EXCEPTION(Exception::Precondition,
+                 c.sort([&c](Size i, Size j) { return c.getIntegerDataArrays()[0][i] < c.getIntegerDataArrays()[0][j]; }))
+  TEST_EQUAL(c.size(), 3) // rejected sort leaves the chromatogram untouched
+}
+END_SECTION
+
 START_SECTION((Size findNearest(CoordinateType rt) const ))
 {
   MSChromatogram tmp;
@@ -1032,6 +1191,11 @@ START_SECTION(void clear(bool clear_meta_data))
   TEST_EQUAL(edit.size(),0)
   TEST_EQUAL(edit.empty(),true)
   TEST_EQUAL(edit == MSChromatogram(),false)
+  // the data arrays are parallel to the peaks, so dropping the peaks must drop them too
+  // (previously they survived clear(false), leaving the chromatogram inconsistent)
+  TEST_EQUAL(edit.getFloatDataArrays().empty(),true)
+  TEST_EQUAL(edit.getIntegerDataArrays().empty(),true)
+  TEST_EQUAL(edit.getStringDataArrays().empty(),true)
 
   edit.clear(true);
   TEST_EQUAL(edit.size(),0)
