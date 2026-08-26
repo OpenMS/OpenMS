@@ -656,6 +656,33 @@ namespace
     a.halfcys.clear();
   }
 
+  /// Invalidate disulfide pairs with an endpoint beyond the sequence end (malformed
+  /// input): the pair then gets no labels and no \DisulfideBond tuple in either mode,
+  /// matching how out-of-bounds variants and processed regions are omitted. Unknown
+  /// (position 0) endpoints stay valid — UniProt documents such bonds and they are
+  /// emitted as '?'. The half-cystine ModRes tuples themselves are still written,
+  /// like every other modification (mod positions are not range-checked).
+  void invalidateOutOfRangeDisulfides(EntryAnnotations& a, const std::string& base_sequence,
+                                      const std::string& accession)
+  {
+    const int seq_len = static_cast<int>(base_sequence.size());
+    if (seq_len == 0) return;
+    for (auto& d : a.disulfides)
+    {
+      if (!d.valid) continue;
+      if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
+      const int pos_a = a.mods[d.idx_a].position;
+      const int pos_b = a.mods[d.idx_b].position;
+      if (pos_a > seq_len || pos_b > seq_len)
+      {
+        OPENMS_LOG_WARN << "UniPEFF: " << accession << " disulfide bond " << positionOrUnknown(pos_a)
+                        << "-" << positionOrUnknown(pos_b) << " exceeds sequence length " << seq_len
+                        << "; connectivity omitted." << std::endl;
+        d.valid = false;
+      }
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────
   // Annotation-ID assignment
   // ──────────────────────────────────────────────────────────────────
@@ -1052,7 +1079,9 @@ namespace
     std::string prefix;       ///< sp/tr or user override
   };
 
-  /// Prepare one entry: classify features, merge halfcys, (Option B) stamp IDs.
+  /// Prepare one entry: classify features, merge halfcys, drop disulfide pairs with
+  /// out-of-range endpoints, then stamp annotation IDs (global in Option B, selective
+  /// disulfide labels otherwise).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
                              bool record_variants)
@@ -1067,6 +1096,7 @@ namespace
                         record_variants, pe.source.accession);
     }
     mergeHalfCystines(pe.annotations);
+    invalidateOutOfRangeDisulfides(pe.annotations, pe.source.sequence, pe.source.accession);
 
     if (option_b)
     {
