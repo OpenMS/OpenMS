@@ -254,7 +254,10 @@ namespace OpenMS
       "decoy-augmented database — sample size is tied to chunk_size so calibration memory "
       "respects the same budget as main-search chunks. In multi-file mode (-in a.mzML b.mzML), "
       "the chunk-major path builds each chunk's fragment index once and scores all files "
-      "against it before moving to the next chunk.");
+      "against it before moving to the next chunk. Note that chunk_size bounds only the "
+      "fragment-index memory: the chunk-major schedule holds ALL input files' preprocessed "
+      "MS2 spectra in memory for the whole search, so budget for their sum as well, or split "
+      "very large cohorts across separate ProSE invocations.");
     defaults_.setMinInt("database:chunk_size", 0);
 
     defaults_.setSectionDescription("calibration",
