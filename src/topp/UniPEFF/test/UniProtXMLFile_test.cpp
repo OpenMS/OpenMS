@@ -104,7 +104,7 @@ START_SECTION((void load(const std::string& filename, std::vector<UniProtEntry>&
   TEST_EQUAL(f_vsp1.id, "VSP_001")
   TEST_EQUAL(f_vsp1.original, "SEQ")
   TEST_EQUAL(f_vsp1.variation, "T")
-  TEST_EQUAL(f_vsp1.has_range, true)
+  TEST_TRUE(f_vsp1.has_range)
   TEST_EQUAL(f_vsp1.begin, 2)
   TEST_EQUAL(f_vsp1.end,   4)
 
@@ -113,7 +113,7 @@ START_SECTION((void load(const std::string& filename, std::vector<UniProtEntry>&
   TEST_EQUAL(f_vsp2.id, "VSP_002")
   TEST_EQUAL(f_vsp2.original, "")
   TEST_EQUAL(f_vsp2.variation, "")
-  TEST_EQUAL(f_vsp2.has_range, true)
+  TEST_TRUE(f_vsp2.has_range)
   TEST_EQUAL(f_vsp2.begin, 26)
   TEST_EQUAL(f_vsp2.end,   30)
 

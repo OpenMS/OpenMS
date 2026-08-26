@@ -1220,13 +1220,13 @@ namespace
           // "external" (sequence lives in another entry) / "not described": nothing to reconstruct.
           OPENMS_LOG_INFO << "UniPEFF: " << pe.source.accession << " isoform "
                           << (iso.id.empty() ? std::string("<no id>") : iso.id)
-                          << " has sequence type '" << iso.sequence_type << "'; not emitted." << std::endl;
+                          << " has sequence type '" << iso.sequence_type << "'; not emitted.\n";
           continue;
         }
         if (iso.id.empty())
         {
           OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession
-                          << " described isoform without <id>; omitted." << std::endl;
+                          << " described isoform without <id>; omitted.\n";
           continue;
         }
         std::string error;
@@ -1234,7 +1234,7 @@ namespace
         if (!error.empty())
         {
           OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession << " isoform " << iso.id << " "
-                          << error << "; omitted." << std::endl;
+                          << error << "; omitted.\n";
           continue;
         }
         pe.isoforms.push_back(IsoformEntry{iso.id, iso.name, std::move(seq)});
@@ -1463,7 +1463,7 @@ protected:
     if (isoforms_written > 0)
     {
       OPENMS_LOG_INFO << "UniPEFF: wrote " << isoforms_written
-                      << " isoform entries reconstructed from alternative products." << std::endl;
+                      << " isoform entries reconstructed from alternative products.\n";
     }
     if (writable == 0)
     {
