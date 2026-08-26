@@ -25,6 +25,16 @@
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
+#include<vector>
+#include<io.h>
+
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <windows.h>
+#include <rpc.h>
+#pragma comment(lib, "Rpcrt4.lib")
+#else
+#include <cstdlib> // for mkdtemp
+#endif
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
@@ -48,29 +58,72 @@ namespace fs = std::filesystem;
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS{
+namespace
 {
+  std::string createUniqueDir_(const std::string& prefix)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    for (int attempt = 0; attempt < 100; ++attempt)
+    {
+      UUID uuid;
+      UuidCreate(&uuid);
+      RPC_WSTR wstr = nullptr;
+      UuidToStringW(&uuid, &wstr);
+      std::wstring wsuffix(reinterpret_cast<wchar_t*>(wstr));
+      RpcStringFreeW(&wstr);
+      std::string suffix;
+      suffix.reserve(wsuffix.size());
+      for(wchar_t wc: wsuffix){
+        suffix.push_back(static_cast<char>(wc));
+      }
+
+      std::string candidate = prefix + "_" + suffix;
+      std::wstring wcandidate(candidate.begin(), candidate.end());
+
+      if (CreateDirectoryW(wcandidate.c_str(), NULL))
+      {
+        return candidate + "/";
+      }
+      if (GetLastError() != ERROR_ALREADY_EXISTS)
+      {
+        throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate);
+      }
+      // else: collision, loop and try again with a new UUID
+    }
+    throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix);
+#else
+    std::string tmpl = prefix + "_XXXXXX";
+    std::vector<char> buf(tmpl.begin(), tmpl.end());
+    buf.push_back('\0');
+    if (::mkdtemp(buf.data()) == nullptr)
+    {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmpl);
+    }
+    return std::string(buf.data()) + "/";
+#endif
+  }
+}
 
   File::TempDir::TempDir(bool keep_dir)
     : keep_dir_(keep_dir)
   {
-    temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+    std::string prefix = File::getTempDirectory() + "/" +File::getUniqueName();
+    temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    fs::create_directories(to_path(temp_dir_));
   };
 
   File::TempDir::TempDir(const std::string& base_dir, bool keep_dir)
     : keep_dir_(keep_dir)
   {
-    // Create a unique subdirectory under the provided base_dir
-    temp_dir_ = base_dir;
-    if (!temp_dir_.empty() && !StringUtils::hasSuffix(temp_dir_, "/"))
+    std::string prefix = base_dir;
+    if (!prefix.empty() && !StringUtils::hasSuffix(prefix,"/"))
     {
-      temp_dir_ += "/";
+      prefix += "/";
     }
-    temp_dir_ += "OpenMSTempDir_" + File::getUniqueName() + "/";
+    prefix += "OpenMSTempDir_" + File::getUniqueName();
+    temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    fs::create_directories(to_path(temp_dir_));
   };
 
   File::TempDir::~TempDir()
