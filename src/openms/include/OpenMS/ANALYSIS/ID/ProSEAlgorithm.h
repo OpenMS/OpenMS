@@ -167,6 +167,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *  - When every per-file run failed, @p aggregate.exit_code is set to the
      *    first non-OK per-file exit code (so callers can inspect it without
      *    walking the @p per_file vector).
+     *  - When the caller passed @c build_pooled_aggregate = false, the pooled
+     *    PSM copy is not retained: @p aggregate is left almost-empty (only
+     *    @c is_open_search and @c exit_code), exactly as in the single-file
+     *    case. In OPEN search the pooling still happens internally because the
+     *    aggregate modification analysis needs it, so
+     *    @c aggregate.modification_analysis is populated as usual and only
+     *    @c aggregate.protein_ids / @c aggregate.peptide_ids are released
+     *    afterwards. In closed search nothing is pooled at all.
      *
      * The aggregate's @c protein_ids template is taken from the first
      * successful per-file result (search parameters are identical across files
@@ -423,7 +431,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * analysis (TSV written if a non-empty per-file base name is provided). An
      * additional aggregate SearchResult is computed by pooling all per-file
      * peptide identifications and running modification analysis once on the
-     * pooled set.
+     * pooled set (see @p build_pooled_aggregate to skip retaining that second
+     * copy of every PSM).
      *
      * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d).
      * @param[in] fasta_db Protein sequence database as FASTA entries.
@@ -434,6 +443,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] aggregate_base_name Optional base name for the aggregate
      *            modification-analysis TSV output. Empty disables aggregate
      *            TSV writing (the aggregate analysis is still computed).
+     * @param[in] build_pooled_aggregate Whether the pooled PSM set is retained
+     *            in @p aggregate. Pooling copies every per-file PSM a second
+     *            time, so callers that never read @c aggregate.peptide_ids
+     *            should pass false. With false, @c aggregate.protein_ids and
+     *            @c aggregate.peptide_ids come back empty (only
+     *            @c is_open_search and @c exit_code are set); the aggregate
+     *            modification analysis is unaffected — in open search the
+     *            pooled set is still built internally, analyzed, and then
+     *            released. Default true (unchanged behavior).
      * @return MultiFileSearchResult bundling per-file results and aggregate.
      *
      * Errors:
@@ -444,7 +462,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::vector<std::string>& in_spectra_files,
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
         const std::vector<std::string>& output_base_names = {},
-        const std::string& aggregate_base_name = "") const;
+        const std::string& aggregate_base_name = "",
+        bool build_pooled_aggregate = true) const;
 
     /**
      * @brief Multi-file search with modification analysis (FASTA file path).
@@ -454,13 +473,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * is recorded in each per-file ProteinIdentification's SearchParameters
      * (and on the aggregate result).
      *
-     * @see searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const
+     * @p build_pooled_aggregate is forwarded unchanged; see the in-memory
+     * overload for its exact effect on @c aggregate.
+     *
+     * @see searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&, bool) const
      */
     MultiFileSearchResult searchWithModificationAnalysis(
         const std::vector<std::string>& in_spectra_files,
         const std::string& in_db,
         const std::vector<std::string>& output_base_names = {},
-        const std::string& aggregate_base_name = "") const;
+        const std::string& aggregate_base_name = "",
+        bool build_pooled_aggregate = true) const;
 
   protected:
     void updateMembers_() override;
