@@ -50,6 +50,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <numeric>
 #include <iomanip>
 #include <locale>
 #include <ostream>
@@ -164,7 +166,10 @@ namespace OpenMS
         Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
         Constants::UserParam::COMPLEMENTARY_IONS_FRACTION,
         Constants::UserParam::LN_EXPLAINED_INTENSITY,
-        Constants::UserParam::LN_TOTAL_INTENSITY}
+        Constants::UserParam::LN_TOTAL_INTENSITY,
+        Constants::UserParam::BINOMIAL_MATCH_SCORE,
+        Constants::UserParam::TAILOR_SCORE,
+        Constants::UserParam::TOP_PEAKS_EXPLAINED_FRACTION}
       );
 
     defaults_.setSectionDescription("annotate", "Annotation Options");
@@ -499,7 +504,11 @@ namespace OpenMS
     std::vector<float> delta_scores_worst(annotated_hits.size(), 0.0f);
     std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
     std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
-#pragma omp parallel for default(none) shared(annotated_hits, top_hits, delta_scores, delta_scores_worst, hyperscore_zscores, ln_num_candidates)
+    // Tailor calibration (Sulc et al. 2020): best score divided by the score at position
+    // max(3, N/100) of the same spectrum's descending candidate scores. Dividing rather than
+    // subtracting also normalises away the width of the per-spectrum score distribution.
+    std::vector<float> tailor_scores(annotated_hits.size(), 0.0f);
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits, delta_scores, delta_scores_worst, hyperscore_zscores, ln_num_candidates, tailor_scores)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       auto& hits = annotated_hits[scan_index];
@@ -533,6 +542,20 @@ namespace OpenMS
         hyperscore_zscores[scan_index] = static_cast<float>((best_score - mean_rest) / (std::sqrt(var_rest) + 1e-6));
       }
 
+      // Tailor: needs the score at a fixed low rank, so partial_sort far enough to expose it.
+      // The paper pins the quantile position at no earlier than rank 3 to avoid the top of the
+      // distribution, which is contaminated by peptides correlated with the true one.
+      if (!hits.empty())
+      {
+        const Size tailor_rank = std::max<Size>(3, static_cast<Size>(hits.size() / 100));
+        const Size tailor_idx = std::min(tailor_rank, hits.size()) - 1;
+        std::partial_sort(hits.begin(), hits.begin() + tailor_idx + 1, hits.end(), AnnotatedHit_::hasBetterScore);
+        const double q = hits[tailor_idx].score;
+        // q <= 0 happens for spectra whose candidates all score 0; leave the feature at 0 there
+        // rather than emitting an arbitrarily large ratio.
+        if (q > 0) { tailor_scores[scan_index] = static_cast<float>(best_score / q); }
+      }
+
       // sort and keep n best elements according to score (unchanged)
       Size topn = top_hits > hits.size() ? hits.size() : top_hits;
       std::partial_sort(hits.begin(), hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore);
@@ -557,6 +580,9 @@ namespace OpenMS
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_ln_explained_intensity = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_EXPLAINED_INTENSITY) != annotate_psm_.end();
     bool annotation_ln_total_intensity = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_TOTAL_INTENSITY) != annotate_psm_.end();
+    bool annotation_binomial_match_score = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::BINOMIAL_MATCH_SCORE) != annotate_psm_.end();
+    bool annotation_tailor_score = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::TAILOR_SCORE) != annotate_psm_.end();
+    bool annotation_top_peaks_explained = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::TOP_PEAKS_EXPLAINED_FRACTION) != annotate_psm_.end();
 
     // "ALL" adds all annotations
     if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
@@ -576,6 +602,9 @@ namespace OpenMS
       annotation_ln_num_candidates = true;
       annotation_matched_ion_current_fraction = true;
       annotation_complementary_ions_fraction = true;
+      annotation_binomial_match_score = true;
+      annotation_tailor_score = true;
+      annotation_top_peaks_explained = true;
       // NOTE: LN_EXPLAINED_INTENSITY and LN_TOTAL_INTENSITY are deliberately NOT part of "ALL".
       // They are opt-in only. Benchmarked on a Bruker timsTOF HeLa run and a Q Exactive HF
       // ProteoBench run, each rescored under five Percolator seeds, neither feature produced a
@@ -590,7 +619,16 @@ namespace OpenMS
     // the experimental spectrum, so it does not require an alignment.
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
       || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction
-      || annotation_ln_explained_intensity;
+      || annotation_ln_explained_intensity || annotation_top_peaks_explained;
+
+    // Number of backbone fragment series actually generated, used as the trial count of the
+    // binomial model below (each enabled series contributes one ion per cleavage site).
+    const Size n_ion_series = (add_a_ions_ ? 1 : 0) + (add_b_ions_ ? 1 : 0) + (add_c_ions_ ? 1 : 0)
+                            + (add_x_ions_ ? 1 : 0) + (add_y_ions_ ? 1 : 0) + (add_z_ions_ ? 1 : 0);
+    // Andromeda's per-peak random-match probability: the spectrum was reduced to at most
+    // peaks_window_top_ peaks per 100 Th window, so that density is the chance a given
+    // theoretical m/z lands on a retained peak.
+    const double binomial_p = std::clamp(static_cast<double>(peaks_window_top_) / 100.0, 1e-6, 0.999);
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -765,6 +803,8 @@ namespace OpenMS
             // isotope), so we must sum each exp_idx at most once. Sized only
             // when MIC is actually requested.
             std::vector<char> counted_exp_peaks(need_mic ? spec.size() : 0, 0);
+            // Which experimental peaks this PSM explains, for the intensity-rank feature below.
+            std::vector<char> is_matched_exp(annotation_top_peaks_explained ? spec.size() : 0, 0);
             peak_annotations.reserve(alignment.size());
 
             for (const auto& [theo_idx, exp_idx] : alignment)
@@ -784,6 +824,8 @@ namespace OpenMS
                 matched_ion_current += spec[exp_idx].getIntensity();
                 counted_exp_peaks[exp_idx] = 1;
               }
+
+              if (annotation_top_peaks_explained) { is_matched_exp[exp_idx] = 1; }
 
               if (need_ordinals && ion_names[theo_idx].size() >= 2)
               {
@@ -824,6 +866,27 @@ namespace OpenMS
             if (annotation_ln_explained_intensity)
             {
               ph.setMetaValue(Constants::UserParam::LN_EXPLAINED_INTENSITY, std::log1p(matched_ion_current));
+            }
+
+            if (annotation_top_peaks_explained)
+            {
+              // Fraction of the most intense peaks that this PSM explains. Unlike the summed
+              // intensity features, this depends only on intensity *rank*, so a spectrum
+              // dominated by one huge peak cannot mask an otherwise poor explanation.
+              constexpr Size TOP_N = 10;
+              const Size n_consider = std::min<Size>(TOP_N, spec.size());
+              double fraction = 0.0;
+              if (n_consider > 0)
+              {
+                std::vector<Size> idx(spec.size());
+                std::iota(idx.begin(), idx.end(), Size(0));
+                std::partial_sort(idx.begin(), idx.begin() + n_consider, idx.end(),
+                  [&spec](Size a, Size b) { return spec[a].getIntensity() > spec[b].getIntensity(); });
+                Size hit_count = 0;
+                for (Size i = 0; i < n_consider; ++i) { if (is_matched_exp[idx[i]]) { ++hit_count; } }
+                fraction = static_cast<double>(hit_count) / static_cast<double>(n_consider);
+              }
+              ph.setMetaValue(Constants::UserParam::TOP_PEAKS_EXPLAINED_FRACTION, fraction);
             }
 
             if (need_ordinals)
@@ -877,6 +940,44 @@ namespace OpenMS
           if (annotation_ln_total_intensity)
           {
             ph.setMetaValue(Constants::UserParam::LN_TOTAL_INTENSITY, std::log1p(spectrum_tic));
+          }
+
+          if (annotation_tailor_score)
+          {
+            ph.setMetaValue(Constants::UserParam::TAILOR_SCORE, tailor_scores[scan_index]);
+          }
+
+          if (annotation_binomial_match_score)
+          {
+            // -10 log10 P(X >= k), X ~ Binomial(n, binomial_p): the probability of matching at
+            // least this many fragments by chance. Summed in log space because the individual
+            // terms underflow for the long, well-matched peptides that matter most.
+            const Size k = static_cast<Size>(ah.matched_prefix_ions) + static_cast<Size>(ah.matched_suffix_ions);
+            const Size n = n_ion_series * (ah.sequence.size() > 1 ? ah.sequence.size() - 1 : 0);
+            double score = 0.0;
+            if (n > 0 && k > 0 && k <= n)
+            {
+              const double log_p = std::log(binomial_p);
+              const double log_1mp = std::log1p(-binomial_p);
+              const double lgn = std::lgamma(static_cast<double>(n) + 1.0);
+              double max_log_term = -std::numeric_limits<double>::infinity();
+              std::vector<double> log_terms;
+              log_terms.reserve(n - k + 1);
+              for (Size j = k; j <= n; ++j)
+              {
+                const double lt = lgn - std::lgamma(static_cast<double>(j) + 1.0)
+                                      - std::lgamma(static_cast<double>(n - j) + 1.0)
+                                  + static_cast<double>(j) * log_p
+                                  + static_cast<double>(n - j) * log_1mp;
+                log_terms.push_back(lt);
+                if (lt > max_log_term) { max_log_term = lt; }
+              }
+              double sum_exp = 0.0;
+              for (double lt : log_terms) { sum_exp += std::exp(lt - max_log_term); }
+              const double log10_prob = (max_log_term + std::log(sum_exp)) / std::log(10.0);
+              score = -10.0 * log10_prob;
+            }
+            ph.setMetaValue(Constants::UserParam::BINOMIAL_MATCH_SCORE, score);
           }
 
           // Add isotope error metavalue (always; exposed as Percolator feature)
@@ -971,6 +1072,9 @@ namespace OpenMS
     if (annotation_ln_explained_intensity) feature_set.push_back(Constants::UserParam::LN_EXPLAINED_INTENSITY);
     if (annotation_ln_total_intensity) feature_set.push_back(Constants::UserParam::LN_TOTAL_INTENSITY);
     if (annotation_complementary_ions_fraction) feature_set.push_back(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+    if (annotation_binomial_match_score) feature_set.push_back(Constants::UserParam::BINOMIAL_MATCH_SCORE);
+    if (annotation_tailor_score) feature_set.push_back(Constants::UserParam::TAILOR_SCORE);
+    if (annotation_top_peaks_explained) feature_set.push_back(Constants::UserParam::TOP_PEAKS_EXPLAINED_FRACTION);
     if (annotation_delta_score_worst) feature_set.push_back(Constants::UserParam::DELTA_SCORE_WORST);
     if (annotation_hyperscore_zscore) feature_set.push_back(Constants::UserParam::HYPERSCORE_ZSCORE);
     if (annotation_ln_num_candidates) feature_set.push_back(Constants::UserParam::LN_NUM_CANDIDATES);
