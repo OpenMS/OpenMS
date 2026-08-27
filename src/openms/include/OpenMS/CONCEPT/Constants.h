@@ -393,9 +393,6 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
-      // User parameter name for a delta score between the best and the worst-scoring candidate for a spectrum
-      inline const std::string DELTA_SCORE_WORST = "delta_score_worst";
-
       // User parameter name for the z-score of the best candidate's score relative to the
       // mean/SD of the other (non-best) candidates scored for the same spectrum
       inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
@@ -409,29 +406,6 @@ namespace OpenMS
       // User parameter name for the fraction of cleavage sites where both a prefix ion and its
       // complementary suffix ion were matched
       inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
-
-      // User parameter name for log1p of the matched ion current. Percolator's SVM is linear,
-      // so the log transform of this right-skewed quantity is not redundant with the raw value
-      // (cf. MS2Rescore's "ln_explained_intensity").
-      inline const std::string LN_EXPLAINED_INTENSITY = "ln_explained_intensity";
-
-      // User parameter name for log1p of the spectrum's total ion current, a spectrum-quality /
-      // complexity proxy (cf. MS2Rescore's "ln_total_intensity")
-      inline const std::string LN_TOTAL_INTENSITY = "ln_total_intensity";
-
-      // User parameter name for a binomial fragment-match score, -10*log10 P(X >= matched) with
-      // X ~ Binomial(#theoretical ions, peak density). The statistical model behind Andromeda and
-      // MS Amanda; independent of the hyperscore's factorial/intensity-product formulation.
-      inline const std::string BINOMIAL_MATCH_SCORE = "binomial_match_score";
-
-      // User parameter name for the Tailor-calibrated score: the hit's score divided by a low-order
-      // quantile of the same spectrum's candidate score distribution (Sulc et al. 2020). Per-spectrum
-      // calibration by division, which unlike a difference also absorbs the distribution's width.
-      inline const std::string TAILOR_SCORE = "tailor_score";
-
-      // User parameter name for the fraction of the spectrum's most intense peaks that the PSM
-      // explains. Uses intensity *rank* rather than summed intensity.
-      inline const std::string TOP_PEAKS_EXPLAINED_FRACTION = "top_peaks_explained_fraction";
 
       /** User parameter name to indicate a peptide q-value
               String
