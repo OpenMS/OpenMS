@@ -10,7 +10,6 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_tests")
 
-option(ENABLE_STYLE_TESTING "Enables checking of code convention violations (cpplint) and static code analysis (cppchecker). Note that this will disable the regular test system." OFF)
 set(_openms_topp_testing_default ON)
 if(DEFINED BUILD_TOPP_TOOLS)
   set(_openms_topp_testing_default ${BUILD_TOPP_TOOLS})
@@ -30,22 +29,18 @@ endif()
 #------------------------------------------------------------------------------
 # we only test if we have no package target
 if("${PACKAGE_TYPE}" STREQUAL "none")
-  if(ENABLE_STYLE_TESTING)
-    add_subdirectory(coding)
-  else()
-    ## configure the regular class ..
-    if(ENABLE_CLASS_TESTING)
-      add_subdirectory(class_tests)
-    endif()  
-    # TOPP Test project ..
-    if(ENABLE_TOPP_TESTING)
-      add_subdirectory(topp)
-    endif()
-    # and if requested also TOPPAS pipeline tests
-    if(ENABLE_PIPELINE_TESTING)
-      add_subdirectory(toppas)
-    endif()
-  endif(ENABLE_STYLE_TESTING)
-elseif( ENABLE_STYLE_TESTING OR ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING)
+  ## configure the regular class ..
+  if(ENABLE_CLASS_TESTING)
+    add_subdirectory(class_tests)
+  endif()
+  # TOPP Test project ..
+  if(ENABLE_TOPP_TESTING)
+    add_subdirectory(topp)
+  endif()
+  # and if requested also TOPPAS pipeline tests
+  if(ENABLE_PIPELINE_TESTING)
+    add_subdirectory(toppas)
+  endif()
+elseif( ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING)
   message(WARNING "PACKAGE_TYPE specified along with enabled testing. Tests are only enabled when PACKAGE_TYPE is none. Ignoring tests.")
 endif("${PACKAGE_TYPE}" STREQUAL "none")

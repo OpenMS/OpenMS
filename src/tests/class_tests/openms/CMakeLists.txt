@@ -21,8 +21,13 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURE
 include(executables.cmake)
 
 #------------------------------------------------------------------------------
+# scan this project's include dir for API docs, so TestFileValidation.h's
+# VALIDATE_TMP_FILES / VALIDATE_FILE land on the ClassTest doxygen page
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
+#------------------------------------------------------------------------------
 # Include directories for tests
-set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
+set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/;${PROJECT_SOURCE_DIR}/include/")
 # add OpenMS directories
 set(OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES "${OpenMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
 include_directories(${OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES})
@@ -38,8 +43,11 @@ endif()
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
-  add_executable(${_class_test} source/${_class_test}.cpp)
-  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  # OpenMSTestSupport.cpp registers libOpenMS behavior (unique-ID seeding, exception
+  # naming) with the std-only test framework. Removing it makes ID-bearing
+  # reference-file comparisons nondeterministic -- see the file's header comment.
+  add_executable(${_class_test} source/${_class_test}.cpp source/OpenMSTestSupport.cpp)
+  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
@@ -301,6 +309,20 @@ endif()
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+endif()
+
+# Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
+# THERMO_FAIMS_DIA_TEST_DATA or downloaded by ENABLE_THERMO_FAIMS_DIA_TESTS.
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA)
+  # Normalize manually supplied native paths (especially Windows paths with
+  # backslashes) before embedding the value as a C/C++ string literal.
+  file(TO_CMAKE_PATH "${THERMO_FAIMS_DIA_TEST_DATA}" _thermo_faims_dia_test_data)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
+endif()
+
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND
+    (THERMO_RAW_TEST_DATA OR THERMO_FAIMS_DIA_TEST_DATA))
   set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
 
   # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
