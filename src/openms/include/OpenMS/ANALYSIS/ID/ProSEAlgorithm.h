@@ -682,10 +682,18 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * FragmentIndex whose parameters already reflect any calibrated tolerances
      * the caller wants to apply.
      *
+     * @param[in] spectra Preprocessed MS2 spectra to score.
+     * @param[in] fi Pre-built FragmentIndex to query for candidates.
+     * @param[in] db Database the FragmentIndex was built from, used to reconstruct candidate sequences.
+     * @param[in] spectrum_generator Generator for the theoretical spectrum of each candidate.
+     * @param[in] effective_fragment_tol Fragment mass tolerance to score with (calibrated, if calibration ran).
+     * @param[in] fragment_mass_tolerance_unit_ppm Whether @p effective_fragment_tol is in ppm rather than Da.
+     * @param[in] open_search_mode Whether to record the precursor delta mass on each hit.
      * @param[in,out] annotated_hits Per-spectrum candidate hits, one entry per spectrum.
      * @param[in,out] pool_stats Per-spectrum summary of the full (unpruned) candidate
      *                pool, one entry per spectrum. Accumulated rather than overwritten,
      *                so chunked callers can pass the same vector for every chunk.
+     * @param[in] progress_label Label shown by the progress logger for this scoring pass.
      */
     void scoreSpectraAgainstIndex_(
         const PeakMap& spectra,
