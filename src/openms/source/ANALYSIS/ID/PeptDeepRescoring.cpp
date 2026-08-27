@@ -298,7 +298,18 @@ namespace OpenMS
         "'fragment_annotation').");
     }
 
-    const bool higher_better = peptide_ids[0].isHigherScoreBetter();
+    // Collision energy per spectrum, keyed by native ID so each run can pick out its
+    // own spectra. Built once; the PeakMap is not otherwise needed below.
+    std::map<std::string, double> collision_energies;
+    for (const MSSpectrum& sp : spectra)
+    {
+      if (sp.getMSLevel() != 2 || sp.getPrecursors().empty()) { continue; }
+      const Precursor& prec = sp.getPrecursors()[0];
+      if (prec.metaValueExists("collision energy"))
+      {
+        collision_energies[sp.getNativeID()] = static_cast<double>(prec.getMetaValue("collision energy"));
+      }
+    }
 
     // Loading a model is expensive, so both sessions are created once and reused by
     // every run.
@@ -312,7 +323,12 @@ namespace OpenMS
     }
     for (const auto& [run_id, run_rows] : rows_by_run)
     {
-      annotateRun_(spectra, peptide_ids, rows, run_rows, uniq_seq, uniq_charge, higher_better, ms2, rt);
+      // Score orientation is a property of the run, not of the container: a merged file
+      // can hold runs from engines that disagree on it, and picking the wrong direction
+      // would calibrate on the *worst* PSMs.
+      const bool higher_better = peptide_ids[rows[run_rows.front()].pi].isHigherScoreBetter();
+      annotateRun_(collision_energies, peptide_ids, rows, run_rows, uniq_seq, uniq_charge,
+                   higher_better, ms2, rt);
     }
 
     // ---- register the features for rescoring, per run ----
@@ -352,7 +368,7 @@ namespace OpenMS
     }
   }
 
-  void PeptDeepRescoring::annotateRun_(const PeakMap& spectra,
+  void PeptDeepRescoring::annotateRun_(const std::map<std::string, double>& collision_energies,
                                        PeptideIdentificationList& peptide_ids,
                                        const std::vector<Row>& rows,
                                        const std::vector<Size>& run_rows,
@@ -378,16 +394,20 @@ namespace OpenMS
     double nce = nce_;
     if (nce <= 0.0)
     {
-      // Centre the grid on what the instrument recorded, when it recorded anything.
+      // Centre the grid on what the instrument recorded for *this run's* spectra.
+      // Runs acquired at different collision energies otherwise share a grid that can
+      // exclude one of their optima.
       std::vector<double> ces;
-      for (const MSSpectrum& s : spectra)
+      for (Size i : run_rows)
       {
-        if (s.getMSLevel() != 2 || s.getPrecursors().empty()) { continue; }
-        const Precursor& prec = s.getPrecursors()[0];
-        if (prec.metaValueExists("collision energy"))
-        {
-          ces.push_back(static_cast<double>(prec.getMetaValue("collision energy")));
-        }
+        const auto it = collision_energies.find(peptide_ids[rows[i].pi].getSpectrumReference());
+        if (it != collision_energies.end()) { ces.push_back(it->second); }
+      }
+      if (ces.empty())
+      {
+        // No usable spectrum references (older files, or identifications not linked to
+        // these spectra): fall back to every collision energy we saw.
+        for (const auto& [ref, ce] : collision_energies) { (void)ref; ces.push_back(ce); }
       }
       double centre = nce_fallback_;
       if (!ces.empty())
