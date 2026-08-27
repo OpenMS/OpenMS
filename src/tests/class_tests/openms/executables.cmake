@@ -656,6 +656,10 @@ if(WITH_WNETALIGN)
   list(APPEND analysis_executables_list FeatureGroupingAlgorithmWNet_test WNetMatcher_test)
 endif()
 
+if(WITH_ONNX)
+  list(APPEND analysis_executables_list PeptDeepRescoring_test)
+endif()
+
 set(applications_executables_list
   INIUpdater_test
   #MapAlignerBase_test
