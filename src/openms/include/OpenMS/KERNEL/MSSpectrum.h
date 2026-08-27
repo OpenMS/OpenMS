@@ -357,13 +357,22 @@ public:
     /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
     /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
     /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
-    template<class Predicate> 
+    ///
+    /// @exception Exception::Precondition if a non-empty data array's size differs from the number
+    ///            of peaks. This is checked up front, before @p lambda is ever invoked, so the
+    ///            spectrum is left unchanged.
+    template<class Predicate>
     void sort(const Predicate& lambda)
     {
+      // Validate up front, before running the (possibly data-array-indexing) predicate, so a
+      // mis-sized array throws instead of being read out of bounds during the sort.
+      checkDataArraySizes_();
       std::vector<Size> indices(this->size());
       std::iota(indices.begin(), indices.end(), 0);
       std::stable_sort(indices.begin(), indices.end(), lambda);
-      select(indices);
+      // 'indices' is a permutation of [0, size): in range and duplicate-free by construction,
+      // so the unchecked path is safe and skips the redundant bounds re-scan.
+      selectUnchecked(indices);
     }
 
     //@}
@@ -589,14 +598,46 @@ public:
     */
     void clear(bool clear_meta_data);
 
-    /*
-      @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
+    /**
+      @brief Select (a subset of) the spectrum and its data arrays, retaining only the peaks named in
+             @p indices, in the given order.
 
-      @param[in] indices Vector of indices to keep
+      Every index is bounds-checked before any storage is touched, so an out-of-range index is rejected
+      with the spectrum left unchanged. This is the safe, default entry point (and the one exposed to
+      Python). Callers that already know their indices are in range can use selectUnchecked() to skip
+      the check.
+
+      @param[in] indices Indices of the peaks to keep. Must all be < size(); see selectUnchecked() for
+                 the duplicate-index restriction that applies to both overloads.
       @return Reference to this MSSpectrum
 
+      @exception Exception::Precondition if an index is out of range, or if a non-empty float, string or
+                 integer data array's size differs from the number of peaks.
     */
     MSSpectrum& select(const std::vector<Size>& indices);
+
+    /**
+      @brief Like select(), but without the per-index range check.
+
+      For hot paths whose indices are in range by construction (e.g. a sort permutation). The data-array
+      size consistency is still checked, as it is cheap and guards a separate out-of-bounds.
+
+      @note @p indices must be duplicate-free. Repeating an index is undefined behaviour: the peaks and
+            data-array entries are moved, so a second reference would read a moved-from value. A debug
+            build asserts uniqueness via OPENMS_PRECONDITION; release builds do not pay for the check.
+            Duplicates are memory-safe (unlike an out-of-range index), so the only caller that can supply
+            them is Python: the nanobind select() binding rejects duplicates up front with a ValueError,
+            which is why this C++ path only asserts in debug rather than validating unconditionally.
+
+      @note Not a strong exception guarantee: peaks are moved into place before the data arrays, so a
+            std::bad_alloc while reordering an array can leave peaks and arrays permuted.
+
+      @param[in] indices Indices of the peaks to keep. Every index must be < size() and unique.
+      @return Reference to this MSSpectrum
+
+      @exception Exception::Precondition if a non-empty data array's size differs from the number of peaks.
+    */
+    MSSpectrum& selectUnchecked(const std::vector<Size>& indices);
 
 
     /**
@@ -686,6 +727,17 @@ public:
       RasterAggregation aggregation = RasterAggregation::SUM) const;
 
 protected:
+    /**
+      @brief Throws Exception::Precondition if any non-empty data array's size differs from the peak count.
+
+      Shared by sort() and select() so that permuting the peaks can never mis-associate a parallel
+      data array or index one out of bounds.
+
+      @exception Exception::Precondition if a non-empty float, string or integer data array's size
+                 differs from the number of peaks.
+    */
+    void checkDataArraySizes_() const;
+
     /// Retention time
     double retention_time_ = -1;
 
