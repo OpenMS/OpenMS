@@ -70,6 +70,7 @@ public:
       @param[in,out] pairs         Putative charge-pair edges to filter; realised edges are flagged active in place.
       @param[in]     verbose_level Verbosity for the LP solver (0 = silent; higher = more solver chatter).
       @return Sum of per-component objective values, or @c -1 if @p fm is empty (a warning is logged in that case).
+      @throw Exception::FailedAPICall if the LP solver fails to find a feasible solution for a component.
     */
     double compute(const FeatureMap& fm, PairsType& pairs, Size verbose_level) const;
 

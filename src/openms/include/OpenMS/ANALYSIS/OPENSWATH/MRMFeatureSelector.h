@@ -117,6 +117,7 @@ public:
       @param[in] feature_name_map Transitions' names to their features objects
       @param[out] result Transitions' names filtered out of the LP problem
       @param[in] parameters Parameters
+      @throw Exception::FailedAPICall if the LP solver fails to find a feasible solution.
     */
     virtual void optimize(
       const std::vector<std::pair<double, std::string>>& time_to_name,
@@ -134,6 +135,7 @@ public:
       @param[in] features Input features
       @param[out] selected_filtered Output features
       @param[in] parameters Parameters
+      @throw Exception::FailedAPICall if `optimize()` fails to find a feasible solution for a segment.
     */
     void selectMRMFeature(
       const FeatureMap& features,

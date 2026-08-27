@@ -498,9 +498,12 @@ public:
     
     /**
       @brief Get the value of a variable in the solution
-      
+
       @param[in] index Index of the column/variable
-      @return Value of the variable in the optimal solution
+      @return Value of the variable in the optimal solution. On the COIN-OR and HiGHS
+              backends this silently returns 0.0 (not an error) if @p index is out of
+              range or solve() has not yet produced a solution -- check getStatus()
+              first to distinguish a genuine zero from "no solution available".
     */
     double getColumnValue(Int index);
 
