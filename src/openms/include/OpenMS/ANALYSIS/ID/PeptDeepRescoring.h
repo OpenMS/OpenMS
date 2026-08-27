@@ -59,7 +59,10 @@ namespace OpenMS
     similarity here would tie the RT feature to the MS2 features and let one feature's
     errors propagate into the other.
 
-    @htmlinclude OpenMS_PeptDeepRescoring.parameters
+    Parameters are not pulled into the generated documentation with
+    @c \@htmlinclude: that requires the class to be registered in
+    DefaultParamHandlerDocumenter, which cannot instantiate a type that only
+    exists in ONNX-enabled builds. ProSEAlgorithm omits it for the same reason.
 
     @ingroup Analysis_ID
   */
