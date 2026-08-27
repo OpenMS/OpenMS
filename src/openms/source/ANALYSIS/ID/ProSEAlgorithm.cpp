@@ -512,7 +512,7 @@ namespace OpenMS
     (void)spectra; (void)protein_ids; (void)peptide_ids;
     OPENMS_LOG_WARN << "[ProSE] 'peptdeep:ms2_model'/'peptdeep:rt_model' are set, but this "
                        "OpenMS was built without ONNX support (WITH_ONNX=OFF); the "
-                       "prediction-based rescoring features are not added." << std::endl;
+                       "prediction-based rescoring features are not added." << '\n';
 #endif
   }
 
