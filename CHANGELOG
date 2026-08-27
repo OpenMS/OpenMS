@@ -46,6 +46,56 @@ General:
     variable or an old side-by-side install can no longer hijack resolution (most relevant on Windows).
     File::find reports the resolved data directory and where it came from when a file is missing
     (#9635, #9636, #9650)
+  - The class-test framework (ClassTest.h macros, FuzzyStringComparator) was moved out of libOpenMS
+    into its own standard-library-only static library, OpenMSTestFramework. Include paths and
+    installed header locations are unchanged; the ~50 framework symbols leave the libOpenMS ABI, and
+    the FuzzyDiff tool and all class tests link the new library. Tests of libraries that do not link
+    libOpenMS (e.g. OpenSwathAlgo) now build without libOpenMS in their link closure. Schema
+    validation of NEW_TMP_FILE outputs is now explicit (VALIDATE_TMP_FILES; the 26 tests that
+    validated files call it), unique-ID seeding and OpenMS exception naming are registered by the
+    test projects (OpenMSTestSupport.cpp), and the unused Internal::OpenMS_locale global was removed
+  - Fix: File::writable() is no longer destructive and no longer reports false negatives under
+    concurrency. It used to answer "does it exist?" and "may I write it?" with two separate
+    queries, so a concurrent process could change the path in between and make it wrongly report
+    a writable path as unwritable; and it probed a non-existent path by creating that very file
+    and deleting it again, which could unlink output another process had just written there.
+    It now asks once and probes the target *directory* with a uniquely named temporary file.
+    File::readable() lost the same redundant exists() check. This removes a source of
+    intermittent "Cannot write output file" failures when two TOPP tools share an output path
+    (#9937, #9940, #9941)
+  - Fix: MRMFeatureSelector selected no features at all on builds using the GLPK backend
+    (-DLP_SOLVER=GLPK, or the vcpkg "lp-glpk" feature). Its "exactly one feature per transition"
+    constraints were typed DOUBLE_BOUNDED with both bounds equal, which reaches GLPK as GLP_DB
+    with lb == ub; glp_intopt then returns GLP_EBOUND and leaves every column at zero, and the
+    unchecked return value turned that into a silently empty selection. They are now typed FIXED.
+    No effect on the COIN-OR and HiGHS backends, which treat the two types identically (#9940)
+  - Fix: LP/ILP solver failures are no longer silent. LPWrapper::getStatus() now reports the real
+    solution status on the COIN-OR backend (it unconditionally returned UNDEFINED there, and the raw
+    solve() return value cannot signal failure: COIN-OR and HiGHS report a completed run even for a
+    proven-infeasible model). LPWrapper::solve() logs a warning whenever no feasible solution was
+    produced, and its callers (MRMFeatureSelector, ILPDCWrapper/Decharger) now check getStatus() and
+    throw an informative exception instead of reading the all-zero non-solution back as valid output
+    - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
+    empty results (#9944)
+  - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
+    "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
+    The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
+    (#9945)
+  - Removed the unregistered developer runners under src/tests/topp/ProteomicsLFQTestScripts,
+    which no CTest target ran (run_lfq.sh and run_BSA.sh were additionally hardwired to personal
+    machine paths), and the ProteomicsLFQ documentation line that pointed to them (#9945)
+  - Cleanup: pruned share/OpenMS/SCHEMAS from 62 to 23 XSD files, keeping only the schemas OpenMS
+    actually loads at runtime (the current version each format's *File class validates against when
+    isValid() is called, their <xs:include> closure, the four auto-detected mzIdentML versions, and
+    Param_1_7_0 used for CTD/CWL export). The 39 removed files (superseded format versions plus the
+    never-loaded CvMapping, CTD_0_3, qcML_0.0.7, mzQCML_0_0_5 and mzQuantML_1_0_0-rc2) remain
+    available from the release/3.5.0 tag; a new SCHEMAS/README.md documents what is kept and where
+    the archived schemas live. Also fixed two dangling schema references that pointed at
+    non-existent files: QcMLFile (qcml.xsd) and PepXMLFileMascot (PepXML_1_8.xsd) now declare no
+    bundled schema -- since both paths were already broken, their isValid() (which nothing in the
+    codebase calls) now throws NotImplemented rather than a file-not-found error, i.e. semantic
+    schema validation stays unavailable for these two formats. Normal file reading/writing is
+    unaffected (#9757)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -94,10 +144,36 @@ PyOpenMS:
     - PEP 561 type stubs (.pyi), smaller binaries, faster builds and better error messages
     - along the way: ~50 mutable-reference output parameter bugs fixed and ~100 missing default
       arguments restored
+  - BREAKING: getters return owned copies again, restoring the 3.5 (Cython) semantics that the initial
+    nanobind port had turned into live aliases (#9792, #9794)
+    - element access (spec[i], for peak in spec, exp.getSpectrum(i)), vector getters (getSpectra(),
+      getHits(), getPrecursors(), getFloatDataArrays(), ...) and single sub-object getters
+      (getInstrumentSettings(), getPrecursor(), getParameters(), ...) all hand out copies
+    - one rule for every getter: read it, edit it, put it back -- e.g.
+      s = exp.getSpectrum(0); s.setRT(1.0); exp[0] = s
+    - closes the use-after-free and silent-corruption classes from #9792: an alias no longer dangles
+      when the container reallocates (push_back) and no longer silently re-labels a different element
+      when the container is sorted (sortByRT); AASequence element access no longer exposes mutable
+      handles into the process-wide ResidueDB
+    - see src/pyOpenMS/OWNERSHIP.md for the full rule and the three documented exceptions (fluent
+      builders, database lookups, and shared DataProcessing entries)
+    - opt-in aliasing access is available under an explicit naming scheme: <singular>_view(i) for one
+      element (spectrum_view(i), feature_view(i), chromatogram_view(i)), <singular>_views() for the
+      collection, and iter_<singular>_views() for iteration; the get_ prefix is reserved for owned
+      copies, so aliasing accessors never carry it; edits through a view land
+      immediately, the parent is kept alive, and resizing/reordering the list invalidates the view.
+      Available on MSExperiment, FeatureMap, ConsensusMap, PeptideIdentificationList,
+      MRMTransitionGroup and the MSSpectrum/MSChromatogram data arrays; the built-in DataFrame
+      exports iterate views internally (spectrum iteration ~100x faster than copying)
+  - FIX: MSSpectrum.set_drift_time_array() no longer frees the buffer a live numpy view points into
+    when the replacement array has the same length (#9792)
+  - SpectrumAccessOpenMSCached wrapped (on-disk cached spectrum access for OpenSWATH-style workflows);
+    SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr() now returns it for experiments carrying
+    the cached_data marker instead of raising
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
     handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions (get_df() -> to_df(), get_df_columns()
-    -> df_columns(), ...) and zero-copy _mv methods renamed to _view (get_data_mv() -> get_data_view());
+    -> df_columns(), ...) and zero-copy _mv methods renamed to _view (get_data_mv() -> data_view());
     deprecated aliases are provided for both (#8655, #8857)
   - DataFrame / Arrow support: to_df() for MSSpectrum, MSChromatogram, Mobilogram, MSExperiment,
     ConsensusMap, FeatureMap and PeptideIdentificationList, get_chromatogram_df()/get_feature_df() for
@@ -122,7 +198,7 @@ PyOpenMS:
     (#8525); DRange1 (#8504)
   - Ion mobility: the per-peak IM dimension can now be written, not just read -- set_im_data() /
     set_drift_time_array() take the unit explicitly instead of requiring the magic data-array name;
-    get_drift_time_array()/get_drift_time_unit() accessors and zero-copy get_peaks_struct() for
+    get_drift_time_array()/get_drift_time_unit() accessors and zero-copy peaks_struct() for
     MSChromatogram and Mobilogram (#8423, #8825, #8842, #9792)
   - Static methods modernized with the @staticmethod decorator (#8562); MSSpectrum.getType(bool)
     wrapped (#8589)
@@ -137,7 +213,7 @@ PyOpenMS:
     binary arrays); the data arrays are now resized/cleared along with the peaks (#9792, #9795)
   - Fix: get_drift_time_unit() returned the scalar per-spectrum unit even when guarding on the per-peak
     array, so it reported NONE for correctly labelled frames; both representations are now handled (#9792)
-  - Fix: the zero-copy get_peaks_struct() dtype derived its field offsets instead of reading them, so an
+  - Fix: the zero-copy peaks_struct() dtype derived its field offsets instead of reading them, so an
     ABI change would have gone unnoticed; offsets are now taken from the C++ members (#9792)
   - Fix: AASequence.__str__() returns the peptide sequence instead of the repr format, and copy
     constructor dispatch was corrected for AASequence and 11 further classes (ProteinHit, Software,
@@ -153,6 +229,11 @@ PyOpenMS:
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720); backward
     compatibility restored for the file I/O methods of IdXMLFile, PepXMLFile and MzIdentMLFile (#8553);
     getAAFrequencies() loop bug in the AASequence addon (#8502)
+  - Fix: a build with -DWITH_WNETALIGN=OFF produced a pyOpenMS that could not be imported at all
+    (undefined WNetMatcher symbol in _pyopenms_misc), because the WNet bindings referenced symbols
+    that are excluded from libOpenMS by that option. The WNetMatcher and FeatureGroupingAlgorithmWNet
+    bindings are now compiled only when WNet support is built, mirroring the BrukerTimsFile /
+    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946)
   - Docs: type hints in the docstrings of 133 functions (#8483), docstring format validation tests
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
@@ -431,6 +512,12 @@ TOPP tools:
         critical section, so the parallel-for over the protein database scales across threads
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
+    OpenNuXL:
+      - Fix: cross-link localization dropped a residue entirely when its shifted a/b-ion evidence was
+        deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
+        residue before) -- the y-ion evidence for that residue was then never evaluated. The
+        plausibility rules are now applied per ion series, so a residue supported by a consistent
+        shifted y-ion ladder is localized even without prefix-ion support
     PSMFeatureExtractor:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
@@ -608,6 +695,28 @@ GUI tools:
   - Fix: TOPPView performance regression when right-clicking in large mzML files (#8997)
   - Fix: Annotation1DItem was missing the OPENMS_GUI_DLLAPI export macro, so its symbols and vtable were
     not exported on Windows DLL builds (#9831)
+  - Fix: TOPPView's identification view appended PeakAnnotation::charge to fragment ion labels that
+    already spelled the charge out, so every singly charged ion of e.g. an OpenNuXL, SimpleSearchEngine
+    or ProSE result was drawn as "y1++", i.e. doubly charged (#8766)
+  - Fix: viewing a spectrum in TOPPView rewrote the stored fragment annotations. The identification view
+    put the charge into the peak label, and the annotations are synchronised back into the PeptideHit on
+    every spectrum switch, so simply stepping through spectra turned NucleicAcidSearchEngine's "a2-B"
+    into "a2-B-" and OpenPepXL's "[alpha|ci$y3]" into "[alpha|ci$y3]++" -- which in turn made the
+    sequence diagram file an a-B ion under "a". The charge now travels on the annotation item and is
+    drawn from there, so the ion name a producer wrote is never modified by looking at it
+  - Fix: reading a peak label back cut the charge off the ion name while the identification view put it
+    back on the next redraw, so a round trip turned "y3+" into "y3++"
+  - Fix: TOPPView kept only the first extra line of a multi-line peak label and dropped blank lines, so
+    a comment under the ion name was silently truncated on every spectrum switch
+  - Fix: TOPPView derived the fragment ordinal for its sequence annotation by deleting the characters
+    that are not the ordinal, so a loss ion like "y3-H2O1+" yielded ordinal 0 and no sequence at all;
+    the ordinal is now read as the digits following the ion letter and range-checked against the peptide
+  - Fix: TOPPView's sequence diagram for a b ion collapsed everything between the first and last
+    modification into a single "*", dropping the residues in between (a doubly modified prefix such as
+    "PEPT(Phospho)IDM(Oxidation)" was drawn as "PEPT*" instead of "PEPT*IDM*")
+  - TOPPView no longer draws an explicit "1+"/"1-" on singly charged fragments whose name leaves the
+    charge to PeakAnnotation::charge (cross-link, NucleicAcidSearchEngine and OpenNuXL ions); charge 1
+    is implied, matching how a named "y3+" is already drawn without its sign
 
 OpenMS Library:
   Added:
@@ -768,7 +877,19 @@ OpenMS Library:
     - TOPPExternalToolBase: tools that shell out to an external executable (search engine adapters, ...)
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
+    - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
+      already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
+      another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
+      same defect as #8766, in the written data rather than in the display. The special lysine immonium
+      ions had the mirror problem and reached the output with no charge in the name at all
+      ("iK(C6H13N2O)"). The charge is now added only when the name does not already carry one. Changes
+      the fragment annotations written by OpenNuXL (#8766)
+    - Fix: MzPAF could not parse a negative charge. MzPAF::toString() writes the sign it is given
+      ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
+      own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --
+      could be expressed in mzPAF at all. An optional sign is now read before the number
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
       longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
       they use the native schemas and file_type tokens such as consensus_features / features /
@@ -863,6 +984,12 @@ OpenMS Library:
     - Removed avoidable heavy copies in OpenMP regions and hot loops across OPXLHelper::digestDatabase,
       MultiplexFilteringProfile, MzMLSqliteHandler, SwathFileConsumer, SimpleSearchEngineAlgorithm,
       ProSEAlgorithm and NuXLAnnotateAndLocate (#9686)
+    - ProSEAlgorithm: TheoreticalSpectrumGenerator and SpectrumAlignment used for post-scoring peak
+      annotation are now built once per run instead of per PSM, a redundant open-search
+      modification-analysis pass whose only effect was logging was dropped, each spectrum's candidate
+      list is pruned to max(report:top_hits, 2) as soon as scoring moves past it instead of staying at
+      scoring:max_candidates_per_spectrum, and the calibration pass reuses one spectrum buffer across
+      candidates. Output-identical; closed search ~26% and open search ~30% faster (#9963)
     - PrecursorCorrection::correctToNearestFeature() replaced the Cartesian product over precursors and
       features (8e8 overlap checks, each rebuilding a non-memoized bounding box) with one precomputed
       bounding box per feature and a sweep line over increasing precursor m/z (#4787, #9801)
@@ -1031,8 +1158,17 @@ Documentation:
     matrices for label-free, fractionated, TMT and SILAC experiments, documents the parser
     rules and the "replicate" column-naming convention that determines what a condition is,
     and maps the terms onto SDRF-Proteomics and QPX (#9909)
+  - New vcpkg dependency-management guide (doc/doxygen/install/install-vcpkg.doxygen): what vcpkg is and
+    how OpenMS uses it (vcpkg.json, vcpkg-configuration.json), how the vcpkg-overlays/ directory provides
+    custom/patched ports and triplets not available in the public registry, building with the
+    CMakePresets.json presets vs. manual configuration, and enabling optional features via
+    VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - Removed the developer script tools/checker.php. Covered by .clang-format now.
+  - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
+  - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).
+  - Removed the PHP class-test scaffolding tools (tools/create_test.php, correct_test.php, common_functions.php, tools/README) and the doc_xml Doxygen target / Doxyfile_xml that only fed them; new class tests follow the template in the developer FAQ (#9945).
   - UniqueIdGenerator no longer uses boost::random or boost::date_time: it uses std::mt19937_64
     and std::chrono instead, which removes the boost/random include from the public header
     <OpenMS/CONCEPT/UniqueIdGenerator.h>. For a given explicit setSeed() value the generated ids
@@ -1054,13 +1190,13 @@ Build System:
     standalone consumers building against an installed prefix, were registered (#9774)
   - vcpkg integration (GSoC 2026): vcpkg.json, vcpkg-configuration.json and CMakePresets.json manage the
     build dependencies via vcpkg, validated by a dedicated CI workflow with a binary cache (#9511)
-  - vcpkg integration extended to Windows and macOS: new configure/build/test presets for both platforms
-    (release, debug, relwithdebinfo, CI), plus overlay ports for onnxruntime (patched for Clang
-    compatibility), openms-thermo-bridge, opentims, isospec, eol-bspline and glpk (the latter working
-    around a glpk build failure on newer clang/gcc). macOS overlay triplets set -isysroot explicitly,
-    which vcpkg was not passing to port builds and which left the SDK sysroot empty; additional
-    release-only overlay triplets are available to skip building the debug variant of every port,
-    roughly halving configure time (#9800)
+    - Extended from Linux to Windows and macOS: platform-specific configure/build/test presets, overlay
+      ports for onnxruntime, openms-thermo-bridge and opentims (with the clang/newer-gcc glpk build fix
+      applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
+      SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
+      configure time roughly in half by skipping the debug variant of every port (#9800)
+    - Main CI build/test workflow switched from contrib/system dependencies to vcpkg, using the same
+      vcpkg-aware CMakePresets.json presets and binary cache as the dedicated vcpkg CI workflow (#9927)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
     string conversions in String, DataValue and related utilities; 30-40% less compile time and better
     runtime throughput (#9648). Float-to-string now uses the shortest round-trip representation for
@@ -1100,6 +1236,20 @@ Build System:
   - CI: removed the check-tool-handler.yml and check-authors-file.yml pull_request_target workflows; both
     broke for every fork PR after an actions/checkout change and gave external contributors an unconditional
     unrelated failure (#9785, #9787)
+  - CI: the compiler build cache now actually gets written. actions/cache only saves in its post step when
+    the primary key missed, but the build workflow used a static key, so the cache was populated once and
+    then restored stale on every later run -- every build recompiled from scratch. Restore and save are now
+    split (actions/cache/restore + actions/cache/save) with a per-run primary key, which guarantees a miss
+    so the save step always fires, while a restore-keys ladder still prefers the newest cache for the
+    current branch, then develop, then any branch; ccache statistics are printed after each build so a cold
+    cache is visible in the log instead of only in wall-clock time (#9887)
+  - CI: doc-validate now pins ruff to 0.16.2 instead of installing whatever astral-sh/ruff-action resolves
+    to latest, and doc/pyopenms/ruff.toml selects the pyOpenMS documentation's lint rules explicitly. Ruff
+    0.16 widened its default lint selection from 59 to 413 rules, which turned the job red with no commit
+    of ours in between (#9899, #9906)
+  - Tests: TOPP_OpenSwathWorkflow_17_cache wrote to the same output file names as TOPP_OpenSwathWorkflow_17,
+    so the two tests could collide when a Windows nightly run scheduled them concurrently; the cache variant
+    now uses its own file names (#9937)
   - Tests: the 19 assertions on QPX Parquet output were `cmake -E sha256sum` calls that compared the hash to
     nothing, so only file existence was asserted -- a regression emptying a table, renaming every run or
     dropping a column was invisible. They now assert the schema and a row-count floor via the new ParquetDiff

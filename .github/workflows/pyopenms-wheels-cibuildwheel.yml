@@ -270,7 +270,29 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
+        run: |
+          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
+
+          # These dependencies are need only in this workflow:
+          brew install \
+            uv
+
+          # These are now provided by vcpkg and thus removed from
+          # `tools/ci/deps-macos.sh`:
+          brew install \
+            apache-arrow \
+            boost \
+            cbc \
+            cgl \
+            clp \
+            coinutils \
+            eigen \
+            libomp \
+            libsvm \
+            libzip \
+            sqlite \
+            xerces-c \
+            zstd
 
       # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
       # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the

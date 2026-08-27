@@ -1,0 +1,143 @@
+/**
+
+    @page install_vcpkg Managing dependencies with vcpkg
+    
+    %OpenMS can obtain its third-party dependencies (Boost,Eigen, Apache Arrow, etc.)
+    through [vcpkg](https://learn.microsoft.com/en-us/vcpkg/get_started/overview), 
+    Microsoft's cross-platform C/C++ package manager, instead of the system package manager or the `contrib` package. vcpkg builds vcpkg resolves the manifest and builds or restores packages as needed in a fixed, reproducible configuration, which make it easiest way to get a consistent set of libraries across Linux, macOS and Windows.
+
+    The set of dependencies and their versions or features are declared in the manifest 
+    file [vcpkg.json](https://github.com/OpenMS/OpenMS/blob/develop/vcpkg.json) at the 
+    root of the repository, and an overlay settings are declared in [vcpkg-configuration.json](https://github.com/OpenMS/OpenMS/blob/develop/vcpkg-configuration.json). 
+    For a general introduction to vcpkg and manifest mode, see the [vcpkg documentation](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode).
+
+    @section install_vcpkg_overlay The overlay directory
+
+    Most of the libraries %OpenMS depends are available, unmodified from the public 
+    vcpkg directory. A few, however needs a patch, file changes or do not exist in 
+    the registry at all (for example the header-only `pylmcf`/`wnet`/`wnetalign` libraries used for Wasserstein network alignment feature or the `openms-thermo-bridge` library used for native Thermo RAW file support). For these cases %OpenMS ships its own 
+    [overlay ports](https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays/ports) 
+    in the [vcpkg-overlays/](https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays) 
+    directory: 
+
+    - `vcpkg-overlays/ports` contain one subdirectory per port. A port here can either 
+       replace a port of the same name from the public registry(e.g., to apply a patch 
+       or edit the existing port files) or provide an entirely a new port that is not 
+       available upstream at all (e.g., `opentime`, `isospec`, `pylmcf`, etc.).
+
+    - `vcpkg-overlays/triplets` contains custom triplets used to build these dependencies 
+       with non-default settings.
+
+    These locations are wired up via the `overlay-ports` and `overlay-triplets` keys in 
+    `vcpkg-configuration.json`, so vcpkg automatically picks them up whenever it resolves 
+    a port name. If you need to add or edit the corresponding subdirectory under 
+    `vcpkg-overlays/ports`; see the vcpkg [overlay-ports](https://learn.microsoft.com/en-us/vcpkg/concepts/overlay-ports)
+    and the [packaging details](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-packaging?pivots=shell-powershell)
+    for details on writing a `overlay-port`.
+
+    @section install_vcpkg_prereqs System prerequisites
+
+    OpenMS need an underlying compiler, build generator,
+    and (because some vcpkg ports build upstream projects using an
+    autotools build system, and because `WITH_GUI` is on by default) the
+    autotools chain and GUI/OpenGL prerequisites below.
+
+    @subsection install_vcpkg_prereqs_linux Linux
+
+      A C++23-capable compiler is required; see @ref install_linux_compiler
+      for the minimum supported GCC/Clang versions.
+
+      \snippet "../../tools/ci/deps-vcpkg-ubuntu.sh" installation_documentation
+
+    @subsection install_vcpkg_prereqs_macos macOS
+ 
+      A C++23-capable Xcode installation is required; see @ref required_apps.
+      
+      \snippet "../../tools/ci/deps-vcpkg-macos.sh" installation_documentation
+
+    @section install_vcpkg_build Building OpenMS with vcpkg
+
+    1. vcpkg is included as a git submodule, so make it sure it is checked out alongside
+       the rest of source tree:
+
+        \code
+        OPENMS_DIR=~/openms-development
+        mkdir -p "$OPENMS_DIR"
+        cd "$OPENMS_DIR"
+        git clone --recurse-submodules https://github.com/OpenMS/OpenMS
+        \endcode
+
+       If you already have a clone without the `vcpkg` submodule initialized.
+       run:
+
+        \code
+        cd "$OPENMS_DIR/OpenMS"
+        git submodule update --init vcpkg
+        \endcode
+
+        Building with presets uses [Ninja][https://ninja-build.org/] as the 
+        generator, so make sure it is installed and available on your `PATH`.
+
+    2. Configure, build and (optionally) test using a preset name for your platform.
+       For example, on Linux x64:
+
+        \code
+        cd "$OPENMS_DIR/OpenMS"
+        cmake --preset linux-x64-release
+        cmake --build --preset linux-x64-release
+        ctest --preset linux-x64-release
+        \endcode
+
+        The resulting build directory is `build/linux-x64-release` (each preset gets 
+        its own directory, so debug/release/relwithdebinfo builds don't clash). Substitute 
+        the preset name for your platform and desired build type; run `cmake --list-presets` 
+        to see all available presets, including the `*-ci` presets used by the CI pipeline, 
+        which additionally enable most optional features via `VCPKG_MANIFEST_FEATURES` (see below).
+
+        The first configure of a given preset can take a while, since it
+        builds all vcpkg dependencies for that triplet from source; subsequent
+        configures reuse the already-built packages from
+        `build/<preset>/vcpkg_installed/`.
+
+    3. If you need a configuration that isn't covered by a preset, you can
+       still configure manually, mirroring what the presets do under the
+       hood:
+
+        \code
+        mkdir -p "$OPENMS_DIR/openms_build"
+        cd "$OPENMS_DIR/openms_build"
+        cmake -DOPENMS_USE_VCPKG=ON \
+              -DCMAKE_TOOLCHAIN_FILE="$OPENMS_DIR/OpenMS/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+              "$OPENMS_DIR/OpenMS"
+        cmake --build .
+        \endcode
+    
+    Optional %OpenMS features that pull in additional dependencies (HDF5,
+    ONNX Runtime, the Wasserstein network alignment libraries, etc.) need
+    **two** things to be turned on together: the corresponding CMake option
+    (e.g. `-DWITH_HDF5=ON`, `-DWITH_ONNX=ON`) *and* the matching vcpkg
+    manifest feature via `-DVCPKG_MANIFEST_FEATURES="<feature1>;<feature2>;..."`,
+    so that vcpkg actually installs the extra dependency. The `*-ci` presets
+    show an example enabling several of these together:
+
+    \code
+    -DVCPKG_MANIFEST_FEATURES="isospec;wnetalign;onnxruntime" \
+    -DWITH_ONNX=ON -DWITH_WNETALIGN=ON -DUSE_EXTERNAL_ISOSPEC=ON
+    \endcode
+
+    See @ref install_linux or other operating system build docs for the full 
+    list of `WITH_*`/`USE_EXTERNAL_*` build flags and what each optional feature does.
+    
+    @note `OPENMS_USE_VCPKG` is an alternative to, not a combination with,
+    the system/`contrib`-based dependency discovery.
+
+    [vcpkg]: https://vcpkg.io
+    [vcpkg-docs]: https://learn.microsoft.com/en-us/vcpkg/
+    [vcpkg-overlay-ports]: https://learn.microsoft.com/en-us/vcpkg/concepts/overlay-ports
+    [vcpkg-packaging-tutorial]: https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-packaging
+    [openms-vcpkg-json]: https://github.com/OpenMS/OpenMS/blob/develop/vcpkg.json
+    [openms-vcpkg-config]: https://github.com/OpenMS/OpenMS/blob/develop/vcpkg-configuration.json
+    [openms-vcpkg-overlays]: https://github.com/OpenMS/OpenMS/tree/develop/vcpkg-overlays
+    [openms-cmake-presets]: https://github.com/OpenMS/OpenMS/blob/develop/CMakePresets.json
+
+*/

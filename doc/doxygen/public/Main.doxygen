@@ -52,6 +52,7 @@
           <LI> @subpage install_linux
           <LI> @subpage install_mac
           <LI> @subpage install_win
+          <LI> @subpage install_vcpkg
         </UL>
 
         Development:

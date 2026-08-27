@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/config.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <filesystem>
 #include <fstream>
@@ -55,19 +56,28 @@ END_SECTION
 
 START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, bool verbose, std::string& error_msg, IO_MODE io_mode, const std::map<std::string, std::string>& env, std::function<void()> idle_callback))
 {
+  // run everything in a private working directory: the test binary runs in a directory
+  // shared by all tests, and under 'ctest --parallel' the other tests' temp files appear
+  // and vanish while 'ls -l' walks it, making it print errors and exit non-zero (#9948)
+  File::TempDir tmp_dir;
+  { // one stable entry, so 'ls -l' has something to list
+    std::ofstream file(tmp_dir.getPath() + "some_file.txt");
+    file << "content\n";
+  }
+
   std::string error_msg;
   { // without callbacks
     ExternalProcess ep;
     std::string error_msg;
-    auto r = ep.run(exe, args, "", true, error_msg);
+    auto r = ep.run(exe, args, tmp_dir.getPath(), true, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
     TEST_EQUAL(error_msg.size(), 0)
 
-    r = ep.run("this_exe_does_not_exist", args, "", true, error_msg);
+    r = ep.run("this_exe_does_not_exist", args, tmp_dir.getPath(), true, error_msg);
     TEST_EQUAL(r,ExternalProcess::RETURNSTATE::FAILED_TO_START)
     TEST_NOT_EQUAL(error_msg.size(), 0);
 
-    r = ep.run(exe, args_broken, "", true, error_msg);
+    r = ep.run(exe, args_broken, tmp_dir.getPath(), true, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::NONZERO_EXIT)
     TEST_NOT_EQUAL(error_msg.size(), 0);
   }
@@ -76,7 +86,7 @@ START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::str
     auto l_out = [&](const std::string& out) {all_out += out;};
     auto l_err = [&](const std::string& out) {all_err += out;};
     ExternalProcess ep(l_out, l_err);
-    auto r = ep.run(exe, args, "", true, error_msg);
+    auto r = ep.run(exe, args, tmp_dir.getPath(), true, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
     TEST_EQUAL(error_msg.size(), 0);
     TEST_NOT_EQUAL(all_out.size(), 0)
@@ -84,7 +94,7 @@ START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::str
     all_out.clear();
     all_err.clear();
 
-    r = ep.run(exe, args_broken, "", false, error_msg);
+    r = ep.run(exe, args_broken, tmp_dir.getPath(), false, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::NONZERO_EXIT)
     TEST_NOT_EQUAL(error_msg.size(), 0);
     TEST_EQUAL(all_out.size(), 0)
@@ -94,7 +104,7 @@ START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::str
     all_err.clear();
 
     ep.setCallbacks(l_err, l_out); // swap callbacks
-    r = ep.run(exe, args_broken, "", false, error_msg);
+    r = ep.run(exe, args_broken, tmp_dir.getPath(), false, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::NONZERO_EXIT)
     TEST_NOT_EQUAL(error_msg.size(), 0);
     TEST_NOT_EQUAL(all_out.size(), 0)

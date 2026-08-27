@@ -17,10 +17,25 @@
 
 #include <vector>
 #include <memory>
+#include <limits>
 
 namespace OpenMS
 {
   class ExperimentalSettings;
+
+  /**
+    @brief One FAIMS compensation-voltage group represented as ordinary OpenSWATH maps.
+
+    @p faims_cv is the compensation voltage in volts. For non-FAIMS input it is NaN,
+    matching IMDataConverter::splitByFAIMSCV(). The individual SwathMap objects remain
+    unchanged and retain their normal DIA isolation-window semantics.
+  */
+  struct OPENMS_DLLAPI FAIMSSwathMapGroup
+  {
+    double faims_cv{std::numeric_limits<double>::quiet_NaN()};
+    std::vector<OpenSwath::SwathMap> swath_maps;
+  };
+
   namespace Interfaces
   {
     class IMSDataConsumer;
@@ -89,6 +104,30 @@ public:
                                                           const std::string& tmp,
                                                           std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                           const std::string& readoptions = "normal");
+
+    /**
+      @brief Partition a pre-loaded experiment once by FAIMS CV and convert each group to SWATH maps.
+
+      This is the FAIMS-aware adapter for in-memory inputs such as Thermo RAW data loaded through
+      ThermoRawFile. It reuses IMDataConverter::splitByFAIMSCV() for CV assignment and
+      loadFromMSExperiment() for the existing SWATH-window conversion. No FAIMS-specific state is
+      added to OpenSwath::SwathMap; the CV is carried by the enclosing FAIMSSwathMapGroup.
+
+      The input experiment is consumed. For non-FAIMS data, one group with a NaN CV is returned.
+      For single-CV FAIMS data, one group with that CV is returned. Multi-CV input produces one
+      group per exact compensation voltage.
+
+      @param[in,out] exp Pre-loaded experiment; spectra are moved into per-CV groups
+      @param[in] tmp Temporary directory (used only for readoptions=="cache")
+      @param[out] exp_meta Experimental metadata copied before @p exp is consumed
+      @param[in] readoptions "normal" (in-memory) or "cache" (disk-cached)
+      @return FAIMS CV groups containing ordinary OpenSWATH maps
+    */
+    std::vector<FAIMSSwathMapGroup> loadFromMSExperimentByFAIMSCV(
+      PeakMap&& exp,
+      const std::string& tmp,
+      std::shared_ptr<ExperimentalSettings>& exp_meta,
+      const std::string& readoptions = "normal");
 
     /// Loads a Swath run from a single mzXML file
     std::vector<OpenSwath::SwathMap> loadMzXML(const std::string& file,
