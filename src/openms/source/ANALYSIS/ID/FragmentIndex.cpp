@@ -2480,13 +2480,26 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
+    // Kept in sync with ProSEAlgorithm's own "annotate:PSM" valid-strings list
+    // (ProSEAlgorithm.cpp) — both declare this parameter since the merged Search:
+    // subtree is passed down to FragmentIndex as well.
     defaults_.setValidStrings("annotate:PSM",
                               std::vector<std::string>{
                                 "ALL",
                                 Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM,
                                 Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                                 Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
-                                Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+                                Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION,
+                                Constants::UserParam::NUM_MATCHED_PEAKS,
+                                Constants::UserParam::MATCHED_PREFIX_IONS,
+                                Constants::UserParam::MATCHED_SUFFIX_IONS,
+                                Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
+                                Constants::UserParam::MATCHED_ION_CURRENT,
+                                Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM,
+                                Constants::UserParam::HYPERSCORE_ZSCORE,
+                                Constants::UserParam::LN_NUM_CANDIDATES,
+                                Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+                                Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
