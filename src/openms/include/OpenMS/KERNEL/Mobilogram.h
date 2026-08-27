@@ -392,7 +392,9 @@ namespace OpenMS
       std::vector<Size> indices(this->size());
       std::iota(indices.begin(), indices.end(), 0);
       std::stable_sort(indices.begin(), indices.end(), lambda);
-      select(indices);
+      // 'indices' is a permutation of [0, size): in range and duplicate-free by construction,
+      // so the unchecked path is safe and skips the redundant bounds re-scan.
+      selectUnchecked(indices);
     }
 
     //@}
@@ -597,13 +599,14 @@ namespace OpenMS
     /**
       @brief Select a (subset of) mobilogram and its data_arrays, only retaining the indices given in @p indices
 
-      @param[in] indices Vector of indices to keep
+      Every index is bounds-checked before anything is modified, so an out-of-range index is rejected
+      with the mobilogram left unchanged. This is the safe, default entry point. Callers whose indices
+      are in range by construction can use selectUnchecked() to skip the check.
+
+      @param[in] indices Indices to keep, in the retained order. Must all be < size(); see
+                 selectUnchecked() for the duplicate-index restriction that applies to both overloads.
       @return Reference to this Mobilogram
 
-      @note DataArrays must have the same size as the mobilogram. If not, an exception is thrown.
-      @note This method is useful for filtering/reordering mobilograms while properly maintaining DataArrays.
-      @note Indices and data array sizes are fully validated before anything is modified, so a
-            rejected call leaves the mobilogram unchanged.
       @note Cached ranges are NOT recomputed. A permutation preserves them, but selecting a
             subset can leave them too wide -- call updateRanges() if you need them exact.
 
@@ -611,6 +614,23 @@ namespace OpenMS
                  array's size differs from the number of peaks.
     */
     Mobilogram& select(const std::vector<Size>& indices);
+
+    /**
+      @brief Like select(), but without the per-index range check.
+
+      For hot paths whose indices are in range by construction (e.g. a sort permutation). The data-array
+      size consistency is still checked, as it is cheap and guards a separate out-of-bounds.
+
+      @note @p indices must be duplicate-free. Repeating an index is undefined behaviour: entries are
+            moved, so a second reference would read a moved-from value. A debug build asserts uniqueness
+            via OPENMS_PRECONDITION; release builds do not pay for the check.
+
+      @param[in] indices Indices to keep, in the retained order. Every index must be < size() and unique.
+      @return Reference to this Mobilogram
+
+      @exception Exception::Precondition if a non-empty data array's size differs from the number of peaks.
+    */
+    Mobilogram& selectUnchecked(const std::vector<Size>& indices);
 
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the mobilogram is unsorted.
