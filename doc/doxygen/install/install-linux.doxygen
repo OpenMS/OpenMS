@@ -1,153 +1,10 @@
 /**
 
-  @page install_linux Building %OpenMS on GNU/Linux
-
-  This document describes how to build %OpenMS on a GNU/Linux system
-  from source.
-
-  If you encounter errors while configuring or compiling %OpenMS,
-  search in the [issue tracker][issues] for a possible solution.  If
-  an existing issue can't be found please report the error using the
-  same issue tracker.
-
-  @note If you do not have root privileges on your system, make sure
-  you read the section entitled @ref build_linux_noroot.
-
-  We are working on adding %OpenMS to the [repositories][pkgsorg] of
-  the most popular distributions, but for many platforms the toolkit
-  needs to be manually compiled on your system.  The same applies if
-  you want to use the most recent source files from our Git
-  repository.
-
-  @section install_linux_compiler Compiler Requirements
-
-  %OpenMS uses modern C++23 and therefore requires a recent C++
-  compiler.  The minimum supported compilers on GNU/Linux are:
-
-  - GCC 13 or later
-  - Clang 17 or later
-
-  On Ubuntu 24.04 (and newer) the default `g++` provided by the
-  `build-essential` package already satisfies this requirement.  On
-  older distributions the system compiler is usually too old to build
-  %OpenMS; install a newer toolchain (for example the `gcc-13` /
-  `g++-13` packages) and point CMake at it via `-DCMAKE_C_COMPILER` and
-  `-DCMAKE_CXX_COMPILER` (see also @ref install_linux_cmake_flags).
-
-  @section install_linux_deps Installing Dependencies
-
-  We recommend installing all dependencies using your distribution's
-  package manager.  However, If you would rather built all
-  dependencies from source you can do so using the %OpenMS `contrib`
-  directory.  Details can be found in the section entitled @ref
-  install_linux_contrib.
-
-  @subsection install_linux_deps_ubuntu Ubuntu/Debian (>= 24.04)
-
-  The %OpenMS continuous build system uses Ubuntu and therefore build
-  instructions for Ubuntu will be the most accurate.
-
-  Dependencies can be installed using the following commands:
-  
-  \snippet "../../tools/ci/deps-ubuntu.sh" installation_documentation
-
-  @subsection install_linux_deps_redhat Fedora/RHEL/CentOS
-
-  @note These instructions are not currently maintained.  If you find
-  that they are incorrect please open a pull request or create an
-  [issue][issues].
-
-  \code
-  # In newer distros change yum to dnf
-  sudo yum groupinstall 'Development Tools'
-  sudo yum install git tar
-  # Especially on older CentOS versions <= 6 add the EPEL repo with additional updated packages
-  sudo yum install epel-release
-  # Update repo list for the thirdparty repository EPEL
-  sudo yum repolist
-  # Get REQUIRED installable contrib libraries
-  sudo yum install cmake3 qt6-qtbase-gui qt6-qtbase-devel qt6-qtsvg-devel python-devel
-  # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
-  ## sudo yum install boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
-  # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
-  \endcode
-
-  @subsection install_linux_deps_suse openSUSE >= 13.2
-
-  @note These instructions are not currently maintained.  If you find
-  that they are incorrect please open a pull request or create an
-  [issue][issues].
-
-  \code
-  # register obs://build.opensuse.org/devel:libraries:c_c++
-  # tools
-  sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
-  # REQUIRED dependencies
-  sudo zypper install libqt6-qtbase-devel libqt6-qtsvg-devel python-devel glpk-devel
-  # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
-  ## sudo zypper install boost-devel libzip-devel zlib-devel \
-  # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
-  \endcode
-
-  @section install_linux_openms Building OpenMS
-
-  1. Begin by obtaining a copy of the %OpenMS source code:
-
-    \code
-    OPENMS_DIR=~/openms-development
-    mkdir -p "$OPENMS_DIR"
-    cd "$OPENMS_DIR"
-    git clone --recurse-submodules https://github.com/OpenMS/OpenMS
-    \endcode
-
-  2. Then compile the source code:
-
-    \code
-    mkdir -p "$OPENMS_DIR/openms_build"
-    cd "$OPENMS_DIR/openms_build"
-    cmake -DBOOST_USE_STATIC=OFF "$OPENMS_DIR/OpenMS"
-    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
-    \endcode
-
-    @note After executing CMake you can list all of the make targets
-    by running `make targets`.
-
-  3. The TOPP tools should now be ready to use.
-
-    The applications are located in the `$OPENMS_DIR/openms_build/bin`
-    directory.
-
-    @note If you intend to use third party search engines like Comet,
-    their binaries also need to be in the `PATH` environment variable.
-    You can find pre-built binaries in the %OpenMS `THIRDPARTY`
-    directory.  To use them set the `PATH` environment variable using
-    the following command:
-    \code
-    export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/Linux/$(uname -m)/Comet:$PATH"
-    \endcode
-  
-  @section install_linux_cmake_flags Additional CMake Flags
-
-  \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
+  \include{doc} "../doxygen/install/install-vcpkg.doxygen"
 
   @section install_linux_testing_openms Testing the OpenMS/TOPP Installation
 
   \include{doc} "../doxygen/install/install-testing-openms.doxygen"
-
-  @section install_linux_contrib Using the contrib Package
-
-  \include{doc} "../doxygen/install/install-contrib.doxygen"
-  
-  @section build_linux_noroot Building without Root Privileges
-
-  If you are on a system without root access (e.g. a shared cluster),
-  there are some additional considerations, especially regarding
-  dependencies.  Specifically, some older Red Hat systems have older
-  libraries installed that may interfere with the newer versions that
-  %OpenMS requires. The recommended installation procedure is to use
-  the `contrib` package to compile **all** dependencies from source.
-  Details can be found in the section entitled @ref
-  install_linux_contrib.
 
   @section build_linux_qt_issues Common Issues with Qt
 
@@ -163,9 +20,5 @@
   export QT_QPA_PLATFORM=minimal
   $OPENMS_DIR/openms_build/bin/TOPPView
   \endcode
-
-  [openms]: http://www.OpenMS.de
-  [issues]: https://github.com/OpenMS/OpenMS/issues
-  [pkgsorg]: https://pkgs.org/search/?q=openms
 
 */
