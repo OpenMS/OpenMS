@@ -393,6 +393,18 @@ TOPP tools:
         consolidated end-of-search "Search Report" (configuration recap, index stats, per-file ID
         results, tolerance estimates, per-phase timing, output manifest) with an optional -summary_out
         (#9117, #9121, #9642)
+      - Four new default Percolator features (annotate:PSM "ALL" now emits 14, up from 10):
+        hyperscore_zscore and ln_num_candidates summarise the full per-spectrum candidate pool scored
+        before pruning (a lightweight significance proxy and a search-space-size proxy, respectively,
+        since ProSE's HyperScore has no closed-form e-value); matched_ion_current_fraction normalizes
+        the existing matched_ion_current by total ion current; complementary_ions_fraction is an
+        Andromeda-style structural signal (fraction of cleavage sites where both the prefix ion and its
+        complementary suffix ion were matched). All four are individually selectable via annotate:PSM.
+        Benchmarked with five Percolator seeds on a Bruker timsTOF HeLa run and a Q Exactive HF
+        ProteoBench run (target PSMs at 1% FDR, +0.4% to +1.2%); several other candidate features
+        (delta_score_worst, ln_explained_intensity, ln_total_intensity, binomial_match_score,
+        tailor_score, top_peaks_explained_fraction) were evaluated the same way, showed no significant
+        gain over this set, and were removed rather than kept as unused opt-in code (#9970)
       - FragmentIndex: default fragment:min_ion_index changed from 0 to 2 (skips b1/b2/y1/y2, matching
         Sage; improves PSM count and reduces memory and runtime), fixed bucket_size of 4096 instead of
         sqrt(N) (~11% faster on large immunopeptidomics indices), plus a bitmask-based modification
