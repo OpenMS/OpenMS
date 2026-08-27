@@ -14,6 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -118,7 +119,7 @@ namespace OpenMS
     /// Annotates the PSMs of a single identification run. Each run gets its own
     /// collision energy and its own retention-time calibration, since neither
     /// transfers across runs with different gradients or acquisition settings.
-    void annotateRun_(const PeakMap& spectra,
+    void annotateRun_(const std::map<std::string, double>& collision_energies,
                       PeptideIdentificationList& peptide_ids,
                       const std::vector<Row>& rows,
                       const std::vector<Size>& run_rows,
