@@ -514,6 +514,67 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       }
     };
 
+    /**
+     * @brief Running summary of the *complete* candidate pool of one spectrum.
+     *
+     * scoreSpectraAgainstIndex_() prunes each spectrum to max(report_top_hits_, 2)
+     * candidates as soon as it has scored them, so by the time postProcessHits_()
+     * runs the surviving hits are no longer a sample of the search space: with the
+     * default report:top_hits=1 only two candidates remain, and derived features
+     * such as `ln_num_candidates` or `hyperscore_zscore` would degenerate into a
+     * binary flag and a rescaled delta score respectively.
+     *
+     * add() is therefore called for every candidate the moment it is scored --
+     * before pruning and before zero-scoring candidates are dropped -- so the
+     * summary reflects the full pool. Instances accumulate across chunks in the
+     * chunked search paths, where each chunk contributes its own candidates for
+     * the same spectrum.
+     */
+    struct CandidatePoolStats_
+    {
+      double sum = 0.0;         ///< sum of all candidate scores
+      double sumsq = 0.0;       ///< sum of squared candidate scores
+      double best = 0.0;        ///< best candidate score (HyperScore is non-negative, so 0 doubles as "none seen")
+      double second_best = 0.0; ///< runner-up candidate score
+      Size count = 0;           ///< number of candidates scored
+
+      /// Fold one freshly scored candidate into the summary.
+      void add(double score)
+      {
+        if (score > best) { second_best = best; best = score; }
+        else if (score > second_best) { second_best = score; }
+        sum += score;
+        sumsq += score * score;
+        ++count;
+      }
+
+      /// Best minus runner-up over the full pool.
+      double deltaScore() const { return best - second_best; }
+
+      /**
+       * @brief How much of an outlier the best score is within its own candidate pool.
+       *
+       * Standard score of `best` against the mean and (population) SD of all
+       * `count` candidates -- a lightweight significance proxy, since HyperScore
+       * (unlike e.g. MS-GF+'s SpecEValue) has no closed-form e-value.
+       *
+       * Standardising against the whole pool rather than against the `count - 1`
+       * non-best candidates keeps the statistic bounded: by Samuelson's inequality
+       * a pool member cannot deviate from its own mean by more than sqrt(count - 1)
+       * SDs, so the feature tops out at sqrt(scoring:max_candidates_per_spectrum - 1)
+       * (7 at the default cap of 50). The leave-one-out form has no such bound --
+       * with two candidates the SD of the single remaining score is 0 by
+       * construction, and the ratio diverges. That mattered in practice: on a
+       * 70k-PSM Orbitrap run the leave-one-out form produced values up to 6.5e+07,
+       * which is enough to dominate Percolator's feature standardisation.
+       *
+       * Returns 0 when fewer than two candidates were scored, and when every
+       * candidate scored the same -- in both cases the best candidate does not
+       * stand out from the pool.
+       */
+      double zScore() const;
+    };
+
     /// @brief filter, deisotope, decharge spectra
     static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
 
@@ -616,9 +677,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @brief Score all spectra against one FragmentIndex.
      *
      * Shared by the non-chunked and chunked search paths. Appends per-scan
-     * AnnotatedHit_ entries to annotated_hits; does not prune or sort. Expects
-     * a pre-built FragmentIndex whose parameters already reflect any
-     * calibrated tolerances the caller wants to apply.
+     * AnnotatedHit_ entries to annotated_hits and prunes each spectrum to
+     * max(report_top_hits_, 2) candidates to bound memory. Expects a pre-built
+     * FragmentIndex whose parameters already reflect any calibrated tolerances
+     * the caller wants to apply.
+     *
+     * @param[in,out] annotated_hits Per-spectrum candidate hits, one entry per spectrum.
+     * @param[in,out] pool_stats Per-spectrum summary of the full (unpruned) candidate
+     *                pool, one entry per spectrum. Accumulated rather than overwritten,
+     *                so chunked callers can pass the same vector for every chunk.
      */
     void scoreSpectraAgainstIndex_(
         const PeakMap& spectra,
@@ -629,6 +696,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool fragment_mass_tolerance_unit_ppm,
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+        std::vector<CandidatePoolStats_>& pool_stats,
         const std::string& progress_label) const;
 
     /**
@@ -640,6 +708,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * @param[in] exp Input MS experiment providing spectra/metadata for annotation.
      * @param[in,out] annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
+     * @param[in] pool_stats Per-spectrum summary of the full candidate pool as collected
+     *            by scoreSpectraAgainstIndex_(), used for the pool-derived PSM features
+     *            (delta score, z-score, candidate count). Must match @p annotated_hits in size.
      * @param[out] protein_ids Output container for protein-level identification and search metadata.
      * @param[out] peptide_ids Output container for spectrum-level peptide identifications (PSMs).
      * @param[in] top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
@@ -657,6 +728,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
+      const std::vector<CandidatePoolStats_>& pool_stats,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       Size top_hits,
