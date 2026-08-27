@@ -30,6 +30,7 @@
 #include <cmath>
 #include <map>
 #include <memory>
+#include <set>
 #include <numeric>
 #include <string>
 #include <tuple>
@@ -300,15 +301,29 @@ namespace OpenMS
 
     // Collision energy per spectrum, keyed by native ID so each run can pick out its
     // own spectra. Built once; the PeakMap is not otherwise needed below.
+    //
+    // Native IDs are unique within a run, not across runs -- scan numbering restarts
+    // per file -- so a PeakMap spanning several runs can hold the same ID twice. Where
+    // two such spectra disagree on the collision energy there is no way to tell which
+    // run a PSM's reference meant, so the entry is dropped rather than resolved
+    // arbitrarily; those runs then fall back to the median over everything observed.
     std::map<std::string, double> collision_energies;
+    std::set<std::string> ambiguous_ids;
     for (const MSSpectrum& sp : spectra)
     {
       if (sp.getMSLevel() != 2 || sp.getPrecursors().empty()) { continue; }
       const Precursor& prec = sp.getPrecursors()[0];
-      if (prec.metaValueExists("collision energy"))
-      {
-        collision_energies[sp.getNativeID()] = static_cast<double>(prec.getMetaValue("collision energy"));
-      }
+      if (!prec.metaValueExists("collision energy")) { continue; }
+      const double ce = static_cast<double>(prec.getMetaValue("collision energy"));
+      const auto [it, inserted] = collision_energies.emplace(sp.getNativeID(), ce);
+      if (!inserted && std::abs(it->second - ce) > 1e-6) { ambiguous_ids.insert(sp.getNativeID()); }
+    }
+    for (const std::string& id : ambiguous_ids) { collision_energies.erase(id); }
+    if (!ambiguous_ids.empty())
+    {
+      OPENMS_LOG_WARN << "[PeptDeepRescoring] " << ambiguous_ids.size()
+                      << " spectrum identifiers occur more than once with differing collision "
+                         "energies; those spectra are excluded from collision-energy selection." << '\n';
     }
 
     // Loading a model is expensive, so both sessions are created once and reused by
