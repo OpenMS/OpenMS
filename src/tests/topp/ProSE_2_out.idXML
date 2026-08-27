@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/home/user/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,delta_score_worst,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
+				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
 				<UserParam type="string" name="open_search" value="false"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
@@ -18,7 +18,7 @@
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2026-08-26T20:55:26" search_engine="ProSE" search_engine_version="3.6.0-pre-claude-prose-percolator-rescoring-features-txnsxy-2026-08-26" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2026-08-27T06:14:06" search_engine="ProSE" search_engine_version="3.6.0-pre-claude-prose-percolator-rescoring-features-txnsxy-2026-08-26" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -43,7 +43,6 @@
 				<UserParam type="int" name="matched_prefix_ions" value="3"/>
 				<UserParam type="int" name="matched_suffix_ions" value="8"/>
 				<UserParam type="float" name="delta_score" value="13.195273399353027"/>
-				<UserParam type="float" name="delta_score_worst" value="0.0"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="1.781957282219082"/>
@@ -67,7 +66,6 @@
 				<UserParam type="int" name="matched_prefix_ions" value="13"/>
 				<UserParam type="int" name="matched_suffix_ions" value="13"/>
 				<UserParam type="float" name="delta_score" value="47.256179809570312"/>
-				<UserParam type="float" name="delta_score_worst" value="0.0"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="7.878095272928476"/>
@@ -91,7 +89,6 @@
 				<UserParam type="int" name="matched_prefix_ions" value="12"/>
 				<UserParam type="int" name="matched_suffix_ions" value="12"/>
 				<UserParam type="float" name="delta_score" value="42.152938842773438"/>
-				<UserParam type="float" name="delta_score_worst" value="0.0"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="8.528975328430533"/>
