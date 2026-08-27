@@ -319,7 +319,7 @@ namespace OpenMS
     if (rows_by_run.size() > 1)
     {
       OPENMS_LOG_INFO << "[PeptDeepRescoring] " << rows_by_run.size()
-                      << " identification runs; calibrating each separately." << std::endl;
+                      << " identification runs; calibrating each separately." << '\n';
     }
     for (const auto& [run_id, run_rows] : rows_by_run)
     {
@@ -455,13 +455,13 @@ namespace OpenMS
         }
         std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
         const double med = cosines[cosines.size() / 2];
-        OPENMS_LOG_DEBUG << "[PeptDeepRescoring] NCE " << cand << " -> median cosine " << med << std::endl;
+        OPENMS_LOG_DEBUG << "[PeptDeepRescoring] NCE " << cand << " -> median cosine " << med << '\n';
         if (med > best_median) { best_median = med; nce = cand; }
         setProgress(++done);
       }
       endProgress();
       OPENMS_LOG_INFO << "[PeptDeepRescoring] NCE " << nce << " selected from a grid centred on "
-                      << centre << " (median cosine " << best_median << ")" << std::endl;
+                      << centre << " (median cosine " << best_median << ")" << '\n';
     }
     used_nce_ = nce;
 
@@ -536,7 +536,7 @@ namespace OpenMS
       catch (Exception::BaseException& e)
       {
         OPENMS_LOG_WARN << "[PeptDeepRescoring] retention-time calibration (" << rt_model_type_
-                        << ") failed (" << e.getName() << "); falling back to a linear fit." << std::endl;
+                        << ") failed (" << e.getName() << "); falling back to a linear fit." << '\n';
         model.reset();
       }
       if (!model)
@@ -560,12 +560,12 @@ namespace OpenMS
         rt_calibration_error_ = conf_residuals[conf_residuals.size() / 2];
       }
       OPENMS_LOG_INFO << "[PeptDeepRescoring] retention-time calibration (" << rt_model_type_ << ") on "
-                      << points.size() << " PSMs, median residual " << rt_calibration_error_ << " s" << std::endl;
+                      << points.size() << " PSMs, median residual " << rt_calibration_error_ << " s" << '\n';
     }
     else
     {
       OPENMS_LOG_WARN << "[PeptDeepRescoring] too few PSMs to calibrate retention time; "
-                      << Constants::UserParam::RT_ABS_ERROR << " will be 0 for this run." << std::endl;
+                      << Constants::UserParam::RT_ABS_ERROR << " will be 0 for this run." << '\n';
     }
 
     // ---- write the features back ----
