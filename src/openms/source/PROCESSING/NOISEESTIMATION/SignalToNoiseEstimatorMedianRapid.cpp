@@ -76,7 +76,7 @@ namespace OpenMS
           double sum = std::accumulate(int_array.begin(), int_array.end(), 0.0);
           double int_mean = sum / int_array.size();
           double sq_sum = std::inner_product(int_array.begin(), int_array.end(), int_array.begin(), 0.0);
-          double int_stdev = std::sqrt(sq_sum / int_array.size() - int_mean * int_mean);
+          double int_stdev = std::sqrt(std::max(0.0, sq_sum / int_array.size() - int_mean * int_mean));
           zero_fallback = (int_mean + 3.0 * int_stdev) / 60;
           zero_fallback_computed = true;
         }
