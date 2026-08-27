@@ -597,11 +597,14 @@ namespace OpenMS
       annotation_longest_ion_run = true;
       annotation_matched_ion_current = true;
       annotation_fragment_annotations = true;
-      annotation_delta_score_worst = true;
       annotation_hyperscore_zscore = true;
       annotation_ln_num_candidates = true;
       annotation_matched_ion_current_fraction = true;
       annotation_complementary_ions_fraction = true;
+      // NOTE: DELTA_SCORE_WORST is opt-in. It is the weakest of the candidate-pool features and
+      // largely restates DELTA_SCORE, which already contrasts the best hit with the rest of the
+      // pool: dropping it from the default cost 15.6 PSMs on timsTOF (t = -0.69) and 4.0 on
+      // Q Exactive HF (t = -0.12), i.e. nothing resolvable above the seed-to-seed spread.
       // NOTE: BINOMIAL_MATCH_SCORE, TAILOR_SCORE and TOP_PEAKS_EXPLAINED_FRACTION are also
       // opt-in. Each clearly improves on the *original* feature set (t = 1.4 / 1.1 / 4.8 on
       // timsTOF, 3.7 / 3.5 / 3.4 on Q Exactive HF), but none adds anything once the
