@@ -10,6 +10,7 @@ if (WITH_ONNX)
         ONNX/ONNXPredictorBase.h
         PEPTDEEP/PeptDeepCCSInference.h
         PEPTDEEP/PeptDeepInput.h
+        PEPTDEEP/PeptDeepModEncoder.h
         PEPTDEEP/PeptDeepMS2Inference.h
         PEPTDEEP/PeptDeepRTInference.h
         PEPTDEEP/PeptDeepUtils.h

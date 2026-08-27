@@ -86,6 +86,7 @@ set(datastructures_executables_list
 
 if(WITH_ONNX)
   list(APPEND datastructures_executables_list PeptDeepInference_test)
+  list(APPEND datastructures_executables_list PeptDeepModEncoder_test)
 endif()
 
 set(metadata_executables_list

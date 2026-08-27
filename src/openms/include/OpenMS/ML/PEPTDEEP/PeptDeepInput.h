@@ -16,6 +16,8 @@
 
 namespace OpenMS
 {
+  class AASequence;
+
   namespace ML
   {
     /// @brief Sequence-padding policy for PeptDeep ONNX inputs.
@@ -45,8 +47,11 @@ namespace OpenMS
 
     /// @brief Shared featurization for PeptDeep RT, CCS, and MS2 ONNX predictors.
     ///
-    /// Modified peptides are intentionally rejected for now. The generated mod_x
-    /// tensor is zero-filled and therefore represents unmodified peptides only.
+    /// The buildUnmodified*() overloads take plain sequence strings and emit a
+    /// zero-filled mod_x, i.e. they describe unmodified peptides. The buildModified*()
+    /// overloads take AASequence and encode each modification's elemental composition
+    /// into mod_x via PeptDeepModEncoder, which is what the models expect for modified
+    /// peptides.
     class OPENMS_DLLAPI PeptDeepInputBuilder
     {
     public:
@@ -81,6 +86,32 @@ namespace OpenMS
       /// @throws Exception::IllegalArgument if any of charges/nces/instrument_indices does not match peptides.size(), or via buildUnmodifiedChargedBatch().
       static PeptDeepInputBatch buildUnmodifiedInstrumentBatch(
         const std::vector<std::string>& peptides,
+        const std::vector<float>& charges,
+        const std::vector<float>& nces,
+        const std::vector<int64_t>& instrument_indices,
+        const PeptDeepInputConfig& config = PeptDeepInputConfig());
+
+      /// @brief Tokenizes a batch of possibly modified peptides, encoding modifications into mod_x.
+      /// @param peptides Peptides whose modifications are taken from the AASequence itself.
+      /// @param config Padding policy (terminal tokens, fixed sequence length).
+      /// @return A batch with aa_indices and a modification-aware mod_x; charges/nces/instrument_indices left empty.
+      /// @throws Exception::IllegalArgument if peptides is empty or an unmodified sequence is invalid.
+      /// @throws Exception::InvalidValue if config.fixed_sequence_length is shorter than the longest encoded peptide.
+      static PeptDeepInputBatch buildModifiedPeptideBatch(
+        const std::vector<AASequence>& peptides,
+        const PeptDeepInputConfig& config = PeptDeepInputConfig());
+
+      /// @brief Like buildModifiedPeptideBatch(), additionally populating the (scaled) charges field.
+      /// @throws Exception::IllegalArgument if charges.size() != peptides.size().
+      static PeptDeepInputBatch buildModifiedChargedBatch(
+        const std::vector<AASequence>& peptides,
+        const std::vector<float>& charges,
+        const PeptDeepInputConfig& config = PeptDeepInputConfig());
+
+      /// @brief Like buildModifiedChargedBatch(), additionally populating nces and instrument_indices.
+      /// @throws Exception::IllegalArgument if any input vector size differs from peptides.size().
+      static PeptDeepInputBatch buildModifiedInstrumentBatch(
+        const std::vector<AASequence>& peptides,
         const std::vector<float>& charges,
         const std::vector<float>& nces,
         const std::vector<int64_t>& instrument_indices,

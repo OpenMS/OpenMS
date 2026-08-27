@@ -7,7 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepModEncoder.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm>
@@ -138,6 +140,93 @@ namespace OpenMS
       }
 
       PeptDeepInputBatch batch = buildUnmodifiedChargedBatch(peptides, charges, config);
+      batch.nces.reserve(batch_size);
+      batch.instrument_indices.reserve(batch_size);
+
+      for (size_t i = 0; i < batch_size; ++i)
+      {
+        batch.nces.push_back(nces[i] * NCE_SCALE);
+        batch.instrument_indices.push_back(instrument_indices[i]);
+      }
+
+      return batch;
+    }
+
+    PeptDeepInputBatch PeptDeepInputBuilder::buildModifiedPeptideBatch(
+      const std::vector<AASequence>& peptides,
+      const PeptDeepInputConfig& config)
+    {
+      if (peptides.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide batch cannot be empty.");
+      }
+
+      // The token stream is the unmodified backbone; modifications live purely in mod_x,
+      // so reuse the existing encoder on the stripped sequences and then fill mod_x.
+      std::vector<std::string> unmodified;
+      unmodified.reserve(peptides.size());
+      for (const AASequence& seq : peptides)
+      {
+        unmodified.push_back(seq.toUnmodifiedString());
+      }
+
+      PeptDeepInputBatch batch = buildUnmodifiedPeptideBatch(unmodified, config);
+
+      for (size_t i = 0; i < peptides.size(); ++i)
+      {
+        PeptDeepModEncoder::encode(
+          peptides[i],
+          batch.mod_x.data() + i * batch.sequence_length * PeptDeepModEncoder::MOD_FEATURE_SIZE,
+          batch.sequence_length);
+      }
+
+      return batch;
+    }
+
+    PeptDeepInputBatch PeptDeepInputBuilder::buildModifiedChargedBatch(
+      const std::vector<AASequence>& peptides,
+      const std::vector<float>& charges,
+      const PeptDeepInputConfig& config)
+    {
+      const size_t batch_size = peptides.size();
+      if (charges.size() != batch_size)
+      {
+        throw Exception::IllegalArgument(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Peptide and charge input vectors must have the same size.");
+      }
+
+      PeptDeepInputBatch batch = buildModifiedPeptideBatch(peptides, config);
+      batch.charges.reserve(batch_size);
+
+      for (size_t i = 0; i < batch_size; ++i)
+      {
+        batch.charges.push_back(charges[i] * CHARGE_SCALE);
+      }
+
+      return batch;
+    }
+
+    PeptDeepInputBatch PeptDeepInputBuilder::buildModifiedInstrumentBatch(
+      const std::vector<AASequence>& peptides,
+      const std::vector<float>& charges,
+      const std::vector<float>& nces,
+      const std::vector<int64_t>& instrument_indices,
+      const PeptDeepInputConfig& config)
+    {
+      const size_t batch_size = peptides.size();
+      if (charges.size() != batch_size || nces.size() != batch_size || instrument_indices.size() != batch_size)
+      {
+        throw Exception::IllegalArgument(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Peptide, charge, NCE, and instrument input vectors must have the same size.");
+      }
+
+      PeptDeepInputBatch batch = buildModifiedChargedBatch(peptides, charges, config);
       batch.nces.reserve(batch_size);
       batch.instrument_indices.reserve(batch_size);
 

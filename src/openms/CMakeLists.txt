@@ -403,6 +403,7 @@ if(WITH_ONNX)
     source/ML/ONNX/ONNXPredictorBase.cpp
     source/ML/PEPTDEEP/PeptDeepCCSInference.cpp
     source/ML/PEPTDEEP/PeptDeepInput.cpp
+    source/ML/PEPTDEEP/PeptDeepModEncoder.cpp
     source/ML/PEPTDEEP/PeptDeepRTInference.cpp
     source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
   )
