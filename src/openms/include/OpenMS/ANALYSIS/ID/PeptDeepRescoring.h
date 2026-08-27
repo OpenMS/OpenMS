@@ -21,6 +21,8 @@ namespace OpenMS
 {
   class PeptideIdentificationList;
   class ProteinIdentification;
+  class PeptDeepMS2Inference;
+  class PeptDeepRTInference;
 
   /**
     @brief Annotates PSMs with rescoring features derived from PeptDeep predictions.
@@ -65,7 +67,10 @@ namespace OpenMS
     public ProgressLogger
   {
   public:
+    /// Constructor. Sets the default parameters; the model paths start empty and must be set.
     PeptDeepRescoring();
+
+    /// Destructor.
     ~PeptDeepRescoring() override;
 
     /// Names of the features this class adds to each PSM, in a stable order.
@@ -89,14 +94,39 @@ namespace OpenMS
                   std::vector<ProteinIdentification>& protein_ids,
                   PeptideIdentificationList& peptide_ids);
 
-    /// Normalised collision energy used for the last annotate() call (after any scan).
+    /// Normalised collision energy used for the run annotated last (after any scan).
+    /// -1 if annotate() has not run, or returned before selecting one.
     double getUsedNCE() const;
 
-    /// Median absolute RT residual over the calibration set of the last annotate() call.
+    /// Median absolute RT residual over the calibration set of the run annotated last.
+    /// -1 if annotate() has not run, or could not calibrate.
     double getRTCalibrationError() const;
 
   protected:
     void updateMembers_() override;
+
+    /// Row of the flat PSM work list built by annotate().
+    struct Row
+    {
+      Size pi;      ///< index into the PeptideIdentificationList
+      Size hit;     ///< index into that identification's hits
+      Size len;     ///< peptide length
+      Size key;     ///< index into the de-duplicated (sequence, charge) list
+      double score; ///< search score, used to pick the calibration set
+    };
+
+    /// Annotates the PSMs of a single identification run. Each run gets its own
+    /// collision energy and its own retention-time calibration, since neither
+    /// transfers across runs with different gradients or acquisition settings.
+    void annotateRun_(const PeakMap& spectra,
+                      PeptideIdentificationList& peptide_ids,
+                      const std::vector<Row>& rows,
+                      const std::vector<Size>& run_rows,
+                      const std::vector<std::string>& uniq_seq,
+                      const std::vector<float>& uniq_charge,
+                      bool higher_score_better,
+                      PeptDeepMS2Inference& ms2_inference,
+                      PeptDeepRTInference& rt_inference);
 
     std::string ms2_model_;
     std::string rt_model_;
@@ -114,8 +144,8 @@ namespace OpenMS
     Size batch_size_{500};
     Int threads_{4};
 
-    mutable double used_nce_{-1.0};
-    mutable double rt_calibration_error_{-1.0};
+    double used_nce_{-1.0};
+    double rt_calibration_error_{-1.0};
   };
 
 } // namespace OpenMS
