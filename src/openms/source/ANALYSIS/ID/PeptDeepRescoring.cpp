@@ -444,8 +444,16 @@ namespace OpenMS
                                confident.begin() + std::min(nce_sample_size_, confident.size()));
       std::vector<std::string> s_seq;
       std::vector<float> s_charge;
-      s_seq.reserve(sample.size()); s_charge.reserve(sample.size());
-      for (Size i : sample) { s_seq.push_back(uniq_seq[rows[i].key]); s_charge.push_back(uniq_charge[rows[i].key]); }
+      // The observed spectrum does not depend on the candidate energy, so parse the peak
+      // annotations once here rather than once per grid point.
+      std::vector<IonMap> s_obs;
+      s_seq.reserve(sample.size()); s_charge.reserve(sample.size()); s_obs.reserve(sample.size());
+      for (Size i : sample)
+      {
+        s_seq.push_back(uniq_seq[rows[i].key]);
+        s_charge.push_back(uniq_charge[rows[i].key]);
+        s_obs.push_back(observedIons_(peptide_ids[rows[i].pi].getHits()[rows[i].hit]));
+      }
 
       double best_median = -1.0;
       nce = centre;
@@ -462,11 +470,10 @@ namespace OpenMS
         for (Size k = 0; k < sample.size(); ++k)
         {
           const Row& r = rows[sample[k]];
-          Size channels = r.len > 1 ? pred[k].size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
+          Size channels = (r.len > 1 && !pred[k].empty()) ? pred[k].size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
           if (channels == 0) { channels = DEFAULT_ION_CHANNELS; }
-          const PeptideHit& hit = peptide_ids[r.pi].getHits()[r.hit];
           cosines.push_back(similarity_(predictedIons_(pred[k], r.len, channels),
-                                        observedIons_(hit), ms2_min_ordinal_, r.len, ms2_strong_fraction_).cosine);
+                                        s_obs[k], ms2_min_ordinal_, r.len, ms2_strong_fraction_).cosine);
         }
         std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
         const double med = cosines[cosines.size() / 2];
