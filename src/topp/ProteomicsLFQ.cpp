@@ -841,6 +841,12 @@ protected:
     std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin()));
     std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end()));
 
+    // 'protein_references' is annotated by the PeptideIndexing run above (or already present in the
+    // input) and is the only source of the theoretical uniqueness information that
+    // IDFilter::keepUniquePeptidesPerProtein() needs in inferProteinGroups_(). Stripping it here
+    // silently removed every peptide hit for '-protein_quantification strictly_unique_peptides'.
+    const bool keep_protein_references = getStringOption_("protein_quantification") == "strictly_unique_peptides";
+
     // delete meta info to free some space
     for (PeptideIdentification& pid : peptide_ids)
     {
@@ -857,7 +863,8 @@ protected:
           if (!(StringUtils::hasSubstring(k, "_score")
             || StringUtils::hasSubstring(k, "q-value")
             || StringUtils::hasPrefix(k, "Luciphor_global_flr")
-            || k == "target_decoy") // keep target_decoy information for QC
+            || k == "target_decoy" // keep target_decoy information for QC
+            || (keep_protein_references && k == "protein_references"))
             )
           {
             ph.removeMetaValue(k);
@@ -1417,7 +1424,8 @@ protected:
   ExitCodes inferProteinGroups_(ConsensusMap& consensus,
     const set<std::string>& fixed_modifications)
   {
-    // since we don't require an index as input but need to calculate e.g., coverage we reindex here (fast)
+    // Note: protein sequences (for coverage) and the 'protein_references' uniqueness annotation used below
+    // come from the PeptideIndexing run in loadAndCleanupIDFile_(); there is no second indexing pass here.
 
     //-------------------------------------------------------------
     // Protein inference
@@ -1547,6 +1555,24 @@ protected:
         IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
       }
       IDFilter::keepUniquePeptidesPerProtein(consensus.getUnassignedPeptideIdentifications());
+
+      // Proteins whose peptides were all shared have no evidence left; drop them before grouping so
+      // the groups below do not reference proteins that the cleanup after this function removes.
+      IDFilter::removeUnreferencedProteins(consensus, true);
+
+      if (overall_proteins.getHits().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No protein is supported by a strictly unique peptide. Note that "
+                                            "'protein_quantification' = 'strictly_unique_peptides' requires the "
+                                            "theoretical uniqueness annotated during peptide indexing (see '-fasta').");
+      }
+
+      // No indistinguishable groups were annotated above (that is what 'no groups' means here), but
+      // quantification and every exporter report abundances on protein groups. Give each remaining
+      // protein its own singleton group so a protein quantified from its strictly unique peptides is
+      // actually reported instead of failing the "no indistinguishable protein groups" check later.
+      overall_proteins.fillIndistinguishableGroupsWithSingletons();
     }
 
     // compute coverage (sequence was annotated during PeptideIndexing)
@@ -1600,6 +1626,14 @@ protected:
     if (getStringOption_("targeted_only") != "false" && getStringOption_("pip_echo") != "false")
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "pip_echo requires targeted_only to be false");
+    }
+
+    if (getStringOption_("protein_quantification") == "strictly_unique_peptides" && in_db.empty())
+    { // uniqueness comes from the 'protein_references' meta value, which is annotated by (re-)indexing
+      OPENMS_LOG_WARN << "Warning: '-protein_quantification strictly_unique_peptides' filters peptides by their "
+                         "theoretical uniqueness, which is annotated during peptide indexing. Without '-fasta' this "
+                         "relies on the input identifications already being indexed (e.g., by PeptideIndexer); "
+                         "otherwise no peptide will pass the filter." << endl;
     }
 
     //-------------------------------------------------------------
