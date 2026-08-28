@@ -438,48 +438,24 @@ LPWrapper::SolverParam param4;
 lp4.solve(param4);
 START_SECTION((SolverStatus getStatus()))
 {
-  if(lp4.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-    }
-#ifdef OPENMS_HAS_COINOR
-  else if (lp4.getSolver() == LPWrapper::SOLVER_COINOR)
-  {
-    // getStatus() is now reliable on the COIN-OR path as well (previously it returned UNDEFINED
-    // unconditionally); the small integer problem in lp4 solves to a proven optimum.
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-  }
-#endif
-#ifdef OPENMS_HAS_HIGHS
-  else if (lp4.getSolver() == LPWrapper::SOLVER_HIGHS)
-  {
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-  }
-#endif
+  // all backends report OPTIMAL for this simple, solvable integer problem
+  TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
 
-}
-END_SECTION
-
-// A solver failure (here: an infeasible model) must be reliably observable via getStatus() on every
-// backend, so that callers do not read the resulting all-zero column values as a valid solution
-// (see issue #9944). Before this was fixed the return value of solve() was the only signal and it was
-// discarded at every C++ call site, turning solver failures into silently empty results.
-START_SECTION([EXTRA] getStatus() reliably signals a solver failure on an infeasible problem)
-{
-  LPWrapper lp_inf;
-  lp_inf.setObjectiveSense(LPWrapper::MAX);
-  const Int col = lp_inf.addColumn();
-  lp_inf.setColumnBounds(col, 0, 10, LPWrapper::DOUBLE_BOUNDED);
-  lp_inf.setColumnType(col, LPWrapper::INTEGER);
-  lp_inf.setObjective(col, 1);
-  const std::vector<Int> row_idx(1, col);
-  const std::vector<double> row_val(1, 1.0);
-  lp_inf.addRow(row_idx, row_val, "geq5", 5.0, 10.0, LPWrapper::LOWER_BOUND_ONLY); // x >= 5
-  lp_inf.addRow(row_idx, row_val, "leq3", 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY);  // x <= 3  -> infeasible
-  LPWrapper::SolverParam inf_param;
-  lp_inf.solve(inf_param); // logs an error (expected) about the missing usable solution
-  const LPWrapper::SolverStatus status = lp_inf.getStatus();
-  TEST_EQUAL(status != LPWrapper::OPTIMAL && status != LPWrapper::FEASIBLE, true)
+  // an infeasible problem must not report a usable solution on any backend (see issue #9944)
+  LPWrapper lp5;
+  Int col = lp5.addColumn();
+  lp5.setColumnBounds(col, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp5.setColumnType(col, LPWrapper::INTEGER);
+  lp5.setObjective(col, 1.0);
+  lp5.setObjectiveSense(LPWrapper::MAX);
+  std::vector<Int> idx5(1, col);
+  std::vector<double> val5(1, 1.0);
+  lp5.addRow(idx5, val5, std::string("le1"), 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY); // x <= 1
+  lp5.addRow(idx5, val5, std::string("ge2"), 2.0, 0.0, LPWrapper::LOWER_BOUND_ONLY); // x >= 2 -> infeasible
+  LPWrapper::SolverParam param5;
+  lp5.solve(param5);
+  LPWrapper::SolverStatus status5 = lp5.getStatus();
+  TEST_EQUAL(status5 == LPWrapper::OPTIMAL || status5 == LPWrapper::FEASIBLE, false)
 }
 END_SECTION
 

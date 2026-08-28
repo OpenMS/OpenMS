@@ -317,7 +317,7 @@
 				<UserParam type="int" name="NuXL:isXL" value="1"/>
 				<UserParam type="int" name="NuXL:isPhospho" value="0"/>
 				<UserParam type="float" name="NuXL:best_localization_score" value="0.905247032642365"/>
-				<UserParam type="string" name="NuXL:localization_scores" value="0,90.52,0,0,24.88,0,0,0,0"/>
+				<UserParam type="string" name="NuXL:localization_scores" value="0,90.52,0,0,24.88,0,32.02,0,0"/>
 				<UserParam type="string" name="NuXL:best_localization" value="DyHTVLGAR"/>
 				<UserParam type="int" name="NuXL:best_localization_position" value="1"/>
 				<UserParam type="int" name="NuXL:XL_U" value="1"/>
@@ -396,7 +396,7 @@
 				<UserParam type="int" name="NuXL:isXL" value="1"/>
 				<UserParam type="int" name="NuXL:isPhospho" value="0"/>
 				<UserParam type="float" name="NuXL:best_localization_score" value="0.731673657894135"/>
-				<UserParam type="string" name="NuXL:localization_scores" value="73.17,30.26,0,0,0,0,0,0,0,0,0,0"/>
+				<UserParam type="string" name="NuXL:localization_scores" value="73.17,30.26,0,2.05,0,0,0,0,0,0,0,0"/>
 				<UserParam type="string" name="NuXL:best_localization" value="kSEQTTGISLGR"/>
 				<UserParam type="int" name="NuXL:best_localization_position" value="0"/>
 				<UserParam type="int" name="NuXL:XL_U" value="1"/>
@@ -712,7 +712,7 @@
 				<UserParam type="int" name="NuXL:isXL" value="1"/>
 				<UserParam type="int" name="NuXL:isPhospho" value="0"/>
 				<UserParam type="float" name="NuXL:best_localization_score" value="3.175751924514771"/>
-				<UserParam type="string" name="NuXL:localization_scores" value="0,0,317.58,0,0,27.74"/>
+				<UserParam type="string" name="NuXL:localization_scores" value="0,0,317.58,180.98,0,27.74"/>
 				<UserParam type="string" name="NuXL:best_localization" value="LLkVLK"/>
 				<UserParam type="int" name="NuXL:best_localization_position" value="2"/>
 				<UserParam type="int" name="NuXL:XL_U" value="1"/>
@@ -1344,7 +1344,7 @@
 				<UserParam type="int" name="NuXL:isXL" value="1"/>
 				<UserParam type="int" name="NuXL:isPhospho" value="0"/>
 				<UserParam type="float" name="NuXL:best_localization_score" value="0.827892243862152"/>
-				<UserParam type="string" name="NuXL:localization_scores" value="0,0,82.79,0,0,0,0,12.18,0"/>
+				<UserParam type="string" name="NuXL:localization_scores" value="0,0,82.79,62.37,66.14,0,0,12.18,0"/>
 				<UserParam type="string" name="NuXL:best_localization" value="DEpMITLPR"/>
 				<UserParam type="int" name="NuXL:best_localization_position" value="2"/>
 				<UserParam type="int" name="NuXL:XL_U" value="1"/>

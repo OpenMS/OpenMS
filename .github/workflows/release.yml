@@ -47,9 +47,14 @@ jobs:
           fi
 
       - name: Build OpenMS
+        id: build-openms
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
 
       - name: Parse the Version Number
         id: version
@@ -108,8 +113,9 @@ jobs:
             SIGNING_IDENTITY: "Developer ID Application: OpenMS Inc. (C64UCGJ5PL)"
             SIGNING_EMAIL: "apple@openms.de"
             CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+            PRESET: ${{ steps.build-openms.outputs.preset }}
         run: |
-          cd build || exit 1
+          cd "build/$PRESET" || exit 1
 
           cmake_options=(
             "-DPACKAGE_TYPE=$PACKAGE_TYPE"
@@ -124,14 +130,35 @@ jobs:
             )
           fi
 
-          cmake "${cmake_options[@]}" ..
+          # makensis.exe opens every staged file (including the Doxygen HTML
+          # docs) through the plain Win32 file APIs, which are bound by
+          # MAX_PATH (260 chars). Deeply-mangled template filenames in the
+          # docs (e.g. GridSearch's nested Looper struct) combined with
+          # CPack's default staging path under this already-long build
+          # directory push some files past that limit and abort the NSIS
+          # build. Stage the CPack package build in a short, fixed directory
+          # on Windows instead, so the full staged path stays well under
+          # MAX_PATH; the resulting installer is moved back next to the
+          # other build output below so later steps don't need to know.
+          WIN_CPACK_STAGE_DIR="C:/cpk"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            rm -rf "/c/cpk"
+            mkdir -p "/c/cpk"
+            cmake_options+=("-DCPACK_PACKAGE_DIRECTORY=$WIN_CPACK_STAGE_DIR")
+          fi
+
+          cmake "${cmake_options[@]}" ../..
 
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
-              cat _CPack_Packages/win64/NSIS/NSISOutput.log
+              cat /c/cpk/_CPack_Packages/win64/NSIS/NSISOutput.log
             fi
 
             exit 1
+          fi
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv /c/cpk/*.exe .
           fi
 
       # Notarize macOS packages for Gatekeeper approval
@@ -142,9 +169,10 @@ jobs:
         env:
           APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
           TEAM_ID: "C64UCGJ5PL"
+          PRESET: ${{ steps.build-openms.outputs.preset }}
         run: |
           echo "=== Starting macOS package notarization ==="
-          cd build
+          cd "build/$PRESET"
 
           # Find the generated .pkg file
           PKG_FILE=$(ls -1 *.pkg 2>/dev/null | head -1)
@@ -163,7 +191,7 @@ jobs:
             "apple@openms.de" \
             "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
             "$TEAM_ID" \
-            "$GITHUB_WORKSPACE/build/"
+            "$GITHUB_WORKSPACE/build/$PRESET"
 
           echo "=== Notarization complete ==="
 
@@ -177,9 +205,9 @@ jobs:
         with:
           name: ${{ format('installer-{0}-{1}-{2}', steps.version.outputs.name, runner.os, runner.arch) }}
           path: |
-            ${{ github.workspace }}/build/*.exe
-            ${{ github.workspace }}/build/*.deb
-            ${{ github.workspace }}/build/*.pkg
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.exe
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.deb
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.pkg
 
       # Zip the documentation first, since there are :: which make the
       # upload action choke.
@@ -188,7 +216,7 @@ jobs:
         uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
-          directory: ${{ github.workspace }}/build/doc
+          directory: ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/doc
           exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
           filename: 'documentation.zip'
 
@@ -198,7 +226,7 @@ jobs:
         with:
           name: documentation
           path: |
-            ${{ github.workspace }}/build/doc/documentation.zip
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/doc/documentation.zip
 
       - name: Create a tarball of the Source Code
         if: steps.solo.outputs.solo == 'true'

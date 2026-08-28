@@ -159,9 +159,6 @@ Output (at least one required; each output is optional individually):
   - consensusXML file for visualization and further processing in OpenMS (@p out_cxml)
   - QPX Parquet collection (@p out_qpx)
 
-
-Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
-
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProteomicsLFQ.cli
 <B>INI file documentation of this tool:</B>
@@ -1232,9 +1229,18 @@ protected:
         size_t current_row = 0;
         size_t quant_target {}, quant_decoy {};
 
-        Math::RandomShuffler shuffler;
+        // Draw the (up to) 1000 target and 1000 decoy training examples from a
+        // random subset instead of the head of the FeatureMap, which is ordered
+        // by RT and would otherwise bias the SVM towards early-eluting features.
+        // The seed is fixed so the selection stays reproducible across runs.
+        // Note: the predictor rows are filled in this shuffled order and the
+        // predictions are written back by iterating the same index vector, so
+        // row i of 'predictors'/'labels'/'predictions' always refers to
+        // fm[randomized_indices[i]].
+        Math::RandomShuffler shuffler(42);
         std::vector<size_t> randomized_indices(fm.size());
         std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
+        shuffler.portable_random_shuffle(randomized_indices.begin(), randomized_indices.end());
 
         for (auto& i : randomized_indices)
         {

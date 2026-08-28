@@ -744,35 +744,34 @@ namespace OpenMS
     //                                        << model.getObjValue()
     //                                        << (!model.status() ? " Finished" : " Not finished")
     //                                        << std::endl;
-    for (Int i = 0; i < model_->numberColumns(); ++i)
-    {
-      solution_.push_back(model.solver()->getColSolution()[i]);
-    }
-    OPENMS_LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
-    // store a normalised status, so getStatus() reports a meaningful result on the COIN-OR path
+    // determine the solution status now: the CbcModel only lives inside this function, so it cannot
+    // be queried by getStatus() later
     if (model.isProvenOptimal())
     {
-      solver_status_ = OPTIMAL;
+      solver_status_ = LPWrapper::OPTIMAL;
     }
-    else if (model.getSolutionCount() > 0)
-    {
-      solver_status_ = FEASIBLE;
+    else if (model.bestSolution() != nullptr)
+    { // stopped early (e.g. a limit was hit), but an integer feasible solution exists
+      solver_status_ = LPWrapper::FEASIBLE;
     }
-    else if (model.isProvenInfeasible())
+    else if (model.isProvenInfeasible() || model.isProvenDualInfeasible())
     {
-      solver_status_ = NO_FEASIBLE_SOL;
+      solver_status_ = LPWrapper::NO_FEASIBLE_SOL;
     }
     else
     {
-      solver_status_ = UNDEFINED;
+      solver_status_ = LPWrapper::UNDEFINED;
     }
-    if (solver_status_ != OPTIMAL && solver_status_ != FEASIBLE)
+
+    solution_.clear();
+    if (solver_status_ == LPWrapper::OPTIMAL || solver_status_ == LPWrapper::FEASIBLE)
     {
-      OPENMS_LOG_ERROR << "LPWrapper::solve(): the COIN-OR solver did not return a usable solution "
-                          "(CbcModel::status() = " << model.status() << "). The reported column/objective values "
-                          "are not meaningful; check getStatus() before using the solution.\n";
+      const double* col_solution = model.solver()->getColSolution();
+      solution_.assign(col_solution, col_solution + model_->numberColumns());
     }
-    return model.status();
+    OPENMS_LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
+    // note: CbcModel::status() is 0 ('search completed') even for proven infeasibility
+    const Int raw_solver_return = model.status();
 #elif defined(OPENMS_HAS_HIGHS)
     OPENMS_LOG_INFO << "Using solver 'highs' ...\n";
     // Configure HiGHS options based on solver_param
@@ -792,43 +791,18 @@ namespace OpenMS
 
     // Store solution
     solution_.clear();
-    const HighsModelStatus model_status = highs_->getModelStatus();
     if (status == HighsStatus::kOk || status == HighsStatus::kWarning)
     {
       const HighsSolution& sol = highs_->getSolution();
       solution_ = sol.col_value;
+      HighsModelStatus model_status = highs_->getModelStatus();
       OPENMS_LOG_INFO << (model_status == HighsModelStatus::kOptimal ? "Optimal solution found!" : "Solution status: non-optimal") << "\n";
     }
     else
     {
       OPENMS_LOG_INFO << "No solution found!\n";
     }
-    // store a normalised status, so getStatus() reports a meaningful result
-    switch (model_status)
-    {
-    case HighsModelStatus::kOptimal:
-      solver_status_ = OPTIMAL;
-      break;
-    case HighsModelStatus::kObjectiveBound:
-    case HighsModelStatus::kObjectiveTarget:
-      solver_status_ = FEASIBLE;
-      break;
-    case HighsModelStatus::kInfeasible:
-    case HighsModelStatus::kUnbounded:
-      solver_status_ = NO_FEASIBLE_SOL;
-      break;
-    default:
-      solver_status_ = UNDEFINED;
-      break;
-    }
-    if (status == HighsStatus::kError || (solver_status_ != OPTIMAL && solver_status_ != FEASIBLE))
-    {
-      OPENMS_LOG_ERROR << "LPWrapper::solve(): the HiGHS solver did not return a usable solution "
-                          "(HighsStatus = " << static_cast<Int>(status) << ", model status not optimal/feasible). "
-                          "The reported column/objective values are not meaningful; check getStatus() before "
-                          "using the solution.\n";
-    }
-    return static_cast<Int>(status);
+    const Int raw_solver_return = static_cast<Int>(status);
 #else
     OPENMS_LOG_INFO << "Using solver 'glpk' ...\n";
 
@@ -871,40 +845,60 @@ namespace OpenMS
     {
       solver_param_glp.binarize = GLP_ON; // only with presolve
     }
-    const Int glpk_ret = glp_intopt(lp_problem_, &solver_param_glp);
-    // store a normalised status, so getStatus() reports a meaningful result
-    switch (glp_mip_status(lp_problem_))
-    {
-    case GLP_OPT:
-      solver_status_ = OPTIMAL;
-      break;
-    case GLP_FEAS:
-      solver_status_ = FEASIBLE;
-      break;
-    case GLP_NOFEAS:
-      solver_status_ = NO_FEASIBLE_SOL;
-      break;
-    default: // GLP_UNDEF and anything else
-      solver_status_ = UNDEFINED;
-      break;
-    }
-    // glp_intopt returns 0 on success; a non-zero code (GLP_EBOUND, GLP_ENOPFS, GLP_ETMLIM, ...) means the
-    // search could not start or was aborted, so no solution was computed.
-    if (glpk_ret != 0 || (solver_status_ != OPTIMAL && solver_status_ != FEASIBLE))
-    {
-      OPENMS_LOG_ERROR << "LPWrapper::solve(): the GLPK solver did not return a usable solution "
-                          "(glp_intopt returned " << glpk_ret << "). The reported column/objective values are "
-                          "not meaningful; check getStatus() before using the solution.\n";
-    }
-    return glpk_ret;
+    const Int raw_solver_return = glp_intopt(lp_problem_, &solver_param_glp);
 #endif
+    // make solver failures visible: without a feasible solution all column values read as zero,
+    // which is indistinguishable from a genuine all-zero optimum (see issue #9944)
+    const SolverStatus solution_status = getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    {
+      OPENMS_LOG_WARN << "LPWrapper::solve(): the solver did not find a feasible solution (raw solver return code: " << raw_solver_return
+                      << "). Solution values are not meaningful; check getStatus() before using them." << std::endl;
+    }
+    return raw_solver_return;
   }
 
   LPWrapper::SolverStatus LPWrapper::getStatus()
   {
-    // The normalised status is computed in solve() for every backend (including the COIN-OR path, which
-    // previously always reported UNDEFINED here), so all callers get a reliable, backend-independent result.
-    return solver_status_;
+#ifdef OPENMS_HAS_COINOR
+    return solver_status_; // stored by solve(), since the COIN-OR solver object cannot be queried here
+#elif defined(OPENMS_HAS_HIGHS)
+    HighsModelStatus model_status = highs_->getModelStatus();
+    switch (model_status)
+    {
+    case HighsModelStatus::kOptimal:
+      return LPWrapper::OPTIMAL;
+    case HighsModelStatus::kObjectiveBound:
+    case HighsModelStatus::kObjectiveTarget:
+      return LPWrapper::FEASIBLE;
+    case HighsModelStatus::kInfeasible:
+    case HighsModelStatus::kUnbounded:
+      return LPWrapper::NO_FEASIBLE_SOL;
+    default:
+      // e.g. a time/iteration limit was hit: an integer feasible (incumbent) solution may still exist
+      if (highs_->getHighsInfo().primal_solution_status == kSolutionStatusFeasible)
+      {
+        return LPWrapper::FEASIBLE;
+      }
+      return LPWrapper::UNDEFINED;
+    }
+#else
+    Int status = glp_mip_status(lp_problem_);
+    switch (status)
+    {
+    case 4:
+      return LPWrapper::NO_FEASIBLE_SOL;
+
+    case 5:
+      return LPWrapper::OPTIMAL;
+
+    case 2:
+      return LPWrapper::FEASIBLE;
+
+    default:
+      return LPWrapper::UNDEFINED;
+    }
+#endif
   }
 
   double LPWrapper::getObjectiveValue()
@@ -928,7 +922,9 @@ namespace OpenMS
   double LPWrapper::getColumnValue(Int index)
   {
 #ifdef OPENMS_HAS_COINOR
-    return solution_[index];
+    if (index >= 0 && index < (Int)solution_.size())
+      return solution_[index];
+    return 0.0; // no solution stored (solve() failed or was not called yet)
 #elif defined(OPENMS_HAS_HIGHS)
     if (index >= 0 && index < (Int)solution_.size())
       return solution_[index];

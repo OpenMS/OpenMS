@@ -393,6 +393,24 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
+      // User parameter name for the standard score of the best candidate's score within
+      // the pool of all candidates scored for the same spectrum. 0 when fewer than two
+      // candidates were scored or when all of them tied.
+      inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
+
+      // User parameter name for ln(1 + number of candidates scored for a spectrum).
+      // The +1 offset keeps the value defined for spectra without any candidate; it is
+      // order-preserving, so the feature stays monotone in the candidate count. The count
+      // is capped by the search engine's per-spectrum candidate limit, so this saturates.
+      inline const std::string LN_NUM_CANDIDATES = "ln_num_candidates";
+
+      // User parameter name for the matched ion current normalized by the spectrum's total ion current
+      inline const std::string MATCHED_ION_CURRENT_FRACTION = "matched_ion_current_fraction";
+
+      // User parameter name for the fraction of cleavage sites where both a prefix ion and its
+      // complementary suffix ion were matched
+      inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
+
       /** User parameter name to indicate a peptide q-value
               String
       */

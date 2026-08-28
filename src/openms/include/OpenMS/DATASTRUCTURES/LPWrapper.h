@@ -464,29 +464,27 @@ public:
 
       The verbose level (0,1,2) determines if the solver prints status messages and internals.
 
-      As a side effect the normalised solution status is stored and can afterwards be queried via
-      getStatus(). Whenever the solver does not return a usable solution (e.g. an infeasible model,
-      an ill-posed constraint, or a hit time/iteration limit) an error is logged. Because the raw
-      return value is backend specific, callers should inspect getStatus() (or the logged error)
-      rather than the return value to decide whether the solution is meaningful. Reading
-      getColumnValue()/getObjectiveValue() after a failed solve yields all-zero / undefined values.
-
       @param[in] solver_param
       @param[in] verbose_level
 
-      @return backend-specific status code (GLPK: 0 on success; COIN-OR: CbcModel::status();
-              HiGHS: HighsStatus). Prefer getStatus() for a backend-independent result.
+      @return the raw return code of the backend solver (glp_intopt() for GLPK, CbcModel::status() for
+              COIN-OR, HighsStatus for HiGHS). The raw code is solver dependent and a code indicating a
+              completed run does not imply that a solution exists (e.g. COIN-OR reports a completed run
+              for proven infeasibility). Use getStatus() after solving to check - portably across
+              backends - whether an optimal/feasible solution was actually found before reading it
+              via getColumnValue() or getObjectiveValue(). If no feasible solution was produced, a
+              warning is logged.
     */
     Int solve(SolverParam& solver_param, const Size verbose_level = 0);
 
     /**
-      @brief Get the normalised solution status of the last solve() call.
+      @brief Get solution status.
 
-      Reliable for all backends (GLPK, COIN-OR and HiGHS). Returns UNDEFINED if solve() has not been
-      called yet or if the solver did not produce a usable solution.
+      Call this after solve(): only the states OPTIMAL and FEASIBLE indicate that the solver produced
+      a usable solution, i.e. that the values returned by getColumnValue() and getObjectiveValue()
+      are meaningful.
 
-      @return status: 1 - undefined, 2 - (integer) feasible (no optimality proven), 4 - no (integer)
-              feasible solution, 5 - (integer) optimal
+      @return status: 1 - undefined, 2 - integer feasible (no optimality proven), 4 - no integer feasible solution, 5 - integer optimal
      */
     SolverStatus getStatus();
 
@@ -533,6 +531,7 @@ protected:
 #ifdef OPENMS_HAS_COINOR
     CoinModel * model_ = nullptr;      ///< COIN-OR model object for the LP problem
     std::vector<double> solution_;     ///< Solution vector when using COIN-OR
+    SolverStatus solver_status_ = UNDEFINED; ///< Status of the last solve() call (the COIN-OR solver object only lives during solve(), so the status must be stored for getStatus())
 #elif defined(OPENMS_HAS_HIGHS)
     std::unique_ptr<Highs> highs_;     ///< HiGHS solver instance
     std::vector<double> solution_;     ///< Solution vector when using HiGHS
@@ -541,8 +540,6 @@ protected:
 #endif
 
     SOLVER solver_;                    ///< Currently active solver backend
-
-    SolverStatus solver_status_ = UNDEFINED; ///< Normalised status of the last solve() call (see getStatus())
 
 
   }; // class
