@@ -54,6 +54,7 @@ General:
     validation of NEW_TMP_FILE outputs is now explicit (VALIDATE_TMP_FILES; the 26 tests that
     validated files call it), unique-ID seeding and OpenMS exception naming are registered by the
     test projects (OpenMSTestSupport.cpp), and the unused Internal::OpenMS_locale global was removed
+    (#9929)
   - Fix: File::writable() is no longer destructive and no longer reports false negatives under
     concurrency. It used to answer "does it exist?" and "may I write it?" with two separate
     queries, so a concurrent process could change the path in between and make it wrongly report
@@ -76,7 +77,7 @@ General:
     produced, and its callers (MRMFeatureSelector, ILPDCWrapper/Decharger) now check getStatus() and
     throw an informative exception instead of reading the all-zero non-solution back as valid output
     - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
-    empty results (#9944)
+    empty results (#9944, #9956)
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
@@ -169,7 +170,7 @@ PyOpenMS:
     when the replacement array has the same length (#9792)
   - SpectrumAccessOpenMSCached wrapped (on-disk cached spectrum access for OpenSWATH-style workflows);
     SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr() now returns it for experiments carrying
-    the cached_data marker instead of raising
+    the cached_data marker instead of raising (#9952)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
     handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions (get_df() -> to_df(), get_df_columns()
@@ -233,7 +234,7 @@ PyOpenMS:
     (undefined WNetMatcher symbol in _pyopenms_misc), because the WNet bindings referenced symbols
     that are excluded from libOpenMS by that option. The WNetMatcher and FeatureGroupingAlgorithmWNet
     bindings are now compiled only when WNet support is built, mirroring the BrukerTimsFile /
-    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946)
+    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946, #9957)
   - Docs: type hints in the docstrings of 133 functions (#8483), docstring format validation tests
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
@@ -388,6 +389,14 @@ TOPP tools:
         PercolatorInfile::getStandardFeatureSet(). The sibling PercolatorAdapter binary is resolved via
         File::findSiblingTOPPExecutable instead of relying on $PATH, which previously caused a silent
         fallback to HyperScore results in dev builds (#9166, #9195, #9204)
+      - Four additional Percolator features registered in extra_features (default set grows from 10 to
+        14): hyperscore_zscore and ln_num_candidates (from the per-spectrum candidate pool already built
+        during scoring), matched_ion_current_fraction (matched_ion_current normalised by TIC) and
+        complementary_ions_fraction (fraction of cleavage sites with both prefix and complementary suffix
+        ion matched). +0.4% to +1.2% target PSMs at 1% FDR after rescoring across three benchmark DDA
+        runs (timsTOF, Q Exactive HF, Orbitrap Astral); rescoring itself remains the larger effect
+        (+6.6% to +30.8%). Also fixes FragmentIndex's annotate:PSM valid-strings list, which was missing
+        six annotation names already accepted by ProSEAlgorithm (#9970)
       - New annotate:PSM options (num_matched_peaks, matched_prefix/suffix_ions,
         longest_peptide_ion_sequence, fragment_annotation), runtime search diagnostics, and a
         consolidated end-of-search "Search Report" (configuration recap, index stats, per-file ID
@@ -517,7 +526,7 @@ TOPP tools:
         deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
         residue before) -- the y-ion evidence for that residue was then never evaluated. The
         plausibility rules are now applied per ion series, so a residue supported by a consistent
-        shifted y-ion ladder is localized even without prefix-ion support
+        shifted y-ion ladder is localized even without prefix-ion support (#9961)
     PSMFeatureExtractor:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
@@ -822,6 +831,11 @@ OpenMS Library:
       generic ONNX Runtime session, and PeptDeepRTInference/PeptDeepMS2Inference/PeptDeepCCSInference
       predict retention time, MS2 fragment intensities and CCS via pre-trained AlphaPeptDeep models,
       downloaded with SHA256 validation at configure time. C++ only for now (#9453)
+      - The PeptDeep predictors now parse modified sequences via AASequence instead of accepting only
+        unmodified peptides, mapping each recognized modification to its slot in a native 109-element
+        in-memory tensor dictionary (no external mapping file shipped or parsed at runtime); chemically
+        invalid modifications are rejected by AASequence itself, and chemically valid but currently
+        unsupported ones are rejected by the dictionary (#9765)
     - ProFormaParser: full ProForma v2 notation parser with AST representation -- recursive descent
       parsing of peptidoforms with modifications, cross-links and chimeric spectra, all CV accessions
       (UNIMOD, MOD, RESID, XLMOD, GNO), mass deltas, formulas, glycans and info tags; bidirectional
@@ -873,7 +887,7 @@ OpenMS Library:
       ProteinIdentification::ProteinGroup data arrays; previously ProteomicsLFQ -out_cxml and
       IsobaricWorkflow -out silently dropped them, so MzTabExporter on a stored consensusXML produced no
       protein abundances at all. Each non-empty data array is written as one typed UserParam list and
-      restored into the same positional layout
+      restored into the same positional layout (#9844)
     - TOPPExternalToolBase: tools that shell out to an external executable (search engine adapters, ...)
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
@@ -967,6 +981,12 @@ OpenMS Library:
       (#9691)
     - OpenSwathOSWWriter gained getRowCount() and estimateMemoryUsage() for memory-aware buffered output
       (#9190)
+    - SignalToNoiseEstimatorMedian now interpolates within the histogram bin instead of returning the
+      noise estimate of the bin the signal falls into, so S/N varies continuously with intensity rather
+      than jumping between a fixed set of values; a hard floor of 1 is preserved. Every downstream
+      consumer (peak picking, feature scoring, targeted extraction, OpenSwath/MRM analysis) sees slightly
+      smoother, more accurate S/N-derived output; reference test data across ~60 TOPP tests was
+      regenerated accordingly (#9781, #9967)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
@@ -1004,7 +1024,7 @@ Fixes:
   - Fix: Parquet writers left a partial file behind when a write failed -- arrow::io::FileOutputStream::Open
     truncates the file up front, so a later failure leaves a fragment with no footer that reads as corrupt.
     ProteinIdentificationArrowIO, FeatureMapArrowIO, ConsensusMapArrowIO, ParquetFile::writeTable and the
-    QPX streaming writer now remove the incomplete output
+    QPX streaming writer now remove the incomplete output (#9862)
   - Fix: IDFilter::updateProteinGroups rebuilt each protein group from scratch, keeping only accessions and
     probability and discarding the data arrays, so any tool filtering after quantification (Epifany,
     ProteinInference, FalseDiscoveryRate, PercolatorAdapter, ProteomicsLFQ) threw the protein quantities
@@ -1210,6 +1230,15 @@ Build System:
     (#9827)
   - Windows installer: the NSIS "Installation Complete" page now links to a short, optional user survey,
     to help gauge who is using OpenMS (#9769)
+  - Fix: the nightly Windows Release workflow's Package step failed intermittently because some of the
+    Doxygen-generated HTML doc filenames, combined with CPack's default staging path nested under the
+    build directory, exceeded Windows' MAX_PATH; makensis.exe uses the plain (non-long-path-aware) Win32
+    file APIs and aborted staging. CPACK_PACKAGE_DIRECTORY is now pointed at a short, fixed path for the
+    Windows packaging step, keeping staged paths well under the limit (#9969)
+  - Fix: -DWITH_ONNX=ON failed to configure outside of vcpkg (find_package(ONNXRuntime REQUIRED) could
+    never resolve FindONNXRuntime.cmake, which lived in cmake/ rather than on CMAKE_MODULE_PATH), so ONNX
+    support was only reachable through vcpkg. The module was moved into cmake/Modules, alongside the
+    project's other Find*.cmake modules (#9971)
   - CI: the Docker image build fetches the Arrow APT source from packages.apache.org and appends Arrow's
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
@@ -1270,7 +1299,7 @@ Build System:
     which degrades gracefully where a hash cannot (#9864)
   - Tests: FuzzyStringComparator accepted any numeric comparison in which either side was NaN, so a value
     regressing to NaN was invisible to all 778 FuzzyDiff comparisons and to TEST_FILE_EQUAL; non-finite pairs
-    are now decided explicitly
+    are now decided explicitly (#9859, #9861)
   - OpenMP SIMD: when the OpenMP runtime is absent (e.g. macOS without libomp), CMake falls back to
     -fopenmp-simd so `#pragma omp simd` still enables auto-vectorisation (#9267); OpenMP validation fails
     configuration if requested but not found (#8368)
