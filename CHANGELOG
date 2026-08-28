@@ -434,14 +434,14 @@ TOPP tools:
         quantification and all exporters report abundances on them; proteins left without a strictly
         unique peptide are now dropped and the remaining ones reported as singleton groups. Peptide
         uniqueness must be annotated in the input (this tool does not index), which the error message
-        now says (#9979)
+        now says (#9979, #9984)
 
     ProteomicsLFQ:
       - Fix: -protein_quantification strictly_unique_peptides no longer discards every peptide hit.
         The 'protein_references' meta value that marks a peptide as theoretically unique was stripped
         right after peptide indexing, so the filter found nothing to keep; it is now preserved for that
         setting. Proteins left without evidence are dropped and the remaining ones are reported as
-        singleton groups, which the quantification and all exporters need (#9979)
+        singleton groups, which the quantification and all exporters need (#9979, #9984)
       - The chromatographic FWHM the feature linker derives its RT tolerance from is now the median
         over the runs of a fraction. It used to be whichever run the per-file loop happened to end
         on, so the tolerance depended on the order the files were given in. Feature detection is
@@ -450,7 +450,12 @@ TOPP tools:
         instead of inheriting the previous run's value, and a decoy affix that differs between input
         files is reported rather than silently letting the last file decide the one picked protein
         FDR uses. On the shipped fixtures the fraction values move (8.64/7.78/7.12 s: 7.12 -> 7.78)
-        without changing any output, since the tolerance is dominated by the alignment term
+        without changing any output, since the tolerance is dominated by the alignment term (#9985)
+      - Fix: the quant-score SVM training sample was never shuffled -- Math::RandomShuffler was
+        constructed but not invoked, so the loop capping training at 1000 targets/1000 decoys picked
+        the first 1000 of each in FeatureMap (RT) order instead of a random subsample, biasing
+        training towards early-eluting features. Gated behind -feature_with_id_min_score > 0
+        (default 0.0, not exercised by any shipped test or ini) (#9981, #9982)
       - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
         carries several of them -- the shape produced by concatenating search engine results rather
         than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or
@@ -1265,6 +1270,19 @@ Build System:
     never resolve FindONNXRuntime.cmake, which lived in cmake/ rather than on CMAKE_MODULE_PATH), so ONNX
     support was only reachable through vcpkg. The module was moved into cmake/Modules, alongside the
     project's other Find*.cmake modules (#9971)
+  - Fix: the nightly Windows Release workflow's Package step failed because the NSIS template included
+    Cfg_Settings.nsh via a hardcoded "..\..\..\" path relative to CPack's NSIS staging directory, which
+    only resolved back to PROJECT_BINARY_DIR when CPACK_PACKAGE_DIRECTORY defaulted to the build
+    directory; it no longer does (see the MAX_PATH fix above). The absolute path is now passed as a
+    CPACK variable instead (#9978)
+  - Fix: the multi-arch (amd64/arm64) container deploy matrix legs each pushed a complete single-platform
+    image under the same tags, so whichever leg finished last silently overwrote the tag and the
+    published image was single-arch; deploy-singularity then failed to find an amd64 image whenever the
+    arm64 leg finished last. Each leg now pushes untagged, by digest only, and a new merge job creates one
+    real multi-arch manifest list per tag via 'docker buildx imagetools create', validating (dry-run) that
+    both platforms are present before tagging so a previously published tag is never overwritten with an
+    incomplete one; deploy-singularity now depends on the merge job. Container deploy jobs were also
+    scoped to least-privilege token permissions in the process (#9951, #9954)
   - CI: the Docker image build fetches the Arrow APT source from packages.apache.org and appends Arrow's
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
