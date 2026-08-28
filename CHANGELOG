@@ -78,6 +78,10 @@ General:
     throw an informative exception instead of reading the all-zero non-solution back as valid output
     - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
     empty results (#9944, #9956)
+  - BREAKING (pyOpenMS): the low-level LPWrapper class (with its SolverParam and nested enums) is no
+    longer exposed in pyOpenMS. It is an internal LP/MILP backend wrapper with no Python consumers and
+    an easy-to-misuse solve()/getStatus() contract; use the high-level algorithms (MRMFeatureSelector,
+    FeatureDecharger, ...) from Python instead (#9983)
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
