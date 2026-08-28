@@ -428,7 +428,20 @@ TOPP tools:
         in-process path, which previously produced different output than the subprocess path (#9240)
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
+    IsobaricWorkflow:
+      - Fix: -protein_quantification strictly_unique_peptides no longer aborts with "No information on
+        indistinguishable protein groups found.". The setting annotates no protein groups, but
+        quantification and all exporters report abundances on them; proteins left without a strictly
+        unique peptide are now dropped and the remaining ones reported as singleton groups. Peptide
+        uniqueness must be annotated in the input (this tool does not index), which the error message
+        now says (#9979)
+
     ProteomicsLFQ:
+      - Fix: -protein_quantification strictly_unique_peptides no longer discards every peptide hit.
+        The 'protein_references' meta value that marks a peptide as theoretically unique was stripped
+        right after peptide indexing, so the filter found nothing to keep; it is now preserved for that
+        setting. Proteins left without evidence are dropped and the remaining ones are reported as
+        singleton groups, which the quantification and all exporters need (#9979)
       - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
         carries several of them -- the shape produced by concatenating search engine results rather
         than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or

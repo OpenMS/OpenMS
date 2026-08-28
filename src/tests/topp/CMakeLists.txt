@@ -1085,6 +1085,19 @@ set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPE
 add_test("TOPP_IsobaricWorkflow_requires_output" ${TOPP_BIN_PATH}/IsobaricWorkflow -test)
 set_tests_properties("TOPP_IsobaricWorkflow_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_mzTab/out_qpx")
 
+# Quantification from strictly unique peptides only. The input carries the 'protein_references'
+# annotation that peptide indexing writes (PROTB's peptides are marked shared, PROTA's are not), so
+# PROTA is left as the only protein with evidence and has to be reported as a singleton group --
+# this setting annotates no indistinguishable groups, which used to abort the run (see issue #9979).
+add_test("TOPP_IsobaricWorkflow_strictly_unique" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_strictly_unique_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -protein_quantification strictly_unique_peptides
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_strictly_unique_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_strictly_unique_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_strictly_unique_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_strictly_unique_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_strictly_unique_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_strictly_unique")
+
 # TMT-10plex, one file, 10 channels/samples. The consensusXML check covers the protein-group
 # quantities: with remove_unquantified=true every group that survives carries data arrays, so this
 # is the path where dropping them on store is most visible.
@@ -4211,6 +4224,41 @@ add_test("TOPP_ProteomicsLFQ_1_subset_out_2" ${DIFF}  -whitelist "software" "loc
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 add_test("TOPP_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
+
+# Same input as the subset test above, but quantifying from strictly unique peptides only.
+# 'protein_references' (annotated by peptide indexing) is what makes a peptide "strictly unique";
+# ProteomicsLFQ used to strip that meta value before the filter, which removed every peptide hit
+# (see issue #9979). FAIL_REGULAR_EXPRESSION below catches a regression even if the reference
+# comparison were to be relaxed.
+add_test("TOPP_ProteomicsLFQ_strictly_unique" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -protein_quantification strictly_unique_peptides
+         -out ${TESTS_TEMP_DIR}/BSA_strictly_unique.tmp.mzTab
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_strictly_unique" PROPERTIES FAIL_REGULAR_EXPRESSION "missing the required meta value")
+add_test("TOPP_ProteomicsLFQ_strictly_unique_out_1" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_strictly_unique.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_strictly_unique_out.mzTab )
+set_tests_properties("TOPP_ProteomicsLFQ_strictly_unique_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_strictly_unique")
 
 # QPX Parquet export test (reuses subset test input data)
   # Clear the output directory first. ctest never cleans tmp_path, so without this a
