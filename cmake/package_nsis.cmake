@@ -49,12 +49,17 @@ set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_LIB_DIR})
 include(InstallRequiredSystemLibraries)
 
 
-## Careful: the configured file needs to lie exactly in the Build directory so that it is found by the NSIS_template
 configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf @ONLY)
 install(CODE "
 	set (PACKAGING_DIR \${CMAKE_INSTALL_PREFIX})
 	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
 	")
+
+## Pass the absolute path of the generated Cfg_Settings.nsh to the NSIS template via a CPACK_ variable
+## (picked up automatically by include(CPack) below). We used to !include it via a hardcoded "..\..\..\"
+## relative path from CPack's NSIS staging directory, which silently breaks whenever CPACK_PACKAGE_DIRECTORY
+## is redirected elsewhere (e.g. to a short path on Windows to avoid MAX_PATH issues).
+file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/Cfg_Settings.nsh" CPACK_OPENMS_CFG_SETTINGS_FILE)
 
 ## Remove the next three lines if you use the NSIS autogeneration feature at some point!
 ## For now it makes sure everything is merged into the usual folders bin/share/include
