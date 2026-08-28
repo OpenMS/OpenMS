@@ -252,6 +252,91 @@ START_SECTION([EXTRA] annotate() writes every feature and registers them per run
 }
 END_SECTION
 
+START_SECTION([EXTRA] a run without peak annotations is reported rather than silently zeroed)
+{
+  if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))
+  {
+    STATUS("PeptDeep ONNX models not found next to the test; skipping the mixed-annotation section.")
+  }
+  else
+  {
+    // run_A carries annotations, run_B does not. The global "no PSM has annotations"
+    // guard does not fire here, so without a per-run check run_B would receive four
+    // MS2 features that are exactly zero for every PSM -- a constant block Percolator
+    // reads as a run separator rather than as evidence.
+    const std::vector<std::pair<std::string, double>> peaks =
+      {{"b2", 400.0}, {"y3", 900.0}, {"y4", 650.0}, {"b3", 280.0}, {"y5", 520.0}};
+    const std::vector<std::pair<std::string, double>> none;
+
+    PeptideIdentificationList peps;
+    const std::vector<std::string> seqs =
+      {"PEPTIDEK", "TESTPEPTIDER", "ELVISLIVESK", "LNGGKPVDEK",
+       "VATVSLPRK", "AGGDLSTVEK", "YLDGTSLSPK", "IADPEHLVK"};
+    for (Size i = 0; i < seqs.size(); ++i)
+    {
+      const bool run_a = (i % 2 == 0);
+      peps.push_back(makeId_(run_a ? "run_A" : "run_B", 150.0 + 35.0 * i,
+                             makeHit_(seqs[i], 2, 20.0 - i, run_a ? peaks : none)));
+    }
+
+    std::vector<ProteinIdentification> prot(2);
+    prot[0].setIdentifier("run_A");
+    prot[1].setIdentifier("run_B");
+
+    PeptDeepRescoring r;
+    Param p = r.getParameters();
+    p.setValue("ms2_model", ms2_model_path);
+    p.setValue("rt_model", rt_model_path);
+    p.setValue("nce", 30.0);
+    p.setValue("rt_model_type", "linear");
+    r.setParameters(p);
+
+    PeakMap exp;
+    // Must not throw: one run is annotated, so the input is usable -- the unannotated
+    // run is a warning, not a fatal error.
+    r.annotate(exp, prot, peps);
+
+    // The features are still written everywhere (dropping them for one run would leave
+    // Percolator with a ragged feature set), but run_B's MS2 values are all zero and
+    // run_A's are not. That asymmetry is exactly what the warning exists to announce.
+    double run_a_cosine_sum = 0.0, run_b_cosine_sum = 0.0;
+    for (const PeptideIdentification& pi : peps)
+    {
+      for (const PeptideHit& hit : pi.getHits())
+      {
+        TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MS2_COSINE), true)
+        const double c = hit.getMetaValue(Constants::UserParam::MS2_COSINE);
+        if (pi.getIdentifier() == "run_A") { run_a_cosine_sum += c; } else { run_b_cosine_sum += c; }
+      }
+    }
+    TEST_REAL_SIMILAR(run_b_cosine_sum, 0.0)
+    TEST_EQUAL(run_a_cosine_sum > 0.0, true)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] every run lacking annotations is still a hard error)
+{
+  PeptDeepRescoring r;
+  Param p = r.getParameters();
+  p.setValue("ms2_model", ms2_model_path);
+  p.setValue("rt_model", rt_model_path);
+  r.setParameters(p);
+
+  // Two runs, neither annotated: nothing can be computed, so this must still throw
+  // rather than degrade to a file of zeros.
+  PeptideIdentificationList peps;
+  peps.push_back(makeId_("run_A", 100.0, makeHit_("PEPTIDEK", 2, 20.0, {})));
+  peps.push_back(makeId_("run_B", 200.0, makeHit_("TESTPEPTIDER", 2, 19.0, {})));
+  std::vector<ProteinIdentification> prot(2);
+  prot[0].setIdentifier("run_A");
+  prot[1].setIdentifier("run_B");
+
+  PeakMap exp;
+  TEST_EXCEPTION(Exception::MissingInformation, r.annotate(exp, prot, peps))
+}
+END_SECTION
+
 START_SECTION([EXTRA] automatic NCE selection scans the grid and reports its choice)
 {
   if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))

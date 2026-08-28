@@ -122,7 +122,8 @@ namespace OpenMS
     /// Annotates the PSMs of a single identification run. Each run gets its own
     /// collision energy and its own retention-time calibration, since neither
     /// transfers across runs with different gradients or acquisition settings.
-    void annotateRun_(const std::map<std::string, double>& collision_energies,
+    void annotateRun_(const std::string& run_id,
+                      const std::map<std::string, double>& collision_energies,
                       PeptideIdentificationList& peptide_ids,
                       const std::vector<Row>& rows,
                       const std::vector<Size>& run_rows,
