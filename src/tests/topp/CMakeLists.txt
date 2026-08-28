@@ -1085,6 +1085,19 @@ set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPE
 add_test("TOPP_IsobaricWorkflow_requires_output" ${TOPP_BIN_PATH}/IsobaricWorkflow -test)
 set_tests_properties("TOPP_IsobaricWorkflow_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_mzTab/out_qpx")
 
+# Quantification from strictly unique peptides only. The input carries the 'protein_references'
+# annotation that peptide indexing writes (PROTB's peptides are marked shared, PROTA's are not), so
+# PROTA is left as the only protein with evidence and has to be reported as a singleton group --
+# this setting annotates no indistinguishable groups, which used to abort the run (see issue #9979).
+add_test("TOPP_IsobaricWorkflow_strictly_unique" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_strictly_unique_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -protein_quantification strictly_unique_peptides
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_strictly_unique_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_strictly_unique_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_strictly_unique_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_strictly_unique_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_strictly_unique_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_strictly_unique")
+
 # TMT-10plex, one file, 10 channels/samples. The consensusXML check covers the protein-group
 # quantities: with remove_unquantified=true every group that survives carries data arrays, so this
 # is the path where dropping them on store is most visible.
