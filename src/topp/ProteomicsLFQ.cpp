@@ -66,6 +66,17 @@
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+
+#include <iomanip>
+#include <sstream>
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <process.h>
+#define getpid _getpid
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -112,6 +123,42 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
   2. The second method adds untargeted feature detection to obtain quantities from unidentified features.
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
 and RT in other runs.
+
+@b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
+Feature detection is the expensive part of the workflow and each MS run is detected independently
+of every other; alignment, linking, inference and quantification need all runs at once. @p -feat_dir
+names a directory of per-run feature checkpoints and applies one rule to every row of the
+experimental design: reuse its checkpoint if a valid one is there, otherwise detect the run from
+@p -in / @p -ids and write one, otherwise fail.
+
+Everything follows from that rule:
+@code
+  // one machine, resumable -- interrupt it, run it again, it continues
+  ProteomicsLFQ -design d.tsv -in *.mzML -ids *.idXML -fasta db.fasta -feat_dir ckpt/ -out r.mzTab
+
+  // many machines: one detect-only invocation per run, in any order, no coordination
+  ProteomicsLFQ -design d.tsv -in a.mzML -ids a.idXML -fasta db.fasta -feat_dir ckpt/ -detect_only
+
+  // then combine, reading no mzML, no idXML and no run-level FASTA content at all
+  ProteomicsLFQ -design d.tsv -fasta db.fasta -feat_dir ckpt/ -out r.mzTab
+@endcode
+
+A checkpoint records the parameters, OpenMS build, experimental-design row and input files it was
+produced from, and is refused if any of those disagree with the run trying to use it - naming the
+setting that differs. This is what makes reuse safe rather than merely convenient: nothing else
+would stop half a study being detected with one setting and half with another. Only a differing
+OpenMS build can be waved through, with @p -feat_dir_accept_mismatch, which records the override in
+the result. @p -force_recompute ignores existing checkpoints and rewrites them.
+
+@p -feat_dir requires an explicit @p -design (a generated one would label every separately detected
+run as the first) and @p -fasta (a checkpoint has to carry the peptide-indexing results, which a
+combining run cannot reconstruct), and does not apply to @p spectral_counting.
+
+Note on scale: the combining step holds every run's features of a fraction in memory at once, so its
+ceiling is set by features per run rather than by run count. Measured on a 7-run dataset averaging
+about 10,000 features per run, the marginal cost is roughly 2 kB per feature plus 10 MB per run, so
+200 such runs in one fraction need about 9 GB; a deep-proteome experiment at ~60,000 features per run
+would need several times that.
 
 @b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
 FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
@@ -178,7 +225,9 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<file list>", StringList(), "Input files");
+    registerInputFileList_("in", "<file list>", StringList(),
+      "Input files. Optional only when '-feat_dir' supplies a checkpoint for every run of the design.",
+      false);
     setValidFormats_("in", ListUtils::create<std::string>("mzML"
 #ifdef WITH_OPENTIMS
       ",d"
@@ -199,7 +248,7 @@ protected:
       "One identification per spectrum is expected: where several identifications of one\n"
       "spectrum agree on peptidoform and charge, only the best-scoring one is kept, since\n"
       "the others would count the same measurement more than once. Combine results from\n"
-      "several search engines with ConsensusID rather than concatenating them.");
+      "several search engines with ConsensusID rather than concatenating them.", false);
     setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -219,6 +268,23 @@ protected:
     setValidFormats_("out_cxml", ListUtils::create<std::string>("consensusXML"));
 
     registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
+
+    registerOutputDir_("feat_dir", "<directory>", "",
+      "Directory of per-run feature checkpoints. For every run of the experimental design, a valid "
+      "checkpoint here is reused instead of detecting features again; a run without one is detected "
+      "from '-in'/'-ids' and its checkpoint written. This makes a run resumable, and lets the per-run "
+      "work be distributed: run with '-detect_only' on each machine, then once over the design with "
+      "neither '-in' nor '-ids'. Requires '-design' and '-fasta'.", false, false);
+    registerFlag_("detect_only",
+      "Stop after the per-run feature checkpoints have been written. No alignment, linking, inference "
+      "or quantification is performed, and no result file is required. Requires '-feat_dir'.", false);
+    registerFlag_("force_recompute",
+      "Ignore existing checkpoints in '-feat_dir' and detect every run again, overwriting them.", true);
+    registerFlag_("feat_dir_accept_mismatch",
+      "Proceed when a checkpoint was written by a different OpenMS build than the one reading it, "
+      "recording that in the result's data processing. Applies to the build revision ONLY: a checkpoint "
+      "whose parameters, design row or input files differ is always fatal, because no annotation makes "
+      "such a checkpoint describe the run being combined.", true);
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -1067,6 +1133,112 @@ protected:
     }
   }
 
+  /// Bumped when the stored layout changes in a way an older reader would misread.
+  static constexpr int CHECKPOINT_SCHEMA_VERSION = 1;
+
+  /**
+    @brief What a checkpoint has to agree with before it may stand in for detecting a run.
+
+    Assembled once per invocation. Everything here is compared, and a difference in any of it
+    except @p openms_revision is fatal: a checkpoint that disagrees describes a different
+    computation, and reusing it produces a result that looks fine and is not.
+  */
+  struct CheckpointContext
+  {
+    std::string fingerprint;   ///< the detect-relevant parameters, one "key=value" per line
+    std::string design_row;    ///< fraction group, fraction, label and sample of this run
+    std::string fasta_digest;
+    std::string openms_version;
+    std::string openms_revision;
+    std::string mzml_digest;   ///< empty when the raw file is not available to hash
+    std::string id_digest;     ///< empty when the ID file is not available to hash
+  };
+
+  /// FNV-1a. Not a security hash -- it identifies content, and unlike std::hash it is stable
+  /// across builds and platforms, which a value written into a file has to be.
+  static std::string digestString_(const std::string& s)
+  {
+    uint64_t h = 1469598103934665603ULL;
+    for (unsigned char c : s) { h ^= c; h *= 1099511628211ULL; }
+    std::ostringstream os;
+    os << std::hex << std::setw(16) << std::setfill('0') << h;
+    return os.str();
+  }
+
+  /**
+    @brief Content digest of an input.
+
+    Regular files are hashed outright. Bruker '.d' and '.idparquet' inputs are directories, whose
+    own size and timestamp say nothing about their contents, so those are identified by a digest
+    over the sorted list of contained relative paths and sizes. That is weaker than hashing every
+    byte -- a same-length edit inside a .d slips through -- and it avoids re-reading gigabytes on
+    every resume decision. Documented rather than silently assumed.
+  */
+  std::string inputDigest_(const std::string& path) const
+  {
+    if (! File::exists(path)) return "";
+    if (! File::isDirectory(path)) return FileHandler::computeFileHash(path);
+
+    StringList entries;
+    File::fileList(path, "*", entries, true);
+    std::sort(entries.begin(), entries.end());
+    std::string listing;
+    for (const auto& e : entries)
+    {
+      listing += File::basename(e) + ":" + StringUtils::toStr(File::exists(e) ? 1 : 0) + ";";
+    }
+    return "dir:" + digestString_(listing);
+  }
+
+  /**
+    @brief The parameters that shaped a run, as sorted "key=value" lines.
+
+    Scoped by EXCLUDING what only the combining half uses, not by listing what the detecting half
+    uses. The asymmetry is deliberate: forgetting to exclude a new combine-only parameter produces
+    a loud false mismatch, while forgetting to include a new detection parameter in an allowlist
+    would silently combine checkpoints that disagree.
+  */
+  std::string checkpointFingerprint_() const
+  {
+    static const std::vector<std::string> excluded_prefixes = {
+      "Alignment:", "Linking:", "PipEcho:", "Protein Inference:", "ProteinQuantification:",
+      "Posterior Error Probability:"};
+    static const std::set<std::string> excluded_keys = {
+      "in", "ids", "design", "out", "out_cxml", "out_msstats", "out_qpx", "out_parquet",
+      "feat_dir", "detect_only", "force_recompute", "feat_dir_accept_mismatch",
+      "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
+      "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
+      "protein_quantification", "alignment_order", "keep_feature_top_psm_only_in_consensus"};
+
+    std::vector<std::string> lines;
+    for (auto it = getParam_().begin(); it != getParam_().end(); ++it)
+    {
+      const std::string key = it.getName();
+      if (excluded_keys.count(key) != 0) continue;
+      bool excluded = false;
+      for (const auto& p : excluded_prefixes) { if (StringUtils::hasPrefix(key, p)) { excluded = true; break; } }
+      if (excluded) continue;
+      lines.push_back(key + "=" + it->value.toString());
+    }
+    std::sort(lines.begin(), lines.end());
+    return ListUtils::concatenate(lines, "\n");
+  }
+
+  /// Name a checkpoint after the design row it belongs to, not after the file alone: two rows can
+  /// share a basename in different fractions. The stem stays in front so a directory listing is
+  /// still readable.
+  static std::string checkpointName_(const std::string& mz_file, Size fraction_group, Size fraction)
+  {
+    return File::stemName(File::basename(mz_file)) + "_fg" + StringUtils::toStr(fraction_group)
+           + "_f" + StringUtils::toStr(fraction) + ".featureParquet";
+  }
+
+  static std::string designRowKey_(Size fraction_group, Size fraction, const std::string& sample_name)
+  {
+    return "fg=" + StringUtils::toStr(fraction_group) + ";f=" + StringUtils::toStr(fraction)
+           + ";sample=" + sample_name;
+  }
+
   /**
     @brief Everything one MS run contributes to its fraction.
 
@@ -1087,6 +1259,230 @@ protected:
     bool decoy_prefix = true;
     bool decoy_inferred = false;          ///< false if no FASTA was given, so nothing was inferred
   };
+
+  /// Report which keys of two fingerprints differ, so a mismatch names the setting rather than
+  /// leaving an operator to diff INIs across nodes by hand.
+  static std::string fingerprintDiff_(const std::string& mine, const std::string& theirs)
+  {
+    auto to_map = [](const std::string& s) {
+      std::map<std::string, std::string> m;
+      for (const auto& line : ListUtils::create<std::string>(s, '\n'))
+      {
+        const auto pos = line.find('=');
+        if (pos != std::string::npos) m[line.substr(0, pos)] = line.substr(pos + 1);
+      }
+      return m;
+    };
+    const auto a = to_map(mine), b = to_map(theirs);
+    std::vector<std::string> diffs;
+    for (const auto& [k, v] : a)
+    {
+      auto it = b.find(k);
+      if (it == b.end()) diffs.push_back("  " + k + ": '" + v + "' vs <absent in checkpoint>");
+      else if (it->second != v) diffs.push_back("  " + k + ": '" + v + "' vs '" + it->second + "'");
+    }
+    for (const auto& [k, v] : b) { if (a.find(k) == a.end()) diffs.push_back("  " + k + ": <absent here> vs '" + v + "'"); }
+    if (diffs.size() > 12) { diffs.resize(12); diffs.push_back("  ... and more"); }
+    return ListUtils::concatenate(diffs, "\n");
+  }
+
+  /**
+    @brief Write one run's checkpoint.
+
+    Written under a temporary name inside @p dir and renamed into place only once every file is
+    closed, so a checkpoint is either complete or absent and a resuming run can trust a plain
+    existence check. The stamped meta values are removed again afterwards: the map continues into
+    alignment and linking, and leaving them on it would put them in the consensusXML of a
+    checkpointed run but not of a single-shot one.
+  */
+  bool writeCheckpoint_(const std::string& dir, const std::string& name,
+                        RunDetection& rd, const CheckpointContext& ctx) const
+  {
+    FeatureMap& fm = rd.features;
+    const std::vector<std::pair<std::string, DataValue>> stamped = {
+      {"PLFQ:schema", DataValue(CHECKPOINT_SCHEMA_VERSION)},
+      {"PLFQ:run_identifier", DataValue(rd.id_ms_run_ref.empty() ? "" : rd.id_ms_run_ref)},
+      {"PLFQ:canonical_identifier", DataValue(fm.getProteinIdentifications().empty()
+                                              ? std::string() : fm.getProteinIdentifications()[0].getIdentifier())},
+      {"PLFQ:fwhm", DataValue(rd.fwhm)},
+      {"PLFQ:decoy_string", DataValue(rd.decoy_string)},
+      {"PLFQ:decoy_prefix", DataValue(rd.decoy_prefix ? 1 : 0)},
+      {"PLFQ:decoy_inferred", DataValue(rd.decoy_inferred ? 1 : 0)},
+      {"PLFQ:fixed_mods", DataValue(StringList(rd.fixed_modifications.begin(), rd.fixed_modifications.end()))},
+      {"PLFQ:var_mods", DataValue(StringList(rd.variable_modifications.begin(), rd.variable_modifications.end()))},
+      {"PLFQ:fingerprint", DataValue(ctx.fingerprint)},
+      {"PLFQ:design_row", DataValue(ctx.design_row)},
+      {"PLFQ:fasta_digest", DataValue(ctx.fasta_digest)},
+      {"PLFQ:mzml_digest", DataValue(ctx.mzml_digest)},
+      {"PLFQ:id_digest", DataValue(ctx.id_digest)},
+      {"PLFQ:openms_version", DataValue(ctx.openms_version)},
+      {"PLFQ:openms_revision", DataValue(ctx.openms_revision)}};
+    for (const auto& [k, v] : stamped) { fm.setMetaValue(k, v); }
+
+    const std::string tmp = dir + "/." + name + ".tmp." + StringUtils::toStr(getpid());
+    if (File::exists(tmp)) { File::removeDirRecursively(tmp); }
+    const bool ok = FeatureMapArrowIO::exportToParquet(fm, tmp);
+
+    for (const auto& [k, v] : stamped) { fm.removeMetaValue(k); }
+
+    if (! ok)
+    {
+      OPENMS_LOG_ERROR << "Could not write feature checkpoint for " << name << "\n";
+      File::removeDirRecursively(tmp);
+      return false;
+    }
+
+    const std::string final_path = dir + "/" + name;
+    if (File::exists(final_path))
+    {
+      // Another process finished this run while we were writing it. Its checkpoint satisfies the
+      // same contract, so keep it rather than replacing a file something may already be reading.
+      OPENMS_LOG_INFO << "Checkpoint " << name << " appeared while it was being written; keeping the existing one.\n";
+      File::removeDirRecursively(tmp);
+      return true;
+    }
+    if (! File::rename(tmp, final_path, false))
+    {
+      OPENMS_LOG_ERROR << "Could not move the feature checkpoint into place: " << final_path << "\n";
+      File::removeDirRecursively(tmp);
+      return false;
+    }
+    return true;
+  }
+
+  enum class CheckpointState { ABSENT, USABLE, REJECTED };
+
+  /// Load a checkpoint and decide whether it may stand in for detecting the run.
+  CheckpointState loadCheckpoint_(const std::string& path, const CheckpointContext& ctx,
+                                  RunDetection& rd, std::string& reason) const
+  {
+    if (! File::exists(path) || ! File::isDirectory(path)) return CheckpointState::ABSENT;
+
+    for (const char* f : {"features.parquet", "psms.parquet", "proteins.parquet",
+                          "protein_groups.parquet", "search_params.parquet"})
+    {
+      if (! File::exists(path + "/" + f))
+      {
+        reason = std::string("it is missing ") + f + ", so it is not a complete checkpoint";
+        return CheckpointState::REJECTED;
+      }
+    }
+
+    FeatureMap fm;
+    if (! FeatureMapArrowIO::importFromParquet(path, fm))
+    {
+      reason = "it could not be read (see the error above)";
+      return CheckpointState::REJECTED;
+    }
+    if (! fm.metaValueExists("PLFQ:schema"))
+    {
+      reason = "it carries no ProteomicsLFQ checkpoint metadata; it was not written by this tool";
+      return CheckpointState::REJECTED;
+    }
+    if (static_cast<int>(fm.getMetaValue("PLFQ:schema")) != CHECKPOINT_SCHEMA_VERSION)
+    {
+      reason = "its checkpoint schema is version " + fm.getMetaValue("PLFQ:schema").toString()
+               + ", this build writes version " + StringUtils::toStr(CHECKPOINT_SCHEMA_VERSION);
+      return CheckpointState::REJECTED;
+    }
+
+    const auto stored = [&fm](const char* k) { return fm.metaValueExists(k) ? fm.getMetaValue(k).toString() : std::string(); };
+
+    if (stored("PLFQ:design_row") != ctx.design_row)
+    {
+      reason = "it was written for design row '" + stored("PLFQ:design_row") + "', not '" + ctx.design_row + "'";
+      return CheckpointState::REJECTED;
+    }
+    if (stored("PLFQ:fingerprint") != ctx.fingerprint)
+    {
+      reason = "it was produced with different settings:\n" + fingerprintDiff_(ctx.fingerprint, stored("PLFQ:fingerprint"));
+      return CheckpointState::REJECTED;
+    }
+    if (stored("PLFQ:fasta_digest") != ctx.fasta_digest)
+    {
+      reason = "it was indexed against a different FASTA";
+      return CheckpointState::REJECTED;
+    }
+    // Only checkable when the inputs are at hand; a combining run has neither.
+    if (! ctx.mzml_digest.empty() && stored("PLFQ:mzml_digest") != ctx.mzml_digest)
+    {
+      reason = "the spectra file has changed since it was written";
+      return CheckpointState::REJECTED;
+    }
+    if (! ctx.id_digest.empty() && stored("PLFQ:id_digest") != ctx.id_digest)
+    {
+      reason = "the identification file has changed since it was written";
+      return CheckpointState::REJECTED;
+    }
+    if (stored("PLFQ:openms_version") != ctx.openms_version
+        || stored("PLFQ:openms_revision") != ctx.openms_revision)
+    {
+      const std::string built_by = stored("PLFQ:openms_version") + " (" + stored("PLFQ:openms_revision") + ")";
+      const std::string running = ctx.openms_version + " (" + ctx.openms_revision + ")";
+      if (! getFlag_("feat_dir_accept_mismatch"))
+      {
+        reason = "it was written by OpenMS " + built_by + ", this is " + running
+                 + ". Pass -feat_dir_accept_mismatch to combine across builds anyway";
+        return CheckpointState::REJECTED;
+      }
+      OPENMS_LOG_WARN << "Warning: checkpoint " << File::basename(path) << " was written by OpenMS "
+                      << built_by << ", this is " << running << ". Accepted because "
+                      << "-feat_dir_accept_mismatch was given.\n";
+      accepted_build_mismatch_ = true;
+    }
+
+    rd.fwhm = fm.getMetaValue("PLFQ:fwhm");
+    rd.decoy_string = stored("PLFQ:decoy_string");
+    rd.decoy_prefix = static_cast<int>(fm.getMetaValue("PLFQ:decoy_prefix")) != 0;
+    rd.decoy_inferred = static_cast<int>(fm.getMetaValue("PLFQ:decoy_inferred")) != 0;
+    rd.id_ms_run_ref = stored("PLFQ:run_identifier");
+    const StringList fixed = fm.getMetaValue("PLFQ:fixed_mods");
+    const StringList var = fm.getMetaValue("PLFQ:var_mods");
+    rd.fixed_modifications.insert(fixed.begin(), fixed.end());
+    rd.variable_modifications.insert(var.begin(), var.end());
+
+    // The Parquet reader synthesizes a fresh run identifier on load and treats the stored one as
+    // informational, so the canonical identifier has to be put back by hand -- on the protein run
+    // and on every peptide identification that references it.
+    const std::string canonical = stored("PLFQ:canonical_identifier");
+    if (! canonical.empty() && ! fm.getProteinIdentifications().empty())
+    {
+      fm.getProteinIdentifications()[0].setIdentifier(canonical);
+      for (auto& f : fm) { for (auto& p : f.getPeptideIdentifications()) { p.setIdentifier(canonical); } }
+      for (auto& p : fm.getUnassignedPeptideIdentifications()) { p.setIdentifier(canonical); }
+    }
+
+    for (const auto& k : {"PLFQ:schema", "PLFQ:run_identifier", "PLFQ:canonical_identifier", "PLFQ:fwhm",
+                          "PLFQ:decoy_string", "PLFQ:decoy_prefix", "PLFQ:decoy_inferred", "PLFQ:fixed_mods",
+                          "PLFQ:var_mods", "PLFQ:fingerprint", "PLFQ:design_row", "PLFQ:fasta_digest",
+                          "PLFQ:mzml_digest", "PLFQ:id_digest", "PLFQ:openms_version", "PLFQ:openms_revision"})
+    {
+      fm.removeMetaValue(k);
+    }
+
+    // The Parquet reader annotates every PeptideHit with 'scan' and 'reference_file_name', derived
+    // from columns it stores for analytics, whether or not the written hit carried them. A detected
+    // run never carries them -- loadAndCleanupIDFile_ strips every PeptideHit meta value that is not
+    // a score, a q-value, a Luciphor FLR, target_decoy or (for strictly unique peptides)
+    // protein_references -- so leaving them on would make a checkpointed run emit two mzTab opt_
+    // columns a single-shot run does not, and the two would stop being comparable. Restore what was
+    // written.
+    auto drop_invented = [](PeptideIdentificationList& pids) {
+      for (auto& pid : pids)
+      {
+        for (auto& hit : pid.getHits())
+        {
+          hit.removeMetaValue("scan");
+          hit.removeMetaValue("reference_file_name");
+        }
+      }
+    };
+    for (auto& f : fm) { drop_invented(f.getPeptideIdentifications()); }
+    drop_invented(fm.getUnassignedPeptideIdentifications());
+
+    rd.features = std::move(fm);
+    return CheckpointState::USABLE;
+  }
 
   /**
     @brief Detect and quantify the features of a single MS run.
@@ -1455,12 +1851,84 @@ protected:
     for (std::string const & mz_file : ms_files.second)
     {
       const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
-      const std::string& id_file_abs_path = File::absolutePath(mzfile2idfile.at(File::absolutePath(mz_file)));
+      const auto& sample_idx = design_.getPathLabelToSampleMapping(true).at({File::basename(mz_file), 1});
+      const std::string design_row = designRowKey_(fraction_group, fraction,
+                                                   design_.getSampleSection().getSampleName(sample_idx));
+
+      // Is this run's identification file available? A combining invocation has neither -in nor
+      // -ids and relies entirely on checkpoints, so this is allowed to be absent.
+      const auto id_it = mzfile2idfile.find(File::absolutePath(mz_file));
+      const std::string id_file_abs_path =
+        (id_it == mzfile2idfile.end()) ? std::string() : File::absolutePath(id_it->second);
 
       RunDetection rd;
+      bool from_checkpoint = false;
+
+      if (! feat_dir_.empty())
       {
+        CheckpointContext ctx = checkpoint_ctx_;
+        ctx.design_row = design_row;
+        // Only hashable when the inputs are at hand. A combining run cannot notice that an mzML
+        // changed after its checkpoint was written; that is the resuming run's job.
+        if (! id_file_abs_path.empty())
+        {
+          ctx.mzml_digest = inputDigest_(File::absolutePath(mz_file));
+          ctx.id_digest = inputDigest_(id_file_abs_path);
+        }
+
+        const std::string ckpt = feat_dir_ + "/" + checkpointName_(mz_file, fraction_group, fraction);
+        if (getFlag_("force_recompute"))
+        {
+          if (File::exists(ckpt)) { OPENMS_LOG_INFO << "Recomputing " << File::basename(mz_file) << " (-force_recompute).\n"; }
+        }
+        else
+        {
+          std::string why;
+          switch (loadCheckpoint_(ckpt, ctx, rd, why))
+          {
+            case CheckpointState::USABLE:
+              OPENMS_LOG_INFO << "Reusing feature checkpoint for " << File::basename(mz_file) << ".\n";
+              from_checkpoint = true;
+              ++checkpoints_reused_;
+              break;
+            case CheckpointState::REJECTED:
+              // Never silently recompute over a checkpoint that disagrees: the disagreement is the
+              // information. Recomputing would hide that the operator combined an inconsistent set.
+              OPENMS_LOG_FATAL_ERROR << "Feature checkpoint '" << ckpt << "' cannot be used because "
+                                     << why << ".\nDelete it, or pass -force_recompute to detect this "
+                                     << "run again and overwrite it.\n";
+              return INCOMPATIBLE_INPUT_DATA;
+            case CheckpointState::ABSENT:
+              break;
+          }
+        }
+      }
+
+      if (! from_checkpoint)
+      {
+        if (id_file_abs_path.empty())
+        {
+          OPENMS_LOG_FATAL_ERROR << "No feature checkpoint for '" << File::basename(mz_file)
+                                 << "' and no identification file given for it. A combining run needs a "
+                                 << "checkpoint for every run of the design; otherwise pass -in and -ids "
+                                 << "so it can be detected.\n";
+          return INCOMPATIBLE_INPUT_DATA;
+        }
         ExitCodes e = detectRun_(mz_file, id_file_abs_path, in_db, fraction, fraction_group, rd);
         if (e != EXECUTION_OK) { return e; }
+        ++runs_detected_;
+
+        if (! feat_dir_.empty())
+        {
+          CheckpointContext ctx = checkpoint_ctx_;
+          ctx.design_row = design_row;
+          ctx.mzml_digest = inputDigest_(File::absolutePath(mz_file));
+          ctx.id_digest = inputDigest_(id_file_abs_path);
+          if (! writeCheckpoint_(feat_dir_, checkpointName_(mz_file, fraction_group, fraction), rd, ctx))
+          {
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
+        }
       }
 
       // Fold the run's contribution into the fraction. Every one of these was previously an
@@ -1468,10 +1936,19 @@ protected:
       // the split.
       fixed_modifications.insert(rd.fixed_modifications.begin(), rd.fixed_modifications.end());
       variable_modifications.insert(rd.variable_modifications.begin(), rd.variable_modifications.end());
-      recordDecoyAffix_(rd.decoy_string, rd.decoy_prefix, rd.decoy_inferred, id_file_abs_path);
+      recordDecoyAffix_(rd.decoy_string, rd.decoy_prefix, rd.decoy_inferred,
+                        id_file_abs_path.empty() ? ("checkpoint of " + File::basename(mz_file)) : id_file_abs_path);
       id_MS_run_ref.push_back(rd.id_ms_run_ref);
       run_fwhms.push_back(rd.fwhm);
       feature_maps.emplace_back(std::move(rd.features));
+    }
+
+    if (getFlag_("detect_only"))
+    {
+      // Everything below needs every run of the fraction at once. A detect-only invocation exists
+      // to produce the checkpoints and stop, so that the runs can be spread over machines and
+      // combined later by an invocation that has no raw data at all.
+      return EXECUTION_OK;
     }
 
     auto validation_result = File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true);
@@ -1723,16 +2200,73 @@ protected:
     const std::string out_msstats = getStringOption_("out_msstats");
     const std::string out_cxml = getStringOption_("out_cxml");
     const std::string out_qpx = getOutputDirOption("out_qpx");
-    if (out.empty() && out_msstats.empty() && out_cxml.empty() && out_qpx.empty())
+    feat_dir_ = getOutputDirOption("feat_dir");
+    const bool detect_only = getFlag_("detect_only");
+
+    // A detect-only invocation produces checkpoints and nothing else, so it has no result file to
+    // require. Every other invocation still must be asked for something.
+    if (! detect_only && out.empty() && out_msstats.empty() && out_cxml.empty() && out_qpx.empty())
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                                  "out/out_msstats/out_cxml/out_qpx");
     }
+    if (detect_only && feat_dir_.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "'-detect_only' needs '-feat_dir' to write the checkpoints to.");
+    }
 
     StringList in = getStringList_("in");
     StringList in_ids = getStringList_("ids");
+
+    // '-in' and '-ids' are registered optional so that a combining invocation, which is covered
+    // entirely by checkpoints, can omit them. Every other invocation still requires them, and
+    // says so in the same terms it always did.
+    if (feat_dir_.empty() && in.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "in");
+    }
+    if (feat_dir_.empty() && in_ids.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ids");
+    }
+
     std::string design_file = getStringOption_("design");
     std::string in_db = getStringOption_("fasta");
+
+    if (! feat_dir_.empty())
+    {
+      // A run using checkpoints cannot fall back on a generated design: a detect-only invocation
+      // sees one file and would generate Fraction_Group 1 for it, so every machine would
+      // independently label its run the first one and the checkpoints would not compose.
+      if (design_file.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "'-feat_dir' requires an explicit '-design'. Without one the design is generated from '-in', "
+          "which for a single-run invocation assigns Fraction_Group 1 to every run.");
+      }
+      // Without a FASTA there is no peptide indexing, hence no decoy affix, no theoretical
+      // uniqueness and no protein sequences -- and a combining run has no way to obtain them later.
+      if (in_db.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "'-feat_dir' requires '-fasta': a checkpoint has to carry the peptide-indexing results, "
+          "which a combining run cannot reconstruct.");
+      }
+      if (getStringOption_("quantification_method") == "spectral_counting")
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "'-feat_dir' does not apply to 'spectral_counting', which detects no features.");
+      }
+      if (! File::exists(feat_dir_) && ! File::makeDir(feat_dir_))
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, feat_dir_);
+      }
+      checkpoint_ctx_.fingerprint = checkpointFingerprint_();
+      checkpoint_ctx_.fasta_digest = inputDigest_(File::absolutePath(in_db));
+      checkpoint_ctx_.openms_version = VersionInfo::getVersion();
+      checkpoint_ctx_.openms_revision = VersionInfo::getRevision();
+    }
     // Validate parameters
     if (in.size() != in_ids.size())
     {
@@ -1809,7 +2343,9 @@ protected:
                                         "Spectra file basenames provided as input need to match a subset the experimental design file basenames.");
     }
 
-    Size nr_filtered = design_.filterByBasenames(in_basenames);
+    // With no '-in' the roster is the design itself: a combining run is covered entirely by
+    // checkpoints, and filtering by an empty basename set would erase every row.
+    Size nr_filtered = in_basenames.empty() ? 0 : design_.filterByBasenames(in_basenames);
     if (nr_filtered > 0)
     {
       OPENMS_LOG_WARN << "WARNING: " << nr_filtered
@@ -1901,6 +2437,28 @@ protected:
 
         consensus.appendColumns(consensus_fraction); // append consensus map calculated for this fraction number
       } // end of scope of fraction related data
+
+      if (detect_only)
+      {
+        OPENMS_LOG_INFO << "Feature checkpoints written to " << feat_dir_ << ": "
+                        << runs_detected_ << " run(s) detected, " << checkpoints_reused_
+                        << " reused. Stopping (-detect_only).\n";
+        return EXECUTION_OK;
+      }
+      if (! feat_dir_.empty())
+      {
+        OPENMS_LOG_INFO << "Feature checkpoints: " << checkpoints_reused_ << " reused, "
+                        << runs_detected_ << " detected.\n";
+      }
+      if (accepted_build_mismatch_)
+      {
+        // Record the override in the result itself. A warning in a cluster log is not where anyone
+        // looks six months later when they wonder how this file was produced.
+        consensus.setMetaValue("ProteomicsLFQ:checkpoint_build_mismatch",
+                               "combined from feature checkpoints written by a different OpenMS build "
+                               "than " + VersionInfo::getVersion() + " (" + VersionInfo::getRevision()
+                               + "); -feat_dir_accept_mismatch was given");
+      }
 
       consensus.sortByPosition();
       consensus.sortPeptideIdentificationsByMapIndex();
@@ -2161,6 +2719,12 @@ protected:
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
   bool picked_decoy_seen_ = false; ///< has an affix been inferred from an input file yet?
+  /// Set when a checkpoint from another build was accepted; recorded in the result's provenance.
+  mutable bool accepted_build_mismatch_ = false;
+  std::string feat_dir_;                  ///< empty unless -feat_dir was given
+  CheckpointContext checkpoint_ctx_;      ///< the run-independent half, built once in main_
+  Size checkpoints_reused_ = 0;
+  Size runs_detected_ = 0;
   ExperimentalDesign design_;
 };
 
