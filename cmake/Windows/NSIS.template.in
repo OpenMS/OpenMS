@@ -20,8 +20,8 @@ SetCompressor /SOLID lzma
 ##################
 ###   config   ###
 ##################
-### let Cfg_Settings.nsh.in be configured by CMake. Then include:
-!include ..\..\..\Cfg_Settings.nsh
+### let Cfg_Settings.nsh.in be configured by CMake. Then include (absolute path, set by cmake/package_nsis.cmake):
+!include "@CPACK_OPENMS_CFG_SETTINGS_FILE@"
 ### NSISRESOURCES now consists of the cmake/Windows directory of the source tree.
 !addplugindir ${NSISRESOURCES}\Plugins\x86-unicode
 !addincludedir ${NSISRESOURCES}\Include
