@@ -4260,6 +4260,46 @@ set_tests_properties("TOPP_ProteomicsLFQ_strictly_unique" PROPERTIES FAIL_REGULA
 add_test("TOPP_ProteomicsLFQ_strictly_unique_out_1" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_strictly_unique.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_strictly_unique_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_strictly_unique_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_strictly_unique")
 
+# The feature linker's RT tolerance is derived from a fraction-level chromatographic FWHM, which
+# is the median over the fraction's runs rather than whichever run the loop ended on. On these
+# fixtures the two differ (fraction 1: runs 8.64/7.78/7.12, last-wins 7.12 vs median 7.78) but
+# the tolerance is dominated by 2*max_alignment_diff, floored at 120 s, so no output changes.
+# Nothing else would notice a silent revert to last-file-wins, hence this assertion on the log.
+# Note: PASS_REGULAR_EXPRESSION makes ctest ignore the exit code, so this test only pins the
+# aggregation; TOPP_ProteomicsLFQ_1_subset above is what checks the run actually succeeds.
+add_test("TOPP_ProteomicsLFQ_fraction_fwhm" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out ${TESTS_TEMP_DIR}/BSA_fraction_fwhm.tmp.mzTab
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+# PASS pins that the aggregation happens at all (a revert would delete it); FAIL pins that the
+# reported value is not the last run's 7.115, i.e. that it is genuinely aggregated rather than
+# inherited. Deliberately matched on "7.1" rather than on the median itself, so the assertion
+# does not become brittle to platform differences in the FWHM estimate.
+set_tests_properties("TOPP_ProteomicsLFQ_fraction_fwhm" PROPERTIES
+  PASS_REGULAR_EXPRESSION "Median chromatographic FWHM across the 3 runs of this fraction"
+  FAIL_REGULAR_EXPRESSION "across the 3 runs of this fraction: 7\\.1")
+
 # QPX Parquet export test (reuses subset test input data)
   # Clear the output directory first. ctest never cleans tmp_path, so without this a
   # producer that crashed - or that legitimately stopped writing a file - would leave the
