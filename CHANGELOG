@@ -78,6 +78,10 @@ General:
     throw an informative exception instead of reading the all-zero non-solution back as valid output
     - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
     empty results (#9944, #9956)
+  - BREAKING (pyOpenMS): the low-level LPWrapper class (with its SolverParam and nested enums) is no
+    longer exposed in pyOpenMS. It is an internal LP/MILP backend wrapper with no Python consumers and
+    an easy-to-misuse solve()/getStatus() contract; use the high-level algorithms (MRMFeatureSelector,
+    FeatureDecharger, ...) from Python instead (#9983)
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
@@ -1322,16 +1326,6 @@ Build System:
     LLVM/clang 21+, which no longer provides them transitively (#9651, #9653)
   - Fix: removed default(none) from the SimpleSearchEngineAlgorithm OpenMP pragma, which broke builds on
     macOS/Xcode where _OPENMP is not defined (#9388)
-  - Fix: LPWrapper::solve() failures no longer turn into silently wrong all-zero results. Every C++ call
-    site (MRMFeatureSelector, ILPDCWrapper) discarded the return value and read the solution regardless,
-    so a solver that declined to solve (infeasible model, ill-posed bounds, time/iteration limit) produced
-    an empty/degenerate result with no error. solve() now stores a normalised status for all three
-    backends and logs an error on failure; getStatus() is reliable on the COIN-OR path as well (it
-    previously always returned UNDEFINED), and the call sites check it before using the solution (#9944)
-  - BREAKING (pyOpenMS): the low-level LPWrapper class (with its SolverParam and nested enums) is no
-    longer exposed in pyOpenMS. It is an internal LP/MILP backend wrapper used only by C++ algorithms,
-    had no Python consumers, and its solve()/getStatus() contract is easy to misuse; Python users should
-    use the high-level algorithms (e.g. MRMFeatureSelector, FeatureDecharger) instead (#9944)
   - Security patterns added to .gitignore (#8545); configure return value checking in CI packaging (#8515);
     Claude GitHub Actions workflows added for CI automation (#8675, #8676); removed leftover traces of the
     removed doc_internal target (#2256)
