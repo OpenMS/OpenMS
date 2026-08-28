@@ -442,6 +442,15 @@ TOPP tools:
         right after peptide indexing, so the filter found nothing to keep; it is now preserved for that
         setting. Proteins left without evidence are dropped and the remaining ones are reported as
         singleton groups, which the quantification and all exporters need (#9979)
+      - The chromatographic FWHM the feature linker derives its RT tolerance from is now the median
+        over the runs of a fraction. It used to be whichever run the per-file loop happened to end
+        on, so the tolerance depended on the order the files were given in. Feature detection is
+        unaffected: each run still uses its own FWHM for the FFID peak width. Related: a run that
+        cannot measure one (.d/IM_PEAK without seeds) now falls back to the documented 30 s default
+        instead of inheriting the previous run's value, and a decoy affix that differs between input
+        files is reported rather than silently letting the last file decide the one picked protein
+        FDR uses. On the shipped fixtures the fraction values move (8.64/7.78/7.12 s: 7.12 -> 7.78)
+        without changing any output, since the tolerance is dominated by the alignment term
       - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
         carries several of them -- the shape produced by concatenating search engine results rather
         than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or

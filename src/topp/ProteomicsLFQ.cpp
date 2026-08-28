@@ -819,8 +819,28 @@ protected:
       FASTAContainer<TFI_File> fasta_db(in_db);
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-      picked_decoy_string_ = indexer.getDecoyString();
-      picked_decoy_prefix_ = indexer.isPrefix();
+      // Picked protein FDR uses a single decoy affix for the whole study, but this runs once per
+      // input file and used to simply overwrite, so the last file silently decided it. The affix
+      // is a property of the FASTA, hence identical for every file in a well-formed run; if two
+      // files disagree, one of them was searched against a different database and the picked FDR
+      // would be computed against an affix that does not match half the accessions.
+      const std::string run_decoy_string = indexer.getDecoyString();
+      const bool run_decoy_prefix = indexer.isPrefix();
+      if (!picked_decoy_seen_)
+      {
+        picked_decoy_string_ = run_decoy_string;
+        picked_decoy_prefix_ = run_decoy_prefix;
+        picked_decoy_seen_ = true;
+      }
+      else if (run_decoy_string != picked_decoy_string_ || run_decoy_prefix != picked_decoy_prefix_)
+      {
+        OPENMS_LOG_WARN << "Warning: decoy affix inferred from " << id_file_abs_path << " ('"
+                        << run_decoy_string << "', " << (run_decoy_prefix ? "prefix" : "suffix")
+                        << ") differs from the one inferred from earlier input ('" << picked_decoy_string_
+                        << "', " << (picked_decoy_prefix_ ? "prefix" : "suffix")
+                        << "). Keeping the first. Picked protein FDR assumes one affix for the whole "
+                           "study - check that all inputs were searched against the same database.\n";
+      }
       if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) && (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
       {
         if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY) { return INPUT_FILE_EMPTY; }
@@ -1032,7 +1052,6 @@ protected:
     const pair<UInt, std::vector<std::string> > & ms_files,
     const map<std::string, std::string>& mzfile2idfile,
     const std::string& in_db,
-    double median_fwhm,
     ConsensusMap & consensus_fraction,
     set<std::string>& fixed_modifications,
     set<std::string>& variable_modifications)
@@ -1047,6 +1066,12 @@ protected:
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
     const auto& path_label_to_fractiongroup = design_.getPathLabelToFractionGroupMapping(true);
+
+    // One chromatographic FWHM per MS run of this fraction. The linker's RT tolerance is a
+    // property of the fraction, so it is derived from all of them (below) rather than from
+    // whichever run the loop happened to end on.
+    std::vector<double> run_fwhms;
+    run_fwhms.reserve(ms_files.second.size());
 
     for (std::string const & mz_file : ms_files.second)
     {
@@ -1067,6 +1092,11 @@ protected:
       MSExperiment ms_centroided;
       bool is_im_peak_data = false;
       const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
+
+      // Chromatographic FWHM of THIS run. Scoped to the iteration so that a run which cannot
+      // measure one (IM_PEAK without seeds) falls back to the documented default instead of
+      // silently inheriting the previous run's value.
+      double median_fwhm = 0.0;
 
       {
         ExitCodes e = loadAndPreprocess_(mz_file, ms_centroided, is_im_peak_data);
@@ -1177,6 +1207,10 @@ protected:
           FileHandler().storeFeatures("debug_seeds_fraction_" + StringUtils::toStr(ms_files.first) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
         }
       }
+
+      // median_fwhm is final for this run: measured from the raw data, from the Biosaur2
+      // seeds, or defaulted. Record it for the fraction-level linking window below.
+      run_fwhms.push_back(median_fwhm);
 
       /////////////////////////////////////////////////
       // Feature detection
@@ -1389,7 +1423,24 @@ protected:
         break;
     }
 
-    alignAndLink_(feature_maps, consensus_fraction, transformations, median_fwhm);
+    // The linker derives its RT tolerance from this (2*max_alignment_diff + 2*fraction_fwhm,
+    // and PIP-ECHO's local_rt window). It describes the fraction as a whole, so take the median
+    // over its runs. Previously this read whatever the per-run variable happened to hold after
+    // the loop, i.e. the last run's value, which made the tolerance depend on input order.
+    double fraction_fwhm = 0.0;
+    if (!run_fwhms.empty())
+    {
+      fraction_fwhm = Math::median(run_fwhms.begin(), run_fwhms.end());
+      if (run_fwhms.size() > 1)
+      {
+        const auto minmax = std::minmax_element(run_fwhms.begin(), run_fwhms.end());
+        OPENMS_LOG_INFO << "Median chromatographic FWHM across the " << run_fwhms.size()
+                        << " runs of this fraction: " << fraction_fwhm
+                        << " s (range " << *minmax.first << " - " << *minmax.second << " s)\n";
+      }
+    }
+
+    alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
 
     if (feature_maps.size() > 1)
     {
@@ -1775,12 +1826,11 @@ protected:
     if (getStringOption_("quantification_method") == "feature_intensity")
     {
       OPENMS_LOG_INFO << "Performing feature intensity-based quantification." << endl;
-      double median_fwhm(0);
       for (auto const& ms_files : frac2ms) // for each fraction->ms file(s)
       {
         ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
 
-        ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, in_db, median_fwhm, consensus_fraction, fixed_modifications, variable_modifications);
+        ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, in_db, consensus_fraction, fixed_modifications, variable_modifications);
 
         if (e != EXECUTION_OK) { return e; }
 
@@ -2040,6 +2090,7 @@ protected:
   }
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
+  bool picked_decoy_seen_ = false; ///< has an affix been inferred from an input file yet?
   ExperimentalDesign design_;
 };
 
