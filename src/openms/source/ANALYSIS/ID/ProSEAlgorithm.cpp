@@ -179,6 +179,8 @@ namespace OpenMS
     defaults_.setValue("peptdeep:nce", -1.0, "Normalised collision energy for the PeptDeep MS2 model. Negative selects it automatically from the collision energy recorded in the spectra, refined by scoring a small grid on confident PSMs.");
     defaults_.setValue("peptdeep:rt_model_type", "b_spline", "Model mapping predicted onto observed retention time.", {"advanced"});
     defaults_.setValidStrings("peptdeep:rt_model_type", {"b_spline", "lowess", "linear"});
+    defaults_.setValue("peptdeep:batch_size", 500, "Peptides per ONNX inference call.", {"advanced"});
+    defaults_.setMinInt("peptdeep:batch_size", 1);
     defaults_.setSectionDescription("peptdeep", "PeptDeep (ONNX) prediction-based rescoring features");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -302,6 +304,7 @@ namespace OpenMS
     peptdeep_instrument_ = param_.getValue("peptdeep:instrument").toString();
     peptdeep_nce_ = param_.getValue("peptdeep:nce");
     peptdeep_rt_model_type_ = param_.getValue("peptdeep:rt_model_type").toString();
+    peptdeep_batch_size_ = param_.getValue("peptdeep:batch_size");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
@@ -512,6 +515,14 @@ namespace OpenMS
     p.setValue("instrument", peptdeep_instrument_);
     p.setValue("nce", peptdeep_nce_);
     p.setValue("rt_model_type", peptdeep_rt_model_type_);
+    p.setValue("batch_size", peptdeep_batch_size_);
+    // Inference otherwise runs at its own default while the search around it scales with
+    // the thread count the user actually asked for.
+#ifdef _OPENMP
+    p.setValue("threads", std::max(1, omp_get_max_threads()));
+#else
+    p.setValue("threads", 1);
+#endif
     rescoring.setParameters(p);
     rescoring.setLogType(getLogType());
     rescoring.annotate(spectra, protein_ids, peptide_ids);

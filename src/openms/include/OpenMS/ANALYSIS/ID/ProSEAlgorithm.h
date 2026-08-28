@@ -769,6 +769,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string peptdeep_instrument_{"QE"};
     double peptdeep_nce_{-1.0};
     std::string peptdeep_rt_model_type_{"b_spline"};
+    int peptdeep_batch_size_{500};
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
