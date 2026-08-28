@@ -262,7 +262,11 @@ namespace OpenMS
     std::map<std::pair<std::string, int>, Size> seen;
     std::vector<std::string> uniq_seq;
     std::vector<float> uniq_charge;
-    Size n_with_annotations = 0;
+    // Counted per run, not per file: a merged input where one run carries peak
+    // annotations and another does not would otherwise pass the global check below and
+    // leave the unannotated run with four MS2 features that are silently zero for every
+    // one of its PSMs -- a constant block that Percolator reads as a run separator.
+    std::map<std::string, Size> annotated_by_run;
     // Runs are calibrated separately, so keep their rows apart. std::map keeps the
     // order stable, which keeps the log output reproducible.
     std::map<std::string, std::vector<Size>> rows_by_run;
@@ -274,7 +278,9 @@ namespace OpenMS
       {
         const AASequence& seq = hits[h].getSequence();
         if (seq.empty()) { continue; }
-        if (!hits[h].getPeakAnnotations().empty()) { ++n_with_annotations; }
+        const std::string& run_id = peptide_ids[pi].getIdentifier();
+        annotated_by_run.try_emplace(run_id, 0);
+        if (!hits[h].getPeakAnnotations().empty()) { ++annotated_by_run[run_id]; }
         const std::string str = seq.toString();
         int z = hits[h].getCharge();
         if (z <= 0) { z = 2; }
@@ -291,12 +297,30 @@ namespace OpenMS
       }
     }
     if (rows.empty()) { return; }
-    if (n_with_annotations == 0)
+
+    StringList unannotated_runs;
+    for (const auto& [run_id, n] : annotated_by_run)
+    {
+      if (n == 0) { unannotated_runs.push_back(run_id); }
+    }
+    if (unannotated_runs.size() == annotated_by_run.size())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "No PSM carries peak annotations, so every MS2 feature would be zero. Re-run the "
         "search with fragment annotation enabled (ProSE: annotate:PSM contains 'ALL' or "
         "'fragment_annotation').");
+    }
+    if (!unannotated_runs.empty())
+    {
+      // Some runs are annotated and some are not. Say so rather than emitting a block of
+      // zeros that looks like a real measurement: those runs' MS2 features carry no
+      // information, and pooling them with annotated runs biases the rescoring.
+      OPENMS_LOG_WARN << "[PeptDeepRescoring] no peak annotations in "
+                      << unannotated_runs.size() << " of " << annotated_by_run.size()
+                      << " identification runs (" << ListUtils::concatenate(unannotated_runs, ", ")
+                      << "); their MS2 features will be zero for every PSM while other runs carry "
+                         "real values. Re-run the search with fragment annotation enabled for all "
+                         "runs, or rescore the runs separately." << '\n';
     }
 
     // Collision energy per spectrum, keyed by native ID so each run can pick out its
@@ -342,7 +366,7 @@ namespace OpenMS
       // can hold runs from engines that disagree on it, and picking the wrong direction
       // would calibrate on the *worst* PSMs.
       const bool higher_better = peptide_ids[rows[run_rows.front()].pi].isHigherScoreBetter();
-      annotateRun_(collision_energies, peptide_ids, rows, run_rows, uniq_seq, uniq_charge,
+      annotateRun_(run_id, collision_energies, peptide_ids, rows, run_rows, uniq_seq, uniq_charge,
                    higher_better, ms2, rt);
     }
 
@@ -383,7 +407,8 @@ namespace OpenMS
     }
   }
 
-  void PeptDeepRescoring::annotateRun_(const std::map<std::string, double>& collision_energies,
+  void PeptDeepRescoring::annotateRun_(const std::string& run_id,
+                                       const std::map<std::string, double>& collision_energies,
                                        PeptideIdentificationList& peptide_ids,
                                        const std::vector<Row>& rows,
                                        const std::vector<Size>& run_rows,
@@ -482,8 +507,9 @@ namespace OpenMS
         setProgress(++done);
       }
       endProgress();
-      OPENMS_LOG_INFO << "[PeptDeepRescoring] NCE " << nce << " selected from a grid centred on "
-                      << centre << " (median cosine " << best_median << ")" << '\n';
+      OPENMS_LOG_INFO << "[PeptDeepRescoring] run '" << run_id << "': NCE " << nce
+                      << " selected from a grid centred on " << centre
+                      << " (median cosine " << best_median << ")" << '\n';
     }
     used_nce_ = nce;
 
@@ -581,13 +607,17 @@ namespace OpenMS
         std::nth_element(conf_residuals.begin(), conf_residuals.begin() + conf_residuals.size() / 2, conf_residuals.end());
         rt_calibration_error_ = conf_residuals[conf_residuals.size() / 2];
       }
-      OPENMS_LOG_INFO << "[PeptDeepRescoring] retention-time calibration (" << rt_model_type_ << ") on "
-                      << points.size() << " PSMs, median residual " << rt_calibration_error_ << " s" << '\n';
+      OPENMS_LOG_INFO << "[PeptDeepRescoring] run '" << run_id << "': retention-time calibration ("
+                      << rt_model_type_ << ") on " << points.size() << " PSMs, median residual "
+                      << rt_calibration_error_ << " s" << '\n';
     }
     else
     {
-      OPENMS_LOG_WARN << "[PeptDeepRescoring] too few PSMs to calibrate retention time; "
-                      << Constants::UserParam::RT_ABS_ERROR << " will be 0 for this run." << '\n';
+      OPENMS_LOG_WARN << "[PeptDeepRescoring] run '" << run_id << "': only " << points.size()
+                      << " confident PSMs, too few to calibrate retention time; "
+                      << Constants::UserParam::RT_ABS_ERROR
+                      << " will be 0 for every PSM of this run while other runs carry real "
+                         "residuals." << '\n';
     }
 
     // ---- write the features back ----
