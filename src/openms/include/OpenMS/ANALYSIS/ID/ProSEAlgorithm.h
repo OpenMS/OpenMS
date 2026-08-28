@@ -763,6 +763,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                    std::vector<ProteinIdentification>& protein_ids,
                                    PeptideIdentificationList& peptide_ids) const;
 
+    bool peptdeep_enable_{false};
     std::string peptdeep_ms2_model_;
     std::string peptdeep_rt_model_;
     std::string peptdeep_instrument_{"QE"};

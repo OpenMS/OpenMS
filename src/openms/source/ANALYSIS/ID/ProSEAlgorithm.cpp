@@ -170,8 +170,10 @@ namespace OpenMS
 
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
-    defaults_.setValue("peptdeep:ms2_model", "", "Path to a PeptDeep MS2 fragment-intensity ONNX model. Setting this together with 'peptdeep:rt_model' adds prediction-based rescoring features (ms2_cosine, ms2_spectral_angle, ms2_pearson, ms2_frac_pred_found, rt_abs_error) to every PSM. Requires an OpenMS built with ONNX support.");
-    defaults_.setValue("peptdeep:rt_model", "", "Path to a PeptDeep retention-time ONNX model. See 'peptdeep:ms2_model'.");
+    defaults_.setValue("peptdeep:enable", "false", "Add PeptDeep prediction-based rescoring features (ms2_cosine, ms2_spectral_angle, ms2_pearson, ms2_frac_pred_found, rt_abs_error) to every PSM. Uses the models shipped in OpenMS' 'share/OpenMS/models' unless 'peptdeep:ms2_model'/'peptdeep:rt_model' name others. Requires an OpenMS built with ONNX support.");
+    defaults_.setValidStrings("peptdeep:enable", {"true", "false"});
+    defaults_.setValue("peptdeep:ms2_model", "models/peptdeep_ms2_dynamic.onnx", "PeptDeep MS2 fragment-intensity ONNX model, used when 'peptdeep:enable' is true. A relative name is resolved against OpenMS' shared-data directory; an absolute path is used as given.");
+    defaults_.setValue("peptdeep:rt_model", "models/peptdeep_rt_dynamic.onnx", "PeptDeep retention-time ONNX model. See 'peptdeep:ms2_model'.");
     defaults_.setValue("peptdeep:instrument", "QE", "Instrument class passed to the PeptDeep MS2 model.");
     defaults_.setValidStrings("peptdeep:instrument", {"Lumos", "QE", "timsTOF", "SciexTOF"});
     defaults_.setValue("peptdeep:nce", -1.0, "Normalised collision energy for the PeptDeep MS2 model. Negative selects it automatically from the collision energy recorded in the spectra, refined by scoring a small grid on confident PSMs.");
@@ -294,6 +296,7 @@ namespace OpenMS
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
+    peptdeep_enable_ = param_.getValue("peptdeep:enable").toString() == "true";
     peptdeep_ms2_model_ = param_.getValue("peptdeep:ms2_model").toString();
     peptdeep_rt_model_ = param_.getValue("peptdeep:rt_model").toString();
     peptdeep_instrument_ = param_.getValue("peptdeep:instrument").toString();
@@ -494,13 +497,18 @@ namespace OpenMS
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    if (peptdeep_ms2_model_.empty() || peptdeep_rt_model_.empty()) { return; }
+    if (!peptdeep_enable_) { return; }
 #ifdef WITH_ONNX
     startProgress(0, 1, "Adding PeptDeep rescoring features...");
     PeptDeepRescoring rescoring;
     Param p = rescoring.getParameters();
-    p.setValue("ms2_model", peptdeep_ms2_model_);
-    p.setValue("rt_model", peptdeep_rt_model_);
+    // A bare name resolves against share/OpenMS, an absolute path is returned unchanged.
+    // The models are downloaded to the build tree's share/OpenMS/models, which is not the
+    // compiled-in data path, so search relative to the executable as well: '../share/OpenMS'
+    // holds them both in a build tree (bin/../share) and in an install tree.
+    const StringList model_dirs = {File::getExecutablePath() + "../share/OpenMS"};
+    p.setValue("ms2_model", File::find(peptdeep_ms2_model_, model_dirs));
+    p.setValue("rt_model", File::find(peptdeep_rt_model_, model_dirs));
     p.setValue("instrument", peptdeep_instrument_);
     p.setValue("nce", peptdeep_nce_);
     p.setValue("rt_model_type", peptdeep_rt_model_type_);
@@ -510,9 +518,9 @@ namespace OpenMS
     endProgress();
 #else
     (void)spectra; (void)protein_ids; (void)peptide_ids;
-    OPENMS_LOG_WARN << "[ProSE] 'peptdeep:ms2_model'/'peptdeep:rt_model' are set, but this "
-                       "OpenMS was built without ONNX support (WITH_ONNX=OFF); the "
-                       "prediction-based rescoring features are not added." << '\n';
+    OPENMS_LOG_WARN << "[ProSE] 'peptdeep:enable' is set, but this OpenMS was built without "
+                       "ONNX support (WITH_ONNX=OFF); the prediction-based rescoring features "
+                       "are not added." << '\n';
 #endif
   }
 
