@@ -765,6 +765,8 @@ Run feature detection
 :param proteins_ext: Vector of external identified proteins, can be used to transfer ids from other runs
 :param features: Feature detection results will be added here
 :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
+:raises: Exception::IllegalArgument if no MS data was set via setMSData() before calling run()
+         (e.g. an experiment left empty after being consumed by another algorithm)
 )doc")
         .def("runOnCandidates", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::FeatureMap& features) { return self.runOnCandidates(features); }, "features"_a, "Run feature detection on identified features (e.g. loaded from an IdXML file)")
         .def("getMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns ms data as MSExperiment")

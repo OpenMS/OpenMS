@@ -233,6 +233,10 @@ namespace OpenMS
       Spectra sharing a pixel coordinate are written out as-is with a warning, matching
       what @p load accepts for the same dataset.
 
+      Per-peak @p IntegerDataArray / @p StringDataArray content (e.g. a charge array
+      carried over from mzML) has no imzML representation and is silently dropped;
+      a single warning naming the affected arrays is logged per call.
+
       @param[in] filename Path to the output @c .imzML file.
       @param[in] exp      Experiment with spectra and optional imzML MetaValues.
 

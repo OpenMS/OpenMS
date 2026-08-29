@@ -95,6 +95,9 @@ public:
     @param[out] features      Quantified feature map; pre-existing contents are cleared for FAIMS data and replaced.
     @param[in]  seeds         Optional pre-detected features from an untargeted feature finder.
     @param[in]  spectra_file  Source mzML path used as a fallback for @c primaryMSRunPath annotation when the MSExperiment's own path isn't usable.
+
+    @throws Exception::IllegalArgument if no spectra were set via setMSData() before calling run()
+            (e.g. an experiment left empty after being consumed by another algorithm).
   */
   void run(
     PeptideIdentificationList peptides,

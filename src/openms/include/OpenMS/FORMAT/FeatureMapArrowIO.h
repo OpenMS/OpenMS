@@ -108,9 +108,13 @@ public:
     Reconstructs PeptideIdentifications and PeptideHits from the table
     and assigns them to the appropriate features or as unassigned.
 
+    A PSM that references a feature unique id absent from @p feature_map is treated
+    as an inconsistent file rather than repaired: the import is rejected instead of
+    re-filing the identification as unassigned.
+
     @param[in] table Arrow Table with PSM data
     @param[out] feature_map FeatureMap to populate
-    @return true on success, false on error
+    @return true on success, false on error (including a PSM naming an unknown feature id)
   */
   static bool importPSMsFromArrow(
     const std::shared_ptr<arrow::Table>& table,

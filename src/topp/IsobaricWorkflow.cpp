@@ -243,7 +243,8 @@ protected:
         "Quantify proteins based on:\n"
         "unique_peptides = use peptides mapping to single proteins or a group of indistinguishable proteins"
         "(according to the set of experimentally identified peptides).\n"
-        "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
+        "strictly_unique_peptides = use peptides mapping to a unique single protein only. "
+        "Proteins left without such a peptide are dropped from the output; the rest are reported as singleton groups.\n"
         "shared_peptides = use shared peptides only for its best group (by inference score)",
         false, true);
     setValidStrings_("protein_quantification", ListUtils::create<std::string>("unique_peptides,strictly_unique_peptides,shared_peptides"));
