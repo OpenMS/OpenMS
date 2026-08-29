@@ -181,8 +181,8 @@ protected:
 
   PeptideMap peptide_map_;
 
-  Size n_internal_peps_; ///< number of internal peptide
-  Size n_external_peps_; ///< number of external peptides
+  Size n_internal_peps_ = 0; ///< number of internal peptide
+  Size n_external_peps_ = 0; ///< number of external peptides
 
   Size batch_size_; ///< nr of peptides to use at the same time during chromatogram extraction
   double rt_window_; ///< RT window width

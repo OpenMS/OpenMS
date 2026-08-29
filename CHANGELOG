@@ -687,6 +687,14 @@ TOPP tools:
         shorter in RT than the dominant trace they belong with: 'isotope_rt_overlap_reference'
         (longer|shorter) and 'min_isotope_rt_overlap' (default 0.7) for FeatureFindingMetabo, with a
         matching option for MetaboliteFeatureDeconvolution (#4483, #9711)
+    FeatureFinderIdentification (and the FeatureFinderIdentificationAlgorithm library class):
+      - Fix: the run summary reported a garbage count of external peptides ("12 peptides identified
+        (12 internal, 140724733953152 additional external)"). n_external_peps_ was assigned only when
+        external identifications were supplied, but read unconditionally, so without them statistics_()
+        formatted an uninitialised member -- undefined behaviour, and visible in every ProteomicsLFQ
+        and FeatureFinderIdentification run that does not use external IDs. Both peptide counters are
+        now initialised, and the external one is reset per run rather than only inside that branch, so
+        a reused algorithm object cannot carry the previous run's count into the next one
     FeatureFinderMetaboIdent:
       - Added an optional "Adduct" column to the TSV input; m/z is computed via AdductInfo from any
         supported notation (e.g. [M+Na]+, [M-H]-, [2M+H]+) and features are annotated with the adduct.
