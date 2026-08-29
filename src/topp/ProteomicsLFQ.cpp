@@ -1661,10 +1661,9 @@ protected:
         Biosaur2Algorithm bio;
         Param bio_param = getParam_().copy("Seeding:Biosaur2:", true);
         bio.setParameters(bio_param);
-        // For non-FAIMS data (including .d), Biosaur2 processes ms_data_ in-place
-        // without moving it, so we can use move here and retrieve it after run().
-        // For FAIMS data, ms_data_ is consumed (split by CV), but ProteomicsLFQ's
-        // FAIMS path uses FFId's own FAIMS splitting, so this is not an issue.
+        // Biosaur2 leaves the processed spectra in ms_data_ on both its paths
+        // (in-place for non-FAIMS, reassembled after the per-CV split for FAIMS),
+        // so we can move here and retrieve the data after run().
         bio.setMSData(std::move(ms_centroided));
 
         bio.run(seeds);
@@ -1698,7 +1697,7 @@ protected:
           OPENMS_LOG_INFO << "Median chromatographic FWHM (from Biosaur2): " << median_fwhm << "\n";
         }
 
-        // Retrieve ms_data_ back from Biosaur2 (non-FAIMS path preserves it in-place)
+        // Retrieve ms_data_ back from Biosaur2 (preserved on both the FAIMS and non-FAIMS paths)
         ms_centroided = std::move(bio.getMSData());
       }
       else

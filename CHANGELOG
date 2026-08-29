@@ -1082,6 +1082,16 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: Biosaur2Algorithm::run() left the stored MS data empty on FAIMS input -- the per-CV split moves
+    the spectra out of ms_data_ and nothing put them back, so getMSData() handed the caller a cleared
+    experiment. ProteomicsLFQ with -Seeding:algorithm biosaur2 passed exactly that on to
+    FeatureFinderIdentification, which crashed on the zero-spectrum experiment (its chromatogram
+    extraction indexes the PeakMap unconditionally). The spectra and chromatograms are now reassembled
+    in acquisition order (profile-mode centroiding likewise no longer replaces the whole experiment,
+    which dropped the chromatograms and experimental settings before the split saw them), so both
+    Biosaur2 paths leave the same processed experiment behind, and
+    FeatureFinderIdentificationAlgorithm::run() rejects MS data without spectra instead of reading out
+    of bounds (#9980)
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names
     are not "0", "1", ... crashed with a bare std::out_of_range. getSampleToPrefractionationMapping() was
     keyed by sample name while the condition and path-label mappings used the stringified zero-based row
