@@ -786,6 +786,38 @@ protected:
     return EXECUTION_OK;
   }
 
+  /**
+    @brief Reconcile one input file's decoy affix into the single study-wide one.
+
+    Picked protein FDR takes one affix for the whole study, but it is inferred once per input
+    file. This used to be a plain overwrite, so the last file silently decided it. The affix is
+    a property of the FASTA and so is identical for every file of a well-formed run; two files
+    disagreeing means one was searched against a different database, and the picked FDR would
+    then be computed against an affix that does not match half the accessions. Keep the first
+    and say so.
+  */
+  void recordDecoyAffix_(const std::string& decoy_string, bool decoy_prefix, bool decoy_inferred,
+                         const std::string& source_file)
+  {
+    if (! decoy_inferred) return; // no FASTA given, nothing was inferred from this file
+
+    if (! picked_decoy_seen_)
+    {
+      picked_decoy_string_ = decoy_string;
+      picked_decoy_prefix_ = decoy_prefix;
+      picked_decoy_seen_ = true;
+    }
+    else if (decoy_string != picked_decoy_string_ || decoy_prefix != picked_decoy_prefix_)
+    {
+      OPENMS_LOG_WARN << "Warning: decoy affix inferred from " << source_file << " ('"
+                      << decoy_string << "', " << (decoy_prefix ? "prefix" : "suffix")
+                      << ") differs from the one inferred from earlier input ('" << picked_decoy_string_
+                      << "', " << (picked_decoy_prefix_ ? "prefix" : "suffix")
+                      << "). Keeping the first. Picked protein FDR assumes one affix for the whole "
+                         "study - check that all inputs were searched against the same database.\n";
+    }
+  }
+
   ExitCodes loadAndCleanupIDFile_(
     const std::string& id_file_abs_path,
     const std::string& mz_file,
@@ -795,7 +827,10 @@ protected:
     vector<ProteinIdentification>& protein_ids,
     PeptideIdentificationList& peptide_ids,
     set<std::string>& fixed_modifications,  // adds to
-    set<std::string>& variable_modifications) // adds to
+    set<std::string>& variable_modifications, // adds to
+    std::string& out_decoy_string,   // decoy affix this file's IDs imply
+    bool& out_decoy_prefix,
+    bool& out_decoy_inferred)        // false when no FASTA was given, so nothing was inferred
   {
 
     const std::string& mz_file_abs_path = File::absolutePath(mz_file);
@@ -819,28 +854,12 @@ protected:
       FASTAContainer<TFI_File> fasta_db(in_db);
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-      // Picked protein FDR uses a single decoy affix for the whole study, but this runs once per
-      // input file and used to simply overwrite, so the last file silently decided it. The affix
-      // is a property of the FASTA, hence identical for every file in a well-formed run; if two
-      // files disagree, one of them was searched against a different database and the picked FDR
-      // would be computed against an affix that does not match half the accessions.
-      const std::string run_decoy_string = indexer.getDecoyString();
-      const bool run_decoy_prefix = indexer.isPrefix();
-      if (!picked_decoy_seen_)
-      {
-        picked_decoy_string_ = run_decoy_string;
-        picked_decoy_prefix_ = run_decoy_prefix;
-        picked_decoy_seen_ = true;
-      }
-      else if (run_decoy_string != picked_decoy_string_ || run_decoy_prefix != picked_decoy_prefix_)
-      {
-        OPENMS_LOG_WARN << "Warning: decoy affix inferred from " << id_file_abs_path << " ('"
-                        << run_decoy_string << "', " << (run_decoy_prefix ? "prefix" : "suffix")
-                        << ") differs from the one inferred from earlier input ('" << picked_decoy_string_
-                        << "', " << (picked_decoy_prefix_ ? "prefix" : "suffix")
-                        << "). Keeping the first. Picked protein FDR assumes one affix for the whole "
-                           "study - check that all inputs were searched against the same database.\n";
-      }
+      // The affix this file's identifications imply. It is reported back rather than recorded
+      // here: picked protein FDR needs one affix for the whole study, and reconciling per-file
+      // values into that one is the caller's business (see recordDecoyAffix_).
+      out_decoy_string = indexer.getDecoyString();
+      out_decoy_prefix = indexer.isPrefix();
+      out_decoy_inferred = true;
       if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) && (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
       {
         if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY) { return INPUT_FILE_EMPTY; }
@@ -1048,6 +1067,366 @@ protected:
     }
   }
 
+  /**
+    @brief Everything one MS run contributes to its fraction.
+
+    This is the complete per-run result. Anything a run produces that is not in here leaves
+    detectRun_ as a side effect instead, and side effects are precisely what does not survive
+    a run being computed somewhere else. So this is a contract, not a convenience bundle: it
+    is what a caller must be handed if it is to reproduce the run without re-reading the raw
+    data.
+  */
+  struct RunDetection
+  {
+    FeatureMap features;                  ///< the quantified features of this run
+    double fwhm = 0.0;                    ///< this run's chromatographic FWHM
+    std::string id_ms_run_ref;            ///< primary MS run path as annotated in the ID file
+    set<std::string> fixed_modifications; ///< search modifications seen in this run
+    set<std::string> variable_modifications;
+    std::string decoy_string;             ///< decoy affix inferred by PeptideIndexing
+    bool decoy_prefix = true;
+    bool decoy_inferred = false;          ///< false if no FASTA was given, so nothing was inferred
+  };
+
+  /**
+    @brief Detect and quantify the features of a single MS run.
+
+    Depends on nothing but its own inputs, which is what allows the runs of a fraction to be
+    processed in any order (and, eventually, anywhere). Alignment, linking, inference and
+    quantification need every run at once and stay in quantifyFraction_ and main_.
+  */
+  ExitCodes detectRun_(
+    const std::string& mz_file,
+    const std::string& id_file_abs_path,
+    const std::string& in_db,
+    const Size fraction,
+    const Size fraction_group,
+    RunDetection& out)
+  {
+    writeDebug_("Processing file: " + mz_file, 1);
+
+    vector<ProteinIdentification> protein_ids;
+    PeptideIdentificationList peptide_ids;
+
+    {
+      ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids, out.fixed_modifications,
+                                          out.variable_modifications, out.decoy_string, out.decoy_prefix, out.decoy_inferred);
+      if (e != EXECUTION_OK) return e;
+    }
+
+    MSExperiment ms_centroided;
+    bool is_im_peak_data = false;
+    const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
+
+    // Chromatographic FWHM of THIS run. Scoped to the iteration so that a run which cannot
+    // measure one (IM_PEAK without seeds) falls back to the documented default instead of
+    // silently inheriting the previous run's value.
+    double median_fwhm = 0.0;
+
+    {
+      ExitCodes e = loadAndPreprocess_(mz_file, ms_centroided, is_im_peak_data);
+      if (e != EXECUTION_OK) { return e; }
+    }
+
+    SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+
+    if (is_im_peak_data && mass_recalibration)
+    {
+      OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
+    }
+
+    if (mass_recalibration && !is_im_peak_data)
+    {
+      std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
+      DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
+    }
+
+    if (!is_im_peak_data)
+    {
+      median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+      OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
+    }
+    // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
+
+    // For .d/IM_PEAK + targeted_only: no Biosaur2 seeds to estimate FWHM from, use default
+    if (is_im_peak_data && median_fwhm == 0.0)
+    {
+      median_fwhm = 30.0;
+      OPENMS_LOG_INFO << "Using default FWHM of " << median_fwhm << " s for .d input (no seed-based estimate available).\n";
+    }
+
+    StringList id_msfile_ref;
+    protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+    out.id_ms_run_ref = id_msfile_ref[0];
+
+    FeatureMap seeds;
+    seeds.setPrimaryMSRunPath({mz_file});
+
+    const bool targeted_only = getStringOption_("targeted_only") != "false";
+
+    if (! targeted_only)
+    {
+      std::string seeding_algorithm = getStringOption_("Seeding:algorithm");
+
+      // Force biosaur2 for IM_PEAK data (Multiplex cannot handle it)
+      if (is_im_peak_data && seeding_algorithm != "biosaur2")
+      {
+        OPENMS_LOG_WARN << "Warning: IM_PEAK data detected. Forcing Seeding:algorithm to 'biosaur2' "
+                        << "(FeatureFinderMultiplex does not support IM_PEAK format).\n";
+        seeding_algorithm = "biosaur2";
+      }
+
+      if (seeding_algorithm == "biosaur2")
+      {
+        OPENMS_LOG_INFO << "Using Biosaur2Algorithm for seed detection.\n";
+        Biosaur2Algorithm bio;
+        Param bio_param = getParam_().copy("Seeding:Biosaur2:", true);
+        bio.setParameters(bio_param);
+        // For non-FAIMS data (including .d), Biosaur2 processes ms_data_ in-place
+        // without moving it, so we can use move here and retrieve it after run().
+        // For FAIMS data, ms_data_ is consumed (split by CV), but ProteomicsLFQ's
+        // FAIMS path uses FFId's own FAIMS splitting, so this is not an issue.
+        bio.setMSData(std::move(ms_centroided));
+
+        bio.run(seeds);
+        OPENMS_LOG_INFO << "Biosaur2 produced " << seeds.size() << " seed features.\n";
+
+        // For .d/IM_PEAK: estimate FWHM from Biosaur2 feature convex hulls
+        // Use FWHM ≈ 0.59 * (rt_end - rt_start), the Gaussian correction from base width to half-max width
+        if (is_im_peak_data)
+        {
+          std::vector<double> fwhm_values;
+          fwhm_values.reserve(seeds.size());
+          for (const auto& f : seeds)
+          {
+            const auto& hulls = f.getConvexHulls();
+            if (hulls.empty()) continue;
+            const auto& bb = hulls[0].getBoundingBox();
+            double base_width = bb.maxX() - bb.minX(); // full RT extent
+            double fwhm = base_width * 0.59;           // Gaussian: FWHM ≈ 2.35σ, base ≈ 4σ → ratio ≈ 0.59
+            if (fwhm > 0.0) { fwhm_values.push_back(fwhm); }
+          }
+          if (fwhm_values.size() >= 10)
+          {
+            median_fwhm = Math::median(fwhm_values.begin(), fwhm_values.end());
+          }
+          else
+          {
+            median_fwhm = 30.0; // fallback
+            OPENMS_LOG_WARN << "Warning: Too few Biosaur2 features (" << fwhm_values.size()
+                            << ") to estimate FWHM. Using default: " << median_fwhm << " seconds.\n";
+          }
+          OPENMS_LOG_INFO << "Median chromatographic FWHM (from Biosaur2): " << median_fwhm << "\n";
+        }
+
+        // Retrieve ms_data_ back from Biosaur2 (non-FAIMS path preserves it in-place)
+        ms_centroided = std::move(bio.getMSData());
+      }
+      else
+      {
+        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
+      }
+
+      if (debug_level_ > 666)
+      {
+        FileHandler().storeFeatures("debug_seeds_fraction_" + StringUtils::toStr(fraction) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
+      }
+    }
+
+    // median_fwhm is final for this run: measured from the raw data, from the Biosaur2
+    // seeds, or defaulted. Record it for the fraction-level linking window below.
+    out.fwhm = median_fwhm;
+
+    /////////////////////////////////////////////////
+    // Feature detection
+    FeatureMap fm;
+
+    // Run FeatureFinderIdentification
+    FeatureFinderIdentificationAlgorithm ffi;
+    ffi.getMSData().swap(ms_centroided);
+    ffi.getProgressLogger().setLogType(log_type_);
+
+    Param ffi_param = getParam_().copy("PeptideQuantification:", true);
+    ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+    ffi_param.setValue("debug", debug_level_); // pass down debug level
+
+    // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
+    // observed isotope envelope against the donor peptide's theoretical
+    // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
+    // (enough for a meaningful correlation) only on the pip_echo path. More
+    // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
+    // direct quantifications, so 3 is the sweet spot. The default linker path
+    // (and its TOPP reference outputs) is untouched.
+    if (getStringOption_("pip_echo") == "true")
+    {
+      ffi_param.setValue("extract:n_isotopes", 3);
+    }
+
+    // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
+    // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
+    // default IM_window=0.06 is appropriate for matching centroided IM positions.
+
+    double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
+    double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
+    const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only || (feature_without_id_min_score > 0.0));
+
+    if (filter_by_quant_scores)
+    {
+      OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
+      ffi_param.setValue("add_mass_offset_peptides", 10.005);
+    }
+
+    ffi.setParameters(ffi_param);
+    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
+
+    {
+      vector<ProteinIdentification> ext_protein_ids;
+      PeptideIdentificationList ext_peptide_ids;
+
+      ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids,
+              fm, // fills fm
+              seeds, mz_file);
+    }
+
+    if (filter_by_quant_scores)
+    {
+      SimpleSVM::PredictorMap predictors;
+      map<Size, double> labels;
+      size_t current_row = 0;
+      size_t quant_target {}, quant_decoy {};
+
+      Math::RandomShuffler shuffler;
+      std::vector<size_t> randomized_indices(fm.size());
+      std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
+
+      for (auto& i : randomized_indices)
+      {
+        const auto& f = fm[i];
+        predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
+        predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
+        predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
+        predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
+
+        bool is_offset = f.metaValueExists("OffsetPeptide");
+        bool has_id = ! f.getPeptideIdentifications().empty();
+        if (is_offset)
+        {
+          if (quant_decoy < 1000)
+          {
+            labels[current_row] = 0.0;
+            ++quant_decoy;
+          }
+        }
+        else
+        {
+          if (has_id && quant_target < 1000)
+          {
+            labels[current_row] = 1.0;
+            ++quant_target;
+          }
+        }
+        ++current_row;
+      }
+
+      if (quant_decoy > 4 && quant_target > 4)
+      {
+        SimpleSVM svm;
+        Param svm_param = svm.getParameters();
+        svm_param.setValue("kernel", "linear");
+        svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
+        svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
+
+        svm.setParameters(svm_param);
+        svm.setup(predictors, labels);
+        vector<SimpleSVM::Prediction> predictions;
+        OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
+        svm.predict(predictions);
+        std::map<std::string, double> feature_weights;
+        svm.getFeatureWeights(feature_weights);
+
+        size_t current_row_pred {};
+        for (auto& i : randomized_indices)
+        {
+          auto& f = fm[i];
+          f.setMetaValue("p_quant", (double)predictions[current_row_pred].probabilities[1]);
+          ++current_row_pred;
+        }
+      }
+
+      if (quant_decoy > 4 && quant_target > 4)
+      {
+        fm.erase(std::remove_if(fm.begin(), fm.end(),
+                                [&](const Feature& f) {
+                                  double quant_score = f.getMetaValue("p_quant");
+                                  bool is_offset = f.metaValueExists("OffsetPeptide");
+                                  bool has_id = ! f.getPeptideIdentifications().empty();
+                                  bool untargeted_feature = ! is_offset && ! has_id;
+                                  bool is_feature_with_id = ! is_offset && has_id;
+
+                                  if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
+                                  if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
+                                  if (is_offset && quant_score < feature_without_id_min_score) return true;
+                                  return false;
+                                }),
+                 fm.end());
+
+        fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
+      }
+    }
+
+    // "IM" and "n_scans" are written by Biosaur2 (ion-mobility value and true
+    // MS1 scan count); kept for forward compatibility with a direct-Biosaur2
+    // feature path (PIP-ECHO ion-mobility scoring reads "IM" as a fallback to
+    // "IM_median"; "n_scans" feeds the planned scan-count feature, see #9655).
+    // FFID output features carry neither key, so this is a no-op for the
+    // current FFID-based path.
+    // "IM"/"n_scans" carry no payload on the FFID path, so keeping them is a no-op.
+    unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max", "IM", "n_scans"};
+    // "masserror_ppm" is FFID's observed mass-trace deviation from the peptide's
+    // theoretical m/z (DIA mass-difference score) -- the only real per-feature
+    // mass-accuracy signal (FFID seeds the feature's *position* m/z to theoretical,
+    // so PIP-ECHO cannot recover the error from getMZ()). "pipecho_obs_envelope" is
+    // the observed isotope envelope (subordinate intensities), snapshotted below
+    // before subordinates are cleared, for the isotope-distribution feature. BOTH
+    // are needed ONLY by PIP-ECHO; keeping/writing them on the default QT-linker path
+    // leaks them into the consensusXML/mzTab output (shifting TOPP_ProteomicsLFQ
+    // references), so gate on pip_echo.
+    const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
+    if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
+    for (auto & f : fm)
+    {
+      std::vector<std::string> keys;
+      f.getKeys(keys);
+      for (const auto& k : keys)
+      {
+        if (auto it = keep_meta.find(k); it == keep_meta.end()) f.removeMetaValue(k);
+      }
+      // Snapshot the observed isotope envelope before subordinates are dropped
+      // (pip_echo only -- otherwise it would leak into the default-path output,
+      // since this writes AFTER the meta-strip above).
+      if (pip_echo_enabled && ! f.getSubordinates().empty())
+      {
+        DoubleList envelope;
+        envelope.reserve(f.getSubordinates().size());
+        for (const Feature& sub : f.getSubordinates()) { envelope.push_back(sub.getIntensity()); }
+        f.setMetaValue("pipecho_obs_envelope", envelope);
+      }
+      f.setSubordinates({});
+      f.setConvexHulls({});
+    }
+
+    IDConflictResolverAlgorithm::resolve(fm, getStringOption_("keep_feature_top_psm_only") == "false");
+
+    out.features = std::move(fm);
+
+    if (debug_level_ > 666)
+    {
+      FileHandler().storeFeatures("debug_fraction_" + StringUtils::toStr(fraction) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", out.features, {FileTypes::FEATUREXML}, log_type_);
+    }
+
+    return EXECUTION_OK;
+  }
+
   ExitCodes quantifyFraction_(
     const pair<UInt, std::vector<std::string> > & ms_files,
     const map<std::string, std::string>& mzfile2idfile,
@@ -1076,338 +1455,24 @@ protected:
     for (std::string const & mz_file : ms_files.second)
     {
       const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
-      writeDebug_("Processing file: " + mz_file, 1);
+      const std::string& id_file_abs_path = File::absolutePath(mzfile2idfile.at(File::absolutePath(mz_file)));
 
-      vector<ProteinIdentification> protein_ids;
-      PeptideIdentificationList peptide_ids;
-      const std::string& mz_file_abs_path = File::absolutePath(mz_file);
-      const std::string& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
-
+      RunDetection rd;
       {
-        ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications,
-                                            variable_modifications);
-        if (e != EXECUTION_OK) return e;
-      }
-
-      MSExperiment ms_centroided;
-      bool is_im_peak_data = false;
-      const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
-
-      // Chromatographic FWHM of THIS run. Scoped to the iteration so that a run which cannot
-      // measure one (IM_PEAK without seeds) falls back to the documented default instead of
-      // silently inheriting the previous run's value.
-      double median_fwhm = 0.0;
-
-      {
-        ExitCodes e = loadAndPreprocess_(mz_file, ms_centroided, is_im_peak_data);
+        ExitCodes e = detectRun_(mz_file, id_file_abs_path, in_db, fraction, fraction_group, rd);
         if (e != EXECUTION_OK) { return e; }
       }
 
-      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
-
-      if (is_im_peak_data && mass_recalibration)
-      {
-        OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
-      }
-
-      if (mass_recalibration && !is_im_peak_data)
-      {
-        std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
-        DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
-      }
-
-      if (!is_im_peak_data)
-      {
-        median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
-        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
-      }
-      // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
-
-      // For .d/IM_PEAK + targeted_only: no Biosaur2 seeds to estimate FWHM from, use default
-      if (is_im_peak_data && median_fwhm == 0.0)
-      {
-        median_fwhm = 30.0;
-        OPENMS_LOG_INFO << "Using default FWHM of " << median_fwhm << " s for .d input (no seed-based estimate available).\n";
-      }
-
-      StringList id_msfile_ref;
-      protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
-      id_MS_run_ref.push_back(id_msfile_ref[0]);
-
-      FeatureMap seeds;
-      seeds.setPrimaryMSRunPath({mz_file});
-
-      const bool targeted_only = getStringOption_("targeted_only") != "false";
-
-      if (! targeted_only)
-      {
-        std::string seeding_algorithm = getStringOption_("Seeding:algorithm");
-
-        // Force biosaur2 for IM_PEAK data (Multiplex cannot handle it)
-        if (is_im_peak_data && seeding_algorithm != "biosaur2")
-        {
-          OPENMS_LOG_WARN << "Warning: IM_PEAK data detected. Forcing Seeding:algorithm to 'biosaur2' "
-                          << "(FeatureFinderMultiplex does not support IM_PEAK format).\n";
-          seeding_algorithm = "biosaur2";
-        }
-
-        if (seeding_algorithm == "biosaur2")
-        {
-          OPENMS_LOG_INFO << "Using Biosaur2Algorithm for seed detection.\n";
-          Biosaur2Algorithm bio;
-          Param bio_param = getParam_().copy("Seeding:Biosaur2:", true);
-          bio.setParameters(bio_param);
-          // For non-FAIMS data (including .d), Biosaur2 processes ms_data_ in-place
-          // without moving it, so we can use move here and retrieve it after run().
-          // For FAIMS data, ms_data_ is consumed (split by CV), but ProteomicsLFQ's
-          // FAIMS path uses FFId's own FAIMS splitting, so this is not an issue.
-          bio.setMSData(std::move(ms_centroided));
-
-          bio.run(seeds);
-          OPENMS_LOG_INFO << "Biosaur2 produced " << seeds.size() << " seed features.\n";
-
-          // For .d/IM_PEAK: estimate FWHM from Biosaur2 feature convex hulls
-          // Use FWHM ≈ 0.59 * (rt_end - rt_start), the Gaussian correction from base width to half-max width
-          if (is_im_peak_data)
-          {
-            std::vector<double> fwhm_values;
-            fwhm_values.reserve(seeds.size());
-            for (const auto& f : seeds)
-            {
-              const auto& hulls = f.getConvexHulls();
-              if (hulls.empty()) continue;
-              const auto& bb = hulls[0].getBoundingBox();
-              double base_width = bb.maxX() - bb.minX(); // full RT extent
-              double fwhm = base_width * 0.59;           // Gaussian: FWHM ≈ 2.35σ, base ≈ 4σ → ratio ≈ 0.59
-              if (fwhm > 0.0) { fwhm_values.push_back(fwhm); }
-            }
-            if (fwhm_values.size() >= 10)
-            {
-              median_fwhm = Math::median(fwhm_values.begin(), fwhm_values.end());
-            }
-            else
-            {
-              median_fwhm = 30.0; // fallback
-              OPENMS_LOG_WARN << "Warning: Too few Biosaur2 features (" << fwhm_values.size()
-                              << ") to estimate FWHM. Using default: " << median_fwhm << " seconds.\n";
-            }
-            OPENMS_LOG_INFO << "Median chromatographic FWHM (from Biosaur2): " << median_fwhm << "\n";
-          }
-
-          // Retrieve ms_data_ back from Biosaur2 (non-FAIMS path preserves it in-place)
-          ms_centroided = std::move(bio.getMSData());
-        }
-        else
-        {
-          DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
-        }
-
-        if (debug_level_ > 666)
-        {
-          FileHandler().storeFeatures("debug_seeds_fraction_" + StringUtils::toStr(ms_files.first) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
-        }
-      }
-
-      // median_fwhm is final for this run: measured from the raw data, from the Biosaur2
-      // seeds, or defaulted. Record it for the fraction-level linking window below.
-      run_fwhms.push_back(median_fwhm);
-
-      /////////////////////////////////////////////////
-      // Feature detection
-      FeatureMap fm;
-
-      // Run FeatureFinderIdentification
-      FeatureFinderIdentificationAlgorithm ffi;
-      ffi.getMSData().swap(ms_centroided);
-      ffi.getProgressLogger().setLogType(log_type_);
-
-      Param ffi_param = getParam_().copy("PeptideQuantification:", true);
-      ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("debug", debug_level_); // pass down debug level
-
-      // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
-      // observed isotope envelope against the donor peptide's theoretical
-      // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
-      // (enough for a meaningful correlation) only on the pip_echo path. More
-      // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
-      // direct quantifications, so 3 is the sweet spot. The default linker path
-      // (and its TOPP reference outputs) is untouched.
-      if (getStringOption_("pip_echo") == "true")
-      {
-        ffi_param.setValue("extract:n_isotopes", 3);
-      }
-
-      // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
-      // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
-      // default IM_window=0.06 is appropriate for matching centroided IM positions.
-
-      double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
-      double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
-      const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only || (feature_without_id_min_score > 0.0));
-
-      if (filter_by_quant_scores)
-      {
-        OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
-        ffi_param.setValue("add_mass_offset_peptides", 10.005);
-      }
-
-      ffi.setParameters(ffi_param);
-      writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
-
-      {
-        vector<ProteinIdentification> ext_protein_ids;
-        PeptideIdentificationList ext_peptide_ids;
-
-        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids,
-                fm, // fills fm
-                seeds, mz_file);
-      }
-
-      if (filter_by_quant_scores)
-      {
-        SimpleSVM::PredictorMap predictors;
-        map<Size, double> labels;
-        size_t current_row = 0;
-        size_t quant_target {}, quant_decoy {};
-
-        // Draw the (up to) 1000 target and 1000 decoy training examples from a
-        // random subset instead of the head of the FeatureMap, which is ordered
-        // by RT and would otherwise bias the SVM towards early-eluting features.
-        // The seed is fixed so the selection stays reproducible across runs.
-        // Note: the predictor rows are filled in this shuffled order and the
-        // predictions are written back by iterating the same index vector, so
-        // row i of 'predictors'/'labels'/'predictions' always refers to
-        // fm[randomized_indices[i]].
-        Math::RandomShuffler shuffler(42);
-        std::vector<size_t> randomized_indices(fm.size());
-        std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
-        shuffler.portable_random_shuffle(randomized_indices.begin(), randomized_indices.end());
-
-        for (auto& i : randomized_indices)
-        {
-          const auto& f = fm[i];
-          predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
-          predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
-          predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
-          predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
-
-          bool is_offset = f.metaValueExists("OffsetPeptide");
-          bool has_id = ! f.getPeptideIdentifications().empty();
-          if (is_offset)
-          {
-            if (quant_decoy < 1000)
-            {
-              labels[current_row] = 0.0;
-              ++quant_decoy;
-            }
-          }
-          else
-          {
-            if (has_id && quant_target < 1000)
-            {
-              labels[current_row] = 1.0;
-              ++quant_target;
-            }
-          }
-          ++current_row;
-        }
-
-        if (quant_decoy > 4 && quant_target > 4)
-        {
-          SimpleSVM svm;
-          Param svm_param = svm.getParameters();
-          svm_param.setValue("kernel", "linear");
-          svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
-          svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
-
-          svm.setParameters(svm_param);
-          svm.setup(predictors, labels);
-          vector<SimpleSVM::Prediction> predictions;
-          OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
-          svm.predict(predictions);
-          std::map<std::string, double> feature_weights;
-          svm.getFeatureWeights(feature_weights);
-
-          size_t current_row_pred {};
-          for (auto& i : randomized_indices)
-          {
-            auto& f = fm[i];
-            f.setMetaValue("p_quant", (double)predictions[current_row_pred].probabilities[1]);
-            ++current_row_pred;
-          }
-        }
-
-        if (quant_decoy > 4 && quant_target > 4)
-        {
-          fm.erase(std::remove_if(fm.begin(), fm.end(),
-                                  [&](const Feature& f) {
-                                    double quant_score = f.getMetaValue("p_quant");
-                                    bool is_offset = f.metaValueExists("OffsetPeptide");
-                                    bool has_id = ! f.getPeptideIdentifications().empty();
-                                    bool untargeted_feature = ! is_offset && ! has_id;
-                                    bool is_feature_with_id = ! is_offset && has_id;
-
-                                    if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
-                                    if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
-                                    if (is_offset && quant_score < feature_without_id_min_score) return true;
-                                    return false;
-                                  }),
-                   fm.end());
-
-          fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
-        }
-      }
-
-      // "IM" and "n_scans" are written by Biosaur2 (ion-mobility value and true
-      // MS1 scan count); kept for forward compatibility with a direct-Biosaur2
-      // feature path (PIP-ECHO ion-mobility scoring reads "IM" as a fallback to
-      // "IM_median"; "n_scans" feeds the planned scan-count feature, see #9655).
-      // FFID output features carry neither key, so this is a no-op for the
-      // current FFID-based path.
-      // "IM"/"n_scans" carry no payload on the FFID path, so keeping them is a no-op.
-      unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max", "IM", "n_scans"};
-      // "masserror_ppm" is FFID's observed mass-trace deviation from the peptide's
-      // theoretical m/z (DIA mass-difference score) -- the only real per-feature
-      // mass-accuracy signal (FFID seeds the feature's *position* m/z to theoretical,
-      // so PIP-ECHO cannot recover the error from getMZ()). "pipecho_obs_envelope" is
-      // the observed isotope envelope (subordinate intensities), snapshotted below
-      // before subordinates are cleared, for the isotope-distribution feature. BOTH
-      // are needed ONLY by PIP-ECHO; keeping/writing them on the default QT-linker path
-      // leaks them into the consensusXML/mzTab output (shifting TOPP_ProteomicsLFQ
-      // references), so gate on pip_echo.
-      const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
-      if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
-      for (auto & f : fm)
-      {
-        std::vector<std::string> keys;
-        f.getKeys(keys);
-        for (const auto& k : keys)
-        {
-          if (auto it = keep_meta.find(k); it == keep_meta.end()) f.removeMetaValue(k);
-        }
-        // Snapshot the observed isotope envelope before subordinates are dropped
-        // (pip_echo only -- otherwise it would leak into the default-path output,
-        // since this writes AFTER the meta-strip above).
-        if (pip_echo_enabled && ! f.getSubordinates().empty())
-        {
-          DoubleList envelope;
-          envelope.reserve(f.getSubordinates().size());
-          for (const Feature& sub : f.getSubordinates()) { envelope.push_back(sub.getIntensity()); }
-          f.setMetaValue("pipecho_obs_envelope", envelope);
-        }
-        f.setSubordinates({});
-        f.setConvexHulls({});
-      }
-
-      IDConflictResolverAlgorithm::resolve(fm, getStringOption_("keep_feature_top_psm_only") == "false");
-
-      feature_maps.emplace_back(std::move(fm));
-
-      if (debug_level_ > 666)
-      {
-        FileHandler().storeFeatures("debug_fraction_" + StringUtils::toStr(ms_files.first) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
-      }
-    } // <--- END OF FOR LOOP OVER MS FILES
+      // Fold the run's contribution into the fraction. Every one of these was previously an
+      // in-place write from inside the loop body; making them explicit here is the point of
+      // the split.
+      fixed_modifications.insert(rd.fixed_modifications.begin(), rd.fixed_modifications.end());
+      variable_modifications.insert(rd.variable_modifications.begin(), rd.variable_modifications.end());
+      recordDecoyAffix_(rd.decoy_string, rd.decoy_prefix, rd.decoy_inferred, id_file_abs_path);
+      id_MS_run_ref.push_back(rd.id_ms_run_ref);
+      run_fwhms.push_back(rd.fwhm);
+      feature_maps.emplace_back(std::move(rd.features));
+    }
 
     auto validation_result = File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true);
     switch (validation_result)
@@ -1880,9 +1945,14 @@ protected:
           const std::string& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
           {
+            std::string run_decoy_string;
+            bool run_decoy_prefix = true;
+            bool run_decoy_inferred = false;
             ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids,
-                                                fixed_modifications, variable_modifications);
+                                                fixed_modifications, variable_modifications,
+                                                run_decoy_string, run_decoy_prefix, run_decoy_inferred);
             if (e != EXECUTION_OK) return e;
+            recordDecoyAffix_(run_decoy_string, run_decoy_prefix, run_decoy_inferred, id_file_abs_path);
           }
 
           StringList id_msfile_ref;
