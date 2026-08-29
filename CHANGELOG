@@ -695,6 +695,15 @@ TOPP tools:
         and FeatureFinderIdentification run that does not use external IDs. Both peptide counters are
         now initialised, and the external one is reset per run rather than only inside that branch, so
         a reused algorithm object cannot carry the previous run's count into the next one
+      - BREAKING: removed the "external" peptide ID path, and with it the external peptide counter
+        fixed above. The -id_ext input, the SVM feature classifier (all 'svm:*' parameters), the
+        SVM-based FDR estimation and 'extract:rt_quantile' are gone, along with the
+        FFIDAlgoExternalIDHandler class. No in-tree caller ever passed external IDs (ProteomicsLFQ
+        and OpenNuXL always passed empty lists) and the only test exercising the path had been
+        disabled for years. FeatureFinderIdentificationAlgorithm::run() now takes (peptides,
+        proteins, features, seeds, spectra_file); the 'unknown' feature class, the
+        "implied"/"external" FFId_category values and the 'rt_delta', 'predicted_class' and
+        'FDR_probabilities' meta values are no longer produced
     FeatureFinderMetaboIdent:
       - Added an optional "Adduct" column to the TSV input; m/z is computed via AdductInfo from any
         supported notation (e.g. [M+Na]+, [M-H]-, [2M+H]+) and features are annotated with the adduct.
