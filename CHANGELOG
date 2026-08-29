@@ -1087,7 +1087,9 @@ Fixes:
     experiment. ProteomicsLFQ with -Seeding:algorithm biosaur2 passed exactly that on to
     FeatureFinderIdentification, which crashed on the zero-spectrum experiment (its chromatogram
     extraction indexes the PeakMap unconditionally). The spectra and chromatograms are now reassembled
-    in acquisition order, so both Biosaur2 paths leave the same processed experiment behind, and
+    in acquisition order (profile-mode centroiding likewise no longer replaces the whole experiment,
+    which dropped the chromatograms and experimental settings before the split saw them), so both
+    Biosaur2 paths leave the same processed experiment behind, and
     FeatureFinderIdentificationAlgorithm::run() rejects MS data without spectra instead of reading out
     of bounds (#9980)
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names

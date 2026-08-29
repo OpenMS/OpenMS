@@ -909,7 +909,9 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
     total_peaks_after += centroided_spectrum.size();
   }
 
-  exp = centroided_exp;
+  // Replace only the spectra: assigning the whole experiment would drop the
+  // experimental settings and the chromatograms, which centroiding does not touch.
+  exp.setSpectra(std::move(centroided_exp.getSpectra()));
   OPENMS_LOG_INFO << "Centroiding: " << total_peaks_before
                   << " profile points -> " << total_peaks_after << " centroided peaks" << endl;
 }

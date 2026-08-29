@@ -13,11 +13,14 @@
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -281,6 +284,63 @@ START_SECTION([EXTRA] run() preserves the stored MS data on the FAIMS path)
   TEST_EQUAL(rt_sorted, true)
   TEST_REAL_SIMILAR(back[0].getRT(), 0.0)
   TEST_REAL_SIMILAR(back[back.size() - 1].getRT(), 19.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] run() preserves chromatograms and settings on the FAIMS profile-mode path)
+{
+  // profile_mode centroids into a fresh experiment; replacing the whole experiment
+  // would drop the chromatograms and experimental settings before the FAIMS split
+  // ever saw them, so the reassembly above would have nothing to put back.
+  Biosaur2Algorithm algo;
+  MSExperiment exp;
+
+  const double cvs[2] = {-45.0, -65.0};
+  for (int i = 0; i < 10; ++i)
+  {
+    for (int g = 0; g < 2; ++g)
+    {
+      MSSpectrum spec;
+      spec.setRT(i * 2.0 + g);
+      spec.setMSLevel(1);
+      spec.setType(SpectrumSettings::SpectrumType::PROFILE);
+      spec.setDriftTime(cvs[g]);
+      spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+      // a small profile peak shape around 500 + g
+      for (int k = -3; k <= 3; ++k)
+      {
+        Peak1D p;
+        p.setMZ(500.0 + g + k * 0.01);
+        p.setIntensity(10000.0f * static_cast<float>(std::exp(-0.5 * k * k)));
+        spec.push_back(p);
+      }
+      exp.addSpectrum(spec);
+    }
+  }
+
+  MSChromatogram chrom;
+  chrom.setNativeID("TIC");
+  exp.addChromatogram(chrom);
+  exp.getExperimentalSettings().setDateTime(DateTime::fromString("2019-09-07T09:40:04"));
+
+  algo.setMSData(exp);
+
+  Param p = algo.getParameters();
+  p.setValue("profile", "true");
+  p.setValue("minmz", 400.0);
+  p.setValue("maxmz", 600.0);
+  p.setValue("mini", 100.0);
+  algo.setParameters(p);
+
+  FeatureMap fmap;
+  algo.run(fmap);
+
+  const MSExperiment& back = algo.getMSData();
+  TEST_EQUAL(back.size(), 20)
+  TEST_EQUAL(back.getChromatograms().size(), 1)
+  TEST_EQUAL(back.getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
+  // centroiding must not strip the FAIMS annotation, or the split never happens
+  TEST_EQUAL(FAIMSHelper::getCompensationVoltages(back).size(), 2)
 }
 END_SECTION
 
