@@ -1150,8 +1150,11 @@ protected:
     std::string fasta_digest;
     std::string openms_version;
     std::string openms_revision;
-    std::string mzml_digest;   ///< empty when the raw file is not available to hash
-    std::string id_digest;     ///< empty when the ID file is not available to hash
+    // Paths rather than digests: hashing an input means reading all of it, so it is deferred to
+    // the point of the check and only reached by a checkpoint that has passed every cheap gate.
+    // Empty when the file is not available at all, which is the case for a combining run.
+    std::string mzml_path;
+    std::string id_path;
   };
 
   /// FNV-1a. Not a security hash -- it identifies content, and unlike std::hash it is stable
@@ -1313,8 +1316,8 @@ protected:
       {"PLFQ:fingerprint", DataValue(ctx.fingerprint)},
       {"PLFQ:design_row", DataValue(ctx.design_row)},
       {"PLFQ:fasta_digest", DataValue(ctx.fasta_digest)},
-      {"PLFQ:mzml_digest", DataValue(ctx.mzml_digest)},
-      {"PLFQ:id_digest", DataValue(ctx.id_digest)},
+      {"PLFQ:mzml_digest", DataValue(inputDigest_(ctx.mzml_path))},
+      {"PLFQ:id_digest", DataValue(inputDigest_(ctx.id_path))},
       {"PLFQ:openms_version", DataValue(ctx.openms_version)},
       {"PLFQ:openms_revision", DataValue(ctx.openms_revision)}};
     for (const auto& [k, v] : stamped) { fm.setMetaValue(k, v); }
@@ -1403,17 +1406,6 @@ protected:
       reason = "it was indexed against a different FASTA";
       return CheckpointState::REJECTED;
     }
-    // Only checkable when the inputs are at hand; a combining run has neither.
-    if (! ctx.mzml_digest.empty() && stored("PLFQ:mzml_digest") != ctx.mzml_digest)
-    {
-      reason = "the spectra file has changed since it was written";
-      return CheckpointState::REJECTED;
-    }
-    if (! ctx.id_digest.empty() && stored("PLFQ:id_digest") != ctx.id_digest)
-    {
-      reason = "the identification file has changed since it was written";
-      return CheckpointState::REJECTED;
-    }
     if (stored("PLFQ:openms_version") != ctx.openms_version
         || stored("PLFQ:openms_revision") != ctx.openms_revision)
     {
@@ -1429,6 +1421,21 @@ protected:
                       << built_by << ", this is " << running << ". Accepted because "
                       << "-feat_dir_accept_mismatch was given.\n";
       accepted_build_mismatch_ = true;
+    }
+
+    // Last, because these are the only gates that cost anything: each one reads its whole input.
+    // Reaching here means the checkpoint already agrees on everything that can be compared for
+    // free, so at most one input is read per run, and only for a checkpoint about to be accepted.
+    // Only checkable when the inputs are at hand; a combining run has neither.
+    if (! ctx.mzml_path.empty() && stored("PLFQ:mzml_digest") != inputDigest_(ctx.mzml_path))
+    {
+      reason = "the spectra file has changed since it was written";
+      return CheckpointState::REJECTED;
+    }
+    if (! ctx.id_path.empty() && stored("PLFQ:id_digest") != inputDigest_(ctx.id_path))
+    {
+      reason = "the identification file has changed since it was written";
+      return CheckpointState::REJECTED;
     }
 
     rd.fwhm = fm.getMetaValue("PLFQ:fwhm");
@@ -1872,8 +1879,8 @@ protected:
         // changed after its checkpoint was written; that is the resuming run's job.
         if (! id_file_abs_path.empty())
         {
-          ctx.mzml_digest = inputDigest_(File::absolutePath(mz_file));
-          ctx.id_digest = inputDigest_(id_file_abs_path);
+          ctx.mzml_path = File::absolutePath(mz_file);
+          ctx.id_path = id_file_abs_path;
         }
 
         const std::string ckpt = feat_dir_ + "/" + checkpointName_(mz_file, fraction_group, fraction);
@@ -1922,8 +1929,8 @@ protected:
         {
           CheckpointContext ctx = checkpoint_ctx_;
           ctx.design_row = design_row;
-          ctx.mzml_digest = inputDigest_(File::absolutePath(mz_file));
-          ctx.id_digest = inputDigest_(id_file_abs_path);
+          ctx.mzml_path = File::absolutePath(mz_file);
+          ctx.id_path = id_file_abs_path;
           if (! writeCheckpoint_(feat_dir_, checkpointName_(mz_file, fraction_group, fraction), rd, ctx))
           {
             return CANNOT_WRITE_OUTPUT_FILE;
