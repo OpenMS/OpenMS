@@ -303,6 +303,15 @@ TOPP tools:
         output is byte-identical for any thread count (#9692, #9697, #9698, #9699)
       - Removed the QPXConverter TOPP tool (registered but without callers or tests); the QPXFile export
         API it wrapped remains available (#9693)
+      - Fix: .featureparquet now stores the FeatureMap's own unique id. Only the per-feature unique ids
+        were written, so a map came back with an unset id -- ProteomicsLFQ, for one, copies that value
+        into the consensus column header of the run the map came from. Files written before this keep
+        the previous behaviour rather than failing to load
+      - .featureparquet import now refuses a file in which a PSM references a feature unique id that is
+        not in features.parquet, instead of warning and re-filing the identification as unassigned. The
+        two identification lists partition the PSMs and which list one is in is part of the result: FDR
+        is estimated over both together and every exporter reports them separately, so repairing the
+        link silently produced a map that parsed cleanly and described a different experiment
     ProteinQuantifier (and the PeptideAndProteinQuant library class):
       - BREAKING: quantities are reported per assay -- the experimental-design (fraction_group, label)
         unit -- and the sample grain is gone. Previously all files mapped to a sample were summed, so
