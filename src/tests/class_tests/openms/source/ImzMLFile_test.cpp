@@ -1677,6 +1677,54 @@ START_SECTION(void store skips FloatDataArrays named after the peak arrays)
 END_SECTION
 
 
+START_SECTION(void store drops integer and string data arrays)
+{
+  // imzML has no external representation for per-peak integer/string arrays, so they
+  // are dropped (with a warning) instead of failing the store. FloatDataArrays on the
+  // same spectrum must still round-trip.
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  MSSpectrum::IntegerDataArray charges;
+  charges.setName("charge array");
+  charges.push_back(2);
+  s.getIntegerDataArrays().push_back(charges);
+  MSSpectrum::StringDataArray labels;
+  labels.setName("annotation array");
+  labels.push_back("peak0");
+  s.getStringDataArrays().push_back(labels);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem[0].size(), 1)
+  TEST_REAL_SIMILAR(mem[0][0].getMZ(), 100.0)
+  TEST_EQUAL(mem[0].getIntegerDataArrays().size(), 0)
+  TEST_EQUAL(mem[0].getStringDataArrays().size(), 0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 1)
+  TEST_EQUAL(mem[0].getFloatDataArrays()[0].getName(), "mean inverse reduced ion mobility array")
+  TEST_REAL_SIMILAR(mem[0].getFloatDataArrays()[0][0], 0.85)
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.getIntegerDataArrays().size(), 0)
+  TEST_EQUAL(disc.getStringDataArrays().size(), 0)
+  TEST_EQUAL(disc.getFloatDataArrays().size(), 1)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
 START_SECTION(void load and OnDisc skip aux array without a supported binary data type)
 {
   MSExperiment original;
