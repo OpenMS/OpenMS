@@ -575,6 +575,20 @@ namespace OpenMS
     const std::string& spectra_file
     )
   {
+    // Without spectra there is nothing to extract chromatograms from, and the
+    // extraction below indexes the experiment unconditionally. Fail with a usable
+    // message instead of reading out of bounds.
+    if (ms_data_.empty())
+    {
+      throw Exception::IllegalArgument(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "No spectra in the MS data passed to FeatureFinderIdentification. Set the MS data via "
+        "setMSData() before calling run(); note that an experiment consumed by another algorithm "
+        "may have been left empty.");
+    }
+
     // Check for FAIMS data
     auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
     const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
