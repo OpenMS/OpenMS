@@ -69,6 +69,7 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
+#include <filesystem>
 #include <iomanip>
 #include <sstream>
 #ifndef _WIN32
@@ -1169,27 +1170,55 @@ protected:
   }
 
   /**
-    @brief Content digest of an input.
+    @brief Content digest of a file.
 
-    Regular files are hashed outright. Bruker '.d' and '.idparquet' inputs are directories, whose
-    own size and timestamp say nothing about their contents, so those are identified by a digest
-    over the sorted list of contained relative paths and sizes. That is weaker than hashing every
-    byte -- a same-length edit inside a .d slips through -- and it avoids re-reading gigabytes on
-    every resume decision. Documented rather than silently assumed.
+    Used for the FASTA, and only for the FASTA. It is hashed once per invocation, not once per
+    run, and it is the one input a combining run can still check -- so it has to be identified by
+    what is in it rather than by when it landed: in a distributed run every machine stages its own
+    copy of the database, and their timestamps have nothing to do with each other.
   */
-  std::string inputDigest_(const std::string& path) const
+  std::string contentDigest_(const std::string& path) const
   {
-    if (! File::exists(path)) return "";
-    if (! File::isDirectory(path)) return FileHandler::computeFileHash(path);
+    if (path.empty() || ! File::exists(path)) return "";
+    return FileHandler::computeFileHash(path);
+  }
+
+  /**
+    @brief Identify a per-run input by its size and modification time, the way build tools do.
+
+    Deliberately not a content hash. OpenMS's SHA-1 runs at about 135 MB/s -- measured, and some
+    fifty times slower than simply reading the bytes -- so confirming that a 3 GB mzML has not
+    changed costs more than a stat() by four orders of magnitude, on a path whose entire purpose
+    is to avoid redoing work. make, ninja and ccache decide the same question the same way.
+
+    The hole is the one those tools accept: a change preserving both size and modification time
+    goes unnoticed. Two things bound it here. This guards only the single-node resume -- a
+    combining run has no '-in' to compare against, so it never runs there -- which means the
+    timestamp being compared is one this machine wrote, not one a workflow manager restaged. And
+    the parameters, design row, FASTA and build are all still compared properly, so this is the
+    weakest link in identifying the *inputs*, not in identifying the computation.
+
+    Directories (Bruker '.d', '.idparquet') are stamped from their sorted entries, since a
+    directory's own size and timestamp say nothing about its contents.
+  */
+  std::string inputStamp_(const std::string& path) const
+  {
+    if (path.empty() || ! File::exists(path)) return "";
+
+    auto stamp_of = [](const std::string& f) {
+      std::error_code ec;
+      const auto mtime = std::filesystem::last_write_time(f, ec);
+      const long long ticks = ec ? -1 : static_cast<long long>(mtime.time_since_epoch().count());
+      return StringUtils::toStr(File::fileSize(f)) + ":" + StringUtils::toStr(ticks);
+    };
+
+    if (! File::isDirectory(path)) return stamp_of(path);
 
     StringList entries;
     File::fileList(path, "*", entries, true);
     std::sort(entries.begin(), entries.end());
     std::string listing;
-    for (const auto& e : entries)
-    {
-      listing += File::basename(e) + ":" + StringUtils::toStr(File::exists(e) ? 1 : 0) + ";";
-    }
+    for (const auto& e : entries) { listing += File::basename(e) + "=" + stamp_of(e) + ";"; }
     return "dir:" + digestString_(listing);
   }
 
@@ -1316,8 +1345,8 @@ protected:
       {"PLFQ:fingerprint", DataValue(ctx.fingerprint)},
       {"PLFQ:design_row", DataValue(ctx.design_row)},
       {"PLFQ:fasta_digest", DataValue(ctx.fasta_digest)},
-      {"PLFQ:mzml_digest", DataValue(inputDigest_(ctx.mzml_path))},
-      {"PLFQ:id_digest", DataValue(inputDigest_(ctx.id_path))},
+      {"PLFQ:mzml_stamp", DataValue(inputStamp_(ctx.mzml_path))},
+      {"PLFQ:id_stamp", DataValue(inputStamp_(ctx.id_path))},
       {"PLFQ:openms_version", DataValue(ctx.openms_version)},
       {"PLFQ:openms_revision", DataValue(ctx.openms_revision)}};
     for (const auto& [k, v] : stamped) { fm.setMetaValue(k, v); }
@@ -1427,12 +1456,12 @@ protected:
     // Reaching here means the checkpoint already agrees on everything that can be compared for
     // free, so at most one input is read per run, and only for a checkpoint about to be accepted.
     // Only checkable when the inputs are at hand; a combining run has neither.
-    if (! ctx.mzml_path.empty() && stored("PLFQ:mzml_digest") != inputDigest_(ctx.mzml_path))
+    if (! ctx.mzml_path.empty() && stored("PLFQ:mzml_stamp") != inputStamp_(ctx.mzml_path))
     {
       reason = "the spectra file has changed since it was written";
       return CheckpointState::REJECTED;
     }
-    if (! ctx.id_path.empty() && stored("PLFQ:id_digest") != inputDigest_(ctx.id_path))
+    if (! ctx.id_path.empty() && stored("PLFQ:id_stamp") != inputStamp_(ctx.id_path))
     {
       reason = "the identification file has changed since it was written";
       return CheckpointState::REJECTED;
@@ -1462,7 +1491,7 @@ protected:
     for (const auto& k : {"PLFQ:schema", "PLFQ:run_identifier", "PLFQ:canonical_identifier", "PLFQ:fwhm",
                           "PLFQ:decoy_string", "PLFQ:decoy_prefix", "PLFQ:decoy_inferred", "PLFQ:fixed_mods",
                           "PLFQ:var_mods", "PLFQ:fingerprint", "PLFQ:design_row", "PLFQ:fasta_digest",
-                          "PLFQ:mzml_digest", "PLFQ:id_digest", "PLFQ:openms_version", "PLFQ:openms_revision"})
+                          "PLFQ:mzml_stamp", "PLFQ:id_stamp", "PLFQ:openms_version", "PLFQ:openms_revision"})
     {
       fm.removeMetaValue(k);
     }
@@ -2270,7 +2299,7 @@ protected:
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, feat_dir_);
       }
       checkpoint_ctx_.fingerprint = checkpointFingerprint_();
-      checkpoint_ctx_.fasta_digest = inputDigest_(File::absolutePath(in_db));
+      checkpoint_ctx_.fasta_digest = contentDigest_(File::absolutePath(in_db));
       checkpoint_ctx_.openms_version = VersionInfo::getVersion();
       checkpoint_ctx_.openms_revision = VersionInfo::getRevision();
     }
