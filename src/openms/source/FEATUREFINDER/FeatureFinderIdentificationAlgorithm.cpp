@@ -806,6 +806,10 @@ namespace OpenMS
     }
 
     n_internal_peps_ = peptide_map_.size();
+    // Reset alongside the internal count, not only inside the branch below: without external IDs
+    // nothing assigned this, so statistics_() read whatever the member happened to hold -- an
+    // uninitialised value on the first run, the previous run's count on a reused algorithm object.
+    n_external_peps_ = 0;
 
     if (with_external_ids)
     {
