@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 
@@ -167,6 +168,18 @@ namespace OpenMS
     auto perms = st.permissions();
     return (perms & (fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec)) != fs::perms::none;
 #endif
+  }
+
+  Int64 File::getModificationTime(const std::string& file)
+  {
+    if (!File::exists(file)) return -1;
+
+    std::error_code ec;
+    const auto ft = fs::last_write_time(to_path(file), ec);
+    if (ec) return -1;
+    // file_clock -> system_clock, so the result is anchored to the Unix epoch on every platform.
+    const auto sys = std::chrono::clock_cast<std::chrono::system_clock>(ft);
+    return std::chrono::duration_cast<std::chrono::seconds>(sys.time_since_epoch()).count();
   }
 
   UInt64 File::fileSize(const std::string& file)

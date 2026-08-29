@@ -453,9 +453,10 @@ TOPP tools:
         stopped; '-detect_only' on each machine produces the checkpoints; and a final invocation with
         neither '-in' nor '-ids' combines them, reading no mzML, no idXML and no run-level FASTA
         content. A checkpoint records the parameters, OpenMS build, design row and input files behind
-        it and is refused when any of those disagree, naming the setting that differs -- only a
-        differing build can be accepted, with '-feat_dir_accept_mismatch', which is then recorded in
-        the result. '-force_recompute' rewrites checkpoints. Requires an explicit '-design' (a
+        it and is refused when any of those disagree, naming the setting that differs; there is no way
+        to combine checkpoints that disagree, and '-force_recompute' detects the affected runs again.
+        Inputs are identified by size and modification time rather than by content, so deciding to
+        reuse a checkpoint reads nothing. Requires an explicit '-design' (a
         generated one would label every separately detected run as the first) and '-fasta'; not
         applicable to spectral_counting. A split run reproduces a single-shot run exactly: the QPX
         feature, psm and pg views compare identical at ParquetDiff's exact ratio. '-in'/'-ids' are

@@ -69,7 +69,6 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <filesystem>
 #include <iomanip>
 #include <sstream>
 #ifndef _WIN32
@@ -147,9 +146,9 @@ Everything follows from that rule:
 A checkpoint records the parameters, OpenMS build, experimental-design row and input files it was
 produced from, and is refused if any of those disagree with the run trying to use it - naming the
 setting that differs. This is what makes reuse safe rather than merely convenient: nothing else
-would stop half a study being detected with one setting and half with another. Only a differing
-OpenMS build can be waved through, with @p -feat_dir_accept_mismatch, which records the override in
-the result. @p -force_recompute ignores existing checkpoints and rewrites them.
+would stop half a study being detected with one setting and half with another. There is no way to
+combine checkpoints that disagree: @p -force_recompute detects the affected runs again and rewrites
+their checkpoints.
 
 @p -feat_dir requires an explicit @p -design (a generated one would label every separately detected
 run as the first) and @p -fasta (a checkpoint has to carry the peptide-indexing results, which a
@@ -281,11 +280,6 @@ protected:
       "or quantification is performed, and no result file is required. Requires '-feat_dir'.", false);
     registerFlag_("force_recompute",
       "Ignore existing checkpoints in '-feat_dir' and detect every run again, overwriting them.", true);
-    registerFlag_("feat_dir_accept_mismatch",
-      "Proceed when a checkpoint was written by a different OpenMS build than the one reading it, "
-      "recording that in the result's data processing. Applies to the build revision ONLY: a checkpoint "
-      "whose parameters, design row or input files differ is always fatal, because no annotation makes "
-      "such a checkpoint describe the run being combined.", true);
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -1198,10 +1192,7 @@ protected:
     if (path.empty() || ! File::exists(path)) return "";
 
     auto stamp_of = [](const std::string& f) {
-      std::error_code ec;
-      const auto mtime = std::filesystem::last_write_time(f, ec);
-      const long long ticks = ec ? -1 : static_cast<long long>(mtime.time_since_epoch().count());
-      return StringUtils::toStr(File::fileSize(f)) + ":" + StringUtils::toStr(ticks);
+      return StringUtils::toStr(File::fileSize(f)) + ":" + StringUtils::toStr(File::getModificationTime(f));
     };
 
     if (! File::isDirectory(path)) return stamp_of(path);
@@ -1229,7 +1220,7 @@ protected:
       "Posterior Error Probability:"};
     static const std::set<std::string> excluded_keys = {
       "in", "ids", "design", "out", "out_cxml", "out_msstats", "out_qpx", "out_parquet",
-      "feat_dir", "detect_only", "force_recompute", "feat_dir_accept_mismatch",
+      "feat_dir", "detect_only", "force_recompute",
       "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
       "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
       "protein_quantification", "alignment_order", "keep_feature_top_psm_only_in_consensus"};
@@ -1433,18 +1424,15 @@ protected:
     if (stored("PLFQ:openms_version") != ctx.openms_version
         || stored("PLFQ:openms_revision") != ctx.openms_revision)
     {
-      const std::string built_by = stored("PLFQ:openms_version") + " (" + stored("PLFQ:openms_revision") + ")";
-      const std::string running = ctx.openms_version + " (" + ctx.openms_revision + ")";
-      if (! getFlag_("feat_dir_accept_mismatch"))
-      {
-        reason = "it was written by OpenMS " + built_by + ", this is " + running
-                 + ". Pass -feat_dir_accept_mismatch to combine across builds anyway";
-        return CheckpointState::REJECTED;
-      }
-      OPENMS_LOG_WARN << "Warning: checkpoint " << File::basename(path) << " was written by OpenMS "
-                      << built_by << ", this is " << running << ". Accepted because "
-                      << "-feat_dir_accept_mismatch was given.\n";
-      accepted_build_mismatch_ = true;
+      // No override. Detection behaviour can change between any two builds, and nothing here can
+      // tell whether it did, so combining checkpoints across builds would be a guess dressed up as
+      // a result. The intended use -- one build, many machines -- never reaches this, and
+      // -force_recompute is always available when it does.
+      reason = "it was written by OpenMS " + stored("PLFQ:openms_version") + " ("
+               + stored("PLFQ:openms_revision") + "), this is " + ctx.openms_version + " ("
+               + ctx.openms_revision + "). Detect the run again with -force_recompute, or delete "
+               "the checkpoint directory";
+      return CheckpointState::REJECTED;
     }
 
     // Last, because these are the only gates that cost anything: each one reads its whole input.
@@ -2481,15 +2469,6 @@ protected:
         OPENMS_LOG_INFO << "Feature checkpoints: " << checkpoints_reused_ << " reused, "
                         << runs_detected_ << " detected.\n";
       }
-      if (accepted_build_mismatch_)
-      {
-        // Record the override in the result itself. A warning in a cluster log is not where anyone
-        // looks six months later when they wonder how this file was produced.
-        consensus.setMetaValue("ProteomicsLFQ:checkpoint_build_mismatch",
-                               "combined from feature checkpoints written by a different OpenMS build "
-                               "than " + VersionInfo::getVersion() + " (" + VersionInfo::getRevision()
-                               + "); -feat_dir_accept_mismatch was given");
-      }
 
       consensus.sortByPosition();
       consensus.sortPeptideIdentificationsByMapIndex();
@@ -2750,8 +2729,6 @@ protected:
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
   bool picked_decoy_seen_ = false; ///< has an affix been inferred from an input file yet?
-  /// Set when a checkpoint from another build was accepted; recorded in the result's provenance.
-  mutable bool accepted_build_mismatch_ = false;
   std::string feat_dir_;                  ///< empty unless -feat_dir was given
   CheckpointContext checkpoint_ctx_;      ///< the run-independent half, built once in main_
   Size checkpoints_reused_ = 0;

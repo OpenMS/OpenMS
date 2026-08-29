@@ -55,6 +55,23 @@ START_SECTION((static UInt64 fileSize(const std::string& file)))
   TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), 15)
 END_SECTION
 
+START_SECTION((static Int64 getModificationTime(const std::string& file)))
+  TEST_EQUAL(File::getModificationTime("does_not_exists.txt"), -1)
+
+  // Anchored to the Unix epoch, not to file_clock's implementation-defined one, so the value means
+  // the same thing to a reader on another platform. Checked loosely -- any plausible wall clock
+  // since 2020 -- rather than against a fixture's timestamp, which a checkout rewrites.
+  const Int64 t_repo = File::getModificationTime(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt"));
+  TEST_EQUAL(t_repo > 1577836800LL, true)   // after 2020-01-01
+  TEST_EQUAL(t_repo < 4102444800LL, true)   // before 2100-01-01
+
+  // A file written now is not older than one written earlier.
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  { std::ofstream os(tmp.c_str()); os << "x"; }
+  TEST_EQUAL(File::getModificationTime(tmp) >= t_repo - 86400LL, true)
+END_SECTION
+
 START_SECTION((static bool remove(const std::string &file)))
   //deleting non-existing file
   TEST_EQUAL(File::remove("does_not_exists.txt"), true)
