@@ -843,6 +843,8 @@ OpenMS Library:
         never filled on read; getIMPeakType() is set to IM_PROFILE and getIMUnit() resolves the unit from
         the PSI-MS ontology (1/K0 for MS:1003006, not milliseconds). OnDiscImzMLExperiment now also
         rejects zlib-compressed m/z/intensity arrays like the in-memory loader (#9908)
+      - imzML export warns about per-peak Integer/StringDataArrays (e.g. a "charge array" carried over
+        from mzML): the format stores only FloatDataArrays, so they were silently dropped before
     - Native Parquet I/O for identifications, features and consensus maps:
       - PSMArrowIO reads/writes the .idparquet directory bundle (psms/proteins/protein_groups/
         search_params.parquet), lossless round-trip from PeptideIdentificationList and

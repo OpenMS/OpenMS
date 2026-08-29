@@ -20,6 +20,7 @@
 #include <cstring>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 namespace OpenMS
 {
@@ -583,9 +584,12 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
       snap.z        = cur_z_;
       snap.mz_meta  = cur_mz_meta_;
       snap.int_meta = cur_int_meta_;
-      snap.aux_meta = cur_aux_metas_;
-      snap.inline_aux_names = cur_inline_aux_names_;
-      spec_ims_.push_back(snap);
+      // Safe to move: both vectors are cleared unconditionally below, and nothing
+      // between here and that reset reads them. Saves a per-spectrum copy of the
+      // aux name/accession/unit strings on datasets with a pixel per spectrum.
+      snap.aux_meta = std::move(cur_aux_metas_);
+      snap.inline_aux_names = std::move(cur_inline_aux_names_);
+      spec_ims_.push_back(std::move(snap));
     }
 
     // imzML peak data lives in the companion .ibd, so the inline <binary> arrays are
