@@ -59,7 +59,11 @@ install(CODE "
 ## (picked up automatically by include(CPack) below). We used to !include it via a hardcoded "..\..\..\"
 ## relative path from CPack's NSIS staging directory, which silently breaks whenever CPACK_PACKAGE_DIRECTORY
 ## is redirected elsewhere (e.g. to a short path on Windows to avoid MAX_PATH issues).
-file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/Cfg_Settings.nsh" CPACK_OPENMS_CFG_SETTINGS_FILE)
+## Keep forward slashes here (like CPack's own CPACK_TOPLEVEL_DIRECTORY et al.): CPack re-serializes this
+## variable into a quoted string in the generated CPackConfig.cmake, and a native Windows path's backslashes
+## (e.g. "\a" in "D:\a\...", GitHub Actions' checkout root) are parsed as invalid CMake escape sequences there.
+## NSIS itself accepts forward slashes in !include paths just fine.
+set(CPACK_OPENMS_CFG_SETTINGS_FILE "${PROJECT_BINARY_DIR}/Cfg_Settings.nsh")
 
 ## Remove the next three lines if you use the NSIS autogeneration feature at some point!
 ## For now it makes sure everything is merged into the usual folders bin/share/include
