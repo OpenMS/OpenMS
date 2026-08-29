@@ -4307,8 +4307,15 @@ set_tests_properties("TOPP_ProteomicsLFQ_fraction_fwhm" PROPERTIES
 # It is made on the QPX collection rather than on mzTab or consensusXML because those carry per-run
 # unique ids drawn from a process-global generator, which necessarily differ once the runs are
 # detected in separate processes; QPX keys its rows on content instead, so the comparison is over
-# what was measured rather than over which process measured it. Compared at ParquetDiff's default
-# ratio, i.e. exactly.
+# what was measured rather than over which process measured it.
+#
+# Compared at 1e-3 relative, not exactly. ref, detect_a and detect_b are independent processes
+# running feature detection over the same mzMLs, and the qpx_flags tests below record that MSVC
+# shows low-order integration drift between exactly such processes (1.4e-4 relative on this
+# fixture). Bit-exactness across processes is therefore not an honest contract on every platform,
+# whatever a single Linux run reports. The tolerance still sits orders of magnitude below anything
+# that would indicate the split had actually changed the result, and absdiff 0 keeps a
+# zero-to-nonzero change observable.
 # ---------------------------------------------------------------------------------------------
 add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
          ${TESTS_TEMP_DIR}/BSA_seam_ckpt ${TESTS_TEMP_DIR}/BSA_seam_ckpt_partial ${TESTS_TEMP_DIR}/BSA_seam_qpx_ref ${TESTS_TEMP_DIR}/BSA_seam_qpx_split)
@@ -4411,7 +4418,8 @@ set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_combine" PROPERTIES DEPENDS "T
 foreach(view feature psm pg)
   add_test("TOPP_ProteomicsLFQ_feat_dir_eq_${view}" ${TOPP_BIN_PATH}/ParquetDiff
            -in1 ${TESTS_TEMP_DIR}/BSA_seam_qpx_ref/quantms.${view}.parquet
-           -in2 ${TESTS_TEMP_DIR}/BSA_seam_qpx_split/quantms.${view}.parquet)
+           -in2 ${TESTS_TEMP_DIR}/BSA_seam_qpx_split/quantms.${view}.parquet
+           -ratio 1.001 -absdiff 0)
   set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_eq_${view}" PROPERTIES
                        DEPENDS "TOPP_ProteomicsLFQ_feat_dir_ref;TOPP_ProteomicsLFQ_feat_dir_combine")
 endforeach()

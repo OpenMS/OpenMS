@@ -69,6 +69,7 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
+#include <filesystem>
 #include <iomanip>
 #include <sstream>
 #ifndef _WIN32
@@ -1197,12 +1198,22 @@ protected:
 
     if (! File::isDirectory(path)) return stamp_of(path);
 
-    StringList entries;
-    File::fileList(path, "*", entries, true);
-    std::sort(entries.begin(), entries.end());
-    std::string listing;
-    for (const auto& e : entries) { listing += File::basename(e) + "=" + stamp_of(e) + ";"; }
-    return "dir:" + digestString_(listing);
+    // Walked recursively, and keyed on the path relative to the root: a Bruker '.d' keeps content
+    // in subdirectories, and File::fileList is a flat directory_iterator, so a flat listing would
+    // be blind to most of one. Relative rather than basename, because two entries in different
+    // subdirectories can share a name.
+    std::vector<std::string> lines;
+    std::error_code ec;
+    const std::filesystem::path root(path);
+    for (std::filesystem::recursive_directory_iterator it(root, ec), end; it != end && ! ec; it.increment(ec))
+    {
+      if (! it->is_regular_file(ec)) continue;
+      lines.push_back(std::filesystem::relative(it->path(), root, ec).generic_string()
+                      + "=" + stamp_of(it->path().string()));
+    }
+    if (ec) return ""; // unreadable: treat as unidentifiable rather than as "matches"
+    std::sort(lines.begin(), lines.end());
+    return "dir:" + digestString_(ListUtils::concatenate(lines, ";"));
   }
 
   /**
@@ -1219,7 +1230,11 @@ protected:
       "Alignment:", "Linking:", "PipEcho:", "Protein Inference:", "ProteinQuantification:",
       "Posterior Error Probability:"};
     static const std::set<std::string> excluded_keys = {
-      "in", "ids", "design", "out", "out_cxml", "out_msstats", "out_qpx", "out_parquet",
+      // Paths, not settings. 'fasta' in particular: the database is identified by its own stamp,
+      // and leaving the path here would make two machines that mount the same database at
+      // different points disagree about the *parameters* -- which is the normal case for the
+      // distributed workflow this exists for, and would reject every checkpoint.
+      "in", "ids", "design", "fasta", "out", "out_cxml", "out_msstats", "out_qpx", "out_parquet",
       "feat_dir", "detect_only", "force_recompute",
       "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
       "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
@@ -1358,8 +1373,17 @@ protected:
     }
     if (! File::rename(tmp, final_path, false))
     {
-      OPENMS_LOG_ERROR << "Could not move the feature checkpoint into place: " << final_path << "\n";
+      // The existence check above is not atomic with the rename, so another invocation given the
+      // same run can land its checkpoint in between. Detect-only invocations are documented as
+      // needing no coordination, so losing that race has to be success, not an aborted job.
       File::removeDirRecursively(tmp);
+      if (File::exists(final_path))
+      {
+        OPENMS_LOG_INFO << "Checkpoint " << name << " was written concurrently by another process; "
+                        << "keeping theirs.\n";
+        return true;
+      }
+      OPENMS_LOG_ERROR << "Could not move the feature checkpoint into place: " << final_path << "\n";
       return false;
     }
     return true;
@@ -1402,6 +1426,19 @@ protected:
     }
 
     const auto stored = [&fm](const char* k) { return fm.metaValueExists(k) ? fm.getMetaValue(k).toString() : std::string(); };
+
+    // Everything below reads these unconditionally, and getMetaValue throws on a missing key. A
+    // schema-1 checkpoint always has them, so one that does not is malformed rather than merely
+    // out of date -- report it as such instead of dying with an exception from the kernel classes.
+    for (const char* k : {"PLFQ:fwhm", "PLFQ:decoy_prefix", "PLFQ:decoy_inferred",
+                          "PLFQ:fixed_mods", "PLFQ:var_mods", "PLFQ:canonical_identifier"})
+    {
+      if (! fm.metaValueExists(k))
+      {
+        reason = std::string("it is missing the '") + k + "' entry, so it is malformed";
+        return CheckpointState::REJECTED;
+      }
+    }
 
     if (stored("PLFQ:design_row") != ctx.design_row)
     {
@@ -1933,12 +1970,26 @@ protected:
                                  << "so it can be detected.\n";
           return INCOMPATIBLE_INPUT_DATA;
         }
+        // Stamp the inputs before reading them, not after. Detection takes minutes; stamping
+        // afterwards would pair features derived from the old content with a stamp describing the
+        // new, and a later resume would accept that pairing as current.
+        const std::string mzml_before = feat_dir_.empty() ? "" : inputStamp_(File::absolutePath(mz_file));
+        const std::string id_before = feat_dir_.empty() ? "" : inputStamp_(id_file_abs_path);
+
         ExitCodes e = detectRun_(mz_file, id_file_abs_path, in_db, fraction, fraction_group, rd);
         if (e != EXECUTION_OK) { return e; }
         ++runs_detected_;
 
         if (! feat_dir_.empty())
         {
+          if (inputStamp_(File::absolutePath(mz_file)) != mzml_before
+              || inputStamp_(id_file_abs_path) != id_before)
+          {
+            OPENMS_LOG_FATAL_ERROR << "The inputs for '" << File::basename(mz_file)
+                                   << "' changed while it was being processed, so no checkpoint can "
+                                   << "honestly describe this run. Nothing was written for it.\n";
+            return INCOMPATIBLE_INPUT_DATA;
+          }
           CheckpointContext ctx = checkpoint_ctx_;
           ctx.design_row = design_row;
           ctx.mzml_path = File::absolutePath(mz_file);
