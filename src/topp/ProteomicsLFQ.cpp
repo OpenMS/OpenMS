@@ -1148,7 +1148,7 @@ protected:
   {
     std::string fingerprint;   ///< the detect-relevant parameters, one "key=value" per line
     std::string design_row;    ///< fraction group, fraction, label and sample of this run
-    std::string fasta_digest;
+    std::string fasta_stamp;
     std::string openms_version;
     std::string openms_revision;
     // Paths rather than digests: hashing an input means reading all of it, so it is deferred to
@@ -1170,33 +1170,25 @@ protected:
   }
 
   /**
-    @brief Content digest of a file.
-
-    Used for the FASTA, and only for the FASTA. It is hashed once per invocation, not once per
-    run, and it is the one input a combining run can still check -- so it has to be identified by
-    what is in it rather than by when it landed: in a distributed run every machine stages its own
-    copy of the database, and their timestamps have nothing to do with each other.
-  */
-  std::string contentDigest_(const std::string& path) const
-  {
-    if (path.empty() || ! File::exists(path)) return "";
-    return FileHandler::computeFileHash(path);
-  }
-
-  /**
-    @brief Identify a per-run input by its size and modification time, the way build tools do.
+    @brief Identify an input by its size and modification time, the way build tools do.
 
     Deliberately not a content hash. OpenMS's SHA-1 runs at about 135 MB/s -- measured, and some
     fifty times slower than simply reading the bytes -- so confirming that a 3 GB mzML has not
     changed costs more than a stat() by four orders of magnitude, on a path whose entire purpose
     is to avoid redoing work. make, ninja and ccache decide the same question the same way.
 
+    Applied to every input, the FASTA included, so there is one rule rather than two. Databases
+    reach 10 GB in metaproteomics and six-frame work, and the FASTA is checked by every detect job,
+    so hashing it would add over a minute to each -- often more than the detection itself.
+
     The hole is the one those tools accept: a change preserving both size and modification time
-    goes unnoticed. Two things bound it here. This guards only the single-node resume -- a
-    combining run has no '-in' to compare against, so it never runs there -- which means the
-    timestamp being compared is one this machine wrote, not one a workflow manager restaged. And
-    the parameters, design row, FASTA and build are all still compared properly, so this is the
-    weakest link in identifying the *inputs*, not in identifying the computation.
+    goes unnoticed. For the FASTA there is a second, sharper limitation, because it is the one
+    input compared ACROSS machines: two copies of the same database staged separately have the
+    same size but unrelated timestamps, so a run whose nodes each stage their own copy -- Nextflow
+    in copy mode, containers, cloud executors -- finds every checkpoint disagreeing about a
+    database that is in fact identical. This is built for the shared-filesystem workflow, where the
+    FASTA is one file at one path and the comparison is exact; elsewhere, stage the database once
+    and point every job at that copy.
 
     Directories (Bruker '.d', '.idparquet') are stamped from their sorted entries, since a
     directory's own size and timestamp say nothing about its contents.
@@ -1344,7 +1336,7 @@ protected:
       {"PLFQ:var_mods", DataValue(StringList(rd.variable_modifications.begin(), rd.variable_modifications.end()))},
       {"PLFQ:fingerprint", DataValue(ctx.fingerprint)},
       {"PLFQ:design_row", DataValue(ctx.design_row)},
-      {"PLFQ:fasta_digest", DataValue(ctx.fasta_digest)},
+      {"PLFQ:fasta_stamp", DataValue(ctx.fasta_stamp)},
       {"PLFQ:mzml_stamp", DataValue(inputStamp_(ctx.mzml_path))},
       {"PLFQ:id_stamp", DataValue(inputStamp_(ctx.id_path))},
       {"PLFQ:openms_version", DataValue(ctx.openms_version)},
@@ -1430,9 +1422,12 @@ protected:
       reason = "it was produced with different settings:\n" + fingerprintDiff_(ctx.fingerprint, stored("PLFQ:fingerprint"));
       return CheckpointState::REJECTED;
     }
-    if (stored("PLFQ:fasta_digest") != ctx.fasta_digest)
+    if (stored("PLFQ:fasta_stamp") != ctx.fasta_stamp)
     {
-      reason = "it was indexed against a different FASTA";
+      reason = "the FASTA does not match the one it was indexed against. These are compared by size "
+               "and modification time, so this also fires when the same database was staged separately "
+               "for the run that wrote the checkpoint -- point every job at one copy on shared storage, "
+               "or re-detect with -force_recompute";
       return CheckpointState::REJECTED;
     }
     if (stored("PLFQ:openms_version") != ctx.openms_version
@@ -1490,7 +1485,7 @@ protected:
 
     for (const auto& k : {"PLFQ:schema", "PLFQ:run_identifier", "PLFQ:canonical_identifier", "PLFQ:fwhm",
                           "PLFQ:decoy_string", "PLFQ:decoy_prefix", "PLFQ:decoy_inferred", "PLFQ:fixed_mods",
-                          "PLFQ:var_mods", "PLFQ:fingerprint", "PLFQ:design_row", "PLFQ:fasta_digest",
+                          "PLFQ:var_mods", "PLFQ:fingerprint", "PLFQ:design_row", "PLFQ:fasta_stamp",
                           "PLFQ:mzml_stamp", "PLFQ:id_stamp", "PLFQ:openms_version", "PLFQ:openms_revision"})
     {
       fm.removeMetaValue(k);
@@ -2299,7 +2294,7 @@ protected:
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, feat_dir_);
       }
       checkpoint_ctx_.fingerprint = checkpointFingerprint_();
-      checkpoint_ctx_.fasta_digest = contentDigest_(File::absolutePath(in_db));
+      checkpoint_ctx_.fasta_stamp = inputStamp_(File::absolutePath(in_db));
       checkpoint_ctx_.openms_version = VersionInfo::getVersion();
       checkpoint_ctx_.openms_revision = VersionInfo::getRevision();
     }
