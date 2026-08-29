@@ -4501,6 +4501,51 @@ set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_partial_rejected" PROPERTIES
                      DEPENDS "TOPP_ProteomicsLFQ_feat_dir_break_partial"
                      WILL_FAIL 1)
 
+# -force_recompute must actually replace the checkpoint that is there. It skips loading, so the
+# write path is the only thing standing between a recomputed run and the stale file it is meant to
+# supersede -- and the write path's concurrent-writer branch keeps whatever it finds. Its own
+# directory, so replacing a checkpoint cannot race the tests above that read the shared one.
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_force_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_seam_force)
+add_test("TOPP_ProteomicsLFQ_feat_dir_force_seed" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_force
+         -detect_only
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_force_seed" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_force_clean")
+add_test("TOPP_ProteomicsLFQ_feat_dir_force_replace" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_force
+         -detect_only
+         -force_recompute
+         )
+# Before this was fixed the run recomputed the features and then threw them away, logging
+# "appeared while it was being written; keeping the existing one" and leaving the stale checkpoint
+# for the next combine to reject all over again.
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_force_replace" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_force_seed"
+                     PASS_REGULAR_EXPRESSION "Replaced checkpoint"
+                     FAIL_REGULAR_EXPRESSION "keeping the existing one")
+
 # -feat_dir without an explicit design is refused: a detect-only invocation sees one run and would
 # generate Fraction_Group 1 for it, so every machine would label its run the first one.
 add_test("TOPP_ProteomicsLFQ_feat_dir_requires_design" ${TOPP_BIN_PATH}/ProteomicsLFQ -test

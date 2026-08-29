@@ -1326,7 +1326,7 @@ protected:
     checkpointed run but not of a single-shot one.
   */
   bool writeCheckpoint_(const std::string& dir, const std::string& name,
-                        RunDetection& rd, const CheckpointContext& ctx) const
+                        RunDetection& rd, const CheckpointContext& ctx, bool replace_existing) const
   {
     FeatureMap& fm = rd.features;
     const std::vector<std::pair<std::string, DataValue>> stamped = {
@@ -1365,10 +1365,34 @@ protected:
     const std::string final_path = dir + "/" + name;
     if (File::exists(final_path))
     {
-      // Another process finished this run while we were writing it. Its checkpoint satisfies the
-      // same contract, so keep it rather than replacing a file something may already be reading.
-      OPENMS_LOG_INFO << "Checkpoint " << name << " appeared while it was being written; keeping the existing one.\n";
-      File::removeDirRecursively(tmp);
+      if (! replace_existing)
+      {
+        // Another process finished this run while we were writing it. Its checkpoint satisfies the
+        // same contract, so keep it rather than replacing a file something may already be reading.
+        OPENMS_LOG_INFO << "Checkpoint " << name << " appeared while it was being written; keeping the existing one.\n";
+        File::removeDirRecursively(tmp);
+        return true;
+      }
+      // -force_recompute: the whole point is to supersede what is there. Move the old one aside
+      // first and delete it only once the new one is in place, so the name is never absent and a
+      // failed rename cannot leave the run without a checkpoint at all.
+      const std::string superseded = dir + "/." + name + ".superseded." + StringUtils::toStr(getpid());
+      File::removeDirRecursively(superseded);
+      if (! File::rename(final_path, superseded, false))
+      {
+        OPENMS_LOG_ERROR << "Could not move the existing checkpoint aside: " << final_path << "\n";
+        File::removeDirRecursively(tmp);
+        return false;
+      }
+      if (! File::rename(tmp, final_path, false))
+      {
+        File::rename(superseded, final_path, false); // put the old one back
+        File::removeDirRecursively(tmp);
+        OPENMS_LOG_ERROR << "Could not move the recomputed checkpoint into place: " << final_path << "\n";
+        return false;
+      }
+      File::removeDirRecursively(superseded);
+      OPENMS_LOG_INFO << "Replaced checkpoint " << name << " (-force_recompute).\n";
       return true;
     }
     if (! File::rename(tmp, final_path, false))
@@ -1994,7 +2018,8 @@ protected:
           ctx.design_row = design_row;
           ctx.mzml_path = File::absolutePath(mz_file);
           ctx.id_path = id_file_abs_path;
-          if (! writeCheckpoint_(feat_dir_, checkpointName_(mz_file, fraction_group, fraction), rd, ctx))
+          if (! writeCheckpoint_(feat_dir_, checkpointName_(mz_file, fraction_group, fraction), rd, ctx,
+                                 getFlag_("force_recompute")))
           {
             return CANNOT_WRITE_OUTPUT_FILE;
           }
