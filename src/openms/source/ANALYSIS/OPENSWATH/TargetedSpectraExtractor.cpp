@@ -309,6 +309,11 @@ namespace OpenMS
               }
               s.setMetaValue("adducts", adducts);
               OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
+              // NOTE: unlike the *neutral* adduct mass which ConsensusFeature::computeDechargeConsensus()
+              // documents for 'dc_charge_adduct_mass', this stores an ionized-convention value (the
+              // neutral adduct mass minus the charge's electrons, with the observed mz_error_Da folded
+              // in). Kept for backward compatibility; consumers expecting the neutral convention must
+              // not apply an additional electron correction to these features.
               double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
               s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
               s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));

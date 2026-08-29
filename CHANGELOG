@@ -1051,6 +1051,16 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: ConsensusFeature::computeDechargeConsensus() (used by Decharger and MetaboliteAdductDecharger)
+    ignored the mass of the missing/surplus electrons when the 'dc_charge_adduct_mass' MetaValue (a
+    neutral adduct mass) was present, so the decharged mass was off by one electron mass per unit charge
+    (~5.5 ppm at 100 Da) compared to the neutral-mass convention of AdductInfo::getNeutralMass() used by
+    AccurateMassSearch. For ungrouped (singleton) features, MetaboliteAdductDecharger stored a proton mass
+    in 'dc_charge_adduct_mass' although the accompanying 'dc_charge_adducts' formula is neutral; it now
+    stores the neutral adduct mass, so the MetaValue has the same meaning for all features. The
+    'decharge_mz' projection of FeatureGroupingAlgorithmWNet applies the same electron-mass correction
+    when the MetaValue is present, and the decharger class-test reference files were regenerated
+    analytically for the corrected masses (#9917)
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names
     are not "0", "1", ... crashed with a bare std::out_of_range. getSampleToPrefractionationMapping() was
     keyed by sample name while the condition and path-label mappings used the stringified zero-based row

@@ -237,9 +237,18 @@ public:
       The position of the feature handles (decharged) is averaged (using intensity as weights if
       @p intensity_weighted_averaging is true). Intensities are summed up. Charge is set to 0.
       Mass calculation: If the given features contain a metavalue "dc_charge_adduct_mass" then this
-      will be used as adduct mass instead of weight(H+) * charge.
+      will be used as (neutral) adduct mass instead of weight(H+) * charge.
+      For the (neutral) metavalue, the mass of the electrons which are missing (positive charge) or
+      surplus (negative charge) is corrected for, i.e. the resulting neutral mass follows the same
+      convention as AdductInfo::getNeutralMass() (used by AccurateMassSearchEngine). The H+ fallback
+      needs no such correction, since a proton already lacks its electron.
 
       @note This method has to be called explicitly, <i>after</i> adding the feature handles.
+      @note The resulting m/z of this ConsensusFeature is a neutral mass (charge is set to 0), not an observed m/z.
+      @note Multimer annotations are not resolved: for a feature annotated as an n-mer (e.g. [2M+2H]2+ from
+      MetaboliteFeatureDeconvolution with max_multimer > 1), the contribution is the neutral mass of the
+      n-mer (n*M), whereas AdductInfo::getNeutralMass() divides by the mol_multiplier and returns the
+      monomer mass M. The convention equivalence above therefore holds for monomeric adducts only.
 
       @param[in] fm Input feature map, which provides additional information on the features
       @param[in] intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
