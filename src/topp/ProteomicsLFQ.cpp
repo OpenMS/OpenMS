@@ -72,12 +72,6 @@
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <process.h>
-#define getpid _getpid
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -1146,8 +1140,8 @@ protected:
     std::string fasta_stamp;
     std::string openms_version;
     std::string openms_revision;
-    // Paths rather than digests: hashing an input means reading all of it, so it is deferred to
-    // the point of the check and only reached by a checkpoint that has passed every cheap gate.
+    // Paths rather than ready-made stamps: the stamp is taken at the point of comparison, so a
+    // checkpoint rejected on cheaper grounds never causes the input to be looked at at all.
     // Empty when the file is not available at all, which is the case for a combining run.
     std::string mzml_path;
     std::string id_path;
@@ -1234,11 +1228,16 @@ protected:
       // and leaving the path here would make two machines that mount the same database at
       // different points disagree about the *parameters* -- which is the normal case for the
       // distributed workflow this exists for, and would reject every checkpoint.
-      "in", "ids", "design", "fasta", "out", "out_cxml", "out_msstats", "out_qpx", "out_parquet",
+      "in", "ids", "design", "fasta", "out", "out_cxml", "out_msstats", "out_qpx",
       "feat_dir", "detect_only", "force_recompute",
       "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
       "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
-      "protein_quantification", "alignment_order", "keep_feature_top_psm_only_in_consensus"};
+      "protein_quantification", "alignment_order"};
+    // Every entry above names a parameter this tool actually registers, except the command-line-only
+    // ones ('version', 'write_ini', 'ini') and the two prefixes not yet registered as subsections
+    // ('Protein Inference:', 'Posterior Error Probability:', both read by the combining half only).
+    // Keep it that way: an entry matching nothing looks like it excludes something and does not, so
+    // correcting its spelling later would drop a live setting out of the fingerprint without a word.
 
     std::vector<std::string> lines;
     for (auto it = getParam_().begin(); it != getParam_().end(); ++it)
@@ -1349,7 +1348,11 @@ protected:
       {"PLFQ:openms_revision", DataValue(ctx.openms_revision)}};
     for (const auto& [k, v] : stamped) { fm.setMetaValue(k, v); }
 
-    const std::string tmp = dir + "/." + name + ".tmp." + StringUtils::toStr(getpid());
+    // getUniqueName() rather than the pid: '-feat_dir' is documented as needing no coordination,
+    // so two nodes may legitimately be detecting the same run into one shared directory, and a pid
+    // is not unique between machines -- containerised executors hand out the same low pids by the
+    // dozen. getUniqueName() folds in the hostname and a process-local counter as well.
+    const std::string tmp = dir + "/." + name + ".tmp." + File::getUniqueName();
     if (File::exists(tmp)) { File::removeDirRecursively(tmp); }
     const bool ok = FeatureMapArrowIO::exportToParquet(fm, tmp);
 
@@ -1376,7 +1379,7 @@ protected:
       // -force_recompute: the whole point is to supersede what is there. Move the old one aside
       // first and delete it only once the new one is in place, so the name is never absent and a
       // failed rename cannot leave the run without a checkpoint at all.
-      const std::string superseded = dir + "/." + name + ".superseded." + StringUtils::toStr(getpid());
+      const std::string superseded = dir + "/." + name + ".superseded." + File::getUniqueName();
       File::removeDirRecursively(superseded);
       if (! File::rename(final_path, superseded, false))
       {
@@ -1496,9 +1499,9 @@ protected:
       return CheckpointState::REJECTED;
     }
 
-    // Last, because these are the only gates that cost anything: each one reads its whole input.
-    // Reaching here means the checkpoint already agrees on everything that can be compared for
-    // free, so at most one input is read per run, and only for a checkpoint about to be accepted.
+    // Last, because these are the only gates that touch the filesystem rather than the metadata
+    // already in hand -- a stat() per input, and for a directory input one per entry in it. A
+    // checkpoint that disagrees about anything cheaper is rejected before reaching them.
     // Only checkable when the inputs are at hand; a combining run has neither.
     if (! ctx.mzml_path.empty() && stored("PLFQ:mzml_stamp") != inputStamp_(ctx.mzml_path))
     {
@@ -1921,6 +1924,10 @@ protected:
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
     const auto& path_label_to_fractiongroup = design_.getPathLabelToFractionGroupMapping(true);
+    // By value, and hoisted: both accessors build and return a fresh map, so calling one per run
+    // would rebuild it for every run, and binding a reference to an element of that temporary
+    // would leave it dangling at the end of the statement.
+    const auto path_label_to_sample = design_.getPathLabelToSampleMapping(true);
 
     // One chromatographic FWHM per MS run of this fraction. The linker's RT tolerance is a
     // property of the fraction, so it is derived from all of them (below) rather than from
@@ -1931,7 +1938,7 @@ protected:
     for (std::string const & mz_file : ms_files.second)
     {
       const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
-      const auto& sample_idx = design_.getPathLabelToSampleMapping(true).at({File::basename(mz_file), 1});
+      const unsigned sample_idx = path_label_to_sample.at({File::basename(mz_file), 1});
       const std::string design_row = designRowKey_(fraction_group, fraction,
                                                    design_.getSampleSection().getSampleName(sample_idx));
 
@@ -1948,7 +1955,7 @@ protected:
       {
         CheckpointContext ctx = checkpoint_ctx_;
         ctx.design_row = design_row;
-        // Only hashable when the inputs are at hand. A combining run cannot notice that an mzML
+        // Only stampable when the inputs are at hand. A combining run cannot notice that an mzML
         // changed after its checkpoint was written; that is the resuming run's job.
         if (! id_file_abs_path.empty())
         {
@@ -2309,6 +2316,14 @@ protected:
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "'-detect_only' needs '-feat_dir' to write the checkpoints to.");
+    }
+    // Rejected rather than ignored: on its own the flag reads like "redo the work", and silently
+    // doing nothing would look identical to a run that reused everything.
+    if (getFlag_("force_recompute") && feat_dir_.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "'-force_recompute' only applies to '-feat_dir': without one "
+                                        "there are no checkpoints to ignore, and every run is detected anyway.");
     }
 
     StringList in = getStringList_("in");

@@ -456,12 +456,11 @@ TOPP tools:
         it and is refused when any of those disagree, naming the setting that differs; there is no way
         to combine checkpoints that disagree, and '-force_recompute' detects the affected runs again.
         Inputs are identified by size and modification time rather than by content, so deciding to
-        reuse a checkpoint reads nothing. Requires an explicit '-design' (a
-        generated one would label every separately detected run as the first) and '-fasta'; not
-        applicable to spectral_counting. A split run reproduces a single-shot run: the QPX feature,
-        psm and pg views compare equal within 1e-3 relative -- the tolerance already used for
-        independent ProteomicsLFQ processes elsewhere, since MSVC shows low-order integration drift
-        between them. '-in'/'-ids' are
+        reuse a checkpoint reads nothing. Requires an explicit '-design' (a generated one would label
+        every separately detected run as the first) and '-fasta'; not applicable to spectral_counting.
+        A split run reproduces a single-shot run: the QPX feature, psm and pg views compare equal
+        within 1e-3 relative -- the tolerance already used for independent ProteomicsLFQ processes
+        elsewhere, since MSVC shows low-order integration drift between them. '-in'/'-ids' are
         consequently no longer mandatory parameters, but are still required unless '-feat_dir' covers
         every run of the design
       - Fix: -protein_quantification strictly_unique_peptides no longer discards every peptide hit.

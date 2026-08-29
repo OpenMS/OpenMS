@@ -23,9 +23,11 @@
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
-#include <chrono>
 #include <filesystem>
 #include <fstream>
+
+#include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
+#include <sys/types.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
@@ -174,12 +176,20 @@ namespace OpenMS
   {
     if (!File::exists(file)) return -1;
 
-    std::error_code ec;
-    const auto ft = fs::last_write_time(to_path(file), ec);
-    if (ec) return -1;
-    // file_clock -> system_clock, so the result is anchored to the Unix epoch on every platform.
-    const auto sys = std::chrono::clock_cast<std::chrono::system_clock>(ft);
-    return std::chrono::duration_cast<std::chrono::seconds>(sys.time_since_epoch()).count();
+    // stat() rather than std::filesystem::last_write_time(): file_time_type's epoch is
+    // implementation-defined, and std::chrono::clock_cast -- the standard way to anchor it to the
+    // Unix epoch -- is still absent from Apple's libc++. st_mtime is seconds since the Unix epoch
+    // on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
+    // to_path() first, so a UTF-8 path still resolves on Windows.
+    const auto p = to_path(file);
+#ifdef OPENMS_WINDOWSPLATFORM
+    struct _stat64 st;
+    if (_wstat64(p.c_str(), &st) != 0) return -1;
+#else
+    struct stat st;
+    if (::stat(p.c_str(), &st) != 0) return -1;
+#endif
+    return static_cast<Int64>(st.st_mtime);
   }
 
   UInt64 File::fileSize(const std::string& file)
