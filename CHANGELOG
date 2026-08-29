@@ -459,7 +459,13 @@ TOPP tools:
         instead of inheriting the previous run's value, and a decoy affix that differs between input
         files is reported rather than silently letting the last file decide the one picked protein
         FDR uses. On the shipped fixtures the fraction values move (8.64/7.78/7.12 s: 7.12 -> 7.78)
-        without changing any output, since the tolerance is dominated by the alignment term
+        without changing any output, since the tolerance is dominated by the alignment term (#9985)
+      - Fix: the quantification-score SVM filter (-feature_with_id_min_score /
+        -feature_without_id_min_score) now actually shuffles its training sample before capping it
+        at 1000 targets and 1000 decoys; a constructed-but-never-called RandomShuffler left the cap
+        applied to the first 1000 of each in RT order, biasing training towards early-eluting
+        features. Shuffling uses a fixed seed, so the selection stays reproducible across runs. No
+        effect unless one of those two parameters is set above its default of 0.0 (#9981, #9982)
       - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
         carries several of them -- the shape produced by concatenating search engine results rather
         than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or
