@@ -82,6 +82,17 @@ public:
     static UInt64 fileSize(const std::string& file);
 
     /**
+       @brief Last modification time of @p file, in seconds since the Unix epoch (or -1 on error).
+
+       Reported against the Unix epoch rather than as a std::filesystem::file_time_type, whose
+       clock epoch is implementation-defined: two standard libraries report different numbers for
+       the same file. That distinction only matters once the value leaves the process -- written
+       to a file, or compared against one another machine recorded -- which is exactly what a
+       caller doing change detection tends to do with it.
+    */
+    static Int64 getModificationTime(const std::string& file);
+
+    /**
        @brief Rename a file
        
        If @p from and @p to point to the same file (symlinks are resolved),

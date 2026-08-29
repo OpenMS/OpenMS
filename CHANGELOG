@@ -446,6 +446,23 @@ TOPP tools:
         now says (#9979)
 
     ProteomicsLFQ:
+      - New '-feat_dir': a directory of per-run feature checkpoints, making a run resumable and its
+        per-run half distributable. One rule covers every case -- for each row of the experimental
+        design, reuse its checkpoint if a valid one exists, else detect the run from '-in'/'-ids' and
+        write one, else fail. So the same command rerun after an interruption continues where it
+        stopped; '-detect_only' on each machine produces the checkpoints; and a final invocation with
+        neither '-in' nor '-ids' combines them, reading no mzML, no idXML and no run-level FASTA
+        content. A checkpoint records the parameters, OpenMS build, design row and input files behind
+        it and is refused when any of those disagree, naming the setting that differs; there is no way
+        to combine checkpoints that disagree, and '-force_recompute' detects the affected runs again.
+        Inputs are identified by size and modification time rather than by content, so deciding to
+        reuse a checkpoint reads nothing. Requires an explicit '-design' (a generated one would label
+        every separately detected run as the first) and '-fasta'; not applicable to spectral_counting.
+        A split run reproduces a single-shot run: the QPX feature, psm and pg views compare equal
+        within 1e-3 relative -- the tolerance already used for independent ProteomicsLFQ processes
+        elsewhere, since MSVC shows low-order integration drift between them. '-in'/'-ids' are
+        consequently no longer mandatory parameters, but are still required unless '-feat_dir' covers
+        every run of the design
       - Fix: -protein_quantification strictly_unique_peptides no longer discards every peptide hit.
         The 'protein_references' meta value that marks a peptide as theoretically unique was stripped
         right after peptide indexing, so the filter found nothing to keep; it is now preserved for that

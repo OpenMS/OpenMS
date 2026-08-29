@@ -4307,6 +4307,262 @@ set_tests_properties("TOPP_ProteomicsLFQ_fraction_fwhm" PROPERTIES
   PASS_REGULAR_EXPRESSION "Median chromatographic FWHM across the 3 runs of this fraction"
   FAIL_REGULAR_EXPRESSION "across the 3 runs of this fraction: 7\\.1")
 
+# ---------------------------------------------------------------------------------------------
+# Distributed feature detection (-feat_dir / -detect_only).
+#
+# The assertion that matters is that a split run and a single-shot run over the same inputs agree.
+# It is made on the QPX collection rather than on mzTab or consensusXML because those carry per-run
+# unique ids drawn from a process-global generator, which necessarily differ once the runs are
+# detected in separate processes; QPX keys its rows on content instead, so the comparison is over
+# what was measured rather than over which process measured it.
+#
+# Compared at 1e-3 relative, not exactly. ref, detect_a and detect_b are independent processes
+# running feature detection over the same mzMLs, and the qpx_flags tests below record that MSVC
+# shows low-order integration drift between exactly such processes (1.4e-4 relative on this
+# fixture). Bit-exactness across processes is therefore not an honest contract on every platform,
+# whatever a single Linux run reports. The tolerance still sits orders of magnitude below anything
+# that would indicate the split had actually changed the result, and absdiff 0 keeps a
+# zero-to-nonzero change observable.
+# ---------------------------------------------------------------------------------------------
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
+         ${TESTS_TEMP_DIR}/BSA_seam_ckpt ${TESTS_TEMP_DIR}/BSA_seam_ckpt_partial ${TESTS_TEMP_DIR}/BSA_seam_qpx_ref ${TESTS_TEMP_DIR}/BSA_seam_qpx_split)
+
+# Reference: one process does everything, exactly as before this feature existed.
+add_test("TOPP_ProteomicsLFQ_feat_dir_ref" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -out_qpx ${TESTS_TEMP_DIR}/BSA_seam_qpx_ref
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_ref" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_clean")
+
+# Two independent detect-only invocations over disjoint halves of the design, which is the shape a
+# cluster produces: neither knows about the other, and both write into the same checkpoint
+# directory.
+add_test("TOPP_ProteomicsLFQ_feat_dir_detect_a" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt
+         -detect_only
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_detect_a" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_clean")
+add_test("TOPP_ProteomicsLFQ_feat_dir_detect_b" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt
+         -detect_only
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_detect_b" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_detect_a")
+
+# Combine: neither -in nor -ids. Nothing but the design and the checkpoints, so this is also what
+# proves a checkpoint is self-describing -- no mzML, no idXML and no FASTA content is read for the
+# runs themselves.
+add_test("TOPP_ProteomicsLFQ_feat_dir_combine" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt
+         -out_qpx ${TESTS_TEMP_DIR}/BSA_seam_qpx_split
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_combine" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_detect_b")
+
+foreach(view feature psm pg)
+  add_test("TOPP_ProteomicsLFQ_feat_dir_eq_${view}" ${TOPP_BIN_PATH}/ParquetDiff
+           -in1 ${TESTS_TEMP_DIR}/BSA_seam_qpx_ref/quantms.${view}.parquet
+           -in2 ${TESTS_TEMP_DIR}/BSA_seam_qpx_split/quantms.${view}.parquet
+           -ratio 1.001 -absdiff 0)
+  set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_eq_${view}" PROPERTIES
+                       DEPENDS "TOPP_ProteomicsLFQ_feat_dir_ref;TOPP_ProteomicsLFQ_feat_dir_combine")
+endforeach()
+
+# Resume: the same invocation again reuses every checkpoint and detects nothing.
+add_test("TOPP_ProteomicsLFQ_feat_dir_resume" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt
+         -out ${TESTS_TEMP_DIR}/BSA_seam_resume.tmp.mzTab
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_resume" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_eq_feature"
+                     PASS_REGULAR_EXPRESSION "Feature checkpoints: 6 reused, 0 detected")
+
+# A checkpoint produced with different settings is refused, and says which setting.
+add_test("TOPP_ProteomicsLFQ_feat_dir_param_mismatch" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt
+         -PeptideQuantification:extract:n_isotopes 4
+         -out ${TESTS_TEMP_DIR}/BSA_seam_mismatch.tmp.mzTab
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_param_mismatch" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_eq_feature"
+                     WILL_FAIL 1)
+
+# An incomplete checkpoint directory is refused rather than half-read. Checkpoints are renamed into
+# place only once written, so this state cannot arise from an interrupted run -- but it can from a
+# truncated copy, and the reader must not accept it.
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_make_partial" COMMAND ${CMAKE_COMMAND} -E copy_directory
+         ${TESTS_TEMP_DIR}/BSA_seam_ckpt ${TESTS_TEMP_DIR}/BSA_seam_ckpt_partial)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_make_partial" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_eq_feature")
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_break_partial" COMMAND ${CMAKE_COMMAND} -E rm -f
+         ${TESTS_TEMP_DIR}/BSA_seam_ckpt_partial/BSA1_F1_fg1_f2.featureParquet/psms.parquet)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_break_partial" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_make_partial")
+add_test("TOPP_ProteomicsLFQ_feat_dir_partial_rejected" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt_partial
+         -out ${TESTS_TEMP_DIR}/BSA_seam_partial.tmp.mzTab
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_partial_rejected" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_break_partial"
+                     WILL_FAIL 1)
+
+# -force_recompute must actually replace the checkpoint that is there. It skips loading, so the
+# write path is the only thing standing between a recomputed run and the stale file it is meant to
+# supersede -- and the write path's concurrent-writer branch keeps whatever it finds. Its own
+# directory, so replacing a checkpoint cannot race the tests above that read the shared one.
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_force_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_seam_force)
+add_test("TOPP_ProteomicsLFQ_feat_dir_force_seed" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_force
+         -detect_only
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_force_seed" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_force_clean")
+add_test("TOPP_ProteomicsLFQ_feat_dir_force_replace" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_force
+         -detect_only
+         -force_recompute
+         )
+# Before this was fixed the run recomputed the features and then threw them away, logging
+# "appeared while it was being written; keeping the existing one" and leaving the stale checkpoint
+# for the next combine to reject all over again.
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_force_replace" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_force_seed"
+                     PASS_REGULAR_EXPRESSION "Replaced checkpoint"
+                     FAIL_REGULAR_EXPRESSION "keeping the existing one")
+
+# -feat_dir without an explicit design is refused: a detect-only invocation sees one run and would
+# generate Fraction_Group 1 for it, so every machine would label its run the first one.
+add_test("TOPP_ProteomicsLFQ_feat_dir_requires_design" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_nodesign -detect_only)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_requires_design" PROPERTIES
+                     PASS_REGULAR_EXPRESSION "requires an explicit '-design'")
+
+
 # QPX Parquet export test (reuses subset test input data)
   # Clear the output directory first. ctest never cleans tmp_path, so without this a
   # producer that crashed - or that legitimately stopped writing a file - would leave the
