@@ -89,6 +89,15 @@ public:
         p.setIntensity((Peak1D::IntensityType)fid.getIntensity());
         spectrum.push_back(p);
       }
+      // A short read on the fid stream (truncated/corrupt file) sets failbit/eofbit
+      // inside FidHandler::getIntensity(), which silently returns 0. Detect that here
+      // instead of zero-padding the spectrum to the acqus-declared size.
+      if (!fid)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "fid file is truncated or corrupt: fewer than the " + std::to_string(acqus.getSize()) +
+          " intensity values declared by acqus could be read");
+      }
       fid.close();
 
       // import metadata

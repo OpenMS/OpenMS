@@ -73,8 +73,9 @@ namespace OpenMS
     std::unordered_map<uint32_t, Coefficients> calibrations_;
     std::vector<uint32_t> frame_to_cal_;  ///< indexed by frame_id (1-based)
 
-    /// Look up calibration for a frame. Falls back to first calibration for
-    /// out-of-range frame_id with a warning.
+    /// Look up calibration for a frame. Throws Exception::InvalidValue if
+    /// frame_id is out of range or has no associated calibration, rather than
+    /// silently returning a wrong frame's calibration.
     const Coefficients& getCalibration(uint32_t frame_id) const;
 
     /// V = c2 + ((c3 - c2) / c1) * (scan - c4 - c0)
