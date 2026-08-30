@@ -1479,7 +1479,7 @@ namespace OpenMS
     if (mod == nullptr)
     {
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      mod = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      mod = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         ResidueModification::ANYWHERE,
@@ -1619,7 +1619,7 @@ namespace OpenMS
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      n_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);
@@ -1649,7 +1649,7 @@ namespace OpenMS
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      n_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);

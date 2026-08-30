@@ -656,6 +656,18 @@ START_SECTION(void setModification(Size index, const std::string &modification))
   TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)E[-1.234]K")
 END_SECTION
 
+START_SECTION(void setModificationByDiffMonoMass(Size index, double diffMonoMass))
+  const double mass_shift = 306.025304840900048;
+  AASequence modified = AASequence::fromString("AEADNLDDKK");
+  modified.setModificationByDiffMonoMass(8, mass_shift);
+
+  const std::string serialized = modified.toString();
+  TEST_TRUE(serialized.find("K[+") != std::string::npos)
+
+  const AASequence round_tripped = AASequence::fromString(serialized);
+  TEST_REAL_SIMILAR(round_tripped.getMonoWeight(), modified.getMonoWeight())
+END_SECTION
+
 START_SECTION(void setNTerminalModification(const std::string &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
