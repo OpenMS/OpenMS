@@ -122,39 +122,43 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   e_ptr->filterPeakSpectrum(s_da);
 
 /*
-int  mz DA_int DA_string
-50.2 50  50      down
-49.2 51  51      down
-49.1 49  49      up
-48.2 52  52      down
-48.1 48  48      up
-47.2 53  53      down
-47.1 47  47      up
-46.2 54  54      down
-46.1 46  46      up
-45.2 55  55      down
+After filtering, NLargest restores ascending m/z (position) order.
+The 10 surviving peaks (the most intense ones) sorted by m/z are:
+mz  int  DA_int DA_string
+46  46.1 46      up
+47  47.1 47      up
+48  48.1 48      up
+49  49.1 49      up
+50  50.2 50      down
+51  49.2 51      down
+52  48.2 52      down
+53  47.2 53      down
+54  46.2 54      down
+55  45.2 55      down
 */
 
   TEST_EQUAL(s_da.size(), 10)
-  TEST_EQUAL(s_da[0].getIntensity(), 50.2)
-  TEST_EQUAL(s_da[1].getIntensity(), 49.2)
-  TEST_EQUAL(s_da[2].getIntensity(), 49.1)
-  TEST_EQUAL(s_da.getIntegerDataArrays()[0][0], 50)
-  TEST_EQUAL(s_da.getIntegerDataArrays()[0][1], 51)
-  TEST_EQUAL(s_da.getIntegerDataArrays()[0][2], 49)
-  TEST_EQUAL(s_da.getStringDataArrays()[0][0], "down")
-  TEST_EQUAL(s_da.getStringDataArrays()[0][1], "down")
-  TEST_EQUAL(s_da.getStringDataArrays()[0][2], "up")
-  TEST_EQUAL(s_da[7].getIntensity(), 46.2)
-  TEST_EQUAL(s_da[8].getIntensity(), 46.1)
-  TEST_EQUAL(s_da[9].getIntensity(), 45.2)
-  TEST_EQUAL(s_da.getIntegerDataArrays()[0][7], 54)
-  TEST_EQUAL(s_da.getIntegerDataArrays()[0][8], 46)
+  // first surviving peak (lowest m/z)
+  TEST_REAL_SIMILAR(s_da[0].getMZ(), 46.0)
+  TEST_REAL_SIMILAR(s_da[0].getIntensity(), 46.1)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][0], 46)
+  TEST_EQUAL(s_da.getStringDataArrays()[0][0], "up")
+  // apex peak (highest intensity) ends up in the middle by m/z
+  TEST_REAL_SIMILAR(s_da[4].getMZ(), 50.0)
+  TEST_REAL_SIMILAR(s_da[4].getIntensity(), 50.2)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][4], 50)
+  TEST_EQUAL(s_da.getStringDataArrays()[0][4], "down")
+  // last surviving peak (highest m/z)
+  TEST_REAL_SIMILAR(s_da[9].getMZ(), 55.0)
+  TEST_REAL_SIMILAR(s_da[9].getIntensity(), 45.2)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][9], 55)
-  TEST_EQUAL(s_da.getStringDataArrays()[0][7], "down")
-  TEST_EQUAL(s_da.getStringDataArrays()[0][8], "up")
   TEST_EQUAL(s_da.getStringDataArrays()[0][9], "down")
-  
+  // lock in the fix: peaks are returned in strictly ascending m/z order
+  for (Size i = 1; i < s_da.size(); ++i)
+  {
+    TEST_EQUAL(s_da[i - 1].getMZ() < s_da[i].getMZ(), true)
+  }
+
   // debug code
   // for (Size i = 0; i != s_da.size(); ++i) 
   // {

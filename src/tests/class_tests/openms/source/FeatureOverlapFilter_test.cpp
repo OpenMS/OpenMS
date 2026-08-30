@@ -476,6 +476,35 @@ START_SECTION(mergeFAIMSFeatures - only merges features with different FAIMS_CV)
 }
 END_SECTION
 
+START_SECTION(mergeFAIMSFeatures - preserves attached metadata)
+{
+  // Verify that merging preserves map metadata while replacing the feature container.
+  FeatureMap fmap;
+  Feature f1 = createTestFeature(100.0, 500.0, 1000.0, 2);
+  f1.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);
+  Feature f2 = createTestFeature(101.0, 500.01, 500.0, 2);
+  f2.setMetaValue(Constants::UserParam::FAIMS_CV, -60.0);
+  fmap.push_back(f1);
+  fmap.push_back(f2);
+  for (auto& f : fmap) f.ensureUniqueId();
+
+  // attach metadata that must survive the merge
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("test_run");
+  fmap.getProteinIdentifications().push_back(prot_id);
+  fmap.setMetaValue("test_map_meta", std::string("keep_me"));
+  fmap.setUniqueId(123456789ULL);
+
+  FeatureOverlapFilter::mergeFAIMSFeatures(fmap, 5.0, 0.05);
+
+  TEST_EQUAL(fmap.size(), 1)  // the two FAIMS features merged
+  TEST_EQUAL(fmap.getProteinIdentifications().size(), 1)
+  TEST_STRING_EQUAL(fmap.getProteinIdentifications()[0].getIdentifier(), "test_run")
+  TEST_EQUAL(fmap.metaValueExists("test_map_meta"), true)
+  TEST_EQUAL(fmap.getUniqueId(), 123456789ULL)
+}
+END_SECTION
+
 START_SECTION(mergeFAIMSFeatures - does NOT merge features with same FAIMS_CV)
 {
   FeatureMap fmap;
