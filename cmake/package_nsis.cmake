@@ -49,21 +49,37 @@ set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_LIB_DIR})
 include(InstallRequiredSystemLibraries)
 
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf @ONLY)
-install(CODE "
-	set (PACKAGING_DIR \${CMAKE_INSTALL_PREFIX})
-	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
-	")
-
-## Pass the absolute path of the generated Cfg_Settings.nsh to the NSIS template via a CPACK_ variable
-## (picked up automatically by include(CPack) below). We used to !include it via a hardcoded "..\..\..\"
-## relative path from CPack's NSIS staging directory, which silently breaks whenever CPACK_PACKAGE_DIRECTORY
-## is redirected elsewhere (e.g. to a short path on Windows to avoid MAX_PATH issues).
-## Keep forward slashes here (like CPack's own CPACK_TOPLEVEL_DIRECTORY et al.): CPack re-serializes this
-## variable into a quoted string in the generated CPackConfig.cmake, and a native Windows path's backslashes
-## (e.g. "\a" in "D:\a\...", GitHub Actions' checkout root) are parsed as invalid CMake escape sequences there.
-## NSIS itself accepts forward slashes in !include paths just fine.
-set(CPACK_OPENMS_CFG_SETTINGS_FILE "${PROJECT_BINARY_DIR}/Cfg_Settings.nsh")
+## All NSIS.template.in settings that used to live in a separately !include'd
+## Cfg_Settings.nsh are now defined directly in NSIS.template.in via CPack's own
+## @CPACK_...@ template substitution (the same proven mechanism already used
+## elsewhere in that file for e.g. @CPACK_TOPLEVEL_DIRECTORY@, @CPACK_PACKAGE_ICON@-
+## derived paths, and the license page path -- all of which are absolute paths on
+## the build tree's own drive and substitute reliably).
+##
+## Cfg_Settings.nsh was previously generated in two stages: an @ONLY configure_file()
+## into a ".in.conf" file, then a second configure_file() deferred into an
+## install(CODE ...) block (to substitute a PACKAGING_DIR only known once CPack
+## starts staging files), and finally !include'd by NSIS.template.in via an
+## absolute path. That worked right up until CPack actually ran makensis: CPack's
+## own --debug trace confirmed the file existed, correctly populated, right up to
+## (and including) the "if exist" check made microseconds before invoking cpack --
+## yet NSIS's !include, running a fraction of a second later inside that same cpack
+## invocation, reported it missing, with nothing in CPack's own instrumented file
+## operations ever touching it. Whatever removes it, it is specific to a *separate*
+## file surviving from CMake-configure-time through to NSIS-compile-time; values
+## substituted directly into project.nsi by CPack's own template engine (as done
+## here) never depend on any such file existing on disk at packaging time at all.
+##
+## Only CPACK_-prefixed variables are persisted into CPackConfig.cmake and thus
+## visible to CPack's template substitution at packaging time.
+set(CPACK_OPENMS_PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+set(CPACK_OPENMS_VERSION "${OPENMS_PACKAGE_VERSION_FULLSTRING}")
+set(CPACK_OPENMS_PLATFORM "${PLATFORM}")
+set(CPACK_OPENMS_INSTALL_BIN_DIR "${INSTALL_BIN_DIR}")
+set(CPACK_OPENMS_INSTALL_LIB_DIR "${INSTALL_LIB_DIR}")
+set(CPACK_OPENMS_INSTALL_SHARE_DIR "${INSTALL_SHARE_DIR}")
+set(CPACK_OPENMS_INSTALL_PLUGIN_DIR "${INSTALL_PLUGIN_DIR}")
+set(CPACK_OPENMS_INSTALL_DOC_DIR "${INSTALL_DOC_DIR}")
 
 ## Remove the next three lines if you use the NSIS autogeneration feature at some point!
 ## For now it makes sure everything is merged into the usual folders bin/share/include
