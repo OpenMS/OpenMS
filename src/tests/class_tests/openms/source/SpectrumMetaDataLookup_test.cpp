@@ -139,6 +139,12 @@ START_SECTION((void getSpectrumMetaData(const std::string&, SpectrumMetaData&, M
   TEST_EQUAL(meta3.native_id, "spectrum=1");
 
   TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaData("rt=5.0,mz=1000.0", meta3));
+
+  // issue #9488 (META-12): a reference matching none of the registered formats must
+  // throw ParseError (like SpectrumLookup::findByReference) rather than silently leaving
+  // 'meta' at its default sentinels.
+  SpectrumMetaDataLookup::SpectrumMetaData meta_nomatch;
+  TEST_EXCEPTION(Exception::ParseError, lookup.getSpectrumMetaData("this_is_not_a_valid_reference", meta_nomatch));
 }
 END_SECTION
 
@@ -233,8 +239,8 @@ START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& pept
   const std::string& filename, 
   bool stop_on_error, 
   bool override_spectra_data, 
-  bool override_spectra_references, 
-  vector<ProteinIdentification> proteins)))
+  bool override_spectra_references,
+  vector<ProteinIdentification>& proteins)))
 {
   PeptideIdentificationList peptides(1);
   peptides[0].setRT(5.1);
@@ -260,6 +266,16 @@ START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& pept
 
   TEST_EQUAL(peptides[0].getSpectrumReference(), "index=0"); // gets updated
   TEST_EQUAL(peptides[1].getSpectrumReference(), "index=2");
+
+  // issue #9488 (META-9): the (in/out) 'proteins' parameter is now taken by reference, so
+  // the documented "spectra_data" update is written back to the caller's vector instead of
+  // being silently discarded (it used to be taken by value).
+  std::vector<ProteinIdentification> prot_ids(1);
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, true, true, prot_ids);
+  TEST_EQUAL(prot_ids[0].metaValueExists("spectra_data"), true)
+  StringList sd = prot_ids[0].getMetaValue("spectra_data").toStringList();
+  TEST_EQUAL(sd.size() > 0, true)
+  TEST_EQUAL(sd[0].starts_with("file://"), true)
 }
 END_SECTION
 
