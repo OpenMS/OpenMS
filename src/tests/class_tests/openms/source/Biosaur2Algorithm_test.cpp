@@ -284,6 +284,14 @@ START_SECTION([EXTRA] run() preserves the stored MS data on the FAIMS path)
   TEST_EQUAL(rt_sorted, true)
   TEST_REAL_SIMILAR(back[0].getRT(), 0.0)
   TEST_REAL_SIMILAR(back[back.size() - 1].getRT(), 19.0)
+  // The ranges have to describe the restored data: splitByFAIMSCV() ends in
+  // exp.clear(true), which clears them, so they are only correct if recomputed.
+  // getMinMZ() is deliberately not asserted: MSExperiment::updateRanges() folds each
+  // chromatogram's m/z into the combined range, and the TIC above carries no precursor,
+  // so the minimum is that chromatogram's 0 rather than the lowest peak.
+  TEST_REAL_SIMILAR(back.getMinRT(), 0.0)
+  TEST_REAL_SIMILAR(back.getMaxRT(), 19.0)
+  TEST_REAL_SIMILAR(back.getMaxMZ(), 502.003355)
 }
 END_SECTION
 
@@ -344,6 +352,61 @@ START_SECTION([EXTRA] run() preserves chromatograms and settings on the FAIMS pr
 }
 END_SECTION
 
+START_SECTION([EXTRA] run() refreshes ranges on the non-FAIMS profile-mode path)
+{
+  // The in-place path rewrites the spectra too: centroidProfileSpectra_ replaces every
+  // peak, so ranges cached before run() describe data that no longer exists. This is the
+  // non-FAIMS counterpart to the range assertions in the FAIMS section above.
+  Biosaur2Algorithm algo;
+  MSExperiment exp;
+
+  for (int i = 0; i < 10; ++i)
+  {
+    MSSpectrum spec;
+    spec.setRT(i * 1.0);
+    spec.setMSLevel(1);
+    spec.setType(SpectrumSettings::SpectrumType::PROFILE);
+    for (int k = -3; k <= 3; ++k)
+    {
+      Peak1D p;
+      p.setMZ(500.0 + k * 0.01);
+      p.setIntensity(10000.0f * static_cast<float>(std::exp(-0.5 * k * k)));
+      spec.push_back(p);
+    }
+    exp.addSpectrum(spec);
+  }
+  exp.updateRanges(); // ranges describing the *profile* peaks, stale once centroided
+
+  algo.setMSData(exp);
+
+  Param p = algo.getParameters();
+  p.setValue("profile", "true");
+  p.setValue("minmz", 400.0);
+  p.setValue("maxmz", 600.0);
+  p.setValue("mini", 100.0);
+  algo.setParameters(p);
+
+  FeatureMap fmap;
+  algo.run(fmap);
+
+  const MSExperiment& back = algo.getMSData();
+  TEST_EQUAL(back.size(), 10)
+  TEST_EQUAL(FAIMSHelper::getCompensationVoltages(back).empty(), true)
+  TEST_REAL_SIMILAR(back.getMinRT(), 0.0)
+  TEST_REAL_SIMILAR(back.getMaxRT(), 9.0)
+  // Compare the cached ranges against ones recomputed from the very same spectra: this
+  // fails whenever the cache is stale, whatever the values happen to be. Asserting a
+  // window around the peak would not -- the pre-centroiding profile span lies inside any
+  // window wide enough to hold the centroid, so a stale cache would satisfy it.
+  MSExperiment recomputed = back;
+  recomputed.updateRanges();
+  TEST_REAL_SIMILAR(back.getMinMZ(), recomputed.getMinMZ())
+  TEST_REAL_SIMILAR(back.getMaxMZ(), recomputed.getMaxMZ())
+  TEST_REAL_SIMILAR(back.getMinRT(), recomputed.getMinRT())
+  TEST_REAL_SIMILAR(back.getMaxRT(), recomputed.getMaxRT())
+}
+END_SECTION
+
 START_SECTION([EXTRA] run() preserves the stored MS data on the non-FAIMS path)
 {
   // the counterpart of the section above: both paths must leave getMSData() usable
@@ -373,6 +436,9 @@ START_SECTION([EXTRA] run() preserves the stored MS data on the non-FAIMS path)
   algo.run(fmap);
 
   TEST_EQUAL(algo.getMSData().size(), 10)
+  // ranges describe the returned spectra here too, not just on the FAIMS path
+  TEST_REAL_SIMILAR(algo.getMSData().getMinRT(), 0.0)
+  TEST_REAL_SIMILAR(algo.getMSData().getMaxRT(), 9.0)
 }
 END_SECTION
 

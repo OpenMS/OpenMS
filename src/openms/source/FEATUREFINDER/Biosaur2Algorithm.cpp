@@ -367,6 +367,12 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     }
   }
 
+  // Both paths leave the stored experiment changed: MS1-only, and centroided/TOF-filtered
+  // as configured. The FAIMS path additionally goes through splitByFAIMSCV(), whose
+  // exp.clear(true) drops the ranges outright. Recompute once here so getMSData() reports
+  // ranges that describe the spectra it hands back, the same way on either path.
+  ms_data_.updateRanges();
+
   // Restore original paseftol_ value for subsequent calls.
   paseftol_ = original_paseftol;
   feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
