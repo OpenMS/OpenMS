@@ -429,6 +429,15 @@ TOPP tools:
         write no longer crashes with "Invalid protein reference 'DECOY_...'" when target+decoy shared
         peptides are present (#9197, #9205)
     PercolatorAdapter:
+      - Fix: an input CalcMass meta value (a search engine's way of stating that a PSM's precursor mass
+        differs from its AASequence, which FeatureFinderIdentification's CalcMass correction consumes)
+        was deleted along with the training-only PIN columns after in-process rescoring, even though
+        PercolatorInfile only computes CalcMass for hits that arrive without one. -use_subprocess true
+        already preserved it. The stamping step now records per hit which keys it actually added and
+        strips only those, so both backends agree; other search engines' output is unaffected. On a
+        real cross-linking dataset this restored label-free quantification of every cross-linked
+        feature reaching 1% FDR through the default (in-process) path (0/33 correctly quantified before,
+        180/180 after) (#9997, #10012)
       - In-process rescoring backend: PercolatorAdapter now defaults to running Percolator in-process
         via the new OpenMS::Percolator class (vendored Percolator 3.08 + TRON solver), so no external
         binary is needed; -percolator_executable became optional. Covers idXML/mzid input with PSM-level
@@ -446,6 +455,10 @@ TOPP tools:
         now says (#9979)
 
     ProteomicsLFQ:
+      - Fix: loadAndCleanupIDFile_ stripped every meta value except a fixed keep-list before ffi.run(),
+        so an input CalcMass (see PercolatorAdapter, above) could never reach FeatureFinderIdentification's
+        CalcMass correction even when the upstream search engine provided one. CalcMass is now kept
+        (#9998, #10012)
       - New '-feat_dir': a directory of per-run feature checkpoints, making a run resumable and its
         per-run half distributable. One rule covers every case -- for each row of the experimental
         design, reuse its checkpoint if a valid one exists, else detect the run from '-in'/'-ids' and
@@ -720,7 +733,7 @@ TOPP tools:
         disabled for years. FeatureFinderIdentificationAlgorithm::run() now takes (peptides,
         proteins, features, seeds, spectra_file); the 'unknown' feature class, the
         "implied"/"external" FFId_category values and the 'rt_delta', 'predicted_class' and
-        'FDR_probabilities' meta values are no longer produced
+        'FDR_probabilities' meta values are no longer produced (#9995, #10011)
     FeatureFinderMetaboIdent:
       - Added an optional "Adduct" column to the TSV input; m/z is computed via AdductInfo from any
         supported notation (e.g. [M+Na]+, [M-H]-, [2M+H]+) and features are annotated with the adduct.
@@ -971,6 +984,31 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: AASequence::setModificationByDiffMonoMass (and the four other call sites that write an
+      unknown mass-shift modification: three in AASequence, one in Residue, one in PepXMLFile) built
+      its ModificationsDB lookup key with a signed bracket but created the modification from an
+      unsigned one, e.g. registering "K[306.0253...]" while looking up "K[+306.0253...]". The lookup
+      could never hit what creation had just registered, and AASequence::fromString reads an unsigned
+      bracket as the residue's absolute mass rather than a delta, so re-parsing written output silently
+      produced a different peptidoform and mass (observed on real data: 184/184 written cross-linked
+      features round-tripped to the wrong mass). All five sites now use the existing signed
+      ResidueModification::getDiffMonoMassString(); the parser, which already accepts both spellings,
+      is unchanged. Separately, applying an unknown mass shift to a residue that already carried a
+      modification replaced it and interned the result under an id keyed only on the one-letter residue
+      code, so e.g. oxidized and plain M given the same nominal shift could be conflated into one
+      process-global entry depending on which was processed first. setModificationByDiffMonoMass now
+      resolves the unmodified base residue, folds any existing modification's mass into a cumulative
+      delta, and interns on that instead, so the two stay distinct and order-independent (#10006,
+      #10007, #10010)
+    - Fix: QPXFile silently dropped an unsupported modification on Parquet import instead of reporting
+      it -- ProForma's BEST_EFFORT mode skips unrecognised tags by design, and an empty catch(...)
+      fell through to the unmodified sequence, so e.g. "AEADNLDDK(NuXL:U-H2O)K" (1423.5504 Da) came
+      back as "AEADNLDDKK" (1117.5251 Da) with nothing logged even though the row still held the
+      peptidoform, the modification name/position and calculated_mz. Conversion issues are now
+      reported, the empty catch is replaced with handlers naming the peptidoform and reason, and the
+      reconstructed m/z is cross-checked against the row's own calculated_mz. This does not make the
+      format carry modification definitions -- reading such a file still loses the modification, just
+      no longer silently (#10004, #10012)
     - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
       already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
       another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
@@ -1325,13 +1363,18 @@ Build System:
     Windows packaging step, keeping staged paths well under the limit (#9969)
   - Fix: the NSIS installer script located the generated Cfg_Settings.nsh via a hardcoded "..\..\..\"
     relative path from CPack's NSIS staging directory, which silently broke whenever
-    CPACK_PACKAGE_DIRECTORY is redirected elsewhere (as #9969, above, now does to dodge MAX_PATH). The
-    absolute path is now passed to the NSIS template via a CPACK_ variable instead. That variable is
-    first set with TO_NATIVE_PATH, which on Windows breaks the same build a second way: CPack
-    re-serializes it into a quoted string in the generated CPackConfig.cmake, where the native path's
-    backslashes (e.g. "\a" in "D:\a\...", GitHub Actions' checkout root) parse as invalid CMake escape
-    sequences; forward slashes, which NSIS accepts fine in !include paths, are used instead (#9978,
-    #9991)
+    CPACK_PACKAGE_DIRECTORY is redirected elsewhere (as #9969, above, now does to dodge MAX_PATH). Two
+    successive attempts to pass the absolute path via a CPACK_ variable instead (first with
+    TO_NATIVE_PATH, which broke CMake's re-serialized CPackConfig.cmake on the backslashes in GitHub
+    Actions' "D:\a\..." checkout root; then with forward slashes) (#9978, #9991) still failed nightly:
+    Cfg_Settings.nsh reliably existed on disk, correctly populated, right up to and including an
+    explicit check immediately before invoking cpack, yet NSIS's !include of that same file moments
+    later reported it missing, with nothing in CPack's own file operations ever touching it. The fix
+    stops depending on any separately generated file surviving on disk at packaging time at all:
+    cmake/Windows/Cfg_Settings.nsh.in is deleted, and every !define it used to provide is written
+    directly into NSIS.template.in via CPack's own @CPACK_...@ template substitution -- the same
+    mechanism the template already used successfully for other absolute paths (OutFile, the installer
+    icon, the license page) (#10009)
   - Fix: -DWITH_ONNX=ON failed to configure outside of vcpkg (find_package(ONNXRuntime REQUIRED) could
     never resolve FindONNXRuntime.cmake, which lived in cmake/ rather than on CMAKE_MODULE_PATH), so ONNX
     support was only reachable through vcpkg. The module was moved into cmake/Modules, alongside the
