@@ -149,19 +149,6 @@ jobs:
 
           cmake "${cmake_options[@]}" ../..
 
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "=== DIAGNOSTIC: Cfg_Settings.nsh state right after cmake reconfigure ==="
-            pwd
-            ls -la Cfg_Settings.nsh* 2>&1 || echo "ls found nothing matching Cfg_Settings.nsh*"
-            if [[ -f Cfg_Settings.nsh ]]; then
-              echo "--- Cfg_Settings.nsh contents: ---"
-              cat Cfg_Settings.nsh
-            else
-              echo "--- Cfg_Settings.nsh does NOT exist right after reconfigure ---"
-            fi
-            echo "=== end diagnostic ==="
-          fi
-
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
               cat /c/cpk/_CPack_Packages/win64/NSIS/NSISOutput.log
