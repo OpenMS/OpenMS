@@ -1,0 +1,367 @@
+# ---------------------------------------------------------------------------
+# rattler-build recipe for OpenMS conda packages
+#
+# Produces four outputs from a single cmake build (via a staging output):
+#   libopenms       — shared library, headers, share data, CMake config
+#   openms          — TOPP command-line tools (no GUI)
+#   openms-gui      — GUI applications (TOPPView, TOPPAS, INIFileEditor, …)
+#   openms-thirdparty — thirdparty tool meta-package (Linux-only)
+#
+# Build with:
+#   cd recipe && pixi build      (requires experimental = true in pixi.toml)
+# ---------------------------------------------------------------------------
+
+context:
+  version: "3.4.1"
+
+recipe:
+  name: openms-meta
+  version: ${{ version }}
+
+# ---------------------------------------------------------------------------
+# staging output: shared cmake configure + build step
+# All package outputs inherit the compiled artifacts from openms-meta-build.
+# ---------------------------------------------------------------------------
+outputs:
+  - staging:
+      name: openms-meta-build
+    build:
+      script:
+        - if: unix
+          then: |
+            cmake $CMAKE_ARGS \
+              -GNinja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_INSTALL_PREFIX=$PREFIX \
+              -DCMAKE_PREFIX_PATH=$PREFIX \
+              -DBOOST_USE_STATIC=OFF \
+              -DARROW_USE_STATIC=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DENABLE_TESTS=OFF \
+              -DENABLE_DOCS=OFF \
+              -DENABLE_PIPELINE_TESTING=OFF \
+              -DPYOPENMS=OFF \
+              -DWITH_HDF5=OFF \
+              -DWITH_GUI=ON \
+              -B "$SRC_DIR/../openms-build" \
+              -S "$SRC_DIR"
+            cmake --build "$SRC_DIR/../openms-build" -j$CPU_COUNT
+        - if: win
+          then: |
+            cmake %CMAKE_ARGS% ^
+              -GNinja ^
+              -DCMAKE_BUILD_TYPE=Release ^
+              -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
+              -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ^
+              -DBOOST_USE_STATIC=OFF ^
+              -DARROW_USE_STATIC=OFF ^
+              -DBUILD_EXAMPLES=OFF ^
+              -DENABLE_TESTS=OFF ^
+              -DENABLE_DOCS=OFF ^
+              -DENABLE_PIPELINE_TESTING=OFF ^
+              -DPYOPENMS=OFF ^
+              -DWITH_HDF5=OFF ^
+              -DWITH_GUI=ON ^
+              -B "%SRC_DIR%\..\openms-build" ^
+              -S "%SRC_DIR%"
+            cmake --build "%SRC_DIR%\..\openms-build" -j%CPU_COUNT%
+    requirements:
+      build:
+        - ${{ compiler('cxx') }}
+        - cmake
+        - ninja
+      host:
+        - bzip2
+        - coin-or-utils
+        - coin-or-clp
+        - coin-or-cgl
+        - coin-or-cbc
+        - eigen >=3.4.0
+        - libarrow >=23,<24
+        - libboost-devel
+        - libcurl
+        - libparquet
+        - libsvm
+        - libzip
+        - qt6-main
+        - xerces-c
+        - yaml-cpp
+        - zlib
+        - if: linux
+          then: libgomp
+        - if: target_platform == 'linux-64'
+          then: sysroot_linux-64 =2.17
+        - if: osx
+          then: llvm-openmp
+    source:
+      - path: ..
+        use_gitignore: true
+      - path: ../cmake/Modules
+        target_directory: cmake/Modules
+        use_gitignore: false
+      - path: ../src/openms/extern/tool_description_lib/tdl-config.cmake
+        target_directory: src/openms/extern/tool_description_lib
+        use_gitignore: false
+
+  # -------------------------------------------------------------------------
+  # libopenms: shared library + headers + share data + CMake config
+  # -------------------------------------------------------------------------
+  - package:
+      name: libopenms
+      version: ${{ version }}
+    inherit: openms-meta-build
+
+    build:
+      number: 1
+      script:
+        - if: unix
+          then: |
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component library
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component OpenMS_headers
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component OpenSwathAlgo_headers
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component share
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component cmake
+        - if: win
+          then: |
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component library
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component OpenMS_headers
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component OpenSwathAlgo_headers
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component share
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component cmake
+
+    requirements:
+      build:
+        - ${{ compiler('cxx') }}
+        - cmake
+      host:
+        - bzip2
+        - coin-or-utils
+        - coin-or-clp
+        - coin-or-cgl
+        - coin-or-cbc
+        - eigen >=3.4.0
+        - libarrow >=23,<24
+        - libboost-devel
+        - libcurl
+        - libparquet
+        - libsvm
+        - libzip
+        - xerces-c
+        - yaml-cpp
+        - zlib
+        - if: linux
+          then: libgomp
+        - if: target_platform == 'linux-64'
+          then: sysroot_linux-64 =2.17
+        - if: osx
+          then: llvm-openmp
+      run_exports:
+        - ${{ pin_compatible('xerces-c', upper_bound='x.x') }}
+        - ${{ pin_compatible('eigen', upper_bound='x.x') }}
+        - ${{ pin_compatible('libsvm', upper_bound='400') }}
+        - libopenms ==${{ version }}
+      ignore_run_exports:
+        from_package:
+          - libboost-devel
+
+    tests:
+      - script:
+          - if: linux
+            then: readelf -d ${PREFIX}/lib/libOpenMS.so | grep -i "r.*path" || echo "rpath check done"
+          - if: osx
+            then: otool -L ${PREFIX}/lib/libOpenMS.dylib
+
+    about:
+      homepage: "https://github.com/OpenMS/OpenMS"
+      license: BSD-3-Clause
+      license_file: LICENSE
+      summary: >-
+        Libraries and headers for developing with OpenMS. They are also a
+        dependency of pyopenms and openms (tools).
+      description: |
+        OpenMS is an open-source software C++ library for LC-MS data management
+        and analyses.
+      repository: "https://github.com/OpenMS/OpenMS"
+      documentation: "https://openms.readthedocs.io/en/latest/index.html"
+
+  # -------------------------------------------------------------------------
+  # openms: TOPP command-line tools (Applications component, no GUI)
+  # -------------------------------------------------------------------------
+  - package:
+      name: openms
+      version: ${{ version }}
+    inherit: openms-meta-build
+
+    build:
+      number: 1
+      script:
+        - if: unix
+          then: |
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component Applications
+        - if: win
+          then: |
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component Applications
+
+    requirements:
+      build:
+        - ${{ compiler('cxx') }}
+        - cmake
+      host:
+        - ${{ pin_subpackage('libopenms', exact=true) }}
+        - xerces-c
+        - eigen
+        - libsvm
+      ignore_run_exports:
+        from_package:
+          - libsvm
+      run:
+        # conda does not support run_exports from sub-packages to other sub-packages yet,
+        # so list the run dependencies explicitly.
+        # See https://github.com/conda/conda-build/issues/3478
+        - ${{ pin_subpackage('libopenms', exact=true) }}
+        - ${{ pin_compatible('xerces-c', upper_bound='x.x') }}
+        - ${{ pin_compatible('eigen', upper_bound='x.x') }}
+        - ${{ pin_compatible('libsvm', upper_bound='400') }}
+
+    tests:
+      - script:
+          - if: linux
+            then: readelf -d ${PREFIX}/bin/OpenMSInfo | grep -i "r.*path" || echo "rpath check done"
+          - if: osx
+            then: otool -L ${PREFIX}/bin/OpenMSInfo
+          - if: unix
+            then: |
+              OPENMS_DATA_PATH=${PREFIX}/share/OpenMS/ ${PREFIX}/bin/OpenMSInfo
+              OPENMS_DATA_PATH=${PREFIX}/share/OpenMS/ ${PREFIX}/bin/FileMerger --help
+
+    about:
+      homepage: "https://github.com/OpenMS/OpenMS"
+      license: BSD-3-Clause
+      license_file: LICENSE
+      summary: "The OpenMS TOPP tools (command-line, without GUI components)."
+      description: |
+        The TOPP (The OpenMS Proteomics Pipeline) command-line tools provide
+        a comprehensive set of algorithms for LC-MS data processing.
+      repository: "https://github.com/OpenMS/OpenMS"
+      documentation: "https://openms.readthedocs.io/en/latest/index.html"
+
+  # -------------------------------------------------------------------------
+  # openms-gui: GUI applications (TOPPView, TOPPAS, INIFileEditor, …)
+  # These tools are installed into COMPONENT GUIApplications by
+  # install_gui_tool() in openms_gui/CMakeLists.txt.
+  # -------------------------------------------------------------------------
+  - package:
+      name: openms-gui
+      version: ${{ version }}
+    inherit: openms-meta-build
+
+    build:
+      number: 1
+      script:
+        - if: unix
+          then: |
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component GUILibrary
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component OpenMS_GUI_headers
+            cmake --install "$SRC_DIR/../openms-build" --prefix "$PREFIX" --component GUIApplications
+        - if: win
+          then: |
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component GUILibrary
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component OpenMS_GUI_headers
+            cmake --install "%SRC_DIR%\..\openms-build" --prefix "%LIBRARY_PREFIX%" --component GUIApplications
+
+    requirements:
+      build:
+        - ${{ compiler('cxx') }}
+        - cmake
+      host:
+        - ${{ pin_subpackage('libopenms', exact=true) }}
+        - qt6-main
+      run:
+        - ${{ pin_subpackage('libopenms', exact=true) }}
+        - ${{ pin_subpackage('openms', exact=true) }}
+        - ${{ pin_compatible('qt6-main', upper_bound='x.x') }}
+
+    tests:
+      - script:
+          - if: unix
+            then: |
+              if [ "$(uname)" = "Darwin" ]; then
+                test -f ${PREFIX}/bin/TOPPView.app/Contents/MacOS/TOPPView || (echo "TOPPView.app not found" && exit 1)
+                test -f ${PREFIX}/bin/TOPPAS.app/Contents/MacOS/TOPPAS || (echo "TOPPAS.app not found" && exit 1)
+              else
+                test -f ${PREFIX}/bin/TOPPView || (echo "TOPPView not found" && exit 1)
+                test -f ${PREFIX}/bin/TOPPAS || (echo "TOPPAS not found" && exit 1)
+              fi
+
+    about:
+      homepage: "https://github.com/OpenMS/OpenMS"
+      license: BSD-3-Clause
+      license_file: LICENSE
+      summary: "OpenMS GUI applications (TOPPView, TOPPAS, INIFileEditor, etc.)."
+      description: |
+        The OpenMS GUI applications provide interactive visualization and
+        workflow tools for LC-MS data analysis.
+      repository: "https://github.com/OpenMS/OpenMS"
+      documentation: "https://openms.readthedocs.io/en/latest/index.html"
+
+  # -------------------------------------------------------------------------
+  # openms-thirdparty: thirdparty tool meta-package (Linux-only)
+  # -------------------------------------------------------------------------
+  - package:
+      name: openms-thirdparty
+      version: ${{ version }}
+    inherit: openms-meta-build
+
+    build:
+      number: 1
+      # thirdparty tools (bumbershoot, fido, percolator) not available on macOS
+      skip:
+        - osx
+
+    requirements:
+      run:
+        - ${{ pin_subpackage('openms', exact=true) }}
+        - comet-ms ==2024011
+        - luciphor2 ==2020_04_03
+        - msgf_plus ==2024.03.26
+        - percolator ==3.7.1
+        - sirius-ms >=6.1.0
+        - thermorawfileparser ==1.4.3
+        - sage-proteomics ==0.14.7
+        - gnuplot
+        - r-gplots
+
+    tests:
+      - script:
+          - if: unix
+            then: OPENMS_DATA_PATH=${PREFIX}/share/OpenMS/ ${PREFIX}/bin/OpenMSInfo
+
+    about:
+      homepage: "https://github.com/OpenMS/OpenMS"
+      license: BSD-3-Clause
+      license_file: LICENSE
+      summary: >-
+        OpenMS TOPP tools with all compatible conda-available thirdparty tools.
+      description: |
+        A helper package that installs OpenMS TOPP tools together with all
+        their compatible and conda-available versions of adapted thirdparty
+        tools (Comet, MSGF+, Percolator, SIRIUS, etc.).
+      repository: "https://github.com/OpenMS/OpenMS"
+      documentation: "https://openms.readthedocs.io/en/latest/index.html"
+
+about:
+  homepage: "https://github.com/OpenMS/OpenMS"
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: >-
+    OpenMS is an open-source software C++ library for LC-MS data management
+    and analyses. Install one of its outputs: libopenms, openms, openms-gui,
+    or openms-thirdparty.
+  repository: "https://github.com/OpenMS/OpenMS"
+  documentation: "https://openms.readthedocs.io/en/latest/index.html"
+
+extra:
+  identifiers:
+    - biotools:openms
+    - usegalaxy-eu:openms_fileconverter
+    - doi:10.1038/s41592-024-02197-7

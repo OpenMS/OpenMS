@@ -1,0 +1,82 @@
+[workspace]
+name = "openms"
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
+preview = ["pixi-build"]
+
+# ---------------------------------------------------------------------------
+# Developer build package (pixi-build-cmake)
+# ---------------------------------------------------------------------------
+# `pixi build` builds the OpenMS library + TOPP tools (no GUI by default).
+# Intended for local development and quick source-based installs.
+#
+# For proper split conda packages (libopenms, openms, openms-gui, …)
+# use the rattler-build sub-package:
+#   cd recipe && pixi build
+#
+# GUI build: set -DWITH_GUI=ON in extra-args and add qt6-main to host-deps.
+# ---------------------------------------------------------------------------
+
+[package]
+name = "openms"
+version = "3.4.1"
+
+[package.build]
+
+[package.build.backend]
+name = "pixi-build-cmake"
+version = "*"
+channels = ["https://prefix.dev/conda-forge"]
+
+[package.build.config]
+compilers = ["cxx"]
+extra-args = [
+  "-DBOOST_USE_STATIC=OFF",
+  "-DARROW_USE_STATIC=OFF",
+  "-DENABLE_TESTS=OFF",
+  "-DPYOPENMS=OFF",
+  "-DWITH_HDF5=OFF",
+  "-DWITH_GUI=OFF",  # GUI requires qt6-main in host-deps; see comment above
+]
+
+# ---------------------------------------------------------------------------
+# Host dependencies (non-GUI)
+# ---------------------------------------------------------------------------
+[package.host-dependencies]
+bzip2 = "*"
+coin-or-utils = "*"
+coin-or-clp = "*"
+coin-or-cgl = "*"
+coin-or-cbc = "*"
+eigen = ">=3.4.0"
+libarrow = { version = "==23", build = "*_cpu" }
+libboost-devel = "*"
+libcurl = "*"
+libparquet = "*"
+libsvm = "*"
+libzip = "*"
+xerces-c = "*"
+yaml-cpp = "*"
+zlib = "*"
+
+# Linux x86_64
+[package.target.linux-64.host-dependencies]
+libgomp = "*"
+sysroot_linux-64 = "=2.17"
+
+# Linux aarch64
+[package.target.linux-aarch64.host-dependencies]
+libgomp = "*"
+
+# macOS (both x86_64 and arm64)
+[package.target.osx-64.host-dependencies]
+llvm-openmp = "*"
+
+[package.target.osx-arm64.host-dependencies]
+llvm-openmp = "*"
+
+# ---------------------------------------------------------------------------
+# Workspace dependencies — install the local openms package into the dev env
+# ---------------------------------------------------------------------------
+[dependencies]
+openms = { path = "." }
