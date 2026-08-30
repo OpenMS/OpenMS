@@ -101,6 +101,8 @@ set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist
+  COMMAND ${CMAKE_COMMAND} -E echo "=== DIAGNOSTIC: Cfg_Settings.nsh state right before cpack invocation (inside dist target) ==="
+  COMMAND cmd /c "if exist \"${PROJECT_BINARY_DIR}\\Cfg_Settings.nsh\" (echo FOUND ${PROJECT_BINARY_DIR}\\Cfg_Settings.nsh) else (echo MISSING ${PROJECT_BINARY_DIR}\\Cfg_Settings.nsh)"
   COMMAND cpack -G ${CPACK_GENERATOR}
   COMMENT "Building ${CPACK_GENERATOR} package"
 )
