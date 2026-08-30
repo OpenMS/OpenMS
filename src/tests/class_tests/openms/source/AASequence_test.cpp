@@ -692,6 +692,33 @@ START_SECTION(void setModificationByDiffMonoMass(Size index, double diffMonoMass
   TEST_FALSE(oxidized_second.toString() == plain_first.toString())
 END_SECTION
 
+START_SECTION(void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term))
+  const double shift = 306.025304840900048;
+  AASequence seq = AASequence::fromString("AEADNLDDKK");
+  const double unmodified = seq.getMonoWeight();
+  seq.setNTerminalModificationByDiffMonoMass(shift, false);
+
+  // the modification must actually be applied, not assigned to a shadowing local
+  TEST_TRUE(seq.hasNTerminalModification())
+  TEST_FALSE(seq.hasCTerminalModification())
+  TEST_REAL_SIMILAR(seq.getMonoWeight() - unmodified, shift)
+  TEST_REAL_SIMILAR(AASequence::fromString(seq.toString()).getMonoWeight(), seq.getMonoWeight())
+END_SECTION
+
+START_SECTION(void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term))
+  const double shift = 306.025304840900048;
+  AASequence seq = AASequence::fromString("AEADNLDDKK");
+  const double unmodified = seq.getMonoWeight();
+  seq.setCTerminalModificationByDiffMonoMass(shift, false);
+
+  // must land on the C-terminus - the C-terminal overload used to write the
+  // N-terminal member name, so a naive de-shadowing would modify the wrong end
+  TEST_TRUE(seq.hasCTerminalModification())
+  TEST_FALSE(seq.hasNTerminalModification())
+  TEST_REAL_SIMILAR(seq.getMonoWeight() - unmodified, shift)
+  TEST_REAL_SIMILAR(AASequence::fromString(seq.toString()).getMonoWeight(), seq.getMonoWeight())
+END_SECTION
+
 START_SECTION(void setNTerminalModification(const std::string &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
