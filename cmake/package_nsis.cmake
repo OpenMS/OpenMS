@@ -49,11 +49,21 @@ set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_LIB_DIR})
 include(InstallRequiredSystemLibraries)
 
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf @ONLY)
-install(CODE "
-	set (PACKAGING_DIR \${CMAKE_INSTALL_PREFIX})
-	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
-	")
+## Cfg_Settings.nsh only holds values that are fixed at configure time (redistributable
+## paths, platform, source tree, version), so it can be written out directly here instead
+## of being deferred to install time. It used to be generated in two stages: an @ONLY
+## configure_file() here into a ".in.conf" file, then a *second* configure_file() inside
+## an install(CODE ...) block (to substitute a PACKAGING_DIR only known once CPack starts
+## staging files) that produced the final Cfg_Settings.nsh. That second stage depended on
+## CPack's NSIS generator actually running our install(CODE) before it templated
+## NSIS.template.in -- on Windows nightly builds it silently didn't (Cfg_Settings.nsh was
+## never created at ${PROJECT_BINARY_DIR}, and "!include" failed with "could not find").
+## The staging-directory-dependent OPENMS*DIR/THIRDPARTYDIR defines that used to live in
+## Cfg_Settings.nsh.in are now defined directly in NSIS.template.in via CPack's own
+## @CPACK_TEMPORARY_DIRECTORY@ substitution (the same mechanism already used for
+## @CPACK_OPENMS_CFG_SETTINGS_FILE@ below), which CPack's NSIS generator fills in itself
+## when it writes project.nsi -- no separate file generation step required.
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh @ONLY)
 
 ## Pass the absolute path of the generated Cfg_Settings.nsh to the NSIS template via a CPACK_ variable
 ## (picked up automatically by include(CPack) below). We used to !include it via a hardcoded "..\..\..\"
@@ -64,6 +74,16 @@ install(CODE "
 ## (e.g. "\a" in "D:\a\...", GitHub Actions' checkout root) are parsed as invalid CMake escape sequences there.
 ## NSIS itself accepts forward slashes in !include paths just fine.
 set(CPACK_OPENMS_CFG_SETTINGS_FILE "${PROJECT_BINARY_DIR}/Cfg_Settings.nsh")
+
+## Expose the install subdirectory layout to the NSIS template too (see NSIS.template.in,
+## which combines these with CPack's own @CPACK_TEMPORARY_DIRECTORY@ to define the
+## OPENMS*DIR/THIRDPARTYDIR paths). Only CPACK_-prefixed variables are persisted into
+## CPackConfig.cmake and thus visible to CPack's template substitution at packaging time.
+set(CPACK_OPENMS_INSTALL_BIN_DIR "${INSTALL_BIN_DIR}")
+set(CPACK_OPENMS_INSTALL_LIB_DIR "${INSTALL_LIB_DIR}")
+set(CPACK_OPENMS_INSTALL_SHARE_DIR "${INSTALL_SHARE_DIR}")
+set(CPACK_OPENMS_INSTALL_PLUGIN_DIR "${INSTALL_PLUGIN_DIR}")
+set(CPACK_OPENMS_INSTALL_DOC_DIR "${INSTALL_DOC_DIR}")
 
 ## Remove the next three lines if you use the NSIS autogeneration feature at some point!
 ## For now it makes sure everything is merged into the usual folders bin/share/include

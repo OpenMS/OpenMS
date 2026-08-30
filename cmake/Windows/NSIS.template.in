@@ -22,6 +22,20 @@ SetCompressor /SOLID lzma
 ##################
 ### let Cfg_Settings.nsh.in be configured by CMake. Then include (absolute path, set by cmake/package_nsis.cmake):
 !include "@CPACK_OPENMS_CFG_SETTINGS_FILE@"
+
+### Paths into CPack's packaging tree. @CPACK_TEMPORARY_DIRECTORY@ is filled in by CPack's
+### own NSIS generator when it writes this file, so (unlike Cfg_Settings.nsh, which we
+### generate ourselves at CMake configure time) it always reflects the staging directory
+### actually used for this packaging run, whether or not CPACK_PACKAGE_DIRECTORY was
+### redirected elsewhere (e.g. to a short path on Windows to avoid MAX_PATH issues).
+!define OPENMSPACKAGEDIR "@CPACK_TEMPORARY_DIRECTORY@"
+!define OPENMSBINDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_BIN_DIR@"
+!define OPENMSLIBDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_LIB_DIR@"
+!define OPENMSSHAREDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_SHARE_DIR@"
+!define OPENMSPLUGINDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_PLUGIN_DIR@"
+!define OPENMSDOCDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_DOC_DIR@"
+!define THIRDPARTYDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_SHARE_DIR@/THIRDPARTY"
+
 ### NSISRESOURCES now consists of the cmake/Windows directory of the source tree.
 !addplugindir ${NSISRESOURCES}\Plugins\x86-unicode
 !addincludedir ${NSISRESOURCES}\Include
