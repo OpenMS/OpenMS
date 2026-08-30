@@ -69,8 +69,7 @@ START_SECTION([EXTRA] run() rejects MS data without spectra)
 
   TEST_EQUAL(algo.getMSData().empty(), true)
   TEST_EXCEPTION(Exception::IllegalArgument,
-                 algo.run(peptides, proteins, PeptideIdentificationList(), vector<ProteinIdentification>(),
-                          features, seeds, ""))
+                 algo.run(peptides, proteins, features, seeds, ""))
 }
 END_SECTION
 
