@@ -462,7 +462,7 @@ TOPP tools:
         within 1e-3 relative -- the tolerance already used for independent ProteomicsLFQ processes
         elsewhere, since MSVC shows low-order integration drift between them. '-in'/'-ids' are
         consequently no longer mandatory parameters, but are still required unless '-feat_dir' covers
-        every run of the design
+        every run of the design (#9989)
       - Fix: -protein_quantification strictly_unique_peptides no longer discards every peptide hit.
         The 'protein_references' meta value that marks a peptide as theoretically unique was stripped
         right after peptide indexing, so the filter found nothing to keep; it is now preserved for that
@@ -845,6 +845,7 @@ OpenMS Library:
         rejects zlib-compressed m/z/intensity arrays like the in-memory loader (#9908)
       - imzML export warns about per-peak Integer/StringDataArrays (e.g. a "charge array" carried over
         from mzML): the format stores only FloatDataArrays, so they were silently dropped before
+        (#10002)
     - Native Parquet I/O for identifications, features and consensus maps:
       - PSMArrowIO reads/writes the .idparquet directory bundle (psms/proteins/protein_groups/
         search_params.parquet), lossless round-trip from PeptideIdentificationList and
@@ -1093,7 +1094,7 @@ Fixes:
     which dropped the chromatograms and experimental settings before the split saw them), so both
     Biosaur2 paths leave the same processed experiment behind, and
     FeatureFinderIdentificationAlgorithm::run() rejects MS data without spectra instead of reading out
-    of bounds (#9980)
+    of bounds (#9980, #9996)
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names
     are not "0", "1", ... crashed with a bare std::out_of_range. getSampleToPrefractionationMapping() was
     keyed by sample name while the condition and path-label mappings used the stringified zero-based row
@@ -1313,6 +1314,15 @@ Build System:
     build directory, exceeded Windows' MAX_PATH; makensis.exe uses the plain (non-long-path-aware) Win32
     file APIs and aborted staging. CPACK_PACKAGE_DIRECTORY is now pointed at a short, fixed path for the
     Windows packaging step, keeping staged paths well under the limit (#9969)
+  - Fix: the NSIS installer script located the generated Cfg_Settings.nsh via a hardcoded "..\..\..\"
+    relative path from CPack's NSIS staging directory, which silently broke whenever
+    CPACK_PACKAGE_DIRECTORY is redirected elsewhere (as #9969, above, now does to dodge MAX_PATH). The
+    absolute path is now passed to the NSIS template via a CPACK_ variable instead. That variable is
+    first set with TO_NATIVE_PATH, which on Windows breaks the same build a second way: CPack
+    re-serializes it into a quoted string in the generated CPackConfig.cmake, where the native path's
+    backslashes (e.g. "\a" in "D:\a\...", GitHub Actions' checkout root) parse as invalid CMake escape
+    sequences; forward slashes, which NSIS accepts fine in !include paths, are used instead (#9978,
+    #9991)
   - Fix: -DWITH_ONNX=ON failed to configure outside of vcpkg (find_package(ONNXRuntime REQUIRED) could
     never resolve FindONNXRuntime.cmake, which lived in cmake/ rather than on CMAKE_MODULE_PATH), so ONNX
     support was only reachable through vcpkg. The module was moved into cmake/Modules, alongside the
@@ -1325,6 +1335,14 @@ Build System:
     apt pin the base stage applies before the same install, so a new upstream Arrow release (25.0.0)
     made the unpinned SONAME packages unresolvable and broke the nightly container build on arm64. The
     library stage now applies the identical pin (#9890, #9891)
+  - Fix: the multi-arch (amd64/arm64) container deploy matrix pushed a complete single-platform image
+    under the same tag from each leg, so whichever leg finished last silently overwrote the tag and the
+    published image was single-arch; deploy-singularity, which needs linux/amd64, then failed with "no
+    image found in image index for architecture amd64" whenever the arm64 leg finished last. Each leg
+    now pushes untagged, by digest only; a new merge job combines the digests into one real multi-arch
+    manifest list per tag with 'docker buildx imagetools create', validated via --dry-run before tagging
+    so a missing platform fails the job instead of overwriting the previous working tag, and
+    deploy-singularity depends on that merge job (#9951, #9954)
   - Fix: the Bioconda deploy workflow created its conda environment with a hardcoded python 3.12.
     bioconda-utils ships for one python minor per release (4.2.0+ is python 3.13 only), so that pin
     silently capped it at 4.1.0 and with it a conda-forge-pinning snapshot from 2024. That snapshot
