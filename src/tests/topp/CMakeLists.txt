@@ -2874,6 +2874,19 @@ if(WITH_WNETALIGN)
   set_tests_properties("TOPP_FeatureLinkerWNet_1_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerWNet_1")
 endif()
 
+add_test("TOPP_FeatureLinkerUnlabeledQT_IsotopeShift"
+         ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT
+         -test
+         -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_IsotopeShift_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_IsotopeShift_input2.featureXML
+         -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledQT_IsotopeShift_output.tmp.consensusXML
+         -algorithm:add_isotope_error 1 2)
+add_test("TOPP_FeatureLinkerUnlabeledQT_IsotopeShift_out1"
+         ${DIFF} -whitelist "id=" "href=" "completion_time=" "version="
+         -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledQT_IsotopeShift_output.tmp.consensusXML
+         -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_IsotopeShift_output.consensusXML)
+
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_IsotopeShift_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_IsotopeShift")
+
 
 #------------------------------------------------------------------------------
 # IDMapper tests
