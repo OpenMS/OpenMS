@@ -1094,6 +1094,53 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: PercolatorAdapter's in-process backend stripped every PIN-column meta value from a hit after
+    training, CalcMass included -- but CalcMass is not purely an internal PIN column, it is how a search
+    engine states that a PSM's precursor mass differs from the mass of its AASequence, and
+    FeatureFinderIdentification consumes it to place a compensating mass shift before XIC extraction.
+    stampPinFeaturesOnHits() already respected an existing value on the way in, so the asymmetry was in
+    the cleanup, which stripped by name and could not tell an input value from one synthesised for
+    training; it now records per hit which keys it actually added and removes only those.
+    ProteomicsLFQ's ID cleanup (which runs before FeatureFinderIdentification) never kept CalcMass at
+    all and now does. Together these restore label-free quantification of PSMs whose precursor mass
+    differs from their sequence mass (e.g. cross-linked peptides): on a real FAIMS DDA-LFQ dataset,
+    correctly quantified cross-links went from 0/33 to 180/180 (#9997, #9998, #10012)
+  - Fix: reading a .idparquet bundle silently dropped any modification not present in ModificationsDB,
+    returning a peptide up to hundreds of Da lighter than the one that was written, with nothing logged
+    -- ProForma's BEST_EFFORT policy skips unsupported tags by design, and a parse failure fell through
+    an empty catch(...) to the plain (unmodified) sequence column. QPXFile::importFromArrow now reports
+    conversion issues by name and cross-checks the reconstructed sequence's m/z against the row's own
+    calculated_mz, warning on disagreement (#10004, #10012)
+  - Fix: unknown (mass-shift-only) modifications were serialised without a sign, e.g. K[306.0253] instead
+    of K[+306.0253]. AASequence::fromString reads an unsigned bracket as the residue's absolute mass
+    rather than a delta, so such a peptidoform did not survive a round trip through idXML -- corrupting
+    the peptidoform FeatureFinderIdentification writes next to a CalcMass-corrected feature. Fixed at all
+    five call sites that pass a delta (three in AASequence, one in Residue, one in PepXMLFile) to use the
+    existing signed ResidueModification::getDiffMonoMassString() (#10006, #10010)
+  - Fix: applying an unknown mass-shift modification to an already-modified residue replaced the existing
+    modification instead of composing with it, and interned the result process-wide under an id built
+    from the residue's one-letter code, which cannot distinguish e.g. oxidized M from plain M -- so the
+    resulting mass depended on the order peptides happened to be processed in.
+    AASequence::setModificationByDiffMonoMass now resolves the unmodified base residue, folds any
+    existing modification's mass into a cumulative delta, and interns on that instead, so plain and
+    oxidized M become distinct, order-independent entries (#10007, #10010)
+  - Fix: FeatureOverlapFilter::mergeFAIMSFeatures emptied the caller's FeatureMap with FeatureMap::clear()'s
+    clear_meta_data defaulted to true before refilling it with merged features, discarding protein and
+    unassigned peptide identifications, data processing history, id_data_ and the unique id.
+    FeatureFinderIdentificationAlgorithm's FAIMS path copies protein identifications in before this merge,
+    so FAIMS output could carry zero IdentificationRuns -- crashing downstream consumers that assume at
+    least one (e.g. ConsensusMapMergerAlgorithm::mergeAllIDRuns) -- and silently dropped unassigned PSMs
+    even where it did not crash. FeatureFinderAlgorithmMetaboIdent shares the same call site (#10001)
+  - Fix: IDPosteriorErrorProbability rejected the "ln(hyperscore)" score type reported by
+    SimpleSearchEngine and ProSE. PosteriorErrorProbabilityModel's SimpleSearchEngine branch requested
+    only "hyperscore" (which neither engine writes as a meta value), and ProSE had no branch at all, so
+    SimpleSearchEngine input threw UnableToFit (not bypassable with -force) and ProSE input collected no
+    scores and exited INPUT_FILE_EMPTY. Both branches now accept either name, as the Sage branch already
+    did for the same reason (#10001)
+  - Fix: Biosaur2Algorithm::run() left the caller's RT/m/z ranges stale after processing -- the FAIMS
+    restore moves spectra back without recomputing them, and the non-FAIMS paths left whatever ranges the
+    caller had set beforehand unchanged. updateRanges() is now called once after processing on both paths
+    (#10001)
   - Fix: Biosaur2Algorithm::run() left the stored MS data empty on FAIMS input -- the per-CV split moves
     the spectra out of ms_data_ and nothing put them back, so getMSData() handed the caller a cleared
     experiment. ProteomicsLFQ with -Seeding:algorithm biosaur2 passed exactly that on to
@@ -1325,13 +1372,19 @@ Build System:
     Windows packaging step, keeping staged paths well under the limit (#9969)
   - Fix: the NSIS installer script located the generated Cfg_Settings.nsh via a hardcoded "..\..\..\"
     relative path from CPack's NSIS staging directory, which silently broke whenever
-    CPACK_PACKAGE_DIRECTORY is redirected elsewhere (as #9969, above, now does to dodge MAX_PATH). The
-    absolute path is now passed to the NSIS template via a CPACK_ variable instead. That variable is
-    first set with TO_NATIVE_PATH, which on Windows breaks the same build a second way: CPack
-    re-serializes it into a quoted string in the generated CPackConfig.cmake, where the native path's
-    backslashes (e.g. "\a" in "D:\a\...", GitHub Actions' checkout root) parse as invalid CMake escape
-    sequences; forward slashes, which NSIS accepts fine in !include paths, are used instead (#9978,
-    #9991)
+    CPACK_PACKAGE_DIRECTORY is redirected elsewhere (as #9969, above, now does to dodge MAX_PATH). Two
+    incremental fixes -- passing the absolute path via a CPACK_ variable, then switching that variable
+    from TO_NATIVE_PATH backslashes (which CPack re-serializes into CPackConfig.cmake as invalid CMake
+    escape sequences on paths like "D:\a\...") to forward slashes -- corrected the substituted *value*
+    but left the Windows nightly Release workflow failing with the same "!include: could not find:
+    .../Cfg_Settings.nsh" error. CPack's own --debug --verbose trace showed the file reliably present,
+    correctly populated, microseconds before invoking cpack, yet already gone when NSIS's !include ran a
+    fraction of a second later inside that same cpack invocation, with nothing in CPack's traced file
+    operations ever touching it -- so the file's existence no longer depends on anything surviving on
+    disk between CMake-configure-time and NSIS-compile-time: Cfg_Settings.nsh.in is removed, and every
+    define it used to provide is written directly into NSIS.template.in via CPack's own
+    @CPACK_TEMPORARY_DIRECTORY@-style substitution, the same mechanism already used there for OutFile,
+    the installer icon and the license page (#9978, #9991, #10009)
   - Fix: -DWITH_ONNX=ON failed to configure outside of vcpkg (find_package(ONNXRuntime REQUIRED) could
     never resolve FindONNXRuntime.cmake, which lived in cmake/ rather than on CMAKE_MODULE_PATH), so ONNX
     support was only reachable through vcpkg. The module was moved into cmake/Modules, alongside the
