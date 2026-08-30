@@ -635,7 +635,7 @@ struct NuXLRTPrediction
     mzml.getOptions().addMSLevel(1);
     mzml.load(spectra_filename, ffid_algo.getMSData());
     FeatureMap features;
-    ffid_algo.run(peptides, proteins, {}, {}, features, FeatureMap(), spectra_filename);
+    ffid_algo.run(peptides, proteins, features, FeatureMap(), spectra_filename);
     
     auto [x, y] = buildPredictorsAndResponseFromIdentifiedFeatures_(features);
 
