@@ -4188,6 +4188,37 @@ add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
 set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
 
+# CalcMass must survive loadAndCleanupIDFile_ so FFId can reconstruct an
+# unspecified/unlocalized mass before feature detection (#9998). The prepare
+# step derives a one-hit variant of the existing BSA fixture and removes any
+# checkpoint that could otherwise bypass the code under test.
+add_test("TOPP_ProteomicsLFQ_CalcMass_prepare" ${CMAKE_COMMAND}
+         -DOPERATION=prepare
+         -DINPUT_FILE=${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -DOUTPUT_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.tmp.idXML
+         -DFEATURE_DIR=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass_features
+         -DCAPTURE_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.output
+         -P ${DATA_DIR_TOPP}/ProteomicsLFQ_CalcMass_test.cmake)
+add_test("TOPP_ProteomicsLFQ_CalcMass" ${CMAKE_COMMAND}
+         -DOPERATION=run
+         -DTOOL=${TOPP_BIN_PATH}/ProteomicsLFQ
+         -DMZML_FILE=${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -DID_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.tmp.idXML
+         -DDESIGN_FILE=${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -DFASTA_FILE=${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -DFEATURE_DIR=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass_features
+         -DCAPTURE_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.output
+         -P ${DATA_DIR_TOPP}/ProteomicsLFQ_CalcMass_test.cmake)
+set_tests_properties("TOPP_ProteomicsLFQ_CalcMass" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_CalcMass_prepare"
+                     TIMEOUT 180)
+add_test("TOPP_ProteomicsLFQ_CalcMass_check" ${CMAKE_COMMAND}
+         -DOPERATION=check
+         -DCAPTURE_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.output
+         -P ${DATA_DIR_TOPP}/ProteomicsLFQ_CalcMass_test.cmake)
+set_tests_properties("TOPP_ProteomicsLFQ_CalcMass_check" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_CalcMass")
+
 # ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
 add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
