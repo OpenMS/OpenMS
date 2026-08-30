@@ -4188,6 +4188,38 @@ add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
 set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
 
+# Reference test for the default in-process backend. It needs no external
+# percolator (-percolator_executable is optional and unused by that backend), so
+# it is registered here instead of under the PERCOLATOR_BINARY gate in THIRDPARTY,
+# where it would silently not run in builds without the external binary.
+add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_out.tmp.idXML -out_type idXML)
+add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
+
+# An input CalcMass is search-engine data, whereas one synthesized for PIN training
+# is temporary; the in-process backend must preserve only the former (#9997). This
+# exercises the default in-process backend, which needs no external percolator, so
+# it is registered here rather than under THIRDPARTY.
+add_test("TOPP_PercolatorAdapter_CalcMass_prepare" ${CMAKE_COMMAND}
+         -DOPERATION=prepare
+         -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+         -DOUTPUT_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_in.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_CalcMass_test.cmake)
+add_test("TOPP_PercolatorAdapter_CalcMass" ${TOPP_BIN_PATH}/PercolatorAdapter -test
+         -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+         -use_subprocess false
+         -in ${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_in.tmp.idXML
+         -out ${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_out.tmp.idXML
+         -out_type idXML)
+set_tests_properties("TOPP_PercolatorAdapter_CalcMass" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_CalcMass_prepare")
+add_test("TOPP_PercolatorAdapter_CalcMass_check" ${CMAKE_COMMAND}
+         -DOPERATION=check
+         -DINPUT_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_out.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_CalcMass_test.cmake)
+set_tests_properties("TOPP_PercolatorAdapter_CalcMass_check" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_CalcMass")
+
 # CalcMass must survive loadAndCleanupIDFile_ so FFId can reconstruct an
 # unspecified/unlocalized mass before feature detection (#9998). The prepare
 # step derives a one-hit variant of the existing BSA fixture and removes any

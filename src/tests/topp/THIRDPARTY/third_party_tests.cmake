@@ -225,6 +225,9 @@ if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
 endif()
 
 #------------------------------------------------------------------------------
+# Shared by the in-process tests in CMakeLists.txt and the subprocess tests below,
+# so it must be defined outside the PERCOLATOR_BINARY gate.
+set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
 if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
   ### TOPP_PercolatorAdapter_1 has TWO variants — one per backend — so a
@@ -233,33 +236,7 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### other. Each compares against its own reference idXML; the in-process
   ### path also stamps additional metadata via stampPercolatorAdapterMetadata_
   ### that previously only the subprocess path produced.
-  set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
   ### in-process backend (default — no -use_subprocess flag)
-  add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
-  add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
-  set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
-  ### An input CalcMass is search-engine data, whereas one synthesized for PIN
-  ### training is temporary. The default in-process backend must preserve only
-  ### the former, just like the subprocess backend does (#9997).
-  add_test("TOPP_PercolatorAdapter_CalcMass_prepare" ${CMAKE_COMMAND}
-    -DOPERATION=prepare
-    -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
-    -DOUTPUT_FILE=PercolatorAdapter_CalcMass_in.tmp.idXML
-    -P ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_CalcMass_test.cmake)
-  add_test("TOPP_PercolatorAdapter_CalcMass" ${TOPP_BIN_PATH}/PercolatorAdapter -test
-    -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
-    -in PercolatorAdapter_CalcMass_in.tmp.idXML
-    -out PercolatorAdapter_CalcMass_out.tmp.idXML
-    -out_type idXML
-    -percolator_executable "${PERCOLATOR_BINARY}")
-  set_tests_properties("TOPP_PercolatorAdapter_CalcMass" PROPERTIES
-    DEPENDS "TOPP_PercolatorAdapter_CalcMass_prepare")
-  add_test("TOPP_PercolatorAdapter_CalcMass_check" ${CMAKE_COMMAND}
-    -DOPERATION=check
-    -DINPUT_FILE=PercolatorAdapter_CalcMass_out.tmp.idXML
-    -P ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_CalcMass_test.cmake)
-  set_tests_properties("TOPP_PercolatorAdapter_CalcMass_check" PROPERTIES
-    DEPENDS "TOPP_PercolatorAdapter_CalcMass")
   ### subprocess backend (forced via -use_subprocess true)
   add_test("TOPP_PercolatorAdapter_1_subprocess" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess true -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_subprocess_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
   add_test("TOPP_PercolatorAdapter_1_subprocess_out" ${DIFF} -in1 PercolatorAdapter_1_subprocess_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_subprocess_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
