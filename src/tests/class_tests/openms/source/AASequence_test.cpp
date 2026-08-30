@@ -656,6 +656,42 @@ START_SECTION(void setModification(Size index, const std::string &modification))
   TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)E[-1.234]K")
 END_SECTION
 
+START_SECTION(void setModificationByDiffMonoMass(Size index, double diffMonoMass))
+  const double mass_shift = 306.025304840900048;
+  AASequence modified = AASequence::fromString("AEADNLDDKK");
+  modified.setModificationByDiffMonoMass(8, mass_shift);
+
+  const std::string serialized = modified.toString();
+  TEST_TRUE(serialized.find("K[+") != std::string::npos)
+
+  const AASequence round_tripped = AASequence::fromString(serialized);
+  TEST_REAL_SIMILAR(round_tripped.getMonoWeight(), modified.getMonoWeight())
+
+  // Use distinct unknown-modification IDs so both cache insertion orders can
+  // be tested independently in the process-global ModificationsDB.
+  const double reverse_order_mass_shift = mass_shift + 1.0;
+  AASequence oxidized_first = AASequence::fromString("M(Oxidation)PEPTIDE");
+  AASequence plain_second = AASequence::fromString("MPEPTIDE");
+  const double oxidized_weight = oxidized_first.getMonoWeight();
+  const double plain_weight = plain_second.getMonoWeight();
+  oxidized_first.setModificationByDiffMonoMass(0, mass_shift);
+  plain_second.setModificationByDiffMonoMass(0, mass_shift);
+
+  AASequence plain_first = AASequence::fromString("MPEPTIDE");
+  AASequence oxidized_second = AASequence::fromString("M(Oxidation)PEPTIDE");
+  plain_first.setModificationByDiffMonoMass(0, reverse_order_mass_shift);
+  oxidized_second.setModificationByDiffMonoMass(0, reverse_order_mass_shift);
+
+  TEST_REAL_SIMILAR(oxidized_first.getMonoWeight() - mass_shift, oxidized_weight)
+  TEST_REAL_SIMILAR(plain_second.getMonoWeight() - mass_shift, plain_weight)
+  TEST_REAL_SIMILAR(plain_first.getMonoWeight() - reverse_order_mass_shift, plain_weight)
+  TEST_REAL_SIMILAR(oxidized_second.getMonoWeight() - reverse_order_mass_shift, oxidized_weight)
+  TEST_REAL_SIMILAR(oxidized_first.getMonoWeight() - mass_shift, oxidized_second.getMonoWeight() - reverse_order_mass_shift)
+  TEST_REAL_SIMILAR(plain_second.getMonoWeight() - mass_shift, plain_first.getMonoWeight() - reverse_order_mass_shift)
+  TEST_FALSE(oxidized_first.toString() == plain_second.toString())
+  TEST_FALSE(oxidized_second.toString() == plain_first.toString())
+END_SECTION
+
 START_SECTION(void setNTerminalModification(const std::string &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
