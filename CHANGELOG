@@ -429,6 +429,11 @@ TOPP tools:
         write no longer crashes with "Invalid protein reference 'DECOY_...'" when target+decoy shared
         peptides are present (#9197, #9205)
     PercolatorAdapter:
+      - Fix: the tool aborted with "Executable not found (the executable 'percolator' could not be
+        found)" on machines without percolator installed, even for the default in-process backend that
+        never runs the binary. -percolator_executable carries the 'is_executable' tag, so reading it
+        resolves it on PATH; it is now read only when the subprocess path will actually be used, which
+        also restores the TOPP_PercolatorAdapter_1_inproc / _CalcMass tests in such builds (#10020)
       - Fix: an input CalcMass meta value (a search engine's way of stating that a PSM's precursor mass
         differs from its AASequence, which FeatureFinderIdentification's CalcMass correction consumes)
         was deleted along with the training-only PIN columns after in-process rescoring, even though

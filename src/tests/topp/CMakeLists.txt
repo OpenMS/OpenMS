@@ -4200,6 +4200,11 @@ add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -t
 add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
 set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
 
+# regression for in-process is wrongly dependent on '-percolator_executable'
+add_test("TOPP_PercolatorAdapter_1_inproc_no_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_no_binary_out.tmp.idXML -out_type idXML)
+add_test("TOPP_PercolatorAdapter_1_inproc_no_binary_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_no_binary_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_no_binary_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_no_binary")
+
 # An input CalcMass is search-engine data, whereas one synthesized for PIN training
 # is temporary; the in-process backend must preserve only the former (#9997). This
 # exercises the default in-process backend, which needs no external percolator, so

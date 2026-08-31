@@ -782,8 +782,6 @@ protected:
       return PARSE_ERROR;
     }
 
-    const std::string percolator_executable(getStringOption_("percolator_executable"));
-    
     if (in_list.empty() && in_osw.empty())
     {
       writeLogError_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
@@ -823,6 +821,27 @@ protected:
     bool protein_level_fdrs = getFlag_("protein_level_fdrs");  
 
     Int description_of_correct = getIntOption_("doc");
+
+    // Decide up front whether the external 'percolator' binary is needed. The
+    // in-process backend covers the idXML/mzid + PSM-level FDR path; OSW input,
+    // protein-/peptide-level FDR, description-of-correct, initial weights, or an
+    // explicit -use_subprocess true all fall through to the subprocess path.
+    // '-percolator_executable' carries the 'is_executable' tag, so merely reading
+    // it resolves it on PATH and aborts when it is missing. Read it only when the
+    // subprocess will actually be run, so installations without percolator can
+    // still use the in-process backend (#10020).
+    const bool in_process_ok = getStringOption_("use_subprocess") != "true"
+                               && in_osw.empty()
+                               && !protein_level_fdrs
+                               && !peptide_level_fdrs
+                               && description_of_correct == 0
+                               && getStringOption_("init_weights").empty();
+
+    std::string percolator_executable;
+    if (!in_process_ok)
+    {
+      percolator_executable = getStringOption_("percolator_executable");
+    }
 
     double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
     double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
@@ -947,16 +966,10 @@ protected:
       feature_set.push_back("Proteins");
 
       // In-process path: handle the simple idXML/mzid + PSM-level FDR case
-      // without spawning the external 'percolator' binary. Falls through to
-      // the subprocess path for anything the in-process wrapper can't do
-      // (protein-level FDR, peptide-level FDR, init_weights, etc.).
-      const bool use_subprocess = (getStringOption_("use_subprocess") == "true");
-      const bool in_process_ok = !use_subprocess
-                                 && !protein_level_fdrs
-                                 && !peptide_level_fdrs
-                                 && description_of_correct == 0
-                                 && getStringOption_("init_weights").empty();
-
+      // without spawning the external 'percolator' binary (in_process_ok was
+      // determined above). Falls through to the subprocess path for anything
+      // the in-process wrapper can't do (protein-level FDR, peptide-level FDR,
+      // init_weights, etc.).
       if (in_process_ok)
       {
         // Stamp PIN meta values on all hits — this mirrors what the subprocess
