@@ -580,6 +580,9 @@ TOPP tools:
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
     OpenNuXL:
+      - Localized RNA/DNA adducts are now embedded as signed residue mass deltas in the peptide
+        sequence, keeping adduct variants distinct for downstream quantification. Unlocalized hits
+        remain bare and continue to carry the full precursor mass in CalcMass (#9992)
       - Fix: cross-link localization dropped a residue entirely when its shifted a/b-ion evidence was
         deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
         residue before) -- the y-ion evidence for that residue was then never evaluated. The

@@ -187,10 +187,35 @@ namespace OpenMS
 
           const AASequence sequence = AASequence::fromString(sequence_string);
 
-          double peptide_weight = sequence.getMonoWeight();
           std::string rna_name = StringUtils::toStr(ph.getMetaValue("NuXL:NA"));
           double rna_weight = (double)ph.getMetaValue("NuXL:NA_MASS_z0");
           int isotope_error = (int)ph.getMetaValue("isotope_error");
+
+          const double sequence_weight = sequence.getMonoWeight();
+          double peptide_weight = sequence_weight;
+
+          // CalcMass is the total precursor m/z in both representations: legacy and
+          // unlocalized hits have a bare sequence, while localized hits now carry the
+          // adduct in the sequence. Select the interpretation closest to CalcMass so an
+          // existing residue modification folded into the adduct delta is handled too.
+          //
+          // CalcMass is used rather than the observed precursor on purpose: it is
+          // theoretical and exact, whereas a hit's own observed precursor can be far from
+          // both candidates (OpenNuXL_6 contains a hit with a pre-existing 3.9e5 ppm
+          // error) and then discriminates nothing.
+          if (rna_weight != 0.0 && ph.metaValueExists("CalcMass") && charge != 0)
+          {
+            const double calc_mass = (double)ph.getMetaValue("CalcMass");
+            const double sequence_mz = (sequence_weight + static_cast<double>(charge) * Constants::PROTON_MASS_U) / static_cast<double>(charge);
+            const double sequence_plus_rna_mz =
+              (sequence_weight + rna_weight + static_cast<double>(charge) * Constants::PROTON_MASS_U) / static_cast<double>(charge);
+            const bool sequence_contains_adduct = fabs(calc_mass - sequence_mz) < fabs(calc_mass - sequence_plus_rna_mz);
+            if (sequence_contains_adduct)
+            {
+              peptide_weight -= rna_weight;
+            }
+          }
+
           // crosslink weight for different charge states
           double weight_z1 = (peptide_weight + rna_weight + 1.0 * Constants::PROTON_MASS_U);
           double weight_z2 = (peptide_weight + rna_weight + 2.0 * Constants::PROTON_MASS_U) / 2.0;
