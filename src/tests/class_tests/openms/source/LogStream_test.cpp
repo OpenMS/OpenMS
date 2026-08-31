@@ -318,6 +318,40 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
     l1 << "final" << endl;
     TEST_EQUAL(s.str(), "once_reinserted\nfinal\n")
   }
+
+  // Test 4: a message that is never flushed by the writer. This is how OpenMS actually logs --
+  // OPENMS_LOG_* messages end in '\n', not std::endl -- so the text is still in the buffer when
+  // the guard goes out of scope. It must be discarded there, not handed to the next flush.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+
+    {
+      LogSinkGuard guard(l1, s);
+      l1 << "unflushed_while_guarded\n"; // no endl: nothing is written yet
+    } // guard re-inserts s -- but only after dropping the pending text
+
+    l1 << "after_guard" << endl;
+    TEST_EQUAL(s.str(), "after_guard\n") // the guarded message must not resurface here
+  }
+
+  // Test 5: suppressing one sink must not suppress the others -- a message logged while cout is
+  // guarded is not "cancelled", it simply does not go to cout.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream guarded, kept;
+    l1.insert(guarded);
+    l1.insert(kept);
+
+    {
+      LogSinkGuard guard(l1, guarded);
+      l1 << "one_sink_only\n";
+    }
+
+    TEST_EQUAL(guarded.str(), "")
+    TEST_EQUAL(kept.str(), "one_sink_only\n")
+  }
 }
 END_SECTION
 

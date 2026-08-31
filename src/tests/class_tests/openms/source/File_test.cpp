@@ -11,6 +11,7 @@
 
 /////////////////////////////////////////////////////////////
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -394,7 +395,13 @@ START_SECTION(static bool copyDirRecursively(const std::string &fromDir, const s
   std::string source_name = OPENMS_GET_TEST_DATA_PATH("XMassFile_test");
   std::string target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/"; 
   // test canonical path
-  TEST_EQUAL(File::copyDirRecursively(source_name,source_name),false)
+  // Rejecting the self-copy is reported on the error log. That report is expected here -- the
+  // assertion below is what checks it -- so keep it off the console: an 'Error:' line in the
+  // output of a passing test reads as a broken build to anyone packaging OpenMS (issue #10019).
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
+    TEST_EQUAL(File::copyDirRecursively(source_name,source_name),false)
+  }
   // test default
   TEST_EQUAL(File::copyDirRecursively(source_name,target_name),true)
   TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
@@ -411,7 +418,11 @@ START_SECTION(static bool copyDirRecursively(const std::string &fromDir, const s
   infile.close();
   TEST_EQUAL(file_size,50)
   // test option skip
-  TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::SKIP),true)
+  // SKIP announces every file it leaves alone on the warning log; expected, and equally noisy.
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogWarn(), std::cerr);
+    TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::SKIP),true)
+  }
   infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
@@ -505,7 +516,11 @@ END_SECTION
 
 START_SECTION(static std::string findDatabase(const std::string &db_name))
 
-  TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
+  // findDatabase() logs the miss before rethrowing; the exception is what this asserts on.
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
+  }
   std::string db = File::findDatabase("./CV/unimod.obo");
   //TEST_EQUAL(db,"wtf")
   TEST_EQUAL(StringUtils::hasSubstring(db, "share/OpenMS"), true)

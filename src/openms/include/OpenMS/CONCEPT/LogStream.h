@@ -495,9 +495,14 @@ private:
       Use this when you need to temporarily suppress logging to a specific stream (e.g., cout)
       during operations that may throw exceptions.
 
+      @note Pass the stream that the messages are actually written to. The OPENMS_LOG_* macros
+            write to the thread-local streams (getThreadLocalLog*()), whose sink list is a copy
+            taken from the global one on first access -- guarding getGlobalLog*() therefore does
+            not suppress anything the macros emit.
+
       Example usage:
       @code
-      LogSinkGuard guard(getGlobalLogInfo(), cout); // Removes cout, will re-insert on scope exit
+      LogSinkGuard guard(getThreadLocalLogInfo(), cout); // Removes cout, will re-insert on scope exit
       some_operation_that_may_throw();
       // cout is automatically re-inserted when guard goes out of scope
       @endcode
@@ -519,9 +524,16 @@ private:
         log_stream_.remove(stream_);
       }
 
-      /// Destructor re-inserts the stream
+      /// Destructor discards anything logged while the sink was gone, then re-inserts the stream
       ~LogSinkGuard()
       {
+        // A LogStream buffers until it is flushed, and OpenMS log messages end in '\n' rather
+        // than std::endl -- so at this point the text logged inside the guarded scope is still
+        // sitting in the buffer, unwritten. Re-inserting first would hand exactly the output
+        // this guard exists to suppress to the next flush. Flushing while the sink is still
+        // removed discards it instead (any other sink still attached does receive it, as it
+        // was never suppressed).
+        log_stream_.flush();
         log_stream_.insert(stream_);
       }
 
