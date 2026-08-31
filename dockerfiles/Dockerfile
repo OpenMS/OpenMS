@@ -53,7 +53,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
   && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
   # Pin Arrow/Parquet to v23 so build-time dev libs match the runtime SONAME (libarrow2300/libparquet2300)
   && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
@@ -160,7 +160,6 @@ RUN make install/strip
 ### OpenMS library ###
 FROM ubuntu:24.04 AS library
 ARG INSTALL_DIR
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9E922B2D60E9FD1C || true
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
     ca-certificates \
@@ -181,7 +180,7 @@ RUN apt-get update \
     libboost-regex1.83.0 \
     libboost-math1.83.0 \
     libboost-random1.83.0 \
-  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
   && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     libarrow2300 \
