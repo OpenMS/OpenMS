@@ -2532,6 +2532,9 @@ namespace OpenMS
           precursor_mass_tolerance_unit_, fragment_mass_tolerance_unit_,
           precursor_min_charge_, precursor_max_charge_, enzyme_, "");
 
+        // Per input file, while each file is still its own identification run. Moving this
+        // after the merge below would leave one run to calibrate NCE and RT on, which are
+        // per-run quantities; see the note on PeptDeepRescoring::annotate().
         annotatePeptDeepFeatures_(all_spectra[i], result.protein_ids, result.peptide_ids);
 
         PeptideIndexing indexer;
