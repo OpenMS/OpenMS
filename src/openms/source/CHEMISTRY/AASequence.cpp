@@ -1616,18 +1616,18 @@ namespace OpenMS
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
-    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
+    c_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
     std::string residue;
-    if (n_term_mod_ == nullptr)
+    if (c_term_mod_ == nullptr)
     {
-        n_term_mod_ = ModificationsDB::getInstance()
+        c_term_mod_ = ModificationsDB::getInstance()
           ->getBestModificationByDiffMonoMass(diffMonoMass, tol, residue, term);
     }
-    if (n_term_mod_ == nullptr)
+    if (c_term_mod_ == nullptr)
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
+      c_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);
@@ -1646,7 +1646,7 @@ namespace OpenMS
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
-    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
+    n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
     std::string residue;
     if (n_term_mod_ == nullptr)
     {
