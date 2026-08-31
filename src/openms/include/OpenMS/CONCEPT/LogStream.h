@@ -472,12 +472,7 @@ public:
       */
       void flushIncomplete();
 
-      /**
-        @brief Is @p stream currently one of this LogStream's output destinations?
-
-        Lets a caller tell "temporarily remove a sink that is attached" from "attach a sink that
-        never was" -- re-inserting in the latter case would silently add an output destination.
-      */
+      /// Is @p stream currently one of this LogStream's output destinations?
       bool hasStream(std::ostream & stream);
       //@}
 private:
@@ -503,18 +498,12 @@ private:
       Use this when you need to temporarily suppress logging to a specific stream (e.g., cout)
       during operations that may throw exceptions.
 
-      @note The guard acts only on a stream that is attached when it is constructed. For anything
-            else it does nothing at all -- it will not re-insert on scope exit, because attaching a
-            destination the caller never registered is not "restoring" it, and because a guard
-            nested inside another one on the same stream would otherwise hand the outer guard's
-            suppressed output straight to it.
+      @note The guard acts only on a stream that is attached when it is constructed; for an
+            unattached stream it does nothing (will not insert on scope exit).
 
-      @note Pass the stream that the messages are actually written to. The OPENMS_LOG_* macros
-            write to the thread-local streams (getThreadLocalLog*()), whose sink list is copied
-            from the global one on first access. Guarding getGlobalLog*() therefore does not
-            suppress what a thread that has already logged emits -- it reaches only threads whose
-            stream is first created while the guard is active, which copy the reduced list. To
-            suppress reliably, guard the thread-local stream of the thread doing the logging.
+      @note The OPENMS_LOG_* macros write to thread-local streams whose sink list is copied from
+            the global one on first access. Guard the thread-local stream (getThreadLocalLog*()),
+            not the global one, to suppress output reliably.
 
       Example usage:
       @code
@@ -531,9 +520,6 @@ private:
       /**
         @brief Construct a guard that removes @p stream, if attached, and re-inserts it on destruction.
 
-        Anything still pending is delivered before the stream is detached, so output logged before
-        the guard is not caught up in what the guarded scope suppresses.
-
         @param log_stream The LogStream to remove the stream from (and re-insert into on destruction)
         @param stream The stream to temporarily remove (e.g., std::cout); if it is not one of
                       @p log_stream's destinations, the guard does nothing
@@ -541,37 +527,23 @@ private:
       LogSinkGuard(LogStream& log_stream, std::ostream& stream)
         : log_stream_(log_stream), stream_(stream), was_attached_(log_stream.hasStream(stream))
       {
-        // Guard only what is actually attached. Removing a sink that is not there is a no-op,
-        // but re-inserting it on scope exit would not be: it would attach a destination the
-        // caller never registered, and (for a guard nested inside another on the same sink)
-        // hand the outer guard's suppressed output straight to it.
         if (!was_attached_)
         {
           return;
         }
-        // Everything logged before the guard belongs to the sink we are about to detach, but a
-        // line that has not ended yet is still pending -- one buffer and one incomplete line are
-        // shared by all sinks, so anything left here would be concatenated with what the guarded
-        // scope logs and could no longer be told apart from it. Deliver it first.
+        // Drain pending output so pre-guard text reaches this sink before it is detached.
         log_stream_.flushIncomplete();
         log_stream_.remove(stream_);
       }
 
-      /// Destructor disposes of anything logged while the sink was gone, then re-inserts it
+      /// Destructor discards any suppressed output, then re-inserts the sink.
       ~LogSinkGuard()
       {
         if (!was_attached_)
         {
           return;
         }
-        // A LogStream buffers until it is flushed, and OpenMS log messages routinely end in '\n'
-        // -- or in nothing at all (e.g. File::RWrapper's "Running R script ...") -- so at this
-        // point the text logged inside the guarded scope is still pending, unwritten. Re-inserting
-        // first would hand exactly the output this guard exists to suppress to the next flush.
-        // flushIncomplete() drains it while the sink is still detached: with no sink left it is
-        // discarded, and any sink that was never guarded receives it, as it was never suppressed.
-        // Plain flush() is not enough -- it leaves an unterminated message in incomplete_line_,
-        // where it would survive the guard and prefix the next line written to the restored sink.
+        // Drain buffered output while the sink is still detached so it does not leak through.
         log_stream_.flushIncomplete();
         log_stream_.insert(stream_);
       }
