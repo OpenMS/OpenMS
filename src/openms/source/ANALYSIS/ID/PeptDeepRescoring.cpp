@@ -292,6 +292,8 @@ namespace OpenMS
           uniq_seq.push_back(str);
           uniq_charge.push_back(static_cast<float>(z));
         }
+        // The run identifier is what keeps NCE and RT calibration per-run, so it has to
+        // still distinguish the runs by the time we get here -- see the note on annotate().
         rows_by_run[peptide_ids[pi].getIdentifier()].push_back(rows.size());
         rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore()});
       }
