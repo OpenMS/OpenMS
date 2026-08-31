@@ -1932,6 +1932,12 @@ It uses the PeakPickerHiRes internally to find interesting seed candidates.
 These candidates are then expanded and a right/left border of the peak is
 searched
 Additionally, overlapping peaks can be removed
+
+The picked chromatogram's FloatDataArrays report, per peak: "FWHM",
+"IntegratedIntensity", "leftWidth", "rightWidth", and "SN" (the apex
+signal-to-noise ratio). The "SN" array only holds real values if the
+'report_sn' parameter is enabled or 'signal_to_noise' > 0; otherwise it is
+filled with -1 for every peak.
 )doc")
         .def(nb::init<>())
         .def("pickChromatogram", [](OpenMS::PeakPickerChromatogram& self, const OpenMS::MSChromatogram& chromatogram, OpenMS::MSChromatogram& picked_chrom) { return self.pickChromatogram(chromatogram, picked_chrom); }, "chromatogram"_a, "picked_chrom"_a)

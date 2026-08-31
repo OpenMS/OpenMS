@@ -991,6 +991,11 @@ OpenMS Library:
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
+    - PeakPickerChromatogram: new 'report_sn' parameter reports the apex signal-to-noise ratio of each
+      picked peak as an additional "SN" FloatDataArray (indexed via the new IDX_SN FLOATINDICES entry)
+      on the picked chromatogram, estimated with the existing internal SignalToNoiseEstimatorMedian;
+      enabling it forces initialization of the S/N estimator even when 'signal_to_noise' is 0. The
+      array is filled with -1 per peak when reporting is off (#9780)
   Changes:
     - Fix: AASequence::setModificationByDiffMonoMass (and the four other call sites that write an
       unknown mass-shift modification: three in AASequence, one in Residue, one in PepXMLFile) built
@@ -1150,6 +1155,14 @@ Fixes:
     Biosaur2 paths leave the same processed experiment behind, and
     FeatureFinderIdentificationAlgorithm::run() rejects MS data without spectra instead of reading out
     of bounds (#9980, #9996)
+  - Fix: FeatureOverlapFilter::mergeFAIMSFeatures() emptied the caller's FeatureMap with clear() before
+    refilling it with the merged features, and clear()'s clear_meta_data parameter defaults to true --
+    wiping the protein/unassigned-peptide identifications, data processing, id_data and unique id that
+    were already set, none of which it restores. FeatureFinderIdentificationAlgorithm's FAIMS path hits
+    this right after copying in the protein identifications, so the returned map had features but no
+    IdentificationRun at all; ProteomicsLFQ then segfaulted converting that empty-identifications map to
+    a ConsensusMap (crashed on any FAIMS input, regardless of seeding algorithm). Now calls clear(false)
+    so only the feature container is refilled.
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names
     are not "0", "1", ... crashed with a bare std::out_of_range. getSampleToPrefractionationMapping() was
     keyed by sample name while the condition and path-label mappings used the stringified zero-based row
@@ -1295,6 +1308,17 @@ Fixes:
     self-copy rejection in File::copyDirRecursively, the CopyOptions::SKIP notices and the
     File::findDatabase miss), which made a passing test run look like a broken build in packaging
     logs (#10019)
+  - Fix: AASequence::setNTerminalModificationByDiffMonoMass and setCTerminalModificationByDiffMonoMass
+    were silent no-ops -- each declared a local pointer that shadowed the member it meant to write, did
+    its lookup/creation work against that local, and discarded the result at the closing brace, leaving
+    the sequence unchanged with no error raised. The C-terminal overload's shadowing local was also
+    misnamed after the N-terminal one, so simply removing the shadowing would have modified the wrong
+    terminus; it is now retargeted to the c_term_mod_ member throughout (#10013)
+  - Fix: IDPosteriorErrorProbability threw UnableToFit ("None of the expected score types hyperscore for
+    search engine found") on SimpleSearchEngine input, and produced no output at all on ProSE input
+    (ProSE was missing from the hardcoded search-engine list). Both engines label their HyperScore-based
+    main score "ln(hyperscore)", not "hyperscore", so PosteriorErrorProbabilityModel's lookup never
+    matched; it now accepts "ln(hyperscore)" for both engines, the same way it already did for Sage.
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)
