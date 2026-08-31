@@ -1284,8 +1284,8 @@ Fixes:
   - Fix: Logger::LogSinkGuard did not actually suppress the messages logged inside its scope. OpenMS log
     lines end in '\n' rather than std::endl, so the text was still buffered when the guard re-attached the
     sink and surfaced at the next flush; it is now discarded. Also documented that the OPENMS_LOG_* macros
-    write to the thread-local streams, whose sink list is a copy -- guarding getGlobalLog*() suppresses
-    nothing the macros emit (#10019)
+    write to the thread-local streams, whose sink list is copied from the global one on first access --
+    guarding getGlobalLog*() does not suppress what a thread that has already logged emits (#10019)
   - Fix: File_test no longer prints the expected error/warning output of its negative test cases (the
     self-copy rejection in File::copyDirRecursively, the CopyOptions::SKIP notices and the
     File::findDatabase miss), which made a passing test run look like a broken build in packaging

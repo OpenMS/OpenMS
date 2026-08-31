@@ -496,9 +496,11 @@ private:
       during operations that may throw exceptions.
 
       @note Pass the stream that the messages are actually written to. The OPENMS_LOG_* macros
-            write to the thread-local streams (getThreadLocalLog*()), whose sink list is a copy
-            taken from the global one on first access -- guarding getGlobalLog*() therefore does
-            not suppress anything the macros emit.
+            write to the thread-local streams (getThreadLocalLog*()), whose sink list is copied
+            from the global one on first access. Guarding getGlobalLog*() therefore does not
+            suppress what a thread that has already logged emits -- it reaches only threads whose
+            stream is first created while the guard is active, which copy the reduced list. To
+            suppress reliably, guard the thread-local stream of the thread doing the logging.
 
       Example usage:
       @code
