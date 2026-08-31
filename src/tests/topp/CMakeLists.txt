@@ -2612,6 +2612,10 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
+    add_test("TOPP_OpenNuXL_adduct_in_sequence" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML
+      -P ${DATA_DIR_TOPP}/OpenNuXL_adduct_in_sequence_test.cmake)
+    set_tests_properties("TOPP_OpenNuXL_adduct_in_sequence" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
   endif()
   # test internal decoy generation
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
