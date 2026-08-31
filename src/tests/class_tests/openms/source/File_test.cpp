@@ -20,6 +20,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <atomic>
+#include <ctime>
 #include <fstream>
 #include <filesystem>
 #include <thread>
@@ -58,18 +59,24 @@ END_SECTION
 START_SECTION((static Int64 getModificationTime(const std::string& file)))
   TEST_EQUAL(File::getModificationTime("does_not_exists.txt"), -1)
 
-  // Anchored to the Unix epoch, not to file_clock's implementation-defined one, so the value means
-  // the same thing to a reader on another platform. Checked loosely -- any plausible wall clock
-  // since 2020 -- rather than against a fixture's timestamp, which a checkout rewrites.
-  const Int64 t_repo = File::getModificationTime(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt"));
-  TEST_EQUAL(t_repo > 1577836800LL, true)   // after 2020-01-01
-  TEST_EQUAL(t_repo < 4102444800LL, true)   // before 2100-01-01
-
-  // A file written now is not older than one written earlier.
+  // Bracketed by the wall clock around a file this test writes itself. That pins both properties
+  // the method promises: the number is that file's actual modification time, and it counts seconds
+  // from the Unix epoch rather than from file_clock's implementation-defined one -- 2174 on
+  // libstdc++, 1601 on MSVC -- so it means the same thing to a reader on another platform.
+  //
+  // Deliberately not read off a file in the source tree: distributions building reproducibly
+  // (Debian, Nix) normalise every source timestamp to the epoch, which is a property of the build
+  // environment and not of this method (see issue #10018). The few seconds of slack absorb coarse
+  // filesystem timestamp granularity; the errors this guards against are off by billions.
+  const Int64 t_before = static_cast<Int64>(std::time(nullptr));
   std::string tmp;
   NEW_TMP_FILE(tmp);
   { std::ofstream os(tmp.c_str()); os << "x"; }
-  TEST_EQUAL(File::getModificationTime(tmp) >= t_repo - 86400LL, true)
+  const Int64 t_after = static_cast<Int64>(std::time(nullptr));
+
+  const Int64 t_tmp = File::getModificationTime(tmp);
+  TEST_TRUE(t_tmp >= t_before - 5)
+  TEST_TRUE(t_tmp <= t_after + 5)
 END_SECTION
 
 START_SECTION((static bool remove(const std::string &file)))

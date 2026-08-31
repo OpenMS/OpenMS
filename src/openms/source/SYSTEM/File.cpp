@@ -177,9 +177,11 @@ namespace OpenMS
     if (!File::exists(file)) return -1;
 
     // stat() rather than std::filesystem::last_write_time(): file_time_type's epoch is
-    // implementation-defined, and std::chrono::clock_cast -- the standard way to anchor it to the
-    // Unix epoch -- is still absent from Apple's libc++. st_mtime is seconds since the Unix epoch
-    // on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
+    // implementation-defined (2174 on libstdc++, 1601 on MSVC), and std::chrono::clock_cast -- the
+    // standard way to anchor it to the Unix epoch -- is not available across the toolchains this
+    // builds on: absent from Apple's libc++, and libstdc++ still reports __cpp_lib_chrono == 201611
+    // as of GCC 13, below the 201907L that clock_cast requires. st_mtime is seconds since the Unix
+    // epoch on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
     // to_path() first, so a UTF-8 path still resolves on Windows.
     const auto p = to_path(file);
 #ifdef OPENMS_WINDOWSPLATFORM
