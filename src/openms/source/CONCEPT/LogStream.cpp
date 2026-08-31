@@ -630,6 +630,15 @@ namespace OpenMS
       std::ostream::flush();
     }
 
+    bool LogStream::hasStream(std::ostream & stream)
+    {
+      if (!bound_())
+      {
+        return false;
+      }
+      return hasStream_(stream);
+    }
+
     void LogStream::flushIncomplete()
     {
       if (!bound_())

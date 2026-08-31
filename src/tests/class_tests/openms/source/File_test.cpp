@@ -521,7 +521,14 @@ START_SECTION(static std::string findDatabase(const std::string &db_name))
     Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
     TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
   }
-  std::string db = File::findDatabase("./CV/unimod.obo");
+  // The success path is chatty too -- it announces the resolved path on the info log (which goes
+  // to stdout, so the stderr check above does not cover it), and since nothing flushes it until
+  // teardown it surfaces *after* the test's PASSED banner. Same packaging-log noise as the errors.
+  std::string db;
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogInfo(), std::cout);
+    db = File::findDatabase("./CV/unimod.obo");
+  }
   //TEST_EQUAL(db,"wtf")
   TEST_EQUAL(StringUtils::hasSubstring(db, "share/OpenMS"), true)
 

@@ -310,13 +310,15 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
     {
       LogSinkGuard guard1(l1, s); // guard1 removes s
       {
-        LogSinkGuard guard2(l1, s); // guard2 removes s (already removed - no-op)
+        LogSinkGuard guard2(l1, s); // s is already gone, so guard2 has nothing to guard
         l1 << "deeply_removed" << endl;
-      } // guard2 re-inserts s
-      l1 << "once_reinserted" << endl;
-    } // guard1 re-inserts s (already present - safe/idempotent)
+      } // guard2 must NOT re-insert s -- it never removed it, and guard1 is still active
+      l1 << "still_suppressed_by_guard1" << endl;
+    } // guard1 re-inserts s
     l1 << "final" << endl;
-    TEST_EQUAL(s.str(), "once_reinserted\nfinal\n")
+    // Previously this read "once_reinserted\nfinal\n": the inner guard re-attached the sink and
+    // the rest of the outer scope leaked to it. That expectation encoded the bug, not the contract.
+    TEST_EQUAL(s.str(), "final\n")
   }
 
   // Test 4: a message that is never flushed by the writer. This is how OpenMS actually logs --
@@ -351,6 +353,64 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
 
     TEST_EQUAL(guarded.str(), "")
     TEST_EQUAL(kept.str(), "one_sink_only\n")
+  }
+
+  // Test 6: a message with no trailing newline, with a second sink attached. Not every OpenMS log
+  // statement terminates its line (e.g. RWrapper's "Running R script ..."), and an unterminated
+  // message is parked in the buffer's incomplete_line_ rather than distributed. If the guard only
+  // flushed complete lines, that text would outlive it and prefix the next line the restored sink
+  // receives.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream guarded, kept;
+    l1.insert(guarded);
+    l1.insert(kept);
+
+    {
+      LogSinkGuard guard(l1, guarded);
+      l1 << "unterminated_while_guarded"; // no '\n' at all
+    }
+
+    l1 << "after_guard\n";
+    l1.flush();
+    TEST_EQUAL(guarded.str(), "after_guard\n")            // not "unterminated_while_guardedafter_guard\n"
+    TEST_EQUAL(kept.str(), "unterminated_while_guarded\nafter_guard\n") // never guarded, still receives it
+  }
+
+  // Test 7: output pending from BEFORE the guard belongs to the guarded sink and must not be
+  // swallowed by the guard's clean-up. The buffer is shared by all sinks, so it is delivered when
+  // the guard is entered (hence a line of its own) rather than merged with what the scope logs.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream guarded;
+    l1.insert(guarded);
+
+    l1 << "pending_before_guard"; // no '\n' yet
+    {
+      LogSinkGuard guard(l1, guarded);
+      l1 << "suppressed\n";
+    }
+    l1 << "after_guard\n";
+    l1.flush();
+    TEST_EQUAL(guarded.str(), "pending_before_guard\nafter_guard\n")
+  }
+
+  // Test 8: guarding a sink that is not attached must not attach it. "Temporarily remove" has no
+  // meaning for a stream that was never a destination, and adding one would redirect output the
+  // caller never asked for (and never take it away again).
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream attached, never_attached;
+    l1.insert(attached);
+
+    {
+      LogSinkGuard guard(l1, never_attached);
+      l1 << "while_guarded\n";
+    }
+    l1 << "after_guard\n";
+    l1.flush();
+    TEST_EQUAL(never_attached.str(), "")
+    TEST_EQUAL(attached.str(), "while_guarded\nafter_guard\n") // unrelated sink unaffected
   }
 }
 END_SECTION

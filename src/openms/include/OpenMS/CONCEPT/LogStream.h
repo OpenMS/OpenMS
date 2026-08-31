@@ -471,6 +471,14 @@ public:
         flushed before streams are reconfigured globally.
       */
       void flushIncomplete();
+
+      /**
+        @brief Is @p stream currently one of this LogStream's output destinations?
+
+        Lets a caller tell "temporarily remove a sink that is attached" from "attach a sink that
+        never was" -- re-inserting in the latter case would silently add an output destination.
+      */
+      bool hasStream(std::ostream & stream);
       //@}
 private:
 
@@ -521,21 +529,40 @@ private:
         @param stream The stream to temporarily remove (e.g., std::cout)
       */
       LogSinkGuard(LogStream& log_stream, std::ostream& stream)
-        : log_stream_(log_stream), stream_(stream)
+        : log_stream_(log_stream), stream_(stream), was_attached_(log_stream.hasStream(stream))
       {
+        // Guard only what is actually attached. Removing a sink that is not there is a no-op,
+        // but re-inserting it on scope exit would not be: it would attach a destination the
+        // caller never registered, and (for a guard nested inside another on the same sink)
+        // hand the outer guard's suppressed output straight to it.
+        if (!was_attached_)
+        {
+          return;
+        }
+        // Everything logged before the guard belongs to the sink we are about to detach, but a
+        // line that has not ended yet is still pending -- one buffer and one incomplete line are
+        // shared by all sinks, so anything left here would be concatenated with what the guarded
+        // scope logs and could no longer be told apart from it. Deliver it first.
+        log_stream_.flushIncomplete();
         log_stream_.remove(stream_);
       }
 
-      /// Destructor discards anything logged while the sink was gone, then re-inserts the stream
+      /// Destructor disposes of anything logged while the sink was gone, then re-inserts it
       ~LogSinkGuard()
       {
-        // A LogStream buffers until it is flushed, and OpenMS log messages end in '\n' rather
-        // than std::endl -- so at this point the text logged inside the guarded scope is still
-        // sitting in the buffer, unwritten. Re-inserting first would hand exactly the output
-        // this guard exists to suppress to the next flush. Flushing while the sink is still
-        // removed discards it instead (any other sink still attached does receive it, as it
-        // was never suppressed).
-        log_stream_.flush();
+        if (!was_attached_)
+        {
+          return;
+        }
+        // A LogStream buffers until it is flushed, and OpenMS log messages routinely end in '\n'
+        // -- or in nothing at all (e.g. File::RWrapper's "Running R script ...") -- so at this
+        // point the text logged inside the guarded scope is still pending, unwritten. Re-inserting
+        // first would hand exactly the output this guard exists to suppress to the next flush.
+        // flushIncomplete() drains it while the sink is still detached: with no sink left it is
+        // discarded, and any sink that was never guarded receives it, as it was never suppressed.
+        // Plain flush() is not enough -- it leaves an unterminated message in incomplete_line_,
+        // where it would survive the guard and prefix the next line written to the restored sink.
+        log_stream_.flushIncomplete();
         log_stream_.insert(stream_);
       }
 
@@ -548,6 +575,8 @@ private:
     private:
       LogStream& log_stream_;
       std::ostream& stream_;
+      /// was the sink attached when the guard was constructed? if not, the guard does nothing
+      const bool was_attached_;
     };
 
   } // namespace Logger
