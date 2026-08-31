@@ -283,7 +283,7 @@ namespace OpenMS
       auto canonical_target = fs::canonical(target_path, ec);
       if (!ec && canonical_source == canonical_target)
       {
-        OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir << " to " << to_dir << ". Same path given.\n";
+        OPENMS_LOG_ERROR << "Error: Could not copy '" << from_dir << "' to '" << to_dir << "'. Same path given.\n";
         return false;
       }
     }

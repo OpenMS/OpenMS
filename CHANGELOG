@@ -1286,6 +1286,15 @@ Fixes:
   - Fix: potential memory leak in SwathFile::loadMzXML on exception, redundant PRAGMA foreign_keys execution
     in OMSFileStore, unused variable in FileFilter, uninitialized best_rate warning in MetaProSIP, and a
     wrong defaultArrayLength in the MzMLFile_negative_offsets.mzML test file (#8396, #8399, #8672)
+  - Fix: Logger::LogSinkGuard did not actually suppress the messages logged inside its scope. OpenMS log
+    lines end in '\n' rather than std::endl, so the text was still buffered when the guard re-attached the
+    sink and surfaced at the next flush; it is now discarded. Also documented that the OPENMS_LOG_* macros
+    write to the thread-local streams, whose sink list is copied from the global one on first access --
+    guarding getGlobalLog*() does not suppress what a thread that has already logged emits (#10019)
+  - Fix: File_test no longer prints the expected error/warning output of its negative test cases (the
+    self-copy rejection in File::copyDirRecursively, the CopyOptions::SKIP notices and the
+    File::findDatabase miss), which made a passing test run look like a broken build in packaging
+    logs (#10019)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)
