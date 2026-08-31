@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -18,6 +19,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <fstream>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -665,4 +667,250 @@ START_SECTION((isValid_()))
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((Size annotateColumnHeaders(ConsensusMap& cmap) const))
+{
+  // The inverse of fromConsensusMap(). Two fraction files of one quantification unit must come
+  // out sharing a fraction_group and differing by fraction -- that shared group is the only
+  // thing distinguishing "two fractions of one sample" from "two independent runs", and a
+  // consumer reading only the map has no other way to tell.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  for (UInt64 file = 0; file < 2; ++file)
+  {
+    for (UInt64 ch = 0; ch < 2; ++ch)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = "/data/run" + std::to_string(file + 1) + ".mzML";
+      h.label = "tmt10plex_12" + std::to_string(ch + 6);
+      h.setMetaValue("channel_id", static_cast<int>(ch));   // getLabelAsUInt() -> channel_id + 1
+      cmap.getColumnHeaders()[file * 2 + ch] = h;
+    }
+  }
+
+  // Both files in fraction group 1, as fractions 1 and 2; one sample per channel.
+  const std::string design_path = File::getTemporaryFile();
+  {
+    std::ofstream os(design_path.c_str());
+    os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";
+    os << "1\t1\trun1.mzML\t1\t1\n";
+    os << "1\t1\trun1.mzML\t2\t2\n";
+    os << "1\t2\trun2.mzML\t1\t1\n";
+    os << "1\t2\trun2.mzML\t2\t2\n";
+  }
+  ExperimentalDesign design = ExperimentalDesignFile::load(design_path, false);
+
+  TEST_EQUAL(design.annotateColumnHeaders(cmap), 0)   // every header matched
+
+  const auto& headers = cmap.getColumnHeaders();
+  for (const auto& [mi, h] : headers)
+  {
+    TEST_TRUE(h.metaValueExists("fraction_group"))
+    TEST_TRUE(h.metaValueExists("fraction"))
+    TEST_EQUAL(static_cast<int>(h.getMetaValue("fraction_group")), 1)  // shared across both files
+  }
+  // ... and the fraction distinguishes the two files, channel by channel.
+  TEST_EQUAL(static_cast<int>(headers.at(0).getMetaValue("fraction")), 1)  // run1, ch1
+  TEST_EQUAL(static_cast<int>(headers.at(1).getMetaValue("fraction")), 1)  // run1, ch2
+  TEST_EQUAL(static_cast<int>(headers.at(2).getMetaValue("fraction")), 2)  // run2, ch1
+  TEST_EQUAL(static_cast<int>(headers.at(3).getMetaValue("fraction")), 2)  // run2, ch2
+
+  // A header the design does not describe is counted, not silently skipped: silent
+  // non-annotation is the failure mode this return value exists to expose.
+  ConsensusMap::ColumnHeader stray;
+  stray.filename = "/data/not_in_design.mzML";
+  stray.label = "tmt10plex_126";
+  stray.setMetaValue("channel_id", 0);
+  cmap.getColumnHeaders()[99] = stray;
+  TEST_EQUAL(design.annotateColumnHeaders(cmap), 1)
+  TEST_FALSE(cmap.getColumnHeaders().at(99).metaValueExists("fraction_group"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] annotateColumnHeaders - a design inferred from the map does not throw))
+{
+  // fromConsensusMap() builds sample ROWS but no "Sample" COLUMN, so getSampleName() throws
+  // std::out_of_range on its column lookup. That is the design every caller gets when no
+  // design file is supplied, so annotating with it must work: the sample name is optional
+  // decoration, while fraction and fraction_group are what callers group on.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  for (UInt64 ch = 0; ch < 2; ++ch)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = "/data/run1.mzML";
+    h.label = "tmt10plex_12" + std::to_string(ch + 6);
+    h.setMetaValue("channel_id", static_cast<int>(ch));
+    cmap.getColumnHeaders()[ch] = h;
+  }
+
+  ExperimentalDesign inferred = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(inferred.annotateColumnHeaders(cmap), 0)
+  TEST_TRUE(cmap.getColumnHeaders().at(0).metaValueExists("fraction_group"))
+  TEST_TRUE(cmap.getColumnHeaders().at(1).metaValueExists("fraction"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] annotateColumnHeaders - headers that collapse onto one design row are refused))
+{
+  // ColumnHeader::getLabelAsUInt() returns 1 for any header with no 'channel_id' -- what the
+  // Multiplex tools emit, carrying the channel in 'label' instead. Two such headers of one file
+  // both resolve to label 1, so neither can be attributed to that design row. Annotating either
+  // would stamp one channel's sample onto the other; they must be reported instead.
+  ConsensusMap cmap;
+  cmap.setExperimentType("labeled_MS2");
+  for (UInt64 i = 0; i < 2; ++i)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = "/data/run1.mzML";
+    h.label = (i == 0) ? "light" : "heavy";   // no channel_id on purpose
+    cmap.getColumnHeaders()[i] = h;
+  }
+
+  const std::string design_path = File::getTemporaryFile();
+  {
+    std::ofstream os(design_path.c_str());
+    os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";
+    os << "1\t1\trun1.mzML\t1\t1\n";
+    os << "1\t1\trun1.mzML\t2\t2\n";
+  }
+  ExperimentalDesign design = ExperimentalDesignFile::load(design_path, false);
+
+  TEST_EQUAL(design.annotateColumnHeaders(cmap), 2)   // both refused, neither guessed at
+  TEST_FALSE(cmap.getColumnHeaders().at(0).metaValueExists("sample_name"))
+  TEST_FALSE(cmap.getColumnHeaders().at(1).metaValueExists("sample_name"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] getSampleName works whether the section came from a file or from addSample))
+{
+  // A parsed design file fills the content table and a column called "Sample"; a section built
+  // with addSample() - which is how fromConsensusMap() and fromIdentifications() build theirs -
+  // fills only the name->row store and pushes an empty content row. Reading only the column threw
+  // std::out_of_range for every inferred design.
+  ExperimentalDesign::SampleSection added;
+  added.addSample("BSA1");
+  added.addSample("BSA2");
+  TEST_STRING_EQUAL(added.getSampleName(0), "BSA1")
+  TEST_STRING_EQUAL(added.getSampleName(1), "BSA2")
+  TEST_EQUAL(added.getSampleRow("BSA2"), 1)
+
+  // The content-backed form keeps answering from the column, as before.
+  ExperimentalDesign::SampleSection from_file(
+    {{"S_a", "control"}, {"S_b", "treated"}},
+    {{"S_a", 0}, {"S_b", 1}},
+    {{"Sample", 0}, {"MSstats_Condition", 1}});
+  TEST_STRING_EQUAL(from_file.getSampleName(0), "S_a")
+  TEST_STRING_EQUAL(from_file.getSampleName(1), "S_b")
+
+  // Both report a missing row / unknown name as an OpenMS exception, not a bare std::out_of_range.
+  TEST_EXCEPTION(Exception::ElementNotFound, added.getSampleName(7))
+  TEST_EXCEPTION(Exception::ElementNotFound, added.getSampleRow("nope"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] an inferred design annotates sample_name onto consensus map headers))
+{
+  // Consequence of the above: fromConsensusMap() builds its sample section with addSample(), so
+  // annotateColumnHeaders() can now supply the name it previously had to drop.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  ConsensusMap::ColumnHeaders headers;
+  for (Size i = 0; i < 2; ++i)
+  {
+    ConsensusMap::ColumnHeader h;
+    h.filename = "/data/run_" + StringUtils::toStr(i) + ".mzML";
+    h.label = "label-free";
+    headers[i] = h;
+  }
+  cmap.setColumnHeaders(headers);
+
+  const ExperimentalDesign inferred = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(inferred.annotateColumnHeaders(cmap), 0)
+  TEST_TRUE(cmap.getColumnHeaders().at(0).metaValueExists("sample_name"))
+  TEST_TRUE(cmap.getColumnHeaders().at(1).metaValueExists("sample_name"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] sample names that are not stringified row indices must not break the derived mappings))
+{
+  // A Sample column holds a NAME. sdrf-pipelines writes 1-based numeric names ("1", "2"), and a
+  // hand-written design may use anything ("BSA1"). MSFileSectionEntry::sample is the zero-based row
+  // index those names intern to, so a name and its index coincide only by accident - and only the
+  // designs that OpenMS infers itself (which set sample_name = toStr(sample)) make them coincide.
+  auto designWithSampleNames = [](const std::string& name_a, const std::string& name_b)
+  {
+    ExperimentalDesign::MSFileSection fs;
+    for (Size i = 0; i < 2; ++i)
+    {
+      ExperimentalDesign::MSFileSectionEntry e;
+      e.fraction_group = static_cast<unsigned>(i) + 1; // 1-based id
+      e.fraction = 1;
+      e.label = 1;
+      e.path = "/data/run_" + StringUtils::toStr(i) + ".mzML";
+      e.sample = static_cast<unsigned>(i);             // 0-based index
+      e.sample_name = (i == 0) ? name_a : name_b;
+      fs.push_back(e);
+    }
+    ExperimentalDesign::SampleSection ss;
+    ss.addSample(name_a);
+    ss.addSample(name_b);
+    return ExperimentalDesign(fs, ss);
+  };
+
+  // The sdrf-pipelines shape: names are 1-based, indices 0-based, so they never coincide.
+  const ExperimentalDesign sdrf_like = designWithSampleNames("1", "2");
+  // A hand-written design: names are not numeric at all.
+  const ExperimentalDesign named = designWithSampleNames("BSA1", "BSA2");
+
+  for (const auto& design : {sdrf_like, named})
+  {
+    const std::set<std::string> names = design.getSampleSection().getSamples();
+
+    // Both Sample* mappings are keyed by sample NAME, and cover every sample exactly once.
+    const auto s2pf = design.getSampleToPrefractionationMapping();
+    const auto s2c = design.getSampleToConditionMapping();
+    TEST_EQUAL(s2pf.size(), design.getNumberOfSamples())
+    TEST_EQUAL(s2c.size(), design.getNumberOfSamples())
+    for (const auto& name : names)
+    {
+      TEST_TRUE(s2pf.find(name) != s2pf.end())
+      TEST_TRUE(s2c.find(name) != s2c.end())
+    }
+
+    // Resolving them per (path, label) must go through the name, not the stringified index.
+    // Both of these threw a bare std::out_of_range ("map::at") for any design whose sample names
+    // are not "0", "1", ... - which is every design a user or sdrf-pipelines writes.
+    const auto p2pf = design.getPathLabelToPrefractionationMapping(false);
+    const auto p2c = design.getPathLabelToConditionMapping(false);
+    TEST_EQUAL(p2pf.size(), 2)
+    TEST_EQUAL(p2c.size(), 2)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fromIdentifications numbers fraction groups from 1, samples from 0))
+{
+  // 'sample' is a zero-based index into the sample section, a fraction group is a 1-based id.
+  // One counter used to feed both, so inferred designs were rejected by isValid_() - the class
+  // produced objects its own validator refuses - and leaked a fraction group of 0 downstream.
+  ProteinIdentification protein_id;
+  protein_id.setPrimaryMSRunPath({"a.mzML", "b.mzML", "c.mzML"});
+  const ExperimentalDesign design = ExperimentalDesign::fromIdentifications({protein_id});
+
+  const ExperimentalDesign::MSFileSection& rows = design.getMSFileSection();
+  TEST_EQUAL(rows.size(), 3)
+  for (Size i = 0; i < rows.size(); ++i)
+  {
+    TEST_EQUAL(rows[i].sample, i)             // zero-based index
+    TEST_EQUAL(rows[i].fraction_group, i + 1) // 1-based id
+  }
+
+  // The decisive invariant: an inferred design must satisfy the same validator as a loaded one.
+  // The two-argument constructor runs isValid_(), which requires the fraction-group set to be
+  // consecutive and start at 1; before the fix this threw InvalidValue.
+  ExperimentalDesign revalidated(rows, design.getSampleSection());
+  TEST_EQUAL(revalidated.getNumberOfFractionGroups(), 3)
+}
+END_SECTION
+
 END_TEST

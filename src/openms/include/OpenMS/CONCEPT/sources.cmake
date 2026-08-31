@@ -3,13 +3,11 @@ set(directory include/OpenMS/CONCEPT)
 
 ### list all header files of the directory here
 set(sources_list_h
-ClassTest.h
 Colorizer.h
 CommonEnums.h
 Constants.h
 EnumHelpers.h
 Exception.h
-FuzzyStringComparator.h
 GlobalExceptionHandler.h
 HashUtils.h
 Helpers.h
@@ -17,7 +15,6 @@ Init.h
 LogConfigHandler.h
 LogStream.h
 Macros.h
-MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h
 RAIICleanup.h

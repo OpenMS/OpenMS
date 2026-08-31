@@ -205,33 +205,20 @@ protected:
     }
   };
 
-  /// Strip PIN-format meta values that PercolatorInfile::stampPinFeaturesOnHits
-  /// leaves on each hit during the in-process feature-matrix build. Without
-  /// this, the in-process output idXML carries 17+ internal columns (SpecId,
-  /// ScanNr, Label, ExpMass, CalcMass, mass, peplen, charge<N>, enzN/C/Int,
-  /// dm, absdm, deltamass, retentiontime, score, Peptide, Proteins) that
-  /// downstream tools shouldn't see. The subprocess path doesn't need this:
-  /// it writes those fields to a temporary PIN file and never stamps them
-  /// onto hits in the first place.
+  /// Remove only PIN-format meta values that were absent before the in-process
+  /// feature-matrix build and added by stampPinFeaturesOnHits(). Input metadata
+  /// with a PIN-column name (notably CalcMass) must survive, matching the
+  /// subprocess path, which stamps a copy while writing its temporary PIN file.
   static void stripPinFeatureMetaValues_(
     PeptideIdentificationList& pep_ids,
-    int min_charge, int max_charge)
+    const PercolatorInfile::PinFeatureMetaValueMap& added_meta_values)
   {
-    static const std::vector<std::string> KEYS_TO_STRIP = {
-      "SpecId", "ScanNr", "Label", "ExpMass", "CalcMass",
-      "mass", "peplen", "deltamass", "retentiontime", "score",
-      "enzN", "enzC", "enzInt", "dm", "absdm",
-      "Peptide", "Proteins"
-    };
-    for (auto& pid : pep_ids.getData())
+    for (const auto& [hit_location, keys] : added_meta_values)
     {
-      for (auto& hit : pid.getHits())
+      PeptideHit& hit = pep_ids[hit_location.first].getHits()[hit_location.second];
+      for (const std::string& key : keys)
       {
-        for (const std::string& k : KEYS_TO_STRIP) hit.removeMetaValue(k);
-        for (int c = min_charge; c <= max_charge; ++c)
-        {
-          hit.removeMetaValue("charge" + StringUtils::toStr(c));
-        }
+        hit.removeMetaValue(key);
       }
     }
   }
@@ -698,7 +685,7 @@ protected:
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
-                         ". Use TOPP_PSMFeatureExtractor to merge results from different search engines if desired. Aborting!");
+                         ". Use TOPP_ConsensusID to combine results from different search engines if desired. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         
@@ -978,8 +965,9 @@ protected:
         // enzN/enzC/enzInt, dm/absdm, score, etc.) plus any search-engine-
         // specific extra_features already present. Training on this set
         // matches the subprocess path's feature vectors row-for-row.
+        PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
         const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
-          all_peptide_ids, enz_str, min_charge, max_charge);
+          all_peptide_ids, enz_str, min_charge, max_charge, added_pin_meta_values);
         OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
                         << skipped.size() << " PSMs skipped (no evidence or unknown TD)."
                         << std::endl;
@@ -1142,7 +1130,7 @@ protected:
         // (search engine identity + 23 SearchParameter UserParams) so the
         // in-process output matches the historical subprocess output's
         // metadata contract that downstream tools rely on.
-        stripPinFeatureMetaValues_(all_peptide_ids, min_charge, max_charge);
+        stripPinFeatureMetaValues_(all_peptide_ids, added_pin_meta_values);
         stampPercolatorAdapterMetadata_(all_protein_ids,
           peptide_level_fdrs, protein_level_fdrs,
           /*version_string=*/"3.08-vendored");

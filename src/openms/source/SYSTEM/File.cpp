@@ -26,15 +26,22 @@
 #include <filesystem>
 #include <fstream>
 
+#include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
+#include <sys/types.h>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
 #include <Shlwapi.h> // for PathMatchSpecA
-#include <io.h>      // for _access_s
+#include <io.h>      // for _access_s(), _sopen_s() and _close()
+#include <share.h>   // for _SH_DENYNO
 #pragma comment(lib, "Shlwapi.lib")
 #else
 #include <fnmatch.h>
-#include <unistd.h> // for gethostname()
+#include <unistd.h> // for gethostname() and close()
 #endif
+
+#include <fcntl.h>    // for O_CREAT/O_EXCL (spelled _O_CREAT/_O_EXCL on Windows) and open()
+#include <sys/stat.h> // for the permission bits handed to the exclusive create
 
 #ifdef OPENMS_HAS_UNISTD_H
 #include <unistd.h> // for readLink() and getpid()
@@ -163,6 +170,26 @@ namespace OpenMS
     auto perms = st.permissions();
     return (perms & (fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec)) != fs::perms::none;
 #endif
+  }
+
+  Int64 File::getModificationTime(const std::string& file)
+  {
+    if (!File::exists(file)) return -1;
+
+    // stat() rather than std::filesystem::last_write_time(): file_time_type's epoch is
+    // implementation-defined, and std::chrono::clock_cast -- the standard way to anchor it to the
+    // Unix epoch -- is still absent from Apple's libc++. st_mtime is seconds since the Unix epoch
+    // on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
+    // to_path() first, so a UTF-8 path still resolves on Windows.
+    const auto p = to_path(file);
+#ifdef OPENMS_WINDOWSPLATFORM
+    struct _stat64 st;
+    if (_wstat64(p.c_str(), &st) != 0) return -1;
+#else
+    struct stat st;
+    if (::stat(p.c_str(), &st) != 0) return -1;
+#endif
+    return static_cast<Int64>(st.st_mtime);
   }
 
   UInt64 File::fileSize(const std::string& file)
@@ -413,43 +440,116 @@ namespace OpenMS
     return pos == string::npos ? no_path : StringUtils::substr(file, 0, pos);
   }
 
+  namespace
+  {
+    /**
+      @brief Ask the OS whether @p file can be accessed with @p mode, creating nothing.
+
+      Returns 0 on success, otherwise an errno-style code -- in particular ENOENT when the
+      path is not there at all. Callers must branch on that return value rather than calling
+      exists() first: two separate queries can disagree, because another process is free to
+      create or delete the path in between, and the caller would then act on an answer that
+      was never true at any single point in time.
+    */
+    int fileAccess_(const std::string& file, int mode)
+    {
+      errno = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (_access_s(file.c_str(), mode) == 0) return 0;
+#else
+      if (access(file.c_str(), mode) == 0) return 0;
+#endif
+      return errno != 0 ? errno : EACCES;
+    }
+
+    /**
+      @brief Create @p file, failing with EEXIST if it is already there.
+
+      Returns 0 if *this* call created the file, otherwise an errno-style code.
+      The exclusivity is the point: only the call that actually created a file may delete it
+      again. A plain truncating open would clobber -- and then unlink -- whatever another
+      process had put at that path in the meantime.
+    */
+    int createExclusive_(const std::string& file)
+    {
+      errno = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+      int fd = -1;
+      const int err = _sopen_s(&fd, file.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+      if (err != 0) return errno != 0 ? errno : err;
+      _close(fd);
+#else
+      const int fd = ::open(file.c_str(), O_CREAT | O_EXCL | O_WRONLY, 0666);
+      if (fd < 0) return errno != 0 ? errno : EACCES;
+      ::close(fd);
+#endif
+      return 0;
+    }
+  } // namespace
+
   bool File::readable(const std::string& file)
   {
-    auto p = to_path(file);
-    std::error_code ec;
-    if (!fs::exists(p, ec)) return false;
+    // A single query -- see fileAccess_() for why this must not be preceded by an exists() check.
 #ifdef OPENMS_WINDOWSPLATFORM
-    return _access_s(file.c_str(), 4) == 0; // 4 = read permission
+    return fileAccess_(file, 4) == 0; // 4 = read permission
 #else
-    return access(file.c_str(), R_OK) == 0;
+    return fileAccess_(file, R_OK) == 0;
 #endif
   }
 
   bool File::writable(const std::string& file)
   {
-    auto p = to_path(file);
-    std::error_code ec;
+    if (file.empty()) return false;
 
-    if (fs::exists(p, ec))
-    {
 #ifdef OPENMS_WINDOWSPLATFORM
-      return _access_s(file.c_str(), 2) == 0; // 2 = write permission
+    const int write_mode = 2; // 2 = write permission
 #else
-      return access(file.c_str(), W_OK) == 0;
+    const int write_mode = W_OK;
 #endif
-    }
-    else
+
+    // A single query -- see fileAccess_() for why this must not be preceded by an exists() check.
+    const int err = fileAccess_(file, write_mode);
+    if (err == 0) return true;       // it is there and we may write it
+    if (err != ENOENT) return false; // it is there and we may not
+
+    // The path does not exist, so whether we could create it comes down to whether its
+    // directory accepts new files. Ask that with a probe file of our own instead of creating
+    // and deleting @p file itself: probing under the caller's name is what used to make this
+    // query destructive. Two callers probing the same new path would delete each other's
+    // file and report it unwritable, and a probe could unlink output that a concurrent writer
+    // had just produced under that name.
+    const std::string dir = File::path(file);
+    for (int attempt = 0; attempt < 3; ++attempt)
     {
-      // File does not exist: probe by trying to create it
-      std::ofstream f(file.c_str());
-      bool ok = f.is_open() && f.good();
-      f.close();
-      if (ok)
+      // Keep the probe name short. It stands in for the caller's own basename, so every extra
+      // character it carries is a character of path budget the caller loses -- and on Windows
+      // that budget is MAX_PATH, small enough that a needlessly long probe can overflow it for
+      // a directory the caller's own (shorter) name would have fit into. getUniqueName(false)
+      // drops the hostname, roughly halving the name; pid and its atomic counter still make a
+      // collision take a second machine picking the same pid in the same second on a shared
+      // filesystem, and the retry covers even that.
+      const std::string probe = dir + "/." + File::getUniqueName(false) + ".omswt";
+      const int create_err = createExclusive_(probe);
+      if (create_err == 0)
       {
-        std::remove(file.c_str());
+        std::remove(probe.c_str());
+        return true;
       }
-      return ok;
+      if (create_err == EEXIST) continue; // somebody holds that name -- retry with a fresh one
+
+      // The create can also fail for a reason that is about the probe *name* rather than about
+      // the directory: an over-long probe path reports ENAMETOOLONG on POSIX, and the Windows
+      // CRT folds ERROR_FILENAME_EXCED_RANGE onto ENOENT/EINVAL. Answering "not writable" on
+      // those would be exactly the false negative this function exists to avoid, so fall back
+      // to asking the directory itself. That still answers false when the directory is simply
+      // not there, because access() reports ENOENT for it too.
+      if (create_err == ENAMETOOLONG || create_err == ENOENT || create_err == EINVAL)
+      {
+        return fileAccess_(dir, write_mode) == 0;
+      }
+      return false; // read-only medium, no permission on the directory, ...
     }
+    return false;
   }
 
   std::string File::find(const std::string& filename, StringList directories)

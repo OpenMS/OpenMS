@@ -3851,7 +3851,10 @@ def testMSSpectrum():
     assert spec.containsIMData()
     assert spec.getIMData()[0] == 1
 
-    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    # Ensure that "set_peaks()" doesnt clear the float data arrays.
+    # The array here is longer than the new peak list, which set_peaks() rejects by default
+    # since it would leave the annotations mis-associated; metadata="keep" is the explicit
+    # opt-in to the original behaviour (see test_set_peaks_metadata_alignment.py).
     spec = pyopenms.MSSpectrum()
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -3859,7 +3862,7 @@ def testMSSpectrum():
     f_da[0].set_data(data)
     f_da[0].setName("Ion Mobility")
     spec.setFloatDataArrays( f_da )
-    spec.set_peaks( [data_mz,data_i] )
+    spec.set_peaks( [data_mz,data_i], metadata="keep" )
     assert spec.containsIMData()
     assert spec.getIMData()[0] == 0
     assert len(spec.getFloatDataArrays()) == 1
@@ -4159,10 +4162,13 @@ def testMSChromatogram():
     assert f.get_data()[0] == 5
     assert f.getName() == "Test Data"
 
-    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    # Ensure that "set_peaks()" doesnt clear the float data arrays.
+    # The array here is longer than the new peak list, which set_peaks() rejects by default
+    # since it would leave the annotations mis-associated; metadata="keep" is the explicit
+    # opt-in to the original behaviour (see test_set_peaks_metadata_alignment.py).
     chrom = pyopenms.MSChromatogram()
     chrom.setFloatDataArrays( f_da )
-    chrom.set_peaks( [data_mz,data_i] )
+    chrom.set_peaks( [data_mz,data_i], metadata="keep" )
     assert len(chrom.getFloatDataArrays()) == 1
 
     f = chrom.getFloatDataArrays()[0]
@@ -4700,7 +4706,7 @@ def testMatrixDouble():
             m.setValue(i, j, i * 10.0 + j) 
     print(m)
 
-    mv = m.get_matrix_view()
+    mv = m.matrix_view()
     print(mv)
 
     mc = m.get_matrix()
@@ -4729,7 +4735,7 @@ def testMatrixDouble():
     assert sum(sum(matrix)) == 40940.0
     assert sum(sum(matrix)) == (N-1)*(N+2)*5
 
-    matrix_view = m.get_matrix_view()
+    matrix_view = m.matrix_view()
     assert sum(sum(matrix_view)) == 40940.0
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
@@ -4742,7 +4748,7 @@ def testMatrixDouble():
     assert m.getValue(1, 2) == 8.0
 
     print(m)
-    mat = m.get_matrix_view()
+    mat = m.matrix_view()
     print(mat)
     assert mat[1, 2] == 8.0
 
@@ -4751,7 +4757,7 @@ def testMatrixDouble():
     assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
-    matrix_view = m.get_matrix_view()
+    matrix_view = m.matrix_view()
     matrix_view[1, 6] = 11.0
     assert m.getValue(1, 6) == 11.0
     assert matrix_view[1, 6] == 11.0
@@ -4810,7 +4816,7 @@ def testMatrixDoubleColumnMajorOrdering():
         f"Data mismatch after round-trip:\nOriginal:\n{original}\nResult:\n{result}"
 
     # Test 3: Verify view indexing matches getValue for all elements
-    view = m.get_matrix_view()
+    view = m.matrix_view()
     assert view.shape == (3, 4), f"View shape mismatch: {view.shape}"
     for i in range(3):
         for j in range(4):
@@ -4828,7 +4834,7 @@ def testMatrixDoubleColumnMajorOrdering():
         for j in range(5):
             m2.setValue(i, j, i * 100 + j)
 
-    view2 = m2.get_matrix_view()
+    view2 = m2.matrix_view()
     assert view2.shape == (2, 5), f"Non-square view shape wrong: {view2.shape}"
 
     # Check corners and middle to ensure no transposition

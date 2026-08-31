@@ -7,10 +7,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -387,6 +389,40 @@ START_SECTION(importFeaturesFromArrow - round - trip with subordinates and hulls
 }
 END_SECTION
 
+START_SECTION([EXTRA] importFeaturesFromArrow - large integer metavalue (> INT32_MAX) survives round-trip)
+{
+  // Regression for ArrowIOHelpers::readMetaValues integer parsing (finding #19):
+  // an "int"-typed meta-value whose value exceeds INT32_MAX must be parsed with
+  // std::stoll and stored as SignedSize. Before the fix std::stol -> static_cast<int>
+  // truncated 5000000000 down to 705032704.
+  FeatureMap fm_in;
+  Feature f;
+  f.setRT(10.0);
+  f.setMZ(200.0);
+  f.setIntensity(100.0f);
+  f.setCharge(1);
+  f.setUniqueId(555);
+  f.setMetaValue("big", (OpenMS::SignedSize)5000000000LL); // > INT32_MAX (2147483647)
+  fm_in.push_back(f);
+
+  // Round-trip through the Arrow table (export then import).
+  auto table = FeatureMapArrowIO::exportFeaturesToArrow(fm_in);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+
+  FeatureMap fm_out;
+  bool ok = FeatureMapArrowIO::importFeaturesFromArrow(table, fm_out);
+  TEST_EQUAL(ok, true)
+  TEST_EQUAL(fm_out.size(), 1)
+
+  const Feature& out_f = fm_out[0];
+  TEST_EQUAL(out_f.metaValueExists("big"), true)
+  // Stored as an integer meta-value, not truncated to a smaller type on import.
+  TEST_EQUAL(out_f.getMetaValue("big").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL((OpenMS::SignedSize)out_f.getMetaValue("big"), 5000000000LL)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // PSM export and round-trip tests
 /////////////////////////////////////////////////////////////
@@ -579,6 +615,106 @@ START_SECTION(importPSMsFromArrow - PSM round - trip)
   TEST_EQUAL(out_hit2.getSequence().toString(), "ACDEFGHIK")
   TEST_REAL_SIMILAR(out_hit2.getScore(), 0.80)
   TEST_EQUAL(out_hit2.getCharge(), 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value not adjacency)
+{
+  // Regression for FeatureMapArrowIO::importPSMsFromArrow grouping (finding #20):
+  // PSM rows must be grouped into PeptideIdentifications by their P_ID VALUE, not by
+  // row adjacency. An externally sorted/filtered Parquet file can interleave rows of
+  // different P_IDs; the buggy adjacency-based grouping split each interleaved
+  // PeptideIdentification into several single-hit PeptideIdentifications.
+
+  // === Build a FeatureMap with 2 features, each with one 2-hit PeptideIdentification ===
+  FeatureMap fm_in;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_ilv");
+  prot_id.setScoreType("TestScore");
+  prot_id.setHigherScoreBetter(true);
+  fm_in.getProteinIdentifications().push_back(prot_id);
+
+  auto make_feature = [](UInt64 uid, double rt, double mz, const std::string& seqA,
+                         double scoreA, const std::string& seqB, double scoreB) -> Feature
+  {
+    Feature f;
+    f.setRT(rt);
+    f.setMZ(mz);
+    f.setIntensity(1000.0f);
+    f.setCharge(2);
+    f.setUniqueId(uid);
+
+    PeptideIdentification pep_id;
+    pep_id.setIdentifier("run_ilv");
+    pep_id.setScoreType("TestScore");
+    pep_id.setHigherScoreBetter(true);
+    pep_id.setRT(rt);
+    pep_id.setMZ(mz);
+
+    PeptideHit h1;
+    h1.setSequence(AASequence::fromString(seqA));
+    h1.setScore(scoreA);
+    h1.setCharge(2);
+    pep_id.getHits().push_back(h1);
+
+    PeptideHit h2;
+    h2.setSequence(AASequence::fromString(seqB));
+    h2.setScore(scoreB);
+    h2.setCharge(2);
+    pep_id.getHits().push_back(h2);
+
+    f.getPeptideIdentifications().push_back(pep_id);
+    return f;
+  };
+
+  fm_in.push_back(make_feature(9001, 100.0, 500.0, "PEPTIDER", 0.95, "PEPTIDEK", 0.80));
+  fm_in.push_back(make_feature(9002, 200.0, 600.0, "ACDEFGHIK", 0.90, "ACDEFGHIR", 0.70));
+
+  // === Export PSMs: 2 pep-ids x 2 hits = 4 rows ===
+  // Row layout: [0]=f9001 hit0 (P_ID 0), [1]=f9001 hit1 (P_ID 0),
+  //             [2]=f9002 hit0 (P_ID 1), [3]=f9002 hit1 (P_ID 1)
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in);
+  TEST_NOT_EQUAL(psm_table, nullptr)
+  TEST_EQUAL(psm_table->num_rows(), 4)
+
+  // === Permute rows into interleaved P_ID order {0, 2, 1, 3} ===
+  // Result P_ID sequence becomes 0, 1, 0, 1 -- the adjacency-based grouping would
+  // create four single-hit PeptideIdentifications; grouping by value keeps two 2-hit
+  // PeptideIdentifications. Built by concatenating single-row table slices (equivalent
+  // to arrow::compute::Take with indices {0,2,1,3}, without the compute dependency).
+  auto interleaved_result = arrow::ConcatenateTables({
+    psm_table->Slice(0, 1),
+    psm_table->Slice(2, 1),
+    psm_table->Slice(1, 1),
+    psm_table->Slice(3, 1)});
+  TEST_TRUE(interleaved_result.ok())
+  auto interleaved = *interleaved_result;
+  TEST_EQUAL(interleaved->num_rows(), 4)
+
+  // === Import into a fresh FeatureMap whose 2 features carry the matching unique ids ===
+  FeatureMap fm_out;
+  fm_out.setProteinIdentifications(fm_in.getProteinIdentifications());
+  Feature of1;
+  of1.setUniqueId(9001);
+  Feature of2;
+  of2.setUniqueId(9002);
+  fm_out.push_back(of1);
+  fm_out.push_back(of2);
+
+  bool ok = FeatureMapArrowIO::importPSMsFromArrow(interleaved, fm_out);
+  TEST_EQUAL(ok, true)
+
+  // === Each feature must receive exactly ONE PeptideIdentification with TWO hits ===
+  // (buggy adjacency grouping yields two 1-hit PeptideIdentifications per feature).
+  TEST_EQUAL(fm_out.size(), 2)
+  TEST_EQUAL(fm_out[0].getUniqueId(), 9001)
+  TEST_EQUAL(fm_out[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(fm_out[0].getPeptideIdentifications()[0].getHits().size(), 2)
+
+  TEST_EQUAL(fm_out[1].getUniqueId(), 9002)
+  TEST_EQUAL(fm_out[1].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(fm_out[1].getPeptideIdentifications()[0].getHits().size(), 2)
 }
 END_SECTION
 
@@ -1328,6 +1464,284 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
   // The store-side check fires before any Arrow builder is allocated, so no
   // partial .featureparquet exists on disk after the throw.
   TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(fm, tmp_dir))
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  FeatureMap fmap;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0f);
+  fmap.push_back(f);
+
+  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_fmio";
+  TEST_TRUE(File::makeDir(dir))
+
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fmap, dir))
+  TEST_TRUE(File::exists(dir + "/features.parquet"))
+  File::remove(dir + "/features.parquet");
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform. This is the FIRST file of the collection,
+  // so nothing else has been written yet - collection-level atomicity is a separate concern.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  TEST_FALSE(FeatureMapArrowIO::exportToParquet(fmap, dir, no_row_group))
+  TEST_FALSE(File::exists(dir + "/features.parquet"))
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Checkpoint fidelity
+//
+// A .featureParquet directory is used as a checkpoint: written by one run of a
+// tool and read back by another, in place of recomputing it. That is a stricter
+// contract than "a reader that copes with what it is given", and these sections
+// pin the parts of it that a lenient reader would otherwise paper over.
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] exportToParquet / importFromParquet - the map level unique id survives))
+{
+  FeatureMap fm;
+  fm.setUniqueId(1234567890123ULL);
+
+  Feature f;
+  f.setRT(10.0);
+  f.setMZ(500.0);
+  f.setIntensity(100.0f);
+  f.setCharge(2);
+  f.setUniqueId(42);
+  fm.push_back(f);
+
+  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_fmuid";
+  TEST_TRUE(File::makeDir(dir))
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+
+  // Distinct from the per-feature unique ids and from DocumentIdentifier. ProteomicsLFQ copies
+  // it into the consensus column header of the run it belongs to, so losing it annotates every
+  // run with 0 - and the TOPP consensusXML diffs whitelist "map id=", so nothing downstream
+  // would report it either.
+  TEST_EQUAL(in.getUniqueId(), 1234567890123ULL)
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importPSMsFromArrow - a PSM naming an unknown feature is rejected))
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run_dangling");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+
+  // A PSM table whose rows reference feature unique id 5001 ...
+  FeatureMap src;
+  src.setProteinIdentifications({prot});
+  Feature f;
+  f.setRT(1.0);
+  f.setMZ(2.0);
+  f.setIntensity(3.0f);
+  f.setCharge(2);
+  f.setUniqueId(5001);
+  PeptideIdentification pid;
+  pid.setIdentifier("run_dangling");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDER"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  pid.insertHit(hit);
+  f.setPeptideIdentifications({pid});
+  src.push_back(f);
+
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(src);
+  TEST_EQUAL(psm_table == nullptr, false)
+
+  // ... imported into a map that contains no such feature.
+  FeatureMap target;
+  target.setProteinIdentifications({prot});
+  Feature other;
+  other.setRT(1.0);
+  other.setMZ(2.0);
+  other.setIntensity(3.0f);
+  other.setCharge(2);
+  other.setUniqueId(9999);
+  target.push_back(other);
+
+  // Quietly re-filing the PSM as unassigned would move it across the attached/unassigned
+  // partition. That partition is not bookkeeping: FDR is estimated over both lists together and
+  // every exporter reports them separately, so a reader that repairs the link reports a
+  // different experiment from the one that was written. Refuse the input instead.
+  TEST_FALSE(FeatureMapArrowIO::importPSMsFromArrow(psm_table, target))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-shaped map round-trips))
+{
+  // The shape FeatureFinderIdentification leaves behind once ProteomicsLFQ has stripped meta
+  // values, cleared subordinates and convex hulls, and run IDConflictResolver: few fields, but
+  // every one of them is load-bearing somewhere downstream.
+  FeatureMap fm;
+  fm.setUniqueId(987654321ULL);
+  fm.setPrimaryMSRunPath({"BSA1_F1.mzML"});
+
+  ProteinIdentification prot;
+  prot.setIdentifier("SimpleSearchEngine_1_1F1"); // <engine>_<fraction_group>F<fraction>
+  prot.setSearchEngine("SimpleSearchEngine");
+  prot.setScoreType("Posterior Error Probability");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath({"BSA1_F1.mzML"});
+  prot.setMetaValue("fraction", 1);
+  prot.setMetaValue("fraction_group", 1);
+
+  ProteinIdentification::SearchParameters sp;
+  sp.db = "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta";
+  sp.fixed_modifications = {"Carbamidomethyl (C)"};
+  sp.variable_modifications = {"Oxidation (M)"};
+  prot.setSearchParameters(sp);
+
+  // computeCoverage needs the sequence PeptideIndexing wrote; a checkpoint is the only place
+  // the combining step could still get it from, since it never reads the FASTA.
+  ProteinHit prot_hit;
+  prot_hit.setAccession("P02769");
+  prot_hit.setSequence("MKWVTFISLLLLFSSAYSRGVFRR");
+  prot_hit.setDescription("Serum albumin OS=Bos taurus");
+  prot_hit.setScore(0.99);
+  prot.insertHit(prot_hit);
+  fm.setProteinIdentifications({prot});
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("LVNELTEFAK"));
+  hit.setCharge(2);
+  hit.setScore(0.001);
+  hit.setMetaValue("target_decoy", "target");
+  hit.setMetaValue("MS:1002252_score", 1.75);
+  hit.setMetaValue("q-value", 0.004);
+  PeptideEvidence ev;
+  ev.setProteinAccession("P02769");
+  hit.addPeptideEvidence(ev);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("SimpleSearchEngine_1_1F1");
+  pid.setScoreType("Posterior Error Probability");
+  pid.setHigherScoreBetter(false);
+  pid.setRT(1234.5);
+  pid.setMZ(582.3195);
+  pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=1234");
+  pid.insertHit(hit);
+
+  Feature feat;
+  feat.setRT(1234.5);
+  feat.setMZ(582.3195);
+  feat.setIntensity(123456.0f);
+  feat.setCharge(2);
+  feat.setOverallQuality(0.87f);
+  feat.setUniqueId(777);
+  feat.setMetaValue("IM_median", 0.8123);
+  feat.setMetaValue("masserror_ppm", -1.25);
+  feat.setMetaValue("pipecho_obs_envelope", DoubleList({100.0, 55.5, 20.25}));
+  feat.setPeptideIdentifications({pid});
+  fm.push_back(feat);
+
+  // An identification not attached to any feature. FDR is estimated over this list together
+  // with the attached ones, so which list a PSM is in is part of the result.
+  PeptideHit un_hit;
+  un_hit.setSequence(AASequence::fromString("DAFLGSFLYEYSR"));
+  un_hit.setCharge(2);
+  un_hit.setScore(0.02);
+  un_hit.setMetaValue("target_decoy", "target");
+  PeptideIdentification un_pid;
+  un_pid.setIdentifier("SimpleSearchEngine_1_1F1");
+  un_pid.setScoreType("Posterior Error Probability");
+  un_pid.setHigherScoreBetter(false);
+  un_pid.setRT(999.0);
+  un_pid.setMZ(784.3);
+  un_pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=999");
+  un_pid.insertHit(un_hit);
+  fm.setUnassignedPeptideIdentifications({un_pid});
+
+  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_plfq";
+  TEST_TRUE(File::makeDir(dir))
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+
+  // --- map level ---
+  TEST_EQUAL(in.getUniqueId(), 987654321ULL)
+  StringList run_path;
+  in.getPrimaryMSRunPath(run_path);
+  TEST_EQUAL(run_path.size(), 1)
+  TEST_EQUAL(run_path[0], "BSA1_F1.mzML")
+
+  // --- the partition ---
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+
+  // --- feature, typed columns are exact ---
+  TEST_REAL_SIMILAR(in[0].getRT(), 1234.5)
+  TEST_REAL_SIMILAR(in[0].getMZ(), 582.3195)
+  TEST_REAL_SIMILAR(in[0].getIntensity(), 123456.0)
+  TEST_EQUAL(in[0].getCharge(), 2)
+  TEST_REAL_SIMILAR(in[0].getOverallQuality(), 0.87)
+
+  // --- the feature meta values ProteomicsLFQ deliberately keeps ---
+  TEST_EQUAL(in[0].metaValueExists("IM_median"), true)
+  TEST_REAL_SIMILAR((double)in[0].getMetaValue("IM_median"), 0.8123)
+  TEST_EQUAL(in[0].metaValueExists("masserror_ppm"), true)
+  TEST_REAL_SIMILAR((double)in[0].getMetaValue("masserror_ppm"), -1.25)
+  TEST_EQUAL(in[0].metaValueExists("pipecho_obs_envelope"), true)
+  TEST_EQUAL(in[0].getMetaValue("pipecho_obs_envelope").valueType(), DataValue::DOUBLE_LIST)
+  TEST_EQUAL(in[0].getMetaValue("pipecho_obs_envelope") == DataValue(DoubleList({100.0, 55.5, 20.25})), true)
+
+  // --- attached PSM ---
+  const PeptideIdentification& in_pid = in[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(in_pid.getScoreType(), "Posterior Error Probability")
+  TEST_EQUAL(in_pid.isHigherScoreBetter(), false)
+  TEST_EQUAL(in_pid.getSpectrumReference(), "controllerType=0 controllerNumber=1 scan=1234")
+  TEST_EQUAL(in_pid.getHits().size(), 1)
+  const PeptideHit& in_hit = in_pid.getHits()[0];
+  TEST_EQUAL(in_hit.getSequence().toString(), "LVNELTEFAK")
+  TEST_EQUAL(in_hit.getCharge(), 2)
+  TEST_REAL_SIMILAR(in_hit.getScore(), 0.001)
+  TEST_EQUAL(in_hit.getMetaValue("target_decoy").toString(), "target")
+  TEST_EQUAL(in_hit.metaValueExists("MS:1002252_score"), true)
+  TEST_EQUAL(in_hit.metaValueExists("q-value"), true)
+  TEST_EQUAL(in_hit.getPeptideEvidences().size(), 1)
+  TEST_EQUAL(in_hit.getPeptideEvidences()[0].getProteinAccession(), "P02769")
+
+  // --- unassigned PSM stayed unassigned ---
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "DAFLGSFLYEYSR")
+
+  // --- protein run: sequence and description feed computeCoverage on the combining side ---
+  TEST_EQUAL(in.getProteinIdentifications().size(), 1)
+  const ProteinIdentification& in_prot = in.getProteinIdentifications()[0];
+  TEST_EQUAL(in_prot.getHits().size(), 1)
+  TEST_EQUAL(in_prot.getHits()[0].getAccession(), "P02769")
+  TEST_EQUAL(in_prot.getHits()[0].getSequence(), "MKWVTFISLLLLFSSAYSRGVFRR")
+  TEST_EQUAL(in_prot.getHits()[0].getDescription(), "Serum albumin OS=Bos taurus")
+  TEST_EQUAL(in_prot.getSearchParameters().db, "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta")
+  TEST_EQUAL(in_prot.getSearchParameters().fixed_modifications.size(), 1)
+  TEST_EQUAL(in_prot.getSearchParameters().fixed_modifications[0], "Carbamidomethyl (C)")
+  TEST_EQUAL(in_prot.getSearchParameters().variable_modifications[0], "Oxidation (M)")
+
+  // The run identifier is deliberately re-synthesized on import, so it is not asserted here;
+  // a checkpoint must carry the canonical one itself and re-stamp it after loading.
+  TEST_EQUAL(in_prot.getIdentifier() == in_pid.getIdentifier(), true)
+
+  File::removeDirRecursively(dir);
 }
 END_SECTION
 

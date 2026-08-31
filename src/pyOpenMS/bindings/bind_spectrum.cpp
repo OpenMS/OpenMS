@@ -14,7 +14,11 @@
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
+
+#include <algorithm>   // std::copy in installIonMobilityArray
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -22,6 +26,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include "binding_utils.h"
+#include "peak_layout.h"
 #include <iomanip>
 #include <sstream>
 
@@ -44,18 +49,117 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-NB_MODULE(_pyopenms_spectrum, m) {
-    m.doc() = "pyOpenMS spectrum bindings";
+// Build the ion mobility float data array for `n` peaks. Nothing is installed here, so an
+// unsupported unit (IMDataConverter::setIMUnit only names MILLISECOND and VSSC in the PSI CV,
+// and throws otherwise) leaves the spectrum untouched.
+inline OpenMS::DataArrays::FloatDataArray makeIonMobilityArray(nb::object values, size_t n,
+                                                               OpenMS::DriftTimeUnit unit) {
+    auto arr = as_numpy_array<float>(values);
+    if (arr.shape(0) != n) {
+        throw std::runtime_error("ion mobility array has " + std::to_string(arr.shape(0)) +
+                                 " entries but the spectrum has " + std::to_string(n) +
+                                 " peaks; the two must be the same length");
+    }
+    OpenMS::DataArrays::FloatDataArray fda;
+    const float* ptr = static_cast<const float*>(arr.data());
+    fda.assign(ptr, ptr + n);
+    // names the array from the PSI-MS CV rather than a hardcoded string, which is what makes the
+    // unit discoverable again through containsIMData()/getIMData()
+    OpenMS::IMDataConverter::setIMUnit(fda, unit);
+    return fda;
+}
 
-    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
-    static_assert(std::is_standard_layout_v<OpenMS::Peak1D>,
-        "Peak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
-    static_assert(sizeof(OpenMS::Peak1D) == 16,
-        "Peak1D must be 16 bytes for zero-copy structured array access");
-    static_assert(std::is_same_v<OpenMS::Peak1D::CoordinateType, double>,
-        "Peak1D::CoordinateType must be double (dtype assumes float64 for position)");
-    static_assert(std::is_same_v<OpenMS::Peak1D::IntensityType, float>,
-        "Peak1D::IntensityType must be float (dtype assumes float32 for intensity)");
+// Replace the existing ion mobility array, or append one if there is none. The index is resolved
+// here rather than passed in, because a preceding metadata='clear' may have dropped arrays and
+// shifted it.
+inline void installIonMobilityArray(OpenMS::MSSpectrum& self, OpenMS::DataArrays::FloatDataArray fda) {
+    if (!self.containsIMData()) {
+        self.getFloatDataArrays().push_back(std::move(fda));
+        return;
+    }
+    auto& dest = self.getFloatDataArrays()[self.getIMData().first];
+    // Move-assigning a FloatDataArray deallocates the destination's float buffer -- the class
+    // derives from std::vector<float> -- which dangles any zero-copy view a caller already holds.
+    // drift_time_array_view() and FloatDataArray.data_view() both capture arr.data() and
+    // keep only the owning Python object alive, not the buffer, so they cannot notice the free.
+    // When the replacement is the same length the buffer can be reused, which keeps those views
+    // valid and simply lets them observe the new values.
+    if (dest.size() == fda.size()) {
+        std::copy(fda.begin(), fda.end(), dest.begin());
+        // replace the metadata as the move-assignment did, without touching the float storage
+        static_cast<OpenMS::MetaInfoDescription&>(dest) =
+            std::move(static_cast<OpenMS::MetaInfoDescription&>(fda));
+    } else {
+        // the array changes length, so its storage must be replaced; views into it cannot survive
+        dest = std::move(fda);
+    }
+}
+
+// Which float array would set_peaks(..., ion_mobility=...) overwrite? Used to exempt it from the
+// alignment check: its current length cannot strand anything, since it is about to be replaced.
+inline std::optional<size_t> replacedIonMobilityIndex(const OpenMS::MSSpectrum& self, bool replacing) {
+    if (!replacing || !self.containsIMData()) return std::nullopt;
+    return self.getIMData().first;
+}
+
+// Resolve the unit for an incoming ion mobility array: explicit argument wins, otherwise inherit
+// the unit already on the spectrum so that editing peaks in place needs no unit argument.
+inline OpenMS::DriftTimeUnit resolveIonMobilityUnit(const OpenMS::MSSpectrum& self, OpenMS::DriftTimeUnit unit) {
+    if (unit != OpenMS::DriftTimeUnit::NONE) return unit;
+    if (self.containsIMData()) return self.getIMData().second;
+    throw std::invalid_argument("ion_mobility_unit is required: the spectrum has no ion mobility array "
+                                "to inherit the unit from. Pass e.g. "
+                                "ion_mobility_unit=DriftTimeUnit.VSSC for 1/K0 or "
+                                "DriftTimeUnit.MILLISECOND for drift time.");
+}
+
+// Shared body of both set_peaks() overloads, which differ only in how they get hold of the two
+// arrays. Keeping it in one place matters because the order of the steps encodes the fix this
+// binding exists for -- see writePeaksWithPolicy() -- and a change applied to one overload but
+// not the other would silently reinstate the bug in the spelling nobody edited.
+inline void setSpectrumPeaks(OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj,
+                             PeakMetadataPolicy policy, nb::object ion_mobility,
+                             OpenMS::DriftTimeUnit ion_mobility_unit) {
+    const bool with_im = !ion_mobility.is_none();
+    // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
+    // mz is double, intensity is float matching Peak1D storage
+    auto mz_arr = as_numpy_array<double>(mz_obj);
+    auto int_arr = as_numpy_array<float>(int_obj);
+    const size_t n = mz_arr.shape(0);
+    if (int_arr.shape(0) != n) {
+        throw std::runtime_error("mz and intensity arrays must have same length");
+    }
+    // built before anything is modified, so a bad length or unit is a no-op too
+    std::optional<OpenMS::DataArrays::FloatDataArray> im_array;
+    if (with_im) {
+        im_array = makeIonMobilityArray(ion_mobility, n, resolveIonMobilityUnit(self, ion_mobility_unit));
+    }
+
+    const double* mz_ptr = static_cast<const double*>(mz_arr.data());
+    const float* int_ptr = static_cast<const float*>(int_arr.data());
+    writePeaksWithPolicy(self, n, policy, "spectrum",
+                         [mz_ptr, int_ptr](OpenMS::MSSpectrum& spec, size_t count) {
+                             for (size_t i = 0; i < count; ++i) {
+                                 spec[i].setMZ(mz_ptr[i]);
+                                 spec[i].setIntensity(int_ptr[i]);
+                             }
+                         },
+                         replacedIonMobilityIndex(self, with_im));
+
+    if (im_array) installIonMobilityArray(self, std::move(*im_array));
+}
+
+// ABI guards for zero-copy structured array access (peaks_struct dtype depends on these).
+// The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
+// is refactored away; it also restates the offsets peaks_struct publishes to Python.
+using Peak1DLayout = pyopenms::PeakLayout<OpenMS::Peak1D>;
+static_assert(Peak1DLayout::position_offset == 0 && Peak1DLayout::intensity_offset == 8,
+    "Peak1D's structured dtype is documented as mz (float64) at 0, intensity (float32) at 8");
+
+NB_MODULE(_pyopenms_spectrum, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSSpectrum>(m, "_MSSpectrumIter");
+    m.doc() = "pyOpenMS spectrum bindings";
 
     // -----------------------------------------------------------------------
     // MSSpectrum
@@ -67,7 +171,7 @@ RangeManagerMzInt
 
 The representation of a 1D spectrum.
 Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-Iterations yields access to underlying peak objects but is slower
+Indexing and iteration yield copies of the peaks; write changes back with spec[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 See help(SpectrumSettings) for information about meta-information
 Usage:
@@ -153,26 +257,65 @@ Usage:
         .def("setNativeID", [](OpenMS::MSSpectrum& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
         .def("getComment", [](const OpenMS::MSSpectrum& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::MSSpectrum& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
+        // Pythonic snake_case properties over the scalar getters/setters (issue #9760).
+        // Additive: the getX()/setX() methods are unchanged. Only clean, no-arg scalar
+        // get/set pairs are exposed; container accessors (getPrecursors, ...) and
+        // argument-taking accessors (getType(query_data)) stay as methods.
+        .def_prop_rw("rt",
+            [](const OpenMS::MSSpectrum& self) { return self.getRT(); },
+            [](OpenMS::MSSpectrum& self, double v) { self.setRT(v); },
+            "The absolute retention time (in seconds)")
+        .def_prop_rw("ms_level",
+            [](const OpenMS::MSSpectrum& self) { return self.getMSLevel(); },
+            [](OpenMS::MSSpectrum& self, unsigned int v) { self.setMSLevel(v); },
+            "The MS level")
+        .def_prop_rw("drift_time",
+            [](const OpenMS::MSSpectrum& self) { return self.getDriftTime(); },
+            [](OpenMS::MSSpectrum& self, double v) { self.setDriftTime(v); },
+            "The drift time (-1 if not set)")
+        .def_prop_rw("drift_time_unit",
+            [](const OpenMS::MSSpectrum& self) { return self.getDriftTimeUnit(); },
+            [](OpenMS::MSSpectrum& self, OpenMS::DriftTimeUnit v) { self.setDriftTimeUnit(v); },
+            "The ion mobility drift time unit")
+        .def_prop_rw("name",
+            [](const OpenMS::MSSpectrum& self) { return self.getName(); },
+            [](OpenMS::MSSpectrum& self, const std::string& v) { self.setName(v); },
+            "The name of the spectrum")
+        .def_prop_rw("comment",
+            [](const OpenMS::MSSpectrum& self) { return self.getComment(); },
+            [](OpenMS::MSSpectrum& self, const std::string& v) { self.setComment(v); },
+            "The free-text comment")
+        .def_prop_rw("native_id",
+            [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); },
+            [](OpenMS::MSSpectrum& self, const std::string& v) { self.setNativeID(v); },
+            "The native identifier for the spectrum, used by the acquisition software")
+        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns a copy of the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::MSSpectrum& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
+        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns a copy of the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::MSSpectrum& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> const OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns a const reference to the source file")
+        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns a copy of the source file")
         .def("setSourceFile", [](OpenMS::MSSpectrum& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursors", [](const OpenMS::MSSpectrum& self) -> const std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal, "Returns a const reference to the precursors")
+        .def("getPrecursors", [](const OpenMS::MSSpectrum& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); }, "Returns a copy of the precursors")
         .def("setPrecursors", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Precursor>& precursors) { return self.setPrecursors(precursors); }, "precursors"_a, "Sets the precursors")
-        .def("getProducts", [](const OpenMS::MSSpectrum& self) -> const std::vector<OpenMS::Product> & { return self.getProducts(); }, nb::rv_policy::reference_internal, "Returns a const reference to the products")
+        .def("getProducts", [](const OpenMS::MSSpectrum& self) -> std::vector<OpenMS::Product> { return self.getProducts(); }, "Returns a copy of the products")
         .def("setProducts", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Product>& products) { return self.setProducts(products); }, "products"_a, "Sets the products")
         .def("setDataProcessing", [](OpenMS::MSSpectrum& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
-        .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
+        .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); })
 
-        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSSpectrum>(), "MSSpectrum_iter", self.begin(), self.end()); })
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSSpectrum>(self); })
         .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
 
         .def("getIMData", [](const OpenMS::MSSpectrum& self) {
-            auto result = self.getIMData();
-            return nb::make_tuple((int)result.first, (int)result.second);
-        }, "Returns (index, drift_time_unit) for ion mobility data")
+            // the unit is returned as DriftTimeUnit rather than a bare int: casting it away made
+            // the array's own unit the only one not reachable as an enum, which is why callers
+            // reached for the unrelated scalar getDriftTimeUnit() instead
+            const auto [im_index, im_unit] = self.getIMData();
+            return nb::make_tuple(im_index, im_unit);
+        }, R"doc(Returns (index, unit) for the per-peak ion mobility array.
+
+``index`` indexes ``getFloatDataArrays()`` and ``unit`` is a ``DriftTimeUnit`` derived from that
+array's name. Raises if the spectrum has no ion mobility array; use ``containsIMData()`` first.
+)doc")
 
         .def("_get_peaks_view", [](nb::object self_obj) {
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
@@ -193,19 +336,17 @@ Usage:
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying Peak1D array (AoS layout).")
 
-        .def("get_peaks_struct",
+        .def("peaks_struct",
             [](nb::object self_obj) -> nb::object {
                 auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
                 nb::dict dtype_dict;
-                // Derive dtype from C++ layout (validated by static_asserts at module init)
-                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
-                constexpr size_t int_offset = sizeof(OpenMS::Peak1D::PositionType);
+                // Offsets are read off the C++ layout, not reconstructed from it
                 dtype_dict["names"] = nb::make_tuple("mz", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
-                dtype_dict["itemsize"] = sizeof(OpenMS::Peak1D);
+                dtype_dict["offsets"] = nb::make_tuple(Peak1DLayout::position_offset, Peak1DLayout::intensity_offset);
+                dtype_dict["itemsize"] = Peak1DLayout::itemsize;
                 auto py_dtype = np.attr("dtype")(dtype_dict);
                 if (n == 0) {
                     return np.attr("empty")(0, py_dtype);
@@ -241,41 +382,34 @@ Usage:
             return nb::make_tuple(mz_arr, int_arr);
         }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")
 
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
-            // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
-            // mz is double, intensity is float matching Peak1D storage
-            auto mz_arr = as_numpy_array<double>(mz_obj);
-            auto int_arr = as_numpy_array<float>(int_obj);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj, const std::string& metadata,
+                             nb::object ion_mobility, OpenMS::DriftTimeUnit ion_mobility_unit) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
             }
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq) {
+            setSpectrumPeaks(self, mz_obj, int_obj, parsePeakMetadataPolicy(metadata),
+                             ion_mobility, ion_mobility_unit);
+        }, "mz"_a, "intensity"_a, "metadata"_a = "error", "ion_mobility"_a = nb::none(),
+           "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
+           "Set peaks from mz and intensity arrays" PYOPENMS_SET_PEAKS_METADATA_DOC
+           PYOPENMS_SET_PEAKS_IM_DOC)
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq, const std::string& metadata,
+                             nb::object ion_mobility, OpenMS::DriftTimeUnit ion_mobility_unit) {
+            // policy parsed before the shape check so that a bad policy is reported at the same
+            // point as in the two-array overload
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
-            auto mz_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
-            }
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from a tuple of (mz_array, intensity_array)")
+            setSpectrumPeaks(self, peaks_seq[0], peaks_seq[1], policy, ion_mobility, ion_mobility_unit);
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error", "ion_mobility"_a = nb::none(),
+           "ion_mobility_unit"_a = OpenMS::DriftTimeUnit::NONE,
+           "Set peaks from a tuple of (mz_array, intensity_array)" PYOPENMS_SET_PEAKS_METADATA_DOC
+           PYOPENMS_SET_PEAKS_IM_DOC)
 
         .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
             self.push_back(p);
@@ -333,7 +467,7 @@ Usage:
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns drift time array if ion mobility data exists, else None")
 
-        .def("get_drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+        .def("drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
             // Writable zero-copy view into the IM float data array
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
@@ -345,34 +479,82 @@ Usage:
             );
         }, "Returns writable view of drift time array if ion mobility data exists, else None")
 
-        .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
+        .def("set_drift_time_array", [](OpenMS::MSSpectrum& self, nb::object values, OpenMS::DriftTimeUnit unit) {
+            // build first, install second: a wrong length or an unsupported unit must not leave
+            // the spectrum half-modified
+            auto fda = makeIonMobilityArray(values, self.size(), resolveIonMobilityUnit(self, unit));
+            installIonMobilityArray(self, std::move(fda));
+        }, "values"_a, "unit"_a = OpenMS::DriftTimeUnit::NONE,
+           R"doc(Set the per-peak ion mobility array, replacing any existing one.
+
+``values`` must have one entry per peak. ``unit`` names the array through the PSI-MS controlled
+vocabulary, which is what makes it discoverable again through ``containsIMData()`` and
+``getIMData()``; only ``DriftTimeUnit.MILLISECOND`` (drift time) and ``DriftTimeUnit.VSSC``
+(1/K0) have a CV term for this and anything else is rejected. ``unit`` may be omitted only when
+the spectrum already carries an ion mobility array, whose unit is then reused.
+
+This does not touch ``setDriftTime()``/``setDriftTimeUnit()``, which describe a whole spectrum
+acquired at one drift time rather than a per-peak annotation; a frame carrying an ion mobility
+array leaves those unset, matching what IMDataConverter produces.
+)doc")
+
+        .def("_float_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getFloatDataArrays().size(); })
+        .def("float_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::FloatDataArray& {
+            if (i >= self.getFloatDataArrays().size()) throw nb::index_error();
+            return self.getFloatDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the float data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFloatDataArrays()[i].")
+        .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray> {
             return self.getFloatDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the float data arrays")
+        }, "Returns the float data arrays")
 
         .def("setFloatDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::FloatDataArray>& arrays) {
             self.setFloatDataArrays(arrays);
         }, "arrays"_a, "Set the float data arrays")
 
-        .def("getIntegerDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray>& {
+        .def("_integer_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getIntegerDataArrays().size(); })
+        .def("integer_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::IntegerDataArray& {
+            if (i >= self.getIntegerDataArrays().size()) throw nb::index_error();
+            return self.getIntegerDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the integer data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getIntegerDataArrays()[i].")
+        .def("getIntegerDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray> {
             return self.getIntegerDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the integer data arrays")
+        }, "Returns the integer data arrays")
 
         .def("setIntegerDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::IntegerDataArray>& arrays) {
             self.setIntegerDataArrays(arrays);
         }, "arrays"_a, "Set the integer data arrays")
 
-        .def("getStringDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::StringDataArray>& {
+        .def("_string_data_array_count", [](const OpenMS::MSSpectrum& self) { return self.getStringDataArrays().size(); })
+        .def("string_data_array_view", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::DataArrays::StringDataArray& {
+            if (i >= self.getStringDataArrays().size()) throw nb::index_error();
+            return self.getStringDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the string data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getStringDataArrays()[i].")
+        .def("getStringDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::StringDataArray> {
             return self.getStringDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the string data arrays")
+        }, "Returns the string data arrays")
 
         .def("setStringDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
             self.setStringDataArrays(arrays);
         }, "arrays"_a, "Set the string data arrays")
 
-        .def("get_drift_time_unit", [](const OpenMS::MSSpectrum& self) -> std::optional<OpenMS::DriftTimeUnit> {
+        .def("get_drift_time_array_unit", [](const OpenMS::MSSpectrum& self) -> std::optional<OpenMS::DriftTimeUnit> {
             if (!self.containsIMData()) return std::nullopt;
-            return self.getDriftTimeUnit();
-        }, "Returns drift time unit if ion mobility data exists, else None")
+            return self.getIMData().second;
+        }, R"doc(Returns the unit of the per-peak ion mobility array, or None if there is none.
+
+This belongs to the ``get_drift_time_array()`` family and reports the unit derived from that
+array's name. It is unrelated to ``getDriftTimeUnit()`` / the ``drift_time_unit`` property, which
+report the spectrum-wide scalar for a spectrum acquired at a single drift time; a spectrum may
+carry either or, on some vendor readers, both.
+
+``None`` means there is no ion mobility array at all. ``DriftTimeUnit.NONE`` is different: an
+array was found but its name did not pin down a unit.
+)doc")
+        // The former spelling, get_drift_time_unit(), lives on as a deprecated alias in
+        // addons/deprecated_aliases.py, matching how the _mv -> _view renames are handled.
 
         .def("calculateTIC", [](const OpenMS::MSSpectrum& self) -> double {
             return static_cast<double>(self.calculateTIC());

@@ -13,21 +13,98 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
+
+// Helpers for the merged-run sections below.
+namespace
+{
+  std::shared_ptr<arrow::Table> readQPXParquet(const std::string& path)
+  {
+    arrow::MemoryPool* pool = arrow::default_memory_pool();
+    auto o = arrow::io::ReadableFile::Open(path.c_str());
+    if (!o.ok()) { return nullptr; }
+    auto rr = parquet::arrow::OpenFile(o.ValueOrDie(), pool);
+    if (!rr.ok()) { return nullptr; }
+    auto rd = std::move(rr).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!rd->ReadTable(&t).ok()) { return nullptr; }
+    auto c = t->CombineChunks(pool);
+    return c.ok() ? c.ValueOrDie() : nullptr;
+  }
+
+  /// One ProteinIdentification whose 'spectra_data' lists @p paths - the shape a merged run has.
+  std::vector<ProteinIdentification> mergedRun(const StringList& paths)
+  {
+    std::vector<ProteinIdentification> prot(1);
+    prot[0].setIdentifier("merged");
+    prot[0].setScoreType("q-value");
+    prot[0].setHigherScoreBetter(false);
+    prot[0].setPrimaryMSRunPath(paths);
+    return prot;
+  }
+
+  /// A PSM belonging to run "merged". Pass a negative @p merge_index to omit the metavalue.
+  PeptideIdentification mergedPSM(const std::string& sequence, int merge_index, bool set_index = true)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("merged");
+    pid.setRT(42.0);
+    pid.setMZ(555.5);
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
+    pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=17");
+    if (set_index) { pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, merge_index); }
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    hit.setScore(0.001);
+    pid.setHits(vector<PeptideHit>{hit});
+    return pid;
+  }
+
+  std::vector<const PeptideIdentification*> ptrsOf(const PeptideIdentificationList& peps)
+  {
+    std::vector<const PeptideIdentification*> ptrs;
+    ptrs.reserve(peps.size());
+    for (const auto& p : peps) { ptrs.push_back(&p); }
+    return ptrs;
+  }
+
+  std::shared_ptr<arrow::Table> replaceColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    const std::shared_ptr<arrow::Array>& values)
+  {
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = table->columns();
+    columns.at(static_cast<size_t>(table->schema()->GetFieldIndex(name))) =
+      std::make_shared<arrow::ChunkedArray>(values);
+    return arrow::Table::Make(table->schema(), std::move(columns));
+  }
+}
 
 START_TEST(QPXFile, "$Id$")
 
@@ -97,44 +174,49 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
   // Verify number of rows (should equal number of peptide identifications, not hits)
   TEST_EQUAL(table->num_rows(), 3)
 
-  // Verify schema column names and count (24 columns in QPXPSMSchema)
+  // Verify schema column names and count (26 columns in QPXPSMSchema)
   auto schema = table->schema();
-  TEST_EQUAL(table->num_columns(), 24)
+  TEST_EQUAL(table->num_columns(), 26)
 
-  TEST_EQUAL(schema->field(0)->name(), "sequence")
-  TEST_EQUAL(schema->field(1)->name(), "peptidoform")
-  TEST_EQUAL(schema->field(2)->name(), "modifications")
-  TEST_EQUAL(schema->field(3)->name(), "charge")
-  TEST_EQUAL(schema->field(4)->name(), "posterior_error_probability")
-  TEST_EQUAL(schema->field(5)->name(), "is_decoy")
-  TEST_EQUAL(schema->field(6)->name(), "calculated_mz")
-  TEST_EQUAL(schema->field(7)->name(), "observed_mz")
-  TEST_EQUAL(schema->field(8)->name(), "mass_error_ppm")
-  TEST_EQUAL(schema->field(9)->name(), "additional_scores")
-  TEST_EQUAL(schema->field(10)->name(), "predicted_rt")
-  TEST_EQUAL(schema->field(11)->name(), "run_file_name")
-  TEST_EQUAL(schema->field(12)->name(), "cv_params")
-  TEST_EQUAL(schema->field(13)->name(), "scan")
-  TEST_EQUAL(schema->field(14)->name(), "rt")
-  TEST_EQUAL(schema->field(15)->name(), "ion_mobility")
-  TEST_EQUAL(schema->field(16)->name(), "missed_cleavages")
-  TEST_EQUAL(schema->field(17)->name(), "protein_accessions")
-  TEST_EQUAL(schema->field(18)->name(), "cross_links")
-  TEST_EQUAL(schema->field(19)->name(), "mz_array")
-  TEST_EQUAL(schema->field(20)->name(), "intensity_array")
-  TEST_EQUAL(schema->field(21)->name(), "charge_array")
-  TEST_EQUAL(schema->field(22)->name(), "ion_type_array")
-  TEST_EQUAL(schema->field(23)->name(), "ion_mobility_array")
+  // psm_id first, feature_id last: the mandatory identity and the optional cross-reference.
+  TEST_EQUAL(schema->field(0)->name(), "psm_id")
+  TEST_EQUAL(schema->field(1)->name(), "sequence")
+  TEST_EQUAL(schema->field(2)->name(), "peptidoform")
+  TEST_EQUAL(schema->field(3)->name(), "modifications")
+  TEST_EQUAL(schema->field(4)->name(), "charge")
+  TEST_EQUAL(schema->field(5)->name(), "posterior_error_probability")
+  TEST_EQUAL(schema->field(6)->name(), "is_decoy")
+  TEST_EQUAL(schema->field(7)->name(), "calculated_mz")
+  TEST_EQUAL(schema->field(8)->name(), "observed_mz")
+  TEST_EQUAL(schema->field(9)->name(), "mass_error_ppm")
+  TEST_EQUAL(schema->field(10)->name(), "additional_scores")
+  TEST_EQUAL(schema->field(11)->name(), "predicted_rt")
+  TEST_EQUAL(schema->field(12)->name(), "run_file_name")
+  TEST_EQUAL(schema->field(13)->name(), "cv_params")
+  TEST_EQUAL(schema->field(14)->name(), "scan")
+  TEST_EQUAL(schema->field(15)->name(), "rt")
+  TEST_EQUAL(schema->field(16)->name(), "ion_mobility")
+  TEST_EQUAL(schema->field(17)->name(), "missed_cleavages")
+  TEST_EQUAL(schema->field(18)->name(), "protein_accessions")
+  TEST_EQUAL(schema->field(19)->name(), "cross_links")
+  TEST_EQUAL(schema->field(20)->name(), "mz_array")
+  TEST_EQUAL(schema->field(21)->name(), "intensity_array")
+  TEST_EQUAL(schema->field(22)->name(), "charge_array")
+  TEST_EQUAL(schema->field(23)->name(), "ion_type_array")
+  TEST_EQUAL(schema->field(24)->name(), "ion_mobility_array")
+  TEST_EQUAL(schema->field(25)->name(), "feature_id")
 
   // Verify data types for key columns
-  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::INT16)   // charge is int16
-  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::DOUBLE)  // PEP is float64
-  TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::FLOAT)   // calculated_mz is float32
-  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::FLOAT)   // observed_mz is float32
-  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::FLOAT)   // mass_error_ppm is float32
-  TEST_EQUAL(schema->field(13)->type()->id(), arrow::Type::LIST)   // scan is list<int32>
-  TEST_EQUAL(schema->field(17)->type()->id(), arrow::Type::LIST)   // protein_accessions is list
-  TEST_EQUAL(schema->field(2)->type()->id(), arrow::Type::LIST)    // modifications is list
+  TEST_EQUAL(schema->field(0)->type()->id(), arrow::Type::INT64)   // psm_id is int64
+  TEST_EQUAL(schema->field(25)->type()->id(), arrow::Type::INT64)  // feature_id is int64
+  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::INT16)   // charge is int16
+  TEST_EQUAL(schema->field(5)->type()->id(), arrow::Type::DOUBLE)  // PEP is float64
+  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::FLOAT)   // calculated_mz is float32
+  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::FLOAT)   // observed_mz is float32
+  TEST_EQUAL(schema->field(9)->type()->id(), arrow::Type::FLOAT)   // mass_error_ppm is float32
+  TEST_EQUAL(schema->field(14)->type()->id(), arrow::Type::LIST)   // scan is list<int32>
+  TEST_EQUAL(schema->field(18)->type()->id(), arrow::Type::LIST)   // protein_accessions is list
+  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::LIST)    // modifications is list
 
   // Verify sequence values
   auto seq_col = table->GetColumnByName("sequence");
@@ -170,6 +252,84 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
   TEST_EQUAL(scan_values->Value(scan_list->value_offset(1)), 1001)
   TEST_EQUAL(scan_list->value_length(2), 1)
   TEST_EQUAL(scan_values->Value(scan_list->value_offset(2)), 1002)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] QPX value validation rejects empty and duplicate PSM keys before writing))
+{
+  auto prot = mergedRun({"/data/runA.mzML"});
+  PeptideIdentificationList peps{mergedPSM("PEPTIDEK", 0)};
+  auto table = QPXFile::exportPSMsToQPXArrow(prot, peps);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  QPXValueValidation validator(QPXValueValidation::View::PSM);
+  auto validation = validator.validate(table);
+  TEST_TRUE(validation.valid)
+
+  // One validator instance spans streaming batches, so a key repeated in a later batch is found.
+  validation = validator.validate(table);
+  TEST_FALSE(validation.valid)
+  TEST_TRUE(validation.toString().find("primary key") != std::string::npos)
+  validator.reset();
+  TEST_TRUE(validator.validate(table).valid)
+
+  // The same invariant applies within one table.
+  auto duplicate = arrow::ConcatenateTables({table, table}).ValueOrDie();
+  QPXValueValidation duplicate_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(duplicate_validator.validate(duplicate).valid)
+
+  // An empty string satisfies Arrow's non-nullable declaration, but it is not a usable QPX key.
+  arrow::StringBuilder run_builder;
+  TEST_TRUE(run_builder.Append("").ok())
+  auto empty_run = replaceColumn(table, QPXPSMSchema::RUN_FILE_NAME,
+                                 run_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_run_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(empty_run_validator.validate(empty_run).valid)
+
+  arrow::StringBuilder null_run_builder;
+  TEST_TRUE(null_run_builder.AppendNull().ok())
+  auto null_run = replaceColumn(table, QPXPSMSchema::RUN_FILE_NAME,
+                                null_run_builder.Finish().ValueOrDie());
+  QPXValueValidation null_run_validator(QPXValueValidation::View::PSM);
+  auto null_run_result = null_run_validator.validate(null_run);
+  TEST_FALSE(null_run_result.valid)
+  TEST_TRUE(null_run_result.toString().find("physical null") != std::string::npos)
+
+  // Report every missing primary-key component, even though required-column validation already
+  // rejects the physical nulls independently of uniqueness checking.
+  arrow::StringBuilder null_peptidoform_builder;
+  TEST_TRUE(null_peptidoform_builder.AppendNull().ok())
+  auto null_keys = replaceColumn(table, QPXPSMSchema::PEPTIDOFORM,
+                                 null_peptidoform_builder.Finish().ValueOrDie());
+  arrow::Int16Builder null_charge_builder;
+  TEST_TRUE(null_charge_builder.AppendNull().ok())
+  null_keys = replaceColumn(null_keys, QPXPSMSchema::CHARGE,
+                            null_charge_builder.Finish().ValueOrDie());
+  arrow::StringBuilder null_key_run_builder;
+  TEST_TRUE(null_key_run_builder.AppendNull().ok())
+  null_keys = replaceColumn(null_keys, QPXPSMSchema::RUN_FILE_NAME,
+                            null_key_run_builder.Finish().ValueOrDie());
+  QPXValueValidation null_key_validator(QPXValueValidation::View::PSM);
+  const auto null_key_result = null_key_validator.validate(null_keys);
+  TEST_FALSE(null_key_result.valid)
+  TEST_TRUE(null_key_result.toString().find("null 'peptidoform'") != std::string::npos)
+  TEST_TRUE(null_key_result.toString().find("null 'charge'") != std::string::npos)
+  TEST_TRUE(null_key_result.toString().find("null 'run_file_name'") != std::string::npos)
+
+  // A non-null empty scan list is equally unusable because scan is part of the PSM primary key.
+  auto scan_values = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder scan_builder(arrow::default_memory_pool(), scan_values);
+  TEST_TRUE(scan_builder.Append().ok())
+  auto empty_scan = replaceColumn(table, QPXPSMSchema::SCAN,
+                                  scan_builder.Finish().ValueOrDie());
+  QPXValueValidation empty_scan_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(empty_scan_validator.validate(empty_scan).valid)
+
+  // The table-taking writer runs the same validation before FileOutputStream::Open().
+  std::string output;
+  NEW_TMP_FILE(output);
+  TEST_FALSE(QPXFile::exportToParquet(empty_run, output))
+  TEST_FALSE(File::exists(output))
 }
 END_SECTION
 
@@ -246,6 +406,7 @@ START_SECTION(static bool exportToParquet(...))
   protein_id.setSearchEngine("TestEngine");
   protein_id.setScoreType("TestScore");
   protein_id.setHigherScoreBetter(true);
+  protein_id.setPrimaryMSRunPath({"test_run.mzML"});
   protein_ids.push_back(protein_id);
 
   PeptideIdentification peptide_id;
@@ -253,6 +414,7 @@ START_SECTION(static bool exportToParquet(...))
   peptide_id.setRT(1234.5);
   peptide_id.setMZ(500.25);
   peptide_id.setScoreType("TestScore");
+  peptide_id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=1234");
 
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEM(Oxidation)TIDER"));
@@ -291,7 +453,7 @@ START_SECTION(static bool exportToParquet(...))
   TEST_EQUAL(read_status.ok(), true)
 
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 24)
+  TEST_EQUAL(table->num_columns(), 26)
 
   // Verify modifications column has structured data for modified peptide
   auto mod_col = table->GetColumnByName("modifications");
@@ -314,7 +476,7 @@ START_SECTION(static bool exportToParquet(...))
 
   auto qpx_version_idx = metadata->FindKey("qpx_version");
   TEST_EQUAL(qpx_version_idx >= 0, true)
-  TEST_EQUAL(metadata->value(qpx_version_idx), "1.0")
+  TEST_EQUAL(metadata->value(qpx_version_idx), "1.1")
 
   auto creator_idx = metadata->FindKey("creator");
   TEST_EQUAL(creator_idx >= 0, true)
@@ -322,19 +484,79 @@ START_SECTION(static bool exportToParquet(...))
 
   auto file_type_idx = metadata->FindKey("file_type");
   TEST_EQUAL(file_type_idx >= 0, true)
-  TEST_EQUAL(metadata->value(file_type_idx), "psm")
+  TEST_EQUAL(metadata->value(file_type_idx), "psm_file")
 
+  // QPX serialization spec: compression_format must be one of zstd|snappy|gzip|lzo|none
+  auto compression_idx = metadata->FindKey("compression_format");
+  TEST_TRUE(compression_idx >= 0)
+  TEST_EQUAL(metadata->value(compression_idx), "zstd")
+
+  // scan_format is derived from the spectrum native IDs.
   auto scan_format_idx = metadata->FindKey("scan_format");
-  TEST_EQUAL(scan_format_idx >= 0, true)
+  TEST_TRUE(scan_format_idx >= 0)
   TEST_EQUAL(metadata->value(scan_format_idx), "scan")
 
+  // software_provider carries the versioned library ("OpenMS <version>"); creator is the
+  // bare tool/org name.
   auto software_idx = metadata->FindKey("software_provider");
-  TEST_EQUAL(software_idx >= 0, true)
-  TEST_EQUAL(metadata->value(software_idx), "OpenMS")
+  TEST_TRUE(software_idx >= 0)
+  TEST_TRUE(StringUtils::hasPrefix(metadata->value(software_idx), "OpenMS "))
 
   // creation_date and uuid should exist (values are dynamic)
   TEST_EQUAL(metadata->FindKey("creation_date") >= 0, true)
   TEST_EQUAL(metadata->FindKey("uuid") >= 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] QPX scan_format is derived from the spectrum native IDs)
+{
+  // Helper: write PSMs whose spectrum references use `ref_prefix`, read the file back and
+  // return its scan_format metadata value ("" when the key is absent).
+  auto scan_format_for = [](const std::string& ref) -> std::string
+  {
+    vector<ProteinIdentification> protein_ids;
+    PeptideIdentificationList peptide_ids;
+
+    ProteinIdentification protein_id;
+    protein_id.setIdentifier("sf_search");
+    protein_id.setPrimaryMSRunPath({"scan_format_run.mzML"});
+    protein_ids.push_back(protein_id);
+
+    PeptideIdentification pid;
+    pid.setIdentifier("sf_search");
+    pid.setScoreType("TestScore");
+    if (!ref.empty()) { pid.setSpectrumReference(ref); }
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDER"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    pid.setHits({hit});
+    peptide_ids.push_back(pid);
+
+    std::string f;
+    NEW_TMP_FILE(f)
+    if (!QPXFile::exportToParquet(protein_ids, peptide_ids, f)) { return "<write failed>"; }
+
+    auto open_res = arrow::io::ReadableFile::Open(f.c_str());
+    if (!open_res.ok()) { return "<read failed>"; }
+    auto reader_res = parquet::arrow::OpenFile(open_res.ValueOrDie(), arrow::default_memory_pool());
+    if (!reader_res.ok()) { return "<read failed>"; }
+    auto reader = std::move(reader_res).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!reader->ReadTable(&t).ok()) { return "<read failed>"; }
+
+    auto md = t->schema()->metadata();
+    if (!md) { return ""; }
+    auto r = md->Get("scan_format");
+    return r.ok() ? r.ValueOrDie() : "";
+  };
+
+  TEST_STRING_EQUAL(scan_format_for("controllerType=0 controllerNumber=1 scan=1234"), "scan")
+  TEST_STRING_EQUAL(scan_format_for("scan=42"), "scan")
+  TEST_STRING_EQUAL(scan_format_for("index=7"), "index")
+  // Unrecognized and absent native IDs cannot populate the numeric QPX scan key.
+  TEST_STRING_EQUAL(scan_format_for("some_opaque_identifier"), "<write failed>")
+  TEST_STRING_EQUAL(scan_format_for(""), "<write failed>")
 }
 END_SECTION
 
@@ -397,17 +619,19 @@ END_SECTION
 START_SECTION(QPXPgSchema::schema())
 {
   auto schema = QPXPgSchema::schema();
-  TEST_EQUAL(schema->num_fields(), 20)
+  TEST_EQUAL(schema->num_fields(), 22)
 
   // Required (non-nullable) fields
   TEST_EQUAL(schema->GetFieldByName("pg_accessions")->nullable(), false)
   TEST_EQUAL(schema->GetFieldByName("anchor_protein")->nullable(), false)
-  TEST_EQUAL(schema->GetFieldByName("run_file_name")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("grouped_runs")->nullable(), false)
   TEST_EQUAL(schema->GetFieldByName("is_decoy")->nullable(), false)
   TEST_EQUAL(schema->GetFieldByName("peptides")->nullable(), false)
 
   // Nullable (optional) fields
-  TEST_EQUAL(schema->GetFieldByName("intensities")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("label")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("intensity")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("intensities"), nullptr)
   TEST_EQUAL(schema->GetFieldByName("additional_intensities")->nullable(), true)
   TEST_EQUAL(schema->GetFieldByName("global_qvalue")->nullable(), true)
   TEST_EQUAL(schema->GetFieldByName("pg_qvalue")->nullable(), true)
@@ -449,19 +673,22 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 20)
+  TEST_EQUAL(table->num_columns(), 22)
 
-  // Verify run_file_name is derived from ProteinIdentification
-  auto run_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
-  TEST_STRING_EQUAL(run_col->GetString(0), "test_run.mzML")
+  // Verify grouped_runs is derived from ProteinIdentification, without path or extension.
+  // Identification input has no design to aggregate over, so the list holds exactly one run.
+  auto run_col = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("grouped_runs")->chunk(0));
+  auto run_values = std::static_pointer_cast<arrow::StringArray>(run_col->values());
+  TEST_EQUAL(run_col->value_length(0), 1)
+  TEST_STRING_EQUAL(run_values->GetString(run_col->value_offset(0)), "test_run")
 
   // Verify anchor_protein
   auto anchor_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("anchor_protein")->chunk(0));
   TEST_STRING_EQUAL(anchor_col->GetString(0), "PROT_A")
 
-  // Verify intensities is null (no quantification)
-  auto int_col = table->GetColumnByName("intensities")->chunk(0);
-  TEST_EQUAL(int_col->IsNull(0), true)
+  // Verify scalar quantity columns are null (no quantification)
+  TEST_TRUE(table->GetColumnByName("label")->chunk(0)->IsNull(0))
+  TEST_TRUE(table->GetColumnByName("intensity")->chunk(0)->IsNull(0))
 
   // is_decoy
   auto is_decoy_col = std::static_pointer_cast<arrow::BooleanArray>(
@@ -514,7 +741,267 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
   auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
-  TEST_EQUAL(table->num_columns(), 20)
+  TEST_EQUAL(table->num_columns(), 22)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not channel numbers))
+{
+  // The scalar pg label is a join key against run.samples, so it must carry a canonical channel
+  // token. This covers the isobaric path, which has no TOPP test.
+  //
+  // Deliberately does NOT call setExperimentType: IsobaricWorkflow never does either, so the
+  // mapping has to work off the headers' channel_id meta value alone.
+  auto build_map = [](const std::string& method, const std::vector<std::string>& channel_names)
+  {
+    ConsensusMap cmap;
+    for (Size c = 0; c < channel_names.size(); ++c)
+    {
+      ConsensusMap::ColumnHeader h;
+      h.filename = "/data/tmt_run.mzML";
+      h.label = method + "_" + channel_names[c];
+      h.setMetaValue("channel_name", channel_names[c]);
+      h.setMetaValue("channel_id", static_cast<int>(c));   // 0-based; getLabelAsUInt adds 1
+      cmap.getColumnHeaders()[c] = h;
+    }
+
+    ProteinIdentification prot_id;
+    prot_id.setScoreType("q-value");
+    prot_id.setPrimaryMSRunPath({"/data/tmt_run.mzML"});
+    ProteinHit ph;
+    ph.setAccession("PROT_A");
+    prot_id.setHits({ph});
+
+    ProteinIdentification::ProteinGroup group;
+    group.accessions = {"PROT_A"};
+    group.probability = 0.01;
+    // Quantify as PeptideAndProteinQuant does: the sample-level abundances in the float data
+    // array it names "abundances", indexed by the design's sample number. One file with N
+    // channels means N samples, so channel c holds sample c-1.
+    group.getFloatDataArrays().resize(1);
+    group.getFloatDataArrays()[0].setName("abundances");
+    for (Size c = 0; c < channel_names.size(); ++c)
+    {
+      group.getFloatDataArrays()[0].push_back(1000.0f * (c + 1));
+    }
+    group.getFloatDataArrays().resize(2);
+    group.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+    group.getIntegerDataArrays().resize(2);
+    group.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+    group.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+    for (Size c = 0; c < channel_names.size(); ++c)
+    {
+      group.getFloatDataArrays()[1].push_back(1000.0f * (c + 1));
+      group.getIntegerDataArrays()[0].push_back(1);
+      group.getIntegerDataArrays()[1].push_back(static_cast<Int>(c + 1));
+    }
+    prot_id.insertIndistinguishableProteins(group);
+    cmap.setProteinIdentifications({prot_id});
+    return cmap;
+  };
+
+  auto pg_labels = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::vector<std::string> out;
+    auto lab = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("label")->chunk(0));
+    for (int64_t i = 0; i < lab->length(); ++i) { out.push_back(lab->GetString(i)); }
+    return out;
+  };
+
+  // TMT 10-plex: channel 10 is "131" in OpenMS' naming (qpx's 11-plex-indexed map says
+  // "TMT131N"); OpenMS' name is authoritative.
+  {
+    auto cmap = build_map("tmt10plex",
+      {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"});
+    auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), 10)
+    auto labels = pg_labels(t);
+    TEST_EQUAL(labels.size(), 10)
+    TEST_STRING_EQUAL(labels[0], "TMT126")
+    TEST_STRING_EQUAL(labels[1], "TMT127N")
+    TEST_STRING_EQUAL(labels[9], "TMT131")
+    // grouped_runs holds the stemmed design filename, matching psm/feature. One unfractionated
+    // file is a one-element list.
+    auto run_col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("grouped_runs")->chunk(0));
+    auto run_values = std::static_pointer_cast<arrow::StringArray>(run_col->values());
+    TEST_EQUAL(run_col->value_length(0), 1)
+    TEST_STRING_EQUAL(run_values->GetString(run_col->value_offset(0)), "tmt_run")
+  }
+
+  // iTRAQ 4-plex
+  {
+    auto cmap = build_map("itraq4plex", {"114","115","116","117"});
+    auto t = ProteinGroupArrowExport::exportToArrow(cmap);
+    TEST_NOT_EQUAL(t, nullptr)
+    auto labels = pg_labels(t);
+    TEST_EQUAL(labels.size(), 4)
+    TEST_STRING_EQUAL(labels[0], "ITRAQ114")
+    TEST_STRING_EQUAL(labels[3], "ITRAQ117")
+  }
+
+  // An unidentifiable quantitation method must abort rather than emit a guessed join key.
+  {
+    auto cmap = build_map("not_a_method", {"126", "127N"});
+    TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap), nullptr)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the three QPX views agree on their run names))
+{
+  // The point of the QPX views is that they join: docs/spec/views.md matches psm and feature on
+  // run_file_name, and since QPX 1.1 pg names its runs in grouped_runs. Nothing else in the
+  // suite checks that the three exporters --
+  // which derive the value from three different sources (per-PSM id_merge_index, column
+  // headers, and the quant/evidence arrays) -- agree on one spelling.
+  //
+  // Note this asserts the join key, not the join to run.parquet: OpenMS does not write
+  // run.parquet (the qpx converter generates it from SDRF), so the quantity label can only be
+  // checked for canonical shape, not for actually matching run.samples[].label.
+  const std::vector<std::string> paths = {"/data/frac_a/RUN_ONE.mzML", "/data/frac_b/RUN_TWO.mzML"};
+
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = paths[m];
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[m] = ch;
+  }
+
+  // One merged identification run holding both paths, as ProteomicsLFQ produces.
+  ProteinIdentification prot;
+  prot.setIdentifier("merged");
+  prot.setScoreType("q-value");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath(StringList(paths.begin(), paths.end()));
+  ProteinHit ph;
+  ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  ProteinIdentification::ProteinGroup grp;
+  grp.accessions = {"PROT_A"};
+  grp.probability = 0.01;
+  // Quantify the group, as PeptideAndProteinQuant does: sample-level abundances in the float
+  // data array it names "abundances". Two unfractionated label-free files are two fraction
+  // groups, hence two samples. Note pg therefore derives its run names from a DIFFERENT source
+  // than psm (id_merge_index) and feature (column headers) -- the point of this test is that all
+  // three still agree.
+  grp.getFloatDataArrays().resize(1);
+  grp.getFloatDataArrays()[0].setName("abundances");
+  for (Size m = 0; m < paths.size(); ++m) { grp.getFloatDataArrays()[0].push_back(100.0f * (m + 1)); }
+  grp.getFloatDataArrays().resize(2);
+  grp.getFloatDataArrays()[1].setName("fraction_group_level_abundance");
+  grp.getIntegerDataArrays().resize(2);
+  grp.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+  grp.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    grp.getFloatDataArrays()[1].push_back(100.0f * (m + 1));
+    grp.getIntegerDataArrays()[0].push_back(static_cast<Int>(m + 1));
+    grp.getIntegerDataArrays()[1].push_back(1);
+  }
+  prot.insertIndistinguishableProteins(grp);
+  cmap.setProteinIdentifications({prot});
+
+  // One feature per run, each identified by a PSM naming its own run via id_merge_index.
+  PeptideIdentificationList all_pep_ids;
+  for (Size m = 0; m < paths.size(); ++m)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("merged");
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
+    pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + StringUtils::toStr(10 + m));
+    pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(m));
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT_A");
+    hit.setPeptideEvidences({ev});
+    pid.setHits({hit});
+
+    ConsensusFeature cf;
+    cf.setMZ(500.0); cf.setRT(100.0 + m); cf.setCharge(2);
+    BaseFeature bf; bf.setIntensity(100.0f * (m + 1)); bf.setMZ(500.0); bf.setRT(100.0 + m); bf.setCharge(2);
+    cf.insert(m, bf);
+    cf.setPeptideIdentifications({pid});
+    cmap.push_back(cf);
+    all_pep_ids.push_back(pid);
+  }
+
+  auto run_names = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto col = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+    for (int64_t r = 0; r < col->length(); ++r) { out.insert(col->GetString(r)); }
+    return out;
+  };
+
+  // pg names its runs in a list column (QPX 1.1 grouped_runs), the other two in a scalar one;
+  // flattening is what makes the three comparable.
+  auto grouped_run_names = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("grouped_runs")->chunk(0));
+    auto values = std::static_pointer_cast<arrow::StringArray>(col->values());
+    for (int64_t i = 0; i < values->length(); ++i) { out.insert(values->GetString(i)); }
+    return out;
+  };
+
+  auto psm_t  = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pep_ids, false);
+  auto feat_t = ConsensusMapArrowExport::exportToArrow(cmap);
+  auto pg_t   = ProteinGroupArrowExport::exportToArrow(cmap);
+  TEST_NOT_EQUAL(psm_t, nullptr)
+  TEST_NOT_EQUAL(feat_t, nullptr)
+  TEST_NOT_EQUAL(pg_t, nullptr)
+
+  const std::set<std::string> expected = {"RUN_ONE", "RUN_TWO"};
+  const auto psm_runs  = run_names(psm_t);
+  const auto feat_runs = run_names(feat_t);
+  const auto pg_runs   = grouped_run_names(pg_t);
+
+  // Stemmed: no directory, no extension. Same-basename files in different directories are
+  // deliberately avoided here -- that collision is #9818's warn-and-continue case.
+  TEST_TRUE(psm_runs == expected)
+  TEST_TRUE(feat_runs == expected)
+  TEST_TRUE(pg_runs == expected)
+
+  // ... and therefore identical across the three views, which is what makes them joinable.
+  TEST_TRUE(psm_runs == feat_runs)
+  TEST_TRUE(feat_runs == pg_runs)
+
+  // No view may carry an empty key: the run name is a primary-key component in all three
+  // (run_file_name in psm/feature, grouped_runs in pg), and an empty string satisfies the
+  // non-nullable column while violating the spec.
+  for (const auto& s : {psm_runs, feat_runs, pg_runs}) { TEST_TRUE(s.count("") == 0) }
+
+  // The other documented join key must be a canonical channel token, not a path or a number.
+  auto labels_of = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto col = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("intensities")->chunk(0));
+    auto st  = std::static_pointer_cast<arrow::StructArray>(col->values());
+    auto lab = std::static_pointer_cast<arrow::StringArray>(st->field(0));
+    for (int64_t i = 0; i < lab->length(); ++i) { out.insert(lab->GetString(i)); }
+    return out;
+  };
+  auto pg_labels = [](const std::shared_ptr<arrow::Table>& t)
+  {
+    std::set<std::string> out;
+    auto labels = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("label")->chunk(0));
+    for (int64_t i = 0; i < labels->length(); ++i)
+    {
+      if (!labels->IsNull(i)) { out.insert(labels->GetString(i)); }
+    }
+    return out;
+  };
+  const std::set<std::string> lfq = {"LFQ"};
+  TEST_TRUE(labels_of(feat_t) == lfq)
+  TEST_TRUE(pg_labels(pg_t) == lfq)
 }
 END_SECTION
 
@@ -614,6 +1101,57 @@ START_SECTION(([EXTRA] importFromArrow_round_trip))
   TEST_REAL_SIMILAR(pep_ids_out[1].getMZ(), 678.90);
   TEST_STRING_EQUAL(pep_ids_out[1].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(pep_ids_out[1].getSpectrumReference(), "scan=99");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] import warns when an unknown peptidoform modification is lost))
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  vector<ProteinIdentification> prot_ids{prot};
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("AEADNLDDKK"));
+  hit.setCharge(2);
+  hit.setScore(0.1);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  pid.setRT(17.8);
+  pid.setMZ(712.7828);
+  pid.setSpectrumReference("scan=9");
+  pid.setHits({hit});
+  PeptideIdentificationList pep_ids{pid};
+
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  arrow::StringBuilder peptidoform_builder;
+  TEST_TRUE(peptidoform_builder.Append("AEADNLDDK[NuXL:U-H2O]K").ok())
+  table = replaceColumn(table, PSMSchema::PEPTIDOFORM,
+                        peptidoform_builder.Finish().ValueOrDie());
+
+  arrow::DoubleBuilder calculated_mz_builder;
+  TEST_TRUE(calculated_mz_builder.Append(712.7824985834709).ok())
+  table = replaceColumn(table, PSMSchema::CALCULATED_MZ,
+                        calculated_mz_builder.Finish().ValueOrDie());
+
+  vector<ProteinIdentification> prot_ids_out = prot_ids;
+  PeptideIdentificationList pep_ids_out;
+  ostringstream captured_warn;
+  OPENMS_LOG_WARN.insert(captured_warn);
+  const bool imported = QPXFile::importFromArrow(table, prot_ids_out, pep_ids_out);
+  OPENMS_LOG_WARN.remove(captured_warn);
+
+  TEST_TRUE(imported)
+  TEST_EQUAL(pep_ids_out.size(), 1)
+  TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "AEADNLDDKK")
+  TEST_TRUE(captured_warn.str().find("NuXL:U-H2O") != string::npos)
+  TEST_TRUE(captured_warn.str().find("calculated m/z") != string::npos)
 }
 END_SECTION
 
@@ -805,7 +1343,7 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
   auto st_table = read_combined(stream_file);
   TEST_NOT_EQUAL(st_table, nullptr)
   TEST_EQUAL(st_table->num_rows(), (int64_t)M)
-  TEST_EQUAL(st_table->num_columns(), 24)
+  TEST_EQUAL(st_table->num_columns(), 26)
 
   // --- QPX metadata must survive the streaming/metadata-Open path ---
   {
@@ -817,8 +1355,8 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
       auto r1 = md->Get("file_type");   if (r1.ok()) { ft = r1.ValueOrDie(); }
       auto r2 = md->Get("qpx_version"); if (r2.ok()) { ver = r2.ValueOrDie(); }
     }
-    TEST_STRING_EQUAL(ft, "psm")
-    TEST_STRING_EQUAL(ver, "1.0")
+    TEST_STRING_EQUAL(ft, "psm_file")
+    TEST_STRING_EQUAL(ver, "1.1")
   }
 
   // --- Equivalence vs the one-shot (non-streaming) path ---
@@ -864,7 +1402,7 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
     auto e_table = read_combined(empty_file);
     TEST_NOT_EQUAL(e_table, nullptr)
     TEST_EQUAL(e_table->num_rows(), 0)
-    TEST_EQUAL(e_table->num_columns(), 24)
+    TEST_EQUAL(e_table->num_columns(), 26)
   }
 
   // --- Edge case: M=1 with batch_size=1 ---
@@ -876,6 +1414,19 @@ START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIde
     auto o_table = read_combined(one_file);
     TEST_NOT_EQUAL(o_table, nullptr)
     TEST_EQUAL(o_table->num_rows(), 1)
+  }
+
+  // One validator spans all batches, so a primary key repeated after a batch boundary fails.
+  // With batch_size 1 the first batch is flushed before the second is refused, and the writer
+  // is closed either way - so without cleanup a footer-complete file holding just the first
+  // PSM would be left behind, indistinguishable from a valid smaller export. It must be gone.
+  {
+    std::vector<const PeptideIdentification*> duplicate_ptrs{ptrs[0], ptrs[0]};
+    std::string duplicate_file;
+    NEW_TMP_FILE(duplicate_file)
+    TEST_FALSE(QPXFile::exportToParquetStreaming(
+      protein_ids, duplicate_ptrs, duplicate_file, false, 1))
+    TEST_FALSE(File::exists(duplicate_file))
   }
 
   // --- Edge case: batch_size=0 must not hang (guarded to default) and write all rows ---
@@ -1040,7 +1591,7 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
     auto tbl = read_combined(f);
     TEST_NOT_EQUAL(tbl, nullptr)
     TEST_EQUAL(tbl->num_rows(), 0)
-    TEST_EQUAL(tbl->num_columns(), 24)
+    TEST_EQUAL(tbl->num_columns(), 26)
   }
 
   // --- Edge cases with parallelism: M=0, M=1, rows < threads ---
@@ -1119,7 +1670,12 @@ START_SECTION(([EXTRA] exportToParquetStreaming dedicated-column values (index p
   // Replicate so the parallel path actually partitions (n_threads=4, batch_size=3 => multiple
   // batches AND multiple partitions per batch), then check the first and last row.
   const size_t NREP = 10;
-  for (size_t i = 0; i < NREP; ++i) { peps.push_back(pid); }
+  for (size_t i = 0; i < NREP; ++i)
+  {
+    PeptideIdentification replicate(pid);
+    replicate.setSpectrumReference(std::string("controllerType=0 controllerNumber=1 scan=") + std::to_string(4242 + i));
+    peps.push_back(std::move(replicate));
+  }
   std::vector<const PeptideIdentification*> ptrs;
   ptrs.reserve(peps.size());
   for (const auto& p : peps) { ptrs.push_back(&p); }
@@ -1146,10 +1702,184 @@ START_SECTION(([EXTRA] exportToParquetStreaming dedicated-column values (index p
       TEST_REAL_SIMILAR(prt->Value(r), 40.0)  // predicted_RT wins over predicted_rt
       TEST_REAL_SIMILAR(im->Value(r), 1.23)   // ion_mobility wins over IM
       TEST_EQUAL(mc->Value(r), 2)
-      TEST_EQUAL(rfn->GetString(r), "/data/real.mzML") // reference_file_name overrides fallback
+      TEST_EQUAL(rfn->GetString(r), "real") // reference_file_name overrides fallback, and is stemmed
       TEST_REAL_SIMILAR(pep->Value(r), 0.25)
     }
   }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] run_file_name resolves per PSM on a merged run))
+{
+  // ProteomicsLFQ merges all inputs into one ProteinIdentification whose 'spectra_data' is the
+  // ordered concatenation of every input file; each PeptideIdentification points at one of them via
+  // 'id_merge_index'. Before this was honored, every PSM was labelled with the run's first file.
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML.gz"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  peps.push_back(mergedPSM("TESTPEPTIDER", 1));
+  peps.push_back(mergedPSM("ANOTHERPEPK", 1));
+  auto ptrs = ptrsOf(peps);
+
+  std::string one_shot; NEW_TMP_FILE(one_shot)
+  TEST_TRUE(QPXFile::exportToParquet(prot, peps, one_shot))
+  std::string streamed; NEW_TMP_FILE(streamed)
+  TEST_TRUE(QPXFile::exportToParquetStreaming(prot, ptrs, streamed, false, 2, ParquetWriteConfig{}, 4))
+
+  for (const std::string& f : {one_shot, streamed})
+  {
+    auto t = readQPXParquet(f);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), 3)
+    auto rfn = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+    // Bare stems, and the compound '.mzML.gz' extension is stripped as a whole
+    TEST_STRING_EQUAL(rfn->GetString(0), "runA")
+    TEST_STRING_EQUAL(rfn->GetString(1), "runB")
+    TEST_STRING_EQUAL(rfn->GetString(2), "runB")
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] duplicate identification-run identifiers are refused by both merge-index preflights))
+{
+  auto prot = mergedRun({"/data/runA.mzML"});
+  ProteinIdentification duplicate = prot.front();
+  duplicate.setPrimaryMSRunPath({"/data/runB.mzML"});
+  prot.push_back(std::move(duplicate));
+
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  const auto ptrs = ptrsOf(peps);
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 QPXFile::requireResolvableMergeIndices(prot, peps))
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 QPXFile::requireResolvableMergeIndices(prot, ptrs))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] merged run without a usable id_merge_index is refused))
+{
+  const StringList paths = {"/data/runA.mzML", "/data/runB.mzML"};
+
+  // (a) metavalue missing entirely
+  {
+    auto prot = mergedRun(paths);
+    PeptideIdentificationList peps;
+    peps.push_back(mergedPSM("PEPTIDEK", 0));
+    peps.push_back(mergedPSM("TESTPEPTIDER", 0, /*set_index=*/false));
+    auto ptrs = ptrsOf(peps);
+
+    TEST_EXCEPTION(Exception::MissingInformation,
+                   QPXFile::requireResolvableMergeIndices(prot, ptrs))
+
+    std::string f1; NEW_TMP_FILE(f1)
+    TEST_EXCEPTION(Exception::MissingInformation, QPXFile::exportToParquet(prot, peps, f1))
+    std::string f2; NEW_TMP_FILE(f2)
+    TEST_EXCEPTION(Exception::MissingInformation,
+                   QPXFile::exportToParquetStreaming(prot, ptrs, f2, false, 2, ParquetWriteConfig{}, 4))
+    // The check is a serial pre-pass, so the streaming path must not have created (and truncated)
+    // the output file before failing.
+    TEST_FALSE(File::exists(f2))
+  }
+
+  // (b) index past the end of 'spectra_data'
+  {
+    auto prot = mergedRun(paths);
+    PeptideIdentificationList peps;
+    peps.push_back(mergedPSM("PEPTIDEK", 2));
+    auto ptrs = ptrsOf(peps);
+    std::string f1; NEW_TMP_FILE(f1)
+    TEST_EXCEPTION(Exception::MissingInformation, QPXFile::exportToParquet(prot, peps, f1))
+    std::string f2; NEW_TMP_FILE(f2)
+    TEST_EXCEPTION(Exception::MissingInformation,
+                   QPXFile::exportToParquetStreaming(prot, ptrs, f2, false, 2, ParquetWriteConfig{}, 4))
+  }
+
+  // (c) negative index
+  {
+    auto prot = mergedRun(paths);
+    PeptideIdentificationList peps;
+    peps.push_back(mergedPSM("PEPTIDEK", -1));
+    std::string f1; NEW_TMP_FILE(f1)
+    TEST_EXCEPTION(Exception::MissingInformation, QPXFile::exportToParquet(prot, peps, f1))
+  }
+
+  // (d) non-integer index
+  {
+    auto prot = mergedRun(paths);
+    PeptideIdentificationList peps;
+    PeptideIdentification pid = mergedPSM("PEPTIDEK", 0);
+    pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, "not_an_index");
+    peps.push_back(pid);
+    std::string f1; NEW_TMP_FILE(f1)
+    TEST_EXCEPTION(Exception::MissingInformation, QPXFile::exportToParquet(prot, peps, f1))
+  }
+
+  // (e) unmerged input (a single file in the run) needs no index and is unaffected
+  {
+    auto prot = mergedRun({"/data/only.mzML"});
+    PeptideIdentificationList peps;
+    peps.push_back(mergedPSM("PEPTIDEK", 0, /*set_index=*/false));
+    std::string f1; NEW_TMP_FILE(f1)
+    TEST_TRUE(QPXFile::exportToParquet(prot, peps, f1))
+    auto t = readQPXParquet(f1);
+    TEST_NOT_EQUAL(t, nullptr)
+    auto rfn = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+    TEST_STRING_EQUAL(rfn->GetString(0), "only") // only change vs. before: path and extension gone
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] run_file_name stem collisions warn but do not fail the export))
+{
+  // Same file name in two directories is a legitimate layout. QPX cannot represent the difference,
+  // but the origin is known - so warn (not visible here) and export anyway.
+  auto prot = mergedRun({"/a/run1.mzML", "/b/run1.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  peps.push_back(mergedPSM("TESTPEPTIDER", 1));
+
+  std::string f; NEW_TMP_FILE(f)
+  TEST_TRUE(QPXFile::exportToParquet(prot, peps, f))
+  auto t = readQPXParquet(f);
+  TEST_NOT_EQUAL(t, nullptr)
+  auto rfn = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(rfn->GetString(0), "run1")
+  TEST_STRING_EQUAL(rfn->GetString(1), "run1")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] per-PSM origin survives an internal-format round trip))
+{
+  // The internal PSMSchema stores the origin as a full path in 'reference_file_name', which
+  // importFromArrow restores as a per-hit metavalue - and the QPX writer gives that metavalue
+  // precedence over the run-derived fallback. If the internal export collapsed to the run's first
+  // file, the QPX table would be wrong again after any round trip, even with the merged-run fix.
+  auto prot = mergedRun({"/data/runA.mzML", "/data/runB.mzML"});
+  PeptideIdentificationList peps;
+  peps.push_back(mergedPSM("PEPTIDEK", 0));
+  peps.push_back(mergedPSM("TESTPEPTIDER", 1));
+
+  auto internal = QPXFile::exportToArrow(prot, peps, false);
+  TEST_NOT_EQUAL(internal, nullptr)
+  auto ref = std::static_pointer_cast<arrow::StringArray>(internal->GetColumnByName("reference_file_name")->chunk(0));
+  TEST_STRING_EQUAL(ref->GetString(0), "/data/runA.mzML") // full path: the internal format round-trips it
+  TEST_STRING_EQUAL(ref->GetString(1), "/data/runB.mzML")
+
+  vector<ProteinIdentification> prot_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(QPXFile::importFromArrow(internal, prot_in, peps_in))
+
+  auto qpx = QPXFile::exportPSMsToQPXArrow(prot_in, peps_in, false);
+  TEST_NOT_EQUAL(qpx, nullptr)
+  auto rfn = std::static_pointer_cast<arrow::StringArray>(qpx->GetColumnByName("run_file_name")->chunk(0));
+  TEST_EQUAL(qpx->num_rows(), 2)
+  TEST_STRING_EQUAL(rfn->GetString(0), "runA")
+  TEST_STRING_EQUAL(rfn->GetString(1), "runB")
 }
 END_SECTION
 

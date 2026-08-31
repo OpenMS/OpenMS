@@ -10,12 +10,23 @@ on:
     branches:
       - nightly
     tags:
+      - 'v[0-9]*'
       - "Release*"
       - "Release/*"
 
 jobs:
+  # Each matrix leg builds one platform and pushes it to ghcr.io by digest
+  # only (untagged). The tags are created afterwards in merge-docker-manifests,
+  # which combines the per-platform digests into one multi-arch manifest list
+  # per image. Pushing tags directly from the matrix legs would race: whichever
+  # leg finishes last overwrites the tag with its single-arch image
+  # (https://github.com/OpenMS/OpenMS/issues/9951). Pattern from
+  # https://docs.docker.com/build/ci/github-actions/multi-platform/
   deploy-docker:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read # actions/checkout
+      packages: write # push images to ghcr.io
     strategy:
       matrix:
         include:
@@ -66,6 +77,10 @@ jobs:
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
+      - name: Sanitize platform name for the digests artifact
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> "$GITHUB_ENV"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Login to GitHub Container Registry
@@ -94,10 +109,10 @@ jobs:
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-      - name: Build and push library image
+      - name: Build and push library image by digest
+        id: build-library
         uses: docker/build-push-action@v7
         with:
-          push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
           target: library
           platforms: ${{ matrix.platform }}
@@ -106,14 +121,13 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-          tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
+          outputs: type=image,name=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library,push-by-digest=true,name-canonical=true,push=true
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-      - name: Build and push tools image
+      - name: Build and push tools image by digest
+        id: build-tools
         uses: docker/build-push-action@v7
         with:
-          push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
           target: tools
           platforms: ${{ matrix.platform }}
@@ -122,15 +136,15 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-          tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
+          # The tools image is published under two names; push the digest to
+          # both repositories so each can be tagged from its own repository.
+          outputs: type=image,"name=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables,ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools",push-by-digest=true,name-canonical=true,push=true
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-      - name: Build and push tools + thirdparty image
+      - name: Build and push tools + thirdparty image by digest
+        id: build-tools-thirdparty
         uses: docker/build-push-action@v7
         with:
-          push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
           target: tools-thirdparty
           platforms: ${{ matrix.platform }}
@@ -139,13 +153,98 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-          tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
+          outputs: type=image,name=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty,push-by-digest=true,name-canonical=true,push=true
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-  deploy-singularity:
+      - name: Export image digests
+        env:
+          DIGEST_LIBRARY: ${{ steps.build-library.outputs.digest }}
+          DIGEST_TOOLS: ${{ steps.build-tools.outputs.digest }}
+          DIGEST_TOOLS_THIRDPARTY: ${{ steps.build-tools-thirdparty.outputs.digest }}
+        run: |
+          set -euo pipefail
+          for digest_var in DIGEST_LIBRARY DIGEST_TOOLS DIGEST_TOOLS_THIRDPARTY; do
+            if [[ -z "${!digest_var}" ]]; then
+              echo "::error::Build did not report a digest for ${digest_var}"
+              exit 1
+            fi
+          done
+          mkdir -p "${RUNNER_TEMP}/digests/library" "${RUNNER_TEMP}/digests/tools" "${RUNNER_TEMP}/digests/tools-thirdparty"
+          touch "${RUNNER_TEMP}/digests/library/${DIGEST_LIBRARY#sha256:}"
+          touch "${RUNNER_TEMP}/digests/tools/${DIGEST_TOOLS#sha256:}"
+          touch "${RUNNER_TEMP}/digests/tools-thirdparty/${DIGEST_TOOLS_THIRDPARTY#sha256:}"
+      - name: Upload image digests
+        uses: actions/upload-artifact@v7
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+  merge-docker-manifests:
     runs-on: ubuntu-latest
     needs: deploy-docker
+    permissions:
+      packages: write # push manifest lists to ghcr.io
+      actions: read # for actions/download-artifact
+      artifact-metadata: read # for actions/download-artifact
+    steps:
+      - name: Download image digests
+        uses: actions/download-artifact@v8
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push multi-arch manifest lists
+        shell: bash
+        working-directory: ${{ runner.temp }}/digests
+        env:
+          REPO_BASE: ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}
+          TAG: ${{ needs.deploy-docker.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          create_manifest() {
+            local digest_dir="$1" image_repo="$2"
+            local sources=()
+            for digest_file in "${digest_dir}"/*; do
+              sources+=("${image_repo}@sha256:$(basename "${digest_file}")")
+            done
+            ## Validate the merged manifest list on a dry run BEFORE tagging:
+            ## if a platform is missing (e.g. this list drifted from the
+            ## deploy-docker matrix), the previously published tag is left
+            ## untouched instead of being overwritten with an incomplete
+            ## manifest list.
+            local merged platforms
+            merged="$(docker buildx imagetools create --dry-run --tag "${image_repo}:${TAG}" "${sources[@]}")"
+            platforms="$(jq -r '.manifests[].platform | "\(.os)/\(.architecture)"' <<< "${merged}")"
+            echo "${image_repo}:${TAG} will contain platforms:" "${platforms}"
+            for platform in linux/amd64 linux/arm64; do
+              if ! grep -qx "${platform}" <<< "${platforms}"; then
+                echo "::error::Merged manifest list for ${image_repo}:${TAG} would be missing platform ${platform}; leaving the existing tag untouched"
+                exit 1
+              fi
+            done
+            docker buildx imagetools create --tag "${image_repo}:${TAG}" "${sources[@]}"
+          }
+          create_manifest library "${REPO_BASE}-library"
+          ## The tools image is published under two names (see deploy-docker);
+          ## its digests were pushed to both repositories.
+          create_manifest tools "${REPO_BASE}-executables"
+          create_manifest tools "${REPO_BASE}-tools"
+          create_manifest tools-thirdparty "${REPO_BASE}-tools-thirdparty"
+  deploy-singularity:
+    runs-on: ubuntu-latest
+    needs: [deploy-docker, merge-docker-manifests]
+    permissions:
+      packages: write # pull images from and push .sif images to ghcr.io
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -157,7 +256,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libglib2.0-dev          
+          sudo apt-get install -y libglib2.0-dev
       - name: Singularity install with defaults
         uses: singularityhub/install-singularity@main
         with:

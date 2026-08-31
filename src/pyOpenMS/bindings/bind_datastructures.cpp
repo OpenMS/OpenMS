@@ -22,7 +22,6 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
@@ -204,7 +203,7 @@ depending on axis labelling
         .def("__deepcopy__", [](const OpenMS::ConvexHull2D& self, nb::dict) { return OpenMS::ConvexHull2D(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("clear", [](OpenMS::ConvexHull2D& self) { return self.clear(); }, "Removes all points")
-        .def("getHullPoints", [](const OpenMS::ConvexHull2D& self) -> const std::vector<OpenMS::DPosition<2>> & { return self.getHullPoints(); }, nb::rv_policy::reference_internal, "Accessor for the outer points")
+        .def("getHullPoints", [](const OpenMS::ConvexHull2D& self) -> const std::vector<OpenMS::DPosition<2>> & { return self.getHullPoints(); }, "Accessor for the outer points")
         .def("setHullPoints", [](OpenMS::ConvexHull2D& self, const std::vector<OpenMS::DPosition<2>>& points) { return self.setHullPoints(points); }, "points"_a, "Accessor for the outer(!) points (no checking is performed if this is actually a convex hull)")
         .def("getBoundingBox", [](const OpenMS::ConvexHull2D& self) { return self.getBoundingBox(); }, "Returns the bounding box of the feature hull points")
         .def("addPoint", [](OpenMS::ConvexHull2D& self, const OpenMS::DPosition<2>& point) { return self.addPoint(point); }, "point"_a, "Adds a point to the hull if it is not already contained. Returns if the point was added. This will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)")
@@ -455,135 +454,15 @@ The following formats are supported:
         ;
 
     // -----------------------------------------------------------------------
-    // SolverParam (LPWrapper::SolverParam)
+    // LPWrapper (and its SolverParam / nested enums) is intentionally NOT wrapped.
+    //
+    // It is a low-level internal wrapper around the LP/MILP backend (GLPK/COIN-OR/HiGHS)
+    // used only by C++ algorithms (MRMFeatureSelector, ILPDCWrapper). It has no Python
+    // consumers, and its solve()/getStatus() contract is easy to misuse (see issue #9944:
+    // a discarded solver status silently turns solver failures into all-zero results).
+    // Python users should use the high-level algorithms instead. Do not re-add a binding
+    // here without a concrete Python use case.
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::LPWrapper::SolverParam>(m, "SolverParam",
-        "Parameters for LP/MIP solver configuration")
-        .def(nb::init<>())
-        .def_rw("message_level", &OpenMS::LPWrapper::SolverParam::message_level)
-        .def_rw("branching_tech", &OpenMS::LPWrapper::SolverParam::branching_tech)
-        .def_rw("backtrack_tech", &OpenMS::LPWrapper::SolverParam::backtrack_tech)
-        .def_rw("preprocessing_tech", &OpenMS::LPWrapper::SolverParam::preprocessing_tech)
-        .def_rw("enable_feas_pump_heuristic", &OpenMS::LPWrapper::SolverParam::enable_feas_pump_heuristic)
-        .def_rw("enable_gmi_cuts", &OpenMS::LPWrapper::SolverParam::enable_gmi_cuts)
-        .def_rw("enable_mir_cuts", &OpenMS::LPWrapper::SolverParam::enable_mir_cuts)
-        .def_rw("enable_cov_cuts", &OpenMS::LPWrapper::SolverParam::enable_cov_cuts)
-        .def_rw("enable_clq_cuts", &OpenMS::LPWrapper::SolverParam::enable_clq_cuts)
-        .def_rw("mip_gap", &OpenMS::LPWrapper::SolverParam::mip_gap)
-        .def_rw("time_limit", &OpenMS::LPWrapper::SolverParam::time_limit)
-        .def_rw("output_freq", &OpenMS::LPWrapper::SolverParam::output_freq)
-        .def_rw("output_delay", &OpenMS::LPWrapper::SolverParam::output_delay)
-        .def_rw("enable_presolve", &OpenMS::LPWrapper::SolverParam::enable_presolve)
-        .def_rw("enable_binarization", &OpenMS::LPWrapper::SolverParam::enable_binarization)
-        ;
-
-    // -----------------------------------------------------------------------
-    // LPWrapper
-    // -----------------------------------------------------------------------
-    auto lpwrapper_class = nb::class_<OpenMS::LPWrapper>(m, "LPWrapper", "A wrapper class for linear programming (LP) solvers")
-        .def(nb::init<>())
-        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const std::string& name) { return self.addRow(row_indices, row_values, name); }, "row_indices"_a, "row_values"_a, "name"_a, "Adds a row to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self) { return self.addColumn(); }, "Adds an empty column to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const std::string& name) { return self.addColumn(column_indices, column_values, name); }, "column_indices"_a, "column_values"_a, "name"_a, "Adds a column to the LP matrix, returns index")
-        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const std::string& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addRow(row_indices, row_values, name, lower_bound, upper_bound, type); }, "row_indices"_a, "row_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a row with boundaries to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const std::string& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addColumn(column_indices, column_values, name, lower_bound, upper_bound, type); }, "column_indices"_a, "column_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a column with boundaries to the LP matrix, returns index")
-        .def("deleteRow", [](OpenMS::LPWrapper& self, int index) { return self.deleteRow(index); }, "index"_a, "Delete index-th row")
-        .def("setColumnName", [](OpenMS::LPWrapper& self, int index, const std::string& name) { return self.setColumnName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th column")
-        .def("getColumnName", [](OpenMS::LPWrapper& self, int index) { return self.getColumnName(index); }, "index"_a, "Returns name of the index-th column")
-        .def("getRowName", [](OpenMS::LPWrapper& self, int index) { return self.getRowName(index); }, "index"_a, "Sets name of the index-th row")
-        .def("getRowIndex", [](OpenMS::LPWrapper& self, const std::string& name) { return self.getRowIndex(name); }, "name"_a, "Returns index of the row with name")
-        .def("getColumnIndex", [](OpenMS::LPWrapper& self, const std::string& name) { return self.getColumnIndex(name); }, "name"_a, "Returns index of the column with name")
-        .def("getColumnUpperBound", [](OpenMS::LPWrapper& self, int index) { return self.getColumnUpperBound(index); }, "index"_a, "Returns column's upper bound")
-        .def("getColumnLowerBound", [](OpenMS::LPWrapper& self, int index) { return self.getColumnLowerBound(index); }, "index"_a, "Returns column's lower bound")
-        .def("getRowUpperBound", [](OpenMS::LPWrapper& self, int index) { return self.getRowUpperBound(index); }, "index"_a, "Returns row's upper bound")
-        .def("getRowLowerBound", [](OpenMS::LPWrapper& self, int index) { return self.getRowLowerBound(index); }, "index"_a, "Returns row's lower bound")
-        .def("setRowName", [](OpenMS::LPWrapper& self, int index, const std::string& name) { return self.setRowName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th row")
-        .def("setColumnBounds", [](OpenMS::LPWrapper& self, int index, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.setColumnBounds(index, lower_bound, upper_bound, type); }, "index"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Sets column bounds")
-        .def("setRowBounds", [](OpenMS::LPWrapper& self, int index, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.setRowBounds(index, lower_bound, upper_bound, type); }, "index"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Sets row bounds")
-        .def("setColumnType", [](OpenMS::LPWrapper& self, int index, OpenMS::LPWrapper::VariableType type) { return self.setColumnType(index, type); }, "index"_a, "type"_a, "Sets column/variable type.")
-        .def("getColumnType", [](OpenMS::LPWrapper& self, int index) { return self.getColumnType(index); }, "index"_a, "Returns column/variable type.")
-        .def("setObjective", [](OpenMS::LPWrapper& self, int index, double obj_value) { return self.setObjective(index, obj_value); }, "index"_a, "obj_value"_a, "Sets objective value for column with index")
-        .def("getObjective", [](OpenMS::LPWrapper& self, int index) { return self.getObjective(index); }, "index"_a, "Returns objective value for column with index")
-        .def("setObjectiveSense", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::Sense sense) { return self.setObjectiveSense(sense); }, "sense"_a, "Sets objective direction")
-        .def("getObjectiveSense", [](OpenMS::LPWrapper& self) { return self.getObjectiveSense(); }, "Returns objective sense")
-        .def("getNumberOfColumns", [](OpenMS::LPWrapper& self) { return self.getNumberOfColumns(); }, "Returns number of columns")
-        .def("getNumberOfRows", [](OpenMS::LPWrapper& self) { return self.getNumberOfRows(); }, "Returns number of rows")
-        .def("setElement", [](OpenMS::LPWrapper& self, int row_index, int column_index, double value) { return self.setElement(row_index, column_index, value); }, "row_index"_a, "column_index"_a, "value"_a, "Sets the element")
-        .def("getElement", [](OpenMS::LPWrapper& self, int row_index, int column_index) { return self.getElement(row_index, column_index); }, "row_index"_a, "column_index"_a, "Returns the element")
-        .def("readProblem", [](OpenMS::LPWrapper& self, const std::string& filename, const std::string& format) { return self.readProblem(filename, format); }, "filename"_a, "format"_a)
-        .def("writeProblem", [](const OpenMS::LPWrapper& self, const std::string& filename, OpenMS::LPWrapper::WriteFormat format) { return self.writeProblem(filename, format); }, "filename"_a, "format"_a,
-            R"doc(
-Write LP formulation to a file
-:param filename: Output filename, if the filename ends with '.gz' it will be compressed
-:param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
-)doc")
-        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, size_t verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0,
-            R"doc(
-Solve problems, parameters like enabled heuristics can be given via solver_param
-The verbose level (0,1,2) determines if the solver prints status messages and internals
-:param solver_param: Parameters of the solver introduced by SolverParam
-:param verbose_level: Sets verbose level
-:return: solver dependent
-)doc")
-        .def("getStatus", [](OpenMS::LPWrapper& self) { return self.getStatus(); },
-            R"doc(
-Returns solution status
-:return: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
-)doc")
-        .def("getObjectiveValue", [](OpenMS::LPWrapper& self) { return self.getObjectiveValue(); },
-            R"doc(
-Returns the objective value of the solution
-:return: The optimal objective value after solving
-)doc")
-        .def("getColumnValue", [](OpenMS::LPWrapper& self, int index) { return self.getColumnValue(index); }, "index"_a)
-        .def("getNumberOfNonZeroEntriesInRow", [](OpenMS::LPWrapper& self, int idx) { return self.getNumberOfNonZeroEntriesInRow(idx); }, "idx"_a)
-        .def("getMatrixRow", [](OpenMS::LPWrapper& self, int idx) { std::vector<int> indexes; self.getMatrixRow(idx, indexes); return indexes; }, "idx"_a)
-        .def("getSolver", [](const OpenMS::LPWrapper& self) { return self.getSolver(); }, "Returns currently active solver")
-        ;
-    // LPWrapper_Type enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Type>(lpwrapper_class, "LPWrapper_Type", nb::is_arithmetic())
-        .value("UNBOUNDED", OpenMS::LPWrapper::Type::UNBOUNDED)
-        .value("LOWER_BOUND_ONLY", OpenMS::LPWrapper::Type::LOWER_BOUND_ONLY)
-        .value("UPPER_BOUND_ONLY", OpenMS::LPWrapper::Type::UPPER_BOUND_ONLY)
-        .value("DOUBLE_BOUNDED", OpenMS::LPWrapper::Type::DOUBLE_BOUNDED)
-        .value("FIXED", OpenMS::LPWrapper::Type::FIXED)
-        .export_values();
-    // VariableType enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::VariableType>(lpwrapper_class, "VariableType", nb::is_arithmetic())
-        .value("CONTINUOUS", OpenMS::LPWrapper::VariableType::CONTINUOUS)
-        .value("INTEGER", OpenMS::LPWrapper::VariableType::INTEGER)
-        .value("BINARY", OpenMS::LPWrapper::VariableType::BINARY)
-        .export_values();
-    // Sense enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Sense>(lpwrapper_class, "Sense", nb::is_arithmetic())
-        .value("MIN", OpenMS::LPWrapper::Sense::MIN)
-        .value("MAX", OpenMS::LPWrapper::Sense::MAX)
-        .export_values();
-    // WriteFormat enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::WriteFormat>(lpwrapper_class, "WriteFormat", nb::is_arithmetic())
-        .value("FORMAT_LP", OpenMS::LPWrapper::WriteFormat::FORMAT_LP)
-        .value("FORMAT_MPS", OpenMS::LPWrapper::WriteFormat::FORMAT_MPS)
-        .value("FORMAT_GLPK", OpenMS::LPWrapper::WriteFormat::FORMAT_GLPK)
-        .export_values();
-    // SOLVER enum nested under LPWrapper
-    {
-    auto solver_enum = nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic());
-    solver_enum.value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK);
-#ifdef OPENMS_HAS_COINOR
-    solver_enum.value("SOLVER_COINOR", OpenMS::LPWrapper::SOLVER::SOLVER_COINOR);
-#endif
-#ifdef OPENMS_HAS_HIGHS
-    solver_enum.value("SOLVER_HIGHS", OpenMS::LPWrapper::SOLVER::SOLVER_HIGHS);
-#endif
-    solver_enum.export_values();
-    }
-    // SolverStatus enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus", nb::is_arithmetic())
-        .value("UNDEFINED", OpenMS::LPWrapper::SolverStatus::UNDEFINED)
-        .value("OPTIMAL", OpenMS::LPWrapper::SolverStatus::OPTIMAL)
-        .value("FEASIBLE", OpenMS::LPWrapper::SolverStatus::FEASIBLE)
-        .value("NO_FEASIBLE_SOL", OpenMS::LPWrapper::SolverStatus::NO_FEASIBLE_SOL)
-        .export_values();
 
     // -----------------------------------------------------------------------
     // LogConfigHandler
@@ -654,7 +533,7 @@ A classical configuration would contain a list of settings e.g.
         .def("resize", [](OpenMS::Matrix<double>& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
         .def("__len__", [](OpenMS::Matrix<double>& self) { return self.size(); })
 
-        .def("get_matrix_view", [](nb::object self_obj) -> nb::object {
+        .def("matrix_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OpenMS::Matrix<double>&>(self_obj);
             size_t shape[2] = {self.rows(), self.cols()};
             int64_t strides[2] = {1, static_cast<int64_t>(self.rows())};
@@ -806,7 +685,7 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def(nb::self == nb::self)
         .def("getValue", [](const OpenMS::Param& self, const std::string& key) { return self.getValue(key); }, "key"_a, "Returns the value of the parameter specified by key. Raises exception if not found")
         .def("getValueType", [](const OpenMS::Param& self, const std::string& key) { return self.getValueType(key); }, "key"_a, "Returns the type of the parameter specified by key. Raises exception if not found")
-        .def("getEntry", [](const OpenMS::Param& self, const std::string& key) -> const OpenMS::Param::ParamEntry & { return self.getEntry(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
+        .def("getEntry", [](const OpenMS::Param& self, const std::string& key) -> OpenMS::Param::ParamEntry { return self.getEntry(key); }, "key"_a, "Returns a copy of the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
         .def("getDescription", [](const OpenMS::Param& self, const std::string& key) { return self.getDescription(key); }, "key"_a, "Returns the description of the parameter specified by key")
         .def("exists", [](const OpenMS::Param& self, const std::string& key) { return self.exists(key); }, "key"_a, "Returns True if the parameter exists, False otherwise")
         .def("addTag", [](OpenMS::Param& self, const std::string& key, const std::string& tag) { return self.addTag(key, tag); }, "key"_a, "tag"_a, "Adds a tag to the entry specified by key (e.g., 'advanced', 'required', 'input file')")
@@ -840,12 +719,22 @@ Checks current parameter entries against given defaults.
 Validates types, string restrictions, and numeric ranges. Raises exception on invalid parameters
 )doc")
         .def("setValidStrings", [](OpenMS::Param& self, const std::string& key, const std::vector<std::basic_string<char>>& strings) { return self.setValidStrings(key, strings); }, "key"_a, "strings"_a, "Sets the list of valid string values for the parameter (checked by checkDefaults)")
-        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the list of valid string values for the parameter")
+        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, "Returns the list of valid string values for the parameter")
         .def("setMinInt", [](OpenMS::Param& self, const std::string& key, int min) { return self.setMinInt(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for an integer parameter")
         .def("setMaxInt", [](OpenMS::Param& self, const std::string& key, int max) { return self.setMaxInt(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for an integer parameter")
         .def("setMinFloat", [](OpenMS::Param& self, const std::string& key, double min) { return self.setMinFloat(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for a float parameter")
         .def("setMaxFloat", [](OpenMS::Param& self, const std::string& key, double max) { return self.setMaxFloat(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for a float parameter")
-        .def("__iter__", [](OpenMS::Param& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Param>(), "Param_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::Param& self) {
+            // Param iterates its entry tree via ParamIterator -- no index
+            // access exists, so snapshot owned copies up front. Mutating the
+            // Param during iteration then cannot invalidate anything.
+            nb::list entries;
+            for (auto it = self.begin(); it != self.end(); ++it)
+            {
+              entries.append(nb::cast(*it, nb::rv_policy::copy));
+            }
+            return entries.attr("__iter__")();
+        })
         .def("__len__", [](OpenMS::Param& self) { return self.size(); })
         .def("_get_all_keys", [](const OpenMS::Param& self) {
             std::vector<std::string> keys;
@@ -993,12 +882,16 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("size", &OpenMS::Param::ParamNode::size)
         .def("suffix", &OpenMS::Param::ParamNode::suffix, "key"_a)
         .def("__eq__", &OpenMS::Param::ParamNode::operator==)
-        .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> OpenMS::Param::ParamEntry* {
-            return self.findEntryRecursive(name);
-        }, "name"_a, nb::rv_policy::reference_internal, "Finds an entry by name recursively")
-        .def("findParentOf", [](OpenMS::Param::ParamNode& self, const std::string& name) -> OpenMS::Param::ParamNode* {
-            return self.findParentOf(name);
-        }, "name"_a, nb::rv_policy::reference_internal, "Finds the parent node of the entry with the given name")
+        .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> std::optional<OpenMS::Param::ParamEntry> {
+            const OpenMS::Param::ParamEntry* entry = self.findEntryRecursive(name);
+            if (entry == nullptr) return std::nullopt;
+            return *entry;  // by value: element access yields an owned copy
+        }, "name"_a, "Returns a copy of the entry found by name, or None if there is no such entry")
+        .def("findParentOf", [](OpenMS::Param::ParamNode& self, const std::string& name) -> std::optional<OpenMS::Param::ParamNode> {
+            const OpenMS::Param::ParamNode* node = self.findParentOf(name);
+            if (node == nullptr) return std::nullopt;
+            return *node;  // by value: element access yields an owned copy
+        }, "name"_a, "Returns a copy of the parent node of the named entry, or None if there is no such entry")
         .def("insert", [](OpenMS::Param::ParamNode& self, const OpenMS::Param::ParamNode& node, const std::string& prefix) {
             self.insert(node, prefix);
         }, "node"_a, "prefix"_a = "", "Inserts a node")
@@ -1045,7 +938,7 @@ pi0_smooth: Whether smoothing was successfully applied
         .def("size", [](const OpenMS::QTCluster& self) { return self.size(); }, "Returns the size of the cluster (number of elements, incl. center)")
         .def(nb::self < nb::self)
         .def("getQuality", [](OpenMS::QTCluster& self) { return self.getQuality(); }, "Returns the cluster quality and recomputes if necessary")
-        .def("getAnnotations", [](OpenMS::QTCluster& self) -> const std::set<OpenMS::AASequence> & { return self.getAnnotations(); }, nb::rv_policy::reference_internal, "Returns the set of peptide sequences annotated to the cluster center")
+        .def("getAnnotations", [](OpenMS::QTCluster& self) -> std::set<OpenMS::AASequence> { return self.getAnnotations(); }, "Returns the set of peptide sequences annotated to the cluster center")
         .def("setInvalid", [](OpenMS::QTCluster& self) { return self.setInvalid(); }, "Sets current cluster as invalid (also frees some memory)")
         .def("isInvalid", [](const OpenMS::QTCluster& self) { return self.isInvalid(); }, "Whether current cluster is invalid")
         .def("initializeCluster", [](OpenMS::QTCluster& self) { return self.initializeCluster(); }, "Has to be called before adding elements (calling QTCluster::add)")
@@ -1230,7 +1123,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("setCharge", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Int e) { self.setCharge(pairID, e); }, "pairID"_a, "e"_a)
         .def("getElementIndex", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getElementIndex(pairID); }, "pairID"_a)
         .def("setElementIndex", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Size e) { self.setElementIndex(pairID, e); }, "pairID"_a, "e"_a)
-        .def("getCompomer", [](const OpenMS::ChargePair& self) -> const OpenMS::Compomer& { return self.getCompomer(); }, nb::rv_policy::reference_internal)
+        .def("getCompomer", [](const OpenMS::ChargePair& self) -> OpenMS::Compomer { return self.getCompomer(); })
         .def("setCompomer", [](OpenMS::ChargePair& self, const OpenMS::Compomer& compomer) { self.setCompomer(compomer); }, "compomer"_a)
         .def("getMassDiff", [](const OpenMS::ChargePair& self) { return self.getMassDiff(); })
         .def("setMassDiff", [](OpenMS::ChargePair& self, double mass_diff) { self.setMassDiff(mass_diff); }, "mass_diff"_a)
@@ -1255,11 +1148,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("setCVReferences", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVReference>& cv_references) { self.setCVReferences(cv_references); }, "cv_references"_a, "Sets the CV references")
-        .def("getCVReferences", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVReference>& { return self.getCVReferences(); }, nb::rv_policy::reference_internal, "Returns the CV references")
+        .def("getCVReferences", [](const OpenMS::CVMappings& self) -> std::vector<OpenMS::CVReference> { return self.getCVReferences(); }, "Returns the CV references")
         .def("addCVReference", [](OpenMS::CVMappings& self, const OpenMS::CVReference& cv_reference) { self.addCVReference(cv_reference); }, "cv_reference"_a, "Adds a CV reference")
         .def("hasCVReference", [](OpenMS::CVMappings& self, const std::string& identifier) { return self.hasCVReference(identifier); }, "identifier"_a, "Returns true if a CV reference with the given identifier exists")
         .def("setMappingRules", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVMappingRule>& cv_mapping_rules) { self.setMappingRules(cv_mapping_rules); }, "cv_mapping_rules"_a, "Sets the mapping rules")
-        .def("getMappingRules", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVMappingRule>& { return self.getMappingRules(); }, nb::rv_policy::reference_internal, "Returns the mapping rules")
+        .def("getMappingRules", [](const OpenMS::CVMappings& self) -> std::vector<OpenMS::CVMappingRule> { return self.getMappingRules(); }, "Returns the mapping rules")
         .def("addMappingRule", [](OpenMS::CVMappings& self, const OpenMS::CVMappingRule& cv_mapping_rule) { self.addMappingRule(cv_mapping_rule); }, "cv_mapping_rule"_a, "Adds a mapping rule")
         ;
 
@@ -1391,7 +1284,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("getAdductBase", &OpenMS::MassExplainer::getAdductBase,
             "Get the current set of allowed adducts")
         .def("getCompomerById", &OpenMS::MassExplainer::getCompomerById, "id"_a,
-            nb::rv_policy::reference_internal, "Get a specific compomer by its ID")
+            "Returns a copy of the compomer with the given ID")
         .def("query", [](const OpenMS::MassExplainer& self, OpenMS::Int net_charge, float mass_to_explain, float mass_delta, float thresh_log_p) {
             std::vector<OpenMS::Compomer>::const_iterator first, last;
             OpenMS::SignedSize count = self.query(net_charge, mass_to_explain, mass_delta, thresh_log_p, first, last);
@@ -1434,7 +1327,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::OSWTransition&>())
         .def(nb::init<const std::string&, const OpenMS::UInt32, const float, const char, const bool>(),
             "annotation"_a, "id"_a, "product_mz"_a, "type"_a, "is_decoy"_a)
-        .def("getAnnotation", &OpenMS::OSWTransition::getAnnotation, nb::rv_policy::reference_internal)
+        .def("getAnnotation", &OpenMS::OSWTransition::getAnnotation)
         .def("getID", &OpenMS::OSWTransition::getID)
         .def("getProductMZ", &OpenMS::OSWTransition::getProductMZ)
         .def("getType", [](const OpenMS::OSWTransition& self) { return std::string(1, self.getType()); })
@@ -1452,7 +1345,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("getRTRightWidth", &OpenMS::OSWPeakGroup::getRTRightWidth)
         .def("getRTDelta", &OpenMS::OSWPeakGroup::getRTDelta)
         .def("getQValue", &OpenMS::OSWPeakGroup::getQValue)
-        .def("getTransitionIDs", &OpenMS::OSWPeakGroup::getTransitionIDs, nb::rv_policy::reference_internal)
+        .def("getTransitionIDs", &OpenMS::OSWPeakGroup::getTransitionIDs)
         ;
 
     // -----------------------------------------------------------------------
@@ -1461,11 +1354,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     nb::class_<OpenMS::OSWPeptidePrecursor>(m, "OSWPeptidePrecursor", "A peptide with a charge state")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OSWPeptidePrecursor&>())
-        .def("getSequence", &OpenMS::OSWPeptidePrecursor::getSequence, nb::rv_policy::reference_internal)
+        .def("getSequence", &OpenMS::OSWPeptidePrecursor::getSequence)
         .def("getCharge", &OpenMS::OSWPeptidePrecursor::getCharge)
         .def("isDecoy", &OpenMS::OSWPeptidePrecursor::isDecoy)
         .def("getPCMz", &OpenMS::OSWPeptidePrecursor::getPCMz)
-        .def("getFeatures", &OpenMS::OSWPeptidePrecursor::getFeatures, nb::rv_policy::reference_internal)
+        .def("getFeatures", &OpenMS::OSWPeptidePrecursor::getFeatures)
         ;
 
     // -----------------------------------------------------------------------
@@ -1474,9 +1367,9 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     nb::class_<OpenMS::OSWProtein>(m, "OSWProtein", "A protein containing one or more peptides")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OSWProtein&>())
-        .def("getAccession", &OpenMS::OSWProtein::getAccession, nb::rv_policy::reference_internal)
+        .def("getAccession", &OpenMS::OSWProtein::getAccession)
         .def("getID", &OpenMS::OSWProtein::getID)
-        .def("getPeptidePrecursors", &OpenMS::OSWProtein::getPeptidePrecursors, nb::rv_policy::reference_internal)
+        .def("getPeptidePrecursors", &OpenMS::OSWProtein::getPeptidePrecursors)
         ;
 
     // -----------------------------------------------------------------------
@@ -1486,11 +1379,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<>())
         .def("addTransition", [](OpenMS::OSWData& self, const OpenMS::OSWTransition& tr) { self.addTransition(tr); }, "tr"_a)
         .def("addProtein", [](OpenMS::OSWData& self, OpenMS::OSWProtein prot) { self.addProtein(std::move(prot)); }, "prot"_a)
-        .def("getProteins", &OpenMS::OSWData::getProteins, nb::rv_policy::reference_internal)
+        .def("getProteins", &OpenMS::OSWData::getProteins)
         .def("transitionCount", &OpenMS::OSWData::transitionCount)
-        .def("getTransition", &OpenMS::OSWData::getTransition, "id"_a, nb::rv_policy::reference_internal)
+        .def("getTransition", &OpenMS::OSWData::getTransition, "id"_a)
         .def("setSqlSourceFile", &OpenMS::OSWData::setSqlSourceFile, "filename"_a)
-        .def("getSqlSourceFile", &OpenMS::OSWData::getSqlSourceFile, nb::rv_policy::reference_internal)
+        .def("getSqlSourceFile", &OpenMS::OSWData::getSqlSourceFile)
         .def("setRunID", &OpenMS::OSWData::setRunID, "run_id"_a)
         .def("getRunID", &OpenMS::OSWData::getRunID)
         .def("clear", &OpenMS::OSWData::clear)

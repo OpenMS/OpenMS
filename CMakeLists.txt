@@ -89,6 +89,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
 endif()
 option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
+option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
@@ -169,6 +170,38 @@ if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
   )
   FetchContent_MakeAvailable(thermo_raw_testdata)
   set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/Angiotensin_AllScans.raw" CACHE PATH "Path to Thermo RAW test file")
+endif()
+
+# Optional end-to-end FAIMS-DIA integration fixture. A developer can either set
+# THERMO_FAIMS_DIA_TEST_DATA explicitly to an existing local RAW file, or enable
+# ENABLE_THERMO_FAIMS_DIA_TESTS to fetch the pinned public PRIDE fixture. The
+# ~308 MB download remains opt-in and is not part of normal OpenMS builds/tests.
+set(THERMO_FAIMS_DIA_TEST_DATA "${THERMO_FAIMS_DIA_TEST_DATA}" CACHE FILEPATH
+    "Path to a Thermo FAIMS-DIA RAW file for integration testing")
+if (ENABLE_THERMO_FAIMS_DIA_TESTS AND WITH_THERMO_RAW AND NOT THERMO_FAIMS_DIA_TEST_DATA)
+  include(FetchContent)
+  # Public single-CV FAIMS-DIA run from PRIDE PXD029902. The pinned hash fixes
+  # the exact 308,209,820-byte input used by ThermoRawFile_test.
+  FetchContent_Declare(
+    thermo_faims_dia_testdata
+    URL "https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/08/PXD029902/20210213_WTC11_DIA_5CV.raw"
+    URL_HASH SHA256=e98b2cc95d162b1dfd24cf003434ef0deef085d7c99ffc0fde695aec8bf236b1
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(thermo_faims_dia_testdata)
+  set(THERMO_FAIMS_DIA_TEST_DATA
+      "${thermo_faims_dia_testdata_SOURCE_DIR}/20210213_WTC11_DIA_5CV.raw"
+      CACHE FILEPATH "Path to a Thermo FAIMS-DIA RAW file for integration testing" FORCE)
+endif()
+
+if (THERMO_FAIMS_DIA_TEST_DATA AND NOT EXISTS "${THERMO_FAIMS_DIA_TEST_DATA}")
+  message(FATAL_ERROR
+    "THERMO_FAIMS_DIA_TEST_DATA does not exist: ${THERMO_FAIMS_DIA_TEST_DATA}")
+endif()
+
+if ((ENABLE_THERMO_FAIMS_DIA_TESTS OR THERMO_FAIMS_DIA_TEST_DATA) AND NOT WITH_THERMO_RAW)
+  message(WARNING
+    "Thermo FAIMS-DIA integration testing was requested but WITH_THERMO_RAW=OFF; the test will not run.")
 endif()
 
 #------------------------------------------------------------------------------
@@ -558,8 +591,12 @@ include(cmake/cmake_findExternalLibs.cmake)
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
 if(WITH_ONNX)
-  # 1. Tell CMake to look for the package ONLY if the switch is ON
-  find_package(ONNXRuntime REQUIRED)
+  # 1. Tell CMake to look for the package ONLY if the switch is ON.
+  if(OPENMS_USE_VCPKG)
+    find_package(onnxruntime CONFIG REQUIRED)
+  else()
+    find_package(ONNXRuntime REQUIRED)
+  endif() 
 endif()
 
 

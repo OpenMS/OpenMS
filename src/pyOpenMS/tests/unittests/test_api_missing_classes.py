@@ -219,9 +219,13 @@ class TestMassTraces:
         assert mt.getPeakCount() == 0
 
 
-@pytest.mark.xfail(reason="SpectrumAccessOpenMSCached inherits from ISpectrumAccess+CachedmzML, not bindable without base class support")
 class TestSpectrumAccessCached:
-    """SpectrumAccessOpenMSCached — cached spectrum access."""
+    """SpectrumAccessOpenMSCached — cached spectrum access.
+
+    Bound without declaring its C++ bases (ISpectrumAccess + CachedmzML),
+    the same pattern the other SpectrumAccess* classes use; the earlier
+    xfail claimed base-class support was required, but it is not.
+    """
 
     def test_exists(self):
         assert hasattr(pyopenms, 'SpectrumAccessOpenMSCached')

@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <string>
 #include <vector>
@@ -44,6 +45,8 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
@@ -81,6 +84,18 @@ using namespace std;
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one identified PSM together with its reporter ions.
+
+  Because a consensus feature is created per identification, and all identifications of one
+  spectrum read the same MS2/MS3 scan, the input is expected to carry one identification per
+  spectrum. Where several of them agree on peptidoform and charge, only the best-scoring one is
+  kept and the reduction is reported; the others would otherwise contribute the same reporter
+  intensities a second time to every abundance derived from them. Results from several search
+  engines must therefore be combined - with @ref TOPP_ConsensusID (@p -algorithm best
+  @p -keep_old_scores, which preserves each engine's score) - rather than simply concatenated.
+  Identifications of one spectrum naming *different* peptidoforms are left alone and each
+  quantified separately.
+
+  At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
   Unlike @ref TOPP_IsobaricAnalyzer, this tool does NOT filter quantification scans by activation method (@p extraction:select_activation is ignored),
   because SPS-MS3 reporter scans are frequently labelled as plain CID rather than HCD; selection is therefore based on the MS-level structure alone.
@@ -183,16 +198,22 @@ protected:
 
     registerInputFileList_("in", "<file>", {}, "input centroided spectrum files");
     setValidFormats_("in", {"mzML"});
-    registerInputFileList_("in_id", "<file>", {}, "corresponding input PSMs");
+    registerInputFileList_("in_id", "<file>", {},
+      "corresponding input PSMs.\n"
+      "One identification per spectrum is expected: this tool quantifies one consensus feature\n"
+      "per identification, so several identifications of one spectrum agreeing on peptidoform\n"
+      "and charge would contribute the same reporter intensities more than once. Only the\n"
+      "best-scoring one of such a group is kept. Combine results from several search engines\n"
+      "with ConsensusID rather than concatenating them.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
-    registerOutputFile_("out", "<file>", "", "output consensusXML file");
+    registerOutputFile_("out", "<file>", "", "Optional output consensusXML file. At least one output must be specified.", false, false);
     setValidFormats_("out", {"consensusXML"});
-    registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
+    registerOutputFile_("out_mzTab", "<file>", "", "Optional output mzTab file with quantitative information. At least one output must be specified.", false, false);
     setValidFormats_("out_mzTab", {"mzTab"});
 
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     registerFlag_("count_sps_matches", "For SPS-MS3: count how many of the co-isolated MS3 precursors (SPS ions) match a b/y fragment ion of the identified peptide. The count is stored as meta value 'sps_matched_ions' on the consensus feature. Off by default.", true);
     registerDoubleOption_("sps_fragment_mass_tolerance", "<tolerance>", 20.0, "Mass tolerance for matching MS3 SPS precursors to theoretical b/y fragment ions of the identified peptide (only used with 'count_sps_matches').", false, true);
@@ -329,7 +350,19 @@ protected:
     if (calc_id_purity || !has_ms3)
     {
       double ms1_purity = -1.;
-      if (!interpolate_precursor_purity)
+      // An MS2 with no preceding MS1 has no survey scan to measure isolation purity against --
+      // an acquisition that starts mid-cycle, or an mzML filtered down to a spectrum subset.
+      // MSExperiment::getPrecursorSpectrum() reports that as -1, which is NOT a spectrum index:
+      // passing it on reached MSSpectrum::MZBegin() on a spectrum before the start of the
+      // experiment and segfaulted inside PrecursorPurity. -1.0 is the value this function
+      // already returns for "purity unavailable", and fillConsensusFeature_() only writes the
+      // metavalue when it is > 0, so the feature is quantified without a purity annotation
+      // instead of the tool dying.
+      if (ms1_spec_idx < 0)
+      {
+        ms1_purity = -1.;
+      }
+      else if (!interpolate_precursor_purity)
       {
         ms1_purity = PrecursorPurity::computeSingleScanPrecursorPurities(id_spec_idx, ms1_spec_idx, exp, max_precursor_isotope_deviation)[0];
       }
@@ -467,8 +500,16 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    std::string out = getStringOption_("out");
-    std::string exp_design = getStringOption_("exp_design");
+    const std::string out = getStringOption_("out");
+    const std::string out_mzTab = getStringOption_("out_mzTab");
+    const std::string out_qpx = getOutputDirOption("out_qpx");
+    if (out.empty() && out_mzTab.empty() && out_qpx.empty())
+    {
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                 "out/out_mzTab/out_qpx");
+    }
+
+    const std::string exp_design = getStringOption_("exp_design");
     bool bayesian = getStringOption_("inference_method") == "bayesian";
     
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
@@ -595,7 +636,40 @@ protected:
         OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
-      
+
+      // This tool quantifies one ConsensusFeature per identification (see the resize below), and
+      // all identifications of one spectrum read the same MS2/MS3 scan. Two of them agreeing on
+      // peptidoform and charge would therefore contribute the SAME reporter intensities twice,
+      // to every abundance derived from them. Keep the best-scoring one of each such group.
+      {
+        const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(pep_ids);
+        if (report.removed > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << report.removed << " identification(s) in " << id_file
+                          << " repeat a (spectrum, peptidoform, charge) already claimed by another"
+                             " identification, e.g. " << report.example << ".\n"
+                             "Kept the best-scoring one of each group; the others would have"
+                             " contributed the same reporter intensities a second time. To control"
+                             " this upstream, combine search engine results with ConsensusID"
+                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                          << endl;
+        }
+        if (report.inconsistent_score_direction > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << report.inconsistent_score_direction << " group(s) of"
+                             " repeated identifications in " << id_file << " disagree on whether a"
+                             " higher score is better, so no best one could be chosen. They were"
+                             " left as they are and their reporter intensities will be counted"
+                             " more than once." << endl;
+        }
+        if (report.without_spectrum_reference > 0)
+        {
+          OPENMS_LOG_INFO << report.without_spectrum_reference << " identification(s) in " << id_file
+                          << " carry no spectrum reference and were therefore not checked for"
+                             " repeats. They cannot be quantified either." << endl;
+        }
+      }
+
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
 
       std::vector<ChannelQC> qc;
@@ -697,8 +771,9 @@ protected:
           }
           else
           {
-            // will leave the cMap with a default initialized consensus feature. Remember to remove it later.
-            // should also never happen
+            // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
+            // pruned before the merge below. Should not normally happen: an identified spectrum is
+            // expected to exist in the mzML.
             OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in mzML file. Skipping." << std::endl;
           }
         }
@@ -722,6 +797,24 @@ protected:
       //IsobaricNormalizer::normalize(cur_cmap);
 
       // TODO cleanup, reset?
+
+      // cur_cmap was pre-sized to one ConsensusFeature per peptide ID (resize above) and only the
+      // features we could actually quantify were filled in - fillConsensusFeature_ always inserts at
+      // least one FeatureHandle per channel. Peptide IDs we could not quantify (an identified MS2 with
+      // no corresponding MS3, an identified spectrum missing from the mzML, or one without a spectrum
+      // reference) leave their slot as a default-constructed feature with zero FeatureHandles
+      // (rt/mz/charge = 0, empty sequence, no map association). Their identifications are preserved in
+      // the unassigned peptide IDs, so drop these empty placeholders here instead of merging them into
+      // the output map.
+      const Size before_prune = cur_cmap.size();
+      cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
+                               [](const ConsensusFeature& cf) { return cf.empty(); }),
+                     cur_cmap.end());
+      if (const Size pruned = before_prune - cur_cmap.size(); pruned > 0)
+      {
+        OPENMS_LOG_INFO << "Removed " << pruned << " unquantified consensus feature(s) without reporter "
+                        << "channels (their peptide identifications are kept in the unassigned IDs)." << std::endl;
+      }
 
       // Always use insert (not move assignment) to preserve column headers registered at line 577.
       // Move assignment would lose column headers if early files have no peptide IDs after filtering.
@@ -776,7 +869,10 @@ protected:
     
     addDataProcessing_(cmap, dp);
 
-    // remove empty features (TODO based on some other filtering settings?)
+    // Drop features that carry no reporter signal (zero total intensity). Structurally empty
+    // (unquantified) features were already removed per input file before merging above; this remaining
+    // filter only affects real, identified features whose reporter channels were all below threshold.
+    // TODO expose this as a proper min-intensity filtering setting.
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
     cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
     cmap.ensureUniqueId();
@@ -787,12 +883,24 @@ protected:
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
     cmap.setProteinIdentifications(merged_prot_ids);
 
-    ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
-    if (exp_design != "")
+    // Only fall back to deriving a design from the map when none was supplied. Calling
+    // fromConsensusMap() unconditionally logged "No fractions annotated in consensusXML.
+    // Assuming unfractionated." once per column header even when -exp_design says otherwise.
+    ExperimentalDesign design = (exp_design != "") ? ExperimentalDesignFile::load(exp_design, true)
+                                                   : ExperimentalDesign::fromConsensusMap(cmap);
+
+    // Annotate the resolved design back onto the column headers. IsobaricChannelExtractor sets
+    // only the channel meta values, so without this the fraction structure is known here and
+    // nowhere else -- consumers reading the map cannot tell two fractions of one sample from
+    // two independent runs.
+    if (const Size unannotated = design.annotateColumnHeaders(cmap); unannotated > 0)
     {
-      design = ExperimentalDesignFile::load(exp_design, true);
+      OPENMS_LOG_WARN << "IsobaricWorkflow: " << unannotated << " of " << cmap.getColumnHeaders().size()
+                      << " (file, channel) column(s) have no matching row in the experimental "
+                         "design, so they carry no fraction annotation. Downstream fraction-aware "
+                         "output cannot group them." << std::endl;
     }
-    
+
     bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
@@ -896,11 +1004,34 @@ protected:
 
     if (!greedy_group_resolution && !groups)
     {
+      // Filters for the theoretical uniqueness annotated as the 'protein_references' meta value during
+      // peptide indexing. This tool does not index (it has no '-fasta'), so the identifications passed
+      // to '-in_id' have to come from an indexed search (e.g. through PeptideIndexer).
       for (auto& f : cmap)
       {
         IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
       }
       IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
+
+      // Proteins whose peptides were all shared have no evidence left; drop them before grouping.
+      IDFilter::removeUnreferencedProteins(cmap, true);
+
+      if (proteins.getHits().empty())
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No protein is supported by a strictly unique peptide. Note that 'protein_quantification' = "
+          "'strictly_unique_peptides' requires the theoretical uniqueness annotated during peptide "
+          "indexing (see PeptideIndexer).");
+      }
+
+      // No indistinguishable groups were annotated above (that is what 'no groups' means here), but
+      // quantification and every exporter report abundances on protein groups. Give each remaining
+      // protein its own singleton group so a protein quantified from its strictly unique peptides is
+      // actually reported instead of failing the "no indistinguishable protein groups" check below.
+      proteins.fillIndistinguishableGroupsWithSingletons();
     }
 
 
@@ -934,19 +1065,36 @@ protected:
       protein_quants, inferred_proteins, true);
 
     {
-      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
+
+        // Validate the whole collection before the first write. This tool streams millions of
+        // feature and PSM rows before the pg view is even reached, so a design-level refusal
+        // there would otherwise land after two very large files are already on disk.
+        if (!QPXCollectionExport::requireExportable(cmap, design))
+        {
+          return CANNOT_WRITE_OUTPUT_FILE; // already logged
+        }
+
+        // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error -
+        // is undone here: without the commit below, every file already written is removed.
+        // This matters most for the streaming views, where a late batch can be refused after
+        // gigabytes have been flushed.
+        QPXCollectionExport::Transaction qpx_collection(out_qpx);
 
         // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
         // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        // Collected while the feature rows are built, then handed to the psm view so it can fill
+        // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+        QPXIdentity::FeatureLinks feature_links;
         if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet",
                                                                /*batch_size=*/1000000,
                                                                ParquetWriteConfig{},
-                                                               /*n_threads=*/0))
+                                                               /*n_threads=*/0,
+                                                               &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -979,25 +1127,33 @@ protected:
                                                /*export_all_psms=*/false,
                                                /*batch_size=*/1000000,
                                                ParquetWriteConfig{},
-                                               /*n_threads=*/0))
+                                               /*n_threads=*/0,
+                                               &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
         // Protein group export
-        if (!ProteinGroupArrowExport::exportToParquet(cmap, out_qpx + "/quantms.pg.parquet"))
+        // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
+        // files aggregated into one quantity, and the design is what defines that grouping and
+        // the sample numbering the protein abundances are stored under.
+        if (!ProteinGroupArrowExport::exportToParquet(cmap, design, out_qpx + "/quantms.pg.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
+
+        qpx_collection.commit(); // all three views written
       }
     }
 
-    FileHandler().storeConsensusFeatures(out, cmap);
-    
-    std::string out_mzTab = getStringOption_("out_mzTab");
-    if (! out_mzTab.empty()) 
+    if (!out.empty())
+    {
+      FileHandler().storeConsensusFeatures(out, cmap);
+    }
+
+    if (!out_mzTab.empty())
     {
       const bool report_unidentified_features(false);
       const bool report_unmapped(true);

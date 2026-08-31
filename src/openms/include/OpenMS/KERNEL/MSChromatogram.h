@@ -14,6 +14,9 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
+#include <algorithm>
+#include <numeric>
+
 namespace OpenMS
 {
   class ChromatogramPeak;
@@ -216,6 +219,36 @@ public:
     ///Checks if all peaks are sorted with respect to ascending RT
     bool isSorted() const;
 
+    /**
+      @brief Stably sorts the peaks (and all parallel data arrays) by a user-defined predicate.
+
+      You can pass any @p lambda with signature <tt>bool(Size index_1, Size index_2)</tt> which,
+      given two indices into the MSChromatogram (either peaks or data arrays), returns a strict
+      weak ordering. Capture the MSChromatogram in the lambda and operate on it based on the
+      indices. The sort is stable, so peaks with equivalent keys keep their relative order.
+
+      @tparam Predicate Callable with signature <tt>bool(Size, Size)</tt> expressing a strict weak ordering.
+      @param[in] lambda The comparison predicate.
+
+      @note All data arrays are reordered alongside the peaks.
+      @note Cached ranges are preserved (a permutation does not change them).
+
+      @exception Exception::Precondition if a non-empty data array's size differs from the number
+                 of peaks. This is checked up front, before @p lambda is ever invoked, so the
+                 chromatogram is left unchanged.
+    */
+    template<class Predicate>
+    void sort(const Predicate& lambda)
+    {
+      // Validate up front, before running the (possibly data-array-indexing) predicate, so a
+      // mis-sized array throws instead of being read out of bounds during the sort.
+      checkDataArraySizes_();
+      std::vector<Size> indices(this->size());
+      std::iota(indices.begin(), indices.end(), 0);
+      std::stable_sort(indices.begin(), indices.end(), lambda);
+      select(indices);
+    }
+
     ///@}
 
     ///@name Searching a peak or peak range
@@ -379,6 +412,13 @@ public:
     /**
       @brief Clears all data and meta data
 
+      Will delete (clear) all peaks contained in the chromatogram as well as any
+      associated data arrays (FloatDataArrays, IntegerDataArrays,
+      StringDataArrays) and the ranges by default -- those arrays are parallel to
+      the peaks, so retaining them would leave the chromatogram inconsistent.
+      If @em clear_meta_data is @em true, then also the descriptive meta data
+      (ChromatogramSettings, name) will be deleted.
+
       @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
@@ -389,9 +429,15 @@ public:
       @param[in] indices Indices to keep. The order is retained.
       @return Reference to this MSChromatogram
 
-      @note The indices are NOT checked for validity!
       @note DataArrays must have the same size as the chromatogram. If not, an exception is thrown.
       @note This method is useful for filtering chromatograms while properly maintaining DataArrays.
+      @note Indices and data array sizes are fully validated before anything is modified, so a
+            rejected call leaves the chromatogram unchanged.
+      @note Cached ranges are NOT recomputed. A permutation preserves them, but selecting a
+            subset can leave them too wide -- call updateRanges() if you need them exact.
+
+      @exception Exception::Precondition if an index is out of range, or if a non-empty data
+                 array's size differs from the number of peaks.
     */
     MSChromatogram& select(const std::vector<Size>& indices);
 
@@ -413,6 +459,17 @@ public:
     void mergePeaks(MSChromatogram& other, bool add_meta=false);
 
 protected:
+
+    /**
+      @brief Throws Exception::Precondition if any non-empty data array's size differs from the peak count.
+
+      Shared by sort() and select() so that permuting the peaks can never mis-associate a parallel
+      data array or index one out of bounds.
+
+      @exception Exception::Precondition if a non-empty float, string or integer data array's size
+                 differs from the number of peaks.
+    */
+    void checkDataArraySizes_() const;
 
     /// Name
     std::string name_;

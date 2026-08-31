@@ -34,34 +34,34 @@ namespace OpenMS
     // iRT peptide sampling parameters
     defaults_.setValue("auto_irt:enabled", "true", "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided, and no transformation is provided, then no calibration is performed.");
     defaults_.setValidStrings("auto_irt:enabled", {"true", "false"});
-    
+
     defaults_.setValue("auto_irt:irt_bins", 100, "Number of RT bins for linear iRT sampling");
     defaults_.setMinInt("auto_irt:irt_bins", 1);
     defaults_.setMaxInt("auto_irt:irt_bins", 10000);
-    
+
     defaults_.setValue("auto_irt:irt_peptides_per_bin", 5, "Peptides sampled per bin for linear iRT");
     defaults_.setMinInt("auto_irt:irt_peptides_per_bin", 1);
     // defaults_.setMaxInt("auto_irt:irt_peptides_per_bin", 1000);
-    
+
     defaults_.setValue("auto_irt:irt_seed", 5489, "RNG seed for reproducible sampling (0 = non-deterministic)");
     defaults_.setMinInt("auto_irt:irt_seed", 0);
-    
+
     defaults_.setValue("auto_irt:irt_bins_nonlinear", 2000, "Number of RT bins for nonlinear iRT sampling");
     defaults_.setMinInt("auto_irt:irt_bins_nonlinear", 1);
     defaults_.setMaxInt("auto_irt:irt_bins_nonlinear", 10000);
-    
+
     defaults_.setValue("auto_irt:irt_peptides_per_bin_nonlinear", 50, "Peptides sampled per bin for nonlinear iRT (0 = skip nonlinear)");
     defaults_.setMinInt("auto_irt:irt_peptides_per_bin_nonlinear", 0);
     // defaults_.setMaxInt("auto_irt:irt_peptides_per_bin_nonlinear", 10000);
-    
+
     defaults_.setValue("auto_irt:linear_top_fraction", 0.4, "Top fraction of intense peptides to sample for linear iRT");
     defaults_.setMinFloat("auto_irt:linear_top_fraction", 0.01);
     defaults_.setMaxFloat("auto_irt:linear_top_fraction", 1.0);
-    
+
     defaults_.setValue("auto_irt:nonlinear_top_fraction", 0.7, "Top fraction of intense peptides to sample for nonlinear iRT");
     defaults_.setMinFloat("auto_irt:nonlinear_top_fraction", 0.01);
     defaults_.setMaxFloat("auto_irt:nonlinear_top_fraction", 1.0);
-    
+
     defaults_.setValue("auto_irt:irt_nonlinear_rt_extraction_window", 600.0, "Only extract RT around this value for non linear iRT calibration (set to -1 to use whole range)");
     defaults_.setMinFloat("auto_irt:irt_nonlinear_rt_extraction_window", -1.0);
 
@@ -71,37 +71,41 @@ namespace OpenMS
     defaults_.setValue("auto_irt:prefilter:enabled", "true", "Enable raw-data evidence prefiltering for sampled iRT peptides.");
     defaults_.setValue("auto_irt:prefilter:evidence_sources", "ms2", "Evidence source for iRT prefiltering: use MS2 fragments only (more stringent than hybrid).");
     defaults_.setValue("auto_irt:prefilter:ms2_min_fragment_hits", 6, "Minimum fragment hits for iRT prefiltering (higher threshold ensures robust iRT peptides).");
-    
+
     // Static iRT file parameters
     defaults_.setValue("files:linear_irt_file", "", "Path(s) to linear iRT transition file(s) (TraML, TSV, or PQP). Accepts a string of a single file path or multiple file paths (space-separated, 'run1_irt.pqp run2_irt.pqp ... runN_irt.pqp') for run-specific mapping (positional: nth entry -> nth run).");
     defaults_.setValue("files:nonlinear_irt_file", "", "Path(s) to nonlinear iRT transition file(s) (TraML, TSV, or PQP). Accepts a string of a single file path or multiple file paths (space-separated, 'run1_irt.pqp run2_irt.pqp ... runN_irt.pqp') for run-specific mapping (positional: nth entry -> nth run). Entries may be empty to indicate no nonlinear iRT for that run.");
-    
+
     // Linear calibration parameters
     defaults_.setValue("linear:outlier_detection", "iter_residual", "Which outlier detection method to use for linear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("linear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
-      
+
     // Nonlinear calibration parameters
     defaults_.setValue("nonlinear:outlier_detection", "iter_residual", "Which outlier detection method to use for nonlinear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("nonlinear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
-    
+
     // Window estimation parameters
     defaults_.setValue("windows:estimate_rt", "true", "Estimate RT extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_rt", {"true", "false"});
-    
+
     defaults_.setValue("windows:estimate_mz", "true", "Estimate m/z extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_mz", {"true", "false"});
-    
+
     defaults_.setValue("windows:estimate_im", "true", "Estimate ion mobility extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_im", {"true", "false"});
-    
+
     defaults_.setValue("windows:rt_percentile", 95.0, "Percentile for RT window estimation (25.0-99.9)");
     defaults_.setMinFloat("windows:rt_percentile", 25.0);
     defaults_.setMaxFloat("windows:rt_percentile", 99.9);
-    
+
     // Window padding factors
     defaults_.setValue("windows:rt_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.");
     defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
-    
+    defaults_.setValue("windows:min_rt_window", 60.0, "Minimum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the floor and use the raw estimated RT window.");
+    defaults_.setMinFloat("windows:min_rt_window", 0.0);
+    defaults_.setValue("windows:max_rt_window", 600.0, "Maximum RT extraction window in seconds to apply after RT-window estimation. Set to 0 to disable the ceiling and use the raw estimated RT window.");
+    defaults_.setMinFloat("windows:max_rt_window", 0.0);
+
     // Quality control parameters
     defaults_.setValue("qc:min_rsq", 0.95, "Minimum R-squared required for RT peptides regression");
     defaults_.setMinFloat("qc:min_rsq", 0.0);
@@ -113,10 +117,10 @@ namespace OpenMS
     // write defaults into Param object param_
     defaultsToParam_();
   }
-  
+
   CalibrationWorkflow::~CalibrationWorkflow() = default;
 
-  CalibrationWorkflow::CalibrationResult 
+  CalibrationWorkflow::CalibrationResult
   CalibrationWorkflow::performCalibration(
     std::vector<OpenSwath::SwathMap>& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
@@ -140,7 +144,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "iRT experiments must be prepared before calling performCalibration. Call prepareIrtExperiments() first.");
     }
-    
+
     // If the prepared experiments indicate there is a NULL_TRANSFORMATION strategy, skip calibration
     // and return a default/null calibration result (i.e., no RT transform will be applied).
     if (irt_experiments.strategy == IrtStrategy::NULL_TRANSFORMATION)
@@ -168,7 +172,7 @@ namespace OpenMS
                                         calibration_param, mrm_mapping_param, pasef,
                                         load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
     }
-    
+
     // Apply IM correction back to the target library if needed (applies to both linear and nonlinear workflows)
     if (!result.im_trafo.getDataPoints().empty())
     {
@@ -183,9 +187,9 @@ namespace OpenMS
         }
       }
     }
-    
+
     // Apply estimated extraction windows if requested
-    applyEstimatedWindows_(result, cp, cp_ms1, pasef, 
+    applyEstimatedWindows_(result, cp, cp_ms1, pasef,
                           feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
 
     return result;
@@ -216,7 +220,7 @@ namespace OpenMS
     this->startProgress(0, 1, "Linear Calibration");
 
     CalibrationResult result;
-      
+
     // Setup linear parameters with our outlier detection method
     Param linear_params = irt_detection_param;
     linear_params.setValue("outlierMethod", linear_outlier_detection_);
@@ -250,7 +254,7 @@ namespace OpenMS
     result.ms2_im_window = this->estimated_im_window_;
     result.ms1_mz_window_ppm = this->estimated_ms1_mz_window_;
     result.ms1_im_window = this->estimated_ms1_im_window_;
-    
+
     // Estimate RT window from transformation using configured parameters
     result.estimated_rt_window = result.rt_trafo.estimateWindow(
       windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
@@ -261,7 +265,7 @@ namespace OpenMS
     // Save transformation if requested
     if (!irt_trafo_out.empty())
     {
-      FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo, 
+      FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo,
                                         {FileTypes::TRANSFORMATIONXML});
     }
     this->endProgress();
@@ -284,24 +288,24 @@ namespace OpenMS
     Size debug_level)
   {
     // This method focuses on linear + nonlinear iRT-based calibration only
-    
+
     // Step 1: Perform linear calibration (no m/z calibration to avoid double-application)
-    
+
     Param linear_calibration_param = calibration_param;
     linear_calibration_param.setValue("mz_correction_function", "none");
     Param linear_detection_param = irt_detection_param;
     linear_detection_param.setValue("alignmentMethod", "linear");
     linear_detection_param.setValue("outlierMethod", linear_outlier_detection_);
-    
+
     CalibrationResult linear_result = performLinearCalibration_(
       swath_maps, irt_experiments,
       feature_finder_param, cp_irt, linear_detection_param,
       linear_calibration_param, mrm_mapping_param, pasef,
-      load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);  
-    
+      load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
+
     // Step 2: Perform nonlinear refinement
     this->startProgress(0, 1, "Nonlinear Calibration");
-    
+
     // Extract chromatograms for nonlinear iRT peptides using linear transformation
     std::vector<OpenMS::MSChromatogram> nl_chromatograms;
     ChromExtractParams cp_irt_nl = cp_irt;
@@ -317,15 +321,15 @@ namespace OpenMS
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       nl_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_experiments.nonlinear_irt, mrm_mapping_param, cp_irt_nl, linear_result.rt_trafo, pasef, load_into_memory);
     }
-    
+
     // Setup nonlinear parameters
     Param nl_params = irt_detection_param;
     nl_params.setValue("estimateBestPeptides", "true"); // Enable outlier detection for nonlinear
     nl_params.setValue("outlierMethod", nonlinear_outlier_detection_); // Use nonlinear-specific outlier method
-    
+
     // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
     const Param& calibration_params_configured = calibration_param;
-    
+
     TransformationDescription im_trafo;
     TransformationDescription nonlinear_trafo = this->doDataNormalization_(
       irt_experiments.nonlinear_irt,
@@ -347,10 +351,10 @@ namespace OpenMS
     final_result.ms2_im_window = this->estimated_im_window_;
     final_result.ms1_mz_window_ppm = this->estimated_ms1_mz_window_;
     final_result.ms1_im_window = this->estimated_ms1_im_window_;
-    
+
     final_result.estimated_rt_window = final_result.rt_trafo.estimateWindow(
       windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
-      true,                           // Invert for RT units  
+      true,                           // Invert for RT units
       true,                           // Full width
       rt_estimation_padding_factor_); // User-configured padding
 
@@ -364,7 +368,7 @@ namespace OpenMS
         nonlinear_path = StringUtils::substr(nonlinear_path, 0, nonlinear_path.size() - ext.size());
         nonlinear_path += "_nonlinear.trafoXML";
       }
-      FileHandler().storeTransformations(nonlinear_path, final_result.rt_trafo, 
+      FileHandler().storeTransformations(nonlinear_path, final_result.rt_trafo,
                                        {FileTypes::TRANSFORMATIONXML});
     }
 
@@ -687,38 +691,54 @@ namespace OpenMS
     // Apply RT window
     if (windows_estimate_rt_ && result.estimated_rt_window > 0)
     {
-      applyWindow_("RT", result.estimated_rt_window, cp.rt_extraction_window, 
-                  cp.rt_extraction_window, true, true);
-      if (result.estimated_rt_window > 1000)
+      double effective_rt_window = result.estimated_rt_window;
+      if (min_rt_window_ > 0.0 && effective_rt_window < min_rt_window_)
       {
-        OPENMS_LOG_WARN << "Estimated RT extraction window is fairly large (" 
-                        << result.estimated_rt_window 
-                        << " seconds). If you are certain this is okay for your data, then ignore this warning. Otherwise, please verify that the calibration was successful by outputting the debugging calibration files or adjust the `windows:rt_percentile` to a lower value to restrict the residual distribution that the window is estimated from." 
+        OPENMS_LOG_INFO << "[Estimated] RT window floor applied: clamped estimated window from "
+                        << effective_rt_window << " to " << min_rt_window_
+                        << " seconds before extraction." << std::endl;
+        effective_rt_window = min_rt_window_;
+      }
+      if (max_rt_window_ > 0.0 && effective_rt_window > max_rt_window_)
+      {
+        OPENMS_LOG_INFO << "[Estimated] RT window ceiling applied: clamped estimated window from "
+                        << effective_rt_window << " to " << max_rt_window_
+                        << " seconds before extraction." << std::endl;
+        effective_rt_window = max_rt_window_;
+      }
+
+      applyWindow_("RT", effective_rt_window, cp.rt_extraction_window,
+                  cp.rt_extraction_window, true, true);
+      if (effective_rt_window > 1000)
+      {
+        OPENMS_LOG_WARN << "Estimated RT extraction window is fairly large ("
+                        << effective_rt_window
+                        << " seconds). If you are certain this is okay for your data, then ignore this warning. Otherwise, please verify that the calibration was successful by outputting the debugging calibration files or adjust the `windows:rt_percentile` to a lower value to restrict the residual distribution that the window is estimated from."
                         << std::endl;
       }
     }
-    
+
     // Apply MS2 m/z window (only if user is using ppm)
     if (windows_estimate_mz_ && result.ms2_mz_window_ppm > 0 && cp.ppm)
     {
       applyWindow_("MS2 m/z (ppm)", result.ms2_mz_window_ppm, cp.mz_extraction_window,
                   cp.mz_extraction_window, true, true);
     }
-    
+
     // Apply MS2 ion mobility window
     if (windows_estimate_im_ && result.ms2_im_window > 0)
     {
       applyWindow_("MS2 ion mobility (1/k0)", result.ms2_im_window, cp.im_extraction_window,
                   cp.im_extraction_window, pasef, true);
     }
-    
-    // Apply MS1 m/z window (only if user is using ppm)  
+
+    // Apply MS1 m/z window (only if user is using ppm)
     if (windows_estimate_mz_ && result.ms1_mz_window_ppm > 0 && cp_ms1.ppm)
     {
       applyWindow_("MS1 m/z (ppm)", result.ms1_mz_window_ppm, cp_ms1.mz_extraction_window,
                   cp_ms1.mz_extraction_window, true, true);
     }
-    
+
     // Apply MS1 ion mobility window
     if (windows_estimate_im_ && result.ms1_im_window > 0)
     {
@@ -779,23 +799,23 @@ namespace OpenMS
     const std::string& label) const
   {
     OpenSwath::LightTargetedExperiment irt_exp;
-    
+
     if (irt_file_path.empty())
     {
       return irt_exp; // Empty experiment if no file provided
     }
-    
+
     if (!File::exists(irt_file_path))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, irt_file_path);
     }
-    
+
     OPENMS_LOG_INFO << "Loading " << label << " iRT experiment from: " << irt_file_path << std::endl;
-    
+
     try
     {
       FileTypes::Type file_type = FileHandler::getType(irt_file_path);
-      
+
       if (file_type == FileTypes::TSV)
       {
         TransitionTSVFile tsv_reader;
@@ -823,7 +843,7 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         std::string("Unsupported iRT file format: ") + FileTypes::typeToName(file_type));
       }
-      
+
       return irt_exp;
     }
     catch (const Exception::BaseException& e)
@@ -878,7 +898,7 @@ namespace OpenMS
         return IrtStrategy::STATIC_FILES;
       }
     }
-    
+
     // Priority 2: If auto-iRT is enabled and we have transition library
     if (auto_irt_enabled_ && !full_transition_exp.getTransitions().empty())
     {
@@ -893,13 +913,13 @@ namespace OpenMS
         return IrtStrategy::SAMPLE_PER_RUN;
       }
     }
-    
+
     // No iRT data available - return NONE strategy so callers can decide to skip calibration
     OPENMS_LOG_DEBUG << "No iRT data available: determineIrtStrategy() -> IrtStrategy::NULL_TRANSFORMATION" << std::endl;
     return IrtStrategy::NULL_TRANSFORMATION;
     }
-  
-  CalibrationWorkflow::IrtExperiments 
+
+  CalibrationWorkflow::IrtExperiments
   CalibrationWorkflow::prepareIrtExperiments(
     IrtStrategy strategy,
     const OpenSwath::LightTargetedExperiment& full_transition_exp,
@@ -910,12 +930,12 @@ namespace OpenMS
     IrtExperiments result;
     result.strategy = strategy;
     result.is_prepared = false;
-    
-    switch (strategy) 
+
+    switch (strategy)
     {
       case IrtStrategy::STATIC_FILES:
         OPENMS_LOG_DEBUG << "Preparing static iRT experiments from configured files" << std::endl;
-        
+
         // Load linear iRT experiment (required)
         if (!linear_irt_file_.empty())
         {
@@ -926,16 +946,16 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "STATIC_FILES strategy requires linear_irt_file parameter to be configured");
         }
-        
+
         // Load nonlinear iRT experiment (optional)
         if (!nonlinear_irt_file_.empty())
         {
           result.nonlinear_irt = loadIrtExperimentFromFile_(nonlinear_irt_file_, "nonlinear");
         }
-        
+
         result.is_prepared = true;
         break;
-        
+
       case IrtStrategy::SAMPLE_ONCE:
         if (cached_irts && cached_irts->is_prepared)
         {
@@ -945,19 +965,19 @@ namespace OpenMS
         else
         {
           OPENMS_LOG_DEBUG << "Sampling iRT experiments once from transition library (run " << run_index << ")" << std::endl;
-          
+
           if (full_transition_exp.getTransitions().empty())
           {
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "SAMPLE_ONCE strategy requires full_transition_exp to be provided");
           }
-          
+
           // Convert vector<std::string> to unordered_set<string> for priority peptides
           std::unordered_set<std::string> priority_set;
           for (const auto& pep : priority_peptides) {
             priority_set.insert(pep.c_str());
           }
-          
+
           // Generate linear iRT experiment
           result.linear_irt = OpenSwathHelper::sampleExperiment(
             full_transition_exp,
@@ -967,7 +987,7 @@ namespace OpenMS
             false,  // sort_by_intensity
             auto_irt_linear_top_fraction_,
             priority_set);
-          
+
           // Generate nonlinear iRT experiment if requested
           if (auto_irt_irt_peptides_per_bin_nonlinear_ > 0)
           {
@@ -980,30 +1000,30 @@ namespace OpenMS
               auto_irt_nonlinear_top_fraction_,
               priority_set);
           }
-          
+
           result.is_prepared = true;
         }
         break;
-        
+
       case IrtStrategy::SAMPLE_PER_RUN:
       {
         OPENMS_LOG_DEBUG << "Sampling fresh iRT experiments for run " << run_index << std::endl;
-        
+
         if (full_transition_exp.getTransitions().empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "SAMPLE_PER_RUN strategy requires full_transition_exp to be provided");
         }
-        
+
         // Convert vector<std::string> to unordered_set<string> for priority peptides
         std::unordered_set<std::string> priority_set;
         for (const auto& pep : priority_peptides) {
           priority_set.insert(pep.c_str());
         }
-        
+
         // Use run_index as additional seed variation for per-run sampling
         Size run_specific_seed = auto_irt_irt_seed_ + run_index;
-        
+
         // Generate linear iRT experiment
         result.linear_irt = OpenSwathHelper::sampleExperiment(
           full_transition_exp,
@@ -1013,7 +1033,7 @@ namespace OpenMS
           true,  // sort_by_intensity
           auto_irt_linear_top_fraction_,
           priority_set);
-        
+
         // Generate nonlinear iRT experiment if requested
         if (auto_irt_irt_peptides_per_bin_nonlinear_ > 0)
         {
@@ -1026,11 +1046,11 @@ namespace OpenMS
             auto_irt_nonlinear_top_fraction_,
             priority_set);
         }
-        
+
         result.is_prepared = true;
         break;
       }
-        
+
       case IrtStrategy::RUN_SPECIFIC:
       {
         OPENMS_LOG_DEBUG << "Loading run-specific iRT experiments for run " << run_index << std::endl;
@@ -1082,12 +1102,12 @@ namespace OpenMS
         result.is_prepared = false;
         break;
       }
-        
+
       default:
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Unknown IRT strategy provided");
     }
-    
+
     return result;
   }
 
@@ -1096,7 +1116,7 @@ namespace OpenMS
     // Static iRT file parameters
     linear_irt_file_ = param_.getValue("files:linear_irt_file").toString();
     nonlinear_irt_file_ = param_.getValue("files:nonlinear_irt_file").toString();
-    
+
     // iRT peptide sampling parameters
     auto_irt_enabled_ = param_.getValue("auto_irt:enabled").toBool();
     auto_irt_irt_bins_ = (int)param_.getValue("auto_irt:irt_bins");
@@ -1106,20 +1126,39 @@ namespace OpenMS
     auto_irt_irt_peptides_per_bin_nonlinear_ = (int)param_.getValue("auto_irt:irt_peptides_per_bin_nonlinear");
     auto_irt_linear_top_fraction_ = (double)param_.getValue("auto_irt:linear_top_fraction");
     auto_irt_nonlinear_top_fraction_ = (double)param_.getValue("auto_irt:nonlinear_top_fraction");
-    
+
     // Linear calibration parameters
     linear_outlier_detection_ = param_.getValue("linear:outlier_detection").toString();
-    
+
     // Nonlinear calibration parameters
     nonlinear_outlier_detection_ = param_.getValue("nonlinear:outlier_detection").toString();
-    
+
     // Window estimation parameters
     windows_estimate_rt_ = param_.getValue("windows:estimate_rt").toBool();
     windows_estimate_mz_ = param_.getValue("windows:estimate_mz").toBool();
     windows_estimate_im_ = param_.getValue("windows:estimate_im").toBool();
     windows_rt_percentile_ = (double)param_.getValue("windows:rt_percentile");
     rt_estimation_padding_factor_ = (double)param_.getValue("windows:rt_estimation_padding_factor");
-    
+    min_rt_window_ = (double)param_.getValue("windows:min_rt_window");
+    max_rt_window_ = (double)param_.getValue("windows:max_rt_window");
+
+    if (min_rt_window_ > 0.0 && !isValidWindow_(min_rt_window_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "CalibrationWorkflow parameter 'windows:min_rt_window' must be 0 (disabled) or greater than 1e-9.");
+    }
+    if (max_rt_window_ > 0.0 && !isValidWindow_(max_rt_window_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "CalibrationWorkflow parameter 'windows:max_rt_window' must be 0 (disabled) or greater than 1e-9.");
+    }
+
+    if (min_rt_window_ > 0.0 && max_rt_window_ > 0.0 && max_rt_window_ < min_rt_window_)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "CalibrationWorkflow parameter 'windows:max_rt_window' must be >= 'windows:min_rt_window' when both are set.");
+    }
+
     // Quality control parameters
     min_rsq_ = (double)param_.getValue("qc:min_rsq");
     min_coverage_ = (double)param_.getValue("qc:min_coverage");
