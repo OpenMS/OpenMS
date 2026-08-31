@@ -497,11 +497,17 @@ private:
     }; //LogStream
 
     /**
-      @brief RAII guard that temporarily removes a stream from a LogStream and re-inserts it on scope exit.
+      @brief RAII guard that temporarily removes an attached stream from a LogStream and re-inserts it on scope exit.
 
       This class provides exception-safe temporary removal of output streams from LogStream objects.
       Use this when you need to temporarily suppress logging to a specific stream (e.g., cout)
       during operations that may throw exceptions.
+
+      @note The guard acts only on a stream that is attached when it is constructed. For anything
+            else it does nothing at all -- it will not re-insert on scope exit, because attaching a
+            destination the caller never registered is not "restoring" it, and because a guard
+            nested inside another one on the same stream would otherwise hand the outer guard's
+            suppressed output straight to it.
 
       @note Pass the stream that the messages are actually written to. The OPENMS_LOG_* macros
             write to the thread-local streams (getThreadLocalLog*()), whose sink list is copied
@@ -523,10 +529,14 @@ private:
     {
     public:
       /**
-        @brief Construct a guard that removes the stream and re-inserts it on destruction.
+        @brief Construct a guard that removes @p stream, if attached, and re-inserts it on destruction.
+
+        Anything still pending is delivered before the stream is detached, so output logged before
+        the guard is not caught up in what the guarded scope suppresses.
 
         @param log_stream The LogStream to remove the stream from (and re-insert into on destruction)
-        @param stream The stream to temporarily remove (e.g., std::cout)
+        @param stream The stream to temporarily remove (e.g., std::cout); if it is not one of
+                      @p log_stream's destinations, the guard does nothing
       */
       LogSinkGuard(LogStream& log_stream, std::ostream& stream)
         : log_stream_(log_stream), stream_(stream), was_attached_(log_stream.hasStream(stream))
