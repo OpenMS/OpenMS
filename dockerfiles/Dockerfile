@@ -160,7 +160,7 @@ RUN make install/strip
 ### OpenMS library ###
 FROM ubuntu:24.04 AS library
 ARG INSTALL_DIR
-
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9E922B2D60E9FD1C || true
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
     ca-certificates \
