@@ -510,6 +510,37 @@ jobs:
           name: ${{ matrix.artifact }}
           path: wheelhouse
 
+      # actions/download-artifact@v4 can report success on a run where several
+      # test-wheels jobs download the same multi-platform-python artifact
+      # concurrently, yet leave the extracted directory missing a wheel (seen
+      # e.g. on run 33348103665, job "test-wheels (3.13, macos-15)": the
+      # download step itself was marked successful, but wheelhouse/*cp313*.whl
+      # was absent while the sibling cp310/cp311/cp312/cp314 jobs downloading
+      # the identical artifact all extracted it fine). Re-download rather than
+      # silently failing the pip install with an unglobbed literal filename.
+      - name: Verify wheel was downloaded, retry on a corrupt/incomplete extract
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PYVER=$(echo "${{ matrix.python-version }}" | tr -d '.')
+          echo "PYVER=${PYVER}" >> "$GITHUB_ENV"
+          for attempt in 1 2 3; do
+            if compgen -G "wheelhouse/*cp${PYVER}*.whl" > /dev/null; then
+              echo "Found the cp${PYVER} wheel on attempt ${attempt}."
+              exit 0
+            fi
+            echo "::warning::cp${PYVER} wheel missing from '${{ matrix.artifact }}' after download attempt ${attempt}; re-downloading."
+            rm -rf wheelhouse
+            gh run download "${{ github.run_id }}" \
+              --repo "${{ github.repository }}" \
+              --name "${{ matrix.artifact }}" \
+              --dir wheelhouse
+          done
+          echo "::error::cp${PYVER} wheel still missing from '${{ matrix.artifact }}' after ${attempt} download attempts."
+          ls -la wheelhouse || true
+          exit 1
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -519,7 +550,6 @@ jobs:
         shell: bash
         run: |
           # Install the wheel matching this Python version
-          PYVER=$(echo "${{ matrix.python-version }}" | tr -d '.')
           pip install wheelhouse/*cp${PYVER}*.whl
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
