@@ -26,24 +26,18 @@
 #include <filesystem>
 #include <fstream>
 #include<vector>
-#include<io.h>
-
-#ifdef OPENMS_WINDOWSPLATFORM
-#include <windows.h>
-#include <rpc.h>
-#pragma comment(lib, "Rpcrt4.lib")
-#else
-#include <cstdlib> // for mkdtemp
-#endif
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
 #include <Shlwapi.h> // for PathMatchSpecA
 #include <io.h>      // for _access_s
+#include <rpc.h>     // for UuidCreate() / UuidToStringW()
 #pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Rpcrt4.lib")
 #else
 #include <fnmatch.h>
 #include <unistd.h> // for gethostname()
+#include <cstdlib>  // for mkdtemp
 #endif
 
 #ifdef OPENMS_HAS_UNISTD_H
@@ -64,41 +58,77 @@ namespace
   std::string createUniqueDir_(const std::string& prefix)
   {
 #ifdef OPENMS_WINDOWSPLATFORM
+    // Ensure the parent directory chain exists first (old fs::create_directories
+    // behavior created the whole chain; mkdtemp/CreateDirectoryW only create the leaf).
+    std::filesystem::path parent_path = to_path(prefix).parent_path();
+    if (!parent_path.empty())
+    {
+      std::error_code ec;
+      std::filesystem::create_directories(parent_path, ec);
+      if (ec)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, ec.message());
+      }
+    }
+
     for (int attempt = 0; attempt < 100; ++attempt)
     {
       UUID uuid;
-      UuidCreate(&uuid);
+      RPC_STATUS create_status = UuidCreate(&uuid);
+      if (create_status != RPC_S_OK && create_status != RPC_S_UUID_LOCAL_ONLY)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "UuidCreate failed with status " + std::to_string(create_status));
+      }
+
       RPC_WSTR wstr = nullptr;
-      UuidToStringW(&uuid, &wstr);
+      RPC_STATUS str_status = UuidToStringW(&uuid, &wstr);
+      if (str_status != RPC_S_OK || wstr == nullptr)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "UuidToStringW failed with status " + std::to_string(str_status));
+      }
       std::wstring wsuffix(reinterpret_cast<wchar_t*>(wstr));
       RpcStringFreeW(&wstr);
       std::string suffix;
       suffix.reserve(wsuffix.size());
-      for(wchar_t wc: wsuffix){
+      for (wchar_t wc : wsuffix)
+      {
         suffix.push_back(static_cast<char>(wc));
       }
 
       std::string candidate = prefix + "_" + suffix;
-      std::wstring wcandidate(candidate.begin(), candidate.end());
+      std::filesystem::path wcandidate = to_path(candidate);
 
-      if (CreateDirectoryW(wcandidate.c_str(), NULL))
+      if (CreateDirectoryW(wcandidate.native().c_str(), NULL))
       {
         return candidate + "/";
       }
-      if (GetLastError() != ERROR_ALREADY_EXISTS)
+      DWORD err = GetLastError();
+      if (err != ERROR_ALREADY_EXISTS)
       {
-        throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate);
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate, "GetLastError() = " + std::to_string(err));
       }
       // else: collision, loop and try again with a new UUID
     }
-    throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix);
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "exceeded 100 attempts");
 #else
+    // Ensure the parent directory chain exists first (same reasoning as above).
+    std::filesystem::path parent_path = to_path(prefix).parent_path();
+    if (!parent_path.empty())
+    {
+      std::error_code ec;
+      std::filesystem::create_directories(parent_path, ec);
+      if (ec)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, ec.message());
+      }
+    }
+
     std::string tmpl = prefix + "_XXXXXX";
     std::vector<char> buf(tmpl.begin(), tmpl.end());
     buf.push_back('\0');
     if (::mkdtemp(buf.data()) == nullptr)
     {
-      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmpl);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmpl, std::strerror(errno));
     }
     return std::string(buf.data()) + "/";
 #endif
