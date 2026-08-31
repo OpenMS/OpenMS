@@ -90,6 +90,21 @@ namespace OpenMS
       @param[in,out] peptide_ids PSMs to annotate. Every hit receives every feature, so
              that no run ends up with a feature present on only some of its PSMs.
 
+      Multiple runs in one call are fine: PSMs are partitioned by
+      PeptideIdentification::getIdentifier() and each run gets its own NCE scan and its
+      own RT calibration.
+
+      @note That partition is only as good as the run identifiers, so call this
+            <em>before</em> any step that collapses several runs into one -- ProSE's
+            @p out_merged and IDMergerAlgorithm, which remap every identifier onto a
+            single merged run, or @ref TOPP_IDMerger with @p merge_proteins_add_PSMs
+            (its default appends runs and is therefore safe). Both calibrated quantities
+            genuinely differ between runs: six files of one HLA ligand atlas dataset
+            (PXD019643) calibrated to median RT residuals between 98 s and 625 s. On
+            already-collapsed input this silently fits one NCE and one RT curve across
+            all of them, and nothing here can detect it after the fact -- the merged
+            input is indistinguishable from a genuine single run.
+
       @throws Exception::FileNotFound if a configured model file does not exist.
       @throws Exception::MissingInformation if no PSM carries peak annotations, since
               every MS2 feature would otherwise be silently zero.
