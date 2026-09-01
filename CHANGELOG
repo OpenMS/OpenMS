@@ -1133,7 +1133,10 @@ OpenMS Library:
       (a) also tightens matching of coarsely written masses: "M[147.01]" (25 mDa off oxidized
       methionine, more than the 0.01 Da implied by two decimals) and other masses written with fewer
       decimals than their deviation from the database entry are now kept as exact unknown mass shifts
-      instead of being snapped to a named modification (#10029)
+      instead of being snapped to a named modification. (b) also affects the file readers that resolve
+      modifications by mass: a near-zero mass shift, e.g. the C-terminal "massdiff" of 0.0003 that
+      X!Tandem writes into pepXML, no longer picks up an unrelated zero-mass PSI-MOD term - such
+      peptides used to be annotated with a spurious "(MOD:00266)" (#10029)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
