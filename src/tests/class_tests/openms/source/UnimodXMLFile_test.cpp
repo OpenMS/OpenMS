@@ -119,6 +119,62 @@ START_SECTION([EXTRA] diff formula and diff mono mass agree for every entry)
 }
 END_SECTION
 
+START_SECTION([EXTRA] neutral loss formulas and neutral loss masses agree for every entry)
+{
+  // A <NeutralLoss> carries its own mono_mass/avge_mass. Those attributes were never read - the
+  // <delta> masses were pushed instead, and since <specificity> (which encloses <NeutralLoss>)
+  // always precedes <delta>, every neutral loss mass in the DB was 0. The mass vectors were also
+  // written to the modification once per <specificity> rather than per site, so the last site's
+  // vector was copied over all of them and could not even match the per-site formula vector in
+  // length. See https://github.com/OpenMS/OpenMS/issues/10030
+  UnimodXMLFile file;
+  vector<ResidueModification*> modifications;
+  file.load("CHEMISTRY/unimod.xml", modifications);
+
+  const double mono_tolerance = 1e-3;  // as above: OpenMS vs. UniMod element masses
+  const double avg_tolerance = 0.05;   // average atomic weights differ more; worst observed is ~0.006 Da
+  Size with_neutral_loss = 0;
+  Size length_mismatches = 0;
+  Size mass_mismatches = 0;
+  for (const ResidueModification* mod : modifications)
+  {
+    if (!mod->hasNeutralLoss()) continue;
+    ++with_neutral_loss;
+
+    const vector<EmpiricalFormula>& formulas = mod->getNeutralLossDiffFormulas();
+    const vector<double> mono_masses = mod->getNeutralLossMonoMasses();
+    const vector<double> avg_masses = mod->getNeutralLossAverageMasses();
+    if (formulas.size() != mono_masses.size() || formulas.size() != avg_masses.size())
+    {
+      ++length_mismatches;
+      STATUS(mod->getId() << " (" << mod->getOrigin() << "): " << formulas.size() << " neutral loss formula(s) but "
+             << mono_masses.size() << " mono and " << avg_masses.size() << " average mass(es)");
+      continue;
+    }
+    for (Size i = 0; i < formulas.size(); ++i)
+    {
+      if (std::fabs(formulas[i].getMonoWeight() - mono_masses[i]) > mono_tolerance ||
+          std::fabs(formulas[i].getAverageWeight() - avg_masses[i]) > avg_tolerance)
+      {
+        ++mass_mismatches;
+        STATUS(mod->getId() << " (" << mod->getOrigin() << "): neutral loss " << formulas[i].toString()
+               << " weighs " << formulas[i].getMonoWeight() << " / " << formulas[i].getAverageWeight()
+               << " but its masses are " << mono_masses[i] << " / " << avg_masses[i]);
+      }
+    }
+  }
+  TEST_EQUAL(with_neutral_loss > 0, true)
+  TEST_EQUAL(length_mismatches, 0)
+  TEST_EQUAL(mass_mismatches, 0)
+
+  // cleanup
+  for (Size k = 0; k < modifications.size(); k++)
+  {
+    delete modifications[k];
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

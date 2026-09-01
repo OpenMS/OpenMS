@@ -1313,6 +1313,14 @@ Fixes:
     assay library) were wrong for peptides carrying them, while the mass-based API stayed correct. Element
     collection is now scoped to <delta> and <NeutralLoss>, and a regression test asserts that diff formula
     and diff mono mass agree for every UniMod entry (fixes #10030)
+  - Fix: UnimodXMLHandler never read a <NeutralLoss>'s own mono_mass/avge_mass attributes -- it pushed the
+    <delta> masses instead, and since <specificity> (which encloses <NeutralLoss>) always precedes <delta>,
+    every neutral loss mono and average mass in ModificationsDB was 0 (871 modifications), while the
+    neutral loss formulas themselves were correct. Those mass vectors were also written to the
+    modification once per <specificity> rather than per site, so the last site's vector was copied over
+    all sites and could not even match the per-site formula vector in length. Both are now parsed and
+    stored per site, and a regression test asserts that neutral loss formulas, mono masses and average
+    masses line up for every UniMod entry (fixes #10030)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)

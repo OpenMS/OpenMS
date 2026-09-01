@@ -64,10 +64,17 @@ private:
 
       std::vector<EmpiricalFormula> neutral_loss_diff_formula_;
 
+      /// masses of the \<NeutralLoss\> currently open; the \<delta\> masses live in #mono_mass_ / #avge_mass_
+      double neutral_loss_mono_mass_{0.0};
+      double neutral_loss_avge_mass_{0.0};
+
       bool was_valid_peptide_modification_;
       std::vector<std::vector<EmpiricalFormula>> neutral_loss_diff_formulas_;
       std::vector<double> neutral_loss_mono_masses_;
       std::vector<double> neutral_loss_avg_masses_;
+      /// one entry per specificity, parallel to #neutral_loss_diff_formulas_
+      std::vector<std::vector<double>> neutral_loss_mono_masses_all_;
+      std::vector<std::vector<double>> neutral_loss_avg_masses_all_;
 
       ResidueModification* modification_;
 

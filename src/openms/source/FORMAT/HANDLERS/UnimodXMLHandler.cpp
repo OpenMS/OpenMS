@@ -108,6 +108,8 @@ namespace OpenMS::Internal
       {
         // mono_mass="97.976896" avge_mass="97.9952" flag="false"
         //                               composition="H(3) O(4) P">
+        neutral_loss_mono_mass_ = attributeAsDouble_(attributes, "mono_mass");
+        neutral_loss_avge_mass_ = attributeAsDouble_(attributes, "avge_mass");
         collect_elements_ = true;
         return;
       }
@@ -171,6 +173,8 @@ namespace OpenMS::Internal
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
           new_mod->setNeutralLossDiffFormulas(neutral_loss_diff_formulas_[i]);
+          new_mod->setNeutralLossMonoMasses(neutral_loss_mono_masses_all_[i]);
+          new_mod->setNeutralLossAverageMasses(neutral_loss_avg_masses_all_[i]);
           modifications_.push_back(new_mod);
         }
 
@@ -181,6 +185,8 @@ namespace OpenMS::Internal
         term_specs_.clear();
         sites_.clear();
         neutral_loss_diff_formulas_.clear();
+        neutral_loss_mono_masses_all_.clear();
+        neutral_loss_avg_masses_all_.clear();
 
         delete modification_;
         return;
@@ -191,8 +197,8 @@ namespace OpenMS::Internal
         if (was_valid_peptide_modification_) // as we exclude "Protein" modifications (see above)
         {
           neutral_loss_diff_formulas_.push_back(neutral_loss_diff_formula_);
-          modification_->setNeutralLossMonoMasses(neutral_loss_mono_masses_);
-          modification_->setNeutralLossAverageMasses(neutral_loss_avg_masses_);
+          neutral_loss_mono_masses_all_.push_back(neutral_loss_mono_masses_);
+          neutral_loss_avg_masses_all_.push_back(neutral_loss_avg_masses_);
           neutral_loss_diff_formula_.clear();
           neutral_loss_mono_masses_.clear();
           neutral_loss_avg_masses_.clear();
@@ -212,10 +218,8 @@ namespace OpenMS::Internal
         {
           // now diff_formula_ contains the neutral loss diff formula
           neutral_loss_diff_formula_.push_back(diff_formula_);
-          neutral_loss_mono_masses_.push_back(mono_mass_);
-          neutral_loss_avg_masses_.push_back(avge_mass_);
-          avge_mass_ = 0.0;
-          mono_mass_ = 0.0;
+          neutral_loss_mono_masses_.push_back(neutral_loss_mono_mass_);
+          neutral_loss_avg_masses_.push_back(neutral_loss_avge_mass_);
           diff_formula_ = EmpiricalFormula();
         }
       }
