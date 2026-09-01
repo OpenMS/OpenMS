@@ -658,6 +658,11 @@ TOPP tools:
       - IM-axis hill centroiding via -algorithm hill (see BrukerTimsFile/PASEFHillCentroider) (#9380)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
+    PeakPickerChromatogram:
+      - Added optional per-peak apex signal-to-noise reporting: the new 'report_sn' parameter (default
+        false) adds an "SN" FloatDataArray to the picked chromatogram, populated from the existing
+        SignalToNoiseEstimatorMedian pass; it can be enabled independently of the 'signal_to_noise'
+        boundary-extension threshold. Peaks without an available estimate report -1.0 (#9780)
     FileConverter:
       - Added MSP file format support (#8650) and OpenSwath sqMass to XIC Parquet conversion (#8829)
       - Bruker options exposed as -bruker:* (MS1 frame aggregation, centroiding algorithm, frame/RT range
@@ -1295,6 +1300,12 @@ Fixes:
     self-copy rejection in File::copyDirRecursively, the CopyOptions::SKIP notices and the
     File::findDatabase miss), which made a passing test run look like a broken build in packaging
     logs (#10019)
+  - Fix: File_test's getModificationTime() check asserted that a checked-in fixture's mtime fell between
+    2020 and 2100; distributions that normalise source timestamps for reproducible builds (Debian, Nix)
+    set it to the Unix epoch, failing the lower bound, and the same would happen for a source tarball
+    unpacked with preserved pre-2020 timestamps. The test now brackets the wall clock around a
+    temporary file it writes and checks itself, which no longer depends on how the tree was unpacked
+    while still catching the bug the original bounds guarded against (#10018)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)
