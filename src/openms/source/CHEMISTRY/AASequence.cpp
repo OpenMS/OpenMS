@@ -1076,7 +1076,11 @@ namespace OpenMS
     double tolerance = 0.5; // for integer mass values
     if (!integer_mass) // float mass values -> adapt tolerance to decimal precision
     {
-      size_t n_decimals = mod.size() - decimal_pos - 2;
+      // number of digits written after the decimal point (a leading '+'/'-' does not affect it)
+      size_t n_decimals = mod.size() - decimal_pos - 1;
+      // match with the precision the mass was written with, i.e. allow one unit in the last
+      // written digit. Note that this used to under-count the decimals by one, so e.g. "[-0.5]"
+      // was matched with a tolerance of 1.0 Da and could pick up an arbitrary modification.
       tolerance = std::pow(10.0, -int(n_decimals));
     }
     bool delta_mass = (mod[0] == '+') || (mod[0] == '-');

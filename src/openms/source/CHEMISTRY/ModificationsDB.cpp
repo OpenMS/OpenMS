@@ -52,6 +52,23 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    /**
+      @brief Can @p mod explain a mass difference of @p mass?
+
+      Modifications without a mass difference cannot: PSI-MOD contains "residue" terms (e.g.
+      'MOD:00026 L-threonine residue') and similar entries that describe a residue rather than a
+      change to it, and they are loaded as ordinary modifications with a difference mass of 0.
+      Since the mass search minimizes |diff mass - mass|, such an entry would otherwise be
+      returned as the best match for any (small) mass difference within the search tolerance.
+    */
+    inline bool explainsMassDiff_(const ResidueModification* mod, double mass)
+    {
+      return (mod->getDiffMonoMass() != 0.0) || (mass == 0.0);
+    }
+  }
+
   bool ModificationsDB::is_instantiated_ = false;
 
   const ModificationsDB* ModificationsDB::getInstance()
@@ -345,6 +362,7 @@ namespace OpenMS
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -365,6 +383,7 @@ namespace OpenMS
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -389,6 +408,7 @@ namespace OpenMS
       {
         diff = fabs(m->getDiffMonoMass() - mass);
         if ((diff <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -417,6 +437,7 @@ namespace OpenMS
       {
         diff = fabs(m->getDiffMonoMass() - mass);
         if ((diff <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -450,6 +471,7 @@ namespace OpenMS
         // first matching UniMod entry)
         double mass_error = fabs(m->getDiffMonoMass() - mass);
         if ((mass_error < min_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))

@@ -209,6 +209,38 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<std::string>& 
   ptr->searchModificationsByDiffMonoMass(mods, 0.98, 1.0, "Q");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Deamidated (Q)")
+
+  // Modifications without a mass difference (PSI-MOD "residue" terms such as
+  // 'MOD:00026 L-threonine residue') cannot explain a mass shift and must not be reported
+  // for one, no matter how large the tolerance is (issue #10029).
+  std::vector<const ResidueModification*> mod_ptrs;
+  ptr->searchModificationsByDiffMonoMass(mod_ptrs, -0.5, 1.0, "T");
+  bool found_zero_diff = false;
+  for (const ResidueModification* m : mod_ptrs)
+  {
+    if (m->getDiffMonoMass() == 0.0) found_zero_diff = true;
+  }
+  TEST_EQUAL(found_zero_diff, false)
+  // ... they are still found when a zero mass difference is what was asked for
+  ptr->searchModificationsByDiffMonoMass(mods, 0.0, 0.001, "T");
+  TEST_EQUAL(find(mods.begin(), mods.end(), "L-threonine residue (T)") != mods.end(), true)
+}
+END_SECTION
+
+START_SECTION((const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const))
+{
+  TEST_EQUAL(ptr->getBestModificationByDiffMonoMass(15.994915, 0.001, "M", ResidueModification::ANYWHERE)->getFullId(), "Oxidation (M)")
+
+  // A modification with a mass difference of zero minimizes |diff mass - mass| for every small
+  // mass difference and used to be returned as the best match for it (issue #10029).
+  const ResidueModification* best = ptr->getBestModificationByDiffMonoMass(-0.5, 1.0, "T", ResidueModification::ANYWHERE);
+  TEST_EQUAL(best != nullptr && best->getDiffMonoMass() == 0.0, false)
+  TEST_EQUAL(ptr->getBestModificationByDiffMonoMass(0.001, 0.005, "T", ResidueModification::ANYWHERE) == nullptr, true)
+
+  // ... but a zero mass difference is still matched when explicitly searched for
+  best = ptr->getBestModificationByDiffMonoMass(0.0, 0.001, "T", ResidueModification::ANYWHERE);
+  TEST_EQUAL(best == nullptr, false)
+  TEST_REAL_SIMILAR(best->getDiffMonoMass(), 0.0)
 }
 END_SECTION
 

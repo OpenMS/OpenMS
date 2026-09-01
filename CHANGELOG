@@ -1116,6 +1116,24 @@ OpenMS Library:
       consumer (peak picking, feature scoring, targeted extraction, OpenSwath/MRM analysis) sees slightly
       smoother, more accurate S/N-derived output; reference test data across ~60 TOPP tests was
       regenerated accordingly (#9781, #9967)
+    - Fix: a small signed mass bracket on a residue, e.g. "PEPT[-0.5]IDE" or "PEPT[+0.001]IDE", was
+      silently replaced by the zero-mass PSI-MOD term "MOD:00026 L-threonine residue" and the peptide
+      lost a water (18.0106 Da). Three causes, all fixed: (a) AASequence::parseModSquareBrackets_
+      under-counted the written decimals by one, so every mass bracket was matched ten times more
+      loosely than written ("[-0.5]" was matched with a tolerance of 1.0 Da, "[+0.001]" with 0.01 Da);
+      it now uses the precision the mass was written with. (b) ModificationsDB's mass searches
+      (getBestModificationByDiffMonoMass and the four searchModificationsByDiffMonoMass[Sorted]
+      overloads) returned modifications with a difference mass of 0 - PSI-MOD "residue" terms that
+      describe a residue rather than a change to it - as the best match for any small mass difference;
+      such entries are now only reported when a zero mass difference is what was searched for.
+      (c) Residue::setModification adopted the absolute mass and formula of a modification that
+      describes no difference at all; since PSI-MOD stores the residue as it occurs inside a peptide
+      chain, i.e. without the water of the free amino acid that Residue stores, this stripped a water
+      whenever such a term was applied - including via "(MOD:00026)" written into idXML. Note that
+      (a) also tightens matching of coarsely written masses: "M[147.01]" (25 mDa off oxidized
+      methionine, more than the 0.01 Da implied by two decimals) and other masses written with fewer
+      decimals than their deviation from the database entry are now kept as exact unknown mass shifts
+      instead of being snapped to a named modification (#10029)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)

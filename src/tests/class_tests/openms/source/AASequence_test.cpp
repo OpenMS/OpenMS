@@ -1254,9 +1254,40 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
   AASequence test;
   TEST_EXCEPTION(Exception::ParseError, test = AASequence::fromString("PEPTX[+160.230654]IDE"));
 
-  AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK");
+  AASequence seq11 = AASequence::fromString("PEPM[147.0354]TIDEK");
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
+}
+END_SECTION
+
+START_SECTION([EXTRA] Small mass tags are not replaced by a zero-mass modification)
+{
+  // Issue #10029: a small (signed) mass tag - a calibration offset, an isotope error or a
+  // placeholder written by an open search - used to be replaced by the PSI-MOD "residue" term
+  // 'MOD:00026 L-threonine residue' (mass difference 0), which additionally stripped a water
+  // from the peptide. Such a tag must be kept as an unknown modification of exactly that mass.
+  const double base = AASequence::fromString("PEPTIDE").getMonoWeight();
+  const std::vector<std::pair<std::string, double>> tags =
+    {{"PEPT[-0.5]IDE", -0.5},
+     {"PEPT[+0.001]IDE", 0.001},
+     {"PEPT[-0.001]IDE", -0.001},
+     {"PEPT[+0.000000001]IDE", 0.000000001},
+     {"PEPT[+0.00335]IDE", 0.00335}};
+  for (const auto& [seq_string, delta] : tags)
+  {
+    AASequence aa = AASequence::fromString(seq_string);
+    TEST_STRING_EQUAL(aa.toString(), seq_string)
+    TEST_EQUAL(aa[3].isModified(), true)
+    TEST_STRING_EQUAL(aa[3].getModificationName(), "") // user-defined, i.e. no database entry
+    TEST_REAL_SIMILAR(aa.getMonoWeight() - base, delta)
+  }
+
+  // The same term applied explicitly describes an (unmodified) threonine, so it must not change
+  // the mass of the peptide either
+  AASequence thr_term = AASequence::fromString("PEPT(MOD:00026)IDE");
+  TEST_EQUAL(thr_term[3].isModified(), true)
+  TEST_REAL_SIMILAR(thr_term.getMonoWeight(), base)
+  TEST_EQUAL(thr_term.getFormula() == AASequence::fromString("PEPTIDE").getFormula(), true)
 }
 END_SECTION
 
@@ -1266,11 +1297,20 @@ START_SECTION([EXTRA] Test integer vs float tags)
 
   // Test a few modifications with the "correct" accurate mass
   {
-  AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK"); // UniMod oxMet is 147.035405
+  AASequence seq11 = AASequence::fromString("PEPM[147.0354]TIDEK"); // UniMod oxMet is 147.035405
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
   TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), 35)
   TEST_EQUAL(seq11[3].getModification()->getUniModAccession(), "UniMod:35")
+
+  // A mass is only matched with the precision it was written with. The absolute masses
+  // tabulated by UniMod are built from residue masses that are rounded to five decimals, so
+  // "147.035405" differs from OpenMS' Met + Oxidation by ~5e-6 Da - more than the 1e-6 Da
+  // implied by six decimals - and is therefore kept as an (exact) unknown mass:
+  AASequence seq11b = AASequence::fromString("PEPM[147.035405]TIDEK");
+  TEST_EQUAL(seq11b.isModified(), true);
+  TEST_STRING_EQUAL(seq11b[3].getModificationName(), "");
+  TEST_REAL_SIMILAR(seq11b.getMonoWeight(), seq11.getMonoWeight())
 
   AASequence seq12 = AASequence::fromString("PEPT[181.014]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
@@ -1293,10 +1333,16 @@ START_SECTION([EXTRA] Test integer vs float tags)
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
   {
-  AASequence seq11 = AASequence::fromString("PEPM[147.01]TIDEK");
+  AASequence seq11 = AASequence::fromString("PEPM[147.03]TIDEK");
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation")
   TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), 35)
+
+  // ... but only as far as the written precision allows: 147.01 is 25 mDa away from oxidized
+  // methionine, which is more than the 0.01 Da implied by two decimals
+  AASequence seq11b = AASequence::fromString("PEPM[147.01]TIDEK");
+  TEST_EQUAL(seq11b.isModified(), true);
+  TEST_STRING_EQUAL(seq11b[3].getModificationName(), "")
 
   AASequence seq12 = AASequence::fromString("PEPT[181.004]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
@@ -1308,7 +1354,7 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Sulfo");
   TEST_EQUAL(seq13[3].getModification()->getUniModRecordId(), 40)
 
-  AASequence seq14 = AASequence::fromString("PEPTC[159.035405]IDE");
+  AASequence seq14 = AASequence::fromString("PEPTC[159.0354]IDE");
   TEST_EQUAL(seq14.isModified(), true);
   TEST_STRING_EQUAL(seq14[4].getModificationName(), "Delta:H(4)C(3)O(1)");
   TEST_EQUAL(seq14[4].getModification()->getUniModRecordId(), 206)
@@ -1323,7 +1369,7 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
 
-  AASequence seq12 = AASequence::fromString("PEPT[+79.96632]TIDEK");
+  AASequence seq12 = AASequence::fromString("PEPT[+79.96633]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Phospho");
 
@@ -1399,20 +1445,20 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[+16]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[+15.99]GER"))
-  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147.035405]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147.0354]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM(Oxidation)GER"))
 
   // Test Oxidation
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+16]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER"))
-  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.0354]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER"))
 
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+16]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER."))
-  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER."))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.0354]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER."))
 
   // Test Phosphorylation
