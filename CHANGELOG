@@ -1306,6 +1306,13 @@ Fixes:
     unpacked with preserved pre-2020 timestamps. The test now brackets the wall clock around a
     temporary file it writes and checks itself, which no longer depends on how the tree was unpacked
     while still catching the bug the original bounds guarded against (#10018)
+  - Fix: UnimodXMLHandler folded the <element> children of a modification's <Ignore> blocks into its diff
+    formula. ICAT-D (UNIMOD:13) and ICAT-D:2H(8) (UNIMOD:12) -- the only unimod.xml entries carrying such
+    blocks -- therefore loaded with a diff formula about 2250 Da heavier than their diff mass, so
+    AASequence::getFormula() and every isotope pattern derived from it (e.g. FeatureFinderIdentification's
+    assay library) were wrong for peptides carrying them, while the mass-based API stayed correct. Element
+    collection is now scoped to <delta> and <NeutralLoss>, and a regression test asserts that diff formula
+    and diff mono mass agree for every UniMod entry (fixes #10030)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)

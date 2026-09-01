@@ -232,6 +232,23 @@ START_SECTION((const ResidueModification& getModification(const std::string& mod
 }
 END_SECTION
 
+START_SECTION([EXTRA] diff formula of a UniMod entry matches its diff mono mass)
+{
+  // ICAT-D (UNIMOD:13) and ICAT-D:2H(8) (UNIMOD:12) are the only unimod.xml entries with <Ignore>
+  // blocks. Their <element> children used to be folded into the modification's own formula, leaving
+  // it ~2250 Da heavier than the delta mass that getDiffMonoMass() reports.
+  // See https://github.com/OpenMS/OpenMS/issues/10030
+  for (const std::string& acc : {std::string("UNIMOD:12"), std::string("UNIMOD:13")})
+  {
+    const ResidueModification* mod = ptr->getModification(acc);
+    TEST_REAL_SIMILAR(mod->getDiffFormula().getMonoWeight(), mod->getDiffMonoMass());
+  }
+
+  TEST_REAL_SIMILAR(ptr->getModification("UNIMOD:12")->getDiffMonoMass(), 450.275205);
+  TEST_REAL_SIMILAR(ptr->getModification("UNIMOD:13")->getDiffMonoMass(), 442.224991);
+}
+END_SECTION
+
 START_SECTION((Size findModificationIndex(const std::string& mod_name) const))
 {
   Size index = numeric_limits<Size>::max();
