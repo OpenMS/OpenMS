@@ -183,9 +183,7 @@ namespace OpenMS
           // total weight = precursor NA weight + peptide weight
           // this ensures that sequences with additional reported partial loss match the total weight
           // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
-          std::string sequence_string = ph.getSequence().toString();
-
-          const AASequence sequence = AASequence::fromString(sequence_string);
+          const AASequence& sequence = ph.getSequence();
 
           std::string rna_name = StringUtils::toStr(ph.getMetaValue("NuXL:NA"));
           double rna_weight = (double)ph.getMetaValue("NuXL:NA_MASS_z0");

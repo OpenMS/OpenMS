@@ -603,6 +603,14 @@ TOPP tools:
       - Localized RNA/DNA adducts are now embedded as signed residue mass deltas in the peptide
         sequence, keeping adduct variants distinct for downstream quantification. Unlocalized hits
         remain bare and continue to carry the full precursor mass in CalcMass (#9992)
+      - Localized adducts are written as named modifications carrying their empirical formula,
+        e.g. "AEADNLDDK(NuXL:U-H2O1)K" instead of "AEADNLDDK[+306.0253]K", so isotope patterns and
+        quantification downstream see the adduct's chemistry. The definitions travel in the idXML
+        SearchParameters ("modification_definitions") and are registered when the file is loaded. An
+        adduct on an already modified residue becomes one combined definition with the summed
+        formula, e.g. "NuXL:U-H2O1~Oxidation". BREAKING: OpenMS releases without the definitions
+        support fail to load these files ("Cannot convert string to peptide modification") instead of
+        degrading (#9992, #10003)
       - Fix: cross-link localization dropped a residue entirely when its shifted a/b-ion evidence was
         deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
         residue before) -- the y-ion evidence for that residue was then never evaluated. The

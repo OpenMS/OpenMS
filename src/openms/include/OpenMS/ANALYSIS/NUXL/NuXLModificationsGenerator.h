@@ -20,6 +20,8 @@
 namespace OpenMS
 {
   class AASequence;
+  class Residue;
+  class ResidueModification;
 
   /**
     @brief Result of @ref NuXLModificationsGenerator::initModificationMassesNA — empirical formulas with their monoisotopic mass and the disambiguating nucleotide-composition lookup.
@@ -139,6 +141,21 @@ namespace OpenMS
                                                                      std::string sequence_restriction = "",
                                                                      bool cysteine_adduct = false,
                                                                      Int max_length = 4);
+
+      /**
+        @brief Register the precursor adduct as a named modification of @p residue.
+
+        The definition is @c NuXL:<nucleotide_composition> (e.g. @c NuXL:U-H2O1) with
+        @p adduct_formula as its chemistry. If @p residue already carries a modification, both
+        are folded into one definition @c NuXL:<nucleotide_composition>~<existing id> whose mass
+        is the sum of the two; the summed formula is kept only when it agrees with that mass.
+
+        @return the registered modification, or @c nullptr if the existing modification has no
+                id or no formula (the caller then falls back to a plain mass delta)
+      */
+      static const ResidueModification* registerPrecursorAdduct(const std::string& nucleotide_composition,
+                                                                const EmpiricalFormula& adduct_formula,
+                                                                const Residue& residue);
     private:
       /**
         @brief Test whether @p query is @em not present as a sorted-window permutation of @p res_seq.
