@@ -203,8 +203,7 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getModification(Size index) const
   {
-    // Every other accessor takes this section; without it, reading mods_ races a concurrent
-    // addModification() whose push_back can reallocate the vector.
+    // a concurrent addModification() may reallocate mods_
     const ResidueModification* ret = nullptr;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
@@ -498,9 +497,7 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod) const
   {
-    // Held by a unique_ptr until it is actually stored: the copy used to be raw-newed before the
-    // duplicate check below, and on the duplicate path `ret` was reassigned to the existing entry,
-    // leaking it.
+    // owned until stored; the duplicate path below must not leak the copy
     std::unique_ptr<ResidueModification> owned(new ResidueModification(new_mod));
     const ResidueModification* ret = owned.get();
     #pragma omp critical(OpenMS_ModificationsDB)

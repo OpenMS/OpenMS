@@ -34,10 +34,7 @@ namespace OpenMS
     diff_mono_mass_(0.0),
     neutral_loss_mono_masses_(0),
     neutral_loss_average_masses_(0),
-    // DEFINED by default on purpose: over-emitting a definition is a no-op on read (the
-    // ModificationsDB dedup returns the existing entry), whereas under-emitting silently produces a
-    // file that cannot be read back. A missed stamp site fails in the harmless direction.
-    provenance_(DEFINED)
+    provenance_(DEFINED) // default: an unnecessary definition is harmless, a missing one is not
   {
   }
 
@@ -87,13 +84,9 @@ namespace OpenMS
   }
 
 
-  // provenance_ is deliberately NOT compared here, nor in operator< or std::hash. ModificationsDB::
-  // searchModification() requires a full operator== match and gates addNewModification_ - the
-  // NO-DEDUP inserter - reached from Residue::setModification and the AASequence setters. Were the
-  // mark compared, a caller holding a copy whose mark differs from the database entry's would miss
-  // and insert a SECOND entry under the same FullId, after which findModificationIndex() throws
-  // "More than one modification with name". Provenance describes where the description came from,
-  // not the chemistry, so two entries that agree on everything else are the same modification.
+  // provenance_ is intentionally not compared (nor in operator< / std::hash): searchModification()
+  // gates the no-dedup inserter on operator==, so a mismatch would create a second entry under the
+  // same FullId. Provenance describes the source of the definition, not the chemistry.
   bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
     return id_ == rhs.id_ &&
@@ -594,7 +587,7 @@ namespace OpenMS
       {
         unique_ptr<ResidueModification> new_mod(new ResidueModification);
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
-          new_mod->setProvenance(MASS_ONLY); // reconstructible from its own mass bracket
+        new_mod->setProvenance(MASS_ONLY);
         new_mod->setFullName(residue_name); // display name
         new_mod->setTermSpecificity(specificity);
 
@@ -632,7 +625,7 @@ namespace OpenMS
         {
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
-          new_mod->setProvenance(MASS_ONLY); // reconstructible from its own mass bracket
+          new_mod->setProvenance(MASS_ONLY);
           new_mod->setFullName(residue_name); // display name
           new_mod->setTermSpecificity(specificity);
 
@@ -672,7 +665,7 @@ namespace OpenMS
           // create new modification
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
-          new_mod->setProvenance(MASS_ONLY); // reconstructible from its own mass bracket
+          new_mod->setProvenance(MASS_ONLY);
           new_mod->setFullName(modification_name); // display name
 
           // We will set origin to make sure the same modification will be used

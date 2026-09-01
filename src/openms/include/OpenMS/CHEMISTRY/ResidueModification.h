@@ -104,32 +104,20 @@ public:
     };
 
     /**
-      @brief Where the *definition* of this modification came from.
+      @brief Where the definition of this modification came from.
 
-      This matters when writing an identification file: a modification that no other process can look
-      up has to travel with its definition, and the writer needs to know which ones those are.
-
-      It is deliberately NOT SourceClassification, which records biological origin (artefact, natural,
-      post-translational, ...) and says nothing about where the description came from. It is also
-      deliberately not isUserDefined(), which means "anonymous - identified only by a mass string" and
-      guards the origin-'X' matching rule in ModificationsDB; a modification registered WITH an Id is
-      resolvable by name yet not user-defined, i.e. that predicate is false for exactly the
-      modifications that need serialising.
-
-      Provenance must not be inferred from the state of ModificationsDB. That database is a
-      process-global singleton which accumulates every definition a process has ever loaded, so
-      "everything beyond the startup baseline" is a property of process history rather than of the
-      data - a tool reading many files would attribute file 1's definitions to an output that never
-      references them. A mark carried on the modification survives read -> register -> write -> read.
+      File writers use this to decide which modifications must be stored together with their
+      definition. Distinct from SourceClassification (biological origin) and from isUserDefined()
+      (anonymous mass-string modifications). Carried on the object rather than derived from
+      ModificationsDB, which is process-global and accumulates the definitions of every file read.
     */
     enum Provenance
     {
-      /// Registered by a tool, or restored from a file's definition block. Must be serialised.
+      /// Registered by a tool or read from a file's definition block; must be serialised
       DEFINED = 0,
-      /// From a controlled vocabulary shipped with OpenMS (unimod.xml, custom_mods.xml, PSI-MOD.obo, XLMOD.obo).
+      /// From a controlled vocabulary shipped with OpenMS (Unimod, PSI-MOD, XLMOD, custom_mods.xml)
       CV,
-      /// Anonymous: reconstructible from its own serialised form (a mass bracket or an inline formula),
-      /// so it needs no definition to travel with it.
+      /// Anonymous mass or formula modification; reconstructible from its own serialised form
       MASS_ONLY,
       NUMBER_OF_PROVENANCE
     };
@@ -457,8 +445,7 @@ protected:
 
     std::vector<double> neutral_loss_average_masses_;
 
-    // Appended last on purpose: it leaves the layout of every existing member untouched.
-    // Deliberately absent from operator==, operator< and std::hash - see the note on operator==.
+    /// not part of operator==, operator< or std::hash (see operator==)
     Provenance provenance_;
   };
 } // namespace OpenMS

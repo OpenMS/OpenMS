@@ -640,14 +640,10 @@ END_SECTION
 
 START_SECTION([EXTRA] Provenance - default and the values set by the creation paths)
 {
-  // DEFINED by default on purpose: over-emitting a definition is a no-op on read, whereas
-  // under-emitting silently produces a file that cannot be read back, so a missed stamp site has to
-  // fail in the harmless direction.
   ResidueModification fresh;
   TEST_EQUAL(fresh.getProvenance(), ResidueModification::DEFINED)
 
-  // Anything from createUnknownFromMassString is reconstructible from its own mass bracket and needs
-  // no definition to travel with it.
+  // mass-string modifications
   const Residue* lysine = ResidueDB::getInstance()->getResidue("K");
   const ResidueModification* unknown =
     ResidueModification::createUnknownFromMassString("+306.0253048409", 306.0253048409, true,
@@ -658,7 +654,7 @@ START_SECTION([EXTRA] Provenance - default and the values set by the creation pa
     TEST_EQUAL(unknown->getProvenance(), ResidueModification::MASS_ONLY)
   }
 
-  // Entries loaded from the shipped vocabularies are CV.
+  // shipped vocabularies
   const ResidueModification* oxidation = ModificationsDB::getInstance()->getModification("Oxidation (M)");
   TEST_TRUE(oxidation != nullptr)
   if (oxidation != nullptr)
@@ -666,9 +662,7 @@ START_SECTION([EXTRA] Provenance - default and the values set by the creation pa
     TEST_EQUAL(oxidation->getProvenance(), ResidueModification::CV)
   }
 
-  // Provenance is orthogonal to isUserDefined(), which means "anonymous - identified only by a mass
-  // string". Reusing that predicate instead would be wrong in both directions, and would silently
-  // change the origin-'X' matching rule it guards in ModificationsDB.
+  // orthogonal to isUserDefined()
   if (unknown != nullptr && oxidation != nullptr)
   {
     TEST_TRUE(unknown->isUserDefined())
@@ -679,11 +673,7 @@ END_SECTION
 
 START_SECTION([EXTRA] Provenance - deliberately excluded from equality ordering and hash)
 {
-  // ModificationsDB::searchModification() requires a full operator== match and gates
-  // addNewModification_ - the NO-DEDUP inserter - reached from Residue::setModification and the
-  // AASequence setters. If the mark were compared, a caller holding a copy whose mark differs from
-  // the stored entry's would miss and insert a SECOND entry under the same FullId, after which
-  // findModificationIndex() throws "More than one modification with name".
+  // searchModification() gates the no-dedup inserter on operator==; comparing the mark would duplicate entries
   ResidueModification a;
   a.setId("TestProvenanceMod");
   a.setFullId("TestProvenanceMod (K)");
@@ -702,7 +692,7 @@ START_SECTION([EXTRA] Provenance - deliberately excluded from equality ordering 
   std::hash<ResidueModification> hasher;
   TEST_EQUAL(hasher(a), hasher(b))
 
-  // ... but the mark itself is still carried, and survives a copy.
+  // the mark itself is still carried and copied
   TEST_EQUAL(a.getProvenance(), ResidueModification::CV)
   ResidueModification c(a);
   TEST_EQUAL(c.getProvenance(), ResidueModification::CV)

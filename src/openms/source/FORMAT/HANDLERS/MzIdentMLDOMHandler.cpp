@@ -2797,7 +2797,7 @@ namespace OpenMS::Internal
                       if (!mod_db->has(residue_id))
                       {
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
-                        new_mod->setFullId(residue_id); // FullId without Id makes this a user-defined mod
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
                         new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
@@ -2817,14 +2817,11 @@ namespace OpenMS::Internal
                       std::string residue_id = ".c[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
-                      // ownership to ModDB.
-                      // Guard on residue_id, which is what gets registered below: guarding on
-                      // residue_name (".[mod]" vs ".c[mod]") never matched, so every occurrence
-                      // re-entered addModification and logged a duplicate warning.
+                      // ownership to ModDB (check residue_id, which is what gets registered)
                       if (!mod_db->has(residue_id))
                       {
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
-                        new_mod->setFullId(residue_id); // FullId without Id makes this a user-defined mod
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
                         new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
