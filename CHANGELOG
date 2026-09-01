@@ -1308,6 +1308,20 @@ Fixes:
     unpacked with preserved pre-2020 timestamps. The test now brackets the wall clock around a
     temporary file it writes and checks itself, which no longer depends on how the tree was unpacked
     while still catching the bug the original bounds guarded against (#10018)
+  - Fix: File::TempDir predicted a unique directory name and then called fs::create_directories(), which
+    silently succeeds if the directory already exists, so two concurrent processes could be handed the
+    same temp directory. Both constructors now claim their directory atomically via a shared
+    createUniqueDir_() helper -- mkdtemp() on POSIX, CreateDirectoryW() with UUID-suffix retry on
+    Windows. Non-ASCII Windows temp paths resolve identically at creation and cleanup, and every
+    failure path now carries the underlying errno/GetLastError() detail (fixes #9813)
+  - Fix: ProForma's Formula: tag -- the only way a peptidoform can describe chemistry that has no
+    modification database entry -- resolved to nullptr and was silently dropped during BEST_EFFORT
+    conversion to AASequence, taking its mass with it. Formula: tags are now interned as real
+    modifications keyed on their empirical formula; several tags on one residue
+    ("M[Oxidation][Formula:O]") have their chemistry summed instead of the last one silently winning;
+    and ProForma::fromAASequence no longer emits the empty "[]" bracket that made mass-only modifications
+    unparseable, which had been written into the peptidoform column of .idparquet, .featureparquet and
+    .consensusparquet -- also a component of the QPX PSM identity hash -- and into USIs (#10003, #10026)
   - Fix: UnimodXMLHandler folded the <element> children of a modification's <Ignore> blocks into its diff
     formula. ICAT-D (UNIMOD:13) and ICAT-D:2H(8) (UNIMOD:12) -- the only unimod.xml entries carrying such
     blocks -- therefore loaded with a diff formula about 2250 Da heavier than their diff mass, so
