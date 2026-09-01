@@ -717,8 +717,6 @@ If there are no MS1 scans in the MSData, features will be returned unchanged.
 DefaultParamHandler
 
 Algorithm class for FeatureFinderIdentification
-External IDs (peptides_ext, proteins_ext) may be empty,
-in which case no machine learning or FDR estimation will be performed.
 Optional seeds from e.g. untargeted FeatureFinders can be added with
 seeds.
 Results will be written to features .
@@ -744,25 +742,20 @@ features = FeatureMap()
 features.setPrimaryMSRunPath([b"FeatureFinderIdentification_1_input.idXML"], ffid_algo.getMSData())
 peptides = []
 proteins = []
-peptides_ext = []
-proteins_ext = []
 IdXMLFile().load("FeatureFinderIdentification_1_input.idXML", proteins, peptides)
-#"internal" IDs:
-ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features)
+ffid_algo.run(peptides, proteins, features)
 # Terminal output:
 # Summary statistics (counting distinct peptides including PTMs):
-# 22 peptides identified (22 internal, 0 additional external)
-# 16 peptides with features (16 internal, 0 external)
-# 6 peptides without features (6 internal, 0 external)
+# 22 peptides identified
+# 16 peptides with features
+# 6 peptides without features
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::PeptideIdentificationList peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::PeptideIdentificationList peptides_ext, std::vector<OpenMS::ProteinIdentification> proteins_ext, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const std::string& spectra_file) { return self.run(peptides, proteins, peptides_ext, proteins_ext, features, seeds, spectra_file); }, "peptides"_a, "proteins"_a, "peptides_ext"_a, "proteins_ext"_a, "features"_a, "seeds"_a, "spectra_file"_a = "", 
+        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::PeptideIdentificationList peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const std::string& spectra_file) { return self.run(peptides, proteins, features, seeds, spectra_file); }, "peptides"_a, "proteins"_a, "features"_a, "seeds"_a = OpenMS::FeatureMap(), "spectra_file"_a = "", 
             R"doc(
 Run feature detection
 :param peptides: Vector of identified peptides
 :param proteins: Vector of identified proteins
-:param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs
-:param proteins_ext: Vector of external identified proteins, can be used to transfer ids from other runs
 :param features: Feature detection results will be added here
 :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
 )doc")

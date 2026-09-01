@@ -272,6 +272,70 @@ namespace
     }
   }
 
+  /// imzML carries per-peak data only as FloatDataArrays (written as external .ibd
+  /// arrays), so Integer/StringDataArrays — e.g. a "charge array" carried over from
+  /// mzML — have no representation and are dropped. Warn once per store, not once per
+  /// pixel, and cap the listing so the line cannot grow with the dataset.
+  void warnOnDroppedDataArrays_(const MSExperiment& exp)
+  {
+    const Size max_listed = 20;
+    std::vector<std::string> names;
+    bool more_names = false;
+    Size dropped = 0;
+
+    auto collect = [&](const auto& arrays) {
+      for (const auto& array : arrays)
+      {
+        if (array.empty())
+        {
+          continue;
+        }
+        ++dropped;
+        if (std::find(names.begin(), names.end(), array.getName()) != names.end())
+        {
+          continue;
+        }
+        if (names.size() < max_listed)
+        {
+          names.push_back(array.getName());
+        }
+        else
+        {
+          more_names = true;
+        }
+      }
+    };
+
+    for (const MSSpectrum& spec : exp.getSpectra())
+    {
+      collect(spec.getIntegerDataArrays());
+      collect(spec.getStringDataArrays());
+    }
+
+    if (dropped == 0)
+    {
+      return;
+    }
+
+    std::string listed;
+    for (Size k = 0; k < names.size(); ++k)
+    {
+      if (k > 0)
+      {
+        listed += ", ";
+      }
+      listed += "'" + names[k] + "'";
+    }
+    if (more_names)
+    {
+      listed += ", ...";
+    }
+    OPENMS_LOG_WARN << "imzML stores per-peak data only as FloatDataArrays: dropping "
+                    << dropped << " integer/string data array(s) across " << exp.size()
+                    << " spectra. Affected array names: " << listed
+                    << "." << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
+  }
+
   ImzMLMeta extractMeta_(const MSExperiment& exp)
   {
     ImzMLMeta meta;
@@ -1344,6 +1408,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
   }
 
   validatePixelMetadataForStore_(work);
+  warnOnDroppedDataArrays_(work);
 
   ImzMLMeta meta = extractMeta_(work);
   const bool continuous = isContinuousMode_(work, meta);

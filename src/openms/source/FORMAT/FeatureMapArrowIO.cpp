@@ -1267,6 +1267,10 @@ bool FeatureMapArrowIO::exportToParquet(
   feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
   feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
   feature_map_metadata["fmap_metavalues"] = serializeMetaValues_(feature_map);
+  // The map's own UniqueIdInterface value -- distinct from the per-feature unique ids in the
+  // table and from DocumentIdentifier above. Consumers key on it: ProteomicsLFQ copies it into
+  // the consensus column header of the run the map came from.
+  feature_map_metadata["map_unique_id"] = std::to_string(feature_map.getUniqueId());
 
   if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
   {
@@ -1779,9 +1783,16 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
       else
       {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find feature with id "
-                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+        // Refuse rather than re-file the identification as unassigned. The two identification
+        // lists of a FeatureMap partition the PSMs, and which list a PSM is in is part of the
+        // result: FDR is estimated over both together, and every exporter reports them
+        // separately. Silently moving one across that boundary yields a map that parses
+        // cleanly and describes a different experiment from the one that was written, which
+        // is the failure mode that is hardest to notice afterwards.
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: PSM references feature unique id "
+                         << group.feature_id << ", which is not in features.parquet. The file is "
+                         << "inconsistent." << std::endl;
+        return false;
       }
     }
   }
@@ -1841,6 +1852,22 @@ bool FeatureMapArrowIO::importFromParquet(
     if (idx >= 0)
     {
       deserializeMetaValues_(schema_md->value(idx), feature_map);
+    }
+
+    // The map's own unique id. Absent in files written before it was stored, which then keep
+    // the invalid id the map starts with, exactly as they did before.
+    idx = schema_md->FindKey("map_unique_id");
+    if (idx >= 0)
+    {
+      try
+      {
+        feature_map.setUniqueId(static_cast<UInt64>(std::stoull(schema_md->value(idx))));
+      }
+      catch (const std::exception&)
+      {
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: could not read map_unique_id '"
+                        << schema_md->value(idx) << "'; leaving the map id unset." << std::endl;
+      }
     }
   }
 

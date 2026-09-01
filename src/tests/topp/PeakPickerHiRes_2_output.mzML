@@ -80,19 +80,19 @@
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>fJR5FRRhqEAzswyriIioQA==</binary>
+						<binary>fJR5FRRhqEDMTBgMjYioQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>NW4qQ8QFOEE=</binary>
+						<binary>NW4qQzzjN0E=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="2" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>K9KURbYw90Q=</binary>
+						<binary>K9KURYwD+EQ=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -162,7 +162,7 @@
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>SGE98L5gqEA=</binary>
+						<binary>FS508L5gqEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
@@ -174,7 +174,7 @@
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>9s2MRQ==</binary>
+						<binary>3aaNRQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -203,19 +203,19 @@
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>fJR5FRRhqEAzswyriIioQA==</binary>
+						<binary>fJR5FRRhqEDMTBgMjYioQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>NW4qQ8QFOEE=</binary>
+						<binary>NW4qQzzjN0E=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="2" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>K9KURbYw90Q=</binary>
+						<binary>K9KURYwD+EQ=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
