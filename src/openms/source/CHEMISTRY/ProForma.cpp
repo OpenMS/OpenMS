@@ -1617,24 +1617,14 @@ namespace
   /**
     @brief Intern a ProForma `Formula:` tag as a ResidueModification carrying that chemistry.
 
-    ProForma has no construct for *defining* a modification, so describing the chemistry inline is the
-    only way a peptidoform can be self-describing (issue #10003). Resolving the tag here is what makes
-    `AEADNLDDK[Formula:C9H11N2O8P]K` convert to an AASequence with both the right mass and the right
-    empirical formula. Previously the tag resolved to nullptr and BEST_EFFORT dropped it silently.
-
-    The entry is keyed on the canonical formula rather than on its mass, so it can never collide with -
-    and be permanently shadowed by - a formula-less entry that createUnknownFromMassString created for
-    the same mass. Its FullName is deliberately the mass bracket, so an AASequence carrying it still
-    serialises to a spelling that every existing OpenMS reader parses.
+    Keyed on the canonical formula (not the mass) so it never collides with a formula-less mass-bracket
+    entry. FullName is the mass bracket, so an AASequence carrying it serialises to a spelling every
+    reader parses.
   */
   const ResidueModification* resolveFormulaTag_(const FormulaTag& ft, char residue,
                                                 ResidueModification::TermSpecificity term_spec)
   {
-    // A charge ("Formula:Zn1:z+2") has no representation in ResidueModification, and folding it into
-    // the residue silently would be worse than not resolving. Note this does NOT agree with
-    // getModificationMass_(), which returns the neutral formula's mass for the same tag - the two paths
-    // differ by the adduct mass for a charged tag, which is a pre-existing inconsistency, not one this
-    // function can settle.
+    // a charge has no representation in ResidueModification
     if (ft.charge.has_value() && ft.charge.value() != 0) return nullptr;
 
     EmpiricalFormula ef;
@@ -1643,8 +1633,7 @@ namespace
       ef = EmpiricalFormula(ft.formula_string);
     }
     catch (const Exception::BaseException&)
-    { // ProForma allows spellings OpenMS cannot parse (e.g. the "[13C2]" isotope form). Deliberately
-      // narrow: catch(...) here would turn an unrelated internal fault into a silently missing mod.
+    { // spellings OpenMS cannot parse, e.g. the "[13C2]" isotope form
       return nullptr;
     }
     if (ef.isEmpty() || ef.getCharge() != 0) return nullptr;
@@ -1652,9 +1641,7 @@ namespace
     const ResidueModification::TermSpecificity ts =
       (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ? ResidueModification::ANYWHERE : term_spec;
 
-    // The site is part of the interning key, and PROTEIN_N_TERM must not share an entry with N_TERM:
-    // the entry stores its TermSpecificity, and the cache-hit path below returns whichever was created
-    // first, which would hand back the wrong site restriction for the same chemistry.
+    // the site is part of the key: PROTEIN_N_TERM and N_TERM must not share an entry
     std::string site;
     const Residue* res = nullptr;
     switch (ts)
@@ -1664,10 +1651,8 @@ namespace
       case ResidueModification::C_TERM:         site = ".c";  break;
       case ResidueModification::PROTEIN_C_TERM: site = ".pc"; break;
       default:
-        // Without an origin the entry could neither be attached to a residue nor serialised
-        // (ResidueModification::toString builds the prefix from it), so refuse instead of interning
-        // something unusable. getResidue() RETURNS NULL rather than throwing for a code that is not in
-        // the table - the ProForma grammar accepts lowercase amino acids, which ResidueDB does not have.
+        // no origin: the entry could neither be attached nor serialised; getResidue() returns null
+        // for letters ResidueDB does not know (ProForma accepts lowercase)
         if (residue == '\0') return nullptr;
         res = ResidueDB::getInstance()->getResidue(static_cast<unsigned char>(residue));
         if (res == nullptr) return nullptr;
@@ -1680,9 +1665,7 @@ namespace
 
     const ModificationsDB* mod_db = ModificationsDB::getInstance();
     if (mod_db->has(full_id))
-    { // One entry per (formula, site), not one per call. searchModificationsFast returns the pointer
-      // from inside the ModificationsDB critical section; findModificationIndex + getModification(Size)
-      // would hand back an index and then read mods_ WITHOUT the lock, racing a concurrent push_back.
+    { // one entry per (formula, site); searchModificationsFast returns the pointer under the DB lock
       bool multiple_matches = false;
       const ResidueModification* existing = mod_db->searchModificationsFast(full_id, multiple_matches);
       if (existing != nullptr) return existing;
@@ -1692,15 +1675,12 @@ namespace
     new_mod->setFullId(full_id); // FullId without Id keeps this an anonymous (user-defined) modification
     new_mod->setFullName(ResidueModification::getDiffMonoMassWithBracket(diff_mono));
     new_mod->setTermSpecificity(ts);
-    // Both must be set: setDiffFormula() alone leaves getDiffMonoMass() at 0.0, which would zero out
-    // getBestModificationByDiffMonoMass, the mzTab CHEMMOD export and getModificationMass_().
+    // setDiffFormula() alone leaves getDiffMonoMass() at 0.0
     new_mod->setDiffFormula(ef);
     new_mod->setDiffMonoMass(diff_mono);
     new_mod->setDiffAverageMass(ef.getAverageWeight());
 
-    // Set the absolute masses the way createUnknownFromMassString does, so Residue::setModification
-    // takes its `mono_weight_ = mod->getMonoMass()` branch and the resulting residue is numerically
-    // identical to the one a plain mass bracket would have produced.
+    // absolute masses as createUnknownFromMassString sets them, so Residue::setModification behaves the same
     if (res != nullptr)
     {
       new_mod->setOrigin(residue);
@@ -1716,35 +1696,19 @@ namespace
       new_mod->setMonoMass(diff_mono + Residue::getInternalToCTerm().getMonoWeight());
     }
 
-    // Benign race under OpenMP: addModification re-checks the FullId under its critical section and
-    // returns the existing entry, exactly as createUnknownFromMassString already relies on.
+    // addModification re-checks the FullId under its lock and returns the existing entry
     return mod_db->addModification(std::move(new_mod));
   }
 
   /**
-    @brief Combine modifications that landed on one residue into a single one with the summed chemistry.
+    @brief Combine the modifications on one residue into a single one with the summed chemistry.
 
-    An AASequence residue holds exactly one modification, so "M[Oxidation][Formula:O]" cannot be
-    represented as written. Summing the DIFF FORMULAS (rather than only the diff masses, which is what
-    ResidueModification::combineMods does) keeps both the mass and the empirical formula correct - and
-    the formula is what isotope patterns are built from, so losing it would defeat the purpose.
+    The sum of the diff mono masses is authoritative. The diff formulas are summed as well but only used
+    when their mass agrees with that sum (a database entry can carry a formula that contradicts its
+    mass); otherwise the result is a mass-only modification. Interned via resolveFormulaTag_.
 
-    The result is interned through resolveFormulaTag_, so a combination reuses the same entry as the
-    equivalent single Formula: tag and needs no second interning scheme.
-
-    The authoritative combined mass is the sum of the components' diff mono masses. The diff formulas
-    are summed too, but only TRUSTED when their mass agrees with that sum: a database entry can carry
-    a formula that disagrees with its own mass (UNIMOD:12 loads as (2)H40C118H166N24O26S9, 2703.55 Da,
-    against a diff mass of 450.28 Da), and a single use of it keeps the explicit mass - deriving the
-    combined mass from such a formula would be off by 2253 Da. When the formulas are unavailable or
-    inconsistent, the combination falls back to a mass-only modification: the mass stays right and the
-    formula is lost, which is strictly better than losing whole components.
-
-    @param[out] net_zero true when the components cancel to nothing ("[Formula:H2O][Formula:H-2O-1]",
-                "[Formula:O][UNIMOD:447]"): the caller applies NO modification, which is exactly the
-                mass ProForma itself computes. Applying the last bracket would leave the residue lighter
-                by everything the others added.
-    @return the interned combined modification, or nullptr when @p net_zero or when the residue is unknown.
+    @param[out] net_zero true when the components cancel; the caller then applies no modification
+    @return the combined modification, or nullptr when @p net_zero or the residue is unknown
   */
   const ResidueModification* combineOnOneResidue_(const std::vector<const ResidueModification*>& mods,
                                                   char residue, bool& net_zero)
@@ -1755,7 +1719,7 @@ namespace
     double mass_sum = 0.0;
     EmpiricalFormula formula_sum;
     bool all_have_formulas = true;
-    for (const ResidueModification* m : mods) // a vector, not a set: repeated identical brackets must each count
+    for (const ResidueModification* m : mods) // repeated identical brackets each count
     {
       mass_sum += m->getDiffMonoMass();
       if (m->getDiffFormula().isEmpty()) all_have_formulas = false;
@@ -1816,8 +1780,7 @@ namespace
           return mod_db->getModification(full_accession, residue_str, term_spec);
         }
         catch (const Exception::BaseException&)
-        { // not found, OR found but not valid for this residue/terminus (getModification throws InvalidValue
-          // for the latter): either way an unresolved modification to report, never an escaping exception
+        { // not found, or not valid for this residue (InvalidValue): both are unresolved, not exceptions
           return nullptr;
         }
       }
@@ -1848,29 +1811,19 @@ namespace
   void resolveModification_(Modification& mod, char residue, ResidueModification::TermSpecificity term_spec)
   {
     if (mod.alternatives.empty()) return;
-    // Resolve the first alternative that describes chemistry. Keying on alternatives[0] made the
-    // result depend on the order the tags happen to be written in: "[INFO:x|Formula:C9H11N2O8P]" is
-    // the same modification as "[Formula:C9H11N2O8P|INFO:x]", but the first spelling resolved the
-    // INFO tag to nullptr and dropped 306 Da. For a bracket with a single tag - every case that
-    // existed before ProForma grew alternatives - this picks exactly alternatives[0] as before.
+    // the first chemistry-carrying alternative, so the tag order inside the bracket does not matter
     for (const auto& [tag, label] : mod.alternatives)
     {
       if (!isChemistryTag_(tag)) continue;
       mod.resolved_mod = resolveModificationTag_(tag, residue, term_spec);
       return;
     }
-    // Nothing but annotations: keep the historical behaviour of reporting what alternatives[0] gives.
+    // annotations only: report what alternatives[0] gives
     mod.resolved_mod = resolveModificationTag_(mod.alternatives[0].first, residue, term_spec);
   }
 
-  /**
-    @brief Does this bracket offer a genuine *choice* between chemistries?
-
-    An `INFO:` entry is a free-text annotation, not a candidate identification: `[Formula:C2H2O|INFO:x]`
-    names one modification twice, it does not offer two. Counting it as an alternative would make
-    FAIL_ON_LOSS reject - and BEST_EFFORT warn once per PSM about - peptidoforms that OpenMS itself
-    writes (see issue #10003). ProFormaWriter::writeModification_ already treats InfoTags specially.
-  */
+  /// Does this bracket offer a real choice between chemistries? `INFO:` is an annotation, not a
+  /// candidate: `[Formula:C2H2O|INFO:x]` names one modification, it does not offer two.
   bool hasGenuineAlternatives_(const Modification& mod)
   {
     size_t chemistry = 0;
@@ -1881,8 +1834,7 @@ namespace
     return chemistry > 1;
   }
 
-  /// Does this bracket describe a modification at all, as opposed to being a pure annotation or a
-  /// label-only bracket such as "[#XL1]"?
+  /// Does this bracket describe a modification at all (not just an annotation or a label such as "[#XL1]")?
   bool carriesChemistry_(const Modification& mod)
   {
     for (const auto& [tag, label] : mod.alternatives)
@@ -1898,8 +1850,7 @@ namespace
     if (mod.resolved_mod != nullptr) return {true, mod.resolved_mod->getDiffMonoMass()};
     if (mod.alternatives.empty()) return {false, 0.0};
 
-    // Same pick as resolution: the first alternative that describes chemistry. Reading alternatives[0]
-    // made "[INFO:x|Formula:Zn1:z+2]" and "[Formula:Zn1:z+2|INFO:x]" differ by the zinc.
+    // same pick as resolution: the first chemistry-carrying alternative
     const ModificationTag* chosen = nullptr;
     for (const auto& [t, l] : mod.alternatives)
     {
@@ -2146,8 +2097,7 @@ void ProForma::resolveModifications(Peptidoform& pf)
 
 namespace
 {
-  /// Collect conversion issues from an ALREADY resolved peptidoform. Split out of
-  /// getAASequenceConversionIssues so toAASequence resolves once instead of twice.
+  /// Issues of an already resolved peptidoform; lets toAASequence resolve once
   std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::Peptidoform& pf_copy);
 } // namespace
 
@@ -2202,9 +2152,7 @@ std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::
       {
         if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
         {
-          // A bracket with no chemistry at all (label-only "[#XL1]", or annotations only) is not an
-          // unresolved modification. Keyed on the whole bracket, not alternatives[0]: "[INFO:|Glycan:Hex]"
-          // has an empty INFO first and unresolved chemistry second.
+          // a bracket without any chemistry (label-only or annotations only) is not an unresolved modification
           if (carriesChemistry_(mod))
             issues.push_back({ConversionIssueType::UNRESOLVED_MOD,
               "Modification at position " + std::to_string(position) + " could not be resolved", position});
@@ -2311,10 +2259,8 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
   {
     if (const auto* elem = std::get_if<SequenceElement>(&section))
     {
-      // An AASequence residue holds exactly one modification, so several brackets on one residue
-      // ("M[Oxidation][Formula:O]") cannot be represented as written. Combine their chemistry so the
-      // mass and the empirical formula both stay right; the individual identities are still lost,
-      // which collectConversionIssues_ reports, so FAIL_ON_LOSS refuses either way.
+      // an AASequence residue holds one modification: combine the chemistry (the lost identities are
+      // reported by collectConversionIssues_)
       std::vector<const ResidueModification*> resolved;
       for (const auto& mod : elem->modifications)
       {
@@ -2339,8 +2285,7 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
         { // unknown residue letter: the only case left with no combined modification
           seq.setModification(seq_pos, resolved.back());
         }
-        // else: the components cancel to nothing - leave the residue unmodified, which is exactly the
-        // net chemistry and the mass calculateChainMass_ reports.
+        // else: the components cancel; leave the residue unmodified
       }
       seq_pos++;
     }
@@ -2348,10 +2293,7 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
     else if (const auto* range = std::get_if<ModifiedRange>(&section)) seq_pos += range->elements.size();
   }
 
-  // Apply the first RESOLVED terminal bracket, not blindly the first bracket: a label-only bracket
-  // such as "[#XL1]" can precede the chemistry ("[#XL1][Formula:C2H2O]-PEPTIDE"), and taking [0] lost
-  // the Formula tag while reporting no issue. More than one resolved chemistry bracket is reported by
-  // collectConversionIssues_, so FAIL_ON_LOSS refuses it.
+  // the first RESOLVED terminal bracket: a label-only "[#XL1]" may precede the chemistry
   for (const auto& mod : pf_copy.n_term_mods)
   {
     if (mod.resolved_mod != nullptr) { seq.setNTerminalModification(mod.resolved_mod); break; }
@@ -2367,26 +2309,20 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
 namespace
 {
   /**
-    @brief Render a mass delta as ProForma-parseable text, at full precision.
+    @brief Render a mass delta as ProForma-parseable text at full precision.
 
-    ResidueModification::getDiffMonoMassString() cannot be used here: it goes through
-    StringUtils::appendNumeric, which switches to scientific notation below 1e-2 and at or above 1e4,
-    and ProForma::parseMassDelta_ reads a sign plus a single number token - so "+3.35e-03" stops the
-    parser at the 'e' and the peptidoform we just wrote fails to parse. That is the same class of
-    self-inflicted unparseable output as the empty bracket this file used to emit, just at the tails
-    of the mass range.
+    getDiffMonoMassString() switches to scientific notation below 1e-2 and above 1e4, which
+    ProForma::parseMassDelta_ cannot read back.
   */
   std::string massDeltaText_(double mass)
   {
-    // chars_format::fixed with no precision gives the SHORTEST fixed-notation string that reads back
-    // as the same double - full precision without "12345.678900000001" padding artefacts.
+    // fixed without a precision: the shortest string that reads back as the same double
     if (!std::isfinite(mass))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Cannot serialise a non-finite modification mass as ProForma", std::to_string(mass));
     }
-    // 400 bytes fits the longest fixed-notation double (309 integer digits plus fraction); a 64-byte
-    // buffer silently turned 1e64 into "+0".
+    // 400 bytes: the longest fixed-notation double has 309 integer digits
     char buf[400];
     const double abs_mass = std::fabs(mass);
     auto res = std::to_chars(buf, buf + sizeof(buf), abs_mass, std::chars_format::fixed);
@@ -2401,15 +2337,9 @@ namespace
   /**
     @brief Render one ResidueModification as a ProForma modification bracket.
 
-    Order matters, and the last rule fixes a real corruption: an anonymous modification (anything from
-    createUnknownFromMassString, i.e. every `X[+123.45]` bracket) has an empty getId(), and the previous
-    code emitted it as a NamedMod with an empty name - producing the literal string "[]", which
-    ProForma::parse rejects with "Expected modification". That string was being written into the
-    `peptidoform` column of .idparquet/.featureparquet/.consensusparquet and into USIs.
-
-    A formula-carrying anonymous modification is emitted as a `Formula:` tag instead, which closes the
-    round trip with resolveFormulaTag_(): the chemistry survives a write/read cycle with no external
-    modification definition needed.
+    An anonymous modification (empty getId()) is written as a `Formula:` tag when it carries a formula
+    and as a mass delta otherwise - never as a NamedMod with an empty name, which produced the
+    unparseable "[]".
   */
   ProForma::Modification modificationToProForma_(const ResidueModification* mod)
   {

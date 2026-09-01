@@ -1712,9 +1712,7 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - a Formula tag resolves to a modification carrying that chemistry)
 {
-  // ProForma has no construct for *defining* a modification, so inline chemistry is the only way a
-  // peptidoform can be self-describing (issue #10003). Before this, resolveModificationTag_ returned
-  // nullptr for every FormulaTag and BEST_EFFORT dropped it silently, so the mass simply vanished.
+  // a Formula tag used to resolve to nullptr and BEST_EFFORT dropped it silently
   Peptidoform pf = ProForma::parse("PEPM[Formula:O]TIDE");
   AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
 
@@ -1722,19 +1720,17 @@ START_SECTION([EXTRA] toAASequence - a Formula tag resolves to a modification ca
   TEST_TRUE(seq[3].isModified())
   TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPM(Oxidation)TIDE").getMonoWeight())
 
-  // Both mass and formula must be set: setDiffFormula() alone leaves getDiffMonoMass() at 0.0, which
-  // would silently zero out getBestModificationByDiffMonoMass, the mzTab CHEMMOD export and
-  // ProForma's own mass helper.
+  // setDiffFormula() alone leaves getDiffMonoMass() at 0.0
   const ResidueModification* mod = seq[3].getModification();
   TEST_TRUE(mod != nullptr)
-  if (mod != nullptr) // guard: an unresolved tag must fail the assertion above, not crash the test
+  if (mod != nullptr) // fail above, do not crash
   {
     TEST_FALSE(mod->getDiffFormula().isEmpty())
     TEST_REAL_SIMILAR(mod->getDiffMonoMass(), EmpiricalFormula("O").getMonoWeight())
     TEST_NOT_EQUAL(mod->getDiffMonoMass(), 0.0)
   }
 
-  // The whole point of #10003: the peptide's *formula* is now right, not just its mass.
+  // the formula, not just the mass
   TEST_EQUAL(seq.getFormula().toString(), AASequence::fromString("PEPM(Oxidation)TIDE").getFormula().toString())
 
   // ... and it is now representable, so FAIL_ON_LOSS must not throw
@@ -1745,16 +1741,14 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - one database entry per formula whatever the spelling)
 {
-  // The interned entry is keyed on the canonical EmpiricalFormula, so equivalent spellings collapse
-  // onto one entry instead of growing ModificationsDB once per string seen.
+  // keyed on the canonical formula: equivalent spellings collapse onto one entry
   AASequence a = ProForma::toAASequence(ProForma::parse("PEPA[Formula:C2H2O]TIDE"), ConversionPolicy::BEST_EFFORT);
   Size n_after_first = ModificationsDB::getInstance()->getNumberOfModifications();
 
   AASequence b = ProForma::toAASequence(ProForma::parse("PEPA[Formula:C2H2O1]TIDE"), ConversionPolicy::BEST_EFFORT);
   AASequence c = ProForma::toAASequence(ProForma::parse("PEPA[Formula:H2C2O1]TIDE"), ConversionPolicy::BEST_EFFORT);
 
-  // Assert resolution FIRST: without it all three modifications are null and comparing them would
-  // pass vacuously.
+  // assert resolution first, or the comparisons below pass vacuously on null pointers
   TEST_TRUE(a[3].getModification() != nullptr)
   TEST_TRUE(a[3].getModification() == b[3].getModification())
   TEST_TRUE(a[3].getModification() == c[3].getModification())
@@ -1764,8 +1758,7 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - an unusable Formula tag stays unresolved)
 {
-  // A charge has no representation in ResidueModification, so it must not be silently folded into the
-  // residue. Refusing it keeps resolution in lockstep with the mass helper, which ignores it too.
+  // a charge has no representation in ResidueModification
   Peptidoform charged = ProForma::parse("PEPT[Formula:Zn1:z+2]IDE");
   AASequence seq = ProForma::toAASequence(charged, ConversionPolicy::BEST_EFFORT);
   TEST_FALSE(seq[3].isModified())
@@ -1781,9 +1774,7 @@ END_SECTION
 
 START_SECTION([EXTRA] getAASequenceConversionIssues - an INFO alternative is not an alternative)
 {
-  // "[Formula:X|INFO:name]" names one modification twice; it does not offer a choice between two.
-  // Counting the INFO tag as an alternative made FAIL_ON_LOSS reject - and BEST_EFFORT warn once per
-  // PSM about - peptidoforms that OpenMS itself writes.
+  // "[Formula:X|INFO:name]" names one modification, it does not offer a choice
   auto issues = ProForma::getAASequenceConversionIssues(ProForma::parse("PEPM[Formula:O|INFO:my note]TIDE"));
   TEST_TRUE(issues.empty()) // the Formula resolves and the INFO is an annotation: nothing to report
   AASequence with_note = ProForma::toAASequence(ProForma::parse("PEPM[Formula:O|INFO:my note]TIDE"), ConversionPolicy::FAIL_ON_LOSS);
@@ -1802,18 +1793,14 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - several brackets on one residue combine their chemistry)
 {
-  // An AASequence residue holds exactly one modification, so "M[Oxidation][Formula:O]" cannot be
-  // represented as written. The DIFF FORMULAS are summed, not just the diff masses: summing only the
-  // masses (which is what ResidueModification::combineMods does, via createUnknownFromMassString)
-  // would leave the residue with its UNMODIFIED empirical formula, and the formula is what isotope
-  // patterns are built from. The individual identities are still lost, so FAIL_ON_LOSS must refuse.
+  // one modification per residue: the diff formulas are summed, not only the masses (combineMods would
+  // lose the formula); the identities are lost, so FAIL_ON_LOSS must refuse
   const AASequence base = AASequence::fromString("PEPMTIDE");
   const double O = EmpiricalFormula("O").getMonoWeight();
 
   std::vector<std::pair<std::string, Size> > cases;
   cases.push_back(std::make_pair(std::string("PEPM[Oxidation][Formula:O]TIDE"), (Size)2));
-  // three IDENTICAL brackets must count three times - a std::set of the resolved pointers would
-  // collapse them to one and undercount the mass
+  // identical brackets must each count (a std::set of the pointers would collapse them)
   cases.push_back(std::make_pair(std::string("PEPM[Formula:O][Formula:O][Formula:O]TIDE"), (Size)3));
   cases.push_back(std::make_pair(std::string("PEPM[Oxidation][Oxidation]TIDE"), (Size)2));
 
@@ -1832,8 +1819,7 @@ START_SECTION([EXTRA] toAASequence - several brackets on one residue combine the
     TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), expected.toString())
   }
 
-  // Components that CANCEL must yield no modification, not the last bracket alone: applying only
-  // "[Formula:H-2O-1]" would leave the residue 18 Da lighter than the net chemistry ProForma reports.
+  // cancelling components yield no modification, not the last bracket alone
   {
     Peptidoform cancel = ProForma::parse("PEPM[Formula:H2O][Formula:H-2O-1]TIDE");
     AASequence seq = ProForma::toAASequence(cancel, ConversionPolicy::BEST_EFFORT);
@@ -1860,9 +1846,7 @@ START_SECTION([EXTRA] toAASequence - several brackets on one residue combine the
   TEST_TRUE(reported)
   TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
 
-  // The same loss exists at the termini, where only n_term_mods[0]/c_term_mods[0] are ever applied.
-  // Before Formula tags resolved, the second bracket here was unresolved and FAIL_ON_LOSS threw for
-  // that reason; now that both resolve, the loss has to be reported on its own account.
+  // same at the termini: now that both brackets resolve, the loss must be reported on its own
   Peptidoform nterm = ProForma::parse("[UNIMOD:1][Formula:O]-PEPTIDE");
   bool nterm_reported = false;
   for (const auto& issue : ProForma::getAASequenceConversionIssues(nterm))
@@ -1876,26 +1860,19 @@ END_SECTION
 
 START_SECTION([EXTRA] fromAASequence - an anonymous modification must not serialise as an empty bracket)
 {
-  // Anything from createUnknownFromMassString (i.e. every "X[+123.45]" bracket) has an empty getId(),
-  // and the NamedMod branch then emitted a nameless tag - the literal string "[]", which
-  // ProForma::parse rejects with "Expected modification". That string was being written into the
-  // peptidoform column of .idparquet/.featureparquet/.consensusparquet and into USIs.
+  // an anonymous modification (empty getId()) used to be written as a nameless NamedMod: the literal "[]"
   AASequence seq = AASequence::fromString("AEADNLDDK[+306.025304840900048]K");
   std::string lossless = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::LOSSLESS);
 
   TEST_NOT_EQUAL(lossless, "AEADNLDDK[]K")
   TEST_TRUE(lossless.find("[]") == std::string::npos)
 
-  // What this fix guarantees is that the string is VALID ProForma - it no longer writes something its
-  // own parser rejects.
+  // the string must be valid ProForma
   Peptidoform reparsed = ProForma::parse(lossless);
   TEST_REAL_SIMILAR(ProForma::getMonoWeight(reparsed), seq.getMonoWeight())
 
-  // It does NOT guarantee the modification survives into an AASequence in a fresh process: a bare
-  // mass delta resolves by searching ModificationsDB, and this very test interned the modification
-  // when it called AASequence::fromString above. That is the pre-existing lossy contract pinned in
-  // "toAASequence - mass-delta mods without CV accession"; carrying identity across processes is what
-  // the modification-definition block of #10003 is for.
+  // identity across processes is not guaranteed here: a bare mass delta resolves via ModificationsDB,
+  // which this test itself populated above (the lossy contract pinned in "mass-delta mods without CV accession")
   AASequence back = ProForma::toAASequence(reparsed, ConversionPolicy::BEST_EFFORT);
   TEST_EQUAL(back.toUnmodifiedString(), seq.toUnmodifiedString())
 }
@@ -1903,9 +1880,7 @@ END_SECTION
 
 START_SECTION([EXTRA] fromAASequence - a formula-carrying anonymous modification round-trips its chemistry)
 {
-  // Closes the loop with the Formula tag resolution above: a modification that came in from a
-  // "Formula:" tag goes back out as one, so the chemistry survives a write/read cycle with no
-  // external modification definition needed.
+  // a modification that came in as a Formula tag goes back out as one
   AASequence seq = ProForma::toAASequence(ProForma::parse("PEPM[Formula:O]TIDE"), ConversionPolicy::BEST_EFFORT);
   std::string written = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL);
   TEST_TRUE(written.find("Formula:") != std::string::npos)
@@ -1921,14 +1896,10 @@ START_SECTION([EXTRA] fromAASequence - a formula-carrying anonymous modification
 }
 END_SECTION
 
-START_SECTION([EXTRA] toAASequence - the #10003 parquet encoding is chemically complete on its own)
+START_SECTION([EXTRA] toAASequence - the parquet peptidoform encoding is chemically complete on its own)
 {
-  // This is the exact peptidoform spelling issue #10003 settles for the .idparquet lane: a resolvable
-  // "Formula:" tag carrying the chemistry, plus an "INFO:" tag carrying the tool-defined name. It has
-  // to convert cleanly with NO conversion issues (the INFO tag is an annotation, not an alternative),
-  // and it has to yield both the right mass and the right empirical formula - the latter being what
-  // #10000 is about, since isotope patterns are computed from the formula.
-  // Numbers are the OpenNuXL RNA adduct measured on PRIDE PXD048145.
+  // a Formula tag carrying the chemistry plus an INFO tag carrying the tool-defined name: must convert
+  // without issues and yield both the right mass and the right formula (OpenNuXL adduct, PXD048145)
   const std::string encoded = "AEADNLDDK[Formula:C9H11N2O8P|INFO:NuXL:U-H2O]K";
   Peptidoform pf = ProForma::parse(encoded);
 
@@ -1948,9 +1919,7 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - a Formula tag on an unknown residue must not crash)
 {
-  // The ProForma grammar accepts lowercase amino acids, but ResidueDB has no entry for them and
-  // ResidueDB::getResidue(unsigned char) RETURNS NULL rather than throwing. Dereferencing that is a
-  // segfault, which walks straight past the try/catch the parquet reader wraps this call in.
+  // lowercase letters parse, but ResidueDB::getResidue(unsigned char) returns null for them
   Peptidoform pf = ProForma::parse("pepm[Formula:O]tide");
   auto issues = ProForma::getAASequenceConversionIssues(pf); // must return, not crash
   TEST_FALSE(issues.empty())
@@ -1959,10 +1928,7 @@ END_SECTION
 
 START_SECTION([EXTRA] fromAASequence - extreme mass deltas stay parseable)
 {
-  // getDiffMonoMassString goes through StringUtils::appendNumeric, which switches to scientific
-  // notation below 1e-2 and at or above 1e4 - and ProForma::parseMassDelta_ cannot read that back.
-  // Writing it would be the same self-inflicted unparseable output as the "[]" bracket, just at the
-  // tails of the mass range.
+  // getDiffMonoMassString switches to scientific notation below 1e-2 / above 1e4, which parseMassDelta_ cannot read
   std::vector<std::string> seqs;
   seqs.push_back("PEPT[+0.00335]IDE");     // below 1e-2
   seqs.push_back("PEPT[+12345.6789]IDE");  // above 1e4
@@ -1981,8 +1947,7 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - the order of tags inside one bracket does not change the result)
 {
-  // resolveModification_ used to resolve alternatives[0] blindly, so moving the INFO tag in front of
-  // the Formula tag - the same modification, written the other way round - dropped 306 Da.
+  // alternatives[0] used to be resolved blindly: INFO first dropped 306 Da
   Peptidoform formula_first = ProForma::parse("AEADNLDDK[Formula:C9H11N2O8P|INFO:NuXL:U-H2O]K");
   Peptidoform info_first    = ProForma::parse("AEADNLDDK[INFO:NuXL:U-H2O|Formula:C9H11N2O8P]K");
 
@@ -1998,10 +1963,8 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - combination trusts the diff masses and only a consistent formula)
 {
-  // A database entry can carry a diff formula that disagrees with its own diff mass (UNIMOD:12 loads
-  // with a 2703 Da formula against a 450 Da mass). A single use keeps the explicit mass; a combination
-  // that derived its mass from the summed formula would be off by the whole discrepancy. Modelled with
-  // a synthetic entry so the test does not depend on that database defect persisting.
+  // a database entry can carry a formula inconsistent with its mass (e.g. UNIMOD:12); the combination
+  // must trust the masses. Synthetic entry, so the test does not depend on that defect persisting.
   {
     ResidueModification bad;
     bad.setId("TestInconsistentFormula");
@@ -2038,9 +2001,7 @@ END_SECTION
 
 START_SECTION([EXTRA] toAASequence - a label-only terminal bracket must not hide the chemistry behind it)
 {
-  // "[#XL1][Formula:C2H2O]-PEPTIDE": applying only n_term_mods[0] took the label bracket (nullptr) and
-  // silently lost the Formula tag while reporting no issue, so even FAIL_ON_LOSS accepted a sequence
-  // 42 Da light.
+  // applying n_term_mods[0] blindly took the label bracket and silently lost the Formula tag
   Peptidoform pf = ProForma::parse("[#XL1][Formula:C2H2O]-PEPTIDE");
   AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
   TEST_TRUE(seq.hasNTerminalModification())
@@ -2051,9 +2012,7 @@ END_SECTION
 
 START_SECTION([EXTRA] getAASequenceConversionIssues - unresolved chemistry behind an empty INFO is still reported)
 {
-  // The "empty INFO means label-only bracket" suppression used to look at alternatives[0] only, so
-  // "[INFO:|Glycan:Hex]" - empty annotation first, unresolved glycan second - reported nothing and
-  // isRepresentableAsAASequence() said true while the strict conversion then threw anyway.
+  // the suppression looked at alternatives[0] only: an empty INFO in front hid the unresolved glycan
   Peptidoform pf = ProForma::parse("PEPT[INFO:|Glycan:Hex]IDE");
   bool unresolved = false;
   for (const auto& issue : ProForma::getAASequenceConversionIssues(pf))
@@ -2075,8 +2034,7 @@ END_SECTION
 
 START_SECTION([EXTRA] getAASequenceConversionIssues - a residue-incompatible accession is an issue not an exception)
 {
-  // ModificationsDB::getModification throws InvalidValue (not ElementNotFound) when the accession
-  // exists but is not valid for the residue; that used to escape the issue collector.
+  // getModification throws InvalidValue when the accession is not valid for the residue; it must not escape
   Peptidoform on_m = ProForma::parse("PEPM[UNIMOD:447]TIDE"); // Deoxy: not defined on M
   std::vector<ProForma::ConversionIssue> issues;
   TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(on_m, ConversionPolicy::FAIL_ON_LOSS))
@@ -2095,8 +2053,7 @@ END_SECTION
 
 START_SECTION([EXTRA] getMonoWeight - tag order inside a bracket does not change the mass either)
 {
-  // Resolution already picks the first chemistry-carrying alternative; the mass helper read
-  // alternatives[0] and so still depended on the order for chemistry that fails to resolve.
+  // the mass helper read alternatives[0] and so depended on the order
   const double a = ProForma::getMonoWeight(ProForma::parse("PEPT[INFO:x|Formula:Zn1:z+2]IDE"));
   const double b = ProForma::getMonoWeight(ProForma::parse("PEPT[Formula:Zn1:z+2|INFO:x]IDE"));
   TEST_REAL_SIMILAR(a, b)
