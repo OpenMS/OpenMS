@@ -8,8 +8,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
+#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
@@ -28,6 +30,15 @@ START_SECTION((static std::vector<NuXLReportRow> annotate(const PeakMap&, Peptid
 
   AASequence peptide_with_adduct = peptide;
   peptide_with_adduct.setModificationByDiffMonoMass(0, adduct_mass);
+
+  // The named definition on a clean residue, and folded into the oxidised one.
+  const EmpiricalFormula adduct_formula("C9H11N2O8P1");
+  AASequence peptide_with_definition = peptide;
+  peptide_with_definition.setModification(4, NuXLModificationsGenerator::registerPrecursorAdduct("U-H2O1", adduct_formula, peptide[4]));
+  TEST_STRING_EQUAL(peptide_with_definition.toString(), "M(Oxidation)PEPT(NuXL:U-H2O1)IDE")
+  AASequence peptide_with_combined_definition = peptide;
+  peptide_with_combined_definition.setModification(0, NuXLModificationsGenerator::registerPrecursorAdduct("U-H2O1", adduct_formula, peptide[0]));
+  TEST_STRING_EQUAL(peptide_with_combined_definition.toString(), "M(NuXL:U-H2O1~Oxidation)PEPTIDE")
 
   PeakMap spectra;
   PeptideIdentificationList peptide_ids;
@@ -64,9 +75,12 @@ START_SECTION((static std::vector<NuXLReportRow> annotate(const PeakMap&, Peptid
   add_psm(peptide_with_adduct, 0);
   // Unlocalized results intentionally retain the legacy representation.
   add_psm(peptide, -1);
+  // Named definitions must yield the same masses as the mass-delta form.
+  add_psm(peptide_with_definition, 4);
+  add_psm(peptide_with_combined_definition, 0);
 
   const vector<NuXLReportRow> rows = NuXLReport::annotate(spectra, peptide_ids, {}, 0.05);
-  TEST_EQUAL(rows.size(), 3)
+  TEST_EQUAL(rows.size(), 5)
 
   for (Size i = 0; i != rows.size(); ++i)
   {
@@ -84,6 +98,8 @@ START_SECTION((static std::vector<NuXLReportRow> annotate(const PeakMap&, Peptid
   TEST_STRING_EQUAL(rows[0].peptide, peptide.toString())
   TEST_STRING_EQUAL(rows[1].peptide, peptide_with_adduct.toString())
   TEST_STRING_EQUAL(rows[2].peptide, peptide.toString())
+  TEST_STRING_EQUAL(rows[3].peptide, peptide_with_definition.toString())
+  TEST_STRING_EQUAL(rows[4].peptide, peptide_with_combined_definition.toString())
 }
 END_SECTION
 
