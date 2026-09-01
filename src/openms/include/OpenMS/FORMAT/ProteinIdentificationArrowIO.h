@@ -112,6 +112,8 @@ public:
     @param[in] protein_identifications Vector of protein identifications
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[in] definitions_by_run Per run identifier, the modification_definitions value to write
+               (replaces an inbound one); see ModificationDefinitionIO::encodeByRun
     @return true on success, false on error
   */
   static bool exportSearchParamsToParquet(
