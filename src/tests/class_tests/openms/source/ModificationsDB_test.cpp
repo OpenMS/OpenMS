@@ -11,7 +11,12 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <limits>
+#include <sstream>
 #include <algorithm>
 ///////////////////////////
 
@@ -369,6 +374,104 @@ START_SECTION([EXTRA] multithreaded example)
   TEST_EQUAL(test, nr_iterations*1.0)
 
  }
+END_SECTION
+
+START_SECTION([EXTRA] registerDefinition - same name is the same modification and re-registration is idempotent)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  ResidueModification d;
+  d.setId("TestDef:Idem");
+  d.setOrigin('K');
+  d.setTermSpecificity(ResidueModification::ANYWHERE);
+  d.setFullId();
+  d.setDiffFormula(EmpiricalFormula("C2H2O"));
+  d.setDiffMonoMass(EmpiricalFormula("C2H2O").getMonoWeight());
+
+  const Size before = db->getNumberOfModifications();
+  const ResidueModification* first = db->registerDefinition(d);
+  TEST_TRUE(first != nullptr)
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+  if (first != nullptr)
+  {
+    TEST_EQUAL(first->getProvenance(), ResidueModification::DEFINED)
+  }
+
+  // Re-registration must be SILENT: addModification() logs "already exists" on its duplicate path,
+  // and registerDefinition's has() pre-check exists precisely so that re-reading a file does not
+  // emit that once per definition.
+  std::ostringstream captured;
+  OPENMS_LOG_WARN.insert(captured);
+  const ResidueModification* second = db->registerDefinition(d);
+  OPENMS_LOG_WARN.remove(captured);
+  TEST_TRUE(first == second)
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+  TEST_TRUE(captured.str().find("already exists") == std::string::npos)
+  TEST_TRUE(captured.str().find("disagrees") == std::string::npos)
+
+  TEST_TRUE(db->hasDefinedModification("TestDef:Idem"))
+  TEST_TRUE(db->hasDefinedModification("TestDef:Idem (K)"))
+  TEST_FALSE(db->hasDefinedModification("Oxidation"))
+  TEST_FALSE(db->hasDefinedModification("Oxidation (M)"))
+  TEST_FALSE(db->hasDefinedModification("TestDef:NeverRegistered"))
+
+  // the same FullId with different chemistry keeps the first definition
+  ResidueModification conflict(d);
+  conflict.setDiffFormula(EmpiricalFormula("C3H2O"));
+  conflict.setDiffMonoMass(EmpiricalFormula("C3H2O").getMonoWeight());
+  std::ostringstream conflict_log;
+  OPENMS_LOG_WARN.insert(conflict_log);
+  const ResidueModification* kept = db->registerDefinition(conflict);
+  OPENMS_LOG_WARN.remove(conflict_log);
+  TEST_TRUE(kept == first)
+  TEST_TRUE(conflict_log.str().find("disagrees") != std::string::npos) // ... but a real conflict is loud
+  if (kept != nullptr)
+  {
+    TEST_EQUAL(kept->getDiffFormula().toString(), EmpiricalFormula("C2H2O").toString())
+  }
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+
+  ResidueModification nameless;
+  TEST_EXCEPTION(Exception::MissingInformation, db->registerDefinition(nameless))
+}
+END_SECTION
+
+START_SECTION([EXTRA] registerDefinition - one name on two residues is two entries that resolve at their own site)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  const double delta = EmpiricalFormula("C2H2O").getMonoWeight();
+  const Size before = db->getNumberOfModifications();
+  for (const char origin : {'K', 'Y'})
+  {
+    ResidueModification d;
+    d.setId("TestDef:TwoSites");
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula("C2H2O"));
+    d.setDiffMonoMass(delta);
+    TEST_TRUE(db->registerDefinition(d) != nullptr)
+  }
+  TEST_EQUAL(db->getNumberOfModifications(), before + 2)
+
+  const ResidueModification* on_k = db->getModification("TestDef:TwoSites", "K", ResidueModification::ANYWHERE);
+  const ResidueModification* on_y = db->getModification("TestDef:TwoSites", "Y", ResidueModification::ANYWHERE);
+  TEST_TRUE(on_k != nullptr)
+  TEST_TRUE(on_y != nullptr)
+  TEST_TRUE(on_k != on_y)
+  if (on_k != nullptr && on_y != nullptr)
+  {
+    TEST_EQUAL(on_k->getOrigin(), 'K')
+    TEST_EQUAL(on_y->getOrigin(), 'Y')
+    TEST_EQUAL(on_k->getFullId(), "TestDef:TwoSites (K)")
+    TEST_EQUAL(on_y->getFullId(), "TestDef:TwoSites (Y)")
+  }
+
+  // The sequence round trip that catches the origin-'X' trap: the residue letter must survive.
+  AASequence seq = AASequence::fromString("PEPTK(TestDef:TwoSites)IDY(TestDef:TwoSites)E");
+  TEST_EQUAL(seq.toString(), "PEPTK(TestDef:TwoSites)IDY(TestDef:TwoSites)E")
+  TEST_TRUE(AASequence::fromString(seq.toString()) == seq)
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPTKIDYE").getMonoWeight() + 2.0 * delta)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

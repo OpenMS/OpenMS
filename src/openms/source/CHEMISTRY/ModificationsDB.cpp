@@ -19,6 +19,7 @@
 #include <OpenMS/CHEMISTRY/UnimodXMLDataProvider.h>
 #include <OpenMS/CHEMISTRY/OBODataProvider.h>
 
+#include <cmath>
 #include <fstream>
 #include <limits>
 #include <utility>
@@ -543,6 +544,67 @@ namespace OpenMS
     return ret;
   }
 
+  namespace
+  {
+    bool sameChemistry_(const ResidueModification& a, const ResidueModification& b)
+    {
+      if (!a.getDiffFormula().isEmpty() && !b.getDiffFormula().isEmpty())
+      {
+        return a.getDiffFormula() == b.getDiffFormula();
+      }
+      return std::fabs(a.getDiffMonoMass() - b.getDiffMonoMass()) <= 1e-6;
+    }
+  } // namespace
+
+  const ResidueModification* ModificationsDB::registerDefinition(const ResidueModification& definition) const
+  {
+    if (definition.getId().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot register a modification definition without an Id.");
+    }
+    // Do NOT wrap the calls below in a critical section of our own: has(), searchModificationsFast()
+    // and addModification() each take critical(OpenMS_ModificationsDB), and OpenMP critical regions
+    // with the same name are not reentrant. The check-then-add race is benign - addModification
+    // re-checks the FullId under its lock and returns the existing entry to the loser.
+    if (has(definition.getFullId()))
+    {
+      bool multiple_matches = false;
+      const ResidueModification* existing = searchModificationsFast(definition.getFullId(), multiple_matches);
+      if (existing != nullptr)
+      {
+        if (!sameChemistry_(*existing, definition))
+        {
+          OPENMS_LOG_WARN << "Modification definition '" << definition.getFullId()
+                          << "' disagrees with the one already registered (registered: "
+                          << existing->getDiffFormula().toString() << " / " << existing->getDiffMonoMass()
+                          << " Da; new: " << definition.getDiffFormula().toString() << " / "
+                          << definition.getDiffMonoMass() << " Da). Keeping the registered one." << std::endl;
+        }
+        return existing;
+      }
+    }
+    std::unique_ptr<ResidueModification> copy(new ResidueModification(definition));
+    copy->setProvenance(ResidueModification::DEFINED);
+    return addModification(std::move(copy));
+  }
+
+  bool ModificationsDB::hasDefinedModification(const std::string& name) const
+  {
+    bool found = false;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      auto it = modification_names_.find(name);
+      if (it != modification_names_.end())
+      {
+        for (const ResidueModification* m : it->second)
+        {
+          if (m->getProvenance() == ResidueModification::DEFINED) { found = true; break; }
+        }
+      }
+    }
+    return found;
+  }
   const ResidueModification* ModificationsDB::addNewModification_(const ResidueModification& new_mod) const
   {
     const ResidueModification* ret = new ResidueModification(new_mod);

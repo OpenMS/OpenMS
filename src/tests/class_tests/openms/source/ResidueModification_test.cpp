@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -696,6 +697,79 @@ START_SECTION([EXTRA] Provenance - deliberately excluded from equality ordering 
   TEST_EQUAL(a.getProvenance(), ResidueModification::CV)
   ResidueModification c(a);
   TEST_EQUAL(c.getProvenance(), ResidueModification::CV)
+}
+END_SECTION
+
+START_SECTION([EXTRA] definition record - round trip preserves every carried field)
+{
+  ResidueModification m;
+  m.setId("TestDef:RoundTrip");
+  m.setFullName("a|b;c\\d"); // every structural character, to exercise the escaping
+  m.setOrigin('K');
+  m.setTermSpecificity(ResidueModification::ANYWHERE);
+  m.setFullId();
+  m.setDiffFormula(EmpiricalFormula("C9H11N2O8P"));
+  m.setDiffMonoMass(306.025304840900048);
+  m.setDiffAverageMass(306.16);
+  std::vector<EmpiricalFormula> losses;
+  losses.emplace_back("H3PO4");
+  losses.emplace_back("H2O");
+  m.setNeutralLossDiffFormulas(losses);
+
+  const std::string rec = m.toDefinitionString();
+  ResidueModification back = ResidueModification::fromDefinitionString(rec);
+
+  TEST_EQUAL(back.getId(), m.getId())
+  TEST_EQUAL(back.getFullId(), m.getFullId())
+  TEST_EQUAL(back.getFullName(), m.getFullName())
+  TEST_EQUAL(back.getOrigin(), 'K')
+  TEST_EQUAL(back.getTermSpecificity(), ResidueModification::ANYWHERE)
+  TEST_EQUAL(back.getDiffFormula().toString(), m.getDiffFormula().toString())
+  TEST_TRUE(back.getDiffMonoMass() == m.getDiffMonoMass())       // bit-exact, not TEST_REAL_SIMILAR
+  TEST_TRUE(back.getDiffAverageMass() == m.getDiffAverageMass())
+  TEST_EQUAL(back.getNeutralLossDiffFormulas().size(), 2)
+  TEST_TRUE(back.hasNeutralLoss())
+  TEST_EQUAL(back.getProvenance(), ResidueModification::DEFINED)
+  TEST_EQUAL(back.toDefinitionString(), rec) // stable under re-serialisation
+
+  // records containing escaped ';' survive the record splitter intact
+  std::vector<std::string> recs = ResidueModification::splitDefinitionRecords(rec + ";" + rec);
+  TEST_EQUAL(recs.size(), 2)
+  TEST_EQUAL(recs[0], rec)
+  TEST_EQUAL(ResidueModification::splitDefinitionRecords("").size(), 0)
+
+  // a terminal modification keeps its specificity and site
+  ResidueModification t;
+  t.setId("TestDef:NTerm");
+  t.setTermSpecificity(ResidueModification::N_TERM);
+  t.setFullId();
+  t.setDiffMonoMass(42.010565);
+  ResidueModification tback = ResidueModification::fromDefinitionString(t.toDefinitionString());
+  TEST_EQUAL(tback.getTermSpecificity(), ResidueModification::N_TERM)
+  TEST_EQUAL(tback.getFullId(), "TestDef:NTerm (N-term)")
+  TEST_EQUAL(tback.getOrigin(), 'X')
+}
+END_SECTION
+
+START_SECTION([EXTRA] definition record - malformed input is rejected loudly)
+{
+  ResidueModification nameless;
+  TEST_EXCEPTION(Exception::MissingInformation, nameless.toDefinitionString())
+
+  // unsupported version, too few fields, empty Id, malformed number
+  TEST_EXCEPTION(Exception::ParseError, ResidueModification::fromDefinitionString("2|X|X (K)||K|none|O|15.99|15.99|"))
+  TEST_EXCEPTION(Exception::ParseError, ResidueModification::fromDefinitionString("1|X|X (K)||K"))
+  TEST_EXCEPTION(Exception::ParseError, ResidueModification::fromDefinitionString("1||X (K)||K|none|O|15.99|15.99|"))
+  TEST_EXCEPTION(Exception::ParseError, ResidueModification::fromDefinitionString("1|X|X (K)||K|none|O|abc|15.99|"))
+
+  // forward compatibility: an extra trailing field is ignored, not an error
+  ResidueModification ok = ResidueModification::fromDefinitionString("1|TestDef:Fwd|TestDef:Fwd (K)||K|none|O|15.994915|15.9994||future");
+  TEST_EQUAL(ok.getId(), "TestDef:Fwd")
+  TEST_EQUAL(ok.getDiffFormula().toString(), EmpiricalFormula("O").toString())
+
+  // a FullId omitted from the record is derived from Id and site
+  ResidueModification derived = ResidueModification::fromDefinitionString("1|TestDef:Der|||K|none|O|15.994915|15.9994|");
+  TEST_EQUAL(derived.getFullId(), "TestDef:Der (K)")
 }
 END_SECTION
 

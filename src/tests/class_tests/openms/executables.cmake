@@ -348,6 +348,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
   PSMArrowIO_test
+  ModificationDefinitionIO_test
   ArrowSchemaRegistry_test
   ArrowIOHelpers_test
   ParquetTableComparator_test)
