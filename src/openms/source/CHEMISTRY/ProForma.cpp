@@ -1673,6 +1673,7 @@ namespace
 
     std::unique_ptr<ResidueModification> new_mod(new ResidueModification);
     new_mod->setFullId(full_id); // FullId without Id keeps this an anonymous (user-defined) modification
+    new_mod->setProvenance(ResidueModification::MASS_ONLY); // reconstructible from its own tag
     new_mod->setFullName(ResidueModification::getDiffMonoMassWithBracket(diff_mono));
     new_mod->setTermSpecificity(ts);
     // setDiffFormula() alone leaves getDiffMonoMass() at 0.0
@@ -1808,14 +1809,56 @@ namespace
     return !std::holds_alternative<InfoTag>(tag) && !std::holds_alternative<PositionConstraint>(tag);
   }
 
+  bool sameChemistry_(const ResidueModification& a, const ResidueModification& b)
+  {
+    if (!a.getDiffFormula().isEmpty() && !b.getDiffFormula().isEmpty()) return a.getDiffFormula() == b.getDiffFormula();
+    return std::fabs(a.getDiffMonoMass() - b.getDiffMonoMass()) <= 1e-6;
+  }
+
   void resolveModification_(Modification& mod, char residue, ResidueModification::TermSpecificity term_spec)
   {
     if (mod.alternatives.empty()) return;
+
+    // an INFO tag naming a registered definition identifies the modification; the inline chemistry is
+    // the fallback. Gated on hasDefinedModification(), so free text naming a vocabulary entry has no effect.
+    const ResidueModification* by_name = nullptr;
+    for (const auto& [tag, label] : mod.alternatives)
+    {
+      const auto* info = std::get_if<InfoTag>(&tag);
+      if (info == nullptr || info->text.empty()) continue;
+      if (!ModificationsDB::getInstance()->hasDefinedModification(info->text)) continue;
+      NamedMod nm;
+      nm.name = info->text;
+      by_name = resolveModificationTag_(ModificationTag(nm), residue, term_spec);
+      if (by_name != nullptr) break;
+    }
+
     // the first chemistry-carrying alternative, so the tag order inside the bracket does not matter
+    const ResidueModification* by_tag = nullptr;
+    bool has_chemistry = false;
     for (const auto& [tag, label] : mod.alternatives)
     {
       if (!isChemistryTag_(tag)) continue;
-      mod.resolved_mod = resolveModificationTag_(tag, residue, term_spec);
+      has_chemistry = true;
+      by_tag = resolveModificationTag_(tag, residue, term_spec);
+      break;
+    }
+
+    if (by_name != nullptr)
+    {
+      if (by_tag != nullptr && !sameChemistry_(*by_name, *by_tag))
+      {
+        OPENMS_LOG_WARN << "ProForma: the definition of '" << by_name->getFullId() << "' ("
+                        << by_name->getDiffFormula().toString() << " / " << by_name->getDiffMonoMass()
+                        << " Da) disagrees with the inline chemistry (" << by_tag->getDiffFormula().toString()
+                        << " / " << by_tag->getDiffMonoMass() << " Da); using the definition." << std::endl;
+      }
+      mod.resolved_mod = by_name;
+      return;
+    }
+    if (has_chemistry)
+    {
+      mod.resolved_mod = by_tag;
       return;
     }
     // annotations only: report what alternatives[0] gives
@@ -2339,7 +2382,8 @@ namespace
 
     An anonymous modification (empty getId()) is written as a `Formula:` tag when it carries a formula
     and as a mass delta otherwise - never as a NamedMod with an empty name, which produced the
-    unparseable "[]".
+    unparseable "[]". A tool-defined modification is written the same way plus an `INFO:` tag carrying
+    its name, so the peptidoform is chemically complete on its own and the name still travels.
   */
   ProForma::Modification modificationToProForma_(const ResidueModification* mod)
   {
@@ -2357,6 +2401,26 @@ namespace
       ProForma::FormulaTag ft;
       ft.formula_string = mod->getDiffFormula().toString();
       pf_mod.alternatives.emplace_back(std::move(ft), std::nullopt);
+    }
+    else if (!mod->getId().empty() && mod->getProvenance() == ResidueModification::DEFINED)
+    { // tool-defined: the chemistry first (it resolves anywhere), the name as an annotation
+      if (!mod->getDiffFormula().isEmpty())
+      {
+        ProForma::FormulaTag ft;
+        ft.formula_string = mod->getDiffFormula().toString();
+        pf_mod.alternatives.emplace_back(std::move(ft), std::nullopt);
+      }
+      else
+      {
+        ProForma::MassDelta md;
+        md.source = ProForma::MassDelta::Source::NONE;
+        md.mass = mod->getDiffMonoMass();
+        md.original_text = massDeltaText_(md.mass);
+        pf_mod.alternatives.emplace_back(std::move(md), std::nullopt);
+      }
+      ProForma::InfoTag info;
+      info.text = mod->getId();
+      pf_mod.alternatives.emplace_back(std::move(info), std::nullopt);
     }
     else if (!mod->getId().empty())
     {
