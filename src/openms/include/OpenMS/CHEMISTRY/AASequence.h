@@ -63,8 +63,13 @@ namespace OpenMS
       <tt>AASequence::fromString(".DFPIAM[+15.9949]GER.")</tt> -- while the
       former will try to find the @e first modification matching to a mass
       difference of 16 +/- 0.5, the latter will try to find the @e closest
-      matching modification to the exact mass. This usually gives the intended
-      results while the first approach may not.
+      matching modification within the precision the mass was written with,
+      i.e. one unit in the last decimal (here +/- 0.0001). This usually gives
+      the intended results while the first approach may not. If no
+      modification is that close, the mass is kept as it was written and the
+      residue carries an unknown modification with exactly that mass
+      difference (e.g. <tt>".DFPIAT[+0.5]GER."</tt> is a threonine shifted by
+      0.5 Da, not a threonine with some database modification).
 
       Arbitrary/unknown amino acids (usually due to an unknown modification)
       can be specified using tags preceded by X: "X[weight]". This indicates a
@@ -645,6 +650,15 @@ protected:
 
     /**
       @brief Parses modifications in square brackets (a mass)
+
+      A mass with a leading '+' or '-' is a mass difference, a mass without
+      sign is the absolute mass of the modified residue. The mass is looked up
+      in ModificationsDB with a tolerance derived from the number of decimals
+      it was written with (0.5 Da for an integer, 10^-n Da for n decimals).
+      If no modification lies within that tolerance, an unknown modification
+      carrying the exact mass is attached (see
+      ResidueModification::createUnknownFromMassString), so the sequence's mass
+      is always the one written.
 
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
