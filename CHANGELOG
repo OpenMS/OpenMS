@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Fix: corrected inconsistent elemental formulas in several NuXL presets, including RNA/DNA UV,
+    DEB, NM, and FA fragment adducts (#10031)
   - Qt is no longer needed outside the GUI: the core library and all non-GUI TOPP tools build without
     it, and Qt6::Core was removed from libOpenMS' PUBLIC CMake dependencies (see Dependencies)
   - BREAKING: the OpenMS::String and OpenMS::StringView classes were removed; OpenMS uses
