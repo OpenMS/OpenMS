@@ -396,9 +396,7 @@ START_SECTION([EXTRA] registerDefinition - same name is the same modification an
     TEST_EQUAL(first->getProvenance(), ResidueModification::DEFINED)
   }
 
-  // Re-registration must be SILENT: addModification() logs "already exists" on its duplicate path,
-  // and registerDefinition's has() pre-check exists precisely so that re-reading a file does not
-  // emit that once per definition.
+  // re-registration must be silent (no "already exists" from addModification's duplicate path)
   std::ostringstream captured;
   OPENMS_LOG_WARN.insert(captured);
   const ResidueModification* second = db->registerDefinition(d);

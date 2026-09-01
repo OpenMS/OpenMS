@@ -170,27 +170,18 @@ public:
     const ResidueModification* addModification(const ResidueModification& new_mod) const;
 
     /**
-       @brief Register a modification definition read from a file (or supplied by a tool).
+       @brief Register a modification definition read from a file or supplied by a tool.
 
-       Policy: the same FullId is the same modification, and the first definition wins. Re-reading a
-       file in one process is therefore idempotent and silent. If an entry with this FullId already
-       exists but describes different chemistry (different diff formula, or diff mono masses more than
-       1e-6 Da apart), a warning is logged and the existing entry is kept - that is the one signal a
-       producer gets that two tools used one name for two things, so it is not downgraded to debug.
+       The same FullId is the same modification: the first definition wins, re-registration is silent,
+       and a different chemistry under an existing FullId logs a warning and keeps the existing entry.
+       The stored copy is marked Provenance::DEFINED.
 
-       The stored copy is marked Provenance::DEFINED regardless of the input's mark.
-
-       @return the ModificationsDB entry for this FullId (the pre-existing one if already present).
-       @throws Exception::MissingInformation if the definition has no Id.
+       @return the entry for this FullId (the pre-existing one if already present)
+       @throws Exception::MissingInformation if the definition has no Id
     */
     const ResidueModification* registerDefinition(const ResidueModification& definition) const;
 
-    /**
-       @brief Is @p name (an Id, FullId or FullName) registered with Provenance::DEFINED?
-
-       This is the question a reader asks before trusting a name found in a file: has()/searchModifications*
-       answer "is it known at all", which is also true for every shipped vocabulary entry.
-    */
+    /// Is @p name (an Id, FullId or FullName) registered with Provenance::DEFINED? Unlike has(), false for vocabulary entries.
     bool hasDefinedModification(const std::string& name) const;
 
     /**

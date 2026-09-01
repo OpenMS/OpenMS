@@ -894,8 +894,7 @@ namespace OpenMS
       mod.setNeutralLossDiffFormulas(losses);
     }
 
-    // The FullId from the record is authoritative (it is the dedup key), but it must agree with what
-    // Id + site would derive; a disagreement means the producer wrote an inconsistent record.
+    // the record's FullId is authoritative (dedup key) but should agree with the derived one
     ResidueModification derived(mod);
     derived.setFullId();
     if (f[2].empty())
@@ -920,8 +919,7 @@ namespace OpenMS
   {
     if (records.empty()) return {};
     std::vector<std::string> out;
-    // Split on unescaped ';' WITHOUT unescaping: each record is unescaped field-wise by
-    // fromDefinitionString, which needs to see the '|' escapes intact.
+    // split on unescaped ';' without unescaping; fromDefinitionString needs the escapes intact
     std::string cur;
     for (std::size_t i = 0; i < records.size(); ++i)
     {

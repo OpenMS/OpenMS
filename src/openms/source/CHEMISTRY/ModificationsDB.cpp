@@ -563,10 +563,8 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Cannot register a modification definition without an Id.");
     }
-    // Do NOT wrap the calls below in a critical section of our own: has(), searchModificationsFast()
-    // and addModification() each take critical(OpenMS_ModificationsDB), and OpenMP critical regions
-    // with the same name are not reentrant. The check-then-add race is benign - addModification
-    // re-checks the FullId under its lock and returns the existing entry to the loser.
+    // no critical section here: has(), searchModificationsFast() and addModification() each take the
+    // (non-reentrant) OpenMS_ModificationsDB critical; addModification re-checks the FullId under it
     if (has(definition.getFullId()))
     {
       bool multiple_matches = false;

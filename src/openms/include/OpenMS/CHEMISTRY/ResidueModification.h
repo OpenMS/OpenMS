@@ -407,30 +407,17 @@ public:
 
     /** @name Definition records
 
-      A definition record is the portable description of a modification that is NOT in the shipped
-      vocabularies, so that a file carrying a peptidoform such as `AEADNLDDK(NuXL:U-H2O)K` can be read by
-      a process which never saw the tool that invented `NuXL:U-H2O`. One record describes exactly one
-      ModificationsDB entry, i.e. one (Id, origin, term specificity) triple; a name used on several
-      residues is several records.
+      Portable description of a modification that is not in the shipped vocabularies, so that a file
+      naming it can be read by another process. One record per ModificationsDB entry, i.e. per
+      (Id, origin, term specificity).
 
-      Format (version 1), fields separated by '|', records by ';', each field escaped with '\\' for
-      '\\', '|' and ';':
+      Version 1; fields separated by '|', records by ';', '\\' escapes '\\', '|' and ';':
       @code
       1|Id|FullId|FullName|origin|term_spec|diff_formula|diff_mono_mass|diff_average_mass|neutral_loss_formulas
       @endcode
-      - Id is the resolution key and is required.
-      - FullId is the ModificationsDB dedup key; it is derivable from Id, origin and term_spec but
-        carried so the round trip is exact.
-      - term_spec uses the names of getTermSpecificityName(): none, N-term, C-term, Protein N-term,
-        Protein C-term.
-      - diff_mono_mass is carried even when diff_formula is present: setDiffFormula() does not derive it.
-      - neutral_loss_formulas is a ','-joined list of empirical formulas and may be empty. It is part
-        of the record because Residue::setModification copies the losses onto the residue and the
-        theoretical spectrum generator consumes them there.
-      - The absolute masses are deliberately NOT carried: Residue::setModification takes getMonoMass()
-        as the residue's absolute weight when non-zero, and that value is per-residue.
-      Unknown versions and trailing extra fields are the reader's business: skip the record, ignore the
-      fields.
+      Id is required; term_spec uses the names of getTermSpecificityName(); neutral_loss_formulas is a
+      ','-joined list and may be empty. Absolute masses are not carried (they are per residue).
+      Readers ignore trailing extra fields.
     */
     //@{
     /// Serialise this modification as a version-1 definition record. @throws Exception::MissingInformation if Id is empty.

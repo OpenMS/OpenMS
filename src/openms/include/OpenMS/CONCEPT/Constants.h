@@ -679,11 +679,9 @@ namespace OpenMS
       */
       inline const std::string   NUM_PEAKS = "num_peaks";
 
-      /** SearchParameters meta value carrying the definitions of modifications that are not in the
-          shipped vocabularies, so a file naming them can be read by another process.
-              String: ';'-joined ResidueModification definition records (see
-              ResidueModification::toDefinitionString). Deliberately a single string and not a
-              stringList - the .idparquet meta-value codec splits lists on ',' without escaping.
+      /** SearchParameters meta value carrying the definitions of modifications not in the shipped vocabularies.
+              String: ';'-joined ResidueModification definition records. A single string, not a
+              stringList: the parquet meta-value codec splits lists on ',' without escaping.
       */
       inline const std::string   MODIFICATION_DEFINITIONS = "modification_definitions";
     }

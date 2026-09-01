@@ -21,8 +21,7 @@ namespace OpenMS
 {
   bool ModificationDefinitionIO::isDefinition(const ResidueModification* mod)
   {
-    // The Id guard prunes anything mass-shift-shaped that merely inherited the DEFINED default:
-    // those are reconstructible from their own bracket and have no name to serialise anyway.
+    // the Id guard excludes anonymous mass shifts that merely inherited the DEFINED default
     return mod != nullptr && mod->getProvenance() == ResidueModification::DEFINED && !mod->getId().empty();
   }
 
@@ -78,8 +77,7 @@ namespace OpenMS
 
   std::string ModificationDefinitionIO::encode(const std::set<const ResidueModification*>& defs)
   {
-    // A set of pointers has no stable order across processes; sort the records so the same
-    // definitions always produce the same bytes.
+    // sorted, so the same definitions always produce the same bytes
     std::vector<std::string> records;
     records.reserve(defs.size());
     for (const ResidueModification* mod : defs)

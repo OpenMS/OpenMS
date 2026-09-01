@@ -26,8 +26,7 @@ using namespace std;
 
 namespace
 {
-  // A defined modification with a formula, registered under a test-only namespace. ModificationsDB is
-  // a process-wide singleton, so every section uses its own names.
+  // ModificationsDB is a process-wide singleton, so every section uses its own names
   const ResidueModification* define(const std::string& id, char origin, const std::string& formula)
   {
     ResidueModification d;
