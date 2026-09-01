@@ -1731,12 +1731,19 @@ namespace
     The result is interned through resolveFormulaTag_, so a combination reuses the same entry as the
     equivalent single Formula: tag and needs no second interning scheme.
 
-    @return nullptr when the chemistry cannot be summed - any component without a diff formula, or a
-            combination that cancels out - leaving the caller to fall back.
+    Two outcomes must be told apart, because they call for opposite fallbacks:
+    - the chemistry CANNOT be summed (a component has no diff formula): @p summable is false and the
+      caller keeps the historical last-bracket-wins;
+    - the chemistry sums to NOTHING (e.g. "[Formula:H2O][Formula:H-2O-1]"): @p summable is true and the
+      result is nullptr, meaning "apply no modification" - which is the mass ProForma itself computes.
+      Applying the last bracket here would leave the residue lighter by everything the others added.
+
+    @return the interned combined modification, or nullptr (see @p summable for what that means).
   */
   const ResidueModification* combineOnOneResidue_(const std::vector<const ResidueModification*>& mods,
-                                                  char residue)
+                                                  char residue, bool& summable)
   {
+    summable = false;
     if (residue == '\0') return nullptr;
     EmpiricalFormula sum;
     for (const ResidueModification* m : mods)
@@ -1744,7 +1751,8 @@ namespace
       if (m->getDiffFormula().isEmpty()) return nullptr;
       sum += m->getDiffFormula(); // a vector, not a set: repeated identical brackets must each count
     }
-    if (sum.isEmpty()) return nullptr;
+    summable = true;
+    if (sum.isEmpty()) return nullptr; // the components cancel: net chemistry is nothing
 
     FormulaTag ft;
     ft.formula_string = sum.toString();
@@ -2284,11 +2292,20 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
       }
       else if (resolved.size() > 1)
       {
-        const ResidueModification* combined = combineOnOneResidue_(resolved, elem->amino_acid);
-        // No summable chemistry (a component without a diff formula, or one that cancels out):
-        // keep the historical last-one-wins rather than inventing a mass-only modification, which
-        // would throw away the empirical formulas the components do have.
-        seq.setModification(seq_pos, combined != nullptr ? combined : resolved.back());
+        bool summable = false;
+        const ResidueModification* combined = combineOnOneResidue_(resolved, elem->amino_acid, summable);
+        if (combined != nullptr)
+        {
+          seq.setModification(seq_pos, combined);
+        }
+        else if (!summable)
+        {
+          // A component has no diff formula: keep the historical last-one-wins rather than inventing
+          // a mass-only modification, which would throw away the formulas the components do have.
+          seq.setModification(seq_pos, resolved.back());
+        }
+        // else: the components cancel to nothing - leave the residue unmodified, which is exactly the
+        // net chemistry and the mass calculateChainMass_ reports.
       }
       seq_pos++;
     }

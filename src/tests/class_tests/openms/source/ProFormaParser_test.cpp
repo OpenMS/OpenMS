@@ -1833,6 +1833,25 @@ START_SECTION([EXTRA] toAASequence - several brackets on one residue combine the
     TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), expected.toString())
   }
 
+  // Components that CANCEL must yield no modification, not the last bracket alone: applying only
+  // "[Formula:H-2O-1]" would leave the residue 18 Da lighter than the net chemistry ProForma reports.
+  {
+    Peptidoform cancel = ProForma::parse("PEPM[Formula:H2O][Formula:H-2O-1]TIDE");
+    AASequence seq = ProForma::toAASequence(cancel, ConversionPolicy::BEST_EFFORT);
+    TEST_FALSE(seq[3].isModified())
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(cancel))
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), base.getMonoWeight())
+    TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(cancel, ConversionPolicy::FAIL_ON_LOSS))
+  }
+  // ... while a loss-type component (negative element counts) combines like any other.
+  {
+    Peptidoform loss = ProForma::parse("PEPM[Formula:O][Formula:H-2]TIDE");
+    AASequence seq = ProForma::toAASequence(loss, ConversionPolicy::BEST_EFFORT);
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(loss))
+    EmpiricalFormula expected = base.getFormula(Residue::Full, 0) + EmpiricalFormula("O") + EmpiricalFormula("H-2");
+    TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), expected.toString())
+  }
+
   Peptidoform pf = ProForma::parse("PEPM[Oxidation][Formula:O]TIDE");
   bool reported = false;
   for (const auto& issue : ProForma::getAASequenceConversionIssues(pf))
