@@ -20,6 +20,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
 #include <charconv>
@@ -1731,32 +1732,60 @@ namespace
     The result is interned through resolveFormulaTag_, so a combination reuses the same entry as the
     equivalent single Formula: tag and needs no second interning scheme.
 
-    Two outcomes must be told apart, because they call for opposite fallbacks:
-    - the chemistry CANNOT be summed (a component has no diff formula): @p summable is false and the
-      caller keeps the historical last-bracket-wins;
-    - the chemistry sums to NOTHING (e.g. "[Formula:H2O][Formula:H-2O-1]"): @p summable is true and the
-      result is nullptr, meaning "apply no modification" - which is the mass ProForma itself computes.
-      Applying the last bracket here would leave the residue lighter by everything the others added.
+    The authoritative combined mass is the sum of the components' diff mono masses. The diff formulas
+    are summed too, but only TRUSTED when their mass agrees with that sum: a database entry can carry
+    a formula that disagrees with its own mass (UNIMOD:12 loads as (2)H40C118H166N24O26S9, 2703.55 Da,
+    against a diff mass of 450.28 Da), and a single use of it keeps the explicit mass - deriving the
+    combined mass from such a formula would be off by 2253 Da. When the formulas are unavailable or
+    inconsistent, the combination falls back to a mass-only modification: the mass stays right and the
+    formula is lost, which is strictly better than losing whole components.
 
-    @return the interned combined modification, or nullptr (see @p summable for what that means).
+    @param[out] net_zero true when the components cancel to nothing ("[Formula:H2O][Formula:H-2O-1]",
+                "[Formula:O][UNIMOD:447]"): the caller applies NO modification, which is exactly the
+                mass ProForma itself computes. Applying the last bracket would leave the residue lighter
+                by everything the others added.
+    @return the interned combined modification, or nullptr when @p net_zero or when the residue is unknown.
   */
   const ResidueModification* combineOnOneResidue_(const std::vector<const ResidueModification*>& mods,
-                                                  char residue, bool& summable)
+                                                  char residue, bool& net_zero)
   {
-    summable = false;
+    net_zero = false;
     if (residue == '\0') return nullptr;
-    EmpiricalFormula sum;
-    for (const ResidueModification* m : mods)
-    {
-      if (m->getDiffFormula().isEmpty()) return nullptr;
-      sum += m->getDiffFormula(); // a vector, not a set: repeated identical brackets must each count
-    }
-    summable = true;
-    if (sum.isEmpty()) return nullptr; // the components cancel: net chemistry is nothing
 
-    FormulaTag ft;
-    ft.formula_string = sum.toString();
-    return resolveFormulaTag_(ft, residue, ResidueModification::ANYWHERE);
+    double mass_sum = 0.0;
+    EmpiricalFormula formula_sum;
+    bool all_have_formulas = true;
+    for (const ResidueModification* m : mods) // a vector, not a set: repeated identical brackets must each count
+    {
+      mass_sum += m->getDiffMonoMass();
+      if (m->getDiffFormula().isEmpty()) all_have_formulas = false;
+      else formula_sum += m->getDiffFormula();
+    }
+
+    if (std::fabs(mass_sum) <= 1e-6)
+    {
+      net_zero = true;
+      return nullptr;
+    }
+
+    if (all_have_formulas && !formula_sum.isEmpty() && std::fabs(formula_sum.getMonoWeight() - mass_sum) <= 1e-3)
+    {
+      FormulaTag ft;
+      ft.formula_string = formula_sum.toString();
+      return resolveFormulaTag_(ft, residue, ResidueModification::ANYWHERE);
+    }
+
+    if (all_have_formulas)
+    {
+      OPENMS_LOG_WARN << "ProForma: the summed diff formula of the modifications on one residue ("
+                      << formula_sum.toString() << ", " << formula_sum.getMonoWeight()
+                      << " Da) disagrees with the sum of their diff masses (" << mass_sum
+                      << " Da); a database entry carries a formula inconsistent with its mass. Using the masses." << std::endl;
+    }
+    const Residue* res = ResidueDB::getInstance()->getResidue(static_cast<unsigned char>(residue));
+    if (res == nullptr) return nullptr;
+    return ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(mass_sum),
+                                                            mass_sum, true, ResidueModification::ANYWHERE, res);
   }
 
   // Helper to resolve a single modification tag to a ResidueModification
@@ -1786,7 +1815,11 @@ namespace
           std::string residue_str = (residue != '\0') ? std::string(1, residue) : "";
           return mod_db->getModification(full_accession, residue_str, term_spec);
         }
-        catch (const Exception::ElementNotFound&) { return nullptr; }
+        catch (const Exception::BaseException&)
+        { // not found, OR found but not valid for this residue/terminus (getModification throws InvalidValue
+          // for the latter): either way an unresolved modification to report, never an escaping exception
+          return nullptr;
+        }
       }
       else if constexpr (std::is_same_v<T, NamedMod>)
       {
@@ -1865,7 +1898,14 @@ namespace
     if (mod.resolved_mod != nullptr) return {true, mod.resolved_mod->getDiffMonoMass()};
     if (mod.alternatives.empty()) return {false, 0.0};
 
-    const auto& tag = mod.alternatives[0].first;
+    // Same pick as resolution: the first alternative that describes chemistry. Reading alternatives[0]
+    // made "[INFO:x|Formula:Zn1:z+2]" and "[Formula:Zn1:z+2|INFO:x]" differ by the zinc.
+    const ModificationTag* chosen = nullptr;
+    for (const auto& [t, l] : mod.alternatives)
+    {
+      if (isChemistryTag_(t)) { chosen = &t; break; }
+    }
+    const ModificationTag& tag = (chosen != nullptr) ? *chosen : mod.alternatives[0].first;
 
     if (const auto* md = std::get_if<MassDelta>(&tag)) return {true, md->mass};
     if (const auto* ft = std::get_if<FormulaTag>(&tag))
@@ -2156,15 +2196,16 @@ std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::
       if (chemistry_brackets > 1)
         issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
           "Residue at position " + std::to_string(position) + " carries multiple modification brackets; "
-          "an AASequence residue holds only one, so all but the last are lost", position});
+          "an AASequence residue holds only one, so they are combined into one anonymous modification and the individual identities are lost", position});
 
       for (const auto& mod : elem->modifications)
       {
         if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
         {
-          const auto& [tag, label] = mod.alternatives[0];
-          bool is_empty_info = std::holds_alternative<InfoTag>(tag) && std::get<InfoTag>(tag).text.empty();
-          if (!is_empty_info)
+          // A bracket with no chemistry at all (label-only "[#XL1]", or annotations only) is not an
+          // unresolved modification. Keyed on the whole bracket, not alternatives[0]: "[INFO:|Glycan:Hex]"
+          // has an empty INFO first and unresolved chemistry second.
+          if (carriesChemistry_(mod))
             issues.push_back({ConversionIssueType::UNRESOLVED_MOD,
               "Modification at position " + std::to_string(position) + " could not be resolved", position});
         }
@@ -2200,9 +2241,7 @@ std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::
   {
     if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
     {
-      const auto& [tag, label] = mod.alternatives[0];
-      bool is_empty_info = std::holds_alternative<InfoTag>(tag) && std::get<InfoTag>(tag).text.empty();
-      if (!is_empty_info)
+      if (carriesChemistry_(mod))
         issues.push_back({ConversionIssueType::UNRESOLVED_MOD, "N-terminal modification could not be resolved", SIZE_MAX});
     }
     if (hasGenuineAlternatives_(mod))
@@ -2224,9 +2263,7 @@ std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::
   {
     if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
     {
-      const auto& [tag, label] = mod.alternatives[0];
-      bool is_empty_info = std::holds_alternative<InfoTag>(tag) && std::get<InfoTag>(tag).text.empty();
-      if (!is_empty_info)
+      if (carriesChemistry_(mod))
         issues.push_back({ConversionIssueType::UNRESOLVED_MOD, "C-terminal modification could not be resolved", SIZE_MAX});
     }
     if (hasGenuineAlternatives_(mod))
@@ -2292,16 +2329,14 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
       }
       else if (resolved.size() > 1)
       {
-        bool summable = false;
-        const ResidueModification* combined = combineOnOneResidue_(resolved, elem->amino_acid, summable);
+        bool net_zero = false;
+        const ResidueModification* combined = combineOnOneResidue_(resolved, elem->amino_acid, net_zero);
         if (combined != nullptr)
         {
           seq.setModification(seq_pos, combined);
         }
-        else if (!summable)
-        {
-          // A component has no diff formula: keep the historical last-one-wins rather than inventing
-          // a mass-only modification, which would throw away the formulas the components do have.
+        else if (!net_zero)
+        { // unknown residue letter: the only case left with no combined modification
           seq.setModification(seq_pos, resolved.back());
         }
         // else: the components cancel to nothing - leave the residue unmodified, which is exactly the
@@ -2313,11 +2348,18 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
     else if (const auto* range = std::get_if<ModifiedRange>(&section)) seq_pos += range->elements.size();
   }
 
-  if (!pf_copy.n_term_mods.empty() && pf_copy.n_term_mods[0].resolved_mod != nullptr)
-    seq.setNTerminalModification(pf_copy.n_term_mods[0].resolved_mod);
-
-  if (!pf_copy.c_term_mods.empty() && pf_copy.c_term_mods[0].resolved_mod != nullptr)
-    seq.setCTerminalModification(pf_copy.c_term_mods[0].resolved_mod);
+  // Apply the first RESOLVED terminal bracket, not blindly the first bracket: a label-only bracket
+  // such as "[#XL1]" can precede the chemistry ("[#XL1][Formula:C2H2O]-PEPTIDE"), and taking [0] lost
+  // the Formula tag while reporting no issue. More than one resolved chemistry bracket is reported by
+  // collectConversionIssues_, so FAIL_ON_LOSS refuses it.
+  for (const auto& mod : pf_copy.n_term_mods)
+  {
+    if (mod.resolved_mod != nullptr) { seq.setNTerminalModification(mod.resolved_mod); break; }
+  }
+  for (const auto& mod : pf_copy.c_term_mods)
+  {
+    if (mod.resolved_mod != nullptr) { seq.setCTerminalModification(mod.resolved_mod); break; }
+  }
 
   return seq;
 }
@@ -2338,11 +2380,22 @@ namespace
   {
     // chars_format::fixed with no precision gives the SHORTEST fixed-notation string that reads back
     // as the same double - full precision without "12345.678900000001" padding artefacts.
-    char buf[64];
+    if (!std::isfinite(mass))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Cannot serialise a non-finite modification mass as ProForma", std::to_string(mass));
+    }
+    // 400 bytes fits the longest fixed-notation double (309 integer digits plus fraction); a 64-byte
+    // buffer silently turned 1e64 into "+0".
+    char buf[400];
     const double abs_mass = std::fabs(mass);
     auto res = std::to_chars(buf, buf + sizeof(buf), abs_mass, std::chars_format::fixed);
-    std::string digits = (res.ec == std::errc()) ? std::string(buf, res.ptr) : std::string("0");
-    return (mass < 0.0 ? "-" : "+") + digits;
+    if (res.ec != std::errc())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Cannot serialise modification mass as ProForma", std::to_string(mass));
+    }
+    return (mass < 0.0 && abs_mass != 0.0 ? "-" : "+") + std::string(buf, res.ptr);
   }
 
   /**
