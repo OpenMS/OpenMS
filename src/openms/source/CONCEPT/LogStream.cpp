@@ -630,6 +630,15 @@ namespace OpenMS
       std::ostream::flush();
     }
 
+    bool LogStream::hasStream(std::ostream & stream)
+    {
+      if (!bound_())
+      {
+        return false;
+      }
+      return hasStream_(stream);
+    }
+
     void LogStream::flushIncomplete()
     {
       if (!bound_())
@@ -676,8 +685,11 @@ namespace OpenMS
 
   //
   // Thread-local log stream accessors
-  // Each thread gets its own LogStream instance with a private buffer,
-  // but shares the stream_list_ (output destinations) with the global instance.
+  // Each thread gets its own LogStream instance with a private buffer. The list of output
+  // destinations is *copied* from the global instance on first access, not shared with it:
+  // reconfiguring a global stream afterwards (insert()/remove()/LogSinkGuard) leaves already
+  // created thread-local streams untouched, so configure the thread-local stream returned here
+  // when the goal is to redirect or suppress what OPENMS_LOG_* actually writes.
   //
   Logger::LogStream& getThreadLocalLogFatal()
   {

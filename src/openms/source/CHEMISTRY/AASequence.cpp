@@ -1466,26 +1466,34 @@ namespace OpenMS
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
 
+    const ResidueDB* residue_db = ResidueDB::getInstance();
+    const Residue* base_residue = residue_db->getResidue(peptide_[index]->getOneLetterCode());
+    const bool has_existing_modification = peptide_[index]->isModified();
+    const double combined_diff_mono_mass =
+      diffMonoMass + (has_existing_modification ? peptide_[index]->getMonoWeight() - base_residue->getMonoWeight() : 0.0);
+
     const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
-    std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
-    const ResidueModification* mod = mod_db->searchModificationsFast(peptide_[index]->getOneLetterCode() + diffMonoMassStr, multimatch);
+    const std::string diff_mono_mass_str = ResidueModification::getDiffMonoMassWithBracket(combined_diff_mono_mass);
+    const ResidueModification* mod = mod_db->searchModificationsFast(base_residue->getOneLetterCode() + diff_mono_mass_str, multimatch);
     const double tol = 0.002;
-    if (mod == nullptr)
+    if (mod == nullptr && !has_existing_modification)
     {
-      mod = mod_db->getBestModificationByDiffMonoMass(diffMonoMass, tol, peptide_[index]->getOneLetterCode(), ResidueModification::ANYWHERE);
+      mod = mod_db->getBestModificationByDiffMonoMass(combined_diff_mono_mass, tol, base_residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     }
     if (mod == nullptr)
     {
-      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      mod = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
-                                                                        diffMonoMass,
-                                                                        true,
-                                                                        ResidueModification::ANYWHERE,
-                                                                        peptide_[index]);
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diff_mono_mass_str << " not found in databases with tolerance " << tol
+                      << ". Adding unknown modification.\n";
+      mod = ResidueModification::createUnknownFromMassString(
+        ResidueModification::getDiffMonoMassString(combined_diff_mono_mass),
+        combined_diff_mono_mass,
+        true,
+        ResidueModification::ANYWHERE,
+        base_residue);
     }
-    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], mod);
+    peptide_[index] = residue_db->getModifiedResidue(base_residue, mod);
   }
 
   void AASequence::setModification(Size index, const Residue* modification)
@@ -1608,18 +1616,18 @@ namespace OpenMS
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
-    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
+    c_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
     std::string residue;
-    if (n_term_mod_ == nullptr)
+    if (c_term_mod_ == nullptr)
     {
-        n_term_mod_ = ModificationsDB::getInstance()
+        c_term_mod_ = ModificationsDB::getInstance()
           ->getBestModificationByDiffMonoMass(diffMonoMass, tol, residue, term);
     }
-    if (n_term_mod_ == nullptr)
+    if (c_term_mod_ == nullptr)
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      c_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);
@@ -1638,7 +1646,7 @@ namespace OpenMS
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
-    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
+    n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
     std::string residue;
     if (n_term_mod_ == nullptr)
     {
@@ -1649,7 +1657,7 @@ namespace OpenMS
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      n_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);

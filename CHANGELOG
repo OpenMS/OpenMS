@@ -54,6 +54,7 @@ General:
     validation of NEW_TMP_FILE outputs is now explicit (VALIDATE_TMP_FILES; the 26 tests that
     validated files call it), unique-ID seeding and OpenMS exception naming are registered by the
     test projects (OpenMSTestSupport.cpp), and the unused Internal::OpenMS_locale global was removed
+    (#9929)
   - Fix: File::writable() is no longer destructive and no longer reports false negatives under
     concurrency. It used to answer "does it exist?" and "may I write it?" with two separate
     queries, so a concurrent process could change the path in between and make it wrongly report
@@ -76,7 +77,11 @@ General:
     produced, and its callers (MRMFeatureSelector, ILPDCWrapper/Decharger) now check getStatus() and
     throw an informative exception instead of reading the all-zero non-solution back as valid output
     - previously any solver failure (infeasible model, bad bounds, resource limit) yielded silently
-    empty results (#9944)
+    empty results (#9944, #9956)
+  - BREAKING (pyOpenMS): the low-level LPWrapper class (with its SolverParam and nested enums) is no
+    longer exposed in pyOpenMS. It is an internal LP/MILP backend wrapper with no Python consumers and
+    an easy-to-misuse solve()/getStatus() contract; use the high-level algorithms (MRMFeatureSelector,
+    FeatureDecharger, ...) from Python instead (#9983)
   - Removed two unused example scripts from share/OpenMS/SCRIPTS: ropenms.R (superseded by the
     "pyOpenMS in R" user guide) and ProteomicsLFQ.R (a stale iPRG2015-specific MSstats example).
     The InternalCalibration_*.R scripts invoked by the calibration tools and plot_trafo.R remain
@@ -84,6 +89,18 @@ General:
   - Removed the unregistered developer runners under src/tests/topp/ProteomicsLFQTestScripts,
     which no CTest target ran (run_lfq.sh and run_BSA.sh were additionally hardwired to personal
     machine paths), and the ProteomicsLFQ documentation line that pointed to them (#9945)
+  - Cleanup: pruned share/OpenMS/SCHEMAS from 62 to 23 XSD files, keeping only the schemas OpenMS
+    actually loads at runtime (the current version each format's *File class validates against when
+    isValid() is called, their <xs:include> closure, the four auto-detected mzIdentML versions, and
+    Param_1_7_0 used for CTD/CWL export). The 39 removed files (superseded format versions plus the
+    never-loaded CvMapping, CTD_0_3, qcML_0.0.7, mzQCML_0_0_5 and mzQuantML_1_0_0-rc2) remain
+    available from the release/3.5.0 tag; a new SCHEMAS/README.md documents what is kept and where
+    the archived schemas live. Also fixed two dangling schema references that pointed at
+    non-existent files: QcMLFile (qcml.xsd) and PepXMLFileMascot (PepXML_1_8.xsd) now declare no
+    bundled schema -- since both paths were already broken, their isValid() (which nothing in the
+    codebase calls) now throws NotImplemented rather than a file-not-found error, i.e. semantic
+    schema validation stays unavailable for these two formats. Normal file reading/writing is
+    unaffected (#9757)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -157,7 +174,7 @@ PyOpenMS:
     when the replacement array has the same length (#9792)
   - SpectrumAccessOpenMSCached wrapped (on-disk cached spectrum access for OpenSWATH-style workflows);
     SimpleOpenMSSpectraFactory.getSpectrumAccessOpenMSPtr() now returns it for experiments carrying
-    the cached_data marker instead of raising
+    the cached_data marker instead of raising (#9952)
   - BREAKING: metadata enums converted to strongly typed enum classes (#8604); activation methods enum
     handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions (get_df() -> to_df(), get_df_columns()
@@ -221,7 +238,7 @@ PyOpenMS:
     (undefined WNetMatcher symbol in _pyopenms_misc), because the WNet bindings referenced symbols
     that are excluded from libOpenMS by that option. The WNetMatcher and FeatureGroupingAlgorithmWNet
     bindings are now compiled only when WNet support is built, mirroring the BrukerTimsFile /
-    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946)
+    WITH_OPENTIMS pattern, and feature-detectable via hasattr(pyopenms, "WNetMatcher") (#9946, #9957)
   - Docs: type hints in the docstrings of 133 functions (#8483), docstring format validation tests
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
@@ -286,6 +303,15 @@ TOPP tools:
         output is byte-identical for any thread count (#9692, #9697, #9698, #9699)
       - Removed the QPXConverter TOPP tool (registered but without callers or tests); the QPXFile export
         API it wrapped remains available (#9693)
+      - Fix: .featureparquet now stores the FeatureMap's own unique id. Only the per-feature unique ids
+        were written, so a map came back with an unset id -- ProteomicsLFQ, for one, copies that value
+        into the consensus column header of the run the map came from. Files written before this keep
+        the previous behaviour rather than failing to load
+      - .featureparquet import now refuses a file in which a PSM references a feature unique id that is
+        not in features.parquet, instead of warning and re-filing the identification as unassigned. The
+        two identification lists partition the PSMs and which list one is in is part of the result: FDR
+        is estimated over both together and every exporter reports them separately, so repairing the
+        link silently produced a map that parsed cleanly and described a different experiment
     ProteinQuantifier (and the PeptideAndProteinQuant library class):
       - BREAKING: quantities are reported per assay -- the experimental-design (fraction_group, label)
         unit -- and the sample grain is gone. Previously all files mapped to a sample were summed, so
@@ -376,6 +402,14 @@ TOPP tools:
         PercolatorInfile::getStandardFeatureSet(). The sibling PercolatorAdapter binary is resolved via
         File::findSiblingTOPPExecutable instead of relying on $PATH, which previously caused a silent
         fallback to HyperScore results in dev builds (#9166, #9195, #9204)
+      - Four additional Percolator features registered in extra_features (default set grows from 10 to
+        14): hyperscore_zscore and ln_num_candidates (from the per-spectrum candidate pool already built
+        during scoring), matched_ion_current_fraction (matched_ion_current normalised by TIC) and
+        complementary_ions_fraction (fraction of cleavage sites with both prefix and complementary suffix
+        ion matched). +0.4% to +1.2% target PSMs at 1% FDR after rescoring across three benchmark DDA
+        runs (timsTOF, Q Exactive HF, Orbitrap Astral); rescoring itself remains the larger effect
+        (+6.6% to +30.8%). Also fixes FragmentIndex's annotate:PSM valid-strings list, which was missing
+        six annotation names already accepted by ProSEAlgorithm (#9970)
       - New annotate:PSM options (num_matched_peaks, matched_prefix/suffix_ions,
         longest_peptide_ion_sequence, fragment_annotation), runtime search diagnostics, and a
         consolidated end-of-search "Search Report" (configuration recap, index stats, per-file ID
@@ -395,6 +429,20 @@ TOPP tools:
         write no longer crashes with "Invalid protein reference 'DECOY_...'" when target+decoy shared
         peptides are present (#9197, #9205)
     PercolatorAdapter:
+      - Fix: the tool aborted with "Executable not found (the executable 'percolator' could not be
+        found)" on machines without percolator installed, even for the default in-process backend that
+        never runs the binary. -percolator_executable carries the 'is_executable' tag, so reading it
+        resolves it on PATH; it is now read only when the subprocess path will actually be used, which
+        also restores the TOPP_PercolatorAdapter_1_inproc / _CalcMass tests in such builds (#10020)
+      - Fix: an input CalcMass meta value (a search engine's way of stating that a PSM's precursor mass
+        differs from its AASequence, which FeatureFinderIdentification's CalcMass correction consumes)
+        was deleted along with the training-only PIN columns after in-process rescoring, even though
+        PercolatorInfile only computes CalcMass for hits that arrive without one. -use_subprocess true
+        already preserved it. The stamping step now records per hit which keys it actually added and
+        strips only those, so both backends agree; other search engines' output is unaffected. On a
+        real cross-linking dataset this restored label-free quantification of every cross-linked
+        feature reaching 1% FDR through the default (in-process) path (0/33 correctly quantified before,
+        180/180 after) (#9997, #10012)
       - In-process rescoring backend: PercolatorAdapter now defaults to running Percolator in-process
         via the new OpenMS::Percolator class (vendored Percolator 3.08 + TRON solver), so no external
         binary is needed; -percolator_executable became optional. Covers idXML/mzid input with PSM-level
@@ -403,7 +451,56 @@ TOPP tools:
         in-process path, which previously produced different output than the subprocess path (#9240)
       - Fix: memory leaks in the in-process backend (Normalizer singleton and Logger file handles)
         (#9257)
+    IsobaricWorkflow:
+      - Fix: -protein_quantification strictly_unique_peptides no longer aborts with "No information on
+        indistinguishable protein groups found.". The setting annotates no protein groups, but
+        quantification and all exporters report abundances on them; proteins left without a strictly
+        unique peptide are now dropped and the remaining ones reported as singleton groups. Peptide
+        uniqueness must be annotated in the input (this tool does not index), which the error message
+        now says (#9979)
+
     ProteomicsLFQ:
+      - Fix: loadAndCleanupIDFile_ stripped every meta value except a fixed keep-list before ffi.run(),
+        so an input CalcMass (see PercolatorAdapter, above) could never reach FeatureFinderIdentification's
+        CalcMass correction even when the upstream search engine provided one. CalcMass is now kept
+        (#9998, #10012)
+      - New '-feat_dir': a directory of per-run feature checkpoints, making a run resumable and its
+        per-run half distributable. One rule covers every case -- for each row of the experimental
+        design, reuse its checkpoint if a valid one exists, else detect the run from '-in'/'-ids' and
+        write one, else fail. So the same command rerun after an interruption continues where it
+        stopped; '-detect_only' on each machine produces the checkpoints; and a final invocation with
+        neither '-in' nor '-ids' combines them, reading no mzML, no idXML and no run-level FASTA
+        content. A checkpoint records the parameters, OpenMS build, design row and input files behind
+        it and is refused when any of those disagree, naming the setting that differs; there is no way
+        to combine checkpoints that disagree, and '-force_recompute' detects the affected runs again.
+        Inputs are identified by size and modification time rather than by content, so deciding to
+        reuse a checkpoint reads nothing. Requires an explicit '-design' (a generated one would label
+        every separately detected run as the first) and '-fasta'; not applicable to spectral_counting.
+        A split run reproduces a single-shot run: the QPX feature, psm and pg views compare equal
+        within 1e-3 relative -- the tolerance already used for independent ProteomicsLFQ processes
+        elsewhere, since MSVC shows low-order integration drift between them. '-in'/'-ids' are
+        consequently no longer mandatory parameters, but are still required unless '-feat_dir' covers
+        every run of the design (#9989)
+      - Fix: -protein_quantification strictly_unique_peptides no longer discards every peptide hit.
+        The 'protein_references' meta value that marks a peptide as theoretically unique was stripped
+        right after peptide indexing, so the filter found nothing to keep; it is now preserved for that
+        setting. Proteins left without evidence are dropped and the remaining ones are reported as
+        singleton groups, which the quantification and all exporters need (#9979)
+      - The chromatographic FWHM the feature linker derives its RT tolerance from is now the median
+        over the runs of a fraction. It used to be whichever run the per-file loop happened to end
+        on, so the tolerance depended on the order the files were given in. Feature detection is
+        unaffected: each run still uses its own FWHM for the FFID peak width. Related: a run that
+        cannot measure one (.d/IM_PEAK without seeds) now falls back to the documented 30 s default
+        instead of inheriting the previous run's value, and a decoy affix that differs between input
+        files is reported rather than silently letting the last file decide the one picked protein
+        FDR uses. On the shipped fixtures the fraction values move (8.64/7.78/7.12 s: 7.12 -> 7.78)
+        without changing any output, since the tolerance is dominated by the alignment term (#9985)
+      - Fix: the quantification-score SVM filter (-feature_with_id_min_score /
+        -feature_without_id_min_score) now actually shuffles its training sample before capping it
+        at 1000 targets and 1000 decoys; a constructed-but-never-called RandomShuffler left the cap
+        applied to the first 1000 of each in RT order, biasing training towards early-eluting
+        features. Shuffling uses a fixed seed, so the selection stays reproducible across runs. No
+        effect unless one of those two parameters is set above its default of 0.0 (#9981, #9982)
       - Identifications are now reduced to one per (spectrum, peptidoform, charge) when the input
         carries several of them -- the shape produced by concatenating search engine results rather
         than combining them (e.g. PSMFeatureExtractor -multiple_search_engines -concat, or
@@ -501,11 +598,14 @@ TOPP tools:
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
     OpenNuXL:
+      - Localized RNA/DNA adducts are now embedded as signed residue mass deltas in the peptide
+        sequence, keeping adduct variants distinct for downstream quantification. Unlocalized hits
+        remain bare and continue to carry the full precursor mass in CalcMass (#9992)
       - Fix: cross-link localization dropped a residue entirely when its shifted a/b-ion evidence was
         deemed implausible (no unshifted a/b ion one residue before, or a stronger shifted signal one
         residue before) -- the y-ion evidence for that residue was then never evaluated. The
         plausibility rules are now applied per ion series, so a residue supported by a consistent
-        shifted y-ion ladder is localized even without prefix-ion support
+        shifted y-ion ladder is localized even without prefix-ion support (#9961)
     PSMFeatureExtractor:
       - Added support for the andes search engine: all numeric "andes:"-prefixed MetaValues are
         registered as Percolator features, mirroring the existing per-engine handling for
@@ -558,6 +658,11 @@ TOPP tools:
       - IM-axis hill centroiding via -algorithm hill (see BrukerTimsFile/PASEFHillCentroider) (#9380)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
+    PeakPickerChromatogram:
+      - Added optional per-peak apex signal-to-noise reporting: the new 'report_sn' parameter (default
+        false) adds an "SN" FloatDataArray to the picked chromatogram, populated from the existing
+        SignalToNoiseEstimatorMedian pass; it can be enabled independently of the 'signal_to_noise'
+        boundary-extension threshold. Peaks without an available estimate report -1.0 (#9780)
     FileConverter:
       - Added MSP file format support (#8650) and OpenSwath sqMass to XIC Parquet conversion (#8829)
       - Bruker options exposed as -bruker:* (MS1 frame aggregation, centroiding algorithm, frame/RT range
@@ -625,6 +730,23 @@ TOPP tools:
         shorter in RT than the dominant trace they belong with: 'isotope_rt_overlap_reference'
         (longer|shorter) and 'min_isotope_rt_overlap' (default 0.7) for FeatureFindingMetabo, with a
         matching option for MetaboliteFeatureDeconvolution (#4483, #9711)
+    FeatureFinderIdentification (and the FeatureFinderIdentificationAlgorithm library class):
+      - Fix: the run summary reported a garbage count of external peptides ("12 peptides identified
+        (12 internal, 140724733953152 additional external)"). n_external_peps_ was assigned only when
+        external identifications were supplied, but read unconditionally, so without them statistics_()
+        formatted an uninitialised member -- undefined behaviour, and visible in every ProteomicsLFQ
+        and FeatureFinderIdentification run that does not use external IDs. Both peptide counters are
+        now initialised, and the external one is reset per run rather than only inside that branch, so
+        a reused algorithm object cannot carry the previous run's count into the next one
+      - BREAKING: removed the "external" peptide ID path, and with it the external peptide counter
+        fixed above. The -id_ext input, the SVM feature classifier (all 'svm:*' parameters), the
+        SVM-based FDR estimation and 'extract:rt_quantile' are gone, along with the
+        FFIDAlgoExternalIDHandler class. No in-tree caller ever passed external IDs (ProteomicsLFQ
+        and OpenNuXL always passed empty lists) and the only test exercising the path had been
+        disabled for years. FeatureFinderIdentificationAlgorithm::run() now takes (peptides,
+        proteins, features, seeds, spectra_file); the 'unknown' feature class, the
+        "implied"/"external" FFId_category values and the 'rt_delta', 'predicted_class' and
+        'FDR_probabilities' meta values are no longer produced (#9995, #10011)
     FeatureFinderMetaboIdent:
       - Added an optional "Adduct" column to the TSV input; m/z is computed via AdductInfo from any
         supported notation (e.g. [M+Na]+, [M-H]-, [2M+H]+) and features are annotated with the adduct.
@@ -756,6 +878,9 @@ OpenMS Library:
         never filled on read; getIMPeakType() is set to IM_PROFILE and getIMUnit() resolves the unit from
         the PSI-MS ontology (1/K0 for MS:1003006, not milliseconds). OnDiscImzMLExperiment now also
         rejects zlib-compressed m/z/intensity arrays like the in-memory loader (#9908)
+      - imzML export warns about per-peak Integer/StringDataArrays (e.g. a "charge array" carried over
+        from mzML): the format stores only FloatDataArrays, so they were silently dropped before
+        (#10002)
     - Native Parquet I/O for identifications, features and consensus maps:
       - PSMArrowIO reads/writes the .idparquet directory bundle (psms/proteins/protein_groups/
         search_params.parquet), lossless round-trip from PeptideIdentificationList and
@@ -810,6 +935,11 @@ OpenMS Library:
       generic ONNX Runtime session, and PeptDeepRTInference/PeptDeepMS2Inference/PeptDeepCCSInference
       predict retention time, MS2 fragment intensities and CCS via pre-trained AlphaPeptDeep models,
       downloaded with SHA256 validation at configure time. C++ only for now (#9453)
+      - The PeptDeep predictors now parse modified sequences via AASequence instead of accepting only
+        unmodified peptides, mapping each recognized modification to its slot in a native 109-element
+        in-memory tensor dictionary (no external mapping file shipped or parsed at runtime); chemically
+        invalid modifications are rejected by AASequence itself, and chemically valid but currently
+        unsupported ones are rejected by the dictionary (#9765)
     - ProFormaParser: full ProForma v2 notation parser with AST representation -- recursive descent
       parsing of peptidoforms with modifications, cross-links and chimeric spectra, all CV accessions
       (UNIMOD, MOD, RESID, XLMOD, GNO), mass deltas, formulas, glycans and info tags; bidirectional
@@ -861,12 +991,37 @@ OpenMS Library:
       ProteinIdentification::ProteinGroup data arrays; previously ProteomicsLFQ -out_cxml and
       IsobaricWorkflow -out silently dropped them, so MzTabExporter on a stored consensusXML produced no
       protein abundances at all. Each non-empty data array is written as one typed UserParam list and
-      restored into the same positional layout
+      restored into the same positional layout (#9844)
     - TOPPExternalToolBase: tools that shell out to an external executable (search engine adapters, ...)
       derive from a common base instead of duplicating external-process boilerplate; startup handling for
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - Fix: AASequence::setModificationByDiffMonoMass (and the four other call sites that write an
+      unknown mass-shift modification: three in AASequence, one in Residue, one in PepXMLFile) built
+      its ModificationsDB lookup key with a signed bracket but created the modification from an
+      unsigned one, e.g. registering "K[306.0253...]" while looking up "K[+306.0253...]". The lookup
+      could never hit what creation had just registered, and AASequence::fromString reads an unsigned
+      bracket as the residue's absolute mass rather than a delta, so re-parsing written output silently
+      produced a different peptidoform and mass (observed on real data: 184/184 written cross-linked
+      features round-tripped to the wrong mass). All five sites now use the existing signed
+      ResidueModification::getDiffMonoMassString(); the parser, which already accepts both spellings,
+      is unchanged. Separately, applying an unknown mass shift to a residue that already carried a
+      modification replaced it and interned the result under an id keyed only on the one-letter residue
+      code, so e.g. oxidized and plain M given the same nominal shift could be conflated into one
+      process-global entry depending on which was processed first. setModificationByDiffMonoMass now
+      resolves the unmodified base residue, folds any existing modification's mass into a cumulative
+      delta, and interns on that instead, so the two stay distinct and order-independent (#10006,
+      #10007, #10010)
+    - Fix: QPXFile silently dropped an unsupported modification on Parquet import instead of reporting
+      it -- ProForma's BEST_EFFORT mode skips unrecognised tags by design, and an empty catch(...)
+      fell through to the unmodified sequence, so e.g. "AEADNLDDK(NuXL:U-H2O)K" (1423.5504 Da) came
+      back as "AEADNLDDKK" (1117.5251 Da) with nothing logged even though the row still held the
+      peptidoform, the modification name/position and calculated_mz. Conversion issues are now
+      reported, the empty catch is replaced with handlers naming the peptidoform and reason, and the
+      reconstructed m/z is cross-checked against the row's own calculated_mz. This does not make the
+      format carry modification definitions -- reading such a file still loses the modification, just
+      no longer silently (#10004, #10012)
     - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
       already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
       another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
@@ -955,6 +1110,12 @@ OpenMS Library:
       (#9691)
     - OpenSwathOSWWriter gained getRowCount() and estimateMemoryUsage() for memory-aware buffered output
       (#9190)
+    - SignalToNoiseEstimatorMedian now interpolates within the histogram bin instead of returning the
+      noise estimate of the bin the signal falls into, so S/N varies continuously with intensity rather
+      than jumping between a fixed set of values; a hard floor of 1 is preserved. Every downstream
+      consumer (peak picking, feature scoring, targeted extraction, OpenSwath/MRM analysis) sees slightly
+      smoother, more accurate S/N-derived output; reference test data across ~60 TOPP tests was
+      regenerated accordingly (#9781, #9967)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
@@ -972,12 +1133,28 @@ OpenMS Library:
     - Removed avoidable heavy copies in OpenMP regions and hot loops across OPXLHelper::digestDatabase,
       MultiplexFilteringProfile, MzMLSqliteHandler, SwathFileConsumer, SimpleSearchEngineAlgorithm,
       ProSEAlgorithm and NuXLAnnotateAndLocate (#9686)
+    - ProSEAlgorithm: TheoreticalSpectrumGenerator and SpectrumAlignment used for post-scoring peak
+      annotation are now built once per run instead of per PSM, a redundant open-search
+      modification-analysis pass whose only effect was logging was dropped, each spectrum's candidate
+      list is pruned to max(report:top_hits, 2) as soon as scoring moves past it instead of staying at
+      scoring:max_candidates_per_spectrum, and the calibration pass reuses one spectrum buffer across
+      candidates. Output-identical; closed search ~26% and open search ~30% faster (#9963)
     - PrecursorCorrection::correctToNearestFeature() replaced the Cartesian product over precursors and
       features (8e8 overlap checks, each rebuilding a non-memoized bounding box) with one precomputed
       bounding box per feature and a sweep line over increasing precursor m/z (#4787, #9801)
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: Biosaur2Algorithm::run() left the stored MS data empty on FAIMS input -- the per-CV split moves
+    the spectra out of ms_data_ and nothing put them back, so getMSData() handed the caller a cleared
+    experiment. ProteomicsLFQ with -Seeding:algorithm biosaur2 passed exactly that on to
+    FeatureFinderIdentification, which crashed on the zero-spectrum experiment (its chromatogram
+    extraction indexes the PeakMap unconditionally). The spectra and chromatograms are now reassembled
+    in acquisition order (profile-mode centroiding likewise no longer replaces the whole experiment,
+    which dropped the chromatograms and experimental settings before the split saw them), so both
+    Biosaur2 paths leave the same processed experiment behind, and
+    FeatureFinderIdentificationAlgorithm::run() rejects MS data without spectra instead of reading out
+    of bounds (#9980, #9996)
   - Fix: ExperimentalDesign's Sample* mappings disagreed about their key, so any design whose sample names
     are not "0", "1", ... crashed with a bare std::out_of_range. getSampleToPrefractionationMapping() was
     keyed by sample name while the condition and path-label mappings used the stringified zero-based row
@@ -986,7 +1163,7 @@ Fixes:
   - Fix: Parquet writers left a partial file behind when a write failed -- arrow::io::FileOutputStream::Open
     truncates the file up front, so a later failure leaves a fragment with no footer that reads as corrupt.
     ProteinIdentificationArrowIO, FeatureMapArrowIO, ConsensusMapArrowIO, ParquetFile::writeTable and the
-    QPX streaming writer now remove the incomplete output
+    QPX streaming writer now remove the incomplete output (#9862)
   - Fix: IDFilter::updateProteinGroups rebuilt each protein group from scratch, keeping only accessions and
     probability and discarding the data arrays, so any tool filtering after quantification (Epifany,
     ProteinInference, FalseDiscoveryRate, PercolatorAdapter, ProteomicsLFQ) threw the protein quantities
@@ -1114,6 +1291,21 @@ Fixes:
   - Fix: potential memory leak in SwathFile::loadMzXML on exception, redundant PRAGMA foreign_keys execution
     in OMSFileStore, unused variable in FileFilter, uninitialized best_rate warning in MetaProSIP, and a
     wrong defaultArrayLength in the MzMLFile_negative_offsets.mzML test file (#8396, #8399, #8672)
+  - Fix: Logger::LogSinkGuard did not actually suppress the messages logged inside its scope. OpenMS log
+    lines end in '\n' rather than std::endl, so the text was still buffered when the guard re-attached the
+    sink and surfaced at the next flush; it is now discarded. Also documented that the OPENMS_LOG_* macros
+    write to the thread-local streams, whose sink list is copied from the global one on first access --
+    guarding getGlobalLog*() does not suppress what a thread that has already logged emits (#10019)
+  - Fix: File_test no longer prints the expected error/warning output of its negative test cases (the
+    self-copy rejection in File::copyDirRecursively, the CopyOptions::SKIP notices and the
+    File::findDatabase miss), which made a passing test run look like a broken build in packaging
+    logs (#10019)
+  - Fix: File_test's getModificationTime() check asserted that a checked-in fixture's mtime fell between
+    2020 and 2100; distributions that normalise source timestamps for reproducible builds (Debian, Nix)
+    set it to the Unix epoch, failing the lower bound, and the same would happen for a source tarball
+    unpacked with preserved pre-2020 timestamps. The test now brackets the wall clock around a
+    temporary file it writes and checks itself, which no longer depends on how the tree was unpacked
+    while still catching the bug the original bounds guarded against (#10018)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)
@@ -1192,6 +1384,29 @@ Build System:
     (#9827)
   - Windows installer: the NSIS "Installation Complete" page now links to a short, optional user survey,
     to help gauge who is using OpenMS (#9769)
+  - Fix: the nightly Windows Release workflow's Package step failed intermittently because some of the
+    Doxygen-generated HTML doc filenames, combined with CPack's default staging path nested under the
+    build directory, exceeded Windows' MAX_PATH; makensis.exe uses the plain (non-long-path-aware) Win32
+    file APIs and aborted staging. CPACK_PACKAGE_DIRECTORY is now pointed at a short, fixed path for the
+    Windows packaging step, keeping staged paths well under the limit (#9969)
+  - Fix: the NSIS installer script located the generated Cfg_Settings.nsh via a hardcoded "..\..\..\"
+    relative path from CPack's NSIS staging directory, which silently broke whenever
+    CPACK_PACKAGE_DIRECTORY is redirected elsewhere (as #9969, above, now does to dodge MAX_PATH). Two
+    successive attempts to pass the absolute path via a CPACK_ variable instead (first with
+    TO_NATIVE_PATH, which broke CMake's re-serialized CPackConfig.cmake on the backslashes in GitHub
+    Actions' "D:\a\..." checkout root; then with forward slashes) (#9978, #9991) still failed nightly:
+    Cfg_Settings.nsh reliably existed on disk, correctly populated, right up to and including an
+    explicit check immediately before invoking cpack, yet NSIS's !include of that same file moments
+    later reported it missing, with nothing in CPack's own file operations ever touching it. The fix
+    stops depending on any separately generated file surviving on disk at packaging time at all:
+    cmake/Windows/Cfg_Settings.nsh.in is deleted, and every !define it used to provide is written
+    directly into NSIS.template.in via CPack's own @CPACK_...@ template substitution -- the same
+    mechanism the template already used successfully for other absolute paths (OutFile, the installer
+    icon, the license page) (#10009)
+  - Fix: -DWITH_ONNX=ON failed to configure outside of vcpkg (find_package(ONNXRuntime REQUIRED) could
+    never resolve FindONNXRuntime.cmake, which lived in cmake/ rather than on CMAKE_MODULE_PATH), so ONNX
+    support was only reachable through vcpkg. The module was moved into cmake/Modules, alongside the
+    project's other Find*.cmake modules (#9971)
   - CI: the Docker image build fetches the Arrow APT source from packages.apache.org and appends Arrow's
     canonical KEYS to the pinned keyring, reducing NO_PUBKEY nightly failures (#9728, #9729, #9750); the
     Bioconda sync merges instead of rebasing, which had failed every nightly run for 16 days (#9798);
@@ -1200,6 +1415,14 @@ Build System:
     apt pin the base stage applies before the same install, so a new upstream Arrow release (25.0.0)
     made the unpinned SONAME packages unresolvable and broke the nightly container build on arm64. The
     library stage now applies the identical pin (#9890, #9891)
+  - Fix: the multi-arch (amd64/arm64) container deploy matrix pushed a complete single-platform image
+    under the same tag from each leg, so whichever leg finished last silently overwrote the tag and the
+    published image was single-arch; deploy-singularity, which needs linux/amd64, then failed with "no
+    image found in image index for architecture amd64" whenever the arm64 leg finished last. Each leg
+    now pushes untagged, by digest only; a new merge job combines the digests into one real multi-arch
+    manifest list per tag with 'docker buildx imagetools create', validated via --dry-run before tagging
+    so a missing platform fails the job instead of overwriting the previous working tag, and
+    deploy-singularity depends on that merge job (#9951, #9954)
   - Fix: the Bioconda deploy workflow created its conda environment with a hardcoded python 3.12.
     bioconda-utils ships for one python minor per release (4.2.0+ is python 3.13 only), so that pin
     silently capped it at 4.1.0 and with it a conda-forge-pinning snapshot from 2024. That snapshot
@@ -1252,7 +1475,7 @@ Build System:
     which degrades gracefully where a hash cannot (#9864)
   - Tests: FuzzyStringComparator accepted any numeric comparison in which either side was NaN, so a value
     regressing to NaN was invisible to all 778 FuzzyDiff comparisons and to TEST_FILE_EQUAL; non-finite pairs
-    are now decided explicitly
+    are now decided explicitly (#9859, #9861)
   - OpenMP SIMD: when the OpenMP runtime is absent (e.g. macOS without libomp), CMake falls back to
     -fopenmp-simd so `#pragma omp simd` still enables auto-vectorisation (#9267); OpenMP validation fails
     configuration if requested but not found (#8368)
