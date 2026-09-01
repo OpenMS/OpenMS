@@ -145,10 +145,11 @@ namespace OpenMS
       /**
         @brief Register the precursor adduct as a named modification of @p residue.
 
-        The definition is @c NuXL:<nucleotide_composition> (e.g. @c NuXL:U-H2O1) with
-        @p adduct_formula as its chemistry. If @p residue already carries a modification, both
-        are folded into one definition @c NuXL:<nucleotide_composition>~<existing id> whose mass
-        is the sum of the two; the summed formula is kept only when it agrees with that mass.
+        The definition is named @c NuXL: followed by @p nucleotide_composition (e.g. @c NuXL:U-H2O1)
+        and carries @p adduct_formula as its chemistry. If @p residue already carries a modification,
+        both are folded into one definition named after both, joined by @c ~
+        (e.g. @c NuXL:U-H2O1~Oxidation), whose mass is the sum of the two; the summed formula is
+        kept only when it agrees with that mass.
 
         @return the registered modification, or @c nullptr if the existing modification has no
                 id or no formula (the caller then falls back to a plain mass delta)
