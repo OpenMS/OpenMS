@@ -1720,6 +1720,37 @@ namespace
     return mod_db->addModification(std::move(new_mod));
   }
 
+  /**
+    @brief Combine modifications that landed on one residue into a single one with the summed chemistry.
+
+    An AASequence residue holds exactly one modification, so "M[Oxidation][Formula:O]" cannot be
+    represented as written. Summing the DIFF FORMULAS (rather than only the diff masses, which is what
+    ResidueModification::combineMods does) keeps both the mass and the empirical formula correct - and
+    the formula is what isotope patterns are built from, so losing it would defeat the purpose.
+
+    The result is interned through resolveFormulaTag_, so a combination reuses the same entry as the
+    equivalent single Formula: tag and needs no second interning scheme.
+
+    @return nullptr when the chemistry cannot be summed - any component without a diff formula, or a
+            combination that cancels out - leaving the caller to fall back.
+  */
+  const ResidueModification* combineOnOneResidue_(const std::vector<const ResidueModification*>& mods,
+                                                  char residue)
+  {
+    if (residue == '\0') return nullptr;
+    EmpiricalFormula sum;
+    for (const ResidueModification* m : mods)
+    {
+      if (m->getDiffFormula().isEmpty()) return nullptr;
+      sum += m->getDiffFormula(); // a vector, not a set: repeated identical brackets must each count
+    }
+    if (sum.isEmpty()) return nullptr;
+
+    FormulaTag ft;
+    ft.formula_string = sum.toString();
+    return resolveFormulaTag_(ft, residue, ResidueModification::ANYWHERE);
+  }
+
   // Helper to resolve a single modification tag to a ResidueModification
   const ResidueModification* resolveModificationTag_(
     const ModificationTag& tag,
@@ -2235,16 +2266,29 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
   {
     if (const auto* elem = std::get_if<SequenceElement>(&section))
     {
-      // Several brackets on one residue ("M[Oxidation][Formula:O]") cannot all be represented:
-      // AASequence holds one modification per residue and setModification replaces rather than
-      // accumulates, so the last bracket wins. collectConversionIssues_ reports that, so
-      // FAIL_ON_LOSS refuses rather than silently returning a sequence lighter than the peptidoform.
+      // An AASequence residue holds exactly one modification, so several brackets on one residue
+      // ("M[Oxidation][Formula:O]") cannot be represented as written. Combine their chemistry so the
+      // mass and the empirical formula both stay right; the individual identities are still lost,
+      // which collectConversionIssues_ reports, so FAIL_ON_LOSS refuses either way.
+      std::vector<const ResidueModification*> resolved;
       for (const auto& mod : elem->modifications)
       {
-        if (mod.resolved_mod != nullptr) seq.setModification(seq_pos, mod.resolved_mod);
+        if (mod.resolved_mod != nullptr) resolved.push_back(mod.resolved_mod);
         else if (policy == ConversionPolicy::FAIL_ON_LOSS)
           throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Unresolved modification at position " + std::to_string(seq_pos));
+      }
+      if (resolved.size() == 1)
+      {
+        seq.setModification(seq_pos, resolved[0]);
+      }
+      else if (resolved.size() > 1)
+      {
+        const ResidueModification* combined = combineOnOneResidue_(resolved, elem->amino_acid);
+        // No summable chemistry (a component without a diff formula, or one that cancels out):
+        // keep the historical last-one-wins rather than inventing a mass-only modification, which
+        // would throw away the empirical formulas the components do have.
+        seq.setModification(seq_pos, combined != nullptr ? combined : resolved.back());
       }
       seq_pos++;
     }

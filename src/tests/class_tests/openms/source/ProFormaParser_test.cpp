@@ -1801,15 +1801,39 @@ START_SECTION([EXTRA] getAASequenceConversionIssues - an INFO alternative is not
 }
 END_SECTION
 
-START_SECTION([EXTRA] toAASequence - several brackets on one residue are a reported loss)
+START_SECTION([EXTRA] toAASequence - several brackets on one residue combine their chemistry)
 {
-  // An AASequence residue holds exactly one modification and setModification replaces rather than
-  // accumulates, so all but the last bracket are lost. That is not something this conversion can fix
-  // (merging them into a cumulative mass delta would make the mass right but throw the empirical
-  // formulas away, which is worse); it must be REPORTED, so FAIL_ON_LOSS refuses instead of silently
-  // returning a sequence lighter than the peptidoform it came from.
-  Peptidoform pf = ProForma::parse("PEPM[Oxidation][Formula:O]TIDE");
+  // An AASequence residue holds exactly one modification, so "M[Oxidation][Formula:O]" cannot be
+  // represented as written. The DIFF FORMULAS are summed, not just the diff masses: summing only the
+  // masses (which is what ResidueModification::combineMods does, via createUnknownFromMassString)
+  // would leave the residue with its UNMODIFIED empirical formula, and the formula is what isotope
+  // patterns are built from. The individual identities are still lost, so FAIL_ON_LOSS must refuse.
+  const AASequence base = AASequence::fromString("PEPMTIDE");
+  const double O = EmpiricalFormula("O").getMonoWeight();
 
+  std::vector<std::pair<std::string, Size> > cases;
+  cases.push_back(std::make_pair(std::string("PEPM[Oxidation][Formula:O]TIDE"), (Size)2));
+  // three IDENTICAL brackets must count three times - a std::set of the resolved pointers would
+  // collapse them to one and undercount the mass
+  cases.push_back(std::make_pair(std::string("PEPM[Formula:O][Formula:O][Formula:O]TIDE"), (Size)3));
+  cases.push_back(std::make_pair(std::string("PEPM[Oxidation][Oxidation]TIDE"), (Size)2));
+
+  for (const auto& c : cases)
+  {
+    Peptidoform pf_case = ProForma::parse(c.first);
+    AASequence seq = ProForma::toAASequence(pf_case, ConversionPolicy::BEST_EFFORT);
+
+    // the two mass paths must agree - that disagreement is what this handling exists to remove
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(pf_case))
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), base.getMonoWeight() + (double)c.second * O)
+
+    // ... and the formula must gain exactly that many oxygens, not zero
+    EmpiricalFormula expected = base.getFormula(Residue::Full, 0);
+    for (Size i = 0; i < c.second; ++i) expected += EmpiricalFormula("O");
+    TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), expected.toString())
+  }
+
+  Peptidoform pf = ProForma::parse("PEPM[Oxidation][Formula:O]TIDE");
   bool reported = false;
   for (const auto& issue : ProForma::getAASequenceConversionIssues(pf))
   {
