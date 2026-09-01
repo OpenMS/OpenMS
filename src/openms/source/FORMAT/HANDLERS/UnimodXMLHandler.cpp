@@ -37,6 +37,10 @@ namespace OpenMS::Internal
       {
         sites_.clear();
         modification_ = new ResidueModification();
+      // Covers unimod.xml AND custom_mods.xml: both go through this provider, which does not record
+      // which file an entry came from - and for provenance purposes they are the same thing, a CV
+      // shipped with OpenMS.
+      modification_->setProvenance(ResidueModification::CV);
         std::string title(attributeAsString_(attributes, "title"));
         modification_->setId(title);
 

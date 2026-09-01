@@ -10,6 +10,8 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <memory>
+
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -201,8 +203,15 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getModification(Size index) const
   {
-    OPENMS_PRECONDITION(index < mods_.size(), "Index out of bounds in ModificationsDB::getModification(Size index)." );
-    return mods_[index];
+    // Every other accessor takes this section; without it, reading mods_ races a concurrent
+    // addModification() whose push_back can reallocate the vector.
+    const ResidueModification* ret = nullptr;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      OPENMS_PRECONDITION(index < mods_.size(), "Index out of bounds in ModificationsDB::getModification(Size index)." );
+      ret = mods_[index];
+    }
+    return ret;
   }
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods,
@@ -489,7 +498,11 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod) const
   {
-    const ResidueModification* ret = new ResidueModification(new_mod);
+    // Held by a unique_ptr until it is actually stored: the copy used to be raw-newed before the
+    // duplicate check below, and on the duplicate path `ret` was reassigned to the existing entry,
+    // leaking it.
+    std::unique_ptr<ResidueModification> owned(new ResidueModification(new_mod));
+    const ResidueModification* ret = owned.get();
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       auto it = modification_names_.find(new_mod.getFullId());
@@ -504,7 +517,7 @@ namespace OpenMS
         modification_names_[ret->getId()].insert(ret);
         modification_names_[ret->getFullName()].insert(ret);
         modification_names_[ret->getUniModAccession()].insert(ret);
-        mods_.push_back(const_cast<ResidueModification*>(ret));
+        mods_.push_back(owned.release());
         ret = mods_.back();
       }
     }

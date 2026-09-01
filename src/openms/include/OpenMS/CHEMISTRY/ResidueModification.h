@@ -102,6 +102,37 @@ public:
       UNKNOWN,                ///< An unknown modification
       NUMBER_OF_SOURCE_CLASSIFICATIONS
     };
+
+    /**
+      @brief Where the *definition* of this modification came from.
+
+      This matters when writing an identification file: a modification that no other process can look
+      up has to travel with its definition, and the writer needs to know which ones those are.
+
+      It is deliberately NOT SourceClassification, which records biological origin (artefact, natural,
+      post-translational, ...) and says nothing about where the description came from. It is also
+      deliberately not isUserDefined(), which means "anonymous - identified only by a mass string" and
+      guards the origin-'X' matching rule in ModificationsDB; a modification registered WITH an Id is
+      resolvable by name yet not user-defined, i.e. that predicate is false for exactly the
+      modifications that need serialising.
+
+      Provenance must not be inferred from the state of ModificationsDB. That database is a
+      process-global singleton which accumulates every definition a process has ever loaded, so
+      "everything beyond the startup baseline" is a property of process history rather than of the
+      data - a tool reading many files would attribute file 1's definitions to an output that never
+      references them. A mark carried on the modification survives read -> register -> write -> read.
+    */
+    enum Provenance
+    {
+      /// Registered by a tool, or restored from a file's definition block. Must be serialised.
+      DEFINED = 0,
+      /// From a controlled vocabulary shipped with OpenMS (unimod.xml, custom_mods.xml, PSI-MOD.obo, XLMOD.obo).
+      CV,
+      /// Anonymous: reconstructible from its own serialised form (a mass bracket or an inline formula),
+      /// so it needs no definition to travel with it.
+      MASS_ONLY,
+      NUMBER_OF_PROVENANCE
+    };
     //@}
 
     /** @name Constructors and Destructors
@@ -240,6 +271,12 @@ public:
 
     /// returns the classification
     std::string getSourceClassificationName(SourceClassification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
+
+    /// sets where the definition of this modification came from
+    void setProvenance(Provenance provenance);
+
+    /// returns where the definition of this modification came from
+    Provenance getProvenance() const;
 
     /// sets the average mass
     void setAverageMass(double mass);
@@ -419,6 +456,10 @@ protected:
     std::vector<double> neutral_loss_mono_masses_;
 
     std::vector<double> neutral_loss_average_masses_;
+
+    // Appended last on purpose: it leaves the layout of every existing member untouched.
+    // Deliberately absent from operator==, operator< and std::hash - see the note on operator==.
+    Provenance provenance_;
   };
 } // namespace OpenMS
 
