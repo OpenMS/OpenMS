@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("MSChromatogram")
@@ -148,3 +148,12 @@ def to_arrow(self, columns=None, export_meta_values=True):
     """Returns an Apache Arrow Table representation."""
     import pyarrow as pa
     return pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSChromatogram", "float_data_array", "_float_data_array_count", "float data arrays")
+register_element_views("MSChromatogram", "integer_data_array", "_integer_data_array_count", "integer data arrays")
+register_element_views("MSChromatogram", "string_data_array", "_string_data_array_count", "string data arrays")
+
+

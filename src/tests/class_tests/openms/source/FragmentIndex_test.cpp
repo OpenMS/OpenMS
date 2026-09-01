@@ -1690,6 +1690,92 @@ START_SECTION((SNES query is safe and correct when a smaller index is queried af
 }
 END_SECTION
 
+START_SECTION((non-SNES query is deterministic across repeated queries and safe when a smaller index is queried after a larger one on the same thread))
+{
+  // Regression guard for queryPeaks' thread_local window-relative counting buffers
+  // (match_counts / touched_ids). They persist across queries AND across different /
+  // rebuilt FragmentIndex instances on the same thread, and are restored to all-zero
+  // by a touched-only reset at every block start. Two invariants have teeth here:
+  //  (1) repeat determinism — a stale (unreset) count would inflate num_matched_ on
+  //      the second query of the same spectrum;
+  //  (2) large->small index reuse on one thread (a chunked search's smaller final
+  //      chunk) must neither read out of bounds (run under ASan / _GLIBCXX_ASSERTIONS
+  //      for full teeth) nor change the result.
+  auto make_closed = [](FragmentIndex_test& fi) {
+    Param p = fi.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 20.0);
+    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    p.setValue("peptide:min_size", 6);
+    p.setValue("fragment:min_matched_ions", 3);
+    fi.setParameters(p);
+  };
+  auto make_spectrum = [](const std::string& seq) {
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_p = tsg.getParameters();
+    tsg_p.setValue("add_metainfo", "true");
+    tsg.setParameters(tsg_p);
+    AASequence target = AASequence::fromString(seq);
+    PeakSpectrum theo;
+    tsg.getSpectrum(theo, target, 1, 1);
+    theo.sortByPosition();
+    MSSpectrum spec;
+    for (const auto& peak : theo) spec.push_back(peak);
+    Precursor prec;
+    prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U); // (M+H)+ as charge-1 m/z
+    prec.setCharge(1);
+    spec.getPrecursors().push_back(prec);
+    spec.setMSLevel(2);
+    return spec;
+  };
+
+  // (1) Larger index: tryptic peptides from several proteins.
+  std::vector<FASTAFile::FASTAEntry> large_entries{
+    {"L0", "L0", "MAGDEFHILNPKSAMPLEPEPTIDERWYVTSNMLIHGFEDCAK"},
+    {"L1", "L1", "GASTCVLIMPFWKANOTHERLONGERSEQRHKDENQSTGAVLK"},
+    {"L2", "L2", "PQSTVWYACDEFGHILMNKMKVLAGDESTPNQRIHFYWCAETK"}};
+  FragmentIndex_test fi_large;
+  make_closed(fi_large);
+  fi_large.build(large_entries);
+  const size_t large_peptides = fi_large.getPeptides().size();
+
+  MSSpectrum spec = make_spectrum("SAMPLEPEPTIDER"); // tryptic peptide of L0
+  FragmentIndex::SpectrumMatchesTopN sms_first, sms_second;
+  fi_large.querySpectrum(spec, sms_first);
+  fi_large.querySpectrum(spec, sms_second); // same thread, same buffers: must be identical
+
+  TEST_EQUAL(sms_first.hits_.empty(), false)
+  TEST_EQUAL(sms_first.hits_.size(), sms_second.hits_.size())
+  for (Size i = 0; i < sms_first.hits_.size() && i < sms_second.hits_.size(); ++i)
+  {
+    TEST_EQUAL(sms_first.hits_[i].peptide_idx_, sms_second.hits_[i].peptide_idx_)
+    TEST_EQUAL(sms_first.hits_[i].num_matched_, sms_second.hits_[i].num_matched_)
+    TEST_EQUAL(sms_first.hits_[i].precursor_charge_, sms_second.hits_[i].precursor_charge_)
+    TEST_EQUAL(sms_first.hits_[i].isotope_error_, sms_second.hits_[i].isotope_error_)
+  }
+
+  // (2) Smaller index queried on the same thread afterwards.
+  std::vector<FASTAFile::FASTAEntry> small_entries{{"S", "S", "MKSAMPLEPEPTIDERAK"}};
+  FragmentIndex_test fi_small;
+  make_closed(fi_small);
+  fi_small.build(small_entries);
+  TEST_EQUAL(fi_small.getPeptides().size() < large_peptides, true) // genuinely smaller
+
+  FragmentIndex::SpectrumMatchesTopN sms_small;
+  fi_small.querySpectrum(spec, sms_small); // reuse path: must not OOB, must still match
+
+  bool small_found = false;
+  for (const auto& hit : sms_small.hits_) { if (hit.num_matched_ >= 3u) { small_found = true; break; } }
+  TEST_EQUAL(small_found, true)
+}
+END_SECTION
+
 START_SECTION((SNES matches candidates when a fixed N-terminal modification is configured))
 {
   // Build a SNES index with Acetyl (N-term) as a fixed modification and verify
