@@ -963,6 +963,24 @@ OpenMS Library:
       (UNIMOD, MOD, RESID, XLMOD, GNO), mass deltas, formulas, glycans and info tags; bidirectional
       conversion with LOSSLESS/CANONICAL write modes, AASequence integration with configurable policies,
       mass calculation, JSON serialization and theoretical spectrum generation (#8648)
+    - Modification definition records: a portable, versioned description of a modification that is not
+      in the shipped vocabularies (Unimod, PSI-MOD, XLMOD, custom_mods.xml), so a file naming it can be
+      resolved by another process that never loaded it from that vocabulary.
+      ResidueModification::Provenance marks where a modification's definition came from (DEFINED / CV /
+      MASS_ONLY); toDefinitionString()/fromDefinitionString() encode one ModificationsDB entry (one Id,
+      origin and term-specificity triple) as a '|'-separated record, and
+      ModificationsDB::registerDefinition()/hasDefinedModification() register and query it.
+      ModificationDefinitionIO collects the DEFINED modifications an identification run references and
+      serialises them as the Constants::UserParam::MODIFICATION_DEFINITIONS meta value on
+      SearchParameters, unioned with what is already there; idXML, featureXML, consensusXML and
+      .idparquet all carry the value and register the definitions again before parsing any peptide
+      sequence, so a tool-defined modification survives a round trip through any of these formats
+      instead of being resolvable only by the process that created it. ProForma's
+      fromAASequence()/toAASequence() write and resolve such a modification as its chemistry
+      ([Formula:...] or [+mass]) plus an [INFO:<Id>] tag, so the peptidoform stays chemically complete
+      even if the definition block itself is stripped. OpenNuXL is the first consumer, writing localized
+      cross-link adducts this way (see TOPP tools, OpenNuXL) (#10003, #10028, #10036, #10037, #10038,
+      #10040)
     - MzPAF: HUPO-PSI Peak Annotation Format parser and serializer, e.g.
       MzPAF::parse("y4-H2O^2/3.2ppm*0.75") (#8686)
     - USI: Universal Spectrum Identifier support per the HUPO-PSI standard -- parsing and building
@@ -1037,9 +1055,10 @@ OpenMS Library:
       back as "AEADNLDDKK" (1117.5251 Da) with nothing logged even though the row still held the
       peptidoform, the modification name/position and calculated_mz. Conversion issues are now
       reported, the empty catch is replaced with handlers naming the peptidoform and reason, and the
-      reconstructed m/z is cross-checked against the row's own calculated_mz. This does not make the
-      format carry modification definitions -- reading such a file still loses the modification, just
-      no longer silently (#10004, #10012)
+      reconstructed m/z is cross-checked against the row's own calculated_mz. At the time, no format
+      carried a modification's definition; .idparquet does now (see modification definition records),
+      so this fix mainly matters for a name that mechanism does not cover, e.g. a file written before
+      it existed (#10004, #10012)
     - Fix: OpenNuXL wrote the charge twice into the name of a shifted immonium ion. The generator
       already ends those names with the charge ("iY+U-H3PO4+"), and the annotation step appended
       another one, so the peak was annotated "iY+U-H3PO4++" while PeakAnnotation::charge said 1 -- the
