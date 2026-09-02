@@ -54,6 +54,8 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include "MS1LabeledRatioQuantifier.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -160,17 +162,27 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      filtering, and peptide and protein quantification (@p ProteinQuantification), where the fractions of a
      fraction group are aggregated according to the design.
 
-<b>Ratios.</b> Every output carries the intensity of every channel separately: per multiplet (consensusXML
-sub-features, QPX feature @c intensities), per peptide and assay (mzTab peptide section), per protein group
-and assay (mzTab protein section, QPX pg view). A peptide's channel ratio is the ratio of its channel values.
-Protein abundances are aggregated per channel over the peptides selected by @p ProteinQuantification (top N,
-median by default), so a protein ratio computed from them is a ratio of per-channel aggregates, not the median
-of the peptide ratios that e.g. MaxQuant reports; compute the latter from the peptide section if that is the
-statistic you need. A channel completed with a zero-intensity dummy feature is reported as 0 at the peptide
-level and left out of the protein aggregation like any other missing value, so a protein's channel value comes
-from the peptides detected in that channel only.
-@p ProteinQuantification:consensus:normalize scales every assay to the overall median, which for a labeled
-experiment forces the median channel ratio to 1; leave it off unless that is intended.
+<b>Ratios.</b> A labeled experiment measures its channels in one run, so its quantity is their <em>ratio</em>,
+and the tool computes it the way MaxQuant does, as a median of ratios rather than as a ratio of aggregated
+intensities (@p ratios, see @ref MS1LabeledRatioQuantifier):
+  - per multiplet and run, the intensity of a channel over that of the reference channel (@p ratios:reference_channel,
+    the light one by default). Only positive, finite channels take part: an absent (dummy, intensity 0) or
+    not-quantifiable channel is no measurement of a ratio.
+  - per peptide and fraction group, the median of its evidence ratios.
+  - per protein group and fraction group, the median of its peptides' ratios, reported only from
+    @p ratios:min_ratio_count peptides upwards (MaxQuant's "min. ratio count", 2 by default), with the number of
+    contributing peptides next to it. Every ratio is also reported divided by the median peptide ratio of its
+    (fraction group, channel), i.e. normalized on the assumption that most peptides do not change.
+
+The ratios are annotated on the consensus features (@c evidence_ratio*, @c peptide_ratio*) and on the protein
+groups, so they reach the consensusXML, the mzTab peptide section (as <tt>opt_global_*</tt> columns) and the QPX
+pg view (as @c cv_params). No separate @ref TOPP_ProteinQuantifier run is needed for them.
+
+Next to the ratios, the per-channel <em>abundances</em> are reported as before (mzTab peptide and protein
+sections, QPX @c intensities): the summed peptide intensities per channel, like MaxQuant's Intensity columns.
+Dividing two of those is a ratio of aggregates, a different statistic from the ratios above, which weights
+peptides by their intensity. @p ProteinQuantification:consensus:normalize scales every assay to the overall
+median, which for a labeled experiment forces the median channel ratio to 1; leave it off unless that is intended.
 
 @p max_nr_labelled_aas is used for both the feature detection and the resolver: it is the maximum number of
 labelled amino acids per peptide minus one, i.e. for tryptic SILAC the number of allowed missed cleavages.
@@ -317,9 +329,15 @@ protected:
     }
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
-    // export everything, as the sibling workflows do
+    // The reported quantity of a labeled experiment is the ratio (see the 'ratios' section), so the
+    // abundances next to it are plain summed intensities, as MaxQuant's Intensity columns are, rather
+    // than the median of the three most abundant peptides that a label-free run defaults to.
+    pq_defaults.setValue("top:N", 0);
+    pq_defaults.setValue("top:aggregate", "sum");
     pq_defaults.setValue("top:include_all", "true");
     pq_defaults.addTag("top:include_all", "advanced");
+
+    Param ratio_defaults = MS1LabeledRatioQuantifier().getDefaults();
 
     Param combined;
     combined.insert("algorithm:", detection_defaults);
@@ -335,7 +353,9 @@ protected:
     combined.insert("linking:", fl_defaults);
     combined.setSectionDescription("linking", "Parameters for linking the multiplets across runs (FeatureLinkerUnlabeledQT)");
     combined.insert("ProteinQuantification:", pq_defaults);
-    combined.setSectionDescription("ProteinQuantification", "Parameters of the peptide and protein quantification (ProteinQuantifier)");
+    combined.setSectionDescription("ProteinQuantification", "Parameters of the peptide and protein abundances (ProteinQuantifier)");
+    combined.insert("ratios:", ratio_defaults);
+    combined.setSectionDescription("ratios", "Parameters of the channel ratios, the reported quantity of a labeled experiment");
 
     registerFullParam_(combined);
   }
@@ -1607,6 +1627,17 @@ protected:
     if (protein_quants.empty()) { OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl; }
     // keep protein groups that have not been quantified, as the sibling workflows do
     quantifier.annotateQuantificationsToProteins(protein_quants, inferred_proteins, false);
+
+    // The quantity of a labeled experiment is the channel ratio, aggregated as a median of ratios
+    // rather than as a ratio of aggregated intensities (see MS1LabeledRatioQuantifier). Runs after
+    // the abundances above, so that both sit next to each other on the same protein groups.
+    {
+      MS1LabeledRatioQuantifier ratio_quantifier;
+      Param ratio_param = getParam_().copy("ratios:", true);
+      writeDebug_("Parameters passed to MS1LabeledRatioQuantifier", ratio_param, 3);
+      ratio_quantifier.setParameters(ratio_param);
+      ratio_quantifier.run(consensus, design_, inferred_proteins);
+    }
 
     consensus.resolveUniqueIdConflicts();
     consensus.ensureUniqueId(); // the map's own id is reset when the fractions are combined

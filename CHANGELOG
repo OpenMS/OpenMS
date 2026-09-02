@@ -819,7 +819,11 @@ TOPP tools:
       output (mzTab PSM section, QPX psm view) reports the peptidoform as searched, feature-level
       output the peptide identity. Each column header describes its channel's labels
       (channel_description). A spectrum match mapped onto several multiplets stays with the closest
-      one; distinct spectra of one peptide on distinct multiplets are all quantified. Checks up front that
+      one; distinct spectra of one peptide on distinct multiplets are all quantified. The reported quantity
+      is the channel ratio, computed as MaxQuant does (median of the evidence ratios per peptide, median
+      of the peptide ratios per protein group, a minimum ratio count, and a normalized variant) rather
+      than as a ratio of aggregated intensities, so no ProteinQuantifier run is needed for it; the
+      per-channel abundances are reported next to it as summed intensities. Checks up front that
       the labels were searched as modifications, that the design enumerates the channels of -labels,
       and that -out_qpx is only requested for labels in the QPX vocabulary (#10044)
     - FeatureLinkerWNet: groups corresponding features across label-free maps using Wasserstein (optimal
@@ -881,6 +885,9 @@ OpenMS Library:
     - MultiplexResolverAlgorithm: the multiplet completion and quant/ID conflict resolution of the
       MultiplexResolver tool as a library class (DefaultParamHandler with the tool's 'algorithm' and
       'labels' sections), shared by MultiplexResolver and MS1LabeledWorkflow (#10044)
+    - ProteinGroupArrowExport: the QPX pg view fills its previously empty cv_params column with the
+      channel ratio of that (protein group, fraction group, label), when the producer annotated one
+      (MS1LabeledWorkflow does); groups without one keep an empty list (#10044)
     - MS1LabelState: the label-state meta values of an MS1-labeled identification (labeled_sequence,
       removed_labels, label_channel) and the peptidoform a hit was matched with. The mzTab PSM
       section and the QPX psm view report that matched peptidoform (and derive the psm identity

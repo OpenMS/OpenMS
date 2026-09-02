@@ -3860,6 +3860,25 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PAS
 add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_5_multi_assignment")
 
+# channel ratios (the MaxQuant statistic): the fixture's three doublets have the H/L ratios 0.012228,
+# 3.774521 and 3.462539, so PROT_A's ratio is the median of its two peptides = their mean = 1.893374
+# and PROT_B's is 3.462539 from a single peptide. With the default min_ratio_count of 2, PROT_B gets
+# no ratio (covered by the references of test 1); this run lowers the threshold to 1, so both are
+# quantified, and switches the normalization off, so the reported ratios are the raw ones.
+add_test("TOPP_MS1LabeledWorkflow_6_ratios" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -ratios:normalize false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_ratios.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios" PROPERTIES PASS_REGULAR_EXPRESSION "3 peptide.s. and 2 protein group.s. quantified by ratio")
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_ratios.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_6_ratios_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios")
+
 # with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
 add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
