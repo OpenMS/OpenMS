@@ -3810,7 +3810,8 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted_out1" PROPERTIES DEPEND
 # only by its heavy spectrum. The label modifications are stripped after the resolver, so both name one
 # peptide and link into one consensus feature with four sub-features; the label state is kept on the
 # identifications (labeled_sequence, removed_labels, label_channel) and reaches the mzTab opt_global
-# columns and the QPX cv_params of the feature and psm views. The QPX psm dump is pinned (its key is
+# columns and the QPX cv_params of the feature and psm views; the PSM-level rows (mzTab PSM section,
+# QPX psm view) report the peptidoform as searched. The QPX psm dump is pinned (its key is
 # float-free); the feature view is only schema-checked, like IsobaricWorkflow's.
 add_test(NAME "TOPP_MS1LabeledWorkflow_4_identity_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir)
 add_test("TOPP_MS1LabeledWorkflow_4_identity" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test

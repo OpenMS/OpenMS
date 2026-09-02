@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -464,10 +465,9 @@ bool qpxIsCanonicalIntensityLabel(const std::string& label)
 
 std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit)
 {
-  // The label state written by MS1LabeledWorkflow; see the declaration for the meaning of each key.
-  static const char* const keys[] = {"labeled_sequence", "removed_labels", "label_channel"};
+  // The label state written by MS1LabeledWorkflow; see MS1LabelState for the meaning of each key.
   std::vector<std::pair<std::string, std::string>> params;
-  for (const char* key : keys)
+  for (const std::string& key : MS1LabelState::keys())
   {
     if (hit.metaValueExists(key))
     {

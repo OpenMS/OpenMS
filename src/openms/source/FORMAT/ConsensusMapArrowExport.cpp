@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -327,7 +328,9 @@ bool topHitPsmIdentity(const PeptideIdentification& pid,
   // The psm view reads the spectrum reference from the member only, with no metavalue fallback;
   // matching that matters because `scan` is part of the key.
   const auto scan = ArrowIOHelpers::qpxScanComponents(pid.getSpectrumReference());
-  const auto pf = ProForma::fromAASequence(hit.getSequence());
+  // The psm view writes the peptidoform the hit was matched with (MS1LabelState), so the id
+  // must be derived from that one and not from the peptide identity the feature reports.
+  const auto pf = ProForma::fromAASequence(MS1LabelState::matchedSequence(hit));
   psm_id = QPXIdentity::psmId(run_file_name, scan,
                               ProForma::toString(pf, ProForma::WriteMode::CANONICAL),
                               static_cast<int16_t>(hit.getCharge()));

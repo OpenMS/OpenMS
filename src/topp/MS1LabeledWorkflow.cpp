@@ -47,6 +47,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
@@ -140,7 +141,9 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      @c label_channel (the 1-based channel the spectrum belongs to, i.e. the @c Label of the experimental
      design). The values also sit on every quantified consensus feature, for the identification it is quantified
      under. mzTab reports them as <tt>opt_global_*</tt> columns of the peptide and PSM sections, the QPX feature
-     and psm views as @c cv_params. The column headers describe every channel's labels in @c channel_description.
+     and psm views as @c cv_params. PSM-level output describes the spectrum match and therefore reports the
+     peptidoform as searched (mzTab PSM section, QPX psm view), feature-level output the peptide identity
+     (see @ref OpenMS::MS1LabelState). The column headers describe every channel's labels in @c channel_description.
      An identification that was mapped onto several multiplets is kept on the most intense one only.
   -# Per fraction: retention time alignment of the runs (@p alignment, identification-based, aligned to the
      run with most identifications) and linking of the multiplets across runs (@p linking); the channels of
@@ -827,42 +830,6 @@ protected:
     // otherwise its abundance would be counted several times
     IDConflictResolverAlgorithm::resolveBetweenFeatures(resolved);
 
-    // Reducing to the peptide identity can make two spectrum matches identical: a light and a heavy
-    // form matched to one scan (a co-isolated pair) are now one (spectrum, peptide, charge), which is
-    // also what QPX keys its psm view on. Keep the quantified one, otherwise the best-scoring one.
-    {
-      const auto psm_key = [](const PeptideIdentification& id) -> std::string
-      {
-        if (id.getHits().empty() || id.getSpectrumReference().empty()) { return ""; }
-        return id.getSpectrumReference() + '\t' + id.getHits()[0].getSequence().toString() + '\t' + StringUtils::toStr(id.getHits()[0].getCharge());
-      };
-      set<std::string> quantified_keys;
-      for (const auto& cf : resolved)
-      {
-        for (const auto& id : cf.getPeptideIdentifications())
-        {
-          const std::string key = psm_key(id);
-          if (!key.empty()) { quantified_keys.insert(key); }
-        }
-      }
-      auto& unassigned = resolved.getUnassignedPeptideIdentifications().getData();
-      const Size before = unassigned.size();
-      unassigned.erase(std::remove_if(unassigned.begin(), unassigned.end(),
-                                      [&](const PeptideIdentification& id)
-                                      {
-                                        const std::string key = psm_key(id);
-                                        return !key.empty() && quantified_keys.contains(key);
-                                      }),
-                       unassigned.end());
-      const Size repeats_of_quantified = before - unassigned.size();
-      const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(resolved.getUnassignedPeptideIdentifications());
-      if (repeats_of_quantified + report.removed > 0)
-      {
-        OPENMS_LOG_INFO << (repeats_of_quantified + report.removed) << " identification(s) repeat another one on the same spectrum once reduced "
-                        << "to the peptide identity (a light and a heavy match of one scan); kept the quantified or best-scoring one." << endl;
-      }
-    }
-
     // the resolver records the channel of the identified feature of a completed multiplet on its hit;
     // make the identification's map index agree with it so that linking carries the right channel forward
     for (auto& cf : resolved)
@@ -1285,9 +1252,9 @@ protected:
     }
 
     hit.setSequence(stripped);
-    hit.setMetaValue("labeled_sequence", original.toString());
-    hit.setMetaValue("removed_labels", removed.empty() ? std::string("none") : ListUtils::concatenate(removed, ","));
-    hit.setMetaValue("label_channel", channelOfLabels_(removed));
+    hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, original.toString());
+    hit.setMetaValue(MS1LabelState::REMOVED_LABELS, removed.empty() ? std::string("none") : ListUtils::concatenate(removed, ","));
+    hit.setMetaValue(MS1LabelState::LABEL_CHANNEL, channelOfLabels_(removed));
   }
 
   /// QPX names channels with a fixed vocabulary; refuse '-out_qpx' up front for labels outside of it
@@ -1516,7 +1483,7 @@ protected:
     {
       if (cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty()) { continue; }
       const PeptideHit& hit = cf.getPeptideIdentifications()[0].getHits()[0];
-      for (const char* key : {"labeled_sequence", "removed_labels", "label_channel"})
+      for (const std::string& key : MS1LabelState::keys())
       {
         if (hit.metaValueExists(key)) { cf.setMetaValue(key, hit.getMetaValue(key)); }
       }

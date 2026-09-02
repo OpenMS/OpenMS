@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -1073,7 +1074,17 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
     for (Size hit_idx = 0; hit_idx < num_hits; ++hit_idx)
     {
       const PeptideHit& hit = hits[hit_idx];
-      const auto& seq = hit.getSequence();
+      // The psm view describes the spectrum match: a hit reduced to a peptide identity reports the
+      // peptidoform it was matched with (MS1LabelState); every sequence-derived column and the psm
+      // identity below use it, and the feature view derives its psm_ids from the same peptidoform.
+      const AASequence* seq_ptr = &hit.getSequence();
+      AASequence matched_seq;
+      if (MS1LabelState::hasMatchedSequence(hit))
+      {
+        matched_seq = MS1LabelState::matchedSequence(hit);
+        seq_ptr = &matched_seq;
+      }
+      const AASequence& seq = *seq_ptr;
 
       // === sequence (non-nullable) ===
       (void)sequence_builder.Append(seq.toUnmodifiedString());

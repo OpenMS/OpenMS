@@ -114,6 +114,7 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MS1LabelState_test
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test

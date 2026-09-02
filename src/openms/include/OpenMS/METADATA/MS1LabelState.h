@@ -1,0 +1,69 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+#pragma once
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+
+#include <string>
+#include <vector>
+
+namespace OpenMS
+{
+  /**
+    @brief The label state of an identification in MS1-labeled (SILAC, Dimethyl, ...) data
+
+    In MS1-labeled data the label belongs to the channel, not to the peptide: the light and the heavy
+    spectrum of one peptide have to name one peptide for linking, match between runs, inference and
+    quantification. MS1LabeledWorkflow therefore reduces the sequence of every identification to that
+    <em>peptide identity</em> (the label modifications removed) and records the label state on the
+    PeptideHit as meta values:
+
+      - @c labeled_sequence: the peptidoform the spectrum was matched with, e.g.
+        <tt>PEPTIDEK(Label:13C(6)15N(2))</tt>
+      - @c removed_labels: the labels removed from it, in the FeatureFinderMultiplex vocabulary
+        (e.g. @c Lys8, or @c Arg10,Lys8), or @c none
+      - @c label_channel: the 1-based channel the spectrum belongs to, i.e. the @c Label of the
+        experimental design (1 = light); 0 if it could not be determined
+
+    PSM-level output describes the spectrum match and therefore reports the matched peptidoform
+    (mzTab PSM section, QPX psm view), so that the calculated mass fits the precursor; feature-level
+    output reports the peptide identity. The QPX feature and psm views additionally carry the three
+    values as @c cv_params.
+
+    @ingroup Metadata
+  */
+  namespace MS1LabelState
+  {
+    /// Meta value key: the peptidoform the spectrum was matched with (see the namespace documentation)
+    inline const std::string LABELED_SEQUENCE = "labeled_sequence";
+    /// Meta value key: the labels removed from the matched peptidoform, or "none"
+    inline const std::string REMOVED_LABELS = "removed_labels";
+    /// Meta value key: the 1-based channel the spectrum belongs to (0 = unknown)
+    inline const std::string LABEL_CHANNEL = "label_channel";
+
+    /// The three keys, in the order they are reported
+    OPENMS_DLLAPI const std::vector<std::string>& keys();
+
+    /// Does @p hit record a matched peptidoform that differs from its sequence, i.e. was it reduced to a peptide identity?
+    OPENMS_DLLAPI bool hasMatchedSequence(const PeptideHit& hit);
+
+    /**
+      @brief The peptidoform @p hit was matched to the spectrum with
+
+      The hit's sequence, unless the hit records a @c labeled_sequence, in which case that one.
+
+      @throws Exception::ParseError if the recorded @c labeled_sequence cannot be parsed
+    */
+    OPENMS_DLLAPI AASequence matchedSequence(const PeptideHit& hit);
+
+    /// A copy of @p hit whose sequence is matchedSequence(); an unchanged copy when no label state is recorded
+    OPENMS_DLLAPI PeptideHit withMatchedSequence(const PeptideHit& hit);
+  } // namespace MS1LabelState
+} // namespace OpenMS
