@@ -15,8 +15,72 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <fstream>
+#include <sstream>
 
 ///////////////////////////
+
+using namespace OpenMS;
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
+}
 
 START_TEST(IdXMLFile, "$Id$")
 
@@ -320,6 +384,148 @@ START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
   TEST_EQUAL(peptide_ids_bz2.size(), peptide_ids.size())
   TEST_EQUAL(protein_ids_bz2[0].getHits().size(), protein_ids[0].getHits().size())
   TEST_EQUAL(protein_ids_bz2[0].getHits()[0].getAccession(), protein_ids[0].getHits()[0].getAccession())
+END_SECTION
+
+START_SECTION([EXTRA] store/load - a tool-defined modification travels with its definition)
+{
+  TEST_TRUE(defineMod4b("TestIdXML:Adduct", 'K', "C9H11N2O8P") != nullptr)
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("AEADNLDDK(TestIdXML:Adduct)K"));
+  pep.insertHit(hit);
+  std::vector<ProteinIdentification> prots(1, prot);
+  PeptideIdentificationList peps;
+  peps.push_back(pep);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  IdXMLFile().store(filename, prots, peps);
+  TEST_TRUE(fileContains4b(filename, "name=\"modification_definitions\""))
+  TEST_TRUE(fileContains4b(filename, "1|TestIdXML:Adduct|TestIdXML:Adduct (K)|"))
+
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(filename, prots_in, peps_in);
+  TEST_EQUAL(prots_in.size(), 1)
+  TEST_EQUAL(peps_in.size(), 1)
+  if (prots_in.size() == 1 && peps_in.size() == 1 && !peps_in[0].getHits().empty())
+  {
+    TEST_TRUE(prots_in[0].getSearchParameters().metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    const AASequence& back = peps_in[0].getHits()[0].getSequence();
+    TEST_EQUAL(back.toString(), "AEADNLDDK(TestIdXML:Adduct)K")
+    TEST_EQUAL(back.getFormula(Residue::Full, 0).toString(), "C54H86N15O28P1")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - runs with equal parameters share one block that carries both definition sets)
+{
+  TEST_TRUE(defineMod4b("TestIdXML:RunA", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestIdXML:RunB", 'R', "CH2") != nullptr)
+  std::vector<ProteinIdentification> prots(2);
+  prots[0].setIdentifier("runA");
+  prots[0].setDateTime(DateTime::now());
+  prots[1].setIdentifier("runB");
+  prots[1].setDateTime(DateTime::now());
+  PeptideIdentificationList peps(2);
+  peps[0].setIdentifier("runA");
+  peps[1].setIdentifier("runB");
+  PeptideHit ha, hb;
+  ha.setSequence(AASequence::fromString("PEPK(TestIdXML:RunA)IDE"));
+  hb.setSequence(AASequence::fromString("PEPR(TestIdXML:RunB)IDE"));
+  peps[0].insertHit(ha);
+  peps[1].insertHit(hb);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  IdXMLFile().store(filename, prots, peps);
+  const std::string text = slurp4b(filename);
+  Size blocks = 0;
+  for (std::size_t pos = text.find("<SearchParameters "); pos != std::string::npos; pos = text.find("<SearchParameters ", pos + 1)) ++blocks;
+  TEST_EQUAL(blocks, 1)
+  TEST_TRUE(text.find("1|TestIdXML:RunA|TestIdXML:RunA (K)|") != std::string::npos)
+  TEST_TRUE(text.find("1|TestIdXML:RunB|TestIdXML:RunB (R)|") != std::string::npos)
+
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(filename, prots_in, peps_in);
+  TEST_EQUAL(prots_in.size(), 2)
+  TEST_EQUAL(peps_in.size(), 2)
+  if (peps_in.size() == 2 && !peps_in[0].getHits().empty() && !peps_in[1].getHits().empty())
+  {
+    TEST_EQUAL(peps_in[0].getHits()[0].getSequence().toString(), "PEPK(TestIdXML:RunA)IDE")
+    TEST_EQUAL(peps_in[1].getHits()[0].getSequence().toString(), "PEPR(TestIdXML:RunB)IDE")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - a defined variable modification on no hit keeps its definition)
+{
+  TEST_TRUE(defineMod4b("TestIdXML:VarOnly", 'S', "HPO3") != nullptr)
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_var");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.variable_modifications.push_back("TestIdXML:VarOnly (S)");
+  prot.setSearchParameters(sp);
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b_var");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  pep.insertHit(hit);
+  std::vector<ProteinIdentification> prots(1, prot);
+  PeptideIdentificationList peps;
+  peps.push_back(pep);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  IdXMLFile().store(filename, prots, peps);
+  TEST_TRUE(fileContains4b(filename, "1|TestIdXML:VarOnly|TestIdXML:VarOnly (S)|"))
+}
+END_SECTION
+
+START_SECTION([EXTRA] load - definitions are registered before the sequences are parsed)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestIdXML:Fresh"))
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestIdXML:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b_fresh");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTKIDE"));
+  pep.insertHit(hit);
+  std::vector<ProteinIdentification> prots(1, prot);
+  PeptideIdentificationList peps;
+  peps.push_back(pep);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  IdXMLFile().store(filename, prots, peps);
+  TEST_FALSE(db->hasDefinedModification("TestIdXML:Fresh")) // storing registers nothing
+  // a hit using the not-yet-registered name, as a file from another process would carry it
+  TEST_TRUE(replaceInFile4b(filename, "sequence=\"PEPTKIDE\"", "sequence=\"PEPTK(TestIdXML:Fresh)IDE\""))
+
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(filename, prots_in, peps_in);
+  TEST_TRUE(db->hasDefinedModification("TestIdXML:Fresh"))
+  TEST_EQUAL(peps_in.size(), 1)
+  if (peps_in.size() == 1 && !peps_in[0].getHits().empty())
+  {
+    const AASequence& back = peps_in[0].getHits()[0].getSequence();
+    TEST_EQUAL(back.toString(), "PEPTK(TestIdXML:Fresh)IDE")
+    TEST_REAL_SIMILAR(back.getMonoWeight(), AASequence::fromString("PEPTKIDE").getMonoWeight() + EmpiricalFormula("C2H2O").getMonoWeight())
+  }
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

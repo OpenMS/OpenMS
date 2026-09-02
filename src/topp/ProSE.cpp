@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
@@ -763,11 +764,13 @@ class ProSE :
 
           // Search params
           const std::string oms_sp_file = out_parquet_dir + "/" + basename + ".search_params.parquet";
-          auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids);
+          const auto sp_definitions = ModificationDefinitionIO::encodeByRun(
+            result.protein_ids, ModificationDefinitionIO::collect(result.protein_ids, result.peptide_ids));
+          auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids, sp_definitions);
           if (sp_table)
           {
             oms_sp_tables.push_back(sp_table);
-            if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(result.protein_ids, oms_sp_file))
+            if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(result.protein_ids, oms_sp_file, ParquetWriteConfig{}, sp_definitions))
             {
               OPENMS_LOG_ERROR << "Failed to write search params parquet for " << in_file << " -> " << oms_sp_file << endl;
               input_failed = true;

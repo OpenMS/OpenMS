@@ -98,10 +98,13 @@ public:
     Each ProteinIdentification's SearchParameters becomes one row.
 
     @param[in] protein_identifications Vector of protein identifications
+    @param[in] definitions_by_run Per run identifier, the modification_definitions value to write
+               (replaces an inbound one); see ModificationDefinitionIO::encodeByRun
     @return Shared pointer to Arrow Table, or nullptr on error
   */
   static std::shared_ptr<arrow::Table> exportSearchParamsToArrow(
-    const std::vector<ProteinIdentification>& protein_identifications);
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::map<std::string, std::string>& definitions_by_run = {});
 
   /**
     @brief Export search parameters to Parquet file
@@ -109,12 +112,15 @@ public:
     @param[in] protein_identifications Vector of protein identifications
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[in] definitions_by_run Per run identifier, the modification_definitions value to write
+               (replaces an inbound one); see ModificationDefinitionIO::encodeByRun
     @return true on success, false on error
   */
   static bool exportSearchParamsToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::map<std::string, std::string>& definitions_by_run = {});
 
   // ==================== Import methods ====================
 
