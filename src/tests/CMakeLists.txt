@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_tests")
 
 set(_openms_topp_testing_default ON)

@@ -38,11 +38,11 @@
       <li><b>Microsoft Visual C++ Compiler</b>: Comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools">
           Microsoft Visual Studio Build Tools</a>. Scroll to the bottom of the page to get the build tools only.
           If you want, you can also download the full Visual Studio (Community/Pro/Enterprise) IDE.<br>
-        <b>%OpenMS requires at least Visual Studio 2022 (version 17.6 or later) for C++23 support.
-        Earlier versions lack required C++23 features and will not compile.</b>
+        <b>%OpenMS requires at least Visual Studio @minMSVCYear version @minMSVC (MSVC toolset @minMSVCToolset) or later.
+        Earlier versions will not compile.</b>
         <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.sh (see below).</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li><b>CMake</b>: Have CMake (>= 3.24) installed (see http://www.cmake.org). <br>
+      <li><b>CMake</b>: Have CMake (>= @minCMake) installed (see http://www.cmake.org). <br>
 	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in `C:\Program Files\7-Zip\` and `C:\Programme\7-Zip\`. Make sure it is in either of these locations or add
@@ -85,7 +85,7 @@
   @note Recent versions of Visual Studio have a (well hidden) batch-file which correctly configures your environment for 64-bit builds. 
   It should be located at
   <ul>
-  <li>VS2022:<tt>"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+  <li>VS@minMSVCYear:<tt>"C:\\Program Files\\Microsoft Visual Studio\\@minMSVCYear\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"</tt>
   </ul>
   <br>Use our <tt>tools/load_vcvarsall.sh</tt> if you are building in bash on Windows.
   
@@ -294,7 +294,7 @@
         ]
         \endcode
         to your settings or configure manually in your user-config.yml or via the VS Code command runner.
-      <li> Ctrl+Shift+P and find <code>\> CMake: Select Kit</code>, select preferably "Visual Studio Build Tools Release 2022 - amd64"
+      <li> Ctrl+Shift+P and find <code>\> CMake: Select Kit</code>, select preferably "Visual Studio Build Tools Release @minMSVCYear - amd64"
       <li> Ctrl+Shift+P and find <code>\> CMake: Configure</code>
       <li> Select a build configuration and a target in the VS Code task bar (the usually blue bar on the very bottom of the program).
         The default target is all. Then press the gear for building, the play button for building and running (if it is an executable target),

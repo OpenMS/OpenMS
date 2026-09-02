@@ -16,8 +16,8 @@
 
     The minimum supported compilers on GNU/Linux are:
 
-    - GCC 13 or later
-    - Clang 17 or later
+    - GCC @minGCC or later
+    - Clang @minClang or later
 
     You should install system dependencies using the following commands:
 
@@ -25,7 +25,7 @@
 
     @subsection install_vcpkg_prereqs_macos macOS
 
-    Apple Clang is the officially supported compiler on macOS for building %OpenMS (GCC can be used at your own risk).  %OpenMS is tested with the Apple Clang toolchain that ships with the last three Xcode releases.  Xcode 16 or later is required for C++23 support.
+    Apple Clang is the officially supported compiler on macOS for building %OpenMS (GCC can be used at your own risk).  %OpenMS is tested with the Apple Clang toolchain that ships with the last three Xcode releases.  Xcode @minXcode or later is required for C++23 support.
 
     A minimal installation of Apple Clang is achieved by downloading Apple's "Command Line Tools".  However we suggest using a full Xcode installation from the Mac App Store.  More details can be found on the [Apple Developer Site][xcode].
 
@@ -42,6 +42,8 @@
     @subsection install_vcpkg_prereqs_windows Microsoft Windows
 
     The officially supported compiler is Microsoft Visual C++ which comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools"> Microsoft Visual Studio Build Tools.  For a minimal installation we recommend you scroll to the bottom of the page and get the build tools only.
+
+    Visual Studio @minMSVCYear version @minMSVC (MSVC toolset @minMSVCToolset) or later is required.  Note that this is higher than what C++23 alone would need: older toolsets cannot compile the Apache Arrow dependency, because of a bug in the standard library's `<chrono>` formatter for `zoned_time` durations coarser than seconds (LWG-4124, fixed by [microsoft/STL#5155](https://github.com/microsoft/STL/pull/5155)).
 
     We also recommend that you install [Git for Windows][] and [Chocolatey][].  You can then using the following Bash commands from the Git Bash terminal to install the required system dependencies:
 
@@ -82,6 +84,16 @@
               "$OPENMS_DIR/OpenMS"
         cmake --build .
         \endcode
+
+    @subsection install_vcpkg_generator Choosing a CMake generator
+
+    Every preset builds with **Ninja**, which is set once in the hidden `base` preset that all the others inherit. A `cmake --preset ...` therefore always produces a Ninja build tree — on Windows that means you get *no* Visual Studio solution file. Ninja has to be on your `PATH`: on Windows it ships with Visual Studio and is already on the path inside a Developer Command Prompt, and on Linux/macOS it comes from your package manager.
+
+    To build with a different generator, pass `-G` on the command line; it overrides the generator baked into the preset. For example, <tt>cmake \-\-preset windows-x64-debug -G "@minMSVCGenerator"</tt> gives you a solution file instead. Run `cmake --help` for the list of generators supported on your platform.
+
+    CMake refuses to change the generator of an existing build tree (*"Does not match the generator used previously"*), so this only works on a build directory that does not exist yet. To switch one that is already configured, add `--fresh` or delete `build/<preset>/` first.
+
+    @warning Visual Studio generators are *multi-configuration*: they ignore the preset's `CMAKE_BUILD_TYPE` and pick the configuration at build time instead. Because the build presets do not pin one, `cmake --build --preset windows-x64-release` would build **Debug**, not Release. Name the configuration explicitly when using such a generator, e.g. `cmake --build --preset windows-x64-release --config Release`.
 
     @subsection install_vcpkg_cmake_flags Additional CMake Flags
 
