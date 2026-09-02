@@ -111,6 +111,7 @@
 #include <OpenMS/FEATUREFINDER/LevMarqFitter1D.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
@@ -2641,6 +2642,27 @@ DefaultParamHandler
         .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
         .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap { return self.getFeatureMap(); })
         .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap { return self.getConsensusMap(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // MultiplexResolverAlgorithm
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::MultiplexResolverAlgorithm, OpenMS::DefaultParamHandler>(m, "MultiplexResolverAlgorithm",
+        R"doc(
+Completes peptide multiplets (SILAC, Dimethyl, ...) and resolves quant/ID conflicts within them.
+
+Multiplets whose observed mass shifts contradict the labels of their annotated sequence are moved
+to the conflict map; incomplete multiplets are completed with dummy features (intensity 0 = absent,
+NaN = not quantifiable because the region was blacklisted during feature detection). The
+identifications must carry the 'map_index' meta value written by IDMapper with
+annotate_ids_with_subelements. Parameters: sections 'algorithm' (labels, max_nr_labelled_aas,
+tolerances) and 'labels' (mass shift per label).
+DefaultParamHandler
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::MultiplexResolverAlgorithm&>())
+        .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts, const OpenMS::MSExperiment& blacklist) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts, blacklist); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "blacklist"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts); blacklist may be an empty MSExperiment")
+        .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts) without a blacklist")
         ;
 
     // -----------------------------------------------------------------------

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_3023658190814908261" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2026-09-02T00:00:00">
+		<software name="synthetic" version="1.0" />
+		<processingAction name="Identification" />
+		<UserParam type="string" name="parameter: db" value="MS1LabeledWorkflow_1.fasta"/>
+	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="MS1LabeledWorkflow" version="version_string" />
+		<processingAction name="Quantitation" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2026-09-02T00:00:00" search_engine="synthetic" search_engine_version="1.0">
+		<SearchParameters db="MS1LabeledWorkflow_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1:4" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+			<VariableModification name="Label:13C(6)15N(2) (K)" />
+			<VariableModification name="Label:13C(6)15N(4) (R)" />
+				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="full"/>
+				<UserParam type="int" name="PeptideIndexer:aaa_max" value="3"/>
+				<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+				<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
+				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.6.0-pre-develop-2026-09-02"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
+				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="PROT_A" score="0.25" coverage="89.7435897435897" sequence="NYTIEHIFSQVLLLYFYGIREYNVTIDAAESTVNKAGLS">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="synthetic test protein"/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+				<UserParam type="float" name="Posterior Probability_score" value="0.999"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT_B" score="0.25" coverage="78.9473684210526" sequence="TALGYYWALTEASGKSVDN">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="synthetic test protein"/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+				<UserParam type="float" name="Posterior Probability_score" value="0.997"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="PROT_C" score="0.25" coverage="63.6363636363636" sequence="TTTLLHRGATE">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="synthetic test protein"/>
+				<UserParam type="int" name="nr_found_peptides" value="1"/>
+				<UserParam type="float" name="Posterior Probability_score" value="0.996"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/Development/tmp3/OpenMS/src/tests/topp/FeatureFinderMultiplex_2_input.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.25,PH_0"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[7.201306e06, 2.6400024e07]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[7.201306e06, 2.6400024e07]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1, 2]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_fraction_group" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_label" value="[1, 2]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[FeatureFinderMultiplex_2_input,FeatureFinderMultiplex_2_input]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[PROT_A]"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.25,PH_1"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[2.195857e07, 7.6032408e07]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[2.195857e07, 7.6032408e07]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 2]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_fraction_group" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_label" value="[1, 2]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_1_file_channel_level_filename" value="[FeatureFinderMultiplex_2_input,FeatureFinderMultiplex_2_input]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[PROT_B]"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.25,PH_2"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="841.405023309" RT="1650" spectrum_reference="controllerType=0 controllerNumber=1 scan=11840" >
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="819.915254362" RT="1791.139488" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
+		<PeptideHit score="0.166666666666667" sequence="TALGYYWALTEASGK(Label:13C(6)15N(2))" charge="2" aa_before="[" aa_after="S" start="0" end="14" protein_refs="PH_1">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.01"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="849.492650832" RT="1792.499605" spectrum_reference="controllerType=0 controllerNumber=1 scan=11884" >
+		<PeptideHit score="0.166666666666667" sequence="TTTLLHR(Label:13C(6)15N(4))" charge="1" aa_before="[" aa_after="G" start="0" end="6" protein_refs="PH_2">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="4.0e-03"/>
+		</PeptideHit>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<mapList count="2">
+		<map id="0" name="FeatureFinderMultiplex_2_input.mzML" label="no_label" size="3">
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="sample_name" value="1"/>
+		</map>
+		<map id="1" name="FeatureFinderMultiplex_2_input.mzML" label="Lys8Arg10" size="3">
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="sample_name" value="2"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_1755235105885170967" quality="1.0" charge="3">
+			<centroid rt="1789.603470390735765" mz="830.443470891002789" it="4.1541538e05"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1789.603470390735765" mz="830.443470891002789" it="4.1541538e05" charge="3"/>
+				<element map="1" id="0" rt="1789.361368815103788" mz="833.779044601332089" it="5079.578613" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="833.779044601" RT="1789.361369" spectrum_reference="controllerType=0 controllerNumber=1 scan=11851" >
+				<PeptideHit score="0.166666666666667" sequence="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))" charge="3" aa_before="[" aa_after="E" start="0" end="19" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="1"/>
+				<UserParam type="string" name="feature_id" value="1755235105885170967"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="1755235105885170967"/>
+		</consensusElement>
+		<consensusElement id="e_14811341817612382122" quality="1.0" charge="2">
+			<centroid rt="1791.326770525531401" mz="827.402216566652669" it="1.3987197e07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1791.326770525531401" mz="827.402216566652669" it="1.3987197e07" charge="2"/>
+				<element map="1" id="0" rt="1790.869660341921644" mz="831.40999100733336" it="5.279497e07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="827.402216567" RT="1791.326771" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
+				<PeptideHit score="0.166666666666667" sequence="EYNVTIDAAESTVNK" charge="2" aa_before="R" aa_after="A" start="20" end="34" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+				<UserParam type="string" name="feature_id" value="14811341817612382122"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="14811341817612382122"/>
+		</consensusElement>
+		<consensusElement id="e_2684106197423007927" quality="1.0" charge="2">
+			<centroid rt="1791.336810474282629" mz="815.90784285666598" it="2.195857e07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1791.336810474282629" mz="815.90784285666598" it="2.195857e07" charge="2"/>
+				<element map="1" id="0" rt="1791.139487597494963" mz="819.915254361738221" it="7.603241e07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="815.907842857" RT="1791.33681" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
+				<PeptideHit score="0.166666666666667" sequence="TALGYYWALTEASGK" charge="2" aa_before="[" aa_after="S" start="0" end="14" protein_refs="PH_1">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+				<UserParam type="string" name="feature_id" value="2684106197423007927"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="2684106197423007927"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

@@ -1,0 +1,98 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Quantification
+MTD	title	ConsensusMap export from OpenMS
+MTD	description	OpenMS export from consensusXML
+MTD	protein_search_engine_score[1]	[MS, MS:1003117, OpenMS:Target-decoy protein q-value, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
+MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 3.6.0-pre-develop-2026-09-02]
+MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.6.0-pre-develop-2026-09-02]
+MTD	software[3]	[, , synthetic, 1.0]
+MTD	software[3]-setting[1]	db:MS1LabeledWorkflow_1.fasta
+MTD	software[3]-setting[2]	db_version:null
+MTD	software[3]-setting[3]	fragment_mass_tolerance:20.0
+MTD	software[3]-setting[4]	fragment_mass_tolerance_unit:ppm
+MTD	software[3]-setting[5]	precursor_mass_tolerance:10.0
+MTD	software[3]-setting[6]	precursor_mass_tolerance_unit:ppm
+MTD	software[3]-setting[7]	enzyme:Trypsin
+MTD	software[3]-setting[8]	enzyme_term_specificity:unknown
+MTD	software[3]-setting[9]	charges:1:4
+MTD	software[3]-setting[10]	missed_cleavages:0
+MTD	software[3]-setting[11]	fixed_modifications:null
+MTD	software[3]-setting[12]	variable_modifications:Label:13C(6)15N(2) (K),Label:13C(6)15N(4) (R)
+MTD	variable_mod[1]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	variable_mod[1]-site	K
+MTD	variable_mod[1]-position	Anywhere
+MTD	variable_mod[2]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	variable_mod[2]-site	R
+MTD	variable_mod[2]-position	Anywhere
+MTD	quantification_method	[PRIDE, PRIDE_0000316, MS1 based isotope labeling, ]
+MTD	protein-quantification_unit	[, , Abundance, ]
+MTD	peptide-quantification_unit	[, , Abundance, ]
+MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[1]-location	file://MS1LabeledWorkflow_A_F1.mzML
+MTD	ms_run[1]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
+MTD	ms_run[2]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[2]-location	file://MS1LabeledWorkflow_B_F1.mzML
+MTD	ms_run[2]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
+MTD	ms_run[3]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[3]-location	file://MS1LabeledWorkflow_A_F2.mzML
+MTD	ms_run[3]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
+MTD	ms_run[4]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[4]-location	file://MS1LabeledWorkflow_B_F2.mzML
+MTD	ms_run[4]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
+MTD	assay[1]-quantification_reagent	[PRIDE, PRIDE:0000316, MS1 based isotope labeling, no_label]
+MTD	assay[1]-ms_run_ref	ms_run[1],ms_run[3]
+MTD	assay[2]-quantification_reagent	[PRIDE, PRIDE:0000316, MS1 based isotope labeling, Lys8Arg10]
+MTD	assay[2]-ms_run_ref	ms_run[1],ms_run[3]
+MTD	assay[3]-quantification_reagent	[PRIDE, PRIDE:0000316, MS1 based isotope labeling, no_label]
+MTD	assay[3]-ms_run_ref	ms_run[2],ms_run[4]
+MTD	assay[4]-quantification_reagent	[PRIDE, PRIDE:0000316, MS1 based isotope labeling, Lys8Arg10]
+MTD	assay[4]-ms_run_ref	ms_run[2],ms_run[4]
+MTD	study_variable[1]-assay_refs	assay[1]
+MTD	study_variable[1]-description	no description given
+MTD	study_variable[2]-assay_refs	assay[2]
+MTD	study_variable[2]-description	no description given
+MTD	study_variable[3]-assay_refs	assay[3]
+MTD	study_variable[3]-description	no description given
+MTD	study_variable[4]-assay_refs	assay[4]
+MTD	study_variable[4]-description	no description given
+
+PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_assay[4]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	protein_abundance_study_variable[3]	protein_abundance_stdev_study_variable[3]	protein_abundance_std_error_study_variable[3]	protein_abundance_study_variable[4]	protein_abundance_stdev_study_variable[4]	protein_abundance_std_error_study_variable[4]	opt_global_Posterior_Probability_score	opt_global_nr_found_peptides	opt_global_cv_PRIDE:0000303_decoy_hit	opt_global_result_type
+PRT	PROT_A	null	null	null	MS1LabeledWorkflow_1	null	null	0.25	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	2	0	protein_details
+PRT	PROT_B	null	null	null	MS1LabeledWorkflow_1	null	null	0.25	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	2	0	protein_details
+PRT	PROT_C	null	null	null	MS1LabeledWorkflow_1	null	null	0.25	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	1	0	protein_details
+PRT	PROT_A	null	null	null	MS1LabeledWorkflow_1	null	null	0.25	PROT_A	19-UNIMOD:267	null	1.4402612e07	5.2800048e07	1.4402612e07	5.2800048e07	1.4402612e07	null	null	5.2800048e07	null	null	1.4402612e07	null	null	5.2800048e07	null	null	null	null	null	single_protein
+PRT	PROT_B	null	null	null	MS1LabeledWorkflow_1	null	null	0.25	PROT_B	14-UNIMOD:259	null	4.391714e07	1.52064816e08	4.391714e07	1.52064816e08	4.391714e07	null	null	1.52064816e08	null	null	4.391714e07	null	null	1.52064816e08	null	null	null	null	null	single_protein
+PRT	PROT_C	null	null	null	MS1LabeledWorkflow_1	null	null	0.25	PROT_C	6-UNIMOD:267	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	single_protein
+
+PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	search_engine_score[1]_ms_run[3]	search_engine_score[1]_ms_run[4]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	peptide_abundance_study_variable[3]	peptide_abundance_stdev_study_variable[3]	peptide_abundance_std_error_study_variable[3]	peptide_abundance_study_variable[4]	peptide_abundance_stdev_study_variable[4]	peptide_abundance_std_error_study_variable[4]	opt_global_feature_id	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
+PEP	NYTIEHIFSQVLLLYFYGIR	PROT_A	1	null	null	null	0.047619047619048	0.047619047619048	null	null	null	20-UNIMOD:267	1789.603470390735765	null	3	830.443470891002789	ms_run[1]:controllerType=0 controllerNumber=1 scan=11851	4.15415375e05	null	null	5079.57861328125	null	null	4.15415375e05	null	null	5079.57861328125	null	null	17447818880105247092	0	NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))
+PEP	NYTIEHIFSQVLLLYFYGIR	PROT_A	1	null	null	null	0.047619047619048	null	null	0.047619047619048	null	20-UNIMOD:267	1789.603470390735765	null	3	830.443470891002789	ms_run[3]:controllerType=0 controllerNumber=1 scan=11851	4.15415375e05	null	null	5079.57861328125	null	null	4.15415375e05	null	null	5079.57861328125	null	null	12388384985798314387	0	NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))
+PEP	EYNVTIDAAESTVNK	PROT_A	1	null	null	null	0.047619047619048	0.047619047619048	null	null	null	null	1791.326770525531401	null	2	827.402216566652669	ms_run[1]:controllerType=0 controllerNumber=1 scan=11873	1.3987197e07	null	null	5.2794968e07	null	null	1.3987197e07	null	null	5.2794968e07	null	null	15120290131060441429	0	EYNVTIDAAESTVNK
+PEP	EYNVTIDAAESTVNK	PROT_A	1	null	null	null	0.047619047619048	null	null	0.047619047619048	null	null	1791.326770525531401	null	2	827.402216566652669	ms_run[3]:controllerType=0 controllerNumber=1 scan=11873	1.3987197e07	null	null	5.2794968e07	null	null	1.3987197e07	null	null	5.2794968e07	null	null	4041634828915281168	0	EYNVTIDAAESTVNK
+PEP	TALGYYWALTEASGK	PROT_B	1	null	null	null	0.047619047619048	0.047619047619048	null	null	null	null	1791.336810474282629	null	2	815.90784285666598	ms_run[1]:controllerType=0 controllerNumber=1 scan=11873	2.195857e07	null	null	7.6032408e07	null	null	2.195857e07	null	null	7.6032408e07	null	null	1003624456647096845	0	TALGYYWALTEASGK
+PEP	TALGYYWALTEASGK	PROT_B	1	null	null	null	0.047619047619048	null	null	0.047619047619048	null	null	1791.336810474282629	null	2	815.90784285666598	ms_run[3]:controllerType=0 controllerNumber=1 scan=11873	2.195857e07	null	null	7.6032408e07	null	null	2.195857e07	null	null	7.6032408e07	null	null	13641829453453140763	0	TALGYYWALTEASGK
+
+PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_Posterior_Error_Probability_score	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
+PSM	NYTIEHIFSQVLLLYFYGIR	0	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	20-UNIMOD:267	1789.361368999999968	3	833.77904460100001	833.781859348871308	ms_run[1]:controllerType=0 controllerNumber=1 scan=11851	null	null	null	null	1.0e-03	0	NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))
+PSM	NYTIEHIFSQVLLLYFYGIR	1	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	20-UNIMOD:267	1789.361368999999968	3	833.77904460100001	833.781859348871308	ms_run[3]:controllerType=0 controllerNumber=1 scan=11851	null	null	null	null	1.0e-03	0	NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))
+PSM	EYNVTIDAAESTVNK	2	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.326771000000008	2	827.402216566999982	827.401954253171084	ms_run[1]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	2.0e-03	0	EYNVTIDAAESTVNK
+PSM	EYNVTIDAAESTVNK	3	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.326771000000008	2	827.402216566999982	827.401954253171084	ms_run[3]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	2.0e-03	0	EYNVTIDAAESTVNK
+PSM	TALGYYWALTEASGK	4	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.336810000000014	2	815.907842856999991	815.909217237221014	ms_run[1]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	3.0e-03	0	TALGYYWALTEASGK
+PSM	TALGYYWALTEASGK	5	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.336810000000014	2	815.907842856999991	815.909217237221014	ms_run[3]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	3.0e-03	0	TALGYYWALTEASGK
+PSM	TALGYYWALTEASGK	7	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	15-UNIMOD:259	1791.139488000000028	2	819.915254362000042	819.916317237221051	ms_run[1]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	0.01	0	TALGYYWALTEASGK(Label:13C(6)15N(2))
+PSM	TTTLLHR	8	PROT_C	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	7-UNIMOD:267	1792.499604999999974	1	849.492650831999981	851.497301508371038	ms_run[1]:controllerType=0 controllerNumber=1 scan=11884	null	null	null	null	4.0e-03	0	TTTLLHR(Label:13C(6)15N(4))
+PSM	TALGYYWALTEASGK	10	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	15-UNIMOD:259	1791.139488000000028	2	819.915254362000042	819.916317237221051	ms_run[2]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	0.01	0	TALGYYWALTEASGK(Label:13C(6)15N(2))
+PSM	TTTLLHR	11	PROT_C	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	7-UNIMOD:267	1792.499604999999974	1	849.492650831999981	851.497301508371038	ms_run[2]:controllerType=0 controllerNumber=1 scan=11884	null	null	null	null	4.0e-03	0	TTTLLHR(Label:13C(6)15N(4))
+PSM	TALGYYWALTEASGK	13	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	15-UNIMOD:259	1791.139488000000028	2	819.915254362000042	819.916317237221051	ms_run[3]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	0.01	0	TALGYYWALTEASGK(Label:13C(6)15N(2))
+PSM	TTTLLHR	14	PROT_C	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	7-UNIMOD:267	1792.499604999999974	1	849.492650831999981	851.497301508371038	ms_run[3]:controllerType=0 controllerNumber=1 scan=11884	null	null	null	null	4.0e-03	0	TTTLLHR(Label:13C(6)15N(4))
+PSM	TALGYYWALTEASGK	16	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	15-UNIMOD:259	1791.139488000000028	2	819.915254362000042	819.916317237221051	ms_run[4]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	0.01	0	TALGYYWALTEASGK(Label:13C(6)15N(2))
+PSM	TTTLLHR	17	PROT_C	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	7-UNIMOD:267	1792.499604999999974	1	849.492650831999981	851.497301508371038	ms_run[4]:controllerType=0 controllerNumber=1 scan=11884	null	null	null	null	4.0e-03	0	TTTLLHR(Label:13C(6)15N(4))
+PSM	NYTIEHIFSQVLLLYFYGIR	18	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	20-UNIMOD:267	1789.361368999999968	3	833.77904460100001	833.781859348871308	ms_run[2]:controllerType=0 controllerNumber=1 scan=11851	null	null	null	null	1.0e-03	0	NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))
+PSM	NYTIEHIFSQVLLLYFYGIR	19	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	20-UNIMOD:267	1789.361368999999968	3	833.77904460100001	833.781859348871308	ms_run[4]:controllerType=0 controllerNumber=1 scan=11851	null	null	null	null	1.0e-03	0	NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))
+PSM	EYNVTIDAAESTVNK	20	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.326771000000008	2	827.402216566999982	827.401954253171084	ms_run[2]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	2.0e-03	0	EYNVTIDAAESTVNK
+PSM	EYNVTIDAAESTVNK	21	PROT_A	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.326771000000008	2	827.402216566999982	827.401954253171084	ms_run[4]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	2.0e-03	0	EYNVTIDAAESTVNK
+PSM	TALGYYWALTEASGK	22	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.336810000000014	2	815.907842856999991	815.909217237221014	ms_run[2]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	3.0e-03	0	TALGYYWALTEASGK
+PSM	TALGYYWALTEASGK	23	PROT_B	1	MS1LabeledWorkflow_1	null	[, , synthetic, 1.0]	0.047619047619048	null	1791.336810000000014	2	815.907842856999991	815.909217237221014	ms_run[4]:controllerType=0 controllerNumber=1 scan=11873	null	null	null	null	3.0e-03	0	TALGYYWALTEASGK

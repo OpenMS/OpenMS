@@ -807,6 +807,13 @@ TOPP tools:
         workflows. The orphaned share/OpenMS/TOOLS/EXTERNAL .ttd tree and its R helper scripts were
         removed along with it (#8981, #9735)
   New tools:
+    - MS1LabeledWorkflow: one-command quantification of MS1-labeled (SILAC, Dimethyl, ...) experiments,
+      the counterpart of ProteomicsLFQ and IsobaricWorkflow: per run FeatureFinderMultiplex, IDMapper,
+      IDConflictResolver and MultiplexResolver, then per-fraction alignment and linking (channels kept as
+      sub-features, fractions combined column-wise), protein inference/FDR and quantification, written as
+      consensusXML, mzTab and/or a QPX collection. Checks up front that the labels were searched as
+      modifications, that the design enumerates the channels of -labels, and that -out_qpx is only
+      requested for labels in the QPX vocabulary (#10044)
     - FeatureLinkerWNet: groups corresponding features across label-free maps using Wasserstein (optimal
       transport) distance over (m/z, RT) space, solving a minimum-cost network flow via the wnetalign
       library; supports Da and ppm m/z tolerances, L1/L2/Linf metrics and intensity normalization (#8992)
@@ -863,6 +870,9 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - MultiplexResolverAlgorithm: the multiplet completion and quant/ID conflict resolution of the
+      MultiplexResolver tool as a library class (DefaultParamHandler with the tool's 'algorithm' and
+      'labels' sections), shared by MultiplexResolver and MS1LabeledWorkflow (#10044)
     - BrukerTimsFile: reader for the Bruker TimsTOF .d directory format (BRUKER_TDF); supports DDA-PASEF,
       DIA-PASEF and raw frame-level 4D access, requires WITH_TIMSRUST=ON (#8975). Further work:
       - tiered scan -> 1/K0 calibration with three fallback levels (Bruker SDK -> rational function from
