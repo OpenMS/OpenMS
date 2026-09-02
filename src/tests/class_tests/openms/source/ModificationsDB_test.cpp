@@ -428,6 +428,17 @@ START_SECTION([EXTRA] registerDefinition - same name is the same modification an
   }
   TEST_EQUAL(db->getNumberOfModifications(), before + 1)
 
+  // the same formula with a different mono mass is a conflict too: the mono mass is what a residue weighs
+  ResidueModification mass_conflict(d);
+  mass_conflict.setDiffMonoMass(d.getDiffMonoMass() + 0.001);
+  std::ostringstream mass_log;
+  OPENMS_LOG_WARN.insert(mass_log);
+  const ResidueModification* kept_mass = db->registerDefinition(mass_conflict);
+  OPENMS_LOG_WARN.remove(mass_log);
+  TEST_TRUE(kept_mass == first)
+  TEST_TRUE(mass_log.str().find("disagrees") != std::string::npos)
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+
   ResidueModification nameless;
   TEST_EXCEPTION(Exception::MissingInformation, db->registerDefinition(nameless))
 }

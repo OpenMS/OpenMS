@@ -799,7 +799,12 @@ namespace OpenMS
     {
       char buf[64];
       const auto res = std::to_chars(buf, buf + sizeof(buf), d); // shortest exact round trip
-      return (res.ec == std::errc()) ? std::string(buf, res.ptr) : std::string("0");
+      if (res.ec != std::errc())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Cannot write the mass " + std::to_string(d) + " into a modification definition record");
+      }
+      return std::string(buf, res.ptr);
     }
 
     double recordToDouble_(const std::string& field, const std::string& record)
@@ -887,13 +892,19 @@ namespace OpenMS
     if (f.size() > 9 && !f[9].empty())
     {
       std::vector<EmpiricalFormula> losses;
+      std::vector<double> loss_mono, loss_avg;
       std::stringstream ss(f[9]);
       std::string item;
       while (std::getline(ss, item, ','))
       {
-        if (!item.empty()) losses.emplace_back(item);
+        if (item.empty()) continue;
+        losses.emplace_back(item);
+        loss_mono.push_back(losses.back().getMonoWeight());
+        loss_avg.push_back(losses.back().getAverageWeight());
       }
       mod.setNeutralLossDiffFormulas(losses);
+      mod.setNeutralLossMonoMasses(loss_mono); // the record carries formulas only; keep the object consistent
+      mod.setNeutralLossAverageMasses(loss_avg);
     }
 
     // the record's FullId is authoritative (dedup key) but should agree with the derived one

@@ -88,6 +88,22 @@ START_SECTION([EXTRA] collect - only the DEFINED named modifications a run refer
   {
     TEST_FALSE(m->getId() == "Oxidation")
   }
+
+  // a bare Id in the search parameters names every site it is defined on
+  const ResidueModification* on_k = define("TestIO:TwoSites", 'K', "C2H2O");
+  const ResidueModification* on_y = define("TestIO:TwoSites", 'Y', "C2H2O");
+  TEST_TRUE(on_k != nullptr && on_y != nullptr && on_k != on_y)
+  ProteinIdentification two;
+  two.setIdentifier("run3");
+  ProteinIdentification::SearchParameters sp_two;
+  sp_two.variable_modifications.push_back("TestIO:TwoSites");
+  two.setSearchParameters(sp_two);
+  std::vector<ProteinIdentification> prots_two;
+  prots_two.push_back(two);
+  auto defs_two = ModificationDefinitionIO::collect(prots_two, PeptideIdentificationList());
+  TEST_EQUAL(defs_two["run3"].size(), 2)
+  TEST_EQUAL(defs_two["run3"].count(on_k), 1)
+  TEST_EQUAL(defs_two["run3"].count(on_y), 1)
 }
 END_SECTION
 

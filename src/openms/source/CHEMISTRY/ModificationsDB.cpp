@@ -546,11 +546,12 @@ namespace OpenMS
 
   namespace
   {
+    // the mono mass is compared even when the formulas agree: it is what a modified residue weighs
     bool sameChemistry_(const ResidueModification& a, const ResidueModification& b)
     {
-      if (!a.getDiffFormula().isEmpty() && !b.getDiffFormula().isEmpty())
+      if (!a.getDiffFormula().isEmpty() && !b.getDiffFormula().isEmpty() && a.getDiffFormula() != b.getDiffFormula())
       {
-        return a.getDiffFormula() == b.getDiffFormula();
+        return false;
       }
       return std::fabs(a.getDiffMonoMass() - b.getDiffMonoMass()) <= 1e-6;
     }

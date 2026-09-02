@@ -40,10 +40,13 @@ namespace OpenMS
       {
         for (const std::string& name : *names)
         {
-          if (!db->has(name)) continue; // has() is silent; searchModificationsFast logs on a miss
-          bool multiple_matches = false;
-          const ResidueModification* mod = db->searchModificationsFast(name, multiple_matches);
-          if (isDefinition(mod)) out[prot.getIdentifier()].insert(mod);
+          if (!db->has(name)) continue; // has() is silent; searchModifications logs on a miss
+          std::set<const ResidueModification*> matches; // a bare Id names every site it is defined on
+          db->searchModifications(matches, name);
+          for (const ResidueModification* mod : matches)
+          {
+            if (isDefinition(mod)) out[prot.getIdentifier()].insert(mod);
+          }
         }
       }
     }

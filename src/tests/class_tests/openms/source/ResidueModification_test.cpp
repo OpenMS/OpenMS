@@ -729,6 +729,15 @@ START_SECTION([EXTRA] definition record - round trip preserves every carried fie
   TEST_TRUE(back.getDiffAverageMass() == m.getDiffAverageMass())
   TEST_EQUAL(back.getNeutralLossDiffFormulas().size(), 2)
   TEST_TRUE(back.hasNeutralLoss())
+  // the record carries loss formulas only; the loss masses are derived from them on read
+  TEST_EQUAL(back.getNeutralLossMonoMasses().size(), 2)
+  TEST_EQUAL(back.getNeutralLossAverageMasses().size(), 2)
+  if (back.getNeutralLossMonoMasses().size() == 2 && back.getNeutralLossAverageMasses().size() == 2)
+  {
+    TEST_REAL_SIMILAR(back.getNeutralLossMonoMasses()[0], EmpiricalFormula("H3PO4").getMonoWeight())
+    TEST_REAL_SIMILAR(back.getNeutralLossMonoMasses()[1], EmpiricalFormula("H2O").getMonoWeight())
+    TEST_REAL_SIMILAR(back.getNeutralLossAverageMasses()[1], EmpiricalFormula("H2O").getAverageWeight())
+  }
   TEST_EQUAL(back.getProvenance(), ResidueModification::DEFINED)
   TEST_EQUAL(back.toDefinitionString(), rec) // stable under re-serialisation
 
