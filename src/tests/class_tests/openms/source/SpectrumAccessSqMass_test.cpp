@@ -55,6 +55,14 @@ START_SECTION(SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& ha
 
   TEST_EQUAL(ptr->getNrSpectra(), 1)
   delete ptr;
+
+  // issue #9488, ANSW-26: an EMPTY index vector is the documented "no-filter" sentinel and
+  // exposes ALL spectra (here 2), NOT zero spectra. This is intentional/load-bearing
+  // (SwathFile relies on it); locking it in so the documented convention is not regressed.
+  std::vector<int> empty_indices;
+  ptr = new SpectrumAccessSqMass(handler, empty_indices);
+  TEST_EQUAL(ptr->getNrSpectra(), 2)
+  delete ptr;
 }
 END_SECTION
 

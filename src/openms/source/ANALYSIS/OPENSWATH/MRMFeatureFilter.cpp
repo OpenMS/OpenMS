@@ -20,6 +20,8 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <limits> // issue #9488, ANSW-41: needed for std::numeric_limits<double>::quiet_NaN()
+
 namespace OpenMS
 {
 
@@ -910,7 +912,13 @@ namespace OpenMS
 
   double MRMFeatureFilter::calculateIonRatio(const Feature& component_1, const Feature& component_2, const std::string& feature_name) const
   {
-    double ratio = 0.0;
+    // issue #9488, ANSW-41: return NaN (not 0.0) when the ratio cannot be computed, and
+    // guard division so a zero denominator yields NaN instead of +/-inf. Fallback contract:
+    //  - both values present:    feature_1 / feature_2, but quiet_NaN() if feature_2 == 0.0
+    //  - only component_1 present: component_1's raw value (NOT a ratio; no IS found)
+    //  - neither value present:   quiet_NaN() (previously 0.0, indistinguishable from a real 0)
+    const double nan_value = std::numeric_limits<double>::quiet_NaN();
+    double ratio = nan_value;
     // member feature_name access
     if (feature_name == "intensity")
     {
@@ -918,7 +926,7 @@ namespace OpenMS
       {
         const double feature_1 = component_1.getIntensity();
         const double feature_2 = component_2.getIntensity();
-        ratio = feature_1 / feature_2;
+        ratio = (feature_2 == 0.0) ? nan_value : feature_1 / feature_2;
       }
       else if (component_1.metaValueExists("native_id"))
       {
@@ -934,7 +942,7 @@ namespace OpenMS
       {
         const double feature_1 = (double)component_1.getMetaValue(feature_name);
         const double feature_2 = (double)component_2.getMetaValue(feature_name);
-        ratio = feature_1 / feature_2;
+        ratio = (feature_2 == 0.0) ? nan_value : feature_1 / feature_2;
       }
       else if (component_1.metaValueExists(feature_name))
       {
