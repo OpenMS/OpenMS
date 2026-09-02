@@ -3879,6 +3879,27 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios" PROPERTIES PASS_REGULAR_
 add_test("TOPP_MS1LabeledWorkflow_6_ratios_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_ratios.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_6_ratios_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios")
 
+# the same ratios in the QPX pg view: one row per (protein group, fraction group, channel), the ratio
+# of that channel in its additional_intensities and the contributing peptide count in cv_params. The
+# pg key is float-free, so the dump can be pinned.
+add_test(NAME "TOPP_MS1LabeledWorkflow_6_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_dir)
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_qpx" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_qpx_clean")
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_dir/quantms.pg.parquet -schema pg -min_rows 4 -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios_qpx")
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_6_qpx_pg.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_out" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_dump")
+
 # with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
 add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML

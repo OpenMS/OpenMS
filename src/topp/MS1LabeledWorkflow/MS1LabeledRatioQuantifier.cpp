@@ -112,13 +112,28 @@ namespace OpenMS
           reference_missing = true;
           continue;
         }
+        IntList run_channels;
+        DoubleList run_ratios;
         for (const auto& [channel, intensity] : channels)
         {
           if (channel == reference_channel) { continue; }
           if (!(intensity > 0.0) || !std::isfinite(intensity)) { continue; }
+          run_channels.push_back(static_cast<Int>(channel));
+          run_ratios.push_back(intensity / reference->second);
+        }
+        // The reference channel is reported as the 1.0 it is by construction, so that every ratio
+        // annotation covers the complete set of channels -- but only where a channel was actually
+        // measured against it: on its own, a multiplet seen in the reference channel alone says
+        // nothing about a ratio, and a lone 1.0 would claim otherwise.
+        if (run_ratios.empty()) { continue; }
+        ratio_runs.push_back(run);
+        ratio_channels.push_back(static_cast<Int>(reference_channel));
+        ratio_values.push_back(1.0);
+        for (Size i = 0; i < run_ratios.size(); ++i)
+        {
           ratio_runs.push_back(run);
-          ratio_channels.push_back(static_cast<Int>(channel));
-          ratio_values.push_back(intensity / reference->second);
+          ratio_channels.push_back(run_channels[i]);
+          ratio_values.push_back(run_ratios[i]);
         }
       }
 

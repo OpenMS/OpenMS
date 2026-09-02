@@ -174,9 +174,15 @@ intensities (@p ratios, see @ref MS1LabeledRatioQuantifier):
     contributing peptides next to it. Every ratio is also reported divided by the median peptide ratio of its
     (fraction group, channel), i.e. normalized on the assumption that most peptides do not change.
 
+The reference channel is reported with the ratio 1.0 it has by construction, wherever another channel was
+measured against it, so that every annotation covers the complete set of channels.
+
 The ratios are annotated on the consensus features (@c evidence_ratio*, @c peptide_ratio*) and on the protein
-groups, so they reach the consensusXML, the mzTab peptide section (as <tt>opt_global_*</tt> columns) and the QPX
-pg view (as @c cv_params). No separate @ref TOPP_ProteinQuantifier run is needed for them.
+groups, so they reach the consensusXML and the mzTab peptide section (as <tt>opt_global_*</tt> columns). In the
+QPX pg view, whose rows are one per (protein group, fraction group, channel), they are written as that row's
+@c additional_intensities, named @c ratio and @c ratio_normalized under the row's own channel label; the number
+of contributing peptides sits in @c cv_params as @c ratio_count, being a count rather than an intensity. No
+separate @ref TOPP_ProteinQuantifier run is needed for any of it.
 
 Next to the ratios, the per-channel <em>abundances</em> are reported as before (mzTab peptide and protein
 sections, QPX @c intensities): the summed peptide intensities per channel, like MaxQuant's Intensity columns.

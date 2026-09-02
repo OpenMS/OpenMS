@@ -502,7 +502,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
                      const std::vector<std::string>& runs,
                      const std::optional<std::string>& label,
                      const std::optional<float>& intensity,
-                     const std::vector<std::pair<std::string, std::string>>& row_cv_params = {})
+                     const std::vector<std::pair<std::string, std::string>>& row_cv_params = {},
+                     const std::vector<std::pair<std::string, float>>& row_additional_intensities = {})
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
     // anchor_protein
@@ -579,9 +580,29 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       (void)intensity_builder.Append(*intensity);
     }
 
-    // additional_intensities - empty for quantified rows, null for identification-only rows.
-    if (label.has_value()) { (void)additional_intensities_builder.Append(); }
-    else                   { (void)additional_intensities_builder.AppendNull(); }
+    // additional_intensities - the further named quantities of this row's channel, currently the
+    // channel ratio of a labeled experiment (see fractionGroupRatios). Empty for a quantified row
+    // without them, null for an identification-only row, which has no channel to name.
+    if (label.has_value())
+    {
+      (void)additional_intensities_builder.Append();
+      if (!row_additional_intensities.empty())
+      {
+        (void)ai_struct_b->Append();
+        (void)ai_label_b->Append(*label);
+        (void)ip_list_b->Append();
+        for (const auto& [name, value] : row_additional_intensities)
+        {
+          (void)ip_struct_b->Append();
+          (void)ip_name_b->Append(name);
+          (void)ip_value_b->Append(value);
+        }
+      }
+    }
+    else
+    {
+      (void)additional_intensities_builder.AppendNull();
+    }
 
     // is_decoy
     auto anchor_it = hit_lookup.find(anchor);
@@ -801,13 +822,17 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         {
           const auto value = quantities.values.find({unit.fraction_group, channel.label});
           std::vector<std::pair<std::string, std::string>> row_cv_params;
+          std::vector<std::pair<std::string, float>> row_additional_intensities;
           if (const auto ratio = ratios.find({unit.fraction_group, channel.label}); ratio != ratios.end())
           {
-            row_cv_params.emplace_back("ratio", std::to_string(ratio->second.ratio));
-            row_cv_params.emplace_back("ratio_normalized", std::to_string(ratio->second.normalized));
+            // The ratio is a further quantity of this channel, so it belongs in the typed,
+            // label-keyed additional_intensities rather than in the free-form cv_params. The
+            // number of contributing peptides stays there: it is a count, not an intensity.
+            row_additional_intensities.emplace_back("ratio", static_cast<float>(ratio->second.ratio));
+            row_additional_intensities.emplace_back("ratio_normalized", static_cast<float>(ratio->second.normalized));
             row_cv_params.emplace_back("ratio_count", std::to_string(ratio->second.count));
           }
-          emitRow(group, unit.runs, channel.qpx_label, value->second, row_cv_params);
+          emitRow(group, unit.runs, channel.qpx_label, value->second, row_cv_params, row_additional_intensities);
         }
       }
     }

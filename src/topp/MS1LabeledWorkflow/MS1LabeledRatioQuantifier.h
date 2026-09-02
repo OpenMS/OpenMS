@@ -33,7 +33,10 @@ namespace OpenMS
         intensity of the reference channel (channel 1, the light one, by default). Only positive
         intensities take part: a channel completed with a zero-intensity dummy feature (the peptide is
         absent) or a not-quantifiable one contributes no ratio, since neither 0 nor infinity is a
-        measurement of a ratio.
+        measurement of a ratio. The reference channel is reported as the 1.0 it is by construction,
+        so that every annotation covers the complete set of channels (light, medium and heavy of a
+        triplex, say) -- but only where another channel was measured against it, since a multiplet
+        seen in the reference channel alone is no measurement of a ratio either.
       - <b>peptide ratio</b>: the median of the evidence ratios of one peptide within one fraction
         group (a fraction group is one labeled sample, measured in one or several fractions).
       - <b>protein group ratio</b>: the median of the peptide ratios of the group's peptides, again
