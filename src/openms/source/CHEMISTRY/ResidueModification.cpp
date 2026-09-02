@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <charconv>
 #include <cmath>
@@ -804,14 +805,15 @@ namespace OpenMS
     double recordToDouble_(const std::string& field, const std::string& record)
     {
       if (field.empty()) return 0.0;
-      double d = 0.0;
-      const auto res = std::from_chars(field.data(), field.data() + field.size(), d);
-      if (res.ec != std::errc() || res.ptr != field.data() + field.size())
+      try
+      {
+        return StringUtils::toDouble(field); // libc++ has no floating-point std::from_chars
+      }
+      catch (const Exception::ConversionError&)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
                                     "Modification definition record has a malformed number: '" + field + "'");
       }
-      return d;
     }
   } // namespace
 
