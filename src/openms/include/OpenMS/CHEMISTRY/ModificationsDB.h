@@ -185,6 +185,10 @@ public:
 
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
+
+       @note Modifications without a mass difference (e.g. PSI-MOD terms that describe a residue
+       rather than a change to it, so that getDiffMonoMass() is 0) cannot explain a mass shift and
+       are only considered if @p mass is exactly 0.0.
     */
     void searchModificationsByDiffMonoMass(std::vector<std::string>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
     void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
@@ -195,6 +199,10 @@ public:
 
      If @p residue is set, only modifications with matching residue of origin are considered.
      If @p term_spec is set, only modifications with matching term specificity are considered.
+
+     @note Modifications without a mass difference (e.g. PSI-MOD terms that describe a residue
+     rather than a change to it, so that getDiffMonoMass() is 0) cannot explain a mass shift and
+     are only considered if @p mass is exactly 0.0.
     */
     void searchModificationsByDiffMonoMassSorted(std::vector<std::string>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
     void searchModificationsByDiffMonoMassSorted(std::vector<const ResidueModification*>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
@@ -212,7 +220,13 @@ public:
         will choose the _first_ match which defaults to the first matching
         UniMod entry.
 
-        @param[in] mass The monoisotopic mass of the residue including the mass of the modification
+        @note Modifications without a mass difference (e.g. PSI-MOD terms that
+        describe a residue rather than a change to it, so that
+        getDiffMonoMass() is 0) cannot explain a mass shift and are only
+        considered if @p mass is exactly 0.0. Without this, every small
+        @p mass would resolve to such a term.
+
+        @param[in] mass The monoisotopic mass difference (delta mass) to search for
         @param[in] max_error The maximal mass error in the modification search
         @param[in] residue The residue at which the modifications occurs
         @param[in] term_spec Only modifications with matching term specificity are considered.
