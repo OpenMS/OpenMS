@@ -3806,6 +3806,39 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted" PROPERTIES DEPENDS "TO
 add_test("TOPP_MS1LabeledWorkflow_3_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_targeted_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_targeted")
 
+# peptide identity: run A identifies doublet 3 by its light spectrum, run B (MS1LabeledWorkflow_1_heavy.idXML)
+# only by its heavy spectrum. The label modifications are stripped after the resolver, so both name one
+# peptide and link into one consensus feature with four sub-features; the label state is kept on the
+# identifications (labeled_sequence, removed_labels, label_channel) and reaches the mzTab opt_global
+# columns and the QPX cv_params of the feature and psm views. The QPX psm dump is pinned (its key is
+# float-free); the feature view is only schema-checked, like IsobaricWorkflow's.
+add_test(NAME "TOPP_MS1LabeledWorkflow_4_identity_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir)
+add_test("TOPP_MS1LabeledWorkflow_4_identity" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_heavy.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_design.tsv
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.consensusXML
+  -out ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.mzTab
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare;TOPP_MS1LabeledWorkflow_4_identity_clean")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_identity_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_out2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.mzTab -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_identity_out.mzTab )
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_out2" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir/quantms.feature.parquet -schema feature -min_rows 6)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_features" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir/quantms.psm.parquet -schema psm -min_rows 6 -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_psm.tmp.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_psm.tmp.tsv -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_qpx_psm.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_out" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump")
+
 # with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
 add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML

@@ -1288,8 +1288,26 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       if (run_stem.empty()) { ++unattributable_psms; }
       (void)run_file_name_builder.Append(run_stem);
 
-      // === cv_params (list<struct>, nullable - null for now) ===
-      (void)cv_params_builder.AppendNull();
+      // === cv_params (list<struct>, nullable) ===
+      // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
+      // for every other identification, as before.
+      {
+        const auto cv_params = ArrowIOHelpers::qpxCvParams(hit);
+        if (cv_params.empty())
+        {
+          (void)cv_params_builder.AppendNull();
+        }
+        else
+        {
+          (void)cv_params_builder.Append();
+          for (const auto& [name, value] : cv_params)
+          {
+            (void)cv_struct_b->Append();
+            (void)cv_name_b->Append(name);
+            (void)cv_value_b->Append(value);
+          }
+        }
+      }
 
       // === scan (list<int32>, non-nullable) ===
       const std::vector<Int32> scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);

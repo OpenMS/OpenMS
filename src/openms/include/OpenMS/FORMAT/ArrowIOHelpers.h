@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <unordered_set>
 #include <vector>
 
@@ -296,6 +297,27 @@ namespace ArrowIOHelpers
     @return true if @p label is a canonical QPX channel token
   */
   OPENMS_DLLAPI bool qpxIsCanonicalIntensityLabel(const std::string& label);
+
+  /**
+    @brief The meta values of an identification that QPX carries as @c cv_params
+
+    QPX reserves @c cv_params, a list of {cv_name, cv_value} pairs, on the feature and psm views for
+    annotations outside the fixed schema. OpenMS uses it for the label state of an MS1-labeled
+    identification, as MS1LabeledWorkflow records it on the PeptideHit once the peptide identity has
+    been reduced to the unlabeled sequence:
+      - @c labeled_sequence: the peptidoform as searched, e.g. <tt>PEPTIDEK(Label:13C(6)15N(2))</tt>
+      - @c removed_labels: the labels stripped from it, in the FeatureFinderMultiplex vocabulary
+        (e.g. @c Lys8), or @c none
+      - @c label_channel: the 1-based channel the spectrum belongs to, i.e. the @c Label of the
+        experimental design (1 = light); 0 if it could not be determined
+
+    Only these keys are exported, so identifications without a label state (label-free, isobaric)
+    keep a null @c cv_params, as before.
+
+    @param[in] hit The PeptideHit (or any MetaInfoInterface) to read the keys from
+    @return (cv_name, cv_value) pairs in the order above, only for the keys present; empty if none is
+  */
+  OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit);
 
   // ---------------------------------------------------------------------------
   // Read helpers

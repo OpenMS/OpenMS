@@ -462,6 +462,21 @@ bool qpxIsCanonicalIntensityLabel(const std::string& label)
   return canonical.contains(label);
 }
 
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit)
+{
+  // The label state written by MS1LabeledWorkflow; see the declaration for the meaning of each key.
+  static const char* const keys[] = {"labeled_sequence", "removed_labels", "label_channel"};
+  std::vector<std::pair<std::string, std::string>> params;
+  for (const char* key : keys)
+  {
+    if (hit.metaValueExists(key))
+    {
+      params.emplace_back(key, hit.getMetaValue(key).toString());
+    }
+  }
+  return params;
+}
+
 std::string qpxRunFileName(const std::string& ms_run_path)
 {
   // File::stemName() already maps "" -> "".

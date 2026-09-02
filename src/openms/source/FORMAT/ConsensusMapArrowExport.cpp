@@ -994,8 +994,27 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       }
     }
 
-    // === cv_params (empty list for now) ===
-    (void)cv_params_builder.AppendNull();
+    // === cv_params (list<struct>, nullable) ===
+    // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
+    // for every other identification, as before.
+    {
+      const auto cv_params = best_hit ? ArrowIOHelpers::qpxCvParams(*best_hit)
+                                      : std::vector<std::pair<std::string, std::string>>{};
+      if (cv_params.empty())
+      {
+        (void)cv_params_builder.AppendNull();
+      }
+      else
+      {
+        (void)cv_params_builder.Append();
+        for (const auto& [name, value] : cv_params)
+        {
+          (void)cv_struct_b->Append();
+          (void)cv_name_b->Append(name);
+          (void)cv_value_b->Append(value);
+        }
+      }
+    }
 
     // === ion_mobility, start/stop ===
     if (best_pid && metaHas(*best_pid, idx_ion_mobility))
