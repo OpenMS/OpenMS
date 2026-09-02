@@ -33,7 +33,8 @@ namespace OpenMS
     diff_average_mass_(0.0),
     diff_mono_mass_(0.0),
     neutral_loss_mono_masses_(0),
-    neutral_loss_average_masses_(0)
+    neutral_loss_average_masses_(0),
+    provenance_(DEFINED) // default: an unnecessary definition is harmless, a missing one is not
   {
   }
 
@@ -83,6 +84,9 @@ namespace OpenMS
   }
 
 
+  // provenance_ is intentionally not compared (nor in operator< / std::hash): searchModification()
+  // gates the no-dedup inserter on operator==, so a mismatch would create a second entry under the
+  // same FullId. Provenance describes the source of the definition, not the chemistry.
   bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
     return id_ == rhs.id_ &&
@@ -431,6 +435,16 @@ namespace OpenMS
     }
   }
 
+  void ResidueModification::setProvenance(Provenance provenance)
+  {
+    provenance_ = provenance;
+  }
+
+  ResidueModification::Provenance ResidueModification::getProvenance() const
+  {
+    return provenance_;
+  }
+
   void ResidueModification::setAverageMass(double mass)
   {
     average_mass_ = mass;
@@ -573,6 +587,7 @@ namespace OpenMS
       {
         unique_ptr<ResidueModification> new_mod(new ResidueModification);
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setProvenance(MASS_ONLY);
         new_mod->setFullName(residue_name); // display name
         new_mod->setTermSpecificity(specificity);
 
@@ -610,6 +625,7 @@ namespace OpenMS
         {
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setProvenance(MASS_ONLY);
           new_mod->setFullName(residue_name); // display name
           new_mod->setTermSpecificity(specificity);
 
@@ -649,6 +665,7 @@ namespace OpenMS
           // create new modification
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setProvenance(MASS_ONLY);
           new_mod->setFullName(modification_name); // display name
 
           // We will set origin to make sure the same modification will be used

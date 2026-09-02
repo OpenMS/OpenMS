@@ -37,6 +37,7 @@ namespace OpenMS::Internal
       {
         sites_.clear();
         modification_ = new ResidueModification();
+        modification_->setProvenance(ResidueModification::CV); // unimod.xml and custom_mods.xml
         std::string title(attributeAsString_(attributes, "title"));
         modification_->setId(title);
 

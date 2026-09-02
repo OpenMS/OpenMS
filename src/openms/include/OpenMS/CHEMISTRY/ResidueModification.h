@@ -102,6 +102,25 @@ public:
       UNKNOWN,                ///< An unknown modification
       NUMBER_OF_SOURCE_CLASSIFICATIONS
     };
+
+    /**
+      @brief Where the definition of this modification came from.
+
+      File writers use this to decide which modifications must be stored together with their
+      definition. Distinct from SourceClassification (biological origin) and from isUserDefined()
+      (anonymous mass-string modifications). Carried on the object rather than derived from
+      ModificationsDB, which is process-global and accumulates the definitions of every file read.
+    */
+    enum Provenance
+    {
+      /// Registered by a tool or read from a file's definition block; must be serialised
+      DEFINED = 0,
+      /// From a controlled vocabulary shipped with OpenMS (Unimod, PSI-MOD, XLMOD, custom_mods.xml)
+      CV,
+      /// Anonymous mass or formula modification; reconstructible from its own serialised form
+      MASS_ONLY,
+      NUMBER_OF_PROVENANCE
+    };
     //@}
 
     /** @name Constructors and Destructors
@@ -240,6 +259,12 @@ public:
 
     /// returns the classification
     std::string getSourceClassificationName(SourceClassification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
+
+    /// sets where the definition of this modification came from
+    void setProvenance(Provenance provenance);
+
+    /// returns where the definition of this modification came from
+    Provenance getProvenance() const;
 
     /// sets the average mass
     void setAverageMass(double mass);
@@ -419,6 +444,9 @@ protected:
     std::vector<double> neutral_loss_mono_masses_;
 
     std::vector<double> neutral_loss_average_masses_;
+
+    /// not part of operator==, operator< or std::hash (see operator==)
+    Provenance provenance_;
   };
 } // namespace OpenMS
 

@@ -638,4 +638,65 @@ START_SECTION(([EXTRA] std::hash<ResidueModification>))
 }
 END_SECTION
 
+START_SECTION([EXTRA] Provenance - default and the values set by the creation paths)
+{
+  ResidueModification fresh;
+  TEST_EQUAL(fresh.getProvenance(), ResidueModification::DEFINED)
+
+  // mass-string modifications
+  const Residue* lysine = ResidueDB::getInstance()->getResidue("K");
+  const ResidueModification* unknown =
+    ResidueModification::createUnknownFromMassString("+306.0253048409", 306.0253048409, true,
+                                                     ResidueModification::ANYWHERE, lysine);
+  TEST_TRUE(unknown != nullptr)
+  if (unknown != nullptr)
+  {
+    TEST_EQUAL(unknown->getProvenance(), ResidueModification::MASS_ONLY)
+  }
+
+  // shipped vocabularies
+  const ResidueModification* oxidation = ModificationsDB::getInstance()->getModification("Oxidation (M)");
+  TEST_TRUE(oxidation != nullptr)
+  if (oxidation != nullptr)
+  {
+    TEST_EQUAL(oxidation->getProvenance(), ResidueModification::CV)
+  }
+
+  // orthogonal to isUserDefined()
+  if (unknown != nullptr && oxidation != nullptr)
+  {
+    TEST_TRUE(unknown->isUserDefined())
+    TEST_FALSE(oxidation->isUserDefined())
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] Provenance - deliberately excluded from equality ordering and hash)
+{
+  // searchModification() gates the no-dedup inserter on operator==; comparing the mark would duplicate entries
+  ResidueModification a;
+  a.setId("TestProvenanceMod");
+  a.setFullId("TestProvenanceMod (K)");
+  a.setOrigin('K');
+  a.setDiffMonoMass(42.0);
+
+  ResidueModification b(a);
+  a.setProvenance(ResidueModification::CV);
+  b.setProvenance(ResidueModification::MASS_ONLY);
+
+  TEST_TRUE(a == b)
+  TEST_FALSE(a != b)
+  TEST_FALSE(a < b)
+  TEST_FALSE(b < a)
+
+  std::hash<ResidueModification> hasher;
+  TEST_EQUAL(hasher(a), hasher(b))
+
+  // the mark itself is still carried and copied
+  TEST_EQUAL(a.getProvenance(), ResidueModification::CV)
+  ResidueModification c(a);
+  TEST_EQUAL(c.getProvenance(), ResidueModification::CV)
+}
+END_SECTION
+
 END_TEST
