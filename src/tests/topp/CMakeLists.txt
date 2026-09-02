@@ -3778,6 +3778,44 @@ add_test("TOPP_MS1LabeledWorkflow_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_dir/quantms.pg.parquet -schema pg -min_rows 2)
 set_tests_properties("TOPP_MS1LabeledWorkflow_qpx_pg" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_qpx")
 
+# match between runs: run B's identifications (MS1LabeledWorkflow_1_partial.idXML) lack the one of
+# doublet 2. With -match_between_runs the unidentified doublet is kept and linked to run A's identified
+# one, so the peptide is quantified in both runs (4 sub-features); by default (targeted) run B
+# contributes nothing for it (2 sub-features). The two references pin exactly that difference.
+add_test("TOPP_MS1LabeledWorkflow_3_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_partial.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_design.tsv
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -match_between_runs true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "1 multiplet.s. are unidentified, 1 of them kept for match between runs")
+add_test("TOPP_MS1LabeledWorkflow_3_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_mbr_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_mbr")
+add_test("TOPP_MS1LabeledWorkflow_3_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_partial.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_design.tsv
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_targeted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare")
+add_test("TOPP_MS1LabeledWorkflow_3_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_targeted_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_targeted")
+
+# with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
+add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -labels "[][Lys8,Arg10]"
+  -match_between_runs true
+  -algorithm:knock_out
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_mbr_knock_out.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_mbr_knock_out" PROPERTIES PASS_REGULAR_EXPRESSION "cannot be combined with '-algorithm:knock_out'")
+
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
 add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test

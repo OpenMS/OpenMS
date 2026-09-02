@@ -127,13 +127,16 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      sequence information (@ref OpenMS::MultiplexResolverAlgorithm, @p resolver): multiplets whose mass shifts
      contradict the labels found in the annotated sequence are removed from quantification (their
      identifications are kept for protein inference), incomplete multiplets are completed with dummy
-     features (intensity 0 = absent, NaN = not quantifiable). Multiplets without identification are not
-     quantified. An identification that was mapped onto several multiplets is kept on the most intense one only.
+     features (intensity 0 = absent, NaN = not quantifiable). Multiplets without identification are dropped,
+     unless @p match_between_runs is set (see below). An identification that was mapped onto several multiplets
+     is kept on the most intense one only.
   -# Per fraction: retention time alignment of the runs (@p alignment, identification-based, aligned to the
      run with most identifications) and linking of the multiplets across runs (@p linking); the channels of
      every run are kept as sub-features, so the linked map has one column per (run, channel). Fractions are
      linked separately and then combined column-wise, exactly like ProteomicsLFQ does; a fraction measured in a
-     single run is passed through.
+     single run is passed through. With @p match_between_runs, unidentified multiplets take part in the linking
+     and take over the identification of a multiplet at the same position in another run (the SILAC equivalent
+     of ProteomicsLFQ's <tt>-targeted_only false</tt>); multiplets that stay unidentified are not quantified.
   -# Protein inference over all runs (@p protein_inference), protein (and optionally PSM/peptide) FDR
      filtering, and peptide and protein quantification (@p ProteinQuantification), where the fractions of a
      fraction group are aggregated according to the design.
@@ -237,6 +240,13 @@ protected:
       "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
       "shared_peptides = use shared peptides only for its best group (by inference score)", false, true);
     setValidStrings_("protein_quantification", {"unique_peptides", "strictly_unique_peptides", "shared_peptides"});
+
+    registerStringOption_("match_between_runs", "<option>", "false",
+      "true: keep multiplets without an identification, so that linking can hand them the identification of a multiplet at the\n"
+      "same position in another run (the counterpart of ProteomicsLFQ's '-targeted_only false').\n"
+      "false: only identified multiplets are quantified.\n"
+      "Cannot be combined with 'algorithm:knock_out': the channel order of an unidentified multiplet is only known from its detection pattern.", false);
+    setValidStrings_("match_between_runs", {"true", "false"});
 
     // feature detection: the FeatureFinderMultiplex parameters, minus the two that are set at tool level
     Param ffm_defaults = FeatureFinderMultiplexAlgorithm().getDefaults();
@@ -730,11 +740,25 @@ protected:
 
       ConsensusMap conflicts;
       resolver.resolve(multiplets, resolved, conflicts, blacklist);
+      const Size n_resolved = resolved.size();
 
-      // identifications of conflicting multiplets are still valid PSMs: keep them for inference, without quantification
-      Size conflicts_with_id = 0;
+      Size conflicts_with_id = 0, unidentified = 0, kept_for_mbr = 0;
       for (auto& cf : conflicts)
       {
+        if (cf.getPeptideIdentifications().empty())
+        {
+          ++unidentified;
+          // With match between runs, a complete unidentified multiplet is kept: linking can hand it the
+          // identification of a multiplet at the same position in another run. Its channels are in
+          // pattern order, which is what the columns mean (guaranteed by 'knock_out' = false).
+          if (match_between_runs_ && cf.size() == multiplicity_)
+          {
+            resolved.push_back(cf);
+            ++kept_for_mbr;
+          }
+          continue;
+        }
+        // identifications of conflicting multiplets are still valid PSMs: keep them for inference, without quantification
         for (auto& id : cf.getPeptideIdentifications())
         {
           id.removeMetaValue("map_index");
@@ -742,9 +766,10 @@ protected:
           ++conflicts_with_id;
         }
       }
-      OPENMS_LOG_INFO << "Resolved " << resolved.size() << " multiplet(s); " << conflicts_with_id
-                      << " identified multiplet(s) contradict their labels and " << (conflicts.size() - conflicts_with_id)
-                      << " are unidentified. These are not quantified." << endl;
+      if (kept_for_mbr > 0) { resolved.sortByPosition(); }
+      OPENMS_LOG_INFO << "Resolved " << n_resolved << " multiplet(s); " << conflicts_with_id
+                      << " identified multiplet(s) contradict their labels and are not quantified; " << unidentified
+                      << " multiplet(s) are unidentified, " << kept_for_mbr << " of them kept for match between runs." << endl;
     }
 
     // A dummy channel whose region was blacklisted during feature detection is "not quantifiable" (NaN).
@@ -1148,6 +1173,14 @@ protected:
     initLabels_();
     if (!out_qpx.empty()) { checkQPXLabels_(); }
 
+    match_between_runs_ = getStringOption_("match_between_runs") == "true";
+    if (match_between_runs_ && getParam_().getValue("algorithm:knock_out").toString() == "true")
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'-match_between_runs true' cannot be combined with '-algorithm:knock_out': with knock-outs, the channels of a multiplet "
+        "are only ordered by its sequence, which an unidentified multiplet does not have.");
+    }
+
     if (getStringOption_("protein_quantification") == "strictly_unique_peptides" && in_db.empty())
     {
       OPENMS_LOG_WARN << "Warning: '-protein_quantification strictly_unique_peptides' filters peptides by their theoretical uniqueness, "
@@ -1399,6 +1432,7 @@ private:
   Size multiplicity_ = 0;              ///< number of channels
   vector<std::string> channel_labels_; ///< column header label per channel, e.g. "no_label", "Lys8Arg10"
   vector<std::pair<std::string, std::string>> required_label_mods_; ///< (short, PSI-MS name) of every label the search must contain
+  bool match_between_runs_ = false;    ///< keep unidentified multiplets so that linking can identify them from other runs
   ExperimentalDesign design_;
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
