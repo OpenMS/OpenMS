@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -188,6 +189,44 @@ START_SECTION([EXTRA] registerFrom - registers the good records and skips a bad 
   TEST_EQUAL(ModificationDefinitionIO::registerFrom(sp), 0)
   sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, d.toDefinitionString());
   TEST_EQUAL(ModificationDefinitionIO::registerFrom(sp), 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] collect - an inline Formula tag is not a definition but an INFO-named one is)
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run4a");
+  std::vector<ProteinIdentification> prots;
+  prots.push_back(prot);
+
+  // anonymous: reconstructible from its own tag, nothing to carry
+  AASequence anon = ProForma::toAASequence(ProForma::parse("PEPM[Formula:O]TIDE"), ProForma::ConversionPolicy::BEST_EFFORT);
+  TEST_TRUE(anon[3].isModified())
+  TEST_FALSE(ModificationDefinitionIO::isDefinition(anon[3].getModification()))
+  PeptideIdentification pep_anon;
+  pep_anon.setIdentifier("run4a");
+  PeptideHit hit_anon;
+  hit_anon.setSequence(anon);
+  pep_anon.insertHit(hit_anon);
+  PeptideIdentificationList peps_anon;
+  peps_anon.push_back(pep_anon);
+  TEST_EQUAL(ModificationDefinitionIO::collect(prots, peps_anon).size(), 0)
+
+  // the parquet spelling of a defined modification resolves to the definition, which is collected
+  const ResidueModification* def = define("TestIO:ViaInfo", 'K', "C9H11N2O8P");
+  TEST_TRUE(def != nullptr)
+  AASequence named = ProForma::toAASequence(ProForma::parse("AEADNLDDK[Formula:C9H11N2O8P1|INFO:TestIO:ViaInfo]K"), ProForma::ConversionPolicy::FAIL_ON_LOSS);
+  TEST_EQUAL(named.toString(), "AEADNLDDK(TestIO:ViaInfo)K")
+  PeptideIdentification pep_named;
+  pep_named.setIdentifier("run4a");
+  PeptideHit hit_named;
+  hit_named.setSequence(named);
+  pep_named.insertHit(hit_named);
+  PeptideIdentificationList peps_named;
+  peps_named.push_back(pep_named);
+  auto defs = ModificationDefinitionIO::collect(prots, peps_named);
+  TEST_EQUAL(defs.size(), 1)
+  TEST_EQUAL(defs["run4a"].count(def), 1)
 }
 END_SECTION
 
