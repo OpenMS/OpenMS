@@ -51,13 +51,15 @@ namespace // anonymous
 
   MS1LabeledWorkflow annotates a labeled experiment's ratios on the group as parallel arrays next to
   PeptideAndProteinQuant's abundance arrays (see MS1LabeledRatioQuantifier). They key on exactly the
-  (fraction group, label) pair a pg row is emitted for, so they are reported as that row's cv_params.
-  A group, or a whole experiment, without them yields an empty map and an unchanged (empty) column.
+  (fraction group, label) pair a pg row is emitted for, so the ratio is reported in that row's
+  additional_intensities and the contributing peptide count in its cv_params. A group, or a whole
+  experiment, without them yields an empty map and the columns are written as before (empty).
 */
 struct GroupRatio
 {
   double ratio = 0.0;
   double normalized = 0.0;
+  bool has_normalized = false; ///< the producer normalized; otherwise only the raw ratio is reported
   Int count = 0;
 };
 
@@ -90,7 +92,8 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
     if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0) { continue; }
     GroupRatio entry;
     entry.ratio = (*ratios)[i];
-    entry.normalized = (normalized != nullptr && normalized->size() == n) ? (*normalized)[i] : (*ratios)[i];
+    entry.has_normalized = normalized != nullptr && normalized->size() == n;
+    entry.normalized = entry.has_normalized ? (*normalized)[i] : (*ratios)[i];
     entry.count = (counts != nullptr && counts->size() == n) ? (*counts)[i] : 0;
     result[{static_cast<UInt>((*fraction_groups)[i]), static_cast<UInt>((*labels)[i])}] = entry;
   }
@@ -829,7 +832,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
             // label-keyed additional_intensities rather than in the free-form cv_params. The
             // number of contributing peptides stays there: it is a count, not an intensity.
             row_additional_intensities.emplace_back("ratio", static_cast<float>(ratio->second.ratio));
-            row_additional_intensities.emplace_back("ratio_normalized", static_cast<float>(ratio->second.normalized));
+            if (ratio->second.has_normalized)
+            {
+              row_additional_intensities.emplace_back("ratio_normalized", static_cast<float>(ratio->second.normalized));
+            }
             row_cv_params.emplace_back("ratio_count", std::to_string(ratio->second.count));
           }
           emitRow(group, unit.runs, channel.qpx_label, value->second, row_cv_params, row_additional_intensities);

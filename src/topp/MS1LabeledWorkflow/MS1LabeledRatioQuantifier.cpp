@@ -14,6 +14,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
+#include <iterator>
 #include <cmath>
 #include <limits>
 #include <set>
@@ -214,7 +215,7 @@ namespace OpenMS
       feature.setMetaValue("peptide_ratio_fraction_group", fraction_groups);
       feature.setMetaValue("peptide_ratio_channel", channels);
       feature.setMetaValue("peptide_ratio", values);
-      feature.setMetaValue("peptide_ratio_normalized", normalized_values);
+      if (normalize) { feature.setMetaValue("peptide_ratio_normalized", normalized_values); }
       feature.setMetaValue("peptide_ratio_count", counts);
     }
 
@@ -236,23 +237,42 @@ namespace OpenMS
     for (const ConsensusFeature& feature : consensus) { collect(feature.getPeptideIdentifications()); }
     collect(consensus.getUnassignedPeptideIdentifications());
 
-    for (ProteinIdentification::ProteinGroup& group : proteins.getIndistinguishableProteins())
+    // Each peptide is assigned once, through the group of its first accession, and only if that group
+    // covers every accession it references -- rather than testing every (group, peptide) pair.
+    auto& groups = proteins.getIndistinguishableProteins();
+    std::map<std::string, Size> accession_to_group;
+    for (Size g = 0; g < groups.size(); ++g)
     {
-      if (group.accessions.empty()) { continue; }
-      const std::set<std::string> group_accessions(group.accessions.begin(), group.accessions.end());
+      for (const std::string& accession : groups[g].accessions) { accession_to_group.emplace(accession, g); }
+    }
+    std::vector<std::map<std::pair<unsigned, unsigned>, std::vector<double>>> group_ratios(groups.size());
+    for (const auto& [sequence, ratios] : peptide_ratios_)
+    {
+      const auto accessions = peptide_accessions.find(sequence);
+      if (accessions == peptide_accessions.end() || accessions->second.empty()) { continue; }
+      const auto candidate = accession_to_group.find(*accessions->second.begin());
+      if (candidate == accession_to_group.end()) { continue; }
+      const auto& group_accessions = groups[candidate->second].accessions;
+      const bool all_in_group = std::all_of(accessions->second.begin(), accessions->second.end(),
+                                            [&group_accessions](const std::string& accession)
+                                            { return std::find(group_accessions.begin(), group_accessions.end(), accession) != group_accessions.end(); });
+      if (!all_in_group) { continue; }
+      for (const ChannelRatio& r : ratios) { group_ratios[candidate->second][{r.fraction_group, r.channel}].push_back(r.ratio); }
+    }
 
-      std::map<std::pair<unsigned, unsigned>, std::vector<double>> group_ratios;
-      for (const auto& [sequence, ratios] : peptide_ratios_)
-      {
-        const auto accessions = peptide_accessions.find(sequence);
-        if (accessions == peptide_accessions.end() || accessions->second.empty()) { continue; }
-        if (!std::includes(group_accessions.begin(), group_accessions.end(),
-                           accessions->second.begin(), accessions->second.end()))
-        {
-          continue;
-        }
-        for (const ChannelRatio& r : ratios) { group_ratios[{r.fraction_group, r.channel}].push_back(r.ratio); }
-      }
+    static const char* const ratio_array_names[] = {"fraction_group_level_ratio_fraction_group", "fraction_group_level_ratio_label",
+                                                    "fraction_group_level_ratio_count", "fraction_group_level_ratio",
+                                                    "fraction_group_level_ratio_normalized"};
+    for (Size g = 0; g < groups.size(); ++g)
+    {
+      ProteinIdentification::ProteinGroup& group = groups[g];
+      if (group.accessions.empty()) { continue; }
+
+      // a second run() replaces the annotation instead of adding to it
+      const auto is_ratio_array = [](const auto& array)
+      { return std::find(std::begin(ratio_array_names), std::end(ratio_array_names), array.getName()) != std::end(ratio_array_names); };
+      std::erase_if(group.getIntegerDataArrays(), is_ratio_array);
+      std::erase_if(group.getFloatDataArrays(), is_ratio_array);
 
       ProteinIdentification::ProteinGroup::IntegerDataArray fraction_groups, labels, counts;
       fraction_groups.setName("fraction_group_level_ratio_fraction_group");
@@ -263,7 +283,7 @@ namespace OpenMS
       normalized_values.setName("fraction_group_level_ratio_normalized");
 
       std::vector<ChannelRatio> reported;
-      for (auto& [cell, ratios] : group_ratios)
+      for (auto& [cell, ratios] : group_ratios[g])
       {
         // Below the minimum the ratio is not reported at all: a protein quantified from one peptide
         // is exactly what the threshold exists to keep out of the result.
@@ -292,7 +312,7 @@ namespace OpenMS
       integer_arrays.push_back(std::move(counts));
       auto& float_arrays = group.getFloatDataArrays();
       float_arrays.push_back(std::move(values));
-      float_arrays.push_back(std::move(normalized_values));
+      if (normalize) { float_arrays.push_back(std::move(normalized_values)); }
     }
 
     OPENMS_LOG_INFO << "Channel ratios: " << features_with_ratio << " multiplet(s) with a ratio, "

@@ -732,6 +732,8 @@ protected:
     }
     multiplets.ensureUniqueId();
     multiplets.sortByPosition();
+    // the resolver looks peaks up by RT range, which needs the spectra of all FAIMS groups in one order
+    blacklist.sortSpectra();
     blacklist.updateRanges();
 
     OPENMS_LOG_INFO << "Detected " << multiplets.size() << " peptide multiplet(s) in " << File::basename(mz_file) << "." << endl;
@@ -1435,6 +1437,13 @@ protected:
 
     initLabels_();
     if (!out_qpx.empty()) { checkQPXLabels_(); }
+
+    if (const int reference_channel = getParam_().getValue("ratios:reference_channel"); reference_channel > static_cast<int>(multiplicity_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'-ratios:reference_channel " + StringUtils::toStr(reference_channel) + "' names a channel that '-labels " + labels_ + "' does not have ("
+        + StringUtils::toStr(multiplicity_) + " channels).");
+    }
 
     match_between_runs_ = getStringOption_("match_between_runs") == "true";
     if (match_between_runs_ && getParam_().getValue("algorithm:knock_out").toString() == "true")

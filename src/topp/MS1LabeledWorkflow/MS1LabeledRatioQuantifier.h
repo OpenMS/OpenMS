@@ -42,10 +42,11 @@ namespace OpenMS
       - <b>protein group ratio</b>: the median of the peptide ratios of the group's peptides, again
         per fraction group, reported only when at least @p min_ratio_count peptides contribute
         (MaxQuant's "min. ratio count"). The number of contributing peptides is reported alongside.
-      - <b>normalized ratio</b>: every ratio divided by the median peptide ratio of its
-        (fraction group, channel), i.e. the assumption that most peptides do not change. Medians are
-        equivariant under that division, so normalizing the peptide ratios and re-aggregating gives the
-        same protein ratios as dividing the protein ratios directly.
+      - <b>normalized ratio</b> (@p normalize, on by default): every ratio divided by the median
+        peptide ratio of its (fraction group, channel), i.e. the assumption that most peptides do not
+        change. Medians are equivariant under that division, so normalizing the peptide ratios and
+        re-aggregating gives the same protein ratios as dividing the protein ratios directly. With
+        @p normalize off, no normalized values are written at all.
 
     A ratio is therefore <em>not</em> the ratio of the abundances that PeptideAndProteinQuant reports:
     that one is a ratio of per-channel aggregates, which is a different statistic (it weights peptides
@@ -61,7 +62,10 @@ namespace OpenMS
         @c fraction_group_level_ratio_fraction_group, @c fraction_group_level_ratio_label and
         @c fraction_group_level_ratio_count (integer) plus @c fraction_group_level_ratio and
         @c fraction_group_level_ratio_normalized (float), next to the abundance arrays that
-        PeptideAndProteinQuant writes
+        PeptideAndProteinQuant writes. A second run() replaces them.
+
+    A peptide counts for the group that covers every protein it references; peptides shared between
+    groups count for none (a razor assignment, if wanted, rewrites the references during inference).
 
     Part of the MS1LabeledWorkflow tool rather than of the library: the aggregation rules it implements
     are those of that workflow, and its parameters are the tool's @c ratios section.

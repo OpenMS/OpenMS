@@ -465,15 +465,25 @@ bool qpxIsCanonicalIntensityLabel(const std::string& label)
 
 std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit)
 {
+  return qpxCvParams(hit, MS1LabelState::Keys());
+}
+
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                              const MS1LabelState::Keys& keys)
+{
   // The label state written by MS1LabeledWorkflow; see MS1LabelState for the meaning of each key.
+  // Looked up by index: this runs once per exported row, and a lookup by name takes the registry lock.
   std::vector<std::pair<std::string, std::string>> params;
-  for (const std::string& key : MS1LabelState::keys())
+  const auto add = [&](const std::string& name, UInt index)
   {
-    if (hit.metaValueExists(key))
+    if (index != static_cast<UInt>(-1) && hit.metaValueExists(index))
     {
-      params.emplace_back(key, hit.getMetaValue(key).toString());
+      params.emplace_back(name, hit.getMetaValue(index).toString());
     }
-  }
+  };
+  add(MS1LabelState::LABELED_SEQUENCE, keys.labeled_sequence);
+  add(MS1LabelState::REMOVED_LABELS, keys.removed_labels);
+  add(MS1LabelState::LABEL_CHANNEL, keys.label_channel);
   return params;
 }
 

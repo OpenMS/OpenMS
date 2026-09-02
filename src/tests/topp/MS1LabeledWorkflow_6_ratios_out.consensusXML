@@ -58,7 +58,6 @@
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[1.4402612e07, 5.2800048e07]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.4402612e07, 5.2800048e07]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_ratio" value="[1.0, 1.89337432384491]"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_ratio_normalized" value="[1.0, 1.89337432384491]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_label" value="[1, 2]"/>
@@ -71,7 +70,6 @@
 			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[2.195857e07, 7.6032408e07]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[2.195857e07, 7.6032408e07]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_ratio" value="[1.0, 3.462539196014404]"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_ratio_normalized" value="[1.0, 3.462539196014404]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_label" value="[1, 2]"/>
@@ -151,7 +149,6 @@
 			<UserParam type="intList" name="peptide_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="peptide_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="peptide_ratio" value="[1.0, 0.012227709706896]"/>
-			<UserParam type="floatList" name="peptide_ratio_normalized" value="[1.0, 0.012227709706896]"/>
 			<UserParam type="intList" name="peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_14811341817612382122" quality="1.0" charge="2">
@@ -181,7 +178,6 @@
 			<UserParam type="intList" name="peptide_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="peptide_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="peptide_ratio" value="[1.0, 3.774520942258838]"/>
-			<UserParam type="floatList" name="peptide_ratio_normalized" value="[1.0, 3.774520942258838]"/>
 			<UserParam type="intList" name="peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_2684106197423007927" quality="1.0" charge="2">
@@ -211,7 +207,6 @@
 			<UserParam type="intList" name="peptide_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="peptide_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="peptide_ratio" value="[1.0, 3.462539136200582]"/>
-			<UserParam type="floatList" name="peptide_ratio_normalized" value="[1.0, 3.462539136200582]"/>
 			<UserParam type="intList" name="peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
 	</consensusElementList>

@@ -317,6 +317,7 @@ std::shared_ptr<parquet::WriterProperties> makeFeatureWriterProperties(const Par
 bool topHitPsmIdentity(const PeptideIdentification& pid,
                        const IdentifierMSRunMapper& mapper,
                        const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                       const MS1LabelState::Keys& label_state_keys,
                        std::string& run_file_name,
                        Int64& psm_id)
 {
@@ -330,7 +331,7 @@ bool topHitPsmIdentity(const PeptideIdentification& pid,
   const auto scan = ArrowIOHelpers::qpxScanComponents(pid.getSpectrumReference());
   // The psm view writes the peptidoform the hit was matched with (MS1LabelState), so the id
   // must be derived from that one and not from the peptide identity the feature reports.
-  const auto pf = ProForma::fromAASequence(MS1LabelState::matchedSequence(hit));
+  const auto pf = ProForma::fromAASequence(MS1LabelState::matchedSequence(hit, label_state_keys));
   psm_id = QPXIdentity::psmId(run_file_name, scan,
                               ProForma::toString(pf, ProForma::WriteMode::CANONICAL),
                               static_cast<int16_t>(hit.getCharge()));
@@ -648,6 +649,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   // Same reason as the indices above: resolving a metavalue key by name takes the
   // MetaInfoRegistry's `omp critical` lock, and the psm identities are derived per row.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  const MS1LabelState::Keys label_state_keys; // resolved once; see MS1LabelState::Keys
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -975,7 +977,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       {
         std::string psm_run;
         Int64 psm_id = 0;
-        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, psm_run, psm_id)) { continue; }
+        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, psm_run, psm_id)) { continue; }
         if (psm_run != row.run) { continue; }
         // Two identifications of one feature can agree on all four key columns; the psm view
         // stores one row for them, so this must list it once.
@@ -1001,7 +1003,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
     // for every other identification, as before.
     {
-      const auto cv_params = best_hit ? ArrowIOHelpers::qpxCvParams(*best_hit)
+      const auto cv_params = best_hit ? ArrowIOHelpers::qpxCvParams(*best_hit, label_state_keys)
                                       : std::vector<std::pair<std::string, std::string>>{};
       if (cv_params.empty())
       {

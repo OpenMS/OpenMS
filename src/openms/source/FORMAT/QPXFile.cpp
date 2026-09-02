@@ -1035,6 +1035,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   // Resolved once for the whole range, like every other metavalue key here: looking one up by
   // name takes the MetaInfoRegistry's `omp critical` lock, and this runs inside a parallel build.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  const MS1LabelState::Keys label_state_keys; // resolved once; see MS1LabelState::Keys
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -1079,9 +1080,9 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       // identity below use it, and the feature view derives its psm_ids from the same peptidoform.
       const AASequence* seq_ptr = &hit.getSequence();
       AASequence matched_seq;
-      if (MS1LabelState::hasMatchedSequence(hit))
+      if (MS1LabelState::hasMatchedSequence(hit, label_state_keys))
       {
-        matched_seq = MS1LabelState::matchedSequence(hit);
+        matched_seq = MS1LabelState::matchedSequence(hit, label_state_keys);
         seq_ptr = &matched_seq;
       }
       const AASequence& seq = *seq_ptr;
@@ -1303,7 +1304,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
       // for every other identification, as before.
       {
-        const auto cv_params = ArrowIOHelpers::qpxCvParams(hit);
+        const auto cv_params = ArrowIOHelpers::qpxCvParams(hit, label_state_keys);
         if (cv_params.empty())
         {
           (void)cv_params_builder.AppendNull();

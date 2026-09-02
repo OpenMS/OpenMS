@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
 #include <string>
@@ -51,8 +52,27 @@ namespace OpenMS
     /// The three keys, in the order they are reported
     OPENMS_DLLAPI const std::vector<std::string>& keys();
 
+    /**
+      @brief The registry indices of the three keys, resolved once for a loop over many hits
+
+      A meta value looked up by name takes the registry lock on every call; the exporters walk
+      millions of hits, so they resolve the indices once per table and look up by index. A key that
+      no hit in this process has used yet resolves to @c UInt(-1), which the index overloads treat
+      as "absent". Construct it right before the loop, not statically: the keys become registered
+      the moment a workflow annotates its first hit.
+    */
+    struct OPENMS_DLLAPI Keys
+    {
+      Keys();
+      UInt labeled_sequence;
+      UInt removed_labels;
+      UInt label_channel;
+    };
+
     /// Does @p hit record a matched peptidoform that differs from its sequence, i.e. was it reduced to a peptide identity?
     OPENMS_DLLAPI bool hasMatchedSequence(const PeptideHit& hit);
+    /// Index-based variant of hasMatchedSequence() for loops over many hits
+    OPENMS_DLLAPI bool hasMatchedSequence(const PeptideHit& hit, const Keys& keys);
 
     /**
       @brief The peptidoform @p hit was matched to the spectrum with
@@ -62,6 +82,8 @@ namespace OpenMS
       @throws Exception::ParseError if the recorded @c labeled_sequence cannot be parsed
     */
     OPENMS_DLLAPI AASequence matchedSequence(const PeptideHit& hit);
+    /// Index-based variant of matchedSequence() for loops over many hits
+    OPENMS_DLLAPI AASequence matchedSequence(const PeptideHit& hit, const Keys& keys);
 
     /// A copy of @p hit whose sequence is matchedSequence(); an unchanged copy when no label state is recorded
     OPENMS_DLLAPI PeptideHit withMatchedSequence(const PeptideHit& hit);

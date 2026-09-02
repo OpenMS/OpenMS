@@ -1302,14 +1302,15 @@ namespace OpenMS
     // The PSM section describes the spectrum match: a hit whose sequence was reduced to a peptide
     // identity (MS1LabeledWorkflow removes the labels, which belong to the channel) reports the
     // peptidoform it was matched with, so that the calculated mass fits the precursor.
-    const PeptideHit matched_ph = MS1LabelState::withMatchedSequence(current_ph);
-    const AASequence& aas = matched_ph.getSequence();
+    // current_ph is this function's own copy, so it can carry the matched peptidoform in place.
+    if (MS1LabelState::hasMatchedSequence(current_ph)) { current_ph.setSequence(MS1LabelState::matchedSequence(current_ph)); }
+    const AASequence& aas = current_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
     // extract all modifications in the current sequence for reporting.
     // In contrast to peptide and protein section where fixed modifications are not reported we now report all modifications.
     // If localization mods are specified we add localization scores
-    row.modifications = extractModificationList(matched_ph, vector<std::string>(), localization_mods);
+    row.modifications = extractModificationList(current_ph, vector<std::string>(), localization_mods);
     
     MzTabParameterList search_engines;
 

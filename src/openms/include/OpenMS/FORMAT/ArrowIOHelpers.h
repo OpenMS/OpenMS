@@ -33,6 +33,7 @@ namespace OpenMS
 {
 class ConsensusMap;
 class MetaInfoInterface;
+namespace MS1LabelState { struct Keys; }
 
 /**
   @brief Public helpers for writing and concatenating Arrow tables to Parquet files
@@ -313,6 +314,10 @@ namespace ArrowIOHelpers
     @return (cv_name, cv_value) pairs in the order above, only for the keys present; empty if none is
   */
   OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit);
+
+  /// qpxCvParams() with the registry indices resolved once (MS1LabelState::Keys), for a loop over many hits
+  OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                                              const MS1LabelState::Keys& keys);
 
   // ---------------------------------------------------------------------------
   // Read helpers
