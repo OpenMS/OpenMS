@@ -22,10 +22,16 @@ cpack_add_component(library
                 DESCRIPTION "Libraries"
                 INSTALL_TYPES recommended full minimal
                 )
+# Conditionally add PLIST argument for macOS pkg (lists app bundles for productbuild)
+set(_PLIST_ARG)
+if(DEFINED APPLICATIONS_COMPONENT_PLIST AND EXISTS "${APPLICATIONS_COMPONENT_PLIST}")
+    set(_PLIST_ARG PLIST "${APPLICATIONS_COMPONENT_PLIST}")
+endif()
 cpack_add_component(applications
                 DISPLAY_NAME "OpenMS binaries"
                 DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
                 INSTALL_TYPES recommended full minimal
+                ${_PLIST_ARG}
                 )
 cpack_add_component(doc
                 DISPLAY_NAME "Documentation"
