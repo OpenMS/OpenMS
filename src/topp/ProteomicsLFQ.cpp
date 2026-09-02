@@ -954,6 +954,7 @@ protected:
             || StringUtils::hasSubstring(k, "q-value")
             || StringUtils::hasPrefix(k, "Luciphor_global_flr")
             || k == "target_decoy" // keep target_decoy information for QC
+            || k == "CalcMass" // FFId needs search-engine precursor mass overrides
             || (keep_protein_references && k == "protein_references"))
             )
           {

@@ -939,12 +939,15 @@ namespace OpenMS
         quantified.insert(f.getPeptideIdentifications()[0].getHits()[0].getSequence());
       }
     }
+    const Size n_missing = n_peptides_ > quantified.size()
+      ? n_peptides_ - quantified.size()
+      : 0;
 
     OPENMS_LOG_INFO << "\nSummary statistics (counting distinct peptides including "
       "PTMs):\n"
              << n_peptides_ << " peptides identified\n"
              << quantified.size() << " peptides with features\n"
-             << n_peptides_ - quantified.size()
+             << n_missing
              << " peptides without features\n" << endl;
 
   }

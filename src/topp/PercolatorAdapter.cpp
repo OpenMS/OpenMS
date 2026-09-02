@@ -205,33 +205,20 @@ protected:
     }
   };
 
-  /// Strip PIN-format meta values that PercolatorInfile::stampPinFeaturesOnHits
-  /// leaves on each hit during the in-process feature-matrix build. Without
-  /// this, the in-process output idXML carries 17+ internal columns (SpecId,
-  /// ScanNr, Label, ExpMass, CalcMass, mass, peplen, charge<N>, enzN/C/Int,
-  /// dm, absdm, deltamass, retentiontime, score, Peptide, Proteins) that
-  /// downstream tools shouldn't see. The subprocess path doesn't need this:
-  /// it writes those fields to a temporary PIN file and never stamps them
-  /// onto hits in the first place.
+  /// Remove only PIN-format meta values that were absent before the in-process
+  /// feature-matrix build and added by stampPinFeaturesOnHits(). Input metadata
+  /// with a PIN-column name (notably CalcMass) must survive, matching the
+  /// subprocess path, which stamps a copy while writing its temporary PIN file.
   static void stripPinFeatureMetaValues_(
     PeptideIdentificationList& pep_ids,
-    int min_charge, int max_charge)
+    const PercolatorInfile::PinFeatureMetaValueMap& added_meta_values)
   {
-    static const std::vector<std::string> KEYS_TO_STRIP = {
-      "SpecId", "ScanNr", "Label", "ExpMass", "CalcMass",
-      "mass", "peplen", "deltamass", "retentiontime", "score",
-      "enzN", "enzC", "enzInt", "dm", "absdm",
-      "Peptide", "Proteins"
-    };
-    for (auto& pid : pep_ids.getData())
+    for (const auto& [hit_location, keys] : added_meta_values)
     {
-      for (auto& hit : pid.getHits())
+      PeptideHit& hit = pep_ids[hit_location.first].getHits()[hit_location.second];
+      for (const std::string& key : keys)
       {
-        for (const std::string& k : KEYS_TO_STRIP) hit.removeMetaValue(k);
-        for (int c = min_charge; c <= max_charge; ++c)
-        {
-          hit.removeMetaValue("charge" + StringUtils::toStr(c));
-        }
+        hit.removeMetaValue(key);
       }
     }
   }
@@ -795,8 +782,6 @@ protected:
       return PARSE_ERROR;
     }
 
-    const std::string percolator_executable(getStringOption_("percolator_executable"));
-    
     if (in_list.empty() && in_osw.empty())
     {
       writeLogError_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
@@ -836,6 +821,27 @@ protected:
     bool protein_level_fdrs = getFlag_("protein_level_fdrs");  
 
     Int description_of_correct = getIntOption_("doc");
+
+    // Decide up front whether the external 'percolator' binary is needed. The
+    // in-process backend covers the idXML/mzid + PSM-level FDR path; OSW input,
+    // protein-/peptide-level FDR, description-of-correct, initial weights, or an
+    // explicit -use_subprocess true all fall through to the subprocess path.
+    // '-percolator_executable' carries the 'is_executable' tag, so merely reading
+    // it resolves it on PATH and aborts when it is missing. Read it only when the
+    // subprocess will actually be run, so installations without percolator can
+    // still use the in-process backend (#10020).
+    const bool in_process_ok = getStringOption_("use_subprocess") != "true"
+                               && in_osw.empty()
+                               && !protein_level_fdrs
+                               && !peptide_level_fdrs
+                               && description_of_correct == 0
+                               && getStringOption_("init_weights").empty();
+
+    std::string percolator_executable;
+    if (!in_process_ok)
+    {
+      percolator_executable = getStringOption_("percolator_executable");
+    }
 
     double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
     double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
@@ -960,16 +966,10 @@ protected:
       feature_set.push_back("Proteins");
 
       // In-process path: handle the simple idXML/mzid + PSM-level FDR case
-      // without spawning the external 'percolator' binary. Falls through to
-      // the subprocess path for anything the in-process wrapper can't do
-      // (protein-level FDR, peptide-level FDR, init_weights, etc.).
-      const bool use_subprocess = (getStringOption_("use_subprocess") == "true");
-      const bool in_process_ok = !use_subprocess
-                                 && !protein_level_fdrs
-                                 && !peptide_level_fdrs
-                                 && description_of_correct == 0
-                                 && getStringOption_("init_weights").empty();
-
+      // without spawning the external 'percolator' binary (in_process_ok was
+      // determined above). Falls through to the subprocess path for anything
+      // the in-process wrapper can't do (protein-level FDR, peptide-level FDR,
+      // init_weights, etc.).
       if (in_process_ok)
       {
         // Stamp PIN meta values on all hits — this mirrors what the subprocess
@@ -978,8 +978,9 @@ protected:
         // enzN/enzC/enzInt, dm/absdm, score, etc.) plus any search-engine-
         // specific extra_features already present. Training on this set
         // matches the subprocess path's feature vectors row-for-row.
+        PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
         const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
-          all_peptide_ids, enz_str, min_charge, max_charge);
+          all_peptide_ids, enz_str, min_charge, max_charge, added_pin_meta_values);
         OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
                         << skipped.size() << " PSMs skipped (no evidence or unknown TD)."
                         << std::endl;
@@ -1142,7 +1143,7 @@ protected:
         // (search engine identity + 23 SearchParameter UserParams) so the
         // in-process output matches the historical subprocess output's
         // metadata contract that downstream tools rely on.
-        stripPinFeatureMetaValues_(all_peptide_ids, min_charge, max_charge);
+        stripPinFeatureMetaValues_(all_peptide_ids, added_pin_meta_values);
         stampPercolatorAdapterMetadata_(all_protein_ids,
           peptide_level_fdrs, protein_level_fdrs,
           /*version_string=*/"3.08-vendored");
