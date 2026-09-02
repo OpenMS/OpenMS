@@ -56,6 +56,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <tuple>
 #include <map>
 #include <set>
 #include <string>
@@ -144,7 +146,9 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      and psm views as @c cv_params. PSM-level output describes the spectrum match and therefore reports the
      peptidoform as searched (mzTab PSM section, QPX psm view), feature-level output the peptide identity
      (see @ref OpenMS::MS1LabelState). The column headers describe every channel's labels in @c channel_description.
-     An identification that was mapped onto several multiplets is kept on the most intense one only.
+     A spectrum match that was mapped onto several multiplets stays on the one whose matched channel is closest to
+     the precursor; distinct spectra of one peptide on distinct multiplets are all kept, and their channel values
+     add up per peptide and charge in the quantification.
   -# Per fraction: retention time alignment of the runs (@p alignment, identification-based, aligned to the
      run with most identifications) and linking of the multiplets across runs (@p linking); the channels of
      every run are kept as sub-features, so the linked map has one column per (run, channel). Fractions are
@@ -155,6 +159,18 @@ the modifications implied by @p labels and refuses to run if they are missing (u
   -# Protein inference over all runs (@p protein_inference), protein (and optionally PSM/peptide) FDR
      filtering, and peptide and protein quantification (@p ProteinQuantification), where the fractions of a
      fraction group are aggregated according to the design.
+
+<b>Ratios.</b> Every output carries the intensity of every channel separately: per multiplet (consensusXML
+sub-features, QPX feature @c intensities), per peptide and assay (mzTab peptide section), per protein group
+and assay (mzTab protein section, QPX pg view). A peptide's channel ratio is the ratio of its channel values.
+Protein abundances are aggregated per channel over the peptides selected by @p ProteinQuantification (top N,
+median by default), so a protein ratio computed from them is a ratio of per-channel aggregates, not the median
+of the peptide ratios that e.g. MaxQuant reports; compute the latter from the peptide section if that is the
+statistic you need. A channel completed with a zero-intensity dummy feature is reported as 0 at the peptide
+level and left out of the protein aggregation like any other missing value, so a protein's channel value comes
+from the peptides detected in that channel only.
+@p ProteinQuantification:consensus:normalize scales every assay to the overall median, which for a labeled
+experiment forces the median channel ratio to 1; leave it off unless that is intended.
 
 @p max_nr_labelled_aas is used for both the feature detection and the resolver: it is the maximum number of
 labelled amino acids per peptide minus one, i.e. for tryptic SILAC the number of allowed missed cleavages.
@@ -697,6 +713,92 @@ protected:
   }
 
   /**
+    @brief Attach every spectrum match to the closest channel, and to the closest multiplet only.
+
+    IDMapper attaches an identification to every multiplet within its tolerances and records the
+    first channel within tolerance as its 'map_index'. The resolver reads that index as the channel
+    the spectrum belongs to, so it is set to the channel closest to the precursor m/z here (the same
+    channel whenever the tolerance is smaller than the label shift). One spectrum is evidence for one
+    multiplet, too (and a QPX PSM may reference one feature): it stays with the multiplet whose
+    closest channel is closest to the precursor in m/z, then in RT. This runs before the best-scoring
+    match is chosen per multiplet, so that a multiplet does not first take a neighbour's
+    better-scoring spectrum and then lose it, ending up without its own. Distinct spectra of the same
+    peptide on distinct multiplets are not touched: both multiplets are quantified and their channel
+    values add up per peptide.
+  */
+  void keepMultiAssignedOnClosest_(ConsensusMap& multiplets) const
+  {
+    struct Candidate
+    {
+      Size feature;
+      Size id_index;
+      double mz_ppm;
+      double rt_diff;
+    };
+    std::map<std::string, vector<Candidate>> by_spectrum_match; // (spectrum, peptidoform, charge) -> where it sits
+
+    for (Size f = 0; f < multiplets.size(); ++f)
+    {
+      ConsensusFeature& cf = multiplets[f];
+      auto& ids = cf.getPeptideIdentifications();
+      for (Size i = 0; i < ids.size(); ++i)
+      {
+        PeptideIdentification& id = ids[i];
+        if (id.getHits().empty()) { continue; }
+
+        // the channel closest to the precursor is the one the spectrum belongs to
+        double best_ppm = std::numeric_limits<double>::infinity(), best_rt = 0.0;
+        Size best_map_index = 0;
+        for (const FeatureHandle& handle : cf.getFeatures())
+        {
+          const double ppm = std::abs(handle.getMZ() - id.getMZ()) / handle.getMZ() * 1e6;
+          if (ppm < best_ppm)
+          {
+            best_ppm = ppm;
+            best_rt = std::abs(handle.getRT() - id.getRT());
+            best_map_index = handle.getMapIndex();
+          }
+        }
+        if (!cf.getFeatures().empty()) { id.setMetaValue("map_index", best_map_index); }
+
+        const std::string reference = id.getSpectrumReference();
+        if (reference.empty()) { continue; }
+        const std::string key = reference + '\t' + id.getHits()[0].getSequence().toString() + '\t' + StringUtils::toStr(id.getHits()[0].getCharge());
+        by_spectrum_match[key].push_back({f, i, best_ppm, best_rt});
+      }
+    }
+
+    vector<std::set<Size>> to_remove(multiplets.size()); // per multiplet: indices of the copies to drop
+    Size shared = 0;
+    for (auto& [key, candidates] : by_spectrum_match)
+    {
+      if (candidates.size() < 2) { continue; }
+      ++shared;
+      const auto closest = std::min_element(candidates.begin(), candidates.end(),
+                                            [](const Candidate& a, const Candidate& b)
+                                            { return std::tie(a.mz_ppm, a.rt_diff) < std::tie(b.mz_ppm, b.rt_diff); });
+      for (auto it = candidates.begin(); it != candidates.end(); ++it)
+      {
+        if (it != closest) { to_remove[it->feature].insert(it->id_index); }
+      }
+    }
+    for (Size f = 0; f < multiplets.size(); ++f)
+    {
+      if (to_remove[f].empty()) { continue; }
+      auto& ids = multiplets[f].getPeptideIdentifications().getData();
+      // highest index first, so that the remaining indices stay valid
+      for (auto it = to_remove[f].rbegin(); it != to_remove[f].rend(); ++it)
+      {
+        ids.erase(ids.begin() + static_cast<std::ptrdiff_t>(*it));
+      }
+    }
+    if (shared > 0)
+    {
+      OPENMS_LOG_INFO << shared << " spectrum match(es) were mapped onto several multiplets; each stays with the closest one." << endl;
+    }
+  }
+
+  /**
     @brief Quantify one run: multiplet detection, ID mapping, conflict resolution, multiplet completion.
 
     The result has one column per channel (map index = channel position), labelled with the channel's
@@ -734,6 +836,9 @@ protected:
       mapper.setParameters(idm_param);
       mapper.annotate(multiplets, peptide_ids, protein_ids, /*measure_from_subelements=*/true, /*annotate_ids_with_subelements=*/true);
     }
+
+    // a spectrum match that landed on several multiplets stays on the closest one only
+    keepMultiAssignedOnClosest_(multiplets);
 
     // one identification (the best) per multiplet
     IDConflictResolverAlgorithm::resolve(multiplets);
@@ -825,10 +930,6 @@ protected:
     {
       for (auto& hit : id.getHits()) { stripLabels_(hit); }
     }
-
-    // an identification mapped onto several multiplets stays on the most intense one only,
-    // otherwise its abundance would be counted several times
-    IDConflictResolverAlgorithm::resolveBetweenFeatures(resolved);
 
     // the resolver records the channel of the identified feature of a completed multiplet on its hit;
     // make the identification's map index agree with it so that linking carries the right channel forward

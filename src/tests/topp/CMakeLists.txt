@@ -3840,6 +3840,26 @@ add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_out" ${QPX_DIFF}
   -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_psm.tmp.tsv -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_qpx_psm.tsv)
 set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_out" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump")
 
+# one spectrum match on several multiplets: with an absurd m/z tolerance every identification of doublets
+# 2 and 3 (11.5 Th apart, both 2+) lands on both of them. A spectrum is evidence for one multiplet only,
+# the closest one, and that has to be settled BEFORE the best-scoring match is chosen per multiplet;
+# otherwise doublet 3 would first take doublet 2's better-scoring spectrum and then lose it to
+# doublet 2, ending up unidentified. The output must equal the single-run reference, which was produced
+# with the default tolerance, i.e. the multi-assignment must have changed nothing.
+add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -id_mapping:mz_tolerance 15000
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML)
+# an identical output could also mean that nothing was multi-assigned, so require that it was
+set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PASS_REGULAR_EXPRESSION "assigned to multiple features: 3")
+add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_5_multi_assignment")
+
 # with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
 add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML

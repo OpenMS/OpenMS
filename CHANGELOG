@@ -818,7 +818,8 @@ TOPP tools:
       removed_labels, label_channel), reported as mzTab opt_global columns and QPX cv_params; PSM-level
       output (mzTab PSM section, QPX psm view) reports the peptidoform as searched, feature-level
       output the peptide identity. Each column header describes its channel's labels
-      (channel_description). Checks up front that
+      (channel_description). A spectrum match mapped onto several multiplets stays with the closest
+      one; distinct spectra of one peptide on distinct multiplets are all quantified. Checks up front that
       the labels were searched as modifications, that the design enumerates the channels of -labels,
       and that -out_qpx is only requested for labels in the QPX vocabulary (#10044)
     - FeatureLinkerWNet: groups corresponding features across label-free maps using Wasserstein (optimal
