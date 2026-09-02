@@ -1360,6 +1360,23 @@ Fixes:
     all sites and could not even match the per-site formula vector in length. Both are now parsed and
     stored per site, and a regression test asserts that neutral loss formulas, mono masses and average
     masses line up for every UniMod entry (fixes #10030)
+  - Fix: File::TempDir built its directory name from date/time/hostname/PID/counter and then created it
+    with fs::create_directories(), which silently succeeds even if the directory already exists -- so two
+    concurrent processes computing the same predictable name could both believe they owned it. Both
+    constructors now claim a name atomically instead: mkdtemp() on Linux/macOS, and CreateDirectoryW()
+    retried with a new UUID-based suffix on collision on Windows, which has no mkdtemp() equivalent (#9965)
+  - Fix: ProForma::resolveModificationTag_ returned nullptr for every Formula: tag, so BEST_EFFORT parsing
+    silently dropped the adduct's mass and chemistry instead of interning it; the tag is now resolved into
+    a ResidueModification keyed on its EmpiricalFormula, so parsing round-trips correctly and downstream
+    isotope patterns are computed from the real chemistry rather than an averagine approximation
+  - Fix: AASequence::fromString -> ProForma::fromAASequence -> toString emitted an empty "[]" bracket for
+    any anonymous modification (every mass-only mod created via createUnknownFromMassString), which
+    ProForma::parse then rejected with "Expected modification". This corrupted the peptidoform column
+    written by the .idparquet/.featureparquet/.consensusparquet writers -- also a component of the QPX PSM
+    identity hash -- and PeptideIdentification's USI construction, affecting every OpenNuXL localized
+    cross-link (#10017) and open-search mass shift written since. fromAASequence now emits a mass delta or
+    a Formula: tag as appropriate, and several modifications stacked on one residue are merged instead of
+    the last one silently winning (#10003, #10026)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)
