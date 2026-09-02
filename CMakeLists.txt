@@ -63,6 +63,12 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
+# FetchContent without a sub-build (CMake >= 3.30).
+# (required to allow changing the Generator in the main project, without deleting the FetchContent sub-build)
+if(POLICY CMP0168)  ## obsolete in CMake 3.30+
+  cmake_policy(SET CMP0168 NEW)
+endif()
+
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -355,9 +361,10 @@ include(cmake/min_compiler_versions.cmake)
 include(cmake/compiler_flags.cmake)
 
 # Visibility settings
+# (CMP0063, honouring visibility properties for all target types, is from CMake 3.3
+#  and is therefore already NEW by default at our minimum -- no policy set needed.)
 if (NOT CMAKE_CXX_VISIBILITY_PRESET)
   set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
-  cmake_policy(SET CMP0063 NEW)
 endif()
 if (CMAKE_VISIBILITY_INLINES_HIDDEN)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
