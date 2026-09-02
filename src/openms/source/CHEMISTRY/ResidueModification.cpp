@@ -13,10 +13,14 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <charconv>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -751,6 +755,205 @@ namespace OpenMS
                                                        residue);
 
     return mod_sum;
+  }
+
+  namespace
+  {
+    // Escape a definition-record field: the three characters that have structural meaning.
+    std::string escapeField_(const std::string& in)
+    {
+      std::string out;
+      out.reserve(in.size());
+      for (const char c : in)
+      {
+        if (c == '\\' || c == '|' || c == ';') out += '\\';
+        out += c;
+      }
+      return out;
+    }
+
+    // Split on an unescaped separator, unescaping as we go. A trailing lone backslash is kept literally.
+    std::vector<std::string> splitEscaped_(const std::string& in, const char sep)
+    {
+      std::vector<std::string> parts(1);
+      for (std::size_t i = 0; i < in.size(); ++i)
+      {
+        const char c = in[i];
+        if (c == '\\' && i + 1 < in.size())
+        {
+          parts.back() += in[++i];
+        }
+        else if (c == sep)
+        {
+          parts.emplace_back();
+        }
+        else
+        {
+          parts.back() += c;
+        }
+      }
+      return parts;
+    }
+
+    std::string doubleToRecord_(const double d)
+    {
+      char buf[64];
+      const auto res = std::to_chars(buf, buf + sizeof(buf), d); // shortest exact round trip
+      if (res.ec != std::errc())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Cannot write the mass " + std::to_string(d) + " into a modification definition record");
+      }
+      return std::string(buf, res.ptr);
+    }
+
+    double recordToDouble_(const std::string& field, const std::string& record)
+    {
+      if (field.empty()) return 0.0;
+      try
+      {
+        return StringUtils::toDouble(field); // libc++ has no floating-point std::from_chars
+      }
+      catch (const Exception::ConversionError&)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                    "Modification definition record has a malformed number: '" + field + "'");
+      }
+    }
+  } // namespace
+
+  std::string ResidueModification::toDefinitionString() const
+  {
+    if (id_.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot write a definition record for a modification without an Id: resolution goes through the name.");
+    }
+    std::string losses;
+    for (const EmpiricalFormula& f : neutral_loss_diff_formulas_)
+    {
+      if (!losses.empty()) losses += ',';
+      losses += f.toString();
+    }
+    const std::string fields[] = {
+      "1",
+      id_,
+      full_id_,
+      full_name_,
+      std::string(1, origin_),
+      getTermSpecificityName(term_spec_),
+      diff_formula_.isEmpty() ? std::string() : diff_formula_.toString(),
+      doubleToRecord_(diff_mono_mass_),
+      doubleToRecord_(diff_average_mass_),
+      losses
+    };
+    std::string out;
+    for (const std::string& f : fields)
+    {
+      if (!out.empty()) out += '|';
+      out += escapeField_(f);
+    }
+    return out;
+  }
+
+  ResidueModification ResidueModification::fromDefinitionString(const std::string& record)
+  {
+    const std::vector<std::string> f = splitEscaped_(record, '|');
+    // version | Id | FullId | FullName | origin | term_spec | diff_formula | diff_mono | diff_avg [| losses [| ...]]
+    if (f.size() < 9)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Modification definition record has " + std::to_string(f.size()) + " fields, expected at least 9");
+    }
+    if (f[0] != "1")
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Unsupported modification definition record version '" + f[0] + "'");
+    }
+    if (f[1].empty())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Modification definition record has an empty Id");
+    }
+    if (f[4].size() != 1)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Modification definition record origin must be a single residue letter, got '" + f[4] + "'");
+    }
+
+    ResidueModification mod;
+    mod.setId(f[1]);
+    mod.setFullName(f[3]);
+    mod.setTermSpecificity(f[5]); // throws InvalidValue on an unknown name
+    mod.setOrigin(f[4][0]);       // throws InvalidValue on a non-residue letter
+    if (!f[6].empty()) mod.setDiffFormula(EmpiricalFormula(f[6]));
+    mod.setDiffMonoMass(recordToDouble_(f[7], record));
+    mod.setDiffAverageMass(recordToDouble_(f[8], record));
+    if (f.size() > 9 && !f[9].empty())
+    {
+      std::vector<EmpiricalFormula> losses;
+      std::vector<double> loss_mono, loss_avg;
+      std::stringstream ss(f[9]);
+      std::string item;
+      while (std::getline(ss, item, ','))
+      {
+        if (item.empty()) continue;
+        losses.emplace_back(item);
+        loss_mono.push_back(losses.back().getMonoWeight());
+        loss_avg.push_back(losses.back().getAverageWeight());
+      }
+      mod.setNeutralLossDiffFormulas(losses);
+      mod.setNeutralLossMonoMasses(loss_mono); // the record carries formulas only; keep the object consistent
+      mod.setNeutralLossAverageMasses(loss_avg);
+    }
+
+    // the record's FullId is authoritative (dedup key) but should agree with the derived one
+    ResidueModification derived(mod);
+    derived.setFullId();
+    if (f[2].empty())
+    {
+      mod.setFullId(derived.getFullId());
+    }
+    else
+    {
+      mod.setFullId(f[2]);
+      if (f[2] != derived.getFullId())
+      {
+        OPENMS_LOG_WARN << "Modification definition '" << f[1] << "': FullId '" << f[2]
+                        << "' does not match the one derived from its site ('" << derived.getFullId()
+                        << "'); keeping the record's." << std::endl;
+      }
+    }
+    mod.setProvenance(DEFINED);
+    return mod;
+  }
+
+  std::vector<std::string> ResidueModification::splitDefinitionRecords(const std::string& records)
+  {
+    if (records.empty()) return {};
+    std::vector<std::string> out;
+    // split on unescaped ';' without unescaping; fromDefinitionString needs the escapes intact
+    std::string cur;
+    for (std::size_t i = 0; i < records.size(); ++i)
+    {
+      const char c = records[i];
+      if (c == '\\' && i + 1 < records.size())
+      {
+        cur += c;
+        cur += records[++i];
+      }
+      else if (c == ';')
+      {
+        if (!cur.empty()) out.push_back(cur);
+        cur.clear();
+      }
+      else
+      {
+        cur += c;
+      }
+    }
+    if (!cur.empty()) out.push_back(cur);
+    return out;
   }
 
   std::string ResidueModification::toString() const

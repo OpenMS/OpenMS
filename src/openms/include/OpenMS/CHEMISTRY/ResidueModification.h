@@ -405,6 +405,32 @@ public:
     /// return a string of the form '[&gt;mass&lt;]
     static std::string getMonoMassWithBracket(const double mono_mass);
 
+    /** @name Definition records
+
+      Portable description of a modification that is not in the shipped vocabularies, so that a file
+      naming it can be read by another process. One record per ModificationsDB entry, i.e. per
+      (Id, origin, term specificity).
+
+      Version 1; fields separated by '|', records by ';', '\\' escapes '\\', '|' and ';':
+      @code
+      1|Id|FullId|FullName|origin|term_spec|diff_formula|diff_mono_mass|diff_average_mass|neutral_loss_formulas
+      @endcode
+      Id is required; term_spec uses the names of getTermSpecificityName(); neutral_loss_formulas is a
+      ','-joined list and may be empty. Absolute masses are not carried (they are per residue).
+      Readers ignore trailing extra fields.
+    */
+    //@{
+    /// Serialise this modification as a version-1 definition record. @throws Exception::MissingInformation if Id is empty.
+    std::string toDefinitionString() const;
+
+    /// Parse a definition record. Does not touch ModificationsDB; provenance of the result is DEFINED.
+    /// @throws Exception::ParseError on a malformed record or an unsupported version.
+    static ResidueModification fromDefinitionString(const std::string& record);
+
+    /// Split a ';'-joined sequence of records, honouring '\\' escapes. Empty input yields no records.
+    static std::vector<std::string> splitDefinitionRecords(const std::string& records);
+    //@}
+
 protected:
     std::string id_;
 

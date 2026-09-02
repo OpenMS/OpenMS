@@ -170,6 +170,21 @@ public:
     const ResidueModification* addModification(const ResidueModification& new_mod) const;
 
     /**
+       @brief Register a modification definition read from a file or supplied by a tool.
+
+       The same FullId is the same modification: the first definition wins, re-registration is silent,
+       and a different chemistry under an existing FullId logs a warning and keeps the existing entry.
+       The stored copy is marked Provenance::DEFINED.
+
+       @return the entry for this FullId (the pre-existing one if already present)
+       @throws Exception::MissingInformation if the definition has no Id
+    */
+    const ResidueModification* registerDefinition(const ResidueModification& definition) const;
+
+    /// Is @p name (an Id, FullId or FullName) registered with Provenance::DEFINED? Unlike has(), false for vocabulary entries.
+    bool hasDefinedModification(const std::string& name) const;
+
+    /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
 
        return numeric_limits<Size>::max() if not exactly one matching modification was found
