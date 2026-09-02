@@ -761,6 +761,14 @@ TOPP tools:
         independently (#9247, #9250)
     FeatureFinderMultiplex, MultiplexResolver:
       - BREAKING: parameter `missed_cleavages` renamed to `max_nr_labelled_aas` (#8911)
+    FeatureLinkerUnlabeled, FeatureLinkerUnlabeledQT, FeatureLinkerUnlabeledKD, FeatureLinkerWNet:
+      - BREAKING: the -design parameter was removed. Multi-fraction grouping never worked: the loop over
+        fractions re-used the first k feature maps for every fraction and each group() call cleared the
+        output map, so a design with n fractions silently yielded the grouping of a single fraction and
+        dropped the remaining input maps without a warning. FeatureLinkerUnlabeled registered the
+        parameter but never read it. Link each fraction separately and combine the results with
+        FileMerger -append_method append_cols; fractionated label-free quantification is covered by
+        ProteomicsLFQ, which does its own per-fraction linking (#10043)
     IDConflictResolver:
       - Added a rank aggregation resolve method (--resolve_method rank_aggregation) for consensus
         replicate identifications (#8907)
