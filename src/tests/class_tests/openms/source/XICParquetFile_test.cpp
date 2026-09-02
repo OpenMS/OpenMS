@@ -133,6 +133,32 @@ START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64,
 }
 END_SECTION
 
+START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, const XICQuery&) const)
+{
+  XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
+
+  // issue #9488 (FORM-94): the named-field query binds each value to the correct column and
+  // forwards to the positional overload, so swapped arguments are impossible. q.precursor_id
+  // must filter PRECURSOR_ID exactly like the positional precursor_id argument.
+  std::vector<XICChromatogram> pos;
+  xic.getChromatograms(pos, 2 /*precursor_id*/);
+  XICParquetFile::XICQuery q;
+  q.precursor_id = 2;
+  std::vector<XICChromatogram> named;
+  xic.getChromatograms(named, q);
+  TEST_EQUAL(named.size(), pos.size())
+
+  // run_id must map to RUN_ID, never be confused with precursor_id.
+  std::vector<XICChromatogram> pos_run;
+  xic.getChromatograms(pos_run, -1, -1, "", -1, -1, -1, 2 /*run_id*/, "");
+  XICParquetFile::XICQuery q_run;
+  q_run.run_id = 2;
+  std::vector<XICChromatogram> named_run;
+  xic.getChromatograms(named_run, q_run);
+  TEST_EQUAL(named_run.size(), pos_run.size())
+}
+END_SECTION
+
 START_SECTION(void getChromatograms_multi_file)
 {
   std::vector<std::string> files;
