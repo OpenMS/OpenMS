@@ -99,6 +99,10 @@ struct FeatureIdLookups
   /// Set when a column header names a channel QPX cannot label; the export must not proceed,
   /// since the label is a join key.
   bool has_unlabelable_channel = false;
+  /// Whether channel 1 -- the channel a row's observed_mz is anchored on -- carries a chemical
+  /// label of its own. Decides whether mass_error_ppm can be computed against a sequence that
+  /// was reduced to its label-free identity; see the note at the mass_error_ppm call site.
+  bool reference_channel_is_labeled = false;
 };
 
 /// Build the per-map protein-group q-value and gene-info lookups from the
@@ -175,6 +179,19 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
                           "cannot be identified, so no QPX intensity label can be derived for it."
                        << std::endl;
     }
+    // Channel 1 is the one FeatureFinderMultiplex anchors the consensus centroid on, so it is
+    // the channel observed_mz measures. "LFQ" and "SILAC light" are the canonical labels that
+    // mean the peptide itself carries nothing; every other label in an MS1-labeled map shifts
+    // the precursor away from the label-free identity. A header without channel_id cannot be
+    // placed, so assume it could be channel 1 rather than emit an error computed on a guess.
+    if (cmap.getExperimentType() == "labeled_MS1"
+        && (!header.metaValueExists("channel_id")
+            || static_cast<unsigned>(header.getMetaValue("channel_id")) == 0)
+        && !label.empty() && label != "LFQ" && label != "SILAC light")
+    {
+      lut.reference_channel_is_labeled = true;
+    }
+
     lut.run_columns[map_index] = FeatureIdLookups::RunColumnInfo{
       header.filename, ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
   }
@@ -719,7 +736,20 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
         (void)calculated_mz_builder.Append(calc_mz);
         float obs_mz = static_cast<float>(row_mz);
         // mass_error_ppm = (observed - calculated) / calculated * 1e6
-        if (calc_mz > 0)
+        //
+        // Only if both sides describe the same peptidoform, which in MS1-labeled data they need
+        // not: the label belongs to the channel, so the workflow reduces every hit to its
+        // label-free peptide identity (MS1LabelState) and calculated_mz above is that identity,
+        // while observed_mz is the consensus centroid, anchored on channel 1. Where channel 1 is
+        // itself unlabeled (SILAC light) the two agree and the error is a real measurement.
+        // Where channel 1 carries a label (Dimethyl0, or a SILAC set without a light channel)
+        // calculated_mz is short by the entire label mass -- tens of thousands of ppm, e.g.
+        // +33879 for a doubly dimethylated tryptic peptide at charge 2 -- so report no error
+        // rather than a fabricated one. sequence, peptidoform and calculated_mz stay on the
+        // identity: that is the documented feature-level contract and the psm view's join key.
+        const bool label_shifted_precursor = id_lut.reference_channel_is_labeled
+                                             && MS1LabelState::hasMatchedSequence(*best_hit, label_state_keys);
+        if (calc_mz > 0 && !label_shifted_precursor)
         {
           (void)mass_error_ppm_builder.Append((obs_mz - calc_mz) / calc_mz * 1e6f);
         }

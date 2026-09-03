@@ -3714,6 +3714,21 @@ set_tests_properties("TOPP_MultiplexResolver_4_out3" PROPERTIES DEPENDS "TOPP_Mu
 # the multiplet; 4: an Arg10-labelled sequence on a Lys8 doublet, i.e. a quant/ID conflict that is
 # not quantified; plus one unmapped decoy), MS1LabeledWorkflow_1.fasta the proteins they were
 # "searched" against (with reversed decoys), MS1LabeledWorkflow_2_design.tsv a fractionated design.
+#
+# Doublet 4 is the one exception to "precursor masses agree" -- it is mass-inconsistent on purpose,
+# because that is what makes it a conflict. TTTLLHR ends in R, so under [][Lys8,Arg10] it takes
+# Arg10 (+10.0083) and its heavy form is 851.4973, while the doublet it sits on is separated by
+# 8.0146 (Lys8) with its heavy member at 849.4927. At charge 1 that leaves a 2.0046 gap, which is
+# precisely why the multiplet cannot be resolved. The exported mass error for that PSM is therefore
+# large by construction: MS1LabeledWorkflow_4_qpx_psm.tsv pins it at -2354.2512 ppm, while every
+# other PSM of the fixture agrees with its precursor to within 3.4 ppm. It is not a data error, so
+# do not "correct" the precursor or the label to make the outlier go away.
+#
+# The resolver's routing decision itself is covered at unit level, on exact label masses rather than
+# these real ones, by feature C of class_tests/openms/source/MultiplexResolverAlgorithm_test.cpp.
+# The case is kept here as well for what the workflow does afterwards, which that test cannot reach:
+# the multiplet is dropped from quantification while its identification survives as an unassigned
+# one, still feeds protein inference (giving PROT_C its coverage), and reaches the QPX psm view.
 add_test("TOPP_MS1LabeledWorkflow_requires_output" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test)
 set_tests_properties("TOPP_MS1LabeledWorkflow_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_cxml/out_qpx")
 
