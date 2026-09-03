@@ -599,42 +599,34 @@ public:
     void clear(bool clear_meta_data);
 
     /**
-      @brief Select (a subset of) the spectrum and its data arrays, retaining only the peaks named in
-             @p indices, in the given order.
+      @brief Keep only the peaks at @p indices (and the matching data-array entries), in that order.
 
-      Every index is bounds-checked before any storage is touched, so an out-of-range index is rejected
-      with the spectrum left unchanged. This is the safe, default entry point (and the one exposed to
-      Python). Callers that already know their indices are in range can use selectUnchecked() to skip
-      the check.
+      All indices are range-checked before anything is modified, so a rejected call leaves the
+      spectrum unchanged. This is the safe default and the entry point exposed to Python. Callers
+      whose indices are in range by construction can use selectUnchecked().
 
-      @param[in] indices Indices of the peaks to keep. Must all be < size(); see selectUnchecked() for
-                 the duplicate-index restriction that applies to both overloads.
+      @param[in] indices Indices to keep, in the retained order. Must be < size() and unique
+                 (see selectUnchecked() for the duplicate-index restriction).
       @return Reference to this MSSpectrum
-
-      @exception Exception::Precondition if an index is out of range, or if a non-empty float, string or
-                 integer data array's size differs from the number of peaks.
+      @exception Exception::Precondition if an index is out of range, or if a non-empty data array's
+                 size differs from the number of peaks.
     */
     MSSpectrum& select(const std::vector<Size>& indices);
 
     /**
       @brief Like select(), but without the per-index range check.
 
-      For hot paths whose indices are in range by construction (e.g. a sort permutation). The data-array
-      size consistency is still checked, as it is cheap and guards a separate out-of-bounds.
+      For callers whose indices are in range by construction (e.g. a sort() permutation).
+      Data-array sizes are still validated, as that check is cheap.
 
-      @note @p indices must be duplicate-free. Repeating an index is undefined behaviour: the peaks and
-            data-array entries are moved, so a second reference would read a moved-from value. A debug
-            build asserts uniqueness via OPENMS_PRECONDITION; release builds do not pay for the check.
-            Duplicates are memory-safe (unlike an out-of-range index), so the only caller that can supply
-            them is Python: the nanobind select() binding rejects duplicates up front with a ValueError,
-            which is why this C++ path only asserts in debug rather than validating unconditionally.
+      @note Duplicate indices are undefined behaviour: entries are moved, so a repeated index would
+            read a moved-from value. Range and uniqueness are asserted via OPENMS_PRECONDITION in
+            debug builds only. (The Python binding of select() rejects duplicates up front.)
+      @note No strong exception guarantee: peaks are reordered before the data arrays, so a
+            std::bad_alloc while reordering an array can leave peaks permuted and arrays not.
 
-      @note Not a strong exception guarantee: peaks are moved into place before the data arrays, so a
-            std::bad_alloc while reordering an array can leave peaks and arrays permuted.
-
-      @param[in] indices Indices of the peaks to keep. Every index must be < size() and unique.
+      @param[in] indices Indices to keep, in the retained order. Must be < size() and unique.
       @return Reference to this MSSpectrum
-
       @exception Exception::Precondition if a non-empty data array's size differs from the number of peaks.
     */
     MSSpectrum& selectUnchecked(const std::vector<Size>& indices);

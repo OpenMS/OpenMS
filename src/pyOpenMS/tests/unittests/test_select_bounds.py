@@ -10,10 +10,11 @@ check and validated data-array sizes only *after* permuting the peaks, so from P
     spec.select([999999])          # out-of-bounds read -> segfault
 
 crashed the interpreter, and a mismatched data array left the spectrum half-modified.
-The checked ``select()`` now validates every index up front and leaves the spectrum
-unchanged on rejection.  Duplicate indices are undefined behaviour in C++ (moved-from
-entries), so the nanobind ``select()`` binding rejects them with a ``ValueError`` before
-the call ever reaches C++.
+``select()`` now validates every index up front and leaves the spectrum unchanged on
+rejection.  The nanobind binding raises ``IndexError`` for an out-of-range index and
+``ValueError`` for a duplicate index (undefined behaviour in C++, where entries are moved)
+before the call reaches C++; a mis-sized data array is rejected by C++ with a
+``RuntimeError``.
 """
 
 import numpy as np
@@ -43,7 +44,7 @@ def _snapshot(s):
 def test_out_of_range_index_raises_and_leaves_spectrum_untouched():
     s = _spectrum(3)
     before = _snapshot(s)
-    with pytest.raises(Exception):
+    with pytest.raises(IndexError):
         s.select([0, 999999])  # used to segfault
     assert _snapshot(s) == before  # not just sizes: no value was altered before the raise
 
@@ -69,6 +70,6 @@ def test_mis_sized_data_array_rejected_before_mutation():
     sda.set_data(["a", "b"])  # 2 entries for 3 peaks
     s.setStringDataArrays([sda])
     before = _snapshot(s)
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         s.select([0, 1, 2])
     assert _snapshot(s) == before  # unchanged, values included

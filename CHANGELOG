@@ -1175,13 +1175,13 @@ Fixes:
     sort routines did not permute all binary data arrays alongside the peaks; sortByIntensity() guarded on
     an inverted condition, taking the metadata-ignoring fast path precisely when string and integer arrays
     were present. Reachable on the mzML load path (#9795)
-  - Fix: MSSpectrum::select() -- exposed to Python but, unlike MSChromatogram/Mobilogram (#9795) -- did no
-    index-range check, so a call such as spec.select([999999]) was an out-of-bounds read (segfault). select()
-    now bounds-checks every index up front (via a shared checkDataArraySizes_()) and leaves the container
-    unchanged if any is out of range. A new selectUnchecked() skips that check for the hot in-tree callers
-    whose indices are valid by construction (e.g. the sort() permutation); duplicate indices are documented
-    as undefined behaviour and asserted only in debug builds. Applied to MSSpectrum, MSChromatogram and
-    Mobilogram (#9807)
+  - Fix: MSSpectrum::select() (exposed to Python) did no index-range check, so spec.select([999999]) was an
+    out-of-bounds read (segfault). select() now range-checks every index and validates data-array sizes
+    (shared checkDataArraySizes_()) before anything is modified, leaving the container unchanged on
+    rejection. A new selectUnchecked() skips the range check for in-tree callers whose indices are valid
+    by construction (e.g. the sort() permutation). Duplicate indices are undefined behaviour: asserted in
+    debug builds, and rejected up front by the Python binding (ValueError; IndexError for out-of-range).
+    Applied to MSSpectrum, MSChromatogram and Mobilogram (#9807)
   - Fix: 14 boundary/serialization/state-consistency defects from an implementation-consistency audit,
     including an empty-mass-range dereference in QTClusterFinder/FeatureGroupingAlgorithmKD, unsigned
     loop-bound underflows in TheoreticalSpectrumGenerator::addInternalFragmentPeaks_ and MzTab's
