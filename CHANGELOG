@@ -1169,9 +1169,12 @@ OpenMS Library:
       only when the crossing happened to fall on the bracket's midpoint). Corrected FWHMs change
       results downstream: FeatureFindingMetabo's isotope co-elution score and the width (the "FWHM"
       user parameter) it writes onto each feature, ElutionPeakDetection's fixed and auto
-      (quantile-based) peak-width filters, and the width MassTraceExtractor writes; reference
-      outputs of the FeatureFinderMetabo and MassTraceExtractor tests were updated accordingly
-      (#10052)
+      (quantile-based) peak-width filters, the width MassTraceExtractor writes, and - through
+      DDAWorkflowCommons::estimateMedianChromatographicFWHM, which medians the FWHM of the first
+      1000 mass traces of a run - ProteomicsLFQ's RT linking tolerance and FeatureFinderIdentification
+      peak widths, which shifts quantified intensities by ~1e-5 relative and adds a few consensus
+      features in the seed-based runs. Reference outputs of the FeatureFinderMetabo,
+      MassTraceExtractor and ProteomicsLFQ tests were updated accordingly (#10052)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
