@@ -1155,6 +1155,23 @@ OpenMS Library:
       modifications by mass: a near-zero mass shift, e.g. the C-terminal "massdiff" of 0.0003 that
       X!Tandem writes into pepXML, no longer picks up an unrelated zero-mass PSI-MOD term - such
       peptides used to be annotated with a spurious "(MOD:00266)" (#10029)
+    - Fix: MassTrace::estimateFWHM reported a wrong FWHM. Interpolating the right flank to the
+      half-maximum crossing paired each RT with the *other* bracketing point's intensity, so the
+      crossing came out mirrored about the midpoint of its bracket: a symmetric trace with
+      intensities {10, 60, 100, 60, 10} at RT 0..4 was reported as FWHM 3.0 (right crossing at 3.8)
+      instead of 2.4 (right crossing at 3.2). Only the right flank was affected; the left flank
+      paired its coordinates correctly, and a trace that never drops below half maximum on the right
+      was already correct because it does not interpolate. The private helper
+      linearInterpolationAtY_ no longer assumes that x ascends with y - its postcondition bracketed
+      the result as xA <= xC <= xB, which is wrong for a descending x pair, and now checks
+      min(xA, xB) <= xC <= max(xA, xB). The reflection keeps the crossing inside its bracketing
+      pair, so the FWHM moved by up to one sampling interval in either direction (and was exact
+      only when the crossing happened to fall on the bracket's midpoint). Corrected FWHMs change
+      results downstream: FeatureFindingMetabo's isotope co-elution score and the width (the "FWHM"
+      user parameter) it writes onto each feature, ElutionPeakDetection's fixed and auto
+      (quantile-based) peak-width filters, and the width MassTraceExtractor writes; reference
+      outputs of the FeatureFinderMetabo and MassTraceExtractor tests were updated accordingly
+      (#10052)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
