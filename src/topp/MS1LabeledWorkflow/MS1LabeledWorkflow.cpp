@@ -589,6 +589,7 @@ protected:
         {
           if (!(StringUtils::hasSubstring(k, "_score")
                 || StringUtils::hasSubstring(k, "q-value")
+                || StringUtils::hasPrefix(k, "Luciphor_global_flr") // MzTab reports it as the MS:1002380 localization score
                 || k == "target_decoy" // keep target_decoy information for QC
                 || (keep_protein_references && k == "protein_references")))
           {
