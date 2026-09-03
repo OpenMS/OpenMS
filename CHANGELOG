@@ -666,6 +666,21 @@ TOPP tools:
         both are set, centroiding runs on raw gridded TOF data and the IM picking step is skipped.
         IM_SPECTRUM input is rejected with a clear error message (#9022)
       - IM-axis hill centroiding via -algorithm hill (see BrukerTimsFile/PASEFHillCentroider) (#9380)
+      - Fix: '-method traces' built its mass traces from a shuffled ion-mobility axis.
+        IMDataConverter::reshapeIMFrameToMany emits one spectrum per ion-mobility value in ascending
+        order, all carrying the frame's retention time by design, and then called
+        MSExperiment::sortSpectra. That sorts by RT with std::sort, which is not stable, so the
+        all-equal key was permuted arbitrarily (85 descending steps over 868 spectra were measured
+        on the test data). PeakPickerIM reinterprets that axis as RT, and mass-trace detection walks
+        spectrum indices, so traces picked up chemically unrelated peaks - one observed trace spanned
+        0.823 to 0.919 in 1/K0 against a configured chrom_fwhm of 0.01 - and the output was not
+        reproducible across standard-library implementations. Only the per-spectrum m/z sort was
+        wanted, so the RT sort is gone; the loop above already emits ascending ion mobility and
+        asserts it. Roughly 10% of the picked peaks in the test data turn out to have been spurious
+        splits of incoherent traces, so PeakPickerIM_3_output.mzML was regenerated - the previous
+        reference encoded one particular libstdc++ shuffle. MSExperiment::sortSpectra itself is
+        unchanged; switching it to std::stable_sort would fix every equal-RT map at once and should
+        land deliberately rather than as a drive-by (#10051)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     PeakPickerChromatogram:
