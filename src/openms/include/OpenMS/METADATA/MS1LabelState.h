@@ -69,7 +69,9 @@ namespace OpenMS
       UInt label_channel;
     };
 
-    /// Does @p hit record a matched peptidoform that differs from its sequence, i.e. was it reduced to a peptide identity?
+    /// Does @p hit record a non-empty @c labeled_sequence, i.e. was it reduced to a peptide identity?
+    /// Presence only: the recorded peptidoform may equal the hit's own sequence, as it does for an
+    /// unlabeled channel. An empty value counts as absent, since it records no peptidoform.
     OPENMS_DLLAPI bool hasMatchedSequence(const PeptideHit& hit);
     /// Index-based variant of hasMatchedSequence() for loops over many hits
     OPENMS_DLLAPI bool hasMatchedSequence(const PeptideHit& hit, const Keys& keys);
@@ -79,7 +81,10 @@ namespace OpenMS
 
       The hit's sequence, unless the hit records a @c labeled_sequence, in which case that one.
 
-      @throws Exception::ParseError if the recorded @c labeled_sequence cannot be parsed
+      Never throws. The value comes from a file and may be absent, empty or unparsable; any of those
+      yields the hit's own sequence, with a warning logged once per process for an unparsable one.
+      Callers stream their output, so failing a whole export on one bad row would abandon a
+      half-written file.
     */
     OPENMS_DLLAPI AASequence matchedSequence(const PeptideHit& hit);
     /// Index-based variant of matchedSequence() for loops over many hits

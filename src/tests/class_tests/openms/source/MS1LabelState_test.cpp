@@ -86,5 +86,74 @@ START_SECTION((PeptideHit withMatchedSequence(const PeptideHit& hit)))
 }
 END_SECTION
 
+START_SECTION((bool hasMatchedSequence(const PeptideHit& hit, const Keys& keys)))
+{
+  // The index overloads are what every exporter uses, so they are exercised on their own here.
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "PEPTIDEK(Label:13C(6)15N(2))");
+
+  // Resolved after the keys are registered by the setMetaValue above, as the docs require.
+  const MS1LabelState::Keys keys;
+  TEST_TRUE(MS1LabelState::hasMatchedSequence(hit, keys))
+  TEST_EQUAL(MS1LabelState::matchedSequence(hit, keys).toString(), "PEPTIDEK(Label:13C(6)15N(2))")
+
+  // A hit without the key, read through the same resolved indices
+  PeptideHit plain;
+  plain.setSequence(AASequence::fromString("PEPTIDER"));
+  TEST_FALSE(MS1LabelState::hasMatchedSequence(plain, keys))
+  TEST_EQUAL(MS1LabelState::matchedSequence(plain, keys).toString(), "PEPTIDER")
+
+  // The "no hit in this process has used the key yet" sentinel: an all-UInt(-1) Keys must read as
+  // absent rather than indexing the registry with it.
+  MS1LabelState::Keys unregistered = keys;
+  unregistered.labeled_sequence = static_cast<UInt>(-1);
+  TEST_FALSE(MS1LabelState::hasMatchedSequence(hit, unregistered))
+  TEST_EQUAL(MS1LabelState::matchedSequence(hit, unregistered).toString(), "PEPTIDEK")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] an unusable labeled_sequence falls back to the sequence of the hit))
+{
+  // The value survives consensusXML/idXML as a plain UserParam, so it can arrive edited, foreign or
+  // stale. None of these may throw: the exporters stream, so a throw abandons a half-written file.
+  const AASequence own = AASequence::fromString("PEPTIDEK");
+
+  // empty: parses to an empty AASequence rather than throwing, so it has to be rejected up front or
+  // it silently replaces the sequence with nothing and the row is dropped
+  PeptideHit empty_value;
+  empty_value.setSequence(own);
+  empty_value.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "");
+  TEST_FALSE(MS1LabelState::hasMatchedSequence(empty_value))
+  TEST_EQUAL(MS1LabelState::matchedSequence(empty_value).toString(), "PEPTIDEK")
+  TEST_EQUAL(MS1LabelState::withMatchedSequence(empty_value).getSequence().toString(), "PEPTIDEK")
+
+  // unknown modification in round brackets -> Exception::InvalidValue
+  PeptideHit unknown_mod;
+  unknown_mod.setSequence(own);
+  unknown_mod.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "PEPTIDEK(NoSuchModification)");
+  TEST_TRUE(MS1LabelState::hasMatchedSequence(unknown_mod))
+  TEST_EQUAL(MS1LabelState::matchedSequence(unknown_mod).toString(), "PEPTIDEK")
+
+  // square brackets -> Exception::ConversionError, not ParseError or InvalidValue; this is the form
+  // the QPX peptidoform column emits, so it is the likeliest bad value to arrive here
+  PeptideHit bracket_mod;
+  bracket_mod.setSequence(own);
+  bracket_mod.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "PEPTIDEK[NotANumber]");
+  TEST_TRUE(MS1LabelState::hasMatchedSequence(bracket_mod))
+  TEST_EQUAL(MS1LabelState::matchedSequence(bracket_mod).toString(), "PEPTIDEK")
+
+  // not a sequence at all -> Exception::ParseError
+  PeptideHit junk;
+  junk.setSequence(own);
+  junk.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "not a peptide!");
+  TEST_EQUAL(MS1LabelState::matchedSequence(junk).toString(), "PEPTIDEK")
+
+  // the index overload falls back the same way
+  const MS1LabelState::Keys keys;
+  TEST_EQUAL(MS1LabelState::matchedSequence(bracket_mod, keys).toString(), "PEPTIDEK")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 END_TEST
