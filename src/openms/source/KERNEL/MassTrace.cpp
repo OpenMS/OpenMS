@@ -147,6 +147,18 @@ namespace OpenMS
 
     double MassTrace::estimateFWHM(bool use_smoothed_ints)
     {
+      // The flank search below walks peak indices outward from the apex, so the trace
+      // has to be sorted along its x axis. This used to be caught only indirectly, by
+      // the postcondition of linearInterpolationAtY_ firing when a shuffled axis
+      // happened to hand it a descending bracketing pair (see #10051, where a
+      // non-stable sort on equal RT permutes the ion-mobility axis PeakPickerIM builds
+      // its traces from). That postcondition is not a sortedness check -- it is correct
+      // for either x order -- so the invariant is stated here instead, where it holds
+      // for every shuffle rather than only the ones that invert a bracket.
+      OPENMS_PRECONDITION(std::is_sorted(trace_peaks_.begin(), trace_peaks_.end(),
+                                         [](const PeakType& a, const PeakType& b) { return a.getRT() < b.getRT(); }),
+                          "mass trace is not sorted along its x (RT) axis")
+
       Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
 
       std::vector<double> tmp_ints;

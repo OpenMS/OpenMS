@@ -1166,15 +1166,23 @@ OpenMS Library:
       the result as xA <= xC <= xB, which is wrong for a descending x pair, and now checks
       min(xA, xB) <= xC <= max(xA, xB). The reflection keeps the crossing inside its bracketing
       pair, so the FWHM moved by up to one sampling interval in either direction (and was exact
-      only when the crossing happened to fall on the bracket's midpoint). Corrected FWHMs change
-      results downstream: FeatureFindingMetabo's isotope co-elution score and the width (the "FWHM"
-      user parameter) it writes onto each feature, ElutionPeakDetection's fixed and auto
-      (quantile-based) peak-width filters, the width MassTraceExtractor writes, and - through
-      DDAWorkflowCommons::estimateMedianChromatographicFWHM, which medians the FWHM of the first
-      1000 mass traces of a run - ProteomicsLFQ's RT linking tolerance and FeatureFinderIdentification
-      peak widths, which shifts quantified intensities by ~1e-5 relative and adds a few consensus
-      features in the seed-based runs. Reference outputs of the FeatureFinderMetabo,
-      MassTraceExtractor and ProteomicsLFQ tests were updated accordingly (#10052)
+      only when the crossing happened to fall on the bracket's midpoint). estimateFWHM also gained
+      an explicit precondition that the trace is sorted along its x axis: the flank search walks
+      peak indices outward from the apex, and a shuffled axis (#10051) used to be caught only
+      indirectly, when it happened to hand the interpolation a descending bracketing pair.
+      Corrected FWHMs change results downstream: FeatureFindingMetabo's isotope co-elution score
+      and the width (the "FWHM" user parameter) it writes onto each feature, ElutionPeakDetection's
+      fixed and auto (quantile-based) peak-width filters, the width MassTraceExtractor writes, and
+      - through DDAWorkflowCommons::estimateMedianChromatographicFWHM, which medians the FWHM of
+      the first 1000 mass traces of a run - ProteomicsLFQ's RT linking tolerance,
+      FeatureFinderIdentification peak widths and FeatureFinderMultiplex seed detection
+      (algorithm:rt_typical = 3x and algorithm:rt_min = 0.5x that median). On the BSA test data
+      that median moves 7.779 -> 7.330 s and 8.684 -> 8.465 s, and the quantified intensities move
+      with it: across the updated MSstats CSVs the median relative change is ~1e-4, but the
+      distribution has a long tail - 20 of 188 changes exceed 1% and the largest is 8.55% - and
+      the seed-based runs gain consensus features (198 -> 204 for the FeatureFinderMetabo-seeded
+      ProteomicsLFQ test). Reference outputs of the FeatureFinderMetabo, MassTraceExtractor and
+      ProteomicsLFQ tests were updated accordingly (#10052)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
