@@ -792,6 +792,13 @@ TOPP tools:
         parameter but never read it. Link each fraction separately and combine the results with
         FileMerger -append_method append_cols; fractionated label-free quantification is covered by
         ProteomicsLFQ, which does its own per-fraction linking (#10043)
+    MultiplexResolver, MS1LabeledWorkflow:
+      - BREAKING: `algorithm:mz_tolerance` and `algorithm:rt_tolerance` (re-exported by
+        MS1LabeledWorkflow as `resolver:mz_tolerance` / `resolver:rt_tolerance`) are now double
+        instead of int, with a minimum of 0.0. They were always read into double members, so a
+        fractional value was rejected on the command line and, in an INI file, silently stored as 0 --
+        disabling the blacklist proximity check. An INI carrying them as type="int" must be updated
+        to type="double" or the tool will refuse to start
     IDConflictResolver:
       - Added a rank aggregation resolve method (--resolve_method rank_aggregation) for consensus
         replicate identifications (#8907)

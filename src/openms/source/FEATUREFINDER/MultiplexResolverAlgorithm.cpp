@@ -29,8 +29,12 @@ namespace OpenMS
     defaults_.setValue("algorithm:max_nr_labelled_aas", 0, "Maximum number of labelled amino acids per peptide, minus one. The algorithm searches for peptides with up to (this value + 1) labelled amino acids. For SILAC with trypsin digestion, this parameter corresponds to the maximum number of missed cleavages.");
     defaults_.setMinInt("algorithm:max_nr_labelled_aas", 0);
     defaults_.setValue("algorithm:mass_tolerance", 0.1, "Mass tolerance in Da for matching the mass shifts in the detected peptide multiplet to the theoretical mass shift pattern.", {"advanced"});
-    defaults_.setValue("algorithm:mz_tolerance", 10, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", {"advanced"});
-    defaults_.setValue("algorithm:rt_tolerance", 5, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
+    // Continuous quantities, and read into double members: registering them as integers rejected
+    // a fractional value on the command line and, worse, let an INI file carrying one through as 0.
+    defaults_.setValue("algorithm:mz_tolerance", 10.0, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", {"advanced"});
+    defaults_.setMinFloat("algorithm:mz_tolerance", 0.0);
+    defaults_.setValue("algorithm:rt_tolerance", 5.0, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
+    defaults_.setMinFloat("algorithm:rt_tolerance", 0.0);
     defaults_.setSectionDescription("algorithm", "Parameters for the algorithm.");
 
     // one advanced parameter per known label: its mass shift
