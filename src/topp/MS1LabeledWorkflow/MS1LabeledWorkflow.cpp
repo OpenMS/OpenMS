@@ -110,7 +110,7 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
     @ref TOPP_PercolatorAdapter (@p -score_type pep) or @ref TOPP_IDPosteriorErrorProbability, followed by
     @ref TOPP_IDFilter. Results from several search engines must be combined with @ref TOPP_ConsensusID
     rather than concatenated.
-  - The label specification (@p labels), in the syntax of @ref TOPP_FeatureFinderMultiplex:
+  - The label specification (@p labels), in the syntax of @ref TOPP_FeatureFinderMultiplex, e.g.
     <tt>[][Lys8,Arg10]</tt> for SILAC, <tt>[][Lys4,Arg6][Lys8,Arg10]</tt> for triple SILAC,
     <tt>[Dimethyl0][Dimethyl6]</tt> for Dimethyl. Every bracket is one channel; the channels are numbered
     from 1 in this order and are the @c Label column of the experimental design.
@@ -164,7 +164,7 @@ the modifications implied by @p labels and refuses to run if they are missing (u
 
 <b>Ratios.</b> A labeled experiment measures its channels in one run, so its quantity is their <em>ratio</em>,
 and the tool computes it the way MaxQuant does, as a median of ratios rather than as a ratio of aggregated
-intensities (@p ratios, see @ref MS1LabeledRatioQuantifier):
+intensities (@p ratios, computed by @c MS1LabeledRatioQuantifier next to this tool):
   - per multiplet and run, the intensity of a channel over that of the reference channel (@p ratios:reference_channel,
     the light one by default). Only positive, finite channels take part: an absent (dummy, intensity 0) or
     not-quantifiable channel is no measurement of a ratio.

@@ -124,6 +124,7 @@
 #include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
@@ -404,6 +405,7 @@ int main(int argc, char** argv)
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
   DOCME(MultiplexDeltaMassesGenerator);
+  DOCME(MultiplexResolverAlgorithm);
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
   DOCME(Normalizer);
