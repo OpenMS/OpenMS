@@ -3824,7 +3824,8 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted_out1" PROPERTIES DEPEND
 # peptide identity: run A identifies doublet 3 by its light spectrum, run B (MS1LabeledWorkflow_1_heavy.idXML)
 # only by its heavy spectrum. The label modifications are stripped after the resolver, so both name one
 # peptide and link into one consensus feature with four sub-features; the label state is kept on the
-# identifications (labeled_sequence, removed_labels, label_channel) and reaches the mzTab opt_global
+# identifications (MS1Label:labeled_sequence, MS1Label:removed_labels, MS1Label:channel) and reaches
+# the mzTab opt_global
 # columns and the QPX cv_params of the feature and psm views; the PSM-level rows (mzTab PSM section,
 # QPX psm view) report the peptidoform as searched. The QPX psm dump is pinned (its key is
 # float-free); the feature view is only schema-checked, like IsobaricWorkflow's.

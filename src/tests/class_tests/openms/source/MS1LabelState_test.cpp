@@ -25,10 +25,10 @@ START_SECTION((const std::vector<std::string>& keys()))
   TEST_EQUAL(keys.size(), 3)
   TEST_EQUAL(keys[0], MS1LabelState::LABELED_SEQUENCE)
   TEST_EQUAL(keys[1], MS1LabelState::REMOVED_LABELS)
-  TEST_EQUAL(keys[2], MS1LabelState::LABEL_CHANNEL)
+  TEST_EQUAL(keys[2], MS1LabelState::CHANNEL)
   TEST_EQUAL(MS1LabelState::LABELED_SEQUENCE, "MS1Label:labeled_sequence")
   TEST_EQUAL(MS1LabelState::REMOVED_LABELS, "MS1Label:removed_labels")
-  TEST_EQUAL(MS1LabelState::LABEL_CHANNEL, "MS1Label:label_channel")
+  TEST_EQUAL(MS1LabelState::CHANNEL, "MS1Label:channel")
 }
 END_SECTION
 
@@ -74,14 +74,14 @@ START_SECTION((PeptideHit withMatchedSequence(const PeptideHit& hit)))
 
   hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "PEPTIDEK(Label:13C(6)15N(2))");
   hit.setMetaValue(MS1LabelState::REMOVED_LABELS, "Lys8");
-  hit.setMetaValue(MS1LabelState::LABEL_CHANNEL, 2);
+  hit.setMetaValue(MS1LabelState::CHANNEL, 2);
   PeptideHit matched = MS1LabelState::withMatchedSequence(hit);
   TEST_EQUAL(matched.getSequence().toString(), "PEPTIDEK(Label:13C(6)15N(2))")
   // everything else, the label state included, is carried over; the original is untouched
   TEST_EQUAL(matched.getCharge(), 2)
   TEST_REAL_SIMILAR(matched.getScore(), 0.01)
   TEST_EQUAL(matched.getMetaValue(MS1LabelState::REMOVED_LABELS).toString(), "Lys8")
-  TEST_EQUAL((int)matched.getMetaValue(MS1LabelState::LABEL_CHANNEL), 2)
+  TEST_EQUAL((int)matched.getMetaValue(MS1LabelState::CHANNEL), 2)
   TEST_EQUAL(hit.getSequence().toString(), "PEPTIDEK")
 }
 END_SECTION

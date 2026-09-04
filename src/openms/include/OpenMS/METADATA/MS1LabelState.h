@@ -30,7 +30,7 @@ namespace OpenMS
         <tt>PEPTIDEK(Label:13C(6)15N(2))</tt>
       - @c MS1Label:removed_labels: the labels removed from it, in the FeatureFinderMultiplex vocabulary
         (e.g. @c Lys8, or @c Arg10,Lys8), or @c none
-      - @c MS1Label:label_channel: the 1-based channel the spectrum belongs to, i.e. the @c Label of the
+      - @c MS1Label:channel: the 1-based channel the spectrum belongs to, i.e. the @c Label of the
         experimental design (1 = light); 0 if it could not be determined
 
     PSM-level output describes the spectrum match and therefore reports the matched peptidoform
@@ -47,7 +47,7 @@ namespace OpenMS
     /// Meta value key: the labels removed from the matched peptidoform, or "none"
     inline const std::string REMOVED_LABELS = "MS1Label:removed_labels";
     /// Meta value key: the 1-based channel the spectrum belongs to (0 = unknown)
-    inline const std::string LABEL_CHANNEL = "MS1Label:label_channel";
+    inline const std::string CHANNEL = "MS1Label:channel";
 
     /// The three keys, in the order they are reported
     OPENMS_DLLAPI const std::vector<std::string>& keys();
@@ -66,7 +66,7 @@ namespace OpenMS
       Keys();
       UInt labeled_sequence;
       UInt removed_labels;
-      UInt label_channel;
+      UInt channel;
     };
 
     /// Does @p hit record a non-empty @c MS1Label:labeled_sequence, i.e. was it reduced to a peptide identity?

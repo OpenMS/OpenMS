@@ -305,7 +305,7 @@ namespace ArrowIOHelpers
     QPX reserves @c cv_params, a list of {cv_name, cv_value} pairs, on the feature and psm views for
     annotations outside the fixed schema. OpenMS uses it for the label state of an MS1-labeled
     identification, i.e. the MS1LabelState meta values @c MS1Label:labeled_sequence, @c MS1Label:removed_labels and
-    @c MS1Label:label_channel that MS1LabeledWorkflow records on the PeptideHit.
+    @c MS1Label:channel that MS1LabeledWorkflow records on the PeptideHit.
 
     Only these keys are exported, so identifications without a label state (label-free, isobaric)
     keep a null @c cv_params, as before.

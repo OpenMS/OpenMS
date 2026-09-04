@@ -18,14 +18,14 @@ namespace OpenMS::MS1LabelState
 {
   const std::vector<std::string>& keys()
   {
-    static const std::vector<std::string> k{LABELED_SEQUENCE, REMOVED_LABELS, LABEL_CHANNEL};
+    static const std::vector<std::string> k{LABELED_SEQUENCE, REMOVED_LABELS, CHANNEL};
     return k;
   }
 
   Keys::Keys() :
     labeled_sequence(MetaInfo::registry().getIndex(LABELED_SEQUENCE)),
     removed_labels(MetaInfo::registry().getIndex(REMOVED_LABELS)),
-    label_channel(MetaInfo::registry().getIndex(LABEL_CHANNEL))
+    channel(MetaInfo::registry().getIndex(CHANNEL))
   {
   }
 

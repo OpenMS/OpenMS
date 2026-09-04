@@ -142,7 +142,7 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      peptide have to name one peptide for linking, match between runs, inference and quantification (the
      convention MaxQuant uses as well). The label state stays documented on every identification as the meta
      values @c MS1Label:labeled_sequence (the peptidoform as searched), @c MS1Label:removed_labels (e.g. @c Lys8, or @c none) and
-     @c MS1Label:label_channel (the 1-based channel the spectrum belongs to, i.e. the @c Label of the experimental
+     @c MS1Label:channel (the 1-based channel the spectrum belongs to, i.e. the @c Label of the experimental
      design). The values also sit on every quantified consensus feature, for the identification it is quantified
      under. mzTab reports them as <tt>opt_global_*</tt> columns of the peptide and PSM sections, the QPX feature
      and psm views as @c cv_params. PSM-level output describes the spectrum match and therefore reports the
@@ -1341,7 +1341,7 @@ protected:
 
     The label modifications of '-labels' are removed from the sequence (the channel, not the
     peptide, carries the label), and the hit is annotated with 'labeled_sequence' (as searched),
-    'removed_labels' (short names, or 'none') and 'label_channel' (1-based; the 'Label' of the
+    'removed_labels' (short names, or 'none') and 'channel' (1-based; the 'Label' of the
     experimental design; 0 if unknown). These are exported as opt_ columns by mzTab and as
     cv_params by the QPX feature and psm views.
   */
@@ -1384,7 +1384,7 @@ protected:
     hit.setSequence(stripped);
     hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, original.toString());
     hit.setMetaValue(MS1LabelState::REMOVED_LABELS, removed.empty() ? std::string("none") : ListUtils::concatenate(removed, ","));
-    hit.setMetaValue(MS1LabelState::LABEL_CHANNEL, channelOfLabels_(removed));
+    hit.setMetaValue(MS1LabelState::CHANNEL, channelOfLabels_(removed));
   }
 
   /// QPX names channels with a fixed vocabulary; refuse '-out_qpx' up front for labels outside of it

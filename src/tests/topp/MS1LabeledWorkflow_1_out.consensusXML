@@ -86,7 +86,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK(Label:13C(6)15N(2))"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="Lys8"/>
-			<UserParam type="int" name="MS1Label:label_channel" value="2"/>
+			<UserParam type="int" name="MS1Label:channel" value="2"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.01"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="1"/>
@@ -97,7 +97,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="TTTLLHR(Label:13C(6)15N(4))"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
-			<UserParam type="int" name="MS1Label:label_channel" value="2"/>
+			<UserParam type="int" name="MS1Label:channel" value="2"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="4.0e-03"/>
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="not mapped"/>
@@ -130,7 +130,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
 					<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
-					<UserParam type="int" name="MS1Label:label_channel" value="2"/>
+					<UserParam type="int" name="MS1Label:channel" value="2"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
@@ -139,7 +139,7 @@
 			<UserParam type="string" name="feature_id" value="1755235105885170967"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
-			<UserParam type="int" name="MS1Label:label_channel" value="2"/>
+			<UserParam type="int" name="MS1Label:channel" value="2"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 0.012227709706896]"/>
@@ -160,7 +160,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value="EYNVTIDAAESTVNK"/>
 					<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-					<UserParam type="int" name="MS1Label:label_channel" value="1"/>
+					<UserParam type="int" name="MS1Label:channel" value="1"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
@@ -169,7 +169,7 @@
 			<UserParam type="string" name="feature_id" value="14811341817612382122"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="EYNVTIDAAESTVNK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-			<UserParam type="int" name="MS1Label:label_channel" value="1"/>
+			<UserParam type="int" name="MS1Label:channel" value="1"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 3.774520942258838]"/>
@@ -190,7 +190,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
 					<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-					<UserParam type="int" name="MS1Label:label_channel" value="1"/>
+					<UserParam type="int" name="MS1Label:channel" value="1"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
@@ -199,7 +199,7 @@
 			<UserParam type="string" name="feature_id" value="2684106197423007927"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-			<UserParam type="int" name="MS1Label:label_channel" value="1"/>
+			<UserParam type="int" name="MS1Label:channel" value="1"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 3.462539136200582]"/>
