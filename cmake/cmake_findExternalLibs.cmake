@@ -604,6 +604,19 @@ if (WITH_OPENTIMS)
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
 
+    # opentims's own CMakeLists.txt applies /O2 to MSVC builds unconditionally
+    # Any Debug build then combines it with the /RTC1 that CMake puts in
+    # CMAKE_CXX_FLAGS_DEBUG, and MSVC rejects the pair:
+    #   cl : Command line error D8016 : '/RTC1' and '/O2' command-line options are incompatible
+    # reported in https://github.com/michalsta/opentims/issues/44 (remove this once opentims fixes it upstream)
+    if(MSVC)
+      get_target_property(_opentims_opts opentims_cpp COMPILE_OPTIONS)
+      if(_opentims_opts)
+        list(REMOVE_ITEM _opentims_opts "/O2")
+        set_property(TARGET opentims_cpp PROPERTY COMPILE_OPTIONS ${_opentims_opts})
+      endif()
+    endif()
+
     # Expose a namespaced alias so downstream CMakeLists always use
     # opentims::opentims_cpp regardless of how the library was obtained.
     add_library(opentims::opentims_cpp ALIAS opentims_cpp)
