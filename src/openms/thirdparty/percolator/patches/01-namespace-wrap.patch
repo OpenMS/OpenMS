@@ -719,7 +719,12 @@
  }
 @@ -90,3 +90,5 @@
    }
-   out[i] = (in[i] - subScore) / scale; // update the intercept m0
+   return theNormalizer;
+ }
+
+@@ -90,3 +93,5 @@
+  }
+  out[i] = (in[i] - subScore) / scale; // update the intercept m0
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
