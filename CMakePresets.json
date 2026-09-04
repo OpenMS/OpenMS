@@ -72,8 +72,8 @@
             "name": "windows-x64-base",
             "hidden": true,
             "inherits": "windows-base",
+            "description": "Windows x64 settings that do not depend on the build type. VCPKG_TARGET_TRIPLET is deliberately NOT set here: unlike Linux and macOS, whose triplets build every dependency in both debug and release form and so suit any configuration, the Windows triplets differ in exactly that respect, so each preset below has to name the one that matches its build type.",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release",
                 "BOOST_USE_STATIC": "ON"
             }
         },
@@ -208,29 +208,38 @@
         {
             "name": "windows-x64-debug",
             "displayName": "Windows x64 Debug",
-            "description": "OpenMS with vcpkg dependencies on Windows x64 Debug",
+            "description": "OpenMS with vcpkg dependencies on Windows x64 Debug. A Debug build links the debug CRT (/MDd) and must not be mixed with release dependencies, so it uses x64-windows-static-md, which sets no VCPKG_BUILD_TYPE and therefore builds every dependency in both debug and release form. There is no working debug-only alternative: ports install their headers from the release half. The Debug build links the debug half, so this preset's first configure is slower than the other Windows presets. It is also the preset to use for a multi-configuration Visual Studio solution, being the only one whose dependencies cover both configurations.",
             "inherits": [
                 "windows-x64-base",
                 "debug-base"
-            ]
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+            }
         },
         {
             "name": "windows-x64-relwithdebinfo",
             "displayName": "Windows x64 RelWithDebInfo",
-            "description": "OpenMS with vcpkg dependencies on Windows x64 RelWithDebInfo",
+            "description": "OpenMS with vcpkg dependencies on Windows x64 RelWithDebInfo. RelWithDebInfo links the release CRT (/MD), so the release-only triplet is sufficient and avoids building every dependency twice.",
             "inherits": [
                 "windows-x64-base",
                 "relwithdebinfo-base"
-            ]
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
+            }
         },
         {
             "name": "windows-x64-release",
             "displayName": "Windows x64 Release",
-            "description": "OpenMS with vcpkg dependencies on Windows x64 Release",
+            "description": "OpenMS with vcpkg dependencies on Windows x64 Release. Release links the release CRT (/MD), so the release-only triplet is sufficient and avoids building every dependency twice.",
             "inherits": [
                 "windows-x64-base",
                 "release-base"
-            ]
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
+            }
         },
         {
             "name": "linux-x64-ci",
@@ -269,12 +278,15 @@
         {
             "name": "windows-x64-ci",
             "displayName": "Windows x64 CI",
-            "description": "OpenMS CI preset with vcpkg dependencies on Windows x64",
+            "description": "OpenMS CI preset with vcpkg dependencies on Windows x64. Builds Release, so the release-only triplet is sufficient and avoids building every dependency twice.",
             "inherits": [
                 "windows-x64-base",
                 "release-base",
                 "ci-base"
-            ]
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
+            }
         }
     ],
     "buildPresets": [

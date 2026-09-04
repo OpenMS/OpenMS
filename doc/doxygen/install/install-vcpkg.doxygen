@@ -72,7 +72,27 @@
 
         The resulting build directory is `build/linux-x64-release` (each preset gets its own directory, so debug/release/relwithdebinfo builds don't clash). Substitute the preset name for your platform and desired build type; run `cmake --list-presets` to see all available presets, including the `*-ci` presets used by the CI pipeline, which additionally enable most optional features via `VCPKG_MANIFEST_FEATURES` (see below).
 
+        On Windows the same three commands work unchanged with a `windows-x64-*` preset -- with **Ninja** as the default generator.
+        If you would rather work in the Visual Studio IDE, add the generator on the configure line.
+        In order to switch between Debug and Release builds in the Visual Studio IDE, *you need to choose the 'debug' preset*, since vcpkg's port files always build release, and debug only optionally on top. Therefore, a debug preset gives you both release+debug libraries. The 'release' preset only supports release builds (attempting a debug build in Visual Studio will fail).
+        
+        Thus, for a multi-config build (Debug+Release) open the Developer Command Prompt, in the %OpenMS source directory:
+
+        \code
+        cd "$OPENMS_DIR/OpenMS"
+        cmake --preset windows-x64-debug -G "Visual Studio 17 2022" -A x64
+        \endcode
+
+        That writes `build/windows-x64-debug/OpenMS_host.sln`, which you can open in Visual Studio. %OpenMS requires Visual Studio @minMSVC or newer, so adjust the generator name if you are on a later release (<tt>cmake \-\-help</tt> lists the generators your CMake knows about).
         The first configure of a given preset can take a while, since it builds all vcpkg dependencies for that triplet from source; subsequent configures reuse the already-built packages from `build/<preset>/vcpkg_installed/`.
+
+        To build OpenMS and run the tests, invoke this (remember: the debug preset supports both Release and Debug -- this is true for all platforms):
+        \code
+        cmake --build --preset windows-x64-debug --config Debug
+        cmake --build --preset windows-x64-debug --config Release
+        ctest --preset windows-x64-debug -C Release
+        ctest --preset windows-x64-debug -C Debug        
+        \endcode
 
         If you need a configuration that isn't covered by a preset, you can still configure manually, mirroring what the presets do under the hood:
 
