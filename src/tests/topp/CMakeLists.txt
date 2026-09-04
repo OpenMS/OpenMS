@@ -2612,6 +2612,10 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
+    add_test("TOPP_OpenNuXL_adduct_in_sequence" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML
+      -P ${DATA_DIR_TOPP}/OpenNuXL_adduct_in_sequence_test.cmake)
+    set_tests_properties("TOPP_OpenNuXL_adduct_in_sequence" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
   endif()
   # test internal decoy generation
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
@@ -2669,6 +2673,95 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
   endif()
 endif(NOT MSVC)
+
+# OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
+# travel in the SearchParameters. A class test cannot prove that a reader registers them: the
+# writer's own registration is still in the process-wide ModificationsDB. These tests read the
+# checked-in fixture in fresh processes. The input is the committed fixture rather than the
+# OpenNuXL run's output, so they need neither that run nor its platform guard.
+#
+# idXML fresh read: every sequence attribute survives, the definitions block is rewritten.
+add_test("TOPP_OpenNuXL_definitions_reread" ${TOPP_BIN_PATH}/IDFileConverter
+  -in ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML
+  -out ${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread.tmp.idXML -out_type idXML)
+add_test("TOPP_OpenNuXL_definitions_reread_sequences" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread.tmp.idXML
+  -DREFERENCE_FILE=${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML
+  -P ${DATA_DIR_TOPP}/compare_sequence_attributes.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_reread_sequences" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_reread")
+add_test("TOPP_OpenNuXL_definitions_reread_check" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread.tmp.idXML
+  -P ${DATA_DIR_TOPP}/OpenNuXL_adduct_in_sequence_test.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_reread_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_reread")
+#
+# Repeated read: a second pass is byte-identical, so nothing is re-registered or duplicated.
+add_test("TOPP_OpenNuXL_definitions_reread2" ${TOPP_BIN_PATH}/IDFileConverter
+  -in ${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread2.tmp.idXML -out_type idXML)
+set_tests_properties("TOPP_OpenNuXL_definitions_reread2" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_reread")
+add_test("TOPP_OpenNuXL_definitions_idempotent" ${DIFF} -whitelist "IdentificationRun date"
+  -in1 ${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread.tmp.idXML -in2 ${TESTS_TEMP_DIR}/OpenNuXL_definitions_reread2.tmp.idXML)
+set_tests_properties("TOPP_OpenNuXL_definitions_idempotent" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_reread2")
+#
+# The definitions block is load-bearing: the same file without it must fail to load, with the
+# unresolved-modification error, not degrade to a bare sequence. The stripped input is derived
+# at test time so the property is exactly "same file minus the block".
+add_test("TOPP_OpenNuXL_definitions_strip" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML
+  -DOUTPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_missing.tmp.idXML
+  -DNAME=modification_definitions
+  -P ${DATA_DIR_TOPP}/remove_user_param.cmake)
+add_test(NAME "TOPP_OpenNuXL_definitions_missing" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/IDFileConverter;-in;${TESTS_TEMP_DIR}/OpenNuXL_definitions_missing.tmp.idXML;-out;${TESTS_TEMP_DIR}/OpenNuXL_definitions_missing_out.tmp.idXML;-out_type;idXML"
+  -DEXPECTED_CODE=8
+  "-DEXPECTED_OUTPUT_REGEX=Cannot convert string to peptide modification"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_missing" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_strip")
+#
+# Parquet lane: idXML -> .idparquet -> idXML restores the names, and psms.parquet on its own
+# spells each cross-link with its chemistry ([Formula:...|INFO:name]).
+add_test("TOPP_OpenNuXL_definitions_idparquet_write" ${TOPP_BIN_PATH}/IDFileConverter
+  -in ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML
+  -out ${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet -out_type idparquet)
+add_test("TOPP_OpenNuXL_definitions_idparquet_read" ${TOPP_BIN_PATH}/IDFileConverter
+  -in ${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet
+  -out ${TESTS_TEMP_DIR}/OpenNuXL_definitions_fromparquet.tmp.idXML -out_type idXML)
+set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_read" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_write")
+add_test("TOPP_OpenNuXL_definitions_idparquet_sequences" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_fromparquet.tmp.idXML
+  -DREFERENCE_FILE=${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML
+  -P ${DATA_DIR_TOPP}/compare_sequence_attributes.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_sequences" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_read")
+add_test("TOPP_OpenNuXL_definitions_idparquet_check" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_fromparquet.tmp.idXML
+  -P ${DATA_DIR_TOPP}/OpenNuXL_adduct_in_sequence_test.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_read")
+add_test("TOPP_OpenNuXL_definitions_idparquet_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet/psms.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_definitions_psms.tmp.tsv -pk peptidoform precursor_charge)
+set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_dump" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_write")
+add_test("TOPP_OpenNuXL_definitions_idparquet_peptidoform" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_psms.tmp.tsv
+  "-DEXPECTED=AEADNLDDK[Formula:C9H11N2O8P1|INFO:NuXL:U-H2O1]K"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_peptidoform" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_dump")
+#
+# Old files: the mass-bracket spelling that predates the definitions loads unchanged and
+# acquires no definitions block (a mass-only modification has nothing to define).
+add_test("TOPP_OpenNuXL_legacy_mass_delta" ${TOPP_BIN_PATH}/IDFileConverter
+  -in ${DATA_DIR_TOPP}/OpenNuXL_1_output_legacy_mass_delta.idXML
+  -out ${TESTS_TEMP_DIR}/OpenNuXL_legacy_mass_delta.tmp.idXML -out_type idXML)
+add_test("TOPP_OpenNuXL_legacy_mass_delta_sequences" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_legacy_mass_delta.tmp.idXML
+  -DREFERENCE_FILE=${DATA_DIR_TOPP}/OpenNuXL_1_output_legacy_mass_delta.idXML
+  -P ${DATA_DIR_TOPP}/compare_sequence_attributes.cmake)
+set_tests_properties("TOPP_OpenNuXL_legacy_mass_delta_sequences" PROPERTIES DEPENDS "TOPP_OpenNuXL_legacy_mass_delta")
+add_test("TOPP_OpenNuXL_legacy_mass_delta_check" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_legacy_mass_delta.tmp.idXML
+  "-DEXPECTED=sequence=\"AEADNLDDK[+306.025304840900048]K\""
+  -DFORBIDDEN=modification_definitions
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_OpenNuXL_legacy_mass_delta_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_legacy_mass_delta")
 
 #------------------------------------------------------------------------------
 # SeedListGenerator tests
@@ -4187,6 +4280,74 @@ add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 # mzTab plus alternate-only consensusXML and QPX output paths.
 add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
 set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
+
+# Reference test for the default in-process backend. It needs no external
+# percolator (-percolator_executable is optional and unused by that backend), so
+# it is registered here instead of under the PERCOLATOR_BINARY gate in THIRDPARTY,
+# where it would silently not run in builds without the external binary.
+add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_out.tmp.idXML -out_type idXML)
+add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
+
+# regression for in-process is wrongly dependent on '-percolator_executable'
+add_test("TOPP_PercolatorAdapter_1_inproc_no_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_no_binary_out.tmp.idXML -out_type idXML)
+add_test("TOPP_PercolatorAdapter_1_inproc_no_binary_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_no_binary_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_no_binary_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_no_binary")
+
+# An input CalcMass is search-engine data, whereas one synthesized for PIN training
+# is temporary; the in-process backend must preserve only the former (#9997). This
+# exercises the default in-process backend, which needs no external percolator, so
+# it is registered here rather than under THIRDPARTY.
+add_test("TOPP_PercolatorAdapter_CalcMass_prepare" ${CMAKE_COMMAND}
+         -DOPERATION=prepare
+         -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+         -DOUTPUT_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_in.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_CalcMass_test.cmake)
+add_test("TOPP_PercolatorAdapter_CalcMass" ${TOPP_BIN_PATH}/PercolatorAdapter -test
+         -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+         -use_subprocess false
+         -in ${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_in.tmp.idXML
+         -out ${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_out.tmp.idXML
+         -out_type idXML)
+set_tests_properties("TOPP_PercolatorAdapter_CalcMass" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_CalcMass_prepare")
+add_test("TOPP_PercolatorAdapter_CalcMass_check" ${CMAKE_COMMAND}
+         -DOPERATION=check
+         -DINPUT_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_CalcMass_out.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_CalcMass_test.cmake)
+set_tests_properties("TOPP_PercolatorAdapter_CalcMass_check" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_CalcMass")
+
+# CalcMass must survive loadAndCleanupIDFile_ so FFId can reconstruct an
+# unspecified/unlocalized mass before feature detection (#9998). The prepare
+# step derives a one-hit variant of the existing BSA fixture and removes any
+# checkpoint that could otherwise bypass the code under test.
+add_test("TOPP_ProteomicsLFQ_CalcMass_prepare" ${CMAKE_COMMAND}
+         -DOPERATION=prepare
+         -DINPUT_FILE=${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -DOUTPUT_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.tmp.idXML
+         -DFEATURE_DIR=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass_features
+         -DCAPTURE_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.output
+         -P ${DATA_DIR_TOPP}/ProteomicsLFQ_CalcMass_test.cmake)
+add_test("TOPP_ProteomicsLFQ_CalcMass" ${CMAKE_COMMAND}
+         -DOPERATION=run
+         -DTOOL=${TOPP_BIN_PATH}/ProteomicsLFQ
+         -DMZML_FILE=${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -DID_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.tmp.idXML
+         -DDESIGN_FILE=${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -DFASTA_FILE=${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -DFEATURE_DIR=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass_features
+         -DCAPTURE_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.output
+         -P ${DATA_DIR_TOPP}/ProteomicsLFQ_CalcMass_test.cmake)
+set_tests_properties("TOPP_ProteomicsLFQ_CalcMass" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_CalcMass_prepare"
+                     TIMEOUT 180)
+add_test("TOPP_ProteomicsLFQ_CalcMass_check" ${CMAKE_COMMAND}
+         -DOPERATION=check
+         -DCAPTURE_FILE=${TESTS_TEMP_DIR}/ProteomicsLFQ_CalcMass.output
+         -P ${DATA_DIR_TOPP}/ProteomicsLFQ_CalcMass_test.cmake)
+set_tests_properties("TOPP_ProteomicsLFQ_CalcMass_check" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_CalcMass")
 
 # ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
 add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ

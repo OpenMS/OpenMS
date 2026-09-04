@@ -19,12 +19,12 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 #include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
 #include <sys/types.h>
@@ -34,10 +34,13 @@
 #include <Shlwapi.h> // for PathMatchSpecA
 #include <io.h>      // for _access_s(), _sopen_s() and _close()
 #include <share.h>   // for _SH_DENYNO
+#include <rpc.h>     // for UuidCreate() / UuidToStringW()
 #pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Rpcrt4.lib")
 #else
 #include <fnmatch.h>
 #include <unistd.h> // for gethostname() and close()
+#include <cstdlib>  // for mkdtemp
 #endif
 
 #include <fcntl.h>    // for O_CREAT/O_EXCL (spelled _O_CREAT/_O_EXCL on Windows) and open()
@@ -55,29 +58,108 @@ namespace fs = std::filesystem;
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS{
+namespace
 {
+  std::string createUniqueDir_(const std::string& prefix)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    // Ensure the parent directory chain exists first (old fs::create_directories
+    // behavior created the whole chain; mkdtemp/CreateDirectoryW only create the leaf).
+    std::filesystem::path parent_path = to_path(prefix).parent_path();
+    if (!parent_path.empty())
+    {
+      std::error_code ec;
+      std::filesystem::create_directories(parent_path, ec);
+      if (ec)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, ec.message());
+      }
+    }
+
+    for (int attempt = 0; attempt < 100; ++attempt)
+    {
+      UUID uuid;
+      RPC_STATUS create_status = UuidCreate(&uuid);
+      if (create_status != RPC_S_OK && create_status != RPC_S_UUID_LOCAL_ONLY)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "UuidCreate failed with status " + std::to_string(create_status));
+      }
+
+      RPC_WSTR wstr = nullptr;
+      RPC_STATUS str_status = UuidToStringW(&uuid, &wstr);
+      if (str_status != RPC_S_OK || wstr == nullptr)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "UuidToStringW failed with status " + std::to_string(str_status));
+      }
+      std::wstring wsuffix(reinterpret_cast<wchar_t*>(wstr));
+      RpcStringFreeW(&wstr);
+      std::string suffix;
+      suffix.reserve(wsuffix.size());
+      for (wchar_t wc : wsuffix)
+      {
+        suffix.push_back(static_cast<char>(wc));
+      }
+
+      std::string candidate = prefix + "_" + suffix;
+      std::filesystem::path wcandidate = to_path(candidate);
+
+      if (CreateDirectoryW(wcandidate.native().c_str(), NULL))
+      {
+        return candidate + "/";
+      }
+      DWORD err = GetLastError();
+      if (err != ERROR_ALREADY_EXISTS)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate, "GetLastError() = " + std::to_string(err));
+      }
+      // else: collision, loop and try again with a new UUID
+    }
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "exceeded 100 attempts");
+#else
+    // Ensure the parent directory chain exists first (same reasoning as above).
+    std::filesystem::path parent_path = to_path(prefix).parent_path();
+    if (!parent_path.empty())
+    {
+      std::error_code ec;
+      std::filesystem::create_directories(parent_path, ec);
+      if (ec)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, ec.message());
+      }
+    }
+
+    std::string tmpl = prefix + "_XXXXXX";
+    std::vector<char> buf(tmpl.begin(), tmpl.end());
+    buf.push_back('\0');
+    if (::mkdtemp(buf.data()) == nullptr)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmpl, std::strerror(errno));
+    }
+    return std::string(buf.data()) + "/";
+#endif
+  }
+}
 
   File::TempDir::TempDir(bool keep_dir)
     : keep_dir_(keep_dir)
   {
-    temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+    std::string prefix = File::getTempDirectory() + "/" +File::getUniqueName();
+    temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    fs::create_directories(to_path(temp_dir_));
   };
 
   File::TempDir::TempDir(const std::string& base_dir, bool keep_dir)
     : keep_dir_(keep_dir)
   {
-    // Create a unique subdirectory under the provided base_dir
-    temp_dir_ = base_dir;
-    if (!temp_dir_.empty() && !StringUtils::hasSuffix(temp_dir_, "/"))
+    std::string prefix = base_dir;
+    if (!prefix.empty() && !StringUtils::hasSuffix(prefix,"/"))
     {
-      temp_dir_ += "/";
+      prefix += "/";
     }
-    temp_dir_ += "OpenMSTempDir_" + File::getUniqueName() + "/";
+    prefix += "OpenMSTempDir_" + File::getUniqueName();
+    temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    fs::create_directories(to_path(temp_dir_));
   };
 
   File::TempDir::~TempDir()
@@ -177,9 +259,11 @@ namespace OpenMS
     if (!File::exists(file)) return -1;
 
     // stat() rather than std::filesystem::last_write_time(): file_time_type's epoch is
-    // implementation-defined, and std::chrono::clock_cast -- the standard way to anchor it to the
-    // Unix epoch -- is still absent from Apple's libc++. st_mtime is seconds since the Unix epoch
-    // on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
+    // implementation-defined (2174 on libstdc++, 1601 on MSVC), and std::chrono::clock_cast -- the
+    // standard way to anchor it to the Unix epoch -- is not available across the toolchains this
+    // builds on: absent from Apple's libc++, and libstdc++ still reports __cpp_lib_chrono == 201611
+    // as of GCC 13, below the 201907L that clock_cast requires. st_mtime is seconds since the Unix
+    // epoch on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
     // to_path() first, so a UTF-8 path still resolves on Windows.
     const auto p = to_path(file);
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -281,7 +365,7 @@ namespace OpenMS
       auto canonical_target = fs::canonical(target_path, ec);
       if (!ec && canonical_source == canonical_target)
       {
-        OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir << " to " << to_dir << ". Same path given.\n";
+        OPENMS_LOG_ERROR << "Error: Could not copy '" << from_dir << "' to '" << to_dir << "'. Same path given.\n";
         return false;
       }
     }

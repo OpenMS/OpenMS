@@ -23,6 +23,15 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <fstream>
+#include <sstream>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 using namespace OpenMS;
@@ -33,6 +42,60 @@ DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
+}
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
 }
 
 START_TEST(ConsensusXMLFile, "$Id$")
@@ -519,6 +582,108 @@ START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
   f.load(tmp_filename, loaded);
   TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
   TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0].getFloatDataArrays().empty(), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and unassigned identifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestCXML:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestCXML:Unassigned", 'R', "CH2") != nullptr)
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestCXML:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestCXML:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  ConsensusXMLFile().store(tmp_filename, map);
+  TEST_TRUE(fileContains4b(tmp_filename, "name=\"modification_definitions\""))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestCXML:Assigned|TestCXML:Assigned (K)|"))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestCXML:Unassigned|TestCXML:Unassigned (R)|"))
+
+  ConsensusMap in;
+  ConsensusXMLFile().load(tmp_filename, in);
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCXML:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCXML:Unassigned)IDE")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] load - definitions are registered before the sequences are parsed)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestCXML:Fresh"))
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestCXML:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b_fresh");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTKIDE"));
+  pep.insertHit(hit);
+  f.getPeptideIdentifications().push_back(pep);
+  map.push_back(f);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  ConsensusXMLFile().store(tmp_filename, map);
+  TEST_FALSE(db->hasDefinedModification("TestCXML:Fresh")) // storing registers nothing
+  // a hit using the not-yet-registered name, as a file from another process would carry it
+  TEST_TRUE(replaceInFile4b(tmp_filename, "sequence=\"PEPTKIDE\"", "sequence=\"PEPTK(TestCXML:Fresh)IDE\""))
+
+  ConsensusMap in;
+  ConsensusXMLFile().load(tmp_filename, in);
+  TEST_TRUE(db->hasDefinedModification("TestCXML:Fresh"))
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestCXML:Fresh)IDE")
+  }
 }
 END_SECTION
 

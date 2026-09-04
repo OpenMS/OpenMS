@@ -204,7 +204,7 @@ def testAASequenceTutorial():
     print(AASequence.fromString("DFPIAM[+16]GER"))
     print(AASequence.fromString("DFPIAM[+15.99]GER"))
     print(AASequence.fromString("DFPIAM[147]GER"))
-    print(AASequence.fromString("DFPIAM[147.035405]GER"))
+    print(AASequence.fromString("DFPIAM[147.0354]GER"))
 
     s = AASequence.fromString(".(Dimethyl)DFPIAMGER.")
     print(s, s.hasNTerminalModification())

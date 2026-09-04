@@ -1946,6 +1946,8 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getNeutralLossAverageMasses", [](const OpenMS::ResidueModification& self) { return self.getNeutralLossAverageMasses(); }, "Returns the neutral loss average weight")
         .def("hasNeutralLoss", [](const OpenMS::ResidueModification& self) { return self.hasNeutralLoss(); }, "Returns true if a neutral loss formula is set")
         .def("isUserDefined", [](const OpenMS::ResidueModification& self) { return self.isUserDefined(); }, "Returns true if it is a user-defined modification (empty id)")
+        .def("setProvenance", [](OpenMS::ResidueModification& self, OpenMS::ResidueModification::Provenance p) { self.setProvenance(p); }, "provenance"_a, "Sets where the definition of this modification came from")
+        .def("getProvenance", [](const OpenMS::ResidueModification& self) { return self.getProvenance(); }, "Returns where the definition of this modification came from")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::ResidueModification& self) { return std::hash<OpenMS::ResidueModification>{}(self); })
@@ -1986,6 +1988,13 @@ Modified residues get created and added if getModifiedResidue is called.
         .value("OLINKED_GLYCOSYLATION", OpenMS::ResidueModification::SourceClassification::OLINKED_GLYCOSYLATION)
         .value("UNKNOWN", OpenMS::ResidueModification::SourceClassification::UNKNOWN)
         .value("NUMBER_OF_SOURCE_CLASSIFICATIONS", OpenMS::ResidueModification::SourceClassification::NUMBER_OF_SOURCE_CLASSIFICATIONS)
+        .export_values();
+    // Provenance enum nested under ResidueModification
+    nb::enum_<OpenMS::ResidueModification::Provenance>(residuemodification_class, "Provenance", nb::is_arithmetic())
+        .value("DEFINED", OpenMS::ResidueModification::Provenance::DEFINED)
+        .value("CV", OpenMS::ResidueModification::Provenance::CV)
+        .value("MASS_ONLY", OpenMS::ResidueModification::Provenance::MASS_ONLY)
+        .value("NUMBER_OF_PROVENANCE", OpenMS::ResidueModification::Provenance::NUMBER_OF_PROVENANCE)
         .export_values();
 
     // -----------------------------------------------------------------------

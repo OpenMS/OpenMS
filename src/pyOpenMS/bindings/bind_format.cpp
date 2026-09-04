@@ -2728,7 +2728,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def_static("exportSearchParamsToParquet", &OpenMS::ProteinIdentificationArrowIO::exportSearchParamsToParquet,
             "protein_identifications"_a, "filename"_a,
             "config"_a = OpenMS::ParquetWriteConfig{},
-            "Export search parameters to Parquet file. Returns True on success")
+            "definitions_by_run"_a = std::map<std::string, std::string>{},
+            "Export search parameters to Parquet file; definitions_by_run maps a run identifier to its modification_definitions value. Returns True on success")
         // Import methods: std::vector<ProteinIdentification>& is an output param.
         // Since vectors go through nanobind's STL type caster (creates copies),
         // we must use lambdas that return the modified vector.

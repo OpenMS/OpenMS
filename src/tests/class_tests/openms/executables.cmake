@@ -348,6 +348,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
   PSMArrowIO_test
+  ModificationDefinitionIO_test
   ArrowSchemaRegistry_test
   ArrowIOHelpers_test
   ParquetTableComparator_test)
@@ -633,6 +634,7 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLReport_test
   NuXLFragmentAdductDefinition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test

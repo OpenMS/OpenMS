@@ -20,6 +20,15 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+
+#include <fstream>
+#include <sstream>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -34,6 +43,60 @@
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
+}
 
 START_TEST(ConsensusMapArrowIO, "$Id$")
 
@@ -1014,6 +1077,97 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
 
   TEST_EXCEPTION(Exception::InvalidValue,
                  ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir))
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestCMap:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestCMap:Unassigned", 'R', "CH2") != nullptr)
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestCMap:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestCMap:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".cmd";
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(map, dir))
+  ConsensusMap in;
+  TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCMap:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCMap:Unassigned)IDE")
+  }
+  if (in.getProteinIdentifications().size() == 1)
+  {
+    const auto& sp = in.getProteinIdentifications()[0].getSearchParameters();
+    TEST_TRUE(sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    if (sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    {
+      const std::string v = sp.getMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS).toString();
+      TEST_TRUE(v.find("TestCMap:Assigned") != std::string::npos)
+      TEST_TRUE(v.find("TestCMap:Unassigned") != std::string::npos)
+    }
+  }
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - definitions are registered from search_params.parquet)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestCMap:Fresh"))
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestCMap:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".cmd";
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(map, dir))
+  TEST_FALSE(db->hasDefinedModification("TestCMap:Fresh")) // exporting registers nothing
+  ConsensusMap in;
+  TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
+  TEST_TRUE(db->hasDefinedModification("TestCMap:Fresh"))
+  File::removeDirRecursively(dir);
 }
 END_SECTION
 

@@ -310,7 +310,7 @@ namespace OpenMS
         // r will be nullptr if not found. The next line handles it.
         const Residue* r = ResidueDB::getInstance()->getResidue(aminoacid_[0]);
         //TODO check if it is better to create from mass or massdiff
-        registered_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(massdiff_),
+        registered_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(massdiff_),
                                                                                  massdiff_,
                                                                                  true,
                                                                                  term_spec_,

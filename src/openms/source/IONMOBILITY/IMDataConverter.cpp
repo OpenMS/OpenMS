@@ -142,7 +142,19 @@ namespace OpenMS
       }
       last_spec->push_back(im_frame[i]);// copy the m/z of the peak
     }
-    out.sortSpectra(true);
+    // Only the per-spectrum m/z sort is wanted here. sortSpectra() would also sort the
+    // spectra by RT, and every spectrum emitted above carries the frame's retention time
+    // (see addSpectrum), so that sort runs on an all-equal key. MSExperiment::sortSpectra
+    // uses std::sort, which is not stable, so it would permute the spectra arbitrarily and
+    // destroy the ascending ion-mobility order the loop above just established and asserts.
+    // Downstream that axis becomes the x axis of mass traces (PeakPickerIM reinterprets the
+    // drift time as RT), and mass-trace detection walks spectrum indices, so a permutation
+    // silently builds traces from unrelated peaks and makes the output depend on the
+    // standard-library implementation (#10051).
+    for (auto& s : out)
+    {
+      s.sortByPosition();
+    }
     out.updateRanges();
     return out;
   }

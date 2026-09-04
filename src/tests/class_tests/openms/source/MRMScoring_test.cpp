@@ -448,6 +448,26 @@ END_SECTION*/
         }
     END_SECTION
 
+    START_SECTION(test_single_transition_xcorr_scores)
+        {
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          MRMScoring mrmscore;
+          std::vector<std::string> native_ids;
+          std::vector<double> weights {1.0};
+          fill_mock_objects(imrmfeature, native_ids);
+          native_ids.resize(1);
+          mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+          delete imrmfeature;
+
+          TEST_EQUAL(mrmscore.getXCorrMatrix().rows(), 1)
+          TEST_EQUAL(mrmscore.getXCorrMatrix().cols(), 1)
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 0.0)
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionWeightedScore(weights), 0.0)
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeScore(), 1.0)
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeWeightedScore(weights), 1.0)
+        }
+    END_SECTION
+
     START_SECTION(calcXcorrPrecursorContrastCoelutionScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
@@ -803,6 +823,25 @@ mean(m4)
           // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
           // sum(xcorr_deltas)
           TEST_REAL_SIMILAR(mrmscore.calcMIWeightedScore(weights), 3.3231)
+        }
+    END_SECTION
+
+    START_SECTION(test_single_transition_mi_scores)
+        {
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          MRMScoring mrmscore;
+          std::vector<std::string> native_ids;
+          std::vector<double> weights {1.0};
+          fill_mock_objects(imrmfeature, native_ids);
+          native_ids.resize(1);
+          mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+          delete imrmfeature;
+
+          TEST_EQUAL(mrmscore.getMIMatrix().rows(), 1)
+          TEST_EQUAL(mrmscore.getMIMatrix().cols(), 1)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(0, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.calcMIScore(), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.calcMIWeightedScore(weights), 3.2776)
         }
     END_SECTION
 
