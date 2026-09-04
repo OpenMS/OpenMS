@@ -1566,6 +1566,8 @@ Build System:
     to latest, and doc/pyopenms/ruff.toml selects the pyOpenMS documentation's lint rules explicitly. Ruff
     0.16 widened its default lint selection from 59 to 413 rules, which turned the job red with no commit
     of ours in between (#9899, #9906)
+  - Tests: TOPPExternalToolBase_test uses `ls -ld .` instead of listing the shared test directory,
+    avoiding intermittent failures when parallel tests remove temporary files (#9973).
   - Tests: TOPP_OpenSwathWorkflow_17_cache wrote to the same output file names as TOPP_OpenSwathWorkflow_17,
     so the two tests could collide when a Windows nightly run scheduled them concurrently; the cache variant
     now uses its own file names (#9937)
