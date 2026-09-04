@@ -71,6 +71,7 @@ MapStatistics
 MaRaClusterAdapter
 MascotAdapterOnline
 MassCalculator
+MassErrorEstimator
 MassTraceExtractor
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
