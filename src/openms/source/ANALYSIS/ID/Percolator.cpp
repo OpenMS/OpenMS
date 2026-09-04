@@ -475,7 +475,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   P::Globals::getInstance()->setNoTerminate(true);
   P::Normalizer::resetNormalizer();
   P::Normalizer::setType(norm_type);
-  P::Normalizer* normalizer = P::Normalizer::getNormalizer();
+  // normalizeFeatures() owns Normalizer construction via its out-parameter.
+  P::Normalizer* normalizer = nullptr;
 
   // SanityCheck: reset static state so successive calls don't leak configuration.
   P::SanityCheck::setInitDefaultDir(0);
@@ -765,7 +766,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   P::Globals::getInstance()->setNoTerminate(true);
   P::Normalizer::resetNormalizer();
   P::Normalizer::setType(norm_type);
-  P::Normalizer* normalizer = P::Normalizer::getNormalizer();
+  // normalizeFeatures() owns Normalizer construction via its out-parameter.
+  P::Normalizer* normalizer = nullptr;
 
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
