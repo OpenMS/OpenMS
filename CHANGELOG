@@ -666,6 +666,21 @@ TOPP tools:
         both are set, centroiding runs on raw gridded TOF data and the IM picking step is skipped.
         IM_SPECTRUM input is rejected with a clear error message (#9022)
       - IM-axis hill centroiding via -algorithm hill (see BrukerTimsFile/PASEFHillCentroider) (#9380)
+      - Fix: '-method traces' built its mass traces from a shuffled ion-mobility axis.
+        IMDataConverter::reshapeIMFrameToMany emits one spectrum per ion-mobility value in ascending
+        order, all carrying the frame's retention time by design, and then called
+        MSExperiment::sortSpectra. That sorts by RT with std::sort, which is not stable, so the
+        all-equal key was permuted arbitrarily (85 descending steps over 868 spectra were measured
+        on the test data). PeakPickerIM reinterprets that axis as RT, and mass-trace detection walks
+        spectrum indices, so traces picked up chemically unrelated peaks - one observed trace spanned
+        0.823 to 0.919 in 1/K0 against a configured chrom_fwhm of 0.01 - and the output was not
+        reproducible across standard-library implementations. Only the per-spectrum m/z sort was
+        wanted, so the RT sort is gone; the loop above already emits ascending ion mobility and
+        asserts it. Roughly 10% of the picked peaks in the test data turn out to have been spurious
+        splits of incoherent traces, so PeakPickerIM_3_output.mzML was regenerated - the previous
+        reference encoded one particular libstdc++ shuffle. MSExperiment::sortSpectra itself is
+        unchanged; switching it to std::stable_sort would fix every equal-RT map at once and should
+        land deliberately rather than as a drive-by (#10051)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     PeakPickerChromatogram:
@@ -1155,6 +1170,34 @@ OpenMS Library:
       modifications by mass: a near-zero mass shift, e.g. the C-terminal "massdiff" of 0.0003 that
       X!Tandem writes into pepXML, no longer picks up an unrelated zero-mass PSI-MOD term - such
       peptides used to be annotated with a spurious "(MOD:00266)" (#10029)
+    - Fix: MassTrace::estimateFWHM reported a wrong FWHM. Interpolating the right flank to the
+      half-maximum crossing paired each RT with the *other* bracketing point's intensity, so the
+      crossing came out mirrored about the midpoint of its bracket: a symmetric trace with
+      intensities {10, 60, 100, 60, 10} at RT 0..4 was reported as FWHM 3.0 (right crossing at 3.8)
+      instead of 2.4 (right crossing at 3.2). Only the right flank was affected; the left flank
+      paired its coordinates correctly, and a trace that never drops below half maximum on the right
+      was already correct because it does not interpolate. The private helper
+      linearInterpolationAtY_ no longer assumes that x ascends with y - its postcondition bracketed
+      the result as xA <= xC <= xB, which is wrong for a descending x pair, and now checks
+      min(xA, xB) <= xC <= max(xA, xB). The reflection keeps the crossing inside its bracketing
+      pair, so the FWHM moved by up to one sampling interval in either direction (and was exact
+      only when the crossing happened to fall on the bracket's midpoint). estimateFWHM also gained
+      an explicit precondition that the trace is sorted along its x axis: the flank search walks
+      peak indices outward from the apex, and a shuffled axis (#10051) used to be caught only
+      indirectly, when it happened to hand the interpolation a descending bracketing pair.
+      Corrected FWHMs change results downstream: FeatureFindingMetabo's isotope co-elution score
+      and the width (the "FWHM" user parameter) it writes onto each feature, ElutionPeakDetection's
+      fixed and auto (quantile-based) peak-width filters, the width MassTraceExtractor writes, and
+      - through DDAWorkflowCommons::estimateMedianChromatographicFWHM, which medians the FWHM of
+      the first 1000 mass traces of a run - ProteomicsLFQ's RT linking tolerance,
+      FeatureFinderIdentification peak widths and FeatureFinderMultiplex seed detection
+      (algorithm:rt_typical = 3x and algorithm:rt_min = 0.5x that median). On the BSA test data
+      that median moves 7.779 -> 7.330 s and 8.684 -> 8.465 s, and the quantified intensities move
+      with it: across the updated MSstats CSVs the median relative change is ~1e-4, but the
+      distribution has a long tail - 20 of 188 changes exceed 1% and the largest is 8.55% - and
+      the seed-based runs gain consensus features (198 -> 204 for the FeatureFinderMetabo-seeded
+      ProteomicsLFQ test). Reference outputs of the FeatureFinderMetabo, MassTraceExtractor and
+      ProteomicsLFQ tests were updated accordingly (#10052)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)

@@ -78,7 +78,10 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 84);
+  // one feature less than before the MassTrace::estimateFWHM right-flank fix (#10052): the RT
+  // co-elution score divides the FWHM-border overlap by the trace FWHM, so a corrected FWHM moves
+  // hypotheses across 'min_isotope_rt_overlap' and one more trace pair is assembled as isotopes
+  TEST_EQUAL(test_fm.size(), 83);
 
   // run with default settings (from paper using charge+isotope# dependent distances)
   p.setValue("report_convex_hulls", "true");
