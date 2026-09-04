@@ -1198,6 +1198,21 @@ OpenMS Library:
       the seed-based runs gain consensus features (198 -> 204 for the FeatureFinderMetabo-seeded
       ProteomicsLFQ test). Reference outputs of the FeatureFinderMetabo, MassTraceExtractor and
       ProteomicsLFQ tests were updated accordingly (#10052)
+    - Fix: MRMScoring rejected a transition group with only a single transition. calcXcorrCoelutionScore,
+      calcXcorrCoelutionWeightedScore, calcXcorrShapeScore, calcXcorrShapeWeightedScore, calcMIScore and
+      calcMIWeightedScore each asserted their cross-correlation/mutual-information matrix was at least
+      2x2, i.e. at least two transitions, even though scoring a lone transition is a valid (if
+      uninformative) input rather than an error. The preconditions now require only rows() > 0; a
+      single-transition group scores with coelution 0 and shape 1, since there is no second transition
+      to correlate against (#10055)
+    - Fix: Percolator::train and Percolator::rescore constructed a Normalizer via
+      Normalizer::getNormalizer() right after Normalizer::setType(), even though that instance was
+      discarded unused -- normalizeFeatures() constructs its own Normalizer through an out-parameter.
+      The premature construction tripped the vendored Normalizer's "already instantiated" guard on every
+      Percolator-based rescoring run, which used to call assert(false) (aborting debug builds) and print
+      "Multiple instantiations of Normalizer" to stderr otherwise. Percolator::train/rescore no longer
+      pre-construct the Normalizer, and the now-unreachable guard was removed from the vendored source
+      and its namespace-wrap patch (#10057)
   Performance:
     - ILPDCWrapper ~3.5x faster using std::unordered_map (#8618); unordered_map lookups in OpenSwath
       (#8651), PrecursorPurity, PeptideProteinResolution and PeptideIndexing (#8763, #8806)
