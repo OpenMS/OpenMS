@@ -144,9 +144,9 @@ namespace OpenMS
         continue;
       }
       ++features_with_ratio;
-      feature.setMetaValue("evidence_ratio_run", ratio_runs);
-      feature.setMetaValue("evidence_ratio_channel", ratio_channels);
-      feature.setMetaValue("evidence_ratio", ratio_values);
+      feature.setMetaValue("MS1Label:evidence_ratio_run", ratio_runs);
+      feature.setMetaValue("MS1Label:evidence_ratio_channel", ratio_channels);
+      feature.setMetaValue("MS1Label:evidence_ratio", ratio_values);
 
       // the peptide identity this evidence belongs to (unlabeled; see MS1LabelState)
       const auto& ids = feature.getPeptideIdentifications();
@@ -212,11 +212,11 @@ namespace OpenMS
         values.push_back(r.ratio);
         normalized_values.push_back(r.normalized_ratio);
       }
-      feature.setMetaValue("peptide_ratio_fraction_group", fraction_groups);
-      feature.setMetaValue("peptide_ratio_channel", channels);
-      feature.setMetaValue("peptide_ratio", values);
-      if (normalize) { feature.setMetaValue("peptide_ratio_normalized", normalized_values); }
-      feature.setMetaValue("peptide_ratio_count", counts);
+      feature.setMetaValue("MS1Label:peptide_ratio_fraction_group", fraction_groups);
+      feature.setMetaValue("MS1Label:peptide_ratio_channel", channels);
+      feature.setMetaValue("MS1Label:peptide_ratio", values);
+      if (normalize) { feature.setMetaValue("MS1Label:peptide_ratio_normalized", normalized_values); }
+      feature.setMetaValue("MS1Label:peptide_ratio_count", counts);
     }
 
     // -- protein group ratios: median over the peptide ratios of the group's own peptides --

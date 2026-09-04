@@ -26,11 +26,11 @@ namespace OpenMS
     <em>peptide identity</em> (the label modifications removed) and records the label state on the
     PeptideHit as meta values:
 
-      - @c labeled_sequence: the peptidoform the spectrum was matched with, e.g.
+      - @c MS1Label:labeled_sequence: the peptidoform the spectrum was matched with, e.g.
         <tt>PEPTIDEK(Label:13C(6)15N(2))</tt>
-      - @c removed_labels: the labels removed from it, in the FeatureFinderMultiplex vocabulary
+      - @c MS1Label:removed_labels: the labels removed from it, in the FeatureFinderMultiplex vocabulary
         (e.g. @c Lys8, or @c Arg10,Lys8), or @c none
-      - @c label_channel: the 1-based channel the spectrum belongs to, i.e. the @c Label of the
+      - @c MS1Label:label_channel: the 1-based channel the spectrum belongs to, i.e. the @c Label of the
         experimental design (1 = light); 0 if it could not be determined
 
     PSM-level output describes the spectrum match and therefore reports the matched peptidoform
@@ -43,11 +43,11 @@ namespace OpenMS
   namespace MS1LabelState
   {
     /// Meta value key: the peptidoform the spectrum was matched with (see the namespace documentation)
-    inline const std::string LABELED_SEQUENCE = "labeled_sequence";
+    inline const std::string LABELED_SEQUENCE = "MS1Label:labeled_sequence";
     /// Meta value key: the labels removed from the matched peptidoform, or "none"
-    inline const std::string REMOVED_LABELS = "removed_labels";
+    inline const std::string REMOVED_LABELS = "MS1Label:removed_labels";
     /// Meta value key: the 1-based channel the spectrum belongs to (0 = unknown)
-    inline const std::string LABEL_CHANNEL = "label_channel";
+    inline const std::string LABEL_CHANNEL = "MS1Label:label_channel";
 
     /// The three keys, in the order they are reported
     OPENMS_DLLAPI const std::vector<std::string>& keys();
@@ -69,7 +69,7 @@ namespace OpenMS
       UInt label_channel;
     };
 
-    /// Does @p hit record a non-empty @c labeled_sequence, i.e. was it reduced to a peptide identity?
+    /// Does @p hit record a non-empty @c MS1Label:labeled_sequence, i.e. was it reduced to a peptide identity?
     /// Presence only: the recorded peptidoform may equal the hit's own sequence, as it does for an
     /// unlabeled channel. An empty value counts as absent, since it records no peptidoform.
     OPENMS_DLLAPI bool hasMatchedSequence(const PeptideHit& hit);
@@ -79,7 +79,7 @@ namespace OpenMS
     /**
       @brief The peptidoform @p hit was matched to the spectrum with
 
-      The hit's sequence, unless the hit records a @c labeled_sequence, in which case that one.
+      The hit's sequence, unless the hit records a @c MS1Label:labeled_sequence, in which case that one.
 
       Never throws. The value comes from a file and may be absent, empty or unparsable; any of those
       yields the hit's own sequence, with a warning logged once per process for an unparsable one.

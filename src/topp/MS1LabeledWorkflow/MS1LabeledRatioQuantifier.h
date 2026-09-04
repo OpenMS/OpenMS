@@ -54,10 +54,10 @@ namespace OpenMS
     reported by MaxQuant; this class provides the ratio-of-ratios one.
 
     Ratios are annotated where they belong:
-      - on every consensus feature, as the parallel meta values @c evidence_ratio_run (StringList),
-        @c evidence_ratio_channel (IntList) and @c evidence_ratio (DoubleList) for its own evidence
-        ratios, and @c peptide_ratio_fraction_group, @c peptide_ratio_channel, @c peptide_ratio,
-        @c peptide_ratio_normalized and @c peptide_ratio_count for the ratios of its peptide
+      - on every consensus feature, as the parallel meta values @c MS1Label:evidence_ratio_run (StringList),
+        @c MS1Label:evidence_ratio_channel (IntList) and @c MS1Label:evidence_ratio (DoubleList) for its own evidence
+        ratios, and @c MS1Label:peptide_ratio_fraction_group, @c MS1Label:peptide_ratio_channel, @c MS1Label:peptide_ratio,
+        @c MS1Label:peptide_ratio_normalized and @c MS1Label:peptide_ratio_count for the ratios of its peptide
       - on every indistinguishable protein group, as the parallel data arrays
         @c fraction_group_level_ratio_fraction_group, @c fraction_group_level_ratio_label and
         @c fraction_group_level_ratio_count (integer) plus @c fraction_group_level_ratio and

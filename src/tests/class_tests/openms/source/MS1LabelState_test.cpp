@@ -26,9 +26,9 @@ START_SECTION((const std::vector<std::string>& keys()))
   TEST_EQUAL(keys[0], MS1LabelState::LABELED_SEQUENCE)
   TEST_EQUAL(keys[1], MS1LabelState::REMOVED_LABELS)
   TEST_EQUAL(keys[2], MS1LabelState::LABEL_CHANNEL)
-  TEST_EQUAL(MS1LabelState::LABELED_SEQUENCE, "labeled_sequence")
-  TEST_EQUAL(MS1LabelState::REMOVED_LABELS, "removed_labels")
-  TEST_EQUAL(MS1LabelState::LABEL_CHANNEL, "label_channel")
+  TEST_EQUAL(MS1LabelState::LABELED_SEQUENCE, "MS1Label:labeled_sequence")
+  TEST_EQUAL(MS1LabelState::REMOVED_LABELS, "MS1Label:removed_labels")
+  TEST_EQUAL(MS1LabelState::LABEL_CHANNEL, "MS1Label:label_channel")
 }
 END_SECTION
 

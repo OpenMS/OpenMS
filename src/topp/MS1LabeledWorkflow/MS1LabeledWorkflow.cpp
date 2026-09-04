@@ -141,8 +141,8 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      because the label belongs to the channel, not to the peptide, and the light and the heavy spectrum of one
      peptide have to name one peptide for linking, match between runs, inference and quantification (the
      convention MaxQuant uses as well). The label state stays documented on every identification as the meta
-     values @c labeled_sequence (the peptidoform as searched), @c removed_labels (e.g. @c Lys8, or @c none) and
-     @c label_channel (the 1-based channel the spectrum belongs to, i.e. the @c Label of the experimental
+     values @c MS1Label:labeled_sequence (the peptidoform as searched), @c MS1Label:removed_labels (e.g. @c Lys8, or @c none) and
+     @c MS1Label:label_channel (the 1-based channel the spectrum belongs to, i.e. the @c Label of the experimental
      design). The values also sit on every quantified consensus feature, for the identification it is quantified
      under. mzTab reports them as <tt>opt_global_*</tt> columns of the peptide and PSM sections, the QPX feature
      and psm views as @c cv_params. PSM-level output describes the spectrum match and therefore reports the
@@ -177,7 +177,7 @@ intensities (@p ratios, computed by @c MS1LabeledRatioQuantifier next to this to
 The reference channel is reported with the ratio 1.0 it has by construction, wherever another channel was
 measured against it, so that every annotation covers the complete set of channels.
 
-The ratios are annotated on the consensus features (@c evidence_ratio*, @c peptide_ratio*) and on the protein
+The ratios are annotated on the consensus features (@c MS1Label:evidence_ratio*, @c MS1Label:peptide_ratio*) and on the protein
 groups, so they reach the consensusXML and the mzTab peptide section (as <tt>opt_global_*</tt> columns). In the
 QPX pg view, whose rows are one per (protein group, fraction group, channel), they are written as that row's
 @c additional_intensities, named @c ratio and @c ratio_normalized under the row's own channel label; the number

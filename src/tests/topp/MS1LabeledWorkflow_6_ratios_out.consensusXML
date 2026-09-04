@@ -87,9 +87,9 @@
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="819.915254362" RT="1791.139488" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
 		<PeptideHit score="0.166666666666667" sequence="TALGYYWALTEASGK" charge="2" aa_before="[" aa_after="S" start="0" end="14" protein_refs="PH_1">
 			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="string" name="labeled_sequence" value="TALGYYWALTEASGK(Label:13C(6)15N(2))"/>
-			<UserParam type="string" name="removed_labels" value="Lys8"/>
-			<UserParam type="int" name="label_channel" value="2"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK(Label:13C(6)15N(2))"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="Lys8"/>
+			<UserParam type="int" name="MS1Label:label_channel" value="2"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.01"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="1"/>
@@ -98,9 +98,9 @@
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="849.492650832" RT="1792.499605" spectrum_reference="controllerType=0 controllerNumber=1 scan=11884" >
 		<PeptideHit score="0.166666666666667" sequence="TTTLLHR" charge="1" aa_before="[" aa_after="G" start="0" end="6" protein_refs="PH_2">
 			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="string" name="labeled_sequence" value="TTTLLHR(Label:13C(6)15N(4))"/>
-			<UserParam type="string" name="removed_labels" value="Arg10"/>
-			<UserParam type="int" name="label_channel" value="2"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="TTTLLHR(Label:13C(6)15N(4))"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
+			<UserParam type="int" name="MS1Label:label_channel" value="2"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="4.0e-03"/>
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="not mapped"/>
@@ -131,25 +131,25 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="833.779044601" RT="1789.361369" spectrum_reference="controllerType=0 controllerNumber=1 scan=11851" >
 				<PeptideHit score="0.166666666666667" sequence="NYTIEHIFSQVLLLYFYGIR" charge="3" aa_before="[" aa_after="E" start="0" end="19" protein_refs="PH_0">
 					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="string" name="labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
-					<UserParam type="string" name="removed_labels" value="Arg10"/>
-					<UserParam type="int" name="label_channel" value="2"/>
+					<UserParam type="string" name="MS1Label:labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
+					<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
+					<UserParam type="int" name="MS1Label:label_channel" value="2"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="string" name="feature_id" value="1755235105885170967"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="1755235105885170967"/>
-			<UserParam type="string" name="labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
-			<UserParam type="string" name="removed_labels" value="Arg10"/>
-			<UserParam type="int" name="label_channel" value="2"/>
-			<UserParam type="stringList" name="evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
-			<UserParam type="intList" name="evidence_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="evidence_ratio" value="[1.0, 0.012227709706896]"/>
-			<UserParam type="intList" name="peptide_ratio_fraction_group" value="[1, 1]"/>
-			<UserParam type="intList" name="peptide_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="peptide_ratio" value="[1.0, 0.012227709706896]"/>
-			<UserParam type="intList" name="peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
+			<UserParam type="int" name="MS1Label:label_channel" value="2"/>
+			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
+			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
+			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 0.012227709706896]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_fraction_group" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_channel" value="[1, 2]"/>
+			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 0.012227709706896]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_14811341817612382122" quality="1.0" charge="2">
 			<centroid rt="1791.326770525531401" mz="827.402216566652669" it="1.3987197e07"/>
@@ -160,25 +160,25 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="827.402216567" RT="1791.326771" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
 				<PeptideHit score="0.166666666666667" sequence="EYNVTIDAAESTVNK" charge="2" aa_before="R" aa_after="A" start="20" end="34" protein_refs="PH_0">
 					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="string" name="labeled_sequence" value="EYNVTIDAAESTVNK"/>
-					<UserParam type="string" name="removed_labels" value="none"/>
-					<UserParam type="int" name="label_channel" value="1"/>
+					<UserParam type="string" name="MS1Label:labeled_sequence" value="EYNVTIDAAESTVNK"/>
+					<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+					<UserParam type="int" name="MS1Label:label_channel" value="1"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="string" name="feature_id" value="14811341817612382122"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14811341817612382122"/>
-			<UserParam type="string" name="labeled_sequence" value="EYNVTIDAAESTVNK"/>
-			<UserParam type="string" name="removed_labels" value="none"/>
-			<UserParam type="int" name="label_channel" value="1"/>
-			<UserParam type="stringList" name="evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
-			<UserParam type="intList" name="evidence_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="evidence_ratio" value="[1.0, 3.774520942258838]"/>
-			<UserParam type="intList" name="peptide_ratio_fraction_group" value="[1, 1]"/>
-			<UserParam type="intList" name="peptide_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="peptide_ratio" value="[1.0, 3.774520942258838]"/>
-			<UserParam type="intList" name="peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="EYNVTIDAAESTVNK"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+			<UserParam type="int" name="MS1Label:label_channel" value="1"/>
+			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
+			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
+			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 3.774520942258838]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_fraction_group" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_channel" value="[1, 2]"/>
+			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 3.774520942258838]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_2684106197423007927" quality="1.0" charge="2">
 			<centroid rt="1791.336810474282629" mz="815.90784285666598" it="2.195857e07"/>
@@ -189,25 +189,25 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="815.907842857" RT="1791.33681" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
 				<PeptideHit score="0.166666666666667" sequence="TALGYYWALTEASGK" charge="2" aa_before="[" aa_after="S" start="0" end="14" protein_refs="PH_1">
 					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="string" name="labeled_sequence" value="TALGYYWALTEASGK"/>
-					<UserParam type="string" name="removed_labels" value="none"/>
-					<UserParam type="int" name="label_channel" value="1"/>
+					<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
+					<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+					<UserParam type="int" name="MS1Label:label_channel" value="1"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="string" name="feature_id" value="2684106197423007927"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="2684106197423007927"/>
-			<UserParam type="string" name="labeled_sequence" value="TALGYYWALTEASGK"/>
-			<UserParam type="string" name="removed_labels" value="none"/>
-			<UserParam type="int" name="label_channel" value="1"/>
-			<UserParam type="stringList" name="evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
-			<UserParam type="intList" name="evidence_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="evidence_ratio" value="[1.0, 3.462539136200582]"/>
-			<UserParam type="intList" name="peptide_ratio_fraction_group" value="[1, 1]"/>
-			<UserParam type="intList" name="peptide_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="peptide_ratio" value="[1.0, 3.462539136200582]"/>
-			<UserParam type="intList" name="peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+			<UserParam type="int" name="MS1Label:label_channel" value="1"/>
+			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[FeatureFinderMultiplex_2_input.mzML,FeatureFinderMultiplex_2_input.mzML]"/>
+			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
+			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 3.462539136200582]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_fraction_group" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_channel" value="[1, 2]"/>
+			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 3.462539136200582]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>
