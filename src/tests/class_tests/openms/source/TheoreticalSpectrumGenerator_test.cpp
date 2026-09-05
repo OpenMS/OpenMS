@@ -45,6 +45,27 @@ START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& s
   ptr = new TheoreticalSpectrumGenerator();
   TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // a copy must behave like the source, not merely carry the same parameters
+  TheoreticalSpectrumGenerator configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_b_ions", "false");
+  cfg.setValue("add_y_ions", "false");
+  cfg.setValue("add_a_ions", "true");
+  configured.setParameters(cfg);
+
+  TheoreticalSpectrumGenerator configured_copy(configured);
+  AASequence copy_test_peptide = AASequence::fromString("IFSQVGK");
+  PeakSpectrum spec_source, spec_copy;
+  configured.getSpectrum(spec_source, copy_test_peptide, 1, 1);
+  configured_copy.getSpectrum(spec_copy, copy_test_peptide, 1, 1);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_copy.size(), spec_source.size())
+  ABORT_IF(spec_copy.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_copy[i].getMZ(), spec_source[i].getMZ())
+  }
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGenerator())
@@ -58,6 +79,27 @@ START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectru
   TheoreticalSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same check for assignment
+  TheoreticalSpectrumGenerator configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_b_ions", "false");
+  cfg.setValue("add_y_ions", "false");
+  cfg.setValue("add_a_ions", "true");
+  configured.setParameters(cfg);
+
+  TheoreticalSpectrumGenerator assigned;
+  assigned = configured;
+  PeakSpectrum spec_source, spec_assigned;
+  configured.getSpectrum(spec_source, peptide, 1, 1);
+  assigned.getSpectrum(spec_assigned, peptide, 1, 1);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_assigned.size(), spec_source.size())
+  ABORT_IF(spec_assigned.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_assigned[i].getMZ(), spec_source[i].getMZ())
+  }
 END_SECTION
 
 START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge = 1, Int max_charge = 1))

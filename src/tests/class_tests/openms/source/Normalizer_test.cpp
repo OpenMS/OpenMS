@@ -43,6 +43,30 @@ START_SECTION((Normalizer(const Normalizer& source)))
 	Normalizer copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
+
+	// a copy must behave like the source: an unset 'method_' throws InvalidValue
+	Normalizer configured;
+	Param cfg(configured.getParameters());
+	cfg.setValue("method", "to_TIC");
+	configured.setParameters(cfg);
+	Normalizer configured_copy(configured);
+
+	PeakSpectrum copy_test_spec;
+	Peak1D copy_test_peak;
+	copy_test_peak.setMZ(100.0);
+	copy_test_peak.setIntensity(1.0f);
+	copy_test_spec.push_back(copy_test_peak);
+	copy_test_peak.setMZ(200.0);
+	copy_test_peak.setIntensity(3.0f);
+	copy_test_spec.push_back(copy_test_peak);
+
+	configured_copy.filterSpectrum(copy_test_spec);
+	double copy_test_sum(0);
+	for (PeakSpectrum::ConstIterator it = copy_test_spec.begin(); it != copy_test_spec.end(); ++it)
+	{
+		copy_test_sum += it->getIntensity();
+	}
+	TEST_REAL_SIMILAR(copy_test_sum, 1.0)
 END_SECTION
 
 START_SECTION((Normalizer& operator = (const Normalizer& source)))
@@ -50,6 +74,31 @@ START_SECTION((Normalizer& operator = (const Normalizer& source)))
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
+
+	// same check for assignment
+	Normalizer configured;
+	Param cfg(configured.getParameters());
+	cfg.setValue("method", "to_TIC");
+	configured.setParameters(cfg);
+	Normalizer assigned;
+	assigned = configured;
+
+	PeakSpectrum assign_test_spec;
+	Peak1D assign_test_peak;
+	assign_test_peak.setMZ(100.0);
+	assign_test_peak.setIntensity(1.0f);
+	assign_test_spec.push_back(assign_test_peak);
+	assign_test_peak.setMZ(200.0);
+	assign_test_peak.setIntensity(3.0f);
+	assign_test_spec.push_back(assign_test_peak);
+
+	assigned.filterSpectrum(assign_test_spec);
+	double assign_test_sum(0);
+	for (PeakSpectrum::ConstIterator it = assign_test_spec.begin(); it != assign_test_spec.end(); ++it)
+	{
+		assign_test_sum += it->getIntensity();
+	}
+	TEST_REAL_SIMILAR(assign_test_sum, 1.0)
 END_SECTION
 
 

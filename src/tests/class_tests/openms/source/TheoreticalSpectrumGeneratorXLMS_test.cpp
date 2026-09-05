@@ -43,6 +43,26 @@ END_SECTION
 START_SECTION(TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS& source))
   TheoreticalSpectrumGeneratorXLMS copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // a copy must behave like the source, not merely carry the same parameters
+  TheoreticalSpectrumGeneratorXLMS configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_a_ions", "false");
+  cfg.setValue("add_b_ions", "false");
+  configured.setParameters(cfg);
+
+  TheoreticalSpectrumGeneratorXLMS configured_copy(configured);
+  AASequence copy_test_peptide = AASequence::fromString("IFSQVGK");
+  PeakSpectrum spec_source, spec_copy;
+  configured.getLinearIonSpectrum(spec_source, copy_test_peptide, 3, true, 2);
+  configured_copy.getLinearIonSpectrum(spec_copy, copy_test_peptide, 3, true, 2);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_copy.size(), spec_source.size())
+  ABORT_IF(spec_copy.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_copy[i].getPosition()[0], spec_source[i].getPosition()[0])
+  }
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGeneratorXLMS())
@@ -56,6 +76,26 @@ START_SECTION(TheoreticalSpectrumGeneratorXLMS& operator = (const TheoreticalSpe
   TheoreticalSpectrumGeneratorXLMS copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same check for assignment
+  TheoreticalSpectrumGeneratorXLMS configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_a_ions", "false");
+  cfg.setValue("add_b_ions", "false");
+  configured.setParameters(cfg);
+
+  TheoreticalSpectrumGeneratorXLMS assigned;
+  assigned = configured;
+  PeakSpectrum spec_source, spec_assigned;
+  configured.getLinearIonSpectrum(spec_source, peptide, 3, true, 2);
+  assigned.getLinearIonSpectrum(spec_assigned, peptide, 3, true, 2);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_assigned.size(), spec_source.size())
+  ABORT_IF(spec_assigned.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_assigned[i].getPosition()[0], spec_source[i].getPosition()[0])
+  }
 END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

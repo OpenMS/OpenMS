@@ -37,12 +37,53 @@ END_SECTION
 START_SECTION(NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // a copy must behave like the source, not merely carry the same parameters
+  NucleicAcidSpectrumGenerator configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_a_ions", "true");
+  cfg.setValue("add_b_ions", "false");
+  configured.setParameters(cfg);
+
+  NucleicAcidSpectrumGenerator configured_copy(configured);
+  NASequence copy_test_oligo = NASequence::fromString("[m1A]UCCACAGp");
+  MSSpectrum spec_source, spec_copy;
+  configured.getSpectrum(spec_source, copy_test_oligo, -1, -1);
+  configured_copy.getSpectrum(spec_copy, copy_test_oligo, -1, -1);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_copy.size(), spec_source.size())
+  ABORT_IF(spec_copy.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_copy[i].getMZ(), spec_source[i].getMZ())
+  }
 END_SECTION
 
 START_SECTION(NucleicAcidSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same check for assignment
+  NucleicAcidSpectrumGenerator configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_a_ions", "true");
+  cfg.setValue("add_b_ions", "false");
+  configured.setParameters(cfg);
+
+  NucleicAcidSpectrumGenerator assigned;
+  assigned = configured;
+  NASequence assign_test_oligo = NASequence::fromString("[m1A]UCCACAGp");
+  MSSpectrum spec_source, spec_assigned;
+  configured.getSpectrum(spec_source, assign_test_oligo, -1, -1);
+  assigned.getSpectrum(spec_assigned, assign_test_oligo, -1, -1);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_assigned.size(), spec_source.size())
+  ABORT_IF(spec_assigned.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_assigned[i].getMZ(), spec_source[i].getMZ())
+  }
 END_SECTION
 
 START_SECTION(~NucleicAcidSpectrumGenerator())

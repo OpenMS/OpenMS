@@ -204,6 +204,67 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
   TEST_EQUAL(unannotated_count, 2) // 2 unmatched peaks
 END_SECTION
 
+START_SECTION((SpectrumAnnotator(const SpectrumAnnotator& source)))
+{
+  // a copy must behave like the source, not merely carry the same parameters
+  SpectrumAnnotator configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("max_series", "false");
+  configured.setParameters(cfg);
+  SpectrumAnnotator configured_copy(configured);
+  TEST_EQUAL(configured_copy.getParameters(), configured.getParameters())
+
+  // fresh spectrum: the shared 'spec' fixture is modified by the sections above
+  PeakSpectrum copy_test_spec;
+  copy_test_spec.setMSLevel(2);
+  Peak1D copy_test_peak;
+  for (Size i = 0; i != pls; ++i)
+  {
+    copy_test_peak.setIntensity(1.1f);
+    copy_test_peak.setMZ(peaklist[i]);
+    copy_test_spec.push_back(copy_test_peak);
+  }
+
+  PeptideIdentification pi_copy;
+  pi_copy.setHits(std::vector<PeptideHit>(1, hit));
+  configured_copy.addIonMatchStatistics(pi_copy, copy_test_spec, tg, sa);
+  ABORT_IF(pi_copy.getHits().empty())
+  // 'max_series' is off, so the copy must not add the corresponding meta values
+  TEST_EQUAL(pi_copy.getHits()[0].metaValueExists("max_series_type"), false)
+  TEST_EQUAL(pi_copy.getHits()[0].metaValueExists("max_series_size"), false)
+}
+END_SECTION
+
+START_SECTION((SpectrumAnnotator& operator=(const SpectrumAnnotator& source)))
+{
+  // same check for assignment
+  SpectrumAnnotator configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("max_series", "false");
+  configured.setParameters(cfg);
+  SpectrumAnnotator assigned;
+  assigned = configured;
+  TEST_EQUAL(assigned.getParameters(), configured.getParameters())
+
+  PeakSpectrum assign_test_spec;
+  assign_test_spec.setMSLevel(2);
+  Peak1D assign_test_peak;
+  for (Size i = 0; i != pls; ++i)
+  {
+    assign_test_peak.setIntensity(1.1f);
+    assign_test_peak.setMZ(peaklist[i]);
+    assign_test_spec.push_back(assign_test_peak);
+  }
+
+  PeptideIdentification pi_assigned;
+  pi_assigned.setHits(std::vector<PeptideHit>(1, hit));
+  assigned.addIonMatchStatistics(pi_assigned, assign_test_spec, tg, sa);
+  ABORT_IF(pi_assigned.getHits().empty())
+  TEST_EQUAL(pi_assigned.getHits()[0].metaValueExists("max_series_type"), false)
+  TEST_EQUAL(pi_assigned.getHits()[0].metaValueExists("max_series_size"), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
