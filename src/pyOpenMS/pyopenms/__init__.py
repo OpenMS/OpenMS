@@ -77,12 +77,19 @@ else:
 # override and takes precedence over that resolution. A value the user already
 # set is respected, and nothing is set when the wheel carries no bridge.
 if not os.environ.get("OPENMS_THERMO_MANAGED_DIR"):
+    # A directory only qualifies when the complete runtime is present, so a stale or
+    # partial share/ named by OPENMS_DATA_PATH cannot shadow the bundled copy.
+    _managed_runtime_files = (
+        "ThermoWrapperManaged.dll",
+        "ThermoWrapperManaged.runtimeconfig.json",
+        "ThermoFisher.CommonCore.RawFileReader.dll",
+    )
     for _share in (os.environ.get("OPENMS_DATA_PATH", ""), default_openms_data_path):
         _managed = os.path.join(_share, "openms_thermo_bridge", "managed") if _share else ""
-        if _managed and os.path.isfile(os.path.join(_managed, "ThermoWrapperManaged.dll")):
+        if _managed and all(os.path.isfile(os.path.join(_managed, _f)) for _f in _managed_runtime_files):
             os.environ["OPENMS_THERMO_MANAGED_DIR"] = _managed
             break
-    del _share, _managed
+    del _share, _managed, _managed_runtime_files
 
 
 # Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
