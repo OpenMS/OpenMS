@@ -1574,6 +1574,8 @@ Build System:
     to latest, and doc/pyopenms/ruff.toml selects the pyOpenMS documentation's lint rules explicitly. Ruff
     0.16 widened its default lint selection from 59 to 413 rules, which turned the job red with no commit
     of ours in between (#9899, #9906)
+  - Tests: TOPPExternalToolBase_test uses `ls -ld .` instead of listing the shared test directory,
+    avoiding intermittent failures when parallel tests remove temporary files (#9973).
   - Tests: TOPP_OpenSwathWorkflow_17_cache wrote to the same output file names as TOPP_OpenSwathWorkflow_17,
     so the two tests could collide when a Windows nightly run scheduled them concurrently; the cache variant
     now uses its own file names (#9937)
@@ -1620,6 +1622,18 @@ Build System:
     LLVM/clang 21+, which no longer provides them transitively (#9651, #9653)
   - Fix: removed default(none) from the SimpleSearchEngineAlgorithm OpenMP pragma, which broke builds on
     macOS/Xcode where _OPENMP is not defined (#9388)
+  - Fix: PercolatorAdapter's in-process rescoring backend aborted with "Multiple instantiations of
+    Normalizer" (assert(false) in Debug builds, on every run since #9218) because both the vendored
+    SetHandler::normalizeFeatures() and Percolator::train()/rescore() independently called the singleton
+    factory Normalizer::getNormalizer(), constructing it twice. train()/rescore() now pass a null
+    Normalizer* into normalizeFeatures() and let it perform the one factory call, as upstream Percolator's
+    own Caller.cpp does; Release builds were unaffected numerically, since NDEBUG disables the assert and
+    the redundant call just returned the existing instance (#10049, #10057)
+  - Fix: MRMScoring's cross-correlation and mutual-information scoring (calcXcorrCoelutionScore,
+    calcXcorrCoelutionWeightedScore, calcXcorrShapeScore, calcXcorrShapeWeightedScore, calcMIScore,
+    calcMIWeightedScore) required its score matrix to hold at least two transitions, so OpenSwath
+    compounds with only a single transition failed the precondition instead of being scored; the checks
+    now accept a 1x1 matrix (#10050, #10055)
   - Security patterns added to .gitignore (#8545); configure return value checking in CI packaging (#8515);
     Claude GitHub Actions workflows added for CI automation (#8675, #8676); removed leftover traces of the
     removed doc_internal target (#2256)
