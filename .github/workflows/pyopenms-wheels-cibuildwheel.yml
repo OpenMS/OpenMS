@@ -145,13 +145,19 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
-              # dotnet-sdk-8.0 provides the nethost headers/library the native thermo
-              # bridge compiles against (the managed assemblies come pre-built, see
-              # tools/ci/fetch_thermo_assets.sh). The RPM installs .NET under
-              # /usr/lib64/dotnet, which FindDotNetHost only finds via DOTNET_ROOT.
-              yum install -y cmake ninja-build libcurl-devel dotnet-sdk-8.0
-              export DOTNET_ROOT="$(dirname "$(readlink -f "$(command -v dotnet)")")"
-              echo "DOTNET_ROOT=$DOTNET_ROOT"
+              # The native thermo bridge compiles against the nethost headers/library
+              # from the .NET host pack (the managed assemblies come pre-built, see
+              # tools/ci/fetch_thermo_assets.sh). Use the Microsoft dotnet-install.sh
+              # rather than the distro dotnet-sdk-8.0 RPM: AlmaLinux names its host
+              # pack Microsoft.NETCore.App.Host.rhel.9-x64, which FindDotNetHost.cmake
+              # in the bridge (linux-x64 RID) does not find. libicu is the
+              # only dependency the SDK needs. /usr/share/dotnet is a default
+              # search location for both FindDotNetHost and the nethost runtime.
+              yum install -y cmake ninja-build libcurl-devel libicu
+              curl -sSL --retry 5 --retry-all-errors https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+              bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+              export DOTNET_ROOT=/usr/share/dotnet
+              ls "$DOTNET_ROOT"/packs/Microsoft.NETCore.App.Host.linux-x64/
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
