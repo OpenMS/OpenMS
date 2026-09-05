@@ -1066,6 +1066,13 @@ OpenMS Library:
       ("c1^-1"), but parseCharge_() required a digit straight after the caret, so parse() rejected its
       own output with INVALID_CHARGE and no negatively charged ion -- i.e. any nucleic acid fragment --
       could be expressed in mzPAF at all. An optional sign is now read before the number
+    - Fix: NucleicAcidSpectrumGenerator::getMultipleSpectra() built the final precursor peak at the wrong
+      charge. With add_precursor_peaks enabled and add_all_precursor_charges disabled, the loop that
+      fills a spectrum leaves the running charge one past that spectrum's own charge state, and the
+      precursor was computed from it: the -5 spectrum got its precursor at m/z 429.89 as if it were -6,
+      instead of [M-5H]5- at 516.07, and annotated with that wrong charge. Both polarities were affected.
+      This is also why the existing test left add_precursor_peaks disabled -- with it on,
+      getMultipleSpectra() and getSpectrum() disagreed
     - The OpenMS-native Arrow round-trip writers (.consensusparquet, .featureparquet, .idparquet) no
       longer stamp a qpx_version key in the Parquet footer. Those files are not QPX exchange views --
       they use the native schemas and file_type tokens such as consensus_features / features /

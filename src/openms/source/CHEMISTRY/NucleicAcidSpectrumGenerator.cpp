@@ -422,8 +422,9 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.rend())
       {
-        MSSpectrum& spectrum = spectra[*charge_it];
-        for (; charge >= *charge_it; --charge)
+        const Int spec_charge = *charge_it; // charge state of the spectrum built in this iteration
+        MSSpectrum& spectrum = spectra[spec_charge];
+        for (; charge >= spec_charge; --charge)
         {
           addChargedSpectrum_(spectrum, uncharged_spectrum, charge, add_all_precursors);
         }
@@ -433,15 +434,17 @@ namespace OpenMS
           spectra[*charge_it] = spectrum; // initialize next spectrum
         }
         // if we want precursor peaks only for selected charge states, add them
-        // after the next spectrum has been initialized:
+        // after the next spectrum has been initialized.
+        // Note: this is the spectrum's own charge state, not 'charge' -- the loop above has already
+        // stepped that one past it, which put the precursor at the wrong m/z and charge.
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
+          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / spec_charge + Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getIntegerDataArrays()[0].push_back(spec_charge);
           }
         }
         spectrum.sortByPosition();
@@ -460,8 +463,9 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.end())
       {
-        MSSpectrum& spectrum = spectra[*charge_it];
-        for (; charge <= *charge_it; ++charge)
+        const Int spec_charge = *charge_it; // charge state of the spectrum built in this iteration
+        MSSpectrum& spectrum = spectra[spec_charge];
+        for (; charge <= spec_charge; ++charge)
         {
           addChargedSpectrum_(spectrum, uncharged_spectrum, charge, add_all_precursors);
         }
@@ -471,15 +475,17 @@ namespace OpenMS
           spectra[*charge_it] = spectrum; // initialize next spectrum
         }
         // if we want precursor peaks only for selected charge states, add them
-        // after the next spectrum has been initialized:
+        // after the next spectrum has been initialized.
+        // Note: this is the spectrum's own charge state, not 'charge' -- the loop above has already
+        // stepped that one past it, which put the precursor at the wrong m/z and charge.
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U);
+          spectrum.back().setMZ(spectrum.back().getMZ() / spec_charge + Constants::PROTON_MASS_U);
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getIntegerDataArrays()[0].push_back(spec_charge);
           }
         }
         spectrum.sortByPosition();
