@@ -32,7 +32,7 @@ ctest -R MyTest -V
 - **Build**: CMake 3.24+, out-of-tree builds in `OpenMS-build/`
 - **Testing**: CTest, GoogleTest-style macros, pytest for Python
 - **Style**: `.clang-format` in repo root
-- **Platforms**: Linux, macOS (Apple Clang), Windows (MSVC 2019+)
+- **Platforms**: Linux, macOS (Apple Clang), Windows
 
 ## Repository Layout
 
@@ -83,7 +83,7 @@ OpenMS/
 
 ### Windows
 - **MSYS/MinGW NOT supported** — must use Visual Studio environment
-- **Visual Studio 2022 (v17.6+) required** for C++23; AddressSanitizer needs at least MSVC 1920 (VS 2019)
+- **Minimum compiler versions are defined once** in `cmake/min_compiler_versions.cmake`, which both enforces them at configure time and feeds the numbers quoted in the doxygen install docs (via `ALIASES` in `doc/doxygen/Doxyfile.in`). Edit them there, not in the docs
 - **64-bit only**; use Visual Studio generator (not Ninja/Make)
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults

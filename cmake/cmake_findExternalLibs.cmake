@@ -354,15 +354,32 @@ option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" 
 set(WNETALIGN_INCLUDE_DIRS "")
 
 if(WITH_WNETALIGN)
-  if(OPENMS_USE_VCPKG)
+  set(_wnetalign_from_vcpkg FALSE)
 
+  if(OPENMS_USE_VCPKG)
+    # These ports are only installed when the optional 'wnetalign' manifest feature
+    # was requested (-DVCPKG_MANIFEST_FEATURES="...;wnetalign"), which is off by
+    # default -- so a miss here is the normal case, not an error. Check the results
+    # before using them: feeding an unvalidated -NOTFOUND into
+    # target_include_directories() fails at generate time with a message that does
+    # not mention wnetalign at all. On a miss we fall through to the FetchContent
+    # path below, the same find-then-fetch pattern used for opentims and
+    # openms-thermo-bridge, both of which are likewise ON by default.
     find_path(WNETALIGN_INC NAMES aligner.hpp PATH_SUFFIXES wnetalign)
     find_path(WNET_INC NAMES graph_elements.hpp PATH_SUFFIXES wnet)
     find_path(PYLMCF_INC NAMES lmcf.hpp PATH_SUFFIXES pylmcf)
 
-    set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
+    if(WNETALIGN_INC AND WNET_INC AND PYLMCF_INC)
+      set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
+      set(_wnetalign_from_vcpkg TRUE)
+      message(STATUS "wnetalign: using vcpkg ports")
+    else()
+      message(STATUS "wnetalign: vcpkg ports not installed (enable the 'wnetalign' "
+                     "manifest feature to use them), fetching from git instead")
+    endif()
+  endif()
 
-  else()
+  if(NOT _wnetalign_from_vcpkg)
     include(FetchContent)
 
     # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
@@ -586,6 +603,19 @@ if (WITH_OPENTIMS)
 
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
+
+    # opentims's own CMakeLists.txt applies /O2 to MSVC builds unconditionally
+    # Any Debug build then combines it with the /RTC1 that CMake puts in
+    # CMAKE_CXX_FLAGS_DEBUG, and MSVC rejects the pair:
+    #   cl : Command line error D8016 : '/RTC1' and '/O2' command-line options are incompatible
+    # reported in https://github.com/michalsta/opentims/issues/44 (remove this once opentims fixes it upstream)
+    if(MSVC)
+      get_target_property(_opentims_opts opentims_cpp COMPILE_OPTIONS)
+      if(_opentims_opts)
+        list(REMOVE_ITEM _opentims_opts "/O2")
+        set_property(TARGET opentims_cpp PROPERTY COMPILE_OPTIONS ${_opentims_opts})
+      endif()
+    endif()
 
     # Expose a namespaced alias so downstream CMakeLists always use
     # opentims::opentims_cpp regardless of how the library was obtained.

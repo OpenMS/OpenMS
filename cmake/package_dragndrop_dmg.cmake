@@ -104,49 +104,31 @@ add_custom_target(dist
 )
 
 ########################################################### Create dmg with background image
-if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
-  set(OPENMS_DMG_FOLDER_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}") ## The name of the OpenMS folder on the DMG
-  configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
-  set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
-  #Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
-  #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
-  set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
-  set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slightly smaller images
-  
-  ## Sign the DMG image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
-  ## keychains in the search list (which needs to be unlocked).
-  ## Note: The executables/bundles inside should already be signed with hardened runtime and timestamp.
-  ## For notarization, SIGNING_EMAIL must also be set.
-  if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP AND DEFINED SIGNING_EMAIL)
-    add_custom_target(signed_dist
-                      COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
-                      COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh ${CPACK_PACKAGE_FILE_NAME}.dmg de.openms ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY}
-                      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-                      COMMENT "Signing and notarizing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
-                      DEPENDS dist)
-  elseif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-    message(STATUS "SIGNING_EMAIL not set. DMG will be signed but not notarized.")
-    add_custom_target(signed_dist
-                      COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
-                      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-                      COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP} (not notarized)"
-                      DEPENDS dist)
-  endif()
-  
-else()
-  ## The old scripts need the background image in the target folder.
-  ########################################################### Background Image
-  install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png
-        DESTINATION share/OpenMS/
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-        COMPONENT share)
-  
-  ## Next command assumes the dmg was already generated and lies in the build directory.
-  add_custom_target(finalized_dist
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-    COMMENT "Finalizing dmg image"
-    DEPENDS dist)
+set(OPENMS_DMG_FOLDER_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}") ## The name of the OpenMS folder on the DMG
+configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
+set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
+#Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
+#set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
+set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slightly smaller images
+
+## Sign the DMG image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
+## keychains in the search list (which needs to be unlocked).
+## Note: The executables/bundles inside should already be signed with hardened runtime and timestamp.
+## For notarization, SIGNING_EMAIL must also be set.
+if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP AND DEFINED SIGNING_EMAIL)
+  add_custom_target(signed_dist
+                    COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
+                    COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh ${CPACK_PACKAGE_FILE_NAME}.dmg de.openms ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY}
+                    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+                    COMMENT "Signing and notarizing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
+                    DEPENDS dist)
+elseif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+  message(STATUS "SIGNING_EMAIL not set. DMG will be signed but not notarized.")
+  add_custom_target(signed_dist
+                    COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
+                    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+                    COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP} (not notarized)"
+                    DEPENDS dist)
 endif()
+

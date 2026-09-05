@@ -19,7 +19,6 @@ endif()
 ## https://bugs.launchpad.net/ubuntu/+source/cmake/+bug/972419
 ## https://ubuntuforums.org/showthread.php?t=2316865
 ## Workaround after packaging: https://cmake.org/pipermail/cmake/2012-May/050483.html
-## Following needs CMake 3.7+. Just install from cmake.org
 set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 
 ## We usually do not want to ship things like stdlib or glibc. Could mess up a system slighlty, when installed system wide
