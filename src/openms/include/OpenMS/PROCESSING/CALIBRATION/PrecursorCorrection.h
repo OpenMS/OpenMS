@@ -79,6 +79,10 @@ class OPENMS_DLLAPI PrecursorCorrection
      For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
      In the MS1, the peak closest to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
+     @throws Exception::IllegalArgument if spectra are not sorted by RT, a spectrum has multiple precursors,
+     or the RT lookup cannot identify the original spectrum unambiguously. Validation precedes any changes
+     to @p exp or the output vectors.
+
      @param[in] exp: MSExperiment.
      @param[in] mz_tolerance: double tolerance used for precursor correction in mass range.
      @param[in] ppm: bool enables usage of ppm.
@@ -99,6 +103,10 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
      In the MS1, the peak with the highest intensity in a given mass range to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
+
+     @throws Exception::IllegalArgument if spectra are not sorted by RT, a spectrum has multiple precursors,
+     or the RT lookup cannot identify the original spectrum unambiguously. Validation precedes any changes
+     to @p exp or the output vectors.
 
      @param[in] exp: MSExperiment.
      @param[in] mz_tolerance: double tolerance used for precursor correction in mass range.
