@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg $
+# --------------------------------------------------------------------------
+#
 # Fetch the assets the pyOpenMS wheel builds need for native Thermo RAW support,
 # without going through NuGet or the .NET SDK's package restore:
 #
@@ -51,11 +59,14 @@ if ! grep -A6 'OpenMSThermoBridge$' "${repo_root}/cmake/cmake_findExternalLibs.c
   exit 1
 fi
 
+# Hash via stdin: given a file *name*, GNU coreutils escapes backslashes in it and
+# prefixes the whole line with '\' (seen with Git Bash on Windows, where
+# $GITHUB_WORKSPACE is D:\a\...), which would corrupt the extracted digest.
 sha256_of() {
   if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$1" | cut -d' ' -f1
+    sha256sum < "$1" | cut -d' ' -f1
   else
-    shasum -a 256 "$1" | cut -d' ' -f1
+    shasum -a 256 < "$1" | cut -d' ' -f1
   fi
 }
 

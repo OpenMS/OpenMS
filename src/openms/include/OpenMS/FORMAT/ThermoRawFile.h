@@ -28,7 +28,8 @@ namespace OpenMS
     openms-thermo-bridge managed runtime files (ThermoWrapperManaged.dll, its
     runtimeconfig.json and the Thermo CommonCore assemblies). These are looked
     up in this order:
-      1. the directory named by the OPENMS_THERMO_MANAGED_DIR environment variable,
+      1. the directory named by the OPENMS_THERMO_MANAGED_DIR environment variable
+         (skipped with a warning if it does not hold the files),
       2. <OpenMS share dir>/openms_thermo_bridge/managed (installed by OpenMS,
          also shipped inside pyOpenMS wheels),
       3. the bridge's own default, i.e. a 'managed' directory next to the

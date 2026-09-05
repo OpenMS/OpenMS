@@ -147,17 +147,14 @@ jobs:
             bash -c '
               # The native thermo bridge compiles against the nethost headers/library
               # from the .NET host pack (the managed assemblies come pre-built, see
-              # tools/ci/fetch_thermo_assets.sh). Use the Microsoft dotnet-install.sh
-              # rather than the distro dotnet-sdk-8.0 RPM: AlmaLinux names its host
-              # pack Microsoft.NETCore.App.Host.rhel.9-x64, which FindDotNetHost.cmake
-              # in the bridge (linux-x64 RID) does not find. libicu is the
-              # only dependency the SDK needs. /usr/share/dotnet is a default
-              # search location for both FindDotNetHost and the nethost runtime.
+              # tools/ci/fetch_thermo_assets.sh). The pinned, SHA-512 verified SDK
+              # tarball is used instead of the distro dotnet-sdk-8.0 RPM, whose host
+              # pack is named with the rhel.9-x64 RID that the bridge does not search
+              # (see tools/ci/install_dotnet_sdk_linux.sh). libicu is the only
+              # dependency the SDK needs.
               yum install -y cmake ninja-build libcurl-devel libicu
-              curl -sSL --retry 5 --retry-all-errors https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-              bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+              bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
-              ls "$DOTNET_ROOT"/packs/Microsoft.NETCore.App.Host.linux-x64/
               mkdir build && cd build
               cmake .. \
                 -G Ninja \

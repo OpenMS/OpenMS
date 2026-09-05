@@ -25,8 +25,8 @@ needs_raw_file = pytest.mark.skipif(
 
 
 def test_raw_extension_is_recognized():
-    # Independent of WITH_THERMO_RAW: .raw is always typed as RAW so that
-    # tools can hand it to an external converter.
+    """.raw is typed as RAW regardless of WITH_THERMO_RAW, so tools can hand it
+    to an external converter even without the in-process reader."""
     assert pyopenms.FileHandler.getTypeByFileName("run.raw") == pyopenms.FileTypes.RAW
     assert pyopenms.FileHandler.getTypeByFileName("run.RAW") == pyopenms.FileTypes.RAW
 
@@ -51,6 +51,8 @@ def test_managed_bridge_is_bundled_with_share():
 
 @needs_raw_file
 def test_load_experiment_from_raw():
+    """FileHandler dispatches .raw to ThermoRawFile: spectra, RTs, precursors
+    and instrument metadata are populated from Angiotensin_AllScans.raw."""
     assert os.path.isfile(RAW_FILE), RAW_FILE
 
     exp = pyopenms.MSExperiment()
@@ -85,6 +87,7 @@ def test_load_experiment_from_raw():
 
 @needs_raw_file
 def test_load_experiment_from_raw_roundtrips_through_mzml(tmp_path):
+    """An experiment read from RAW survives a store/load round trip through mzML."""
     exp = pyopenms.MSExperiment()
     pyopenms.FileHandler().loadExperiment(RAW_FILE, exp)
 

@@ -89,7 +89,9 @@ namespace OpenMS
       tree, but not for relocated layouts such as Python wheels, where wheel repair tools
       rename and move the bridge library. OpenMS therefore checks, in order:
 
-        1. the OPENMS_THERMO_MANAGED_DIR environment variable (used verbatim when set),
+        1. the OPENMS_THERMO_MANAGED_DIR environment variable, if it holds the managed files
+           (a stale or mistyped override is reported and skipped rather than breaking a
+           correctly bundled installation),
         2. <OpenMS share dir>/openms_thermo_bridge/managed, i.e. the copy that OpenMS installs
            into its shared-data directory (pyOpenMS ships share/OpenMS inside the wheel),
         3. nothing, so the bridge falls back to its own lookup.
@@ -99,12 +101,13 @@ namespace OpenMS
       if (const char* env = std::getenv("OPENMS_THERMO_MANAGED_DIR"); env != nullptr && env[0] != '\0')
       {
         std::filesystem::path dir(env);
-        if (!isManagedDirectory(dir))
+        if (isManagedDirectory(dir))
         {
-          OPENMS_LOG_WARN << "ThermoRawFile: OPENMS_THERMO_MANAGED_DIR='" << env
-                          << "' does not contain ThermoWrapperManaged.dll and its runtimeconfig.json\n";
+          return dir;
         }
-        return dir;
+        OPENMS_LOG_WARN << "ThermoRawFile: OPENMS_THERMO_MANAGED_DIR='" << env
+                        << "' does not contain ThermoWrapperManaged.dll and its runtimeconfig.json; "
+                        << "ignoring it and looking in the OpenMS share directory instead\n";
       }
 
       std::filesystem::path share_dir(File::getOpenMSDataPath());
