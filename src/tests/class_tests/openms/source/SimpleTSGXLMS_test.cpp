@@ -40,6 +40,26 @@ END_SECTION
 START_SECTION(SimpleTSGXLMS(const SimpleTSGXLMS& source))
   SimpleTSGXLMS copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // a copy must behave like the source, not merely carry the same parameters
+  SimpleTSGXLMS configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_a_ions", "false");
+  cfg.setValue("add_b_ions", "false");
+  configured.setParameters(cfg);
+
+  SimpleTSGXLMS configured_copy(configured);
+  AASequence copy_test_peptide = AASequence::fromString("IFSQVGK");
+  std::vector< SimpleTSGXLMS::SimplePeak > spec_source, spec_copy;
+  configured.getLinearIonSpectrum(spec_source, copy_test_peptide, 3, 2);
+  configured_copy.getLinearIonSpectrum(spec_copy, copy_test_peptide, 3, 2);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_copy.size(), spec_source.size())
+  ABORT_IF(spec_copy.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_copy[i].mz, spec_source[i].mz)
+  }
 END_SECTION
 
 START_SECTION(~SimpleTSGXLMS())
@@ -53,6 +73,26 @@ START_SECTION(SimpleTSGXLMS& operator = (const SimpleTSGXLMS& tsg))
   SimpleTSGXLMS copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same check for assignment
+  SimpleTSGXLMS configured;
+  Param cfg(configured.getParameters());
+  cfg.setValue("add_a_ions", "false");
+  cfg.setValue("add_b_ions", "false");
+  configured.setParameters(cfg);
+
+  SimpleTSGXLMS assigned;
+  assigned = configured;
+  std::vector< SimpleTSGXLMS::SimplePeak > spec_source, spec_assigned;
+  configured.getLinearIonSpectrum(spec_source, peptide, 3, 2);
+  assigned.getLinearIonSpectrum(spec_assigned, peptide, 3, 2);
+  TEST_EQUAL(spec_source.empty(), false)
+  TEST_EQUAL(spec_assigned.size(), spec_source.size())
+  ABORT_IF(spec_assigned.size() != spec_source.size())
+  for (Size i = 0; i != spec_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec_assigned[i].mz, spec_source[i].mz)
+  }
 END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

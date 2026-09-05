@@ -101,19 +101,9 @@ namespace OpenMS
     }
   }
 
-  SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS& rhs) = default;
 
-  SimpleTSGXLMS & SimpleTSGXLMS::operator=(const SimpleTSGXLMS & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  SimpleTSGXLMS& SimpleTSGXLMS::operator=(const SimpleTSGXLMS& rhs) = default;
 
   SimpleTSGXLMS::~SimpleTSGXLMS() = default;
 
