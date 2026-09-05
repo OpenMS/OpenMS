@@ -59,7 +59,7 @@ START_SECTION(NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& s
   }
 END_SECTION
 
-START_SECTION(NucleicAcidSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& source))
+START_SECTION(NucleicAcidSpectrumGenerator& operator=(const NucleicAcidSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
