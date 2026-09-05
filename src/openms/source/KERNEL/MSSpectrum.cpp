@@ -8,6 +8,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -18,14 +19,71 @@
 
 namespace OpenMS
 {
-  MSSpectrum &MSSpectrum::select(const std::vector<Size> &indices)
+  void MSSpectrum::checkDataArraySizes_() const
   {
-    Size snew = indices.size();
-    ContainerType tmp;
-    tmp.reserve(indices.size());
+    const Size peaks = size();
+    auto check = [peaks](const auto& arrays, const char* what)
+    {
+      for (Size i = 0; i < arrays.size(); ++i)
+      {
+        if (!arrays[i].empty() && arrays[i].size() != peaks)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
+                                          ") does not match spectrum size (" + StringUtils::toStr(peaks) + ")");
+        }
+      }
+    };
+    check(float_data_arrays_, "FloatDataArray");
+    check(string_data_arrays_, "StringDataArray");
+    check(integer_data_arrays_, "IntegerDataArray");
+  }
 
+  MSSpectrum& MSSpectrum::select(const std::vector<Size>& indices)
+  {
+    // The range check is the guarantee of this entry point (and of the Python binding): an
+    // out-of-range index is rejected before any storage is touched, so the spectrum is left
+    // unchanged. selectUnchecked() then performs the actual reordering.
     const Size peaks_old = size();
+    for (Size i = 0; i < indices.size(); ++i)
+    {
+      if (indices[i] >= peaks_old)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Index " + StringUtils::toStr(indices[i]) + " is out of range for a spectrum of size " +
+                                        StringUtils::toStr(peaks_old));
+      }
+    }
+    return selectUnchecked(indices);
+  }
 
+  MSSpectrum& MSSpectrum::selectUnchecked(const std::vector<Size>& indices)
+  {
+    const Size snew = indices.size();
+
+    // Cheap and independent of the indices: guards a mis-sized data array from being indexed out
+    // of bounds during the reorder below. Deliberately re-checked here even though sort() already
+    // checks before its stable_sort(): selectUnchecked() is public and callable directly, so this is
+    // not dead code -- the two calls guard different windows (the predicate vs. the reorder loops).
+    checkDataArraySizes_();
+
+    // Duplicate indices are undefined behaviour: every element is moved, so a repeated index would
+    // read a moved-from value. Assert uniqueness (and in-range) in debug builds only; release builds
+    // pay nothing for it.
+#ifdef OPENMS_ASSERTIONS
+    {
+      std::vector<bool> seen(size(), false);
+      for (Size i = 0; i < snew; ++i)
+      {
+        OPENMS_PRECONDITION(indices[i] < seen.size() && !seen[indices[i]],
+                            "selectUnchecked(): indices must be in range and duplicate-free");
+        seen[indices[i]] = true;
+      }
+    }
+#endif
+
+    ContainerType tmp;
+    tmp.reserve(snew);
     for (Size i = 0; i < snew; ++i)
     {
       tmp.push_back(std::move(ContainerType::operator[](indices[i])));
@@ -39,14 +97,8 @@ namespace OpenMS
       {
         continue;
       }
-      if (float_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                  StringUtils::toStr(float_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
-      }
-
       mda_tmp_float.clear();
-      mda_tmp_float.reserve(float_data_arrays_[i].size());
+      mda_tmp_float.reserve(snew);
       for (Size j = 0; j < snew; ++j)
       {
         mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
@@ -61,14 +113,8 @@ namespace OpenMS
       {
         continue;
       }
-      if (string_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                  StringUtils::toStr(string_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
-      }
-
       mda_tmp_str.clear();
-      mda_tmp_str.reserve(string_data_arrays_[i].size());
+      mda_tmp_str.reserve(snew);
       for (Size j = 0; j < snew; ++j)
       {
         mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
@@ -83,14 +129,8 @@ namespace OpenMS
       {
         continue;
       }
-      if (integer_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                  StringUtils::toStr(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
-      }
-
       mda_tmp_int.clear();
-      mda_tmp_int.reserve(integer_data_arrays_[i].size());
+      mda_tmp_int.reserve(snew);
       for (Size j = 0; j < snew; ++j)
       {
         mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
@@ -398,7 +438,8 @@ namespace OpenMS
 
       rec(0, chunks.size() - 1);
 
-      select(select_indices);
+      // select_indices is a permutation of [0, size): in range and duplicate-free by construction.
+      selectUnchecked(select_indices);
     }
   }
 
