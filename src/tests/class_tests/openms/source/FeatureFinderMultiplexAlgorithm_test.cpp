@@ -73,6 +73,34 @@ START_SECTION((virtual void run()))
   // Check that the HEAVY:LIGHT ratio is close to the expected 3:1 ratio
   TOLERANCE_ABSOLUTE(0.2);
   TEST_REAL_SIMILAR(H/L, 3.0);
+
+  // Check that the per-mass-trace meta values (XICs of the individual isotopes) are attached to the features.
+  FeatureMap feature_map = algorithm.getFeatureMap();
+  TEST_NOT_EQUAL(feature_map.size(), 0);
+  for (const Feature& f : feature_map)
+  {
+    TEST_EQUAL(f.metaValueExists("masstrace_intensity"), true);
+    TEST_EQUAL(f.metaValueExists("masstrace_centroid_rt"), true);
+    TEST_EQUAL(f.metaValueExists("masstrace_centroid_mz"), true);
+    TEST_EQUAL(f.metaValueExists("num_of_masstraces"), true);
+
+    std::vector<double> intensities = f.getMetaValue("masstrace_intensity");
+    std::vector<double> centroid_rt = f.getMetaValue("masstrace_centroid_rt");
+    std::vector<double> centroid_mz = f.getMetaValue("masstrace_centroid_mz");
+    Size num_traces = (Size)f.getMetaValue("num_of_masstraces");
+
+    // one entry per isotope mass trace, sizes consistent across the three lists
+    TEST_NOT_EQUAL(num_traces, 0);
+    TEST_EQUAL(intensities.size(), num_traces);
+    TEST_EQUAL(centroid_rt.size(), num_traces);
+    TEST_EQUAL(centroid_mz.size(), num_traces);
+
+    // mass trace intensities are non-negative integrated areas
+    for (double intensity : intensities)
+    {
+      TEST_EQUAL(intensity >= 0.0, true);
+    }
+  }
 }
 END_SECTION
 
