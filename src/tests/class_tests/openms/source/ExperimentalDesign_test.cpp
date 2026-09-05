@@ -138,6 +138,45 @@ START_SECTION((std::map<unsigned int, std::vector<std::string> > getFractionToMS
 }
 END_SECTION
 
+START_SECTION(( map<vector<String>, set<unsigned> > getConditionToSampleMapping() const ))
+{
+  ExperimentalDesign::SampleSection ss;
+  
+  // add 3 samples without factors to simulate a factor-less design
+  ss.addSample("sample_1");
+  ss.addSample("sample_2");
+  ss.addSample("sample_3");
+
+  ExperimentalDesign ed;
+  ed.setSampleSection(ss);
+  
+  auto map_a = ed.getSampleToConditionMapping();
+  auto map_b = ed.getConditionToSampleMapping();
+  
+  // both mapping functions should return 3 unique conditions (N samples = N conditions)
+  TEST_EQUAL(map_a.size(), 3);
+  TEST_EQUAL(map_b.size(), 3);
+
+  // Stronger assertion: Cross-check each map_b entry's ordinal position 
+  // against the map_a condition id of its sample.
+  unsigned ordinal = 0;
+  for (const auto& [condition_vec, sample_indices] : map_b)
+  {
+    // The key should be a single-element vector containing the sample name
+    TEST_EQUAL(condition_vec.size(), 1);
+    // The value should be a set containing exactly one sample row index
+    TEST_EQUAL(sample_indices.size(), 1);
+    
+    String sample_name = condition_vec[0];
+    
+    // The ordinal position in map_b must perfectly match the condition ID in map_a
+    TEST_EQUAL(map_a[sample_name], ordinal);
+    
+    ++ordinal;
+  }
+}
+END_SECTION
+
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
   const auto lf = labelfree_unfractionated_design.getPathLabelToSampleMapping(true);
