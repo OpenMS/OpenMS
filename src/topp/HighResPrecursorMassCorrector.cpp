@@ -54,6 +54,10 @@ Three methods are available: 'nearest_peak', 'highest_intensity_peak' and 'featu
   - highest_intensity_peak: Use highest intensity centroided MS1 peak in a given mass range for precursor mass correction.
   - feature: Use features for precursor mass correction, which allows for charge correction.
 
+The MS1 peak methods reject ambiguous precursor mappings before applying corrections. These can occur
+when PASEF MS2 spectra share a frame RT (including combined ion mobility arrays), or after copying
+spectra with 'feature:keep_original'. Spectra with multiple precursors are also rejected by these methods.
+
 The method hightest_intensity_peak searches in a specific m/z-window of the precursor information for the peak with the highest intensity.
 Suggestioned value 1/maximal expected charge. E.g maximal expected charge 5, m/z-window = +/- 0.2 Da
 

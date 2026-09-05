@@ -1227,6 +1227,8 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: MS1 peak-based PrecursorCorrection now rejects ambiguous RT mappings and spectra with multiple
+    precursors before applying any corrections, preventing updates to the wrong precursor.
   - Fix: Biosaur2Algorithm::run() left the stored MS data empty on FAIMS input -- the per-CV split moves
     the spectra out of ms_data_ and nothing put them back, so getMSData() handed the caller a cleared
     experiment. ProteomicsLFQ with -Seeding:algorithm biosaur2 passed exactly that on to

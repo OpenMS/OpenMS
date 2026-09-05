@@ -12,6 +12,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
@@ -26,6 +27,37 @@ using namespace OpenMS;
 
 namespace
 {
+  void validatePrecursorMapping(const MSExperiment& exp)
+  {
+    if (!exp.isSorted(false))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "MS1 peak-based precursor correction requires spectra sorted by retention time.");
+    }
+
+    // Validate all mappings before changing any precursors or output vectors.
+    // PASEF MS2 spectra can share a frame RT even with combined IM arrays;
+    // feature correction with keep_original can also produce duplicate RTs.
+    for (Size scan = 0; scan < exp.size(); ++scan)
+    {
+      const auto& precursors = exp[scan].getPrecursors();
+      if (precursors.empty()) { continue; }
+      if (precursors.size() != 1)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "MS1 peak-based precursor correction requires exactly one precursor per spectrum; spectrum index "
+          + std::to_string(scan) + " has multiple precursors.");
+      }
+      if (exp.RTBegin(exp[scan].getRT() - 1e-8) != exp.begin() + scan)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Ambiguous precursor mapping at spectrum index " + std::to_string(scan)
+          + ": the RT lookup (with a 1e-8 s offset) does not identify the original spectrum. "
+            "Shared or nearly identical spectrum RTs are not supported by MS1 peak-based precursor correction.");
+      }
+    }
+  }
+
   /**
     @brief The region in which a feature accepts a precursor.
 
@@ -114,6 +146,7 @@ namespace OpenMS
                                                             vector<double> & mzs,
                                                             vector<double> & rts)
     {
+      validatePrecursorMapping(exp);
       set<Size> corrected_precursors;
       // load experiment and extract precursors
       vector<Precursor> precursors;  // precursor
@@ -190,6 +223,7 @@ namespace OpenMS
                                                                     vector<double> & mzs,
                                                                     vector<double> & rts)
     {
+      validatePrecursorMapping(exp);
       set<Size> corrected_precursors;
       // load experiment and extract precursors
       vector<Precursor> precursors;  // precursor
