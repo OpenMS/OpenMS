@@ -813,7 +813,9 @@ TOPP tools:
     - UniPEFF: converts UniProtKB XML databases (.xml/.xml.gz) to PEFF 1.0 with PName/GName/NcbiTaxId/
       TaxName/Length/SV/EV/PE/ID/AltAC metadata, ModRes*, VariantSimple/VariantComplex, Processed and
       (with -AnnotationIdentifiers) DisulfideBond annotations; modification accessions are resolved via
-      the bundled UniProt ptmlist.txt, PSI-MOD.obo and an optional unimod.obo (#9649)
+      the bundled UniProt ptmlist.txt, PSI-MOD.obo and an optional unimod.obo (#9649). UniProt
+      alternative products (isoforms) are reconstructed from their splice-variant features and emitted
+      as additional PEFF entries after the parent entry (disable with -omit_isoforms) (#9830)
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference for OpenSWATH analyses (#9280)
     - OpenSwathExport: exports OpenSwathWorkflow results to TSV/Parquet (#9377)
     - OpenSwathPercolatorScoring: scores OpenSwathWorkflow results with Percolator (#9695)
