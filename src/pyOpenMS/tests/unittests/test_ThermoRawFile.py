@@ -47,6 +47,9 @@ def test_managed_bridge_is_bundled_with_share():
                  "ThermoWrapperManaged.runtimeconfig.json",
                  "ThermoFisher.CommonCore.RawFileReader.dll"):
         assert os.path.isfile(os.path.join(managed, name)), name
+    # pyopenms/__init__.py hands this directory to the reader explicitly, so the
+    # lookup does not depend on which share/ folder libOpenMS resolves on its own.
+    assert os.path.samefile(os.environ.get("OPENMS_THERMO_MANAGED_DIR", ""), managed)
 
 
 @needs_raw_file

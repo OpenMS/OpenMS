@@ -69,6 +69,21 @@ else:
             )
         del _possible_paths, _path, Path
 
+# Point the Thermo RAW reader at the managed bridge assemblies bundled with this
+# package (share/OpenMS/openms_thermo_bridge/managed). libOpenMS resolves its data
+# directory from compiled-in paths before it consults OPENMS_DATA_PATH, so on a
+# machine that still has the build or source tree the reader would look in the
+# wrong share/ folder. OPENMS_THERMO_MANAGED_DIR is the documented explicit
+# override and takes precedence over that resolution. A value the user already
+# set is respected, and nothing is set when the wheel carries no bridge.
+if not os.environ.get("OPENMS_THERMO_MANAGED_DIR"):
+    for _share in (os.environ.get("OPENMS_DATA_PATH", ""), default_openms_data_path):
+        _managed = os.path.join(_share, "openms_thermo_bridge", "managed") if _share else ""
+        if _managed and os.path.isfile(os.path.join(_managed, "ThermoWrapperManaged.dll")):
+            os.environ["OPENMS_THERMO_MANAGED_DIR"] = _managed
+            break
+    del _share, _managed
+
 
 # Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
 # Both pyarrow and C++ Arrow try to register
