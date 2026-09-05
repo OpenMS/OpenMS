@@ -19,6 +19,21 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 General:
   - Fix: corrected inconsistent elemental formulas in several NuXL presets, including RNA/DNA UV,
     DEB, NM, and FA fragment adducts (#10031)
+  - New: modification definition records let a tool register a named, non-vocabulary modification (an
+    Id, formula and site not shipped in unimod.xml/PSI-MOD/XLMOD) so that files naming it stay readable
+    by another process. ResidueModification::toDefinitionString()/fromDefinitionString() (de)serialise
+    one record; ModificationsDB::registerDefinition()/hasDefinedModification() register and query them;
+    the new ModificationDefinitionIO class collects the definitions a run's identifications, features or
+    consensus elements reference and attaches them to ProteinIdentification::SearchParameters under the
+    "modification_definitions" meta value. ResidueModification::Provenance (DEFINED/CV/MASS_ONLY) records
+    where a modification's description came from. idXML, featureXML, consensusXML and the
+    .idparquet/.featureparquet/.consensusparquet bundles all carry the definitions their peptidoforms
+    reference and register them before parsing any sequence; ProForma writes a tool-defined modification
+    as its chemistry plus an INFO: name (e.g. "[Formula:C9H11N2O8P1|INFO:NuXL:U-H2O]") so a reader
+    without the definition still gets the right mass, and resolves the name first when it is registered.
+    OpenNuXL is the first consumer (see OpenNuXL below). BREAKING: a file naming such a modification is a
+    hard load failure ("Cannot convert string to peptide modification") in an OpenMS build without this
+    support (#10003, #10026, #10027, #10028, #10036, #10037, #10038, #10039, #10040)
   - Qt is no longer needed outside the GUI: the core library and all non-GUI TOPP tools build without
     it, and Qt6::Core was removed from libOpenMS' PUBLIC CMake dependencies (see Dependencies)
   - BREAKING: the OpenMS::String and OpenMS::StringView classes were removed; OpenMS uses
@@ -605,8 +620,9 @@ TOPP tools:
         remain bare and continue to carry the full precursor mass in CalcMass (#9992)
       - Localized adducts are written as named modifications carrying their empirical formula,
         e.g. "AEADNLDDK(NuXL:U-H2O1)K" instead of "AEADNLDDK[+306.0253]K", so isotope patterns and
-        quantification downstream see the adduct's chemistry. The definitions travel in the idXML
-        SearchParameters ("modification_definitions") and are registered when the file is loaded. An
+        quantification downstream see the adduct's chemistry. The definitions travel in the
+        SearchParameters ("modification_definitions") of idXML, featureXML, consensusXML and the
+        parquet bundles, and are registered when the file is loaded. An
         adduct on an already modified residue becomes one combined definition with the summed
         formula, e.g. "NuXL:U-H2O1~Oxidation". BREAKING: OpenMS releases without the definitions
         support fail to load these files ("Cannot convert string to peptide modification") instead of
