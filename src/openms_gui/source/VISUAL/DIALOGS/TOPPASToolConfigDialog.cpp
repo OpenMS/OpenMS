@@ -84,14 +84,23 @@ namespace OpenMS
 
   void TOPPASToolConfigDialog::ok_()
   {
+    // Commit any editor that is still open BEFORE deciding accept/reject: clicking OK may leave a
+    // just-picked file path or typed value uncommitted, and relying on focus timing to commit it is
+    // unreliable. store() commits synchronously and refuses (returns false) if the value could not
+    // be applied. It does not clear the modified flag, so isModified() afterwards correctly reflects
+    // whether anything actually changed (including the value just committed).
+    if (!editor_->store())
+    {
+      QMessageBox::warning(this, "Not applied", "The value currently being edited could not be applied. Please correct it and try again.");
+      return; // keep the dialog open so the user can fix the value
+    }
     if (editor_->isModified())
     {
-      editor_->store();
       accept();
     }
     else
     {
-      reject();
+      reject(); // nothing changed -- do not invalidate the node / mark the workflow dirty
     }
   }
 
@@ -152,9 +161,11 @@ namespace OpenMS
     if (!filename_.endsWith(".ini"))
       filename_.append(".ini");
 
-    bool was_modified = editor_->isModified();
-    editor_->store();
-    if (was_modified) editor_->setModified(true);
+    if (!editor_->store()) // store() commits without clearing the modified flag, so no save/restore
+    {
+      QMessageBox::warning(this, "Not applied", "The value currently being edited could not be applied. Please correct it and try again.");
+      return;
+    }
 
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
