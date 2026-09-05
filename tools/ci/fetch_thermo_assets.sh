@@ -33,20 +33,22 @@
 set -euo pipefail
 
 BRIDGE_TAG="v0.2.3"
-declare -A MANAGED_SHA256=(
-  [linux-x64]="c3388188f350280e1532d69e460c2cd76f5c69f4b4e6e4616a1a21e4347f5e4f"
-  [osx-arm64]="0253e156630db5bca4cdd4d401cfec5bfc532349b73b48ed2a60a004e3ff4f80"
-  [win-x64]="ac737effe6e5c4b379bf9fe242ac7c969f7b61616741bfb7241f3fdc9c620581"
-)
 RAW_URL="https://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
 RAW_SHA256="3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f"
 
 platform="${1:-}"
 dest="${2:-.}"
-if [[ -z "${MANAGED_SHA256[$platform]+x}" ]]; then
-  echo "usage: $0 <linux-x64|osx-arm64|win-x64> [dest-dir]" >&2
-  exit 2
-fi
+# Plain case instead of an associative array: the stock macOS Bash is 3.2, which
+# has no 'declare -A', and the test-wheels job runs this script with that Bash.
+case "$platform" in
+  linux-x64) managed_sha256="c3388188f350280e1532d69e460c2cd76f5c69f4b4e6e4616a1a21e4347f5e4f" ;;
+  osx-arm64) managed_sha256="0253e156630db5bca4cdd4d401cfec5bfc532349b73b48ed2a60a004e3ff4f80" ;;
+  win-x64)   managed_sha256="ac737effe6e5c4b379bf9fe242ac7c969f7b61616741bfb7241f3fdc9c620581" ;;
+  *)
+    echo "usage: $0 <linux-x64|osx-arm64|win-x64> [dest-dir]" >&2
+    exit 2
+    ;;
+esac
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/../.." && pwd)"
@@ -109,7 +111,7 @@ else
   zip_name="openms-thermo-bridge-managed-${platform}-${BRIDGE_TAG}.zip"
   zip_path="$(mktemp -d)/${zip_name}"
   download "https://github.com/jpfeuffer/openms-thermo-bridge/releases/download/${BRIDGE_TAG}/${zip_name}" \
-           "$zip_path" "${MANAGED_SHA256[$platform]}"
+           "$zip_path" "${managed_sha256}"
   # cmake -E tar is available on every runner and understands zip on all platforms.
   (cd "${dest}/thermo-managed" && cmake -E tar xf "$zip_path")
   rm -rf "$(dirname "$zip_path")"
