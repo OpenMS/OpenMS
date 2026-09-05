@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <unordered_set>
 #include <vector>
 
@@ -32,6 +33,7 @@ namespace OpenMS
 {
 class ConsensusMap;
 class MetaInfoInterface;
+namespace MS1LabelState { struct Keys; }
 
 /**
   @brief Public helpers for writing and concatenating Arrow tables to Parquet files
@@ -296,6 +298,26 @@ namespace ArrowIOHelpers
     @return true if @p label is a canonical QPX channel token
   */
   OPENMS_DLLAPI bool qpxIsCanonicalIntensityLabel(const std::string& label);
+
+  /**
+    @brief The meta values of an identification that QPX carries as @c cv_params
+
+    QPX reserves @c cv_params, a list of {cv_name, cv_value} pairs, on the feature and psm views for
+    annotations outside the fixed schema. OpenMS uses it for the label state of an MS1-labeled
+    identification, i.e. the MS1LabelState meta values @c MS1Label:labeled_sequence, @c MS1Label:removed_labels and
+    @c MS1Label:channel that MS1LabeledWorkflow records on the PeptideHit.
+
+    Only these keys are exported, so identifications without a label state (label-free, isobaric)
+    keep a null @c cv_params, as before.
+
+    @param[in] hit The PeptideHit (or any MetaInfoInterface) to read the keys from
+    @return (cv_name, cv_value) pairs in the order above, only for the keys present; empty if none is
+  */
+  OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit);
+
+  /// qpxCvParams() with the registry indices resolved once (MS1LabelState::Keys), for a loop over many hits
+  OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                                              const MS1LabelState::Keys& keys);
 
   // ---------------------------------------------------------------------------
   // Read helpers

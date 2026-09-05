@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -1034,6 +1035,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   // Resolved once for the whole range, like every other metavalue key here: looking one up by
   // name takes the MetaInfoRegistry's `omp critical` lock, and this runs inside a parallel build.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  const MS1LabelState::Keys label_state_keys; // resolved once; see MS1LabelState::Keys
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -1073,7 +1075,17 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
     for (Size hit_idx = 0; hit_idx < num_hits; ++hit_idx)
     {
       const PeptideHit& hit = hits[hit_idx];
-      const auto& seq = hit.getSequence();
+      // The psm view describes the spectrum match: a hit reduced to a peptide identity reports the
+      // peptidoform it was matched with (MS1LabelState); every sequence-derived column and the psm
+      // identity below use it, and the feature view derives its psm_ids from the same peptidoform.
+      const AASequence* seq_ptr = &hit.getSequence();
+      AASequence matched_seq;
+      if (MS1LabelState::hasMatchedSequence(hit, label_state_keys))
+      {
+        matched_seq = MS1LabelState::matchedSequence(hit, label_state_keys);
+        seq_ptr = &matched_seq;
+      }
+      const AASequence& seq = *seq_ptr;
 
       // === sequence (non-nullable) ===
       (void)sequence_builder.Append(seq.toUnmodifiedString());
@@ -1288,8 +1300,26 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       if (run_stem.empty()) { ++unattributable_psms; }
       (void)run_file_name_builder.Append(run_stem);
 
-      // === cv_params (list<struct>, nullable - null for now) ===
-      (void)cv_params_builder.AppendNull();
+      // === cv_params (list<struct>, nullable) ===
+      // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
+      // for every other identification, as before.
+      {
+        const auto cv_params = ArrowIOHelpers::qpxCvParams(hit, label_state_keys);
+        if (cv_params.empty())
+        {
+          (void)cv_params_builder.AppendNull();
+        }
+        else
+        {
+          (void)cv_params_builder.Append();
+          for (const auto& [name, value] : cv_params)
+          {
+            (void)cv_struct_b->Append();
+            (void)cv_name_b->Append(name);
+            (void)cv_value_b->Append(value);
+          }
+        }
+      }
 
       // === scan (list<int32>, non-nullable) ===
       const std::vector<Int32> scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);

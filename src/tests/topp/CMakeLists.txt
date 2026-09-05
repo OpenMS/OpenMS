@@ -3705,6 +3705,262 @@ set_tests_properties("TOPP_MultiplexResolver_4_out1" PROPERTIES DEPENDS "TOPP_Mu
 add_test("TOPP_MultiplexResolver_4_out3" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/MultiplexResolver_4_conflicts.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output_conflicts.consensusXML )
 set_tests_properties("TOPP_MultiplexResolver_4_out3" PROPERTIES DEPENDS "TOPP_MultiplexResolver_4")
 
+#------------------------------------------------------------------------------
+# MS1LabeledWorkflow tests
+# Fixture: a synthetic SILAC duplex. The MS1 data is FeatureFinderMultiplex_2_input.mzML (seven MS1
+# spectra, four Lys8/Arg10 doublets with algorithm:rt_band = 5); MS1LabeledWorkflow_1.idXML holds
+# hand-made identifications whose sequences, charges, labels and precursor masses agree with those
+# doublets (doublet 1: heavy identified; 2: light; 3: light and heavy, of which the better one keeps
+# the multiplet; 4: an Arg10-labelled sequence on a Lys8 doublet, i.e. a quant/ID conflict that is
+# not quantified; plus one unmapped decoy), MS1LabeledWorkflow_1.fasta the proteins they were
+# "searched" against (with reversed decoys), MS1LabeledWorkflow_2_design.tsv a fractionated design.
+#
+# Doublet 4 is the one exception to "precursor masses agree" -- it is mass-inconsistent on purpose,
+# because that is what makes it a conflict. TTTLLHR ends in R, so under [][Lys8,Arg10] it takes
+# Arg10 (+10.0083) and its heavy form is 851.4973, while the doublet it sits on is separated by
+# 8.0146 (Lys8) with its heavy member at 849.4927. At charge 1 that leaves a 2.0046 gap, which is
+# precisely why the multiplet cannot be resolved. The exported mass error for that PSM is therefore
+# large by construction: MS1LabeledWorkflow_4_qpx_psm.tsv pins it at -2354.2512 ppm, while every
+# other PSM of the fixture agrees with its precursor to within 3.4 ppm. It is not a data error, so
+# do not "correct" the precursor or the label to make the outlier go away.
+#
+# The resolver's routing decision itself is covered at unit level, on exact label masses rather than
+# these real ones, by feature C of class_tests/openms/source/MultiplexResolverAlgorithm_test.cpp.
+# The case is kept here as well for what the workflow does afterwards, which that test cannot reach:
+# the multiplet is dropped from quantification while its identification survives as an unassigned
+# one, still feeds protein inference (giving PROT_C its coverage), and reaches the QPX psm view.
+add_test("TOPP_MS1LabeledWorkflow_requires_output" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test)
+set_tests_properties("TOPP_MS1LabeledWorkflow_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_cxml/out_qpx")
+
+# one run, no design (generated: one fraction group, one sample per channel), re-indexed against the FASTA.
+# -proteinFDR 1.0 throughout: with three target proteins the conservative (D+1)/T estimate cannot
+# fall below 1/3, so the 5% default would remove every protein of this tiny fixture.
+add_test("TOPP_MS1LabeledWorkflow_1" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_1.tmp.consensusXML
+  -out ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_1.tmp.mzTab)
+add_test("TOPP_MS1LabeledWorkflow_1_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_1")
+add_test("TOPP_MS1LabeledWorkflow_1_out2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_1.tmp.mzTab -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.mzTab )
+set_tests_properties("TOPP_MS1LabeledWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_1")
+
+# two fraction groups x two fractions (four copies of the one run under the names the design uses):
+# every fraction is aligned and linked separately, the fractions are combined column-wise, and the
+# quantification sums the fractions of a group. Without '-fasta' the identifications' own decoy and
+# protein annotation is used, and no coverage is computed.
+add_test("TOPP_MS1LabeledWorkflow_2_prepare" ${CMAKE_COMMAND}
+  -DSOURCE=${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -DTARGET_DIR=${TESTS_TEMP_DIR}
+  -P ${DATA_DIR_TOPP}/MS1LabeledWorkflow_prepare.cmake)
+add_test("TOPP_MS1LabeledWorkflow_2" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F2.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F2.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_2_design.tsv
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_2.tmp.consensusXML
+  -out ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_2.tmp.mzTab)
+set_tests_properties("TOPP_MS1LabeledWorkflow_2" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare")
+add_test("TOPP_MS1LabeledWorkflow_2_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_2.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_2_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_2_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2")
+add_test("TOPP_MS1LabeledWorkflow_2_out2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_2.tmp.mzTab -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_2_out.mzTab )
+set_tests_properties("TOPP_MS1LabeledWorkflow_2_out2" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2")
+
+# QPX export: the channels are written with the canonical SILAC labels; the three views must validate
+add_test(NAME "TOPP_MS1LabeledWorkflow_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_dir)
+add_test("TOPP_MS1LabeledWorkflow_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_qpx" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_qpx_clean")
+add_test("TOPP_MS1LabeledWorkflow_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_dir/quantms.feature.parquet -schema feature -min_rows 3)
+set_tests_properties("TOPP_MS1LabeledWorkflow_qpx_features" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_qpx")
+add_test("TOPP_MS1LabeledWorkflow_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_dir/quantms.psm.parquet -schema psm -min_rows 3)
+set_tests_properties("TOPP_MS1LabeledWorkflow_qpx_psms" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_qpx")
+add_test("TOPP_MS1LabeledWorkflow_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_dir/quantms.pg.parquet -schema pg -min_rows 2)
+set_tests_properties("TOPP_MS1LabeledWorkflow_qpx_pg" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_qpx")
+
+# match between runs: run B's identifications (MS1LabeledWorkflow_1_partial.idXML) lack the one of
+# doublet 2. With -match_between_runs the unidentified doublet is kept and linked to run A's identified
+# one, so the peptide is quantified in both runs (4 sub-features); by default (targeted) run B
+# contributes nothing for it (2 sub-features). The two references pin exactly that difference.
+add_test("TOPP_MS1LabeledWorkflow_3_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_partial.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_design.tsv
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -match_between_runs true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "1 multiplet.s. are unidentified, 1 of them kept for match between runs")
+add_test("TOPP_MS1LabeledWorkflow_3_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_mbr_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_mbr")
+add_test("TOPP_MS1LabeledWorkflow_3_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_partial.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_design.tsv
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_targeted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare")
+add_test("TOPP_MS1LabeledWorkflow_3_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_targeted_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_targeted")
+
+# peptide identity: run A identifies doublet 3 by its light spectrum, run B (MS1LabeledWorkflow_1_heavy.idXML)
+# only by its heavy spectrum. The label modifications are stripped after the resolver, so both name one
+# peptide and link into one consensus feature with four sub-features; the label state is kept on the
+# identifications (MS1Label:labeled_sequence, MS1Label:removed_labels, MS1Label:channel) and reaches
+# the mzTab opt_global
+# columns and the QPX cv_params of the feature and psm views; the PSM-level rows (mzTab PSM section,
+# QPX psm view) report the peptidoform as searched. The QPX psm dump is pinned (its key is
+# float-free); the feature view is only schema-checked, like IsobaricWorkflow's.
+add_test(NAME "TOPP_MS1LabeledWorkflow_4_identity_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir)
+add_test("TOPP_MS1LabeledWorkflow_4_identity" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_heavy.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_design.tsv
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.consensusXML
+  -out ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.mzTab
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare;TOPP_MS1LabeledWorkflow_4_identity_clean")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_identity_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_out2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_identity.tmp.mzTab -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_identity_out.mzTab )
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_out2" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir/quantms.feature.parquet -schema feature -min_rows 6)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_features" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_dir/quantms.psm.parquet -schema psm -min_rows 6 -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_psm.tmp.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity")
+add_test("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_4_qpx_psm.tmp.tsv -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_4_qpx_psm.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_out" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_4_identity_qpx_psm_dump")
+
+# one spectrum match on several multiplets: with an absurd m/z tolerance every identification of doublets
+# 2 and 3 (11.5 Th apart, both 2+) lands on both of them. A spectrum is evidence for one multiplet only,
+# the closest one, and that has to be settled BEFORE the best-scoring match is chosen per multiplet;
+# otherwise doublet 3 would first take doublet 2's better-scoring spectrum and then lose it to
+# doublet 2, ending up unidentified. The output must equal the single-run reference, which was produced
+# with the default tolerance, i.e. the multi-assignment must have changed nothing.
+add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -id_mapping:mz_tolerance 15000
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML)
+# an identical output could also mean that nothing was multi-assigned, so require that it was
+set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PASS_REGULAR_EXPRESSION "assigned to multiple features: 3")
+add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_5_multi_assignment")
+
+# channel ratios (the MaxQuant statistic): the fixture's three doublets have the H/L ratios 0.012228,
+# 3.774521 and 3.462539, so PROT_A's ratio is the median of its two peptides = their mean = 1.893374
+# and PROT_B's is 3.462539 from a single peptide. With the default min_ratio_count of 2, PROT_B gets
+# no ratio (covered by the references of test 1); this run lowers the threshold to 1, so both are
+# quantified, and switches the normalization off, so the reported ratios are the raw ones.
+add_test("TOPP_MS1LabeledWorkflow_6_ratios" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -ratios:normalize false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_ratios.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios" PROPERTIES PASS_REGULAR_EXPRESSION "3 peptide.s. and 2 protein group.s. quantified by ratio")
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_ratios.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_6_ratios_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios")
+
+# the same ratios in the QPX pg view: one row per (protein group, fraction group, channel), the ratio
+# of that channel in its additional_intensities and the contributing peptide count in cv_params. The
+# pg key is float-free, so the dump can be pinned.
+add_test(NAME "TOPP_MS1LabeledWorkflow_6_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_dir)
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.fasta
+  -labels "[][Lys8,Arg10]"
+  -algorithm:rt_band 5
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_qpx" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_qpx_clean")
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_dir/quantms.pg.parquet -schema pg -min_rows 4 -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios_qpx")
+add_test("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_out" ${QPX_DIFF}
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_6_qpx_pg.tmp.tsv -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_6_qpx_pg.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_out" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_6_ratios_qpx_pg_dump")
+
+# the ratio reference channel has to be one of the channels of '-labels'
+add_test("TOPP_MS1LabeledWorkflow_ratio_reference_channel" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -labels "[][Lys8,Arg10]"
+  -ratios:reference_channel 3
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_ratio_reference_channel.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_ratio_reference_channel" PROPERTIES PASS_REGULAR_EXPRESSION "names a channel that '-labels .*' does not have")
+
+# with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
+add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -labels "[][Lys8,Arg10]"
+  -match_between_runs true
+  -algorithm:knock_out
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_mbr_knock_out.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_mbr_knock_out" PROPERTIES PASS_REGULAR_EXPRESSION "cannot be combined with '-algorithm:knock_out'")
+
+# the labels must have been searched as modifications: identifications whose search parameters lack
+# them are refused (with -force the run continues)
+add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_nolabelmods.idXML
+  -labels "[][Lys8,Arg10]"
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_missing_label_mods.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_missing_label_mods" PROPERTIES PASS_REGULAR_EXPRESSION "do not contain the modification.*Lys8 = Label:13C.6.15N.2.")
+
+# QPX has no label for ICPL channels, so -out_qpx is refused before any work is done
+add_test("TOPP_MS1LabeledWorkflow_qpx_refused" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -labels "[ICPL0][ICPL4]"
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_qpx_refused_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_qpx_refused" PROPERTIES PASS_REGULAR_EXPRESSION "no label in the QPX intensity-label vocabulary")
+
+# the design's 'Label' column has to enumerate the channels of '-labels'
+add_test("TOPP_MS1LabeledWorkflow_design_label_mismatch" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_A_F2.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F1.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_B_F2.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -design ${DATA_DIR_TOPP}/MS1LabeledWorkflow_2_design.tsv
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_design_label_mismatch.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_design_label_mismatch" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "uses 2 label.s., but '-labels .*' describes 3 channels")
+
 # INIUpdater:
 if(WITH_GUI AND HAS_XSERVER)
   add_test("TOPP_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas)

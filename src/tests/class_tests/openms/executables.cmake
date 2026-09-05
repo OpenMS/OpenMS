@@ -114,6 +114,7 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MS1LabelState_test
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
@@ -414,6 +415,7 @@ set(filtering_executables_list
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
+  MultiplexResolverAlgorithm_test
   MultiplexIsotopicPeakPattern_test
   MultiplexSatelliteCentroided_test
   MultiplexSatelliteProfile_test
