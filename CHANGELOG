@@ -245,6 +245,14 @@ PyOpenMS:
     (#8674), 6 docutils ERROR-level warnings resolved (#9629), and corrected/added MSChromatogram and
     Mobilogram docstrings (#9812)
   - Build system modernized with py-build-cmake and cibuildwheel for PEP 517/518/621 compliance (#8530)
+  - Native Thermo .raw reading (FileHandler().loadExperiment("run.raw", exp)) now works from the
+    Linux x86_64, macOS arm64 and Windows wheels: libOpenMS is built with WITH_THERMO_RAW=ON and the
+    wheel carries both the openms_thermo_bridge library and its managed assemblies
+    (pyopenms/share/OpenMS/openms_thermo_bridge/managed). A .NET 8 or newer runtime must be installed
+    on the machine (set DOTNET_ROOT for non-standard locations). Previously Linux and Windows wheels
+    were built without the reader and the macOS wheel shipped the bridge without its managed half.
+    Linux aarch64 wheels stay without Thermo support (no vendor libraries for that platform). New
+    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set
 
 TOPP tools:
   Changes:
@@ -888,6 +896,11 @@ OpenMS Library:
       intensity, lowest/highest observed m/z, scan filter string, scan window, ion injection time,
       polarity, and instrument source/analyzer/detector info -- so output matches msconvert/ProteoWizard
       (#9389, #9623)
+    - ThermoRawFile: the managed bridge assemblies (ThermoWrapperManaged.dll, runtimeconfig, Thermo
+      CommonCore) are now also installed into share/OpenMS/openms_thermo_bridge/managed and looked up
+      there, after the new OPENMS_THERMO_MANAGED_DIR environment variable and before the bridge's own
+      next-to-the-library default, so relocated layouts such as Python wheels find them. On Windows
+      nethost.dll, which openms_thermo_bridge.dll imports, is installed next to the OpenMS libraries
     - IMAGING module for imaging mass spectrometry: IonImage (dense WxHxD intensity grid with per-pixel
       validity mask and m/z extraction window), MSImagingGeometry (pixel list with (x,y,z) -> spectrum
       index lookup and pixel-size metadata) and MSImagingExperiment (pixel-based spectrum access and
@@ -1453,6 +1466,12 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - pyOpenMS wheel workflow: Thermo RAW support is built into the Linux x86_64, macOS arm64 and Windows
+    wheels. The managed half of openms-thermo-bridge comes from the bridge's pre-built release zip via
+    tools/ci/fetch_thermo_assets.sh (curl with retries, pinned SHA-256, cached with actions/cache,
+    bridge tag cross-checked against the FetchContent pin), passed to CMake as
+    OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR, so no NuGet restore or Thermo package download runs in
+    CI. The wheel test suite and a smoke test on fresh runners load PNNL's Angiotensin_AllScans.raw
   - Removed the developer script tools/checker.php. Covered by .clang-format now.
   - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
   - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).

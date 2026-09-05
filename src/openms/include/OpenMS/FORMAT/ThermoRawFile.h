@@ -24,9 +24,16 @@ namespace OpenMS
     RawFileReader through the .NET host runtime. Reads spectra (MS1 and MSn)
     including retention times, precursor information, and instrument metadata.
 
-    Requires the openms-thermo-bridge managed runtime files
-    (ThermoWrapperManaged.dll and its dependencies) to be installed alongside
-    the OpenMS binaries.
+    Requires a .NET 8 (or newer) runtime on the machine and the
+    openms-thermo-bridge managed runtime files (ThermoWrapperManaged.dll, its
+    runtimeconfig.json and the Thermo CommonCore assemblies). These are looked
+    up in this order:
+      1. the directory named by the OPENMS_THERMO_MANAGED_DIR environment variable,
+      2. <OpenMS share dir>/openms_thermo_bridge/managed (installed by OpenMS,
+         also shipped inside pyOpenMS wheels),
+      3. the bridge's own default, i.e. a 'managed' directory next to the
+         openms_thermo_bridge shared library.
+    Set DOTNET_ROOT if the .NET runtime is installed in a non-standard location.
 
     @ingroup FileIO
   */
