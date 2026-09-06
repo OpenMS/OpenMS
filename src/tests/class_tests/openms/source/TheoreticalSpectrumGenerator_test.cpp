@@ -46,26 +46,20 @@ START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& s
   TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 
-  // a copy must behave like the source, not merely carry the same parameters
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
   TheoreticalSpectrumGenerator configured;
-  Param cfg(configured.getParameters());
-  cfg.setValue("add_b_ions", "false");
-  cfg.setValue("add_y_ions", "false");
-  cfg.setValue("add_a_ions", "true");
-  configured.setParameters(cfg);
-
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
   TheoreticalSpectrumGenerator configured_copy(configured);
-  AASequence copy_test_peptide = AASequence::fromString("IFSQVGK");
-  PeakSpectrum spec_source, spec_copy;
-  configured.getSpectrum(spec_source, copy_test_peptide, 1, 1);
-  configured_copy.getSpectrum(spec_copy, copy_test_peptide, 1, 1);
-  TEST_EQUAL(spec_source.empty(), false)
-  TEST_EQUAL(spec_copy.size(), spec_source.size())
-  ABORT_IF(spec_copy.size() != spec_source.size())
-  for (Size i = 0; i != spec_source.size(); ++i)
-  {
-    TEST_REAL_SIMILAR(spec_copy[i].getMZ(), spec_source[i].getMZ())
-  }
+
+  AASequence seq = AASequence::fromString("IFSQVGK");
+  PeakSpectrum from_source, from_copy;
+  configured.getSpectrum(from_source, seq, 1, 1);
+  configured_copy.getSpectrum(from_copy, seq, 1, 1);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGenerator())
@@ -80,26 +74,19 @@ START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectru
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 
-  // same check for assignment
+  // same for assignment
   TheoreticalSpectrumGenerator configured;
-  Param cfg(configured.getParameters());
-  cfg.setValue("add_b_ions", "false");
-  cfg.setValue("add_y_ions", "false");
-  cfg.setValue("add_a_ions", "true");
-  configured.setParameters(cfg);
-
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
   TheoreticalSpectrumGenerator assigned;
   assigned = configured;
-  PeakSpectrum spec_source, spec_assigned;
-  configured.getSpectrum(spec_source, peptide, 1, 1);
-  assigned.getSpectrum(spec_assigned, peptide, 1, 1);
-  TEST_EQUAL(spec_source.empty(), false)
-  TEST_EQUAL(spec_assigned.size(), spec_source.size())
-  ABORT_IF(spec_assigned.size() != spec_source.size())
-  for (Size i = 0; i != spec_source.size(); ++i)
-  {
-    TEST_REAL_SIMILAR(spec_assigned[i].getMZ(), spec_source[i].getMZ())
-  }
+
+  PeakSpectrum from_source, from_assigned;
+  configured.getSpectrum(from_source, peptide, 1, 1);
+  assigned.getSpectrum(from_assigned, peptide, 1, 1);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge = 1, Int max_charge = 1))

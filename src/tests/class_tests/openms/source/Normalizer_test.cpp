@@ -44,29 +44,21 @@ START_SECTION((Normalizer(const Normalizer& source)))
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 
-	// a copy must behave like the source: an unset 'method_' throws InvalidValue
+	// getParameters() cannot see 'method_', which updateMembers_() caches, so also
+	// check that a copy of a configured Normalizer filters the same way
 	Normalizer configured;
-	Param cfg(configured.getParameters());
-	cfg.setValue("method", "to_TIC");
-	configured.setParameters(cfg);
+	Param p(configured.getParameters());
+	p.setValue("method", "to_TIC");
+	configured.setParameters(p);
 	Normalizer configured_copy(configured);
 
-	PeakSpectrum copy_test_spec;
-	Peak1D copy_test_peak;
-	copy_test_peak.setMZ(100.0);
-	copy_test_peak.setIntensity(1.0f);
-	copy_test_spec.push_back(copy_test_peak);
-	copy_test_peak.setMZ(200.0);
-	copy_test_peak.setIntensity(3.0f);
-	copy_test_spec.push_back(copy_test_peak);
-
-	configured_copy.filterSpectrum(copy_test_spec);
-	double copy_test_sum(0);
-	for (PeakSpectrum::ConstIterator it = copy_test_spec.begin(); it != copy_test_spec.end(); ++it)
-	{
-		copy_test_sum += it->getIntensity();
-	}
-	TEST_REAL_SIMILAR(copy_test_sum, 1.0)
+	PeakSpectrum unfiltered;
+	unfiltered.push_back(Peak1D(100.0, 1.0f));
+	unfiltered.push_back(Peak1D(200.0, 3.0f));
+	PeakSpectrum from_source(unfiltered), from_copy(unfiltered);
+	configured.filterSpectrum(from_source);
+	configured_copy.filterSpectrum(from_copy);
+	TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION((Normalizer& operator = (const Normalizer& source)))
@@ -75,30 +67,21 @@ START_SECTION((Normalizer& operator = (const Normalizer& source)))
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 
-	// same check for assignment
+	// same for assignment
 	Normalizer configured;
-	Param cfg(configured.getParameters());
-	cfg.setValue("method", "to_TIC");
-	configured.setParameters(cfg);
+	Param p(configured.getParameters());
+	p.setValue("method", "to_TIC");
+	configured.setParameters(p);
 	Normalizer assigned;
 	assigned = configured;
 
-	PeakSpectrum assign_test_spec;
-	Peak1D assign_test_peak;
-	assign_test_peak.setMZ(100.0);
-	assign_test_peak.setIntensity(1.0f);
-	assign_test_spec.push_back(assign_test_peak);
-	assign_test_peak.setMZ(200.0);
-	assign_test_peak.setIntensity(3.0f);
-	assign_test_spec.push_back(assign_test_peak);
-
-	assigned.filterSpectrum(assign_test_spec);
-	double assign_test_sum(0);
-	for (PeakSpectrum::ConstIterator it = assign_test_spec.begin(); it != assign_test_spec.end(); ++it)
-	{
-		assign_test_sum += it->getIntensity();
-	}
-	TEST_REAL_SIMILAR(assign_test_sum, 1.0)
+	PeakSpectrum unfiltered;
+	unfiltered.push_back(Peak1D(100.0, 1.0f));
+	unfiltered.push_back(Peak1D(200.0, 3.0f));
+	PeakSpectrum from_source(unfiltered), from_assigned(unfiltered);
+	configured.filterSpectrum(from_source);
+	assigned.filterSpectrum(from_assigned);
+	TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 
