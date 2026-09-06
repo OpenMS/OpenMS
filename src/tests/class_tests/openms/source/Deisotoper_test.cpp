@@ -197,6 +197,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
      MSSpectrum s = base;
      Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, true, 2, 10, false, true);
      TEST_EQUAL(s.size(), 1);
+     const MSSpectrum without_precursor = s;
 
      // (b) precursor present but charge unknown (0): must behave like (a), not empty the spectrum
      s = base;
@@ -205,7 +206,11 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
      prec_unknown.setCharge(0);
      s.setPrecursors({prec_unknown});
      Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, true, 2, 10, false, true);
-     TEST_EQUAL(s.size(), 1);
+     TEST_EQUAL(s.size(), without_precursor.size());
+     TEST_REAL_SIMILAR(s[0].getMZ(), without_precursor[0].getMZ());
+     TEST_REAL_SIMILAR(s[0].getMZ(), 200.0);
+     TEST_TRUE(s.getIntegerDataArrays() == without_precursor.getIntegerDataArrays());
+     TEST_EQUAL(s.getIntegerDataArrays()[0][0], 2);
 
      // (c) known precursor charge large enough to keep the fragment cluster: cluster retained
      //     and annotated with the detected charge (2)
@@ -239,12 +244,20 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
      lone.setMZ(600.0);
      base_plus.push_back(lone);
      base_plus.sortByPosition();
+     MSSpectrum retained_without_precursor = base_plus;
+     Deisotoper::deisotopeAndSingleCharge(retained_without_precursor, 10.0, true, 1, 2, false, 2, 10, false, true);
      s = base_plus;
      s.setPrecursors({prec_unknown});
      Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, false, 2, 10, false, true);
      TEST_EQUAL(s.size(), 2);
      TEST_REAL_SIMILAR(s[0].getMZ(), 200.0);
      TEST_REAL_SIMILAR(s[1].getMZ(), 600.0);
+     TEST_EQUAL(s.size(), retained_without_precursor.size());
+     TEST_REAL_SIMILAR(s[0].getMZ(), retained_without_precursor[0].getMZ());
+     TEST_REAL_SIMILAR(s[1].getMZ(), retained_without_precursor[1].getMZ());
+     TEST_TRUE(s.getIntegerDataArrays() == retained_without_precursor.getIntegerDataArrays());
+     TEST_EQUAL(s.getIntegerDataArrays()[0][0], 2);
+     TEST_EQUAL(s.getIntegerDataArrays()[0][1], 0);
    }
 }
 END_SECTION
@@ -428,8 +441,9 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
 
     // (a) no precursor: cluster is detected and collapsed to its monoisotopic peak
     MSSpectrum s = base;
-    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true);// keep only deisotoped
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true, 2, 10, true, true);// annotate charge
     TEST_EQUAL(s.size(), 1);
+    const MSSpectrum without_precursor = s;
 
     // (b) precursor present but charge unknown (0): must behave like (a), not empty the spectrum
     s = base;
@@ -437,8 +451,11 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
     prec_unknown.setMZ(500.0);
     prec_unknown.setCharge(0);
     s.setPrecursors({prec_unknown});
-    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true);
-    TEST_EQUAL(s.size(), 1);
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true, 2, 10, true, true);
+    TEST_EQUAL(s.size(), without_precursor.size());
+    TEST_REAL_SIMILAR(s[0].getMZ(), without_precursor[0].getMZ());
+    TEST_TRUE(s.getIntegerDataArrays() == without_precursor.getIntegerDataArrays());
+    TEST_EQUAL(s.getIntegerDataArrays()[0][0], 2);
 
     // (c) known precursor charge large enough to keep the fragment cluster: cluster retained
     //     and annotated with the detected charge (2)
@@ -471,11 +488,19 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
     lone.setMZ(800.0);
     base_plus.push_back(lone);
     base_plus.sortByPosition();
+    MSSpectrum retained_without_precursor = base_plus;
+    Deisotoper::deisotopeWithAveragineModel(retained_without_precursor, 10.0, true, -1, 1, 3, false, 2, 10, true, true);
     s = base_plus;
     s.setPrecursors({prec_unknown});
-    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, -1, 1, 3, false);// keep unassigned peaks
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, -1, 1, 3, false, 2, 10, true, true);// keep unassigned peaks and annotate charge
     TEST_EQUAL(s.size(), 2);
     TEST_REAL_SIMILAR(s[0].getMZ(), 800.0);// the unassigned peak survived (sorts before the converted monoisotopic peak)
+    TEST_EQUAL(s.size(), retained_without_precursor.size());
+    TEST_REAL_SIMILAR(s[0].getMZ(), retained_without_precursor[0].getMZ());
+    TEST_REAL_SIMILAR(s[1].getMZ(), retained_without_precursor[1].getMZ());
+    TEST_TRUE(s.getIntegerDataArrays() == retained_without_precursor.getIntegerDataArrays());
+    TEST_EQUAL(s.getIntegerDataArrays()[0][0], 0);
+    TEST_EQUAL(s.getIntegerDataArrays()[0][1], 2);
   }
 }
 END_SECTION
