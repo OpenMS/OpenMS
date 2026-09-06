@@ -1783,7 +1783,6 @@ namespace OpenMS::Internal
         {
           Precursor& precursor = in_spectrum_list_ ? spec_.getPrecursors().back() : chromatogram_.getPrecursor();
           precursor.setIntensity(StringUtils::toDouble(value));
-          if (precursor.getIntensity() == 0) precursor.setMetaValue("peak intensity", 0.0);
           if (!unit_accession.empty() && unit_accession != "MS:1000132") precursor.setMetaValue("peak intensity unit accession", unit_accession);
         }
         else if (accession == "MS:1000633") //possible charge state
@@ -2144,7 +2143,6 @@ namespace OpenMS::Internal
               if (in_spectrum_list_)
               {
                 spec_.getPrecursors().back().setIsolationWindowLowerOffset(offset_value);
-                if (offset_value == 0) spec_.getPrecursors().back().setMetaValue("isolation window lower offset", offset_value);
               }
               else
               {
@@ -2160,7 +2158,6 @@ namespace OpenMS::Internal
               if (in_spectrum_list_)
               {
                 spec_.getPrecursors().back().setIsolationWindowUpperOffset(offset_value);
-                if (offset_value == 0) spec_.getPrecursors().back().setMetaValue("isolation window upper offset", offset_value);
               }
               else
               {

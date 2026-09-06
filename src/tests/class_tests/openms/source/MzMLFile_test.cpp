@@ -1495,17 +1495,18 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1000617"))
   TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002678"))
 
-  // A zero-valued measurement is distinct from an absent intensity. Editing a
-  // previously zero isolation offset must override its preservation metadata.
+  // A zero-valued measurement is distinct from an absent intensity: the "peak intensity"
+  // meta value forces the export of a zero intensity (as ThermoRawFileParser does). Editing
+  // a previously zero isolation offset must override its preservation metadata.
   auto& edited_precursor = loaded[1].getPrecursors()[0];
   edited_precursor.setIntensity(0);
   edited_precursor.setMetaValue("peak intensity", 0.0);
   edited_precursor.setIsolationWindowLowerOffset(1.25);
   file.storeBuffer(encoded_again, loaded);
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "name=\"peak intensity\" value=\"0\""))
   PeakMap edited;
   file.loadBuffer(encoded_again, edited);
   TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIsolationWindowLowerOffset(), 1.25)
-  TEST_TRUE(edited[1].getPrecursors()[0].metaValueExists("peak intensity"))
   TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIntensity(), 0)
   TEST_EQUAL(edited[1].getPrecursors()[0].getMetaValue("peak intensity unit accession"), "MS:1000131")
 }
