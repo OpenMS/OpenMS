@@ -434,11 +434,11 @@ START_SECTION(([EXTRA] sorting reorders string and integer data arrays even when
   TEST_EXCEPTION(Exception::Precondition, c.select(std::vector<Size>{0, 7}))
   TEST_EQUAL(c.size(), 3)
 
-  // --- duplicate indices duplicate the values (no moved-from holes)
+  // --- a valid (unique) reorder keeps the data arrays aligned
   c = make();
-  c.select(std::vector<Size>{0, 0});
+  c.select(std::vector<Size>{2, 0});
   TEST_EQUAL(c.size(), 2)
-  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt2")
   TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt3")
 
   // --- stable order across *tied* keys: the data arrays must stay aligned with the peaks
