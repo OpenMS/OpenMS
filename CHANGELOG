@@ -1227,6 +1227,12 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: Deisotoper::deisotopeAndSingleCharge() and deisotopeWithAveragineModel() discarded every fragment
+    isotope cluster when the spectrum carried a precursor with unknown charge (0). The precursor-mass
+    constraint was derived from that charge, so the neutral mass came out as 0 and all positive-mass
+    fragments were rejected -- emptying the spectrum with keep_only_deisotoped=true and leaving peaks
+    unprocessed otherwise. The constraint now activates only for a known charge that yields a valid
+    positive mass (#10067)
   - Fix: Biosaur2Algorithm::run() left the stored MS data empty on FAIMS input -- the per-CV split moves
     the spectra out of ms_data_ and nothing put them back, so getMSData() handed the caller a cleared
     experiment. ProteomicsLFQ with -Seeding:algorithm biosaur2 passed exactly that on to

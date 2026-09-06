@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
@@ -179,6 +180,72 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    std::string temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
    MzMLFile().store(temp_file2, input2);
    File::remove(temp_file2);
+
+   // Regression test for issue #10067: a precursor with unknown charge (0) must
+   // not activate the precursor-mass constraint (which would use a zero mass and
+   // reject every fragment cluster, emptying the spectrum with keep_only_deisotoped).
+   {
+     MSSpectrum base;
+     Peak1D pk;
+     pk.setIntensity(1.0);
+     // one doubly-charged isotope cluster (0.5 Da spacing)
+     pk.setMZ(200.0);                                          base.push_back(pk);
+     pk.setMZ(200.0 + 0.5 * Constants::C13C12_MASSDIFF_U);     base.push_back(pk);
+     pk.setMZ(200.0 + 1.0 * Constants::C13C12_MASSDIFF_U);     base.push_back(pk);
+
+     // (a) no precursor: cluster is detected and collapsed to its monoisotopic peak
+     MSSpectrum s = base;
+     Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, true, 2, 10, false, true);
+     TEST_EQUAL(s.size(), 1);
+
+     // (b) precursor present but charge unknown (0): must behave like (a), not empty the spectrum
+     s = base;
+     Precursor prec_unknown;
+     prec_unknown.setMZ(200.0);
+     prec_unknown.setCharge(0);
+     s.setPrecursors({prec_unknown});
+     Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, true, 2, 10, false, true);
+     TEST_EQUAL(s.size(), 1);
+
+     // (c) known precursor charge large enough to keep the fragment cluster: cluster retained
+     //     and annotated with the detected charge (2)
+     s = base;
+     Precursor prec_known;
+     prec_known.setMZ(2000.0);
+     prec_known.setCharge(2);
+     s.setPrecursors({prec_known});
+     Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, true, 2, 10, false, true);
+     TEST_EQUAL(s.size(), 1);
+     TEST_EQUAL(s.getIntegerDataArrays().size(), 1);
+     TEST_EQUAL(s.getIntegerDataArrays()[0].size(), 1);
+     TEST_EQUAL(s.getIntegerDataArrays()[0][0], 2);
+
+     // (d) known precursor charge whose neutral mass is below the fragment cluster: the
+     //     constraint is still functional and rejects the cluster (empty with keep_only)
+     s = base;
+     Precursor prec_low;
+     prec_low.setMZ(100.0);
+     prec_low.setCharge(1);
+     s.setPrecursors({prec_low});
+     Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, true, 2, 10, false, true);
+     TEST_EQUAL(s.size(), 0);
+
+     // (e) retention mode (keep_only_deisotoped=false) with an unassigned peak and unknown
+     //     precursor charge: the cluster collapses to its monoisotopic peak and the
+     //     unrelated peak is retained rather than dropped
+     MSSpectrum base_plus = base;
+     Peak1D lone;
+     lone.setIntensity(1.0);
+     lone.setMZ(600.0);
+     base_plus.push_back(lone);
+     base_plus.sortByPosition();
+     s = base_plus;
+     s.setPrecursors({prec_unknown});
+     Deisotoper::deisotopeAndSingleCharge(s, 10.0, true, 1, 2, false, 2, 10, false, true);
+     TEST_EQUAL(s.size(), 2);
+     TEST_REAL_SIMILAR(s[0].getMZ(), 200.0);
+     TEST_REAL_SIMILAR(s[1].getMZ(), 600.0);
+   }
 }
 END_SECTION
 
@@ -338,6 +405,78 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
   Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, -1, 1, 3, true);// do not remove low intensity peaks beforehand, but keep only deisotoped
   TEST_EQUAL(theo1.size(), 104);
+
+  // Regression test for issue #10067: a precursor with unknown charge (0) must
+  // not activate the precursor-mass constraint (which would use a zero mass and
+  // reject every fragment cluster, emptying the spectrum with keep_only_deisotoped).
+  {
+    // build a single doubly-charged isotope cluster (~m/z 500) that matches the averagine model
+    CoarseIsotopePatternGenerator cluster_gen(5);
+    IsotopeDistribution cluster_distr = cluster_gen.estimateFromPeptideWeight(1000);
+    MSSpectrum base;
+    for (auto it = cluster_distr.begin(); it != cluster_distr.end(); ++it)
+    {
+      if (it->getIntensity() != 0)
+      {
+        Peak1D pk;
+        pk.setMZ((it->getMZ() + Constants::PROTON_MASS_U) / 2.0);// charge 2
+        pk.setIntensity(it->getIntensity() * 10);
+        base.push_back(pk);
+      }
+    }
+    base.sortByPosition();
+
+    // (a) no precursor: cluster is detected and collapsed to its monoisotopic peak
+    MSSpectrum s = base;
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true);// keep only deisotoped
+    TEST_EQUAL(s.size(), 1);
+
+    // (b) precursor present but charge unknown (0): must behave like (a), not empty the spectrum
+    s = base;
+    Precursor prec_unknown;
+    prec_unknown.setMZ(500.0);
+    prec_unknown.setCharge(0);
+    s.setPrecursors({prec_unknown});
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true);
+    TEST_EQUAL(s.size(), 1);
+
+    // (c) known precursor charge large enough to keep the fragment cluster: cluster retained
+    //     and annotated with the detected charge (2)
+    s = base;
+    Precursor prec_known;
+    prec_known.setMZ(2000.0);
+    prec_known.setCharge(2);
+    s.setPrecursors({prec_known});
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true, 2, 10, true, true);// annotate charge
+    TEST_EQUAL(s.size(), 1);
+    TEST_EQUAL(s.getIntegerDataArrays().size(), 1);
+    TEST_EQUAL(s.getIntegerDataArrays()[0].size(), 1);
+    TEST_EQUAL(s.getIntegerDataArrays()[0][0], 2);
+
+    // (d) known precursor charge whose neutral mass is below the fragment cluster: the
+    //     constraint is still functional and rejects the cluster (empty with keep_only)
+    s = base;
+    Precursor prec_low;
+    prec_low.setMZ(100.0);
+    prec_low.setCharge(1);
+    s.setPrecursors({prec_low});
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, 5000, 1, 3, true);
+    TEST_EQUAL(s.size(), 0);
+
+    // (e) retention mode (keep_only_deisotoped=false) with an unassigned peak and unknown
+    //     precursor charge: the unrelated peak is retained rather than dropped
+    MSSpectrum base_plus = base;
+    Peak1D lone;
+    lone.setIntensity(50.0);
+    lone.setMZ(800.0);
+    base_plus.push_back(lone);
+    base_plus.sortByPosition();
+    s = base_plus;
+    s.setPrecursors({prec_unknown});
+    Deisotoper::deisotopeWithAveragineModel(s, 10.0, true, -1, 1, 3, false);// keep unassigned peaks
+    TEST_EQUAL(s.size(), 2);
+    TEST_REAL_SIMILAR(s[0].getMZ(), 800.0);// the unassigned peak survived (sorts before the converted monoisotopic peak)
+  }
 }
 END_SECTION
 
