@@ -669,6 +669,28 @@ if (WITH_THERMO_RAW)
     install_library(openms_thermo_bridge)
     openms_register_export_target(openms_thermo_bridge)
 
+    if(WIN32)
+      # On Windows the bridge links the nethost *import* library, so
+      # openms_thermo_bridge.dll needs nethost.dll at run time. The .NET host pack
+      # that provides it is not on PATH, so install a copy next to the OpenMS
+      # libraries; installers and wheel repair tools (delvewheel) pick it up from
+      # there. FindDotNetHost.cmake ran inside the bridge's directory scope, so its
+      # result variables are not visible here: run it again in this scope.
+      list(APPEND CMAKE_MODULE_PATH "${OpenMSThermoBridge_SOURCE_DIR}/cmake")
+      find_package(DotNetHost QUIET)
+      list(POP_BACK CMAKE_MODULE_PATH)
+      if(DotNetHost_RUNTIME_LIBRARY)
+        install(FILES "${DotNetHost_RUNTIME_LIBRARY}"
+                DESTINATION ${INSTALL_LIB_DIR}
+                COMPONENT library)
+        message(STATUS "openms-thermo-bridge: installing ${DotNetHost_RUNTIME_LIBRARY} alongside libOpenMS")
+      else()
+        message(WARNING
+          "openms-thermo-bridge: nethost.dll was not located; openms_thermo_bridge.dll "
+          "will only load if nethost.dll is found on PATH at run time.")
+      endif()
+    endif()
+
     message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
 
     # Download and install the Thermo Fisher RawFileReader license.
@@ -705,6 +727,31 @@ if (WITH_THERMO_RAW)
                 COMPONENT share)
       endif()
     endif()
+  endif()
+
+  # Ship the managed half of the bridge (ThermoWrapperManaged.dll, its
+  # runtimeconfig.json and the Thermo CommonCore assemblies) inside the
+  # shared-data directory as well. The bridge installs them to
+  # <libdir>/openms_thermo_bridge/managed and locates them relative to its own
+  # shared library; that link breaks in relocated layouts such as Python wheels,
+  # where wheel repair tools rename and move the library. ThermoRawFile looks in
+  # <share>/openms_thermo_bridge/managed first, so every consumer that carries
+  # share/OpenMS (pyOpenMS wheels included) gets a working reader. The files are
+  # platform-independent IL assemblies (~1.6 MB), so they belong to 'share'.
+  # OpenMSThermoBridge_MANAGED_DIR is set by the bridge for both the
+  # FetchContent build (internal cache variable) and a system installation
+  # (OpenMSThermoBridgeHelpers.cmake). The directory is populated at build time
+  # when the bridge publishes the assemblies itself, which is fine for install().
+  if(OpenMSThermoBridge_MANAGED_DIR)
+    install(DIRECTORY "${OpenMSThermoBridge_MANAGED_DIR}/"
+            DESTINATION "${INSTALL_SHARE_DIR}/openms_thermo_bridge/managed"
+            COMPONENT share
+            PATTERN "*.pdb" EXCLUDE
+            PATTERN "*.zip" EXCLUDE)
+  else()
+    message(WARNING
+      "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "
+      "bridge assemblies will not be installed into ${INSTALL_SHARE_DIR}.")
   endif()
 endif()
 #------------------------------------------------------------------------------

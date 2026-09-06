@@ -122,9 +122,16 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double precursor_mass(0);
   if (old_spectrum.getPrecursors().size() == 1)
   {
-    has_precursor_data = true;
-    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
-    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
+    // A charge of 0 means the precursor charge is unknown (see Precursor.h).
+    // Only apply the precursor-mass constraint when a known charge yields a
+    // valid positive neutral mass; otherwise the mass would be 0 (or negative)
+    // and every positive-mass fragment cluster would be wrongly rejected.
+    const int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    if (precursor_charge != 0)
+    {
+      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
+      has_precursor_data = (precursor_mass > 0);
+    }
   }
 
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
@@ -417,9 +424,16 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   double precursor_mass(0);
   if (old_spectrum.getPrecursors().size() == 1)
   {
-    has_precursor_data = true;
-    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
-    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+    // A charge of 0 means the precursor charge is unknown (see Precursor.h).
+    // Only apply the precursor-mass constraint when a known charge yields a
+    // valid positive neutral mass; otherwise the mass would be 0 (or negative)
+    // and every positive-mass fragment cluster would be wrongly rejected.
+    const int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    if (precursor_charge != 0)
+    {
+      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+      has_precursor_data = (precursor_mass > 0);
+    }
   }
 
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)

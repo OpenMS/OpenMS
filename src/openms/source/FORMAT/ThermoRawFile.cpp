@@ -31,9 +31,11 @@
   #include <OpenMS/SYSTEM/File.h>
   #include <algorithm>
   #include <cctype>
+  #include <cstdlib>
   #include <filesystem>
   #include <limits>
   #include <map>
+  #include <optional>
   #include <openms_thermo_bridge/cv_mapping.hpp>
   #include <openms_thermo_bridge/thermo_bridge.hpp>
   #include <set>
@@ -50,6 +52,52 @@ namespace
     auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(),
                           [](char a, char b) { return std::tolower(static_cast<unsigned char>(a)) == std::tolower(static_cast<unsigned char>(b)); });
     return it != haystack.end();
+  }
+
+  /// True if @p dir holds the two files the bridge needs to start the .NET runtime.
+  bool isManagedDirectory(const std::filesystem::path& dir)
+  {
+    std::error_code ec;
+    return std::filesystem::is_regular_file(dir / "ThermoWrapperManaged.dll", ec)
+        && std::filesystem::is_regular_file(dir / "ThermoWrapperManaged.runtimeconfig.json", ec);
+  }
+
+  /**
+    @brief Locate the managed half of the thermo bridge (ThermoWrapperManaged.dll + runtimeconfig).
+
+    The bridge's own default looks next to its shared library (<lib dir>/managed or
+    <lib dir>/openms_thermo_bridge/managed). That works for a plain OpenMS build or install
+    tree, but not for relocated layouts such as Python wheels, where wheel repair tools
+    rename and move the bridge library. OpenMS therefore checks, in order:
+
+      1. the OPENMS_THERMO_MANAGED_DIR environment variable, if it holds the managed files
+         (a stale or mistyped override is reported and skipped rather than breaking a
+         correctly bundled installation),
+      2. <OpenMS share dir>/openms_thermo_bridge/managed, i.e. the copy that OpenMS installs
+         into its shared-data directory (pyOpenMS ships share/OpenMS inside the wheel),
+      3. nothing, so the bridge falls back to its own lookup.
+  */
+  std::optional<std::filesystem::path> resolveManagedDirectory()
+  {
+    if (const char* env = std::getenv("OPENMS_THERMO_MANAGED_DIR"); env != nullptr && env[0] != '\0')
+    {
+      std::filesystem::path dir(env);
+      if (isManagedDirectory(dir))
+      {
+        return dir;
+      }
+      OPENMS_LOG_WARN << "ThermoRawFile: OPENMS_THERMO_MANAGED_DIR='" << env
+                      << "' does not contain ThermoWrapperManaged.dll and its runtimeconfig.json; "
+                      << "ignoring it and looking in the OpenMS share directory instead\n";
+    }
+
+    std::filesystem::path share_dir(File::getOpenMSDataPath());
+    std::filesystem::path candidate = share_dir / "openms_thermo_bridge" / "managed";
+    if (isManagedDirectory(candidate))
+    {
+      return candidate;
+    }
+    return std::nullopt;
   }
 
   /// Map a Thermo MassAnalyzerType enum string (e.g. "MassAnalyzerFTMS") to an
@@ -146,7 +194,10 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
   };
   try
   {
-    openms::thermo_bridge::RawFile raw(raw_path);
+    const std::optional<std::filesystem::path> managed_dir = resolveManagedDirectory();
+    openms::thermo_bridge::RawFile raw = managed_dir
+      ? openms::thermo_bridge::RawFile(raw_path, *managed_dir)
+      : openms::thermo_bridge::RawFile(raw_path);
     const Json metadata = Json::parse(raw.file_metadata_json(options_.instrument_methods, options_.checksum));
     if (metadata.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo metadata schema"); }
     const auto& file = metadata.at("file");
