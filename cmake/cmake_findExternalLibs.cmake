@@ -606,7 +606,7 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  find_package(OpenMSThermoBridge QUIET)
+  find_package(OpenMSThermoBridge 0.3 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -617,9 +617,9 @@ if (WITH_THERMO_RAW)
 
     FetchContent_Declare(
       OpenMSThermoBridge
-      GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
+      GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        v0.2.3
+      GIT_TAG        4c0edddf5a49879e0470b0ca08cfe9955ceba3c9
     )
 
     # Configure the thermo bridge build options

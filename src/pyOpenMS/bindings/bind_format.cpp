@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/ThermoRawFile.h>
 #include <OpenMS/FORMAT/FileInfo.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -98,6 +99,26 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
+
+#ifdef WITH_THERMO_RAW
+    nb::class_<OpenMS::ThermoRawFile::Options>(m, "ThermoRawFileOptions", "Options for metadata-preserving Thermo RAW loading")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ThermoRawFile::Options&>())
+        .def_rw("centroid", &OpenMS::ThermoRawFile::Options::centroid)
+        .def_rw("charge_data", &OpenMS::ThermoRawFile::Options::charge_data)
+        .def_rw("noise_data", &OpenMS::ThermoRawFile::Options::noise_data)
+        .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors)
+        .def_rw("preserve_trailers", &OpenMS::ThermoRawFile::Options::preserve_trailers)
+        .def_rw("instrument_methods", &OpenMS::ThermoRawFile::Options::instrument_methods)
+        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum);
+    nb::class_<OpenMS::ThermoRawFile, OpenMS::ProgressLogger>(m, "ThermoRawFile", "Load Thermo RAW spectra and metadata for mzML export")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ThermoRawFile&>())
+        .def("getOptions", &OpenMS::ThermoRawFile::getOptions, nb::rv_policy::copy)
+        .def("setOptions", &OpenMS::ThermoRawFile::setOptions, "options"_a)
+        .def("load", &OpenMS::ThermoRawFile::load, "filename"_a, "experiment"_a, nb::call_guard<nb::gil_scoped_release>());
+#endif
+
 
     // -----------------------------------------------------------------------
     // AbsoluteQuantitationStandardsFile

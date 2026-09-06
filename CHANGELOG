@@ -17,6 +17,11 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
+    configurations, MSn/SPS precursor hierarchy and supplemental activation. New reader options expose
+    centroid charges, independently sampled noise arrays and auxiliary detector/PDA data for mzML export.
+    mzML round trips retain independent noise grids, detector array types/units, precursor intensity units,
+    precise timestamps and UTF-8/whitespace in metadata. Requires openms-thermo-bridge 0.3.0.
   - Fix: corrected inconsistent elemental formulas in several NuXL presets, including RNA/DNA UV,
     DEB, NM, and FA fragment adducts (#10031)
   - Qt is no longer needed outside the GUI: the core library and all non-GUI TOPP tools build without

@@ -2,21 +2,29 @@ if(NOT VCPKG_TARGET_IS_WINDOWS)
     vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 endif()
 
+# Pin both native and managed sources to the same reviewed revision. Build the
+# managed component locally until a matching 0.3.0 release asset is available.
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OpenMS/openms-thermo-bridge
-    REF e05aa5853474943a43819151e403325860f00168
-    SHA512 b0e9f78dc90d748edba51145b2b1a07d3adf9cb4f3f4274388b008f72b8b927a36ab6f0e10f80155ba58dfdcc3bb405b5f37643af1c92a73dbe58a2db4441fff
+    REF 4c0edddf5a49879e0470b0ca08cfe9955ceba3c9
+    SHA512 9fac239823fde8ddab1fb51aa5bf480189a6d85a68e6f3b832df0cd138b0d1c97de0a50a9a66280846eb3293a99f8c9e5c377fbdbc333671a90116144ca609d4
     HEAD_REF main
     PATCHES
         vcpkg-nethost-use.patch
 )
 
+find_program(DOTNET_EXECUTABLE NAMES dotnet
+    HINTS "$ENV{DOTNET_ROOT}" "$ENV{ProgramFiles}/dotnet"
+          "/opt/homebrew/opt/dotnet/bin" REQUIRED)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
     -DBUILD_TESTING=OFF
-    -DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=ON
+    "-DDOTNET_EXECUTABLE=${DOTNET_EXECUTABLE}"
+    -DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=OFF
+    -DOPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD=ON
     -DOPENMS_THERMO_BRIDGE_BUILD_CLI=OFF
 )
 

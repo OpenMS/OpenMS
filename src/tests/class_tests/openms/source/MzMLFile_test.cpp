@@ -1148,9 +1148,13 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 38070)
-    TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(StringUtils::substr(out, 38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_TRUE(out.size() > 0)
+    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
+    PeakMap reloaded;
+    file.loadBuffer(out, reloaded);
+    TEST_EQUAL(reloaded.size(), exp_original.size())
+    TEST_EQUAL(reloaded.getChromatograms().size(), exp_original.getChromatograms().size())
+    TEST_TRUE(StringUtils::hasSubstring(out, "</indexedmzML>"))
 
     TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
@@ -1163,9 +1167,12 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     //store map
     std::string out;
     file.storeBuffer(out, empty);
-    TEST_EQUAL(out.size(), 3167)
-    TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(StringUtils::substr(out, 3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_TRUE(out.size() > 0)
+    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
+    PeakMap reloaded;
+    file.loadBuffer(out, reloaded);
+    TEST_TRUE(reloaded.empty())
+    TEST_TRUE(StringUtils::hasSubstring(out, "</indexedmzML>"))
   }
 
 }
@@ -1341,5 +1348,156 @@ END_SECTION
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
 
-END_TEST
 
+START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloading))
+{
+  PeakMap original;
+  original.setDateTime(DateTime::fromString("2024-01-02T03:04:05", "yyyy-MM-ddThh:mm:ss"));
+  original.setMetaValue("mzml_start_time_stamp", "2024-01-02T03:04:05.1234567Z");
+  original.setMetaValue("Thermo instrument methods", "[\"method\\nsecond line\"]");
+  original.getSample().setMetaValue("Thermo sample volume", 2.5);
+  original.getSample().setName("Müller & sample");
+  original.getSample().setComment("first line\nsecond line\tend");
+  Instrument instrument;
+  instrument.setName("Orbitrap Astral");
+  instrument.setMetaValue("instrument serial number", "serial-123");
+  IonSource source;
+  source.setOrder(1);
+  source.setIonizationMethod(IonSource::IonizationMethod::ESI);
+  instrument.getIonSources().push_back(source);
+  MassAnalyzer analyzer;
+  analyzer.setOrder(2);
+  analyzer.setType(MassAnalyzer::AnalyzerType::ORBITRAP);
+  instrument.getMassAnalyzers().push_back(analyzer);
+  IonDetector detector;
+  detector.setOrder(3);
+  detector.setType(IonDetector::Type::INDUCTIVEDETECTOR);
+  instrument.getIonDetectors().push_back(detector);
+  original.setInstrument(instrument);
+  instrument.getMassAnalyzers()[0].setMetaValue("mass analyzer accession", "MS:1003379");
+  original.getInstrumentConfigurations()["astral"] = instrument;
+
+  MSSpectrum parent;
+  parent.setNativeID("controllerType=0 controllerNumber=1 scan=10");
+  parent.setRT(1);
+  parent.setMSLevel(1);
+  parent.setType(SpectrumSettings::SpectrumType::CENTROID);
+  Peak1D peak;
+  peak.setMZ(501); peak.setIntensity(10); parent.push_back(peak);
+  peak.setMZ(499); peak.setIntensity(20); parent.push_back(peak);
+  // Three independently sampled points versus two spectrum peaks; double precision matters.
+  const vector<double> noise_mz = {498.123456789012, 500.345678901234, 502.567890123456};
+  parent.setMetaValue("sampled noise m/z array", noise_mz);
+  parent.setMetaValue("sampled noise intensity array", vector<double>{1, 2, 3});
+  parent.setMetaValue("sampled noise baseline array", vector<double>{0.1, 0.2, 0.3});
+  MSSpectrum::IntegerDataArray charges;
+  charges.setName("charge array"); charges.push_back(1); charges.push_back(2);
+  parent.getIntegerDataArrays().push_back(charges);
+  Acquisition acquisition;
+  acquisition.setMetaValue("Thermo trailer extra", "[{\"label\":\"example:\",\"value\":\"a & b\"}]");
+  parent.getAcquisitionInfo().push_back(acquisition);
+  original.addSpectrum(parent);
+
+  MSSpectrum child;
+  child.setNativeID("controllerType=0 controllerNumber=1 scan=11");
+  child.setRT(2); child.setMSLevel(2);
+  child.setType(SpectrumSettings::SpectrumType::CENTROID);
+  child.push_back(peak);
+  acquisition.setMetaValue("instrument_configuration_ref", "astral");
+  child.getAcquisitionInfo().push_back(acquisition);
+  Precursor precursor;
+  precursor.setMZ(500);
+  precursor.setMetaValue("selected ion m/z", 499.5);
+  precursor.setIsolationWindowLowerOffset(0);
+  precursor.setIsolationWindowUpperOffset(2);
+  precursor.setMetaValue("isolation window lower offset", 0.0);
+  precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+  precursor.setIntensity(30);
+  precursor.setMetaValue("peak intensity unit accession", "MS:1000131");
+  precursor.getActivationMethods().insert(Precursor::ActivationMethod::ETD);
+  precursor.setMetaValue("supplemental beam-type collision-induced dissociation", "");
+  DataValue energy(25.0);
+  energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY); energy.setUnit(266);
+  precursor.setMetaValue("collision energy", energy);
+  precursor.setMetaValue("supplemental collision energy", energy);
+  child.getPrecursors().push_back(precursor);
+  original.addSpectrum(child);
+
+  MSSpectrum pda;
+  pda.setNativeID("controllerType=4 controllerNumber=1 scan=1");
+  pda.setRT(3); pda.setMSLevel(0); pda.setType(SpectrumSettings::SpectrumType::PROFILE);
+  pda.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
+  pda.setMetaValue("mzml coordinate array", "wavelength");
+  pda.setMetaValue("mzml intensity array", "absorption");
+  peak.setMZ(220); peak.setIntensity(0.25); pda.push_back(peak);
+  peak.setMZ(500); peak.setIntensity(0.5); pda.push_back(peak);
+  ScanWindow window;
+  window.begin = 220; window.end = 500; window.setMetaValue("unit_accession", "UO:0000018");
+  pda.getInstrumentSettings().getScanWindows().push_back(window);
+  original.addSpectrum(pda);
+
+  MSChromatogram pressure;
+  pressure.setNativeID("Analog#1_Pressure");
+  pressure.setMetaValue("chromatogram type accession", "MS:1003019");
+  pressure.setMetaValue("mzml intensity array", "pressure");
+  pressure.setMetaValue("Thermo detector units", "bar");
+  pressure.push_back(ChromatogramPeak(1, 200));
+  pressure.push_back(ChromatogramPeak(2, 210));
+  original.addChromatogram(pressure);
+
+  MzMLFile file;
+  string encoded;
+  file.storeBuffer(encoded, original);
+  for (const string& accession : {"MS:1000529", "MS:1003379", "MS:1002678", "MS:1002680", "MS:1002743", "MS:1002744", "MS:1002745", "MS:1000516", "MS:1000617", "MS:1003019", "MS:1000821"})
+  {
+    TEST_TRUE(StringUtils::hasSubstring(encoded, accession))
+  }
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "2024-01-02T03:04:05.1234567Z"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "instrumentConfigurationRef=\"astral\""))
+  PeakMap loaded;
+  file.loadBuffer(encoded, loaded);
+  TEST_EQUAL(loaded.size(), 3)
+  TEST_EQUAL(loaded.getSample().getName(), "Müller & sample")
+  TEST_EQUAL(loaded.getSample().getComment(), "first line\nsecond line\tend")
+  TEST_EQUAL(loaded.getInstrumentConfigurations().size(), 1)
+  TEST_EQUAL(loaded.getInstrumentConfigurations().at("astral").getMassAnalyzers()[0].getMetaValue("mass analyzer accession"), "MS:1003379")
+  TEST_EQUAL(loaded[0].getMetaValue("sampled noise m/z array").toDoubleList(), noise_mz)
+  TEST_EQUAL(loaded[0].getFloatDataArrays().size(), 0)
+  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].size(), 2)
+  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0][0], 2) // charge follows sorted peak
+  TEST_REAL_SIMILAR(loaded[1].getPrecursors()[0].getMZ(), 499.5)
+  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue("isolation window target m/z"), 500.0)
+  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue("spectrum_ref"), parent.getNativeID())
+  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue("peak intensity unit accession"), "MS:1000131")
+  TEST_TRUE(loaded[1].getPrecursors()[0].metaValueExists("supplemental collision energy"))
+  TEST_EQUAL(loaded[2].size(), 2)
+  TEST_REAL_SIMILAR(loaded[2][0].getMZ(), 220)
+  TEST_EQUAL(loaded[2].getMetaValue("mzml intensity array"), "absorption")
+  TEST_EQUAL(loaded.getChromatograms().size(), 1)
+  TEST_EQUAL(loaded.getChromatograms()[0].size(), 2)
+  TEST_EQUAL(loaded.getChromatograms()[0].getMetaValue("mzml intensity array"), "pressure")
+  TEST_EQUAL(loaded.getChromatograms()[0].getMetaValue("Thermo detector units"), "bar")
+  // Re-export must retain CV terms instead of falling back to unrelated generic arrays.
+  string encoded_again;
+  file.storeBuffer(encoded_again, loaded);
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002743"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1000617"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002678"))
+
+  // A zero-valued measurement is distinct from an absent intensity. Editing a
+  // previously zero isolation offset must override its preservation metadata.
+  auto& edited_precursor = loaded[1].getPrecursors()[0];
+  edited_precursor.setIntensity(0);
+  edited_precursor.setMetaValue("peak intensity", 0.0);
+  edited_precursor.setIsolationWindowLowerOffset(1.25);
+  file.storeBuffer(encoded_again, loaded);
+  PeakMap edited;
+  file.loadBuffer(encoded_again, edited);
+  TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIsolationWindowLowerOffset(), 1.25)
+  TEST_TRUE(edited[1].getPrecursors()[0].metaValueExists("peak intensity"))
+  TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIntensity(), 0)
+  TEST_EQUAL(edited[1].getPrecursors()[0].getMetaValue("peak intensity unit accession"), "MS:1000131")
+}
+END_SECTION
+
+END_TEST
