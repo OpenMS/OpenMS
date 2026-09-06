@@ -12,6 +12,7 @@
 
   #include <OpenMS/CONCEPT/Exception.h>
   #include <OpenMS/CONCEPT/LogStream.h>
+  #include <OpenMS/CONCEPT/VersionInfo.h>
   #include <OpenMS/DATASTRUCTURES/DateTime.h>
   #include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
   #include <OpenMS/FORMAT/ThermoRawFile.h>
@@ -211,11 +212,19 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
     source.setMetaValue("RAW file revision", file.at("revision").get<int>());
     source.setMetaValue("file description", text(file, "description"));
     exp.getSourceFiles().push_back(source);
-    const std::string date = text(file, "creation_date");
+    const std::string date = text(file, "creation_date"); // ISO-8601, e.g. "2018-05-31T12:34:56.789Z"
     if (date.size() >= 19)
     {
-      exp.setDateTime(DateTime::fromString(date.substr(0, 19), "yyyy-MM-ddThh:mm:ss"));
-      exp.setMetaValue("mzml_start_time_stamp", date);
+      try
+      {
+        // OpenMS DateTime only resolves seconds; the full timestamp is kept for the mzML startTimeStamp.
+        exp.setDateTime(DateTime::fromString(date.substr(0, 19), "yyyy-MM-ddThh:mm:ss"));
+        exp.setMetaValue("mzml_start_time_stamp", date);
+      }
+      catch (const Exception::BaseException&)
+      {
+        OPENMS_LOG_WARN << "ThermoRawFile: could not parse creation date '" << date << "'\n";
+      }
     }
     copy_values(metadata.at("sample"), exp.getSample(), "Thermo ");
     exp.getSample().setName(text(metadata.at("sample"), "sample name"));
@@ -244,7 +253,7 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
     exp.setInstrument(instrument);
     auto processing = std::make_shared<DataProcessing>();
     processing->getSoftware().setName("OpenMS Thermo RAW reader");
-    processing->getSoftware().setVersion("0.3.0");
+    processing->getSoftware().setVersion(VersionInfo::getVersion());
     processing->setMetaValue("Thermo RawFileReader version", text(metadata, "reader_version"));
     processing->getProcessingActions().insert(DataProcessing::ProcessingAction::FORMAT_CONVERSION);
     if (options_.centroid) { processing->getProcessingActions().insert(DataProcessing::ProcessingAction::PEAK_PICKING); }
@@ -261,8 +270,18 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
       }
       if (supplemental)
       {
-        if (type == "HigherEnergyCollisionalDissociation") { precursor.setMetaValue("supplemental beam-type collision-induced dissociation", ""); }
-        else if (type == "CollisionInducedDissociation") { precursor.setMetaValue("supplemental collision-induced dissociation", ""); }
+        // Keep the vendor terms and record the combined method (EThcD / ETciD) that downstream
+        // consumers such as TheoreticalSpectrumGenerator use; MzMLHandler writes the same pair.
+        if (type == "HigherEnergyCollisionalDissociation")
+        {
+          precursor.setMetaValue("supplemental beam-type collision-induced dissociation", "");
+          precursor.getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
+        }
+        else if (type == "CollisionInducedDissociation")
+        {
+          precursor.setMetaValue("supplemental collision-induced dissociation", "");
+          precursor.getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
+        }
         else
         {
           precursor.setMetaValue("Thermo supplemental activation", type);

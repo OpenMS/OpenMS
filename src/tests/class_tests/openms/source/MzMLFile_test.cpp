@@ -1149,7 +1149,7 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     std::string out;
     file.storeBuffer(out, exp_original);
     TEST_TRUE(out.size() > 0)
-    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
+    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"))
     PeakMap reloaded;
     file.loadBuffer(out, reloaded);
     TEST_EQUAL(reloaded.size(), exp_original.size())
@@ -1168,7 +1168,7 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     std::string out;
     file.storeBuffer(out, empty);
     TEST_TRUE(out.size() > 0)
-    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
+    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"))
     PeakMap reloaded;
     file.loadBuffer(out, reloaded);
     TEST_TRUE(reloaded.empty())

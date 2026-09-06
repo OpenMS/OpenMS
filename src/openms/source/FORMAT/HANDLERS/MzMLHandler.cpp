@@ -1950,7 +1950,19 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1002679" || accession == "MS:1002678" || accession == "MS:1002680")
           {
+            // supplemental collision-induced dissociation / supplemental beam-type collision-induced
+            // dissociation / supplemental collision energy: keep the terms verbatim for a lossless
+            // round trip and also record the combined method (ETciD / EThcD) that downstream
+            // consumers expect (see https://github.com/compomics/ThermoRawFileParser/issues/182).
             spec_.getPrecursors().back().setMetaValue(cv_.getTerm(accession).name, termValue);
+            if (accession == "MS:1002679")
+            {
+              spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
+            }
+            else if (accession == "MS:1002678")
+            {
+              spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
+            }
           }
           else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
           {
@@ -4653,11 +4665,15 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::ETciD) != 0)
+      // ETciD / EThcD are already expressed by an explicit supplemental activation term (written
+      // below as a cvParam from the meta values), so the combined term is only written without one.
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::ETciD) != 0 &&
+          !precursor.metaValueExists("supplemental collision-induced dissociation"))
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::EThcD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::EThcD) != 0 &&
+          !precursor.metaValueExists("supplemental beam-type collision-induced dissociation"))
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
       }
@@ -5619,25 +5635,45 @@ namespace OpenMS::Internal
 
       const bool coordinate = array_type == "mz" || array_type == "time" || array_type == "wavelength" || array_type == "sampled noise m/z array";
       const bool noise = array_type.rfind("sampled noise ", 0) == 0;
-      const std::map<std::string, std::pair<std::string, std::string>> terms = {
-        {"mz", {"MS:1000514", "MS:1000040"}}, {"time", {"MS:1000595", "UO:0000010"}},
-        {"wavelength", {"MS:1000617", "UO:0000018"}}, {"intensity", {"MS:1000515", "MS:1000131"}},
-        {"absorption", {"MS:1000515", "UO:0000269"}}, {"pressure", {"MS:1000821", "UO:0000109"}},
-        {"flow", {"MS:1000820", "UO:0000270"}}, {"nonstandard", {"MS:1000786", "UO:0000000"}},
-        {"sampled noise m/z array", {"MS:1002743", "MS:1000040"}},
-        {"sampled noise intensity array", {"MS:1002744", "MS:1000131"}},
-        {"sampled noise baseline array", {"MS:1002745", ""}}};
-      const auto term = terms.find(array_type);
-      if (term == terms.end()) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown array type", array_type);
-      const auto& cv_term = cv_.getTerm(term->second.first);
-      std::string cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + cv_term.id + "\" name=\"" + cv_term.name + "\"";
-      if (!term->second.second.empty())
+      // Compute the array-type CV term. The three default arrays keep their historical,
+      // byte-identical terms; the additional array types are looked up in the CV.
+      std::string cv_term_type;
+      if (array_type == "mz")
       {
-        const auto& unit = cv_.getTerm(term->second.second);
-        cv_term_type += " unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.substr(0, unit.id.find(':')) + "\"";
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
       }
-      if (array_type == "nonstandard") cv_term_type += " value=\"detector signal\"";
-      cv_term_type += " />\n";
+      else if (array_type == "time")
+      {
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
+      }
+      else if (array_type == "intensity")
+      {
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"/>\n";
+      }
+      else
+      {
+        const std::map<std::string, std::pair<std::string, std::string>> terms = {
+          {"wavelength", {"MS:1000617", "UO:0000018"}},
+          {"absorption", {"MS:1000515", "UO:0000269"}}, {"pressure", {"MS:1000821", "UO:0000109"}},
+          {"flow", {"MS:1000820", "UO:0000270"}}, {"nonstandard", {"MS:1000786", "UO:0000000"}},
+          {"sampled noise m/z array", {"MS:1002743", "MS:1000040"}},
+          {"sampled noise intensity array", {"MS:1002744", "MS:1000131"}},
+          {"sampled noise baseline array", {"MS:1002745", ""}}};
+        const auto term = terms.find(array_type);
+        if (term == terms.end()) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown array type", array_type);
+        const auto& cv_term = cv_.getTerm(term->second.first);
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + cv_term.id + "\" name=\"" + cv_term.name + "\"";
+        if (!term->second.second.empty())
+        {
+          const auto& unit = cv_.getTerm(term->second.second);
+          cv_term_type += " unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.substr(0, unit.id.find(':')) + "\"";
+        }
+        if (array_type == "nonstandard") cv_term_type += " value=\"detector signal\"";
+        cv_term_type += " />\n";
+      }
+      // The independently sampled noise grids can be shorter or longer than the spectrum, so they
+      // carry their own arrayLength. The default arrays must not override defaultArrayLength.
+      const std::string array_length = noise ? " arrayLength=\"" + std::to_string(data_to_encode.size()) + "\"" : "";
       MSNumpressCoder::NumpressConfig np_config = coordinate ? pf_options_.getNumpressConfigurationMassTime() : pf_options_.getNumpressConfigurationIntensity();
       if (noise) np_config.np_compression = MSNumpressCoder::NONE;
       std::string compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, np_config, "\t\t\t\t\t\t", true);
@@ -5651,7 +5687,7 @@ namespace OpenMS::Internal
         {
           // numpress succeeded
           no_numpress = false;
-          os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << data_to_encode.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+          os << "\t\t\t\t\t<binaryDataArray" << array_length << " encodedLength=\"" << encoded_string.size() << "\">\n";
           os << cv_term_type;
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
         }
@@ -5662,7 +5698,7 @@ namespace OpenMS::Internal
       {
         compression_term = compression_term_no_np; // select the no-numpress term
         Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
-        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << data_to_encode.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+        os << "\t\t\t\t\t<binaryDataArray" << array_length << " encodedLength=\"" << encoded_string.size() << "\">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
       }
@@ -5670,7 +5706,7 @@ namespace OpenMS::Internal
       {
         compression_term = compression_term_no_np; // select the no-numpress term
         Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
-        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << data_to_encode.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+        os << "\t\t\t\t\t<binaryDataArray" << array_length << " encodedLength=\"" << encoded_string.size() << "\">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
       }
