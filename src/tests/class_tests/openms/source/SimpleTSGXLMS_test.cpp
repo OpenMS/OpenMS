@@ -40,6 +40,25 @@ END_SECTION
 START_SECTION(SimpleTSGXLMS(const SimpleTSGXLMS& source))
   SimpleTSGXLMS copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  SimpleTSGXLMS configured;
+  Param p(configured.getParameters());
+  p.setValue("add_b_ions", "false");
+  configured.setParameters(p);
+  SimpleTSGXLMS configured_copy(configured);
+
+  AASequence seq = AASequence::fromString("IFSQVGK");
+  std::vector<SimpleTSGXLMS::SimplePeak> from_source, from_copy;
+  configured.getLinearIonSpectrum(from_source, seq, 3, 2);
+  configured_copy.getLinearIonSpectrum(from_copy, seq, 3, 2);
+  TEST_EQUAL(from_copy.size(), from_source.size())
+  ABORT_IF(from_copy.size() != from_source.size())
+  for (Size i = 0; i != from_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(from_copy[i].mz, from_source[i].mz)
+  }
 END_SECTION
 
 START_SECTION(~SimpleTSGXLMS())
@@ -53,6 +72,24 @@ START_SECTION(SimpleTSGXLMS& operator = (const SimpleTSGXLMS& tsg))
   SimpleTSGXLMS copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  SimpleTSGXLMS configured;
+  Param p(configured.getParameters());
+  p.setValue("add_b_ions", "false");
+  configured.setParameters(p);
+  SimpleTSGXLMS assigned;
+  assigned = configured;
+
+  std::vector<SimpleTSGXLMS::SimplePeak> from_source, from_assigned;
+  configured.getLinearIonSpectrum(from_source, peptide, 3, 2);
+  assigned.getLinearIonSpectrum(from_assigned, peptide, 3, 2);
+  TEST_EQUAL(from_assigned.size(), from_source.size())
+  ABORT_IF(from_assigned.size() != from_source.size())
+  for (Size i = 0; i != from_source.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(from_assigned[i].mz, from_source[i].mz)
+  }
 END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
