@@ -40,6 +40,15 @@ General:
   - New native Parquet formats .idparquet, .featureparquet and .consensusparquet for lossless
     identification, feature and consensus map storage, supported by FileHandler and ~20 TOPP tools
     (#9225, #9232, #9236, #9237, #9241, #9242, #9396, #9405)
+  - Modifications defined by a tool rather than shipped in Unimod/PSI-MOD/XLMOD/custom_mods.xml (e.g.
+    OpenNuXL's localized RNA/DNA adducts) now travel with the file that references them: idXML,
+    featureXML, consensusXML and the .idparquet/.featureparquet/.consensusparquet bundles store each
+    referencing run's definitions on SearchParameters and register them again on read, before any
+    peptide sequence is parsed. Previously such a modification could only be resolved by name in the
+    process that defined it, and reading the file back elsewhere silently lost it or failed outright.
+    ResidueModification tracks this via a new Provenance (DEFINED/CV/MASS_ONLY), and ProForma
+    round-trips a DEFINED modification as its chemistry plus an INFO:<Id> tag so the peptidoform stays
+    chemically complete even without the definition (#10003, #10028, #10036, #10037, #10038, #10040)
   - Transparent compression: .zip input for XML-based formats and Bruker .d directories is decompressed
     on the fly, and every XML-based format can be written as .gz or .bz2 by using the corresponding
     extension (e.g. "output.idXML.gz") (#7560, #9139, #9259)
@@ -103,6 +112,14 @@ General:
     codebase calls) now throws NotImplemented rather than a file-not-found error, i.e. semantic
     schema validation stays unavailable for these two formats. Normal file reading/writing is
     unaffected (#9757)
+  - Fix: copying a TheoreticalSpectrumGenerator, TheoreticalSpectrumGeneratorXLMS,
+    NucleicAcidSpectrumGenerator, SimpleTSGXLMS, SpectrumAnnotator or Normalizer (via its copy
+    constructor, assignment operator, or Python's copy.deepcopy()) left the members
+    updateMembers_() caches from its Param at indeterminate values instead of copying them, since
+    the six copy operations only forwarded to DefaultParamHandler; Normalizer's copy always threw
+    InvalidValue, and the two XLMS generators could throw std::out_of_range from an empty loss
+    database. All six copy operations are now defaulted so the cached members copy along with the
+    Param (#532, #10066)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -253,6 +270,7 @@ PyOpenMS:
     were built without the reader and the macOS wheel shipped the bridge without its managed half.
     Linux aarch64 wheels stay without Thermo support (no vendor libraries for that platform). New
     test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set
+    (#10070)
 
 TOPP tools:
   Changes:
@@ -710,6 +728,23 @@ TOPP tools:
       - Fix: -id:add_usi now populates the USI column for idXML/consensusXML by resolving the MS run from
         the run's spectra_data via the merge index, instead of the never-populated per-ID base_name
         (#9657, fixes #8470)
+    MzTabExporter:
+      - BREAKING: an assay is now a (fraction_group, label) unit covering all of that group's fractions,
+        and study_variable lists a sample's assays as its replicates. n_assays was previously
+        ExperimentalDesign::getNumberOfSamples(), so a sample measured in several fraction groups
+        collapsed onto a single assay and the replicate axis had nowhere to live -- the opposite of the
+        mzTab spec, which defines an assay as one measurement and study_variable as the grouping level
+        above it. Assay abundances are read from PeptideAndProteinQuant's fraction_group_level_abundance
+        array matched by (fraction_group, label) key rather than by position, so a mismatched or
+        duplicated key warns and falls back to the previous sample-grain value instead of emitting a
+        wrong number. A sample split across several assays reports each assay's own value with a null
+        study_variable abundance, since no across-replicate aggregator has been agreed on, rather than
+        silently picking one of them. This also fixes peptide_abundance_assay[i] being assigned rather
+        than summed -- only ill-defined before, when an assay was forced 1:1 with a study variable, and
+        now a genuine sum over the ms_runs an assay spans. One shipped reference moves,
+        ProteomicsLFQ_1_subset_out.mzTab, whose design splits one sample's fractions across two fraction
+        groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
+        and is byte-identical (#9868, part of #9864)
     IDMerger:
       - Fix: merged output preserves input file order; IdentificationRuns were previously sorted
         alphabetically by run identifier (#9240)
@@ -827,6 +862,17 @@ TOPP tools:
     - OpenSwathPercolatorScoring: scores OpenSwathWorkflow results with Percolator (#9695)
     - OpenSwathPeakMapExtractor: extracts full peakmap points from mzML via targeted extraction (#9684)
     - TransitionListEvidenceFilter: filters transition lists by preliminary evidence from mzML (#9161)
+    - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
+      bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
+      surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
+      metadata or given explicitly via -pk for any table; matched rows are compared cell-by-cell recursing
+      into list/struct columns, and schema drift (added/removed/retyped columns) is reported separately
+      from value drift. Tolerance mirrors FuzzyStringComparator -- either -ratio or -absdiff must hold, so
+      a zero-vs-epsilon comparison stays expressible -- and two NaNs compare equal. List-valued key columns
+      (e.g. QPX's grouped_runs) are canonicalized by sorting before matching, and a duplicate primary key
+      is reported as an error in its own right. -schema validates a single file against a named QPX view
+      instead of diffing two files. Exit code is EXECUTION_OK when equal and INCOMPATIBLE_INPUT_DATA
+      otherwise, so it drops into CTest the way FuzzyDiff does (#9865, part of #9864)
   Removed tools:
     - GenericWrapper (#8981), QPXConverter (#9693), TriqlerConverter (#9898; Triqler export removed
       from ProteomicsLFQ and the library too)
