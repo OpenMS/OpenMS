@@ -64,7 +64,7 @@
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2015-06-19T00:26:28" defaultSourceFileRef="sf_ru_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2015-06-19T00:26:28Z" defaultSourceFileRef="sf_ru_0">
 		<userParam name="mzml_id" type="xsd:string" value="SILAC_2-SILAC 2"/>
 		<spectrumList count="2" defaultDataProcessingRef="dp_sp_0">
 			<spectrum id="sample=1 period=1 cycle=1 experiment=1" index="0" defaultArrayLength="18" dataProcessingRef="dp_sp_0">

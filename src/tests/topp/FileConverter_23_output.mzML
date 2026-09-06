@@ -195,7 +195,7 @@
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45" defaultSourceFileRef="sf_ru_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45.00035" defaultSourceFileRef="sf_ru_0">
 		<cvParam cvRef="MS" accession="MS:1000858" name="fraction identifier" value="the_best_fraction_ever" />
 		<userParam name="mzml_id" type="xsd:string" value="document_id"/>
 		<userParam name="int" type="xsd:integer" value="5"/>
@@ -456,6 +456,7 @@
 		<chromatogramList count="2" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="tic native" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000809" name="chromatogram title" value="chromatograms rule!" />
 					<precursor>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
