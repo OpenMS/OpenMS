@@ -1227,6 +1227,9 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: Deisotoper::deisotopeAndSingleCharge now uses the proton mass in atomic mass units
+    for both precursor and fragment neutral masses. The previous kg constant shifted the
+    precursor-mass cutoff when precursor and fragment charges differed.
   - Fix: Deisotoper::deisotopeAndSingleCharge() and deisotopeWithAveragineModel() discarded every fragment
     isotope cluster when the spectrum carried a precursor with unknown charge (0). The precursor-mass
     constraint was derived from that charge, so the neutral mass came out as 0 and all positive-mass
