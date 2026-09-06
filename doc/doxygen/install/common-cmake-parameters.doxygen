@@ -165,6 +165,15 @@ The most important CMake variables are:
     runtime), set the <code>DOTNET_ROOT</code> environment variable to that directory &mdash; the folder
     that contains the <code>dotnet</code> host and the <code>shared/</code> sub-directory
     (e.g. <code>export DOTNET_ROOT=/usr/share/dotnet</code>) &mdash; so the runtime can be found.
+    The managed half of the bridge (<code>ThermoWrapperManaged.dll</code>, its
+    <code>runtimeconfig.json</code> and the Thermo CommonCore assemblies) is installed both next to the
+    bridge library and into <code>share/OpenMS/openms_thermo_bridge/managed</code>; OpenMS looks in the
+    <code>OPENMS_THERMO_MANAGED_DIR</code> environment variable first, then in the share directory, then
+    next to the bridge library. To build without a NuGet/GitHub round trip for those assemblies, pass the
+    bridge's own <code>-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/path/to/extracted-zip</code> (the zip is
+    published with every openms-thermo-bridge release) or
+    <code>-DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=ON</code>; the native bridge then only needs the
+    nethost headers from a .NET SDK / host pack.
     Disabled automatically on Linux/aarch64 targets.
     (Default: On on supported platforms)</td>
   </tr>
