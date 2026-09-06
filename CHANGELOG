@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
+    entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips.
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
     configurations, MSn/SPS precursor hierarchy and supplemental activation. New reader options expose
     centroid charges, independently sampled noise arrays and auxiliary detector/PDA data for mzML export.

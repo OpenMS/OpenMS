@@ -9,6 +9,7 @@
 // Deliberately independent of libOpenMS and vendor binaries: precursor
 // reconstruction can be tested on all platforms, including builds without
 // WITH_THERMO_RAW.
+#define JSON_USE_IMPLICIT_CONVERSIONS 0
 #include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
 #include <iostream>
 #include <stdexcept>

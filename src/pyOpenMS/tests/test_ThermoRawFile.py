@@ -23,3 +23,12 @@ def test_instrument_configurations():
     experiment.setInstrumentConfigurations({"astral": instrument})
     configurations = experiment.getInstrumentConfigurations()
     assert configurations["astral"].getName() == "Orbitrap Astral"
+
+    instrument.setName("changed input")
+    assert experiment.getInstrumentConfigurations()["astral"].getName() == "Orbitrap Astral"
+    configurations["astral"].setName("changed copy")
+    assert experiment.getInstrumentConfigurations()["astral"].getName() == "Orbitrap Astral"
+    with pytest.raises(TypeError):
+        experiment.setInstrumentConfigurations({"invalid": None})
+    experiment.setInstrumentConfigurations({})
+    assert experiment.getInstrumentConfigurations() == {}

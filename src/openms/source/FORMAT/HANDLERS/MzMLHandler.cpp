@@ -18,9 +18,11 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <atomic>
 #include <map>
 #include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/TransService.hpp>
 
 namespace OpenMS::Internal
 {
@@ -28,7 +30,31 @@ namespace OpenMS::Internal
     {
       std::string writeXMLAttribute_(const std::string& value)
       {
-        std::string result = XMLHandler::writeXMLEscape(value);
+        // Emit non-ASCII UTF-8 text as character references. This preserves the
+        // historical ISO-8859-1 declaration without losing Unicode metadata.
+        if (std::all_of(value.begin(), value.end(), [](unsigned char c) { return c < 128; }))
+        {
+          std::string result = XMLHandler::writeXMLEscape(value);
+          StringUtils::substitute(result, "\r", "&#13;");
+          StringUtils::substitute(result, "\n", "&#10;");
+          StringUtils::substitute(result, "\t", "&#9;");
+          return result;
+        }
+        const xercesc::TranscodeFromStr decoded(
+          reinterpret_cast<const XMLByte*>(value.data()), value.size(), "UTF-8");
+        std::string escaped;
+        const XMLCh* chars = decoded.str();
+        for (XMLSize_t i = 0; i < decoded.length(); ++i)
+        {
+          unsigned int code = chars[i];
+          if (code >= 0xD800 && code <= 0xDBFF && i + 1 < decoded.length())
+          {
+            code = 0x10000 + ((code - 0xD800) << 10) + (chars[++i] - 0xDC00);
+          }
+          if (code < 128) { escaped += XMLHandler::writeXMLEscape(std::string(1, static_cast<char>(code))); }
+          else { escaped += "&#" + std::to_string(code) + ";"; }
+        }
+        std::string result = std::move(escaped);
         StringUtils::substitute(result, "\r", "&#13;");
         StringUtils::substitute(result, "\n", "&#10;");
         StringUtils::substitute(result, "\t", "&#9;");
@@ -3391,7 +3417,8 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "sample")
       {
-        samples_[current_id_].setMetaValue(name, data_value);
+        if (name == "comment") { samples_[current_id_].setComment(value); }
+        else { samples_[current_id_].setMetaValue(name, data_value); }
       }
       else if (parent_tag == "software")
       {
@@ -4763,7 +4790,7 @@ namespace OpenMS::Internal
                                    std::vector<std::vector< ConstDataProcessingPtr > >& dps,
                                    const Internal::MzMLValidator& validator)
     {
-      os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+      os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
       if (options_.getWriteIndex())
       {

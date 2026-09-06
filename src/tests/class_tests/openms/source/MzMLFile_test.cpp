@@ -1349,6 +1349,15 @@ END_SECTION
 VALIDATE_TMP_FILES
 
 
+START_SECTION((XML metadata uses UTF-8 and a strict ASCII fast path))
+{
+  TEST_TRUE(Internal::StringManager::isASCII(u"ASCII", 5))
+  TEST_FALSE(Internal::StringManager::isASCII(u"M\u00fcller", 6))
+  TEST_FALSE(Internal::StringManager::isASCII(u"1234567\u00fc", 8))
+  TEST_EQUAL(Internal::StringManager::convert(u"M\u00fcller \u03b1 \U0001f9ea"), "Müller \u03b1 \U0001f9ea")
+}
+END_SECTION
+
 START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloading))
 {
   PeakMap original;
@@ -1356,7 +1365,7 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   original.setMetaValue("mzml_start_time_stamp", "2024-01-02T03:04:05.1234567Z");
   original.setMetaValue("Thermo instrument methods", "[\"method\\nsecond line\"]");
   original.getSample().setMetaValue("Thermo sample volume", 2.5);
-  original.getSample().setName("Müller & sample");
+  original.getSample().setName("Müller & sample \u03b1 \U0001f9ea");
   original.getSample().setComment("first line\nsecond line\tend");
   Instrument instrument;
   instrument.setName("Orbitrap Astral");
@@ -1454,10 +1463,12 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   }
   TEST_TRUE(StringUtils::hasSubstring(encoded, "2024-01-02T03:04:05.1234567Z"))
   TEST_TRUE(StringUtils::hasSubstring(encoded, "instrumentConfigurationRef=\"astral\""))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "&#252;"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "&#129514;"))
   PeakMap loaded;
   file.loadBuffer(encoded, loaded);
   TEST_EQUAL(loaded.size(), 3)
-  TEST_EQUAL(loaded.getSample().getName(), "Müller & sample")
+  TEST_EQUAL(loaded.getSample().getName(), "Müller & sample \u03b1 \U0001f9ea")
   TEST_EQUAL(loaded.getSample().getComment(), "first line\nsecond line\tend")
   TEST_EQUAL(loaded.getInstrumentConfigurations().size(), 1)
   TEST_EQUAL(loaded.getInstrumentConfigurations().at("astral").getMassAnalyzers()[0].getMetaValue("mass analyzer accession"), "MS:1003379")

@@ -242,7 +242,7 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         const Json meta = Json::parse(raw.scan_metadata_json(scan));
         if (meta.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo scan metadata schema"); }
         MSSpectrum spectrum;
-        const int level = meta.at("ms_level");
+        const int level = meta.at("ms_level").get<int>();
         spectrum.setMSLevel(level > 0 ? level : 0);
         const std::string order = text(meta, "ms_order_name");
         auto mode = level == 1 ? InstrumentSettings::ScanMode::MS1SPECTRUM : InstrumentSettings::ScanMode::MSNSPECTRUM;
@@ -254,7 +254,7 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         spectrum.setNativeID(text(meta, "native_id"));
         const bool centroid = options_.centroid || meta.at("centroid").get<bool>();
         spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
-        const int polarity = meta.at("polarity");
+        const int polarity = meta.at("polarity").get<int>();
         if (polarity == 1) { spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE); }
         else if (polarity == 0) { spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE); }
         const std::string filter = text(meta, "filter");

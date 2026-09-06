@@ -56,12 +56,12 @@ public:
 
   nlohmann::json precursors(const nlohmann::json& scan)
   {
-    const int scan_number = scan.at("scan_number");
-    const int level = scan.at("ms_level");
+    const int scan_number = scan.at("scan_number").get<int>();
+    const int level = scan.at("ms_level").get<int>();
     const auto& reactions = scan.at("reactions");
     State state;
     state.level = level;
-    state.native_id = scan.at("native_id");
+    state.native_id = scan.at("native_id").get<std::string>();
     if (level == 1)
     {
       filters_[""] = scan_number;
@@ -69,7 +69,7 @@ public:
       return state.precursors;
     }
     std::smatch match;
-    const std::string filter = scan.at("filter");
+    const std::string filter = scan.at("filter").get<std::string>();
     std::string key;
     static const std::regex filter_pattern(R"(ms\d+ (.+?) \[)");
     if (std::regex_search(filter, match, filter_pattern)) { key = match[1]; }
@@ -152,7 +152,7 @@ private:
 
   static bool supplemental_(const nlohmann::json& first, const nlohmann::json& second)
   {
-    const std::string a = first.at("activation"), b = second.at("activation");
+    const std::string a = first.at("activation").get<std::string>(), b = second.at("activation").get<std::string>();
     return first.at("precursor_mass").is_number() && second.at("precursor_mass").is_number()
            && std::abs(first.at("precursor_mass").get<double>() - second.at("precursor_mass").get<double>()) < 0.0001
            && (a == "ElectronTransferDissociation" || a == "ElectronCaptureDissociation")
@@ -198,7 +198,7 @@ private:
     static const std::regex modern_pattern(R"(SPS Masses(?:\s+Continued)?:)");
     for (const auto& entry : scan.at("trailer"))
     {
-      const std::string label = entry.at("label");
+      const std::string label = entry.at("label").get<std::string>();
       if ((! modern && std::regex_match(label, legacy_pattern)) || (modern && std::regex_match(label, modern_pattern)))
       {
         std::istringstream values(entry.at("value").get<std::string>());
