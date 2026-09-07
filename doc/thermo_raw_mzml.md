@@ -1,7 +1,8 @@
 # Thermo RAW to mzML with metadata preservation
 
-`ThermoRawFile` requires openms-thermo-bridge 0.3.0 (native and managed components
-from the same revision). It loads source SHA-1, the complete creation timestamp,
+`ThermoRawFile` requires the openms-thermo-bridge revision pinned in
+`cmake/cmake_findExternalLibs.cmake` (native and managed components from the same
+revision). It loads source SHA-1, the complete creation timestamp,
 sample fields, user sample fields, embedded method texts and the full scan trailer.
 Vendor values without a confirmed standardized unit are kept under `Thermo ...`
 metadata keys; they are not assigned guessed units.
@@ -66,8 +67,8 @@ use CMake's standard
 `-DFETCHCONTENT_SOURCE_DIR_OPENMSTHERMOBRIDGE=/absolute/path/to/openms-thermo-bridge`
 override to use the paired checkout. A matching prebuilt managed directory can
 be supplied with `OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR`; otherwise a .NET 8
-SDK is required. Older 0.2.x system/vcpkg installations are rejected by the
-minimum-version check. The vcpkg overlay builds the matching managed component
-from source and requires a .NET 8 SDK on the build host; it does not depend on an
-unreleased 0.3.0 binary asset. The overlay fetches the pinned GitHub source
-archive with a verified SHA-512 checksum.
+SDK is required. Older system/vcpkg installations of the bridge are rejected by
+the minimum-version check. The vcpkg overlay builds the matching managed component
+from source and requires a .NET 8 SDK on the build host; it does not depend on a
+pre-built binary asset. The overlay fetches the pinned GitHub source archive with
+a verified SHA-512 checksum.
