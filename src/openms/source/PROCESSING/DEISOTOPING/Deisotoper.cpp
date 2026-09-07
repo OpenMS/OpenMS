@@ -431,7 +431,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
     const int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
     if (precursor_charge != 0)
     {
-      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
       has_precursor_data = (precursor_mass > 0);
     }
   }
@@ -458,7 +458,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
         // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
         if (has_precursor_data)
         {
-          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS_U * q);
           if (current_theo_mass > (precursor_mass + tolerance_dalton))
           {
             continue;

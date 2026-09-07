@@ -499,4 +499,59 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+
+START_SECTION((regression: precursor mass constraint uses atomic mass units for unequal charges))
+{
+  // A precursor at m/z 500 with charge 2 has neutral mass 997.985447 Da.
+  // Singly charged fragments at m/z 998.5 and 999.5 lie below and above
+  // that mass, respectively. Using the proton mass in kg accepts both.
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  precursor.setCharge(2);
+
+  for (const double fragment_mz : {998.5, 999.5})
+  {
+    MSSpectrum base;
+    for (Size i = 0; i < 3; ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(fragment_mz + i * Constants::C13C12_MASSDIFF_U);
+      peak.setIntensity(100.0 / (i + 1));
+      base.push_back(peak);
+    }
+
+    // Ensure the isotope pattern itself is detected without a precursor limit.
+    MSSpectrum unconstrained = base;
+    Deisotoper::deisotopeAndSingleCharge(unconstrained, 10.0, true, 1, 1, true, 3, 10, false, true);
+    TEST_EQUAL(unconstrained.size(), 1);
+    TEST_REAL_SIMILAR(unconstrained[0].getMZ(), fragment_mz);
+    TEST_EQUAL(unconstrained.getIntegerDataArrays()[0][0], 1);
+
+    for (const bool fragment_unit_ppm : {false, true})
+    {
+      for (const bool keep_only_deisotoped : {false, true})
+      {
+        MSSpectrum spectrum = base;
+        spectrum.setPrecursors({precursor});
+        Deisotoper::deisotopeAndSingleCharge(spectrum,
+          fragment_unit_ppm ? 10.0 : 0.01, fragment_unit_ppm,
+          1, 1, keep_only_deisotoped, 3, 10, false, true);
+
+        const bool below_precursor_mass = fragment_mz == 998.5;
+        const Size expected_size = below_precursor_mass ? 1 : (keep_only_deisotoped ? 0 : 3);
+        TEST_EQUAL(spectrum.size(), expected_size);
+        TEST_EQUAL(spectrum.getIntegerDataArrays().size(), 1);
+        TEST_EQUAL(spectrum.getIntegerDataArrays()[0].getName(), "charge");
+        TEST_EQUAL(spectrum.getIntegerDataArrays()[0].size(), expected_size);
+        for (Size i = 0; i < spectrum.size(); ++i)
+        {
+          TEST_REAL_SIMILAR(spectrum[i].getMZ(), base[i].getMZ());
+          TEST_EQUAL(spectrum.getIntegerDataArrays()[0][i], below_precursor_mass ? 1 : 0);
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
 END_TEST
