@@ -619,7 +619,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        v0.3.0
+      # This is the commit the v0.3.0 release tag points at; tools/ci/fetch_thermo_assets.sh
+      # checks that its own pin matches and downloads the v0.3.0 release assets.
+      GIT_TAG        2c66c9260ad78f499527c7d1c85a920afab9aa2d  # v0.3.0
     )
 
     # Configure the thermo bridge build options

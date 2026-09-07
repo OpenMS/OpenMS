@@ -35,8 +35,10 @@
 
 set -euo pipefail
 
-# Git tag or commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
-# cmake/cmake_findExternalLibs.cmake (checked below).
+# Commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
+# cmake/cmake_findExternalLibs.cmake (checked below). BRIDGE_TAG is the release tag
+# that points at this commit; the release assets are named after it.
+BRIDGE_COMMIT="2c66c9260ad78f499527c7d1c85a920afab9aa2d"
 BRIDGE_TAG="v0.3.0"
 RAW_URL="https://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
 RAW_SHA256="3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f"
@@ -61,10 +63,13 @@ esac
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/../.." && pwd)"
 
-# Guard against the pin in this script and the FetchContent pin diverging.
-if ! grep -A6 'OpenMSThermoBridge$' "${repo_root}/cmake/cmake_findExternalLibs.cmake" \
-     | grep -qE "GIT_TAG[[:space:]]+${BRIDGE_TAG}([[:space:]]|$)"; then
-  echo "error: BRIDGE_TAG=${BRIDGE_TAG} in $0 does not match the GIT_TAG pinned for" >&2
+# Guard against the pin in this script and the FetchContent pin diverging. Compare
+# the GIT_TAG value literally (no regular expression) so a near miss cannot pass.
+if ! grep -A8 'OpenMSThermoBridge$' "${repo_root}/cmake/cmake_findExternalLibs.cmake" \
+     | awk -v expected="$BRIDGE_COMMIT" \
+         '$1 == "GIT_TAG" && $2 == expected { found = 1 }
+          END { exit !found }'; then
+  echo "error: BRIDGE_COMMIT=${BRIDGE_COMMIT} in $0 does not match the GIT_TAG pinned for" >&2
   echo "       OpenMSThermoBridge in cmake/cmake_findExternalLibs.cmake" >&2
   exit 1
 fi
