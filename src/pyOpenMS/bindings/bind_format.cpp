@@ -7,6 +7,9 @@
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
@@ -98,6 +101,34 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
+
+#ifdef WITH_THERMO_RAW
+    // -----------------------------------------------------------------------
+    // ThermoRawFile (only when OpenMS was built with WITH_THERMO_RAW=ON;
+    // use ``hasattr(pyopenms, "ThermoRawFile")`` to feature-detect)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ThermoRawFile::Options>(m, "ThermoRawFileOptions", "Options for metadata-preserving Thermo RAW loading")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ThermoRawFile::Options&>())
+        .def_rw("centroid", &OpenMS::ThermoRawFile::Options::centroid, "Centroid profile scans (matches ThermoRawFileParser peak picking)")
+        .def_rw("charge_data", &OpenMS::ThermoRawFile::Options::charge_data, "Export instrument-assigned centroid charges as an integer data array")
+        .def_rw("noise_data", &OpenMS::ThermoRawFile::Options::noise_data, "Export the independently sampled noise/baseline arrays")
+        .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
+        .def_rw("preserve_trailers", &OpenMS::ThermoRawFile::Options::preserve_trailers, "Retain all scan trailer label/value pairs")
+        .def_rw("instrument_methods", &OpenMS::ThermoRawFile::Options::instrument_methods, "Retain the embedded instrument method texts")
+        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance");
+    // ProgressLogger lives in another extension module, so its methods are added
+    // explicitly instead of declaring it as a nanobind base class.
+    auto thermorawfile_class = nb::class_<OpenMS::ThermoRawFile>(m, "ThermoRawFile", "Load Thermo RAW spectra and metadata for mzML export");
+    thermorawfile_class
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ThermoRawFile&>())
+        .def("getOptions", &OpenMS::ThermoRawFile::getOptions, nb::rv_policy::copy, "Returns a copy of the current loading options")
+        .def("setOptions", &OpenMS::ThermoRawFile::setOptions, "options"_a, "Sets the loading options")
+        .def("load", &OpenMS::ThermoRawFile::load, "filename"_a, "experiment"_a, nb::call_guard<nb::gil_scoped_release>(),
+             "Loads a Thermo RAW file into an MSExperiment");
+    def_ProgressLogger<OpenMS::ThermoRawFile>(thermorawfile_class);
+#endif
 
     // -----------------------------------------------------------------------
     // AbsoluteQuantitationStandardsFile

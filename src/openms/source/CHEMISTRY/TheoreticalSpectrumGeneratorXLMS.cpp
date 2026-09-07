@@ -119,19 +119,9 @@ namespace OpenMS
     }
   }
 
-  TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS& rhs) = default;
 
-  TheoreticalSpectrumGeneratorXLMS & TheoreticalSpectrumGeneratorXLMS::operator=(const TheoreticalSpectrumGeneratorXLMS & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  TheoreticalSpectrumGeneratorXLMS& TheoreticalSpectrumGeneratorXLMS::operator=(const TheoreticalSpectrumGeneratorXLMS& rhs) = default;
 
   TheoreticalSpectrumGeneratorXLMS::~TheoreticalSpectrumGeneratorXLMS() = default;
 

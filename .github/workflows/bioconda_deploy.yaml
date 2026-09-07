@@ -121,7 +121,12 @@ jobs:
       - name: Lint and build OpenMS Bioconda packages
         run: |
           cd bioconda-recipes
-          bioconda-utils lint --packages pyopenms openms-meta
+          # bioconda-utils' --packages option must be repeated per package: it is a
+          # Typer list option (one value per flag), not a single flag taking several
+          # space-separated values. Passing "--packages pyopenms openms-meta" makes
+          # "openms-meta" the positional recipe_folder argument instead of a second
+          # package, which then fails with "path 'openms-meta' does not exist".
+          bioconda-utils lint --packages pyopenms --packages openms-meta
           bioconda-utils build --docker --pkg-dir $GITHUB_WORKSPACE/output --packages openms-meta
           python -m conda_index $GITHUB_WORKSPACE/output
 

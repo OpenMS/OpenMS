@@ -428,7 +428,27 @@ array's name. Raises if the spectrum has no ion mobility array; use ``containsIM
             self[i] = val;
         }, "i"_a, "val"_a, "Sets peak at index i")
         .def("findHighestInWindow", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findHighestInWindow(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the highest peak in the provided abs. m/z tolerance window (-1 if none match)")
-        .def("select", [](OpenMS::MSSpectrum& self, const std::vector<size_t>& indices) -> OpenMS::MSSpectrum& { return self.select(indices); }, nb::rv_policy::reference_internal, "indices"_a, "Selects peaks by indices, removing all others")
+        .def("select", [](OpenMS::MSSpectrum& self, const std::vector<size_t>& indices) -> OpenMS::MSSpectrum& {
+            // Validate here so Python gets an IndexError / ValueError (matching __getitem__) instead of a
+            // RuntimeError translated from Exception::Precondition. The range check is repeated in select()
+            // itself, which is the memory-safety guarantee for every C++ caller. Duplicates are checked
+            // only here: C++ select() treats them as undefined behaviour (entries are moved) and every
+            // in-tree C++ caller builds a unique index list, so this keeps the cost off the C++ paths;
+            // nanobind already copies the whole list, so this pass is free.
+            const size_t n = self.size();
+            std::vector<bool> seen(n, false);
+            for (size_t i : indices)
+            {
+              if (i >= n)
+              {
+                throw nb::index_error(("index " + std::to_string(i) + " is out of range for a spectrum of size " + std::to_string(n)).c_str());
+              }
+              if (seen[i]) throw nb::value_error(("duplicate index " + std::to_string(i) + ": indices must be unique").c_str());
+              seen[i] = true;
+            }
+            return self.select(indices);
+          }, nb::rv_policy::reference_internal, "indices"_a,
+          "Selects peaks by indices, removing all others. Raises IndexError for an out-of-range index and ValueError for a duplicate index.")
 
         .def("getMinMZ", &OpenMS::MSSpectrum::getMinMZ, "Returns minimum m/z value")
 

@@ -78,19 +78,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumAnnotator::SpectrumAnnotator(const SpectrumAnnotator & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  SpectrumAnnotator::SpectrumAnnotator(const SpectrumAnnotator& rhs) = default;
 
-  SpectrumAnnotator & SpectrumAnnotator::operator=(const SpectrumAnnotator & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  SpectrumAnnotator& SpectrumAnnotator::operator=(const SpectrumAnnotator& rhs) = default;
 
   SpectrumAnnotator::~SpectrumAnnotator() = default;
 

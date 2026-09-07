@@ -79,6 +79,36 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   MzMLFile().load(tmp_mzml, reloaded);
   File::remove(tmp_mzml);
 
+  TEST_EQUAL(original.getSourceFiles()[0].getChecksum().size(), 40)
+  TEST_EQUAL(reloaded.getSourceFiles()[0].getChecksum(), original.getSourceFiles()[0].getChecksum())
+  TEST_EQUAL(reloaded.getInstrument().getMetaValue("instrument serial number"), original.getInstrument().getMetaValue("instrument serial number"))
+  TEST_EQUAL(reloaded.getMetaValue("Thermo instrument methods"), original.getMetaValue("Thermo instrument methods"))
+  TEST_TRUE(original.getSample().metaValueExists("Thermo injection volume"))
+  TEST_EQUAL(reloaded.getSample().getMetaValue("Thermo injection volume"), original.getSample().getMetaValue("Thermo injection volume"))
+  bool saw_supplemental = false;
+  for (Size i = 0; i < original.size(); ++i)
+  {
+    TEST_EQUAL(original[i].getNativeID(), reloaded[i].getNativeID())
+    TEST_EQUAL(original[i].getPrecursors().size(), reloaded[i].getPrecursors().size())
+    TEST_EQUAL(original[i].getAcquisitionInfo()[0].getMetaValue("Thermo trailer extra"), reloaded[i].getAcquisitionInfo()[0].getMetaValue("Thermo trailer extra"))
+    for (Size j = 0; j < original[i].getPrecursors().size(); ++j)
+    {
+      const auto& before = original[i].getPrecursors()[j];
+      const auto& after = reloaded[i].getPrecursors()[j];
+      TEST_REAL_SIMILAR(before.getMZ(), after.getMZ())
+      TEST_REAL_SIMILAR(before.getMetaValue("selected ion m/z"), after.getMetaValue("selected ion m/z", after.getMZ()))
+      TEST_REAL_SIMILAR(before.getIsolationWindowLowerOffset(), after.getIsolationWindowLowerOffset())
+      TEST_REAL_SIMILAR(before.getIsolationWindowUpperOffset(), after.getIsolationWindowUpperOffset())
+      TEST_EQUAL(before.getMetaValue("spectrum_ref"), after.getMetaValue("spectrum_ref"))
+      if (before.metaValueExists("supplemental collision energy"))
+      {
+        saw_supplemental = true;
+        TEST_EQUAL(before.getMetaValue("supplemental collision energy"), after.getMetaValue("supplemental collision energy"))
+      }
+    }
+  }
+  TEST_TRUE(saw_supplemental)
+
   TEST_EQUAL(original.size(), reloaded.size())
   TEST_EQUAL(original.getSourceFiles().size(), reloaded.getSourceFiles().size())
 
