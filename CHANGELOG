@@ -1447,6 +1447,15 @@ Fixes:
     cross-link (#10017) and open-search mass shift written since. fromAASequence now emits a mass delta or
     a Formula: tag as appropriate, and several modifications stacked on one residue are merged instead of
     the last one silently winning (#10003, #10026)
+  - Fix: TheoreticalSpectrumGenerator, TheoreticalSpectrumGeneratorXLMS, NucleicAcidSpectrumGenerator,
+    SimpleTSGXLMS, SpectrumAnnotator and Normalizer declared copy constructors and assignment operators
+    that only forwarded to DefaultParamHandler. That copies param_ but not the member variables their
+    updateMembers_() caches from it, so a copied object read indeterminate values -- Normalizer's copy
+    even threw InvalidValue (method_ left empty), and the two XLMS generators threw std::out_of_range on
+    requesting losses (loss_db_ left empty). All six copy operations are now = default, which copies the
+    cached members together with param_, matching what updateMembers_() would have produced; all six are
+    also exposed to Python via nanobind, so copy.deepcopy() on a configured object was affected as well
+    (#532, #10066)
 
 Documentation:
   - Comprehensive documentation for the Targeted Quantitation algorithms (#8588)
@@ -1659,6 +1668,11 @@ Build System:
     calcMIWeightedScore) required its score matrix to hold at least two transitions, so OpenSwath
     compounds with only a single transition failed the precondition instead of being scored; the checks
     now accept a 1x1 matrix (#10050, #10055)
+  - CI: the nightly Bioconda deploy workflow's lint step passed `--packages pyopenms openms-meta` to
+    bioconda-utils, whose CLI recently migrated to Typer, where --packages is a list option that must be
+    given once per value rather than as one flag followed by several space-separated values; openms-meta
+    was parsed as the positional recipe_folder argument instead of a second package name, failing lint
+    with "path 'openms-meta' does not exist". Fixed by passing --packages once per package (#10071)
   - Security patterns added to .gitignore (#8545); configure return value checking in CI packaging (#8515);
     Claude GitHub Actions workflows added for CI automation (#8675, #8676); removed leftover traces of the
     removed doc_internal target (#2256)
