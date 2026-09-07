@@ -245,6 +245,7 @@ set(format_executables_list
   MzIdentMLFile_test
   MzDataValidator_test
   MzIdentMLValidator_test
+  ThermoRawFileMetadata_test
   MzMLFile_test
   ImzMLFile_test
   ImzMLFile_all_modes_test

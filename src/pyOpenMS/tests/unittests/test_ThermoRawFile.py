@@ -102,3 +102,41 @@ def test_load_experiment_from_raw_roundtrips_through_mzml(tmp_path):
     assert reloaded.getNrSpectra() == exp.getNrSpectra()
     assert reloaded[0].getMSLevel() == exp[0].getMSLevel()
     assert reloaded[0].getRT() == pytest.approx(exp[0].getRT())
+
+
+# ---------------------------------------------------------------------------
+# Public options and instrument-configuration API; independent of RAW fixtures.
+# ---------------------------------------------------------------------------
+
+def test_thermo_options():
+    if not hasattr(pyopenms, "ThermoRawFile"):
+        pytest.skip("OpenMS built without Thermo RAW support")
+    reader = pyopenms.ThermoRawFile()
+    options = reader.getOptions()
+    assert options.preserve_trailers and options.instrument_methods and options.checksum
+    assert not options.centroid
+    options.centroid = options.charge_data = options.noise_data = options.all_detectors = True
+    reader.setOptions(options)
+    assert reader.getOptions().centroid
+    assert reader.getOptions().all_detectors
+    # ProgressLogger methods are bound explicitly
+    reader.setLogType(pyopenms.LogType.NONE)
+    assert reader.getLogType() == pyopenms.LogType.NONE
+
+
+def test_instrument_configurations():
+    experiment = pyopenms.MSExperiment()
+    instrument = pyopenms.Instrument()
+    instrument.setName("Orbitrap Astral")
+    experiment.setInstrumentConfigurations({"astral": instrument})
+    configurations = experiment.getInstrumentConfigurations()
+    assert configurations["astral"].getName() == "Orbitrap Astral"
+
+    instrument.setName("changed input")
+    assert experiment.getInstrumentConfigurations()["astral"].getName() == "Orbitrap Astral"
+    configurations["astral"].setName("changed copy")
+    assert experiment.getInstrumentConfigurations()["astral"].getName() == "Orbitrap Astral"
+    with pytest.raises(TypeError):
+        experiment.setInstrumentConfigurations({"invalid": None})
+    experiment.setInstrumentConfigurations({})
+    assert experiment.getInstrumentConfigurations() == {}

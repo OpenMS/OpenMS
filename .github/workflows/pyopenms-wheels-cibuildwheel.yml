@@ -8,11 +8,12 @@
 # Thermo RAW support: the Linux x86_64, macOS arm64 and Windows wheels are built with
 # WITH_THERMO_RAW=ON. The managed half of openms-thermo-bridge (ThermoWrapperManaged.dll
 # and the Thermo CommonCore assemblies) is taken from the bridge's pre-built release zip
-# via tools/ci/fetch_thermo_assets.sh (retried, SHA-256 pinned, cached between runs), so
-# no NuGet restore and no Thermo package download happens in CI. Compiling the native
-# bridge still needs the nethost headers from a .NET SDK. The finished wheels are
-# smoke-tested by loading a real RAW file. Linux aarch64 stays off: Thermo ships no
-# native RawFileReader dependencies for it.
+# via tools/ci/fetch_thermo_assets.sh (retried, SHA-256 pinned, cached between runs)
+# when one is published for the pinned bridge revision; otherwise the bridge publishes
+# it with the .NET SDK during the OpenMS build (NuGet restore + Thermo package download).
+# Compiling the native bridge always needs the nethost headers from a .NET SDK. The
+# finished wheels are smoke-tested by loading a real RAW file. Linux aarch64 stays off:
+# Thermo ships no native RawFileReader dependencies for it.
 
 name: pyopenms-wheels-cibuildwheel
 
@@ -146,15 +147,22 @@ jobs:
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
               # The native thermo bridge compiles against the nethost headers/library
-              # from the .NET host pack (the managed assemblies come pre-built, see
-              # tools/ci/fetch_thermo_assets.sh). The pinned, SHA-512 verified SDK
-              # tarball is used instead of the distro dotnet-sdk-8.0 RPM, whose host
-              # pack is named with the rhel.9-x64 RID that the bridge does not search
-              # (see tools/ci/install_dotnet_sdk_linux.sh). libicu is the only
-              # dependency the SDK needs.
+              # from the .NET host pack, and the same SDK publishes the managed
+              # assemblies unless tools/ci/fetch_thermo_assets.sh provided pre-built
+              # ones. The pinned, SHA-512 verified SDK tarball is used instead of the
+              # distro dotnet-sdk-8.0 RPM, whose host pack is named with the
+              # rhel.9-x64 RID that the bridge does not search (see
+              # tools/ci/install_dotnet_sdk_linux.sh). libicu is the only dependency
+              # the SDK needs.
               yum install -y cmake ninja-build libcurl-devel libicu
               bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
+              export PATH="$DOTNET_ROOT:$PATH"
+              export DOTNET_CLI_TELEMETRY_OPTOUT=1
+              THERMO_MANAGED_OPT=""
+              if [ -f /project/thermo-managed/ThermoWrapperManaged.dll ]; then
+                THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed"
+              fi
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
@@ -168,7 +176,7 @@ jobs:
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=ON \
-                -DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed \
+                $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
@@ -333,10 +341,10 @@ jobs:
             zstd
 
       # OpenMSThermoBridge needs the nethost headers/library from the .NET host
-      # pack for osx-arm64 to compile the native bridge (the managed assemblies
-      # come pre-built, see below); the action installs the SDK and exports
-      # DOTNET_ROOT, which is also what the wheel test suite uses to find the
-      # runtime.
+      # pack for osx-arm64 to compile the native bridge and, unless pre-built
+      # assemblies are available (see below), the SDK to publish the managed
+      # half; the action installs the SDK and exports DOTNET_ROOT, which is also
+      # what the wheel test suite uses to find the runtime.
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -355,6 +363,10 @@ jobs:
 
       - name: Build and install OpenMS
         run: |
+          THERMO_MANAGED_OPT=""
+          if [ -f "${{ github.workspace }}/thermo-managed/ThermoWrapperManaged.dll" ]; then
+            THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=${{ github.workspace }}/thermo-managed"
+          fi
           mkdir build && cd build
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
           # BOOST_USE_STATIC=OFF works around Boost's incomplete find_dependency calls
@@ -374,7 +386,7 @@ jobs:
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
-            -DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=${{ github.workspace }}/thermo-managed \
+            $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON
@@ -462,7 +474,8 @@ jobs:
           key: thermo-assets-win-x64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
 
       # The Windows runner image ships .NET SDKs under C:\Program Files\dotnet, which
-      # FindDotNetHost.cmake searches by default for the nethost host pack.
+      # FindDotNetHost.cmake searches by default for the nethost host pack; the same
+      # SDK publishes the managed assemblies when no pre-built ones are available.
       - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
         shell: bash
         run: bash tools/ci/fetch_thermo_assets.sh win-x64 "$GITHUB_WORKSPACE"
@@ -491,6 +504,10 @@ jobs:
           # Workaround for MSVC constexpr mutex constructor bug
           CXXFLAGS: "-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"
         run: |
+          THERMO_MANAGED_OPT=""
+          if [ -f "$GITHUB_WORKSPACE/thermo-managed/ThermoWrapperManaged.dll" ]; then
+            THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=$GITHUB_WORKSPACE/thermo-managed"
+          fi
           mkdir build && cd build
           cmake .. \
             -G Ninja \
@@ -503,7 +520,7 @@ jobs:
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
-            -DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR="$GITHUB_WORKSPACE/thermo-managed" \
+            $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF
           cmake --build . --target OpenMS OpenSwathAlgo

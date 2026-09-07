@@ -1,5 +1,5 @@
-// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU
+// Berlin SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -10,521 +10,595 @@
 
 #ifdef WITH_THERMO_RAW
 
-#include <OpenMS/FORMAT/ThermoRawFile.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/Acquisition.h>
-#include <OpenMS/METADATA/AcquisitionInfo.h>
-#include <OpenMS/METADATA/Instrument.h>
-#include <OpenMS/METADATA/IonDetector.h>
-#include <OpenMS/METADATA/IonSource.h>
-#include <OpenMS/METADATA/MassAnalyzer.h>
-#include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/METADATA/Sample.h>
-#include <OpenMS/METADATA/Software.h>
-#include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <algorithm>
-#include <cctype>
-#include <cstdlib>
-#include <filesystem>
-#include <limits>
-#include <optional>
-#include <set>
-#include <string>
-
-#include <openms_thermo_bridge/thermo_bridge.hpp>
+  #include <OpenMS/CONCEPT/Exception.h>
+  #include <OpenMS/CONCEPT/LogStream.h>
+  #include <OpenMS/CONCEPT/VersionInfo.h>
+  #include <OpenMS/DATASTRUCTURES/DateTime.h>
+  #include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
+  #include <OpenMS/FORMAT/ThermoRawFile.h>
+  #include <OpenMS/KERNEL/MSChromatogram.h>
+  #include <OpenMS/KERNEL/MSSpectrum.h>
+  #include <OpenMS/METADATA/Acquisition.h>
+  #include <OpenMS/METADATA/AcquisitionInfo.h>
+  #include <OpenMS/METADATA/DataProcessing.h>
+  #include <OpenMS/METADATA/Instrument.h>
+  #include <OpenMS/METADATA/IonDetector.h>
+  #include <OpenMS/METADATA/IonSource.h>
+  #include <OpenMS/METADATA/MassAnalyzer.h>
+  #include <OpenMS/METADATA/Precursor.h>
+  #include <OpenMS/METADATA/Sample.h>
+  #include <OpenMS/METADATA/Software.h>
+  #include <OpenMS/METADATA/SourceFile.h>
+  #include <OpenMS/SYSTEM/File.h>
+  #include <algorithm>
+  #include <cctype>
+  #include <cstdlib>
+  #include <filesystem>
+  #include <limits>
+  #include <map>
+  #include <optional>
+  #include <openms_thermo_bridge/cv_mapping.hpp>
+  #include <openms_thermo_bridge/thermo_bridge.hpp>
+  #include <set>
+  #include <string>
 
 namespace OpenMS
 {
-  namespace
+namespace
+{
+  /// Case-insensitive "haystack contains needle".
+  bool containsCI(const std::string& haystack, const std::string& needle)
   {
-    /// Case-insensitive "haystack contains needle".
-    bool containsCI(const std::string& haystack, const std::string& needle)
-    {
-      if (needle.empty()) { return true; }
-      auto it = std::search(haystack.begin(), haystack.end(),
-                            needle.begin(), needle.end(),
-                            [](char a, char b)
-                            { return std::tolower(static_cast<unsigned char>(a)) ==
-                                     std::tolower(static_cast<unsigned char>(b)); });
-      return it != haystack.end();
-    }
+    if (needle.empty()) { return true; }
+    auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(),
+                          [](char a, char b) { return std::tolower(static_cast<unsigned char>(a)) == std::tolower(static_cast<unsigned char>(b)); });
+    return it != haystack.end();
+  }
 
-    /// Parse a double, returning false if the string is empty/unparseable.
-    bool parseDouble(const std::string& s, double& out)
-    {
-      if (s.empty()) { return false; }
-      try
-      {
-        size_t pos = 0;
-        out = std::stod(s, &pos);
-        // Reject trailing garbage (e.g. "12.3abc") but tolerate surrounding whitespace.
-        while (pos < s.size() && std::isspace(static_cast<unsigned char>(s[pos]))) { ++pos; }
-        return pos == s.size();
-      }
-      catch (...)
-      {
-        return false;
-      }
-    }
-
-    /// True if @p dir holds the two files the bridge needs to start the .NET runtime.
-    bool isManagedDirectory(const std::filesystem::path& dir)
-    {
-      std::error_code ec;
-      return std::filesystem::is_regular_file(dir / "ThermoWrapperManaged.dll", ec)
-          && std::filesystem::is_regular_file(dir / "ThermoWrapperManaged.runtimeconfig.json", ec);
-    }
-
-    /**
-      @brief Locate the managed half of the thermo bridge (ThermoWrapperManaged.dll + runtimeconfig).
-
-      The bridge's own default looks next to its shared library (<lib dir>/managed or
-      <lib dir>/openms_thermo_bridge/managed). That works for a plain OpenMS build or install
-      tree, but not for relocated layouts such as Python wheels, where wheel repair tools
-      rename and move the bridge library. OpenMS therefore checks, in order:
-
-        1. the OPENMS_THERMO_MANAGED_DIR environment variable, if it holds the managed files
-           (a stale or mistyped override is reported and skipped rather than breaking a
-           correctly bundled installation),
-        2. <OpenMS share dir>/openms_thermo_bridge/managed, i.e. the copy that OpenMS installs
-           into its shared-data directory (pyOpenMS ships share/OpenMS inside the wheel),
-        3. nothing, so the bridge falls back to its own lookup.
-    */
-    std::optional<std::filesystem::path> resolveManagedDirectory()
-    {
-      if (const char* env = std::getenv("OPENMS_THERMO_MANAGED_DIR"); env != nullptr && env[0] != '\0')
-      {
-        std::filesystem::path dir(env);
-        if (isManagedDirectory(dir))
-        {
-          return dir;
-        }
-        OPENMS_LOG_WARN << "ThermoRawFile: OPENMS_THERMO_MANAGED_DIR='" << env
-                        << "' does not contain ThermoWrapperManaged.dll and its runtimeconfig.json; "
-                        << "ignoring it and looking in the OpenMS share directory instead\n";
-      }
-
-      std::filesystem::path share_dir(File::getOpenMSDataPath());
-      std::filesystem::path candidate = share_dir / "openms_thermo_bridge" / "managed";
-      if (isManagedDirectory(candidate))
-      {
-        return candidate;
-      }
-      return std::nullopt;
-    }
-
-    /// Find the value of the first trailer-extra label that contains @p needle (case-insensitive).
-    /// The bridge matches keys exactly, so we pass the exact label string back to it.
-    std::string trailerValueContaining(const openms::thermo_bridge::RawFile& raw, int scan,
-                                       const std::vector<std::string>& labels, const std::string& needle)
-    {
-      for (const std::string& label : labels)
-      {
-        if (containsCI(label, needle))
-        {
-          return raw.trailer_extra_value(scan, label);
-        }
-      }
-      return "";
-    }
-
-    /// Map a Thermo MassAnalyzerType enum string (e.g. "MassAnalyzerFTMS") to an OpenMS analyzer type.
-    /// FTMS is disambiguated into Orbitrap vs. FT-ICR via the instrument model, mirroring
-    /// the logic in openms-thermo-bridge cv_mapping::cv_mass_analyzer().
-    MassAnalyzer::AnalyzerType mapAnalyzer(const std::string& t, const std::string& model)
-    {
-      if (t == "MassAnalyzerFTMS" || t == "FTMS")
-      {
-        if (containsCI(model, "Orbitrap") || containsCI(model, "Exactive") ||
-            containsCI(model, "Exploris") || containsCI(model, "Astral"))
-        {
-          return MassAnalyzer::AnalyzerType::ORBITRAP;
-        }
-        return MassAnalyzer::AnalyzerType::FOURIERTRANSFORM; // FT-ICR
-      }
-      if (t == "MassAnalyzerITMS") { return MassAnalyzer::AnalyzerType::IT; }            // ion trap (MS:1000264)
-      if (t == "MassAnalyzerTQMS" || t == "MassAnalyzerSQMS") { return MassAnalyzer::AnalyzerType::QUADRUPOLE; }
-      if (t == "MassAnalyzerTOFMS" || t == "MassAnalyzerASTMS") { return MassAnalyzer::AnalyzerType::TOF; }
-      if (t == "MassAnalyzerSector") { return MassAnalyzer::AnalyzerType::SECTOR; }
-      return MassAnalyzer::AnalyzerType::ANALYZERNULL;
-    }
-
-    /// Map a Thermo IonizationModeType enum string (e.g. "ElectroSpray") to an OpenMS ionization method.
-    IonSource::IonizationMethod mapIonization(const std::string& t)
-    {
-      if (t == "ElectroSpray") { return IonSource::IonizationMethod::ESI; }
-      if (t == "NanoSpray" || t == "CardNanoSprayIonization") { return IonSource::IonizationMethod::NESI; }
-      if (t == "AtmosphericPressureChemicalIonization") { return IonSource::IonizationMethod::APCI; }
-      if (t == "ChemicalIonization") { return IonSource::IonizationMethod::CI; }
-      if (t == "MatrixAssistedLaserDesorptionIonization") { return IonSource::IonizationMethod::MALDI; }
-      if (t == "ElectronImpact") { return IonSource::IonizationMethod::EI; }
-      if (t == "FastAtomBombardment") { return IonSource::IonizationMethod::FAB; }
-      if (t == "ThermoSpray") { return IonSource::IonizationMethod::TSP; }
-      if (t == "FieldDesorption") { return IonSource::IonizationMethod::FD; }
-      if (t == "GlowDischarge") { return IonSource::IonizationMethod::GD_MS; }
-      return IonSource::IonizationMethod::IONMETHODNULL;
-    }
-
-    /// Infer the ion detector type from the mass analyzer: Orbitrap/FT-ICR use image-current
-    /// (inductive) detection, while ion traps and quadrupoles use an electron multiplier.
-    /// (The bridge's cv_detector_types() is not exported, so we derive this locally.)
-    IonDetector::Type detectorForAnalyzer(MassAnalyzer::AnalyzerType analyzer)
-    {
-      switch (analyzer)
-      {
-        case MassAnalyzer::AnalyzerType::ORBITRAP:
-        case MassAnalyzer::AnalyzerType::FOURIERTRANSFORM:
-          return IonDetector::Type::INDUCTIVEDETECTOR;
-        case MassAnalyzer::AnalyzerType::IT:
-        case MassAnalyzer::AnalyzerType::QUADRUPOLE:
-          return IonDetector::Type::ELECTRONMULTIPLIER;
-        default:
-          return IonDetector::Type::TYPENULL;
-      }
-    }
-
-    /// Extract the scan window (m/z range) from a Thermo scan filter string, e.g.
-    /// "FTMS + p NSI Full ms [375.0000-1500.0000]" -> (375.0, 1500.0). Returns false if no
-    /// single bracketed range is found (e.g. multi-range SIM filters with a comma are skipped).
-    bool parseScanWindowFromFilter(const std::string& filter, double& lower, double& upper)
-    {
-      const std::string::size_type close = filter.rfind(']');
-      if (close == std::string::npos) { return false; }
-      const std::string::size_type open = filter.rfind('[', close);
-      if (open == std::string::npos) { return false; }
-
-      const std::string inside = filter.substr(open + 1, close - open - 1);
-      if (inside.find(',') != std::string::npos) { return false; } // multiple ranges (e.g. SIM)
-      const std::string::size_type dash = inside.find('-');
-      if (dash == std::string::npos) { return false; }
-
-      if (!parseDouble(inside.substr(0, dash), lower)) { return false; }
-      if (!parseDouble(inside.substr(dash + 1), upper)) { return false; }
-      return upper > lower && lower > 0.0;
-    }
-  } // anonymous namespace
-
-  void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
+  /// True if @p dir holds the two files the bridge needs to start the .NET runtime.
+  bool isManagedDirectory(const std::filesystem::path& dir)
   {
-    // Loaders are expected to populate the output experiment from scratch.
-    exp = MSExperiment();
+    std::error_code ec;
+    return std::filesystem::is_regular_file(dir / "ThermoWrapperManaged.dll", ec)
+        && std::filesystem::is_regular_file(dir / "ThermoWrapperManaged.runtimeconfig.json", ec);
+  }
 
-    if (!File::exists(path))
+  /**
+    @brief Locate the managed half of the thermo bridge (ThermoWrapperManaged.dll + runtimeconfig).
+
+    The bridge's own default looks next to its shared library (<lib dir>/managed or
+    <lib dir>/openms_thermo_bridge/managed). That works for a plain OpenMS build or install
+    tree, but not for relocated layouts such as Python wheels, where wheel repair tools
+    rename and move the bridge library. OpenMS therefore checks, in order:
+
+      1. the OPENMS_THERMO_MANAGED_DIR environment variable, if it holds the managed files
+         (a stale or mistyped override is reported and skipped rather than breaking a
+         correctly bundled installation),
+      2. <OpenMS share dir>/openms_thermo_bridge/managed, i.e. the copy that OpenMS installs
+         into its shared-data directory (pyOpenMS ships share/OpenMS inside the wheel),
+      3. nothing, so the bridge falls back to its own lookup.
+  */
+  std::optional<std::filesystem::path> resolveManagedDirectory()
+  {
+    if (const char* env = std::getenv("OPENMS_THERMO_MANAGED_DIR"); env != nullptr && env[0] != '\0')
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
+      std::filesystem::path dir(env);
+      if (isManagedDirectory(dir))
+      {
+        return dir;
+      }
+      OPENMS_LOG_WARN << "ThermoRawFile: OPENMS_THERMO_MANAGED_DIR='" << env
+                      << "' does not contain ThermoWrapperManaged.dll and its runtimeconfig.json; "
+                      << "ignoring it and looking in the OpenMS share directory instead\n";
     }
 
-    std::filesystem::path raw_path(static_cast<std::string>(path));
-
-    try
+    std::filesystem::path share_dir(File::getOpenMSDataPath());
+    std::filesystem::path candidate = share_dir / "openms_thermo_bridge" / "managed";
+    if (isManagedDirectory(candidate))
     {
-      const std::optional<std::filesystem::path> managed_dir = resolveManagedDirectory();
-      openms::thermo_bridge::RawFile raw = managed_dir
-        ? openms::thermo_bridge::RawFile(raw_path, *managed_dir)
-        : openms::thermo_bridge::RawFile(raw_path);
-
-      // --- Source file metadata ---
-      SourceFile src;
-      src.setNameOfFile(raw_path.filename().string());
-      src.setPathToFile(raw_path.parent_path().string());
-      src.setFileType("Thermo RAW format");
-      src.setNativeIDType("Thermo nativeID format");
-      src.setNativeIDTypeAccession("MS:1000768"); // Thermo nativeID format
-      exp.getSourceFiles().push_back(src);
-
-      // --- Instrument / experiment-level metadata ---
-      const std::string model = raw.instrument_model();
-      if (!model.empty())
-      {
-        exp.getInstrument().setName(raw.instrument_name());
-        exp.getInstrument().setModel(model);
-        exp.getInstrument().setCustomizations(raw.instrument_serial_number());
-      }
-      const std::string sw_version = raw.instrument_software_version();
-      if (!sw_version.empty())
-      {
-        exp.getInstrument().getSoftware().setVersion(sw_version);
-      }
-      const std::string sample_name = raw.sample_name();
-      if (!sample_name.empty())
-      {
-        exp.getSample().setName(sample_name);
-      }
-      const std::string creation_date = raw.creation_date(); // ISO-8601 (e.g. "2018-05-31T12:34:56.789...")
-      if (creation_date.size() >= 19)
-      {
-        // OpenMS DateTime only parses up to seconds; drop fractional seconds / timezone offset.
-        try
-        {
-          exp.setDateTime(DateTime::fromString(creation_date.substr(0, 19), "yyyy-MM-ddThh:mm:ss"));
-        }
-        catch (const Exception::BaseException&)
-        {
-          // leave date-time unset if the format is unexpected
-        }
-      }
-      const std::string file_description = raw.file_description();
-      if (!file_description.empty())
-      {
-        exp.getInstrument().setMetaValue("file description", file_description);
-      }
-
-      // --- Read spectra ---
-      const int scan_count = raw.scan_count();
-      const int first_scan = raw.first_scan_number();
-      const int last_scan = raw.last_scan_number();
-
-      OPENMS_LOG_INFO << "ThermoRawFile: reading " << scan_count << " scans from "
-                      << raw_path.filename().string() << "\n";
-
-      setProgress(0);
-      startProgress(first_scan, last_scan, "Loading Thermo RAW file");
-
-      exp.reserve(scan_count);
-
-      // Distinct mass-analyzer strings and the first ionization mode seen, used to build the
-      // single OpenMS Instrument component lists after the scan loop.
-      std::set<std::string> analyzer_types;
-      std::string ionization_mode;
-
-      for (int scan = first_scan; scan <= last_scan; ++scan)
-      {
-        setProgress(scan);
-
-        MSSpectrum spectrum;
-
-        // RT in seconds (bridge returns minutes)
-        const double rt_minutes = raw.retention_time(scan);
-        spectrum.setRT(rt_minutes * 60.0);
-
-        // MS level
-        const int ms_level = raw.ms_level(scan);
-        spectrum.setMSLevel(ms_level);
-
-        // Native ID
-        spectrum.setNativeID("scan=" + std::to_string(scan));
-
-        // Centroid / profile
-        const bool centroid = raw.is_centroid_scan(scan);
-        spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
-
-        // Polarity — bridge returns the raw Thermo PolarityType enum value. Verified empirically
-        // against real RAW data: Negative = 0, Positive = 1, Any = 2 (the bridge's own header comment
-        // and cv_polarity() helper claim the opposite and are wrong).
-        const int polarity = raw.polarity(scan);
-        if (polarity == 1)
-        {
-          spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
-        }
-        else if (polarity == 0)
-        {
-          spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
-        }
-
-        // Scan filter string (PSI-MS MS:1000512). Also collect the analyzer type and the
-        // configured scan window (m/z range) carried inside the filter.
-        const std::string filter = raw.scan_filter(scan);
-        if (!filter.empty())
-        {
-          spectrum.setMetaValue("filter string", filter);
-
-          double win_lower = 0.0;
-          double win_upper = 0.0;
-          if (parseScanWindowFromFilter(filter, win_lower, win_upper))
-          {
-            ScanWindow window;
-            window.begin = win_lower;
-            window.end = win_upper;
-            spectrum.getInstrumentSettings().getScanWindows().push_back(window);
-          }
-        }
-
-        const std::string analyzer = raw.mass_analyzer_type(scan);
-        if (!analyzer.empty()) { analyzer_types.insert(analyzer); }
-        if (ionization_mode.empty()) { ionization_mode = raw.ionization_mode(scan); }
-
-        // Scan statistics (PSI-MS): total ion current, base peak m/z and intensity.
-        spectrum.setMetaValue("total ion current", raw.tic(scan));
-        spectrum.setMetaValue("base peak m/z", raw.base_peak_mass(scan));
-        spectrum.setMetaValue("base peak intensity", raw.base_peak_intensity(scan));
-
-        // Trailer-extra metadata: ion injection time and FAIMS compensation voltage. Neither has a
-        // dedicated bridge accessor; both are discovered by matching the (raw) trailer labels.
-        const std::vector<std::string> trailer_labels = raw.trailer_extra_labels(scan);
-        if (!trailer_labels.empty())
-        {
-          double injection_time = 0.0;
-          if (parseDouble(trailerValueContaining(raw, scan, trailer_labels, "Ion Injection Time"), injection_time))
-          {
-            // Ion injection time (MS:1000927) is a <scan>-level term; storing it on an Acquisition
-            // makes it serialize as a scan cvParam (matching ProteoWizard/msconvert output).
-            Acquisition acq;
-            acq.setMetaValue("ion injection time", injection_time);
-            spectrum.getAcquisitionInfo().push_back(acq);
-          }
-
-          double faims_cv = 0.0;
-          if (parseDouble(trailerValueContaining(raw, scan, trailer_labels, "FAIMS CV"), faims_cv))
-          {
-            spectrum.setDriftTime(faims_cv);
-            spectrum.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
-          }
-        }
-
-        // Precursor info for MSn
-        if (ms_level > 1)
-        {
-          Precursor prec;
-          const double prec_mz = raw.precursor_mass(scan);
-          if (prec_mz > 0.0)
-          {
-            prec.setMZ(prec_mz);
-          }
-          const int charge = raw.precursor_charge(scan);
-          if (charge != 0)
-          {
-            prec.setCharge(charge);
-          }
-          // Map activation type string to OpenMS activation method (independent of collision energy,
-          // so electron-based methods that report no eV still get an activation method).
-          const std::string act_type = raw.activation_type(scan);
-          if (act_type == "CID" || act_type == "CollisionInducedDissociation")
-          {
-            prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
-          }
-          else if (act_type == "HCD" || act_type == "HigherEnergyCollisionalDissociation")
-          {
-            prec.getActivationMethods().insert(Precursor::ActivationMethod::HCD);
-          }
-          else if (act_type == "ETD" || act_type == "ElectronTransferDissociation")
-          {
-            prec.getActivationMethods().insert(Precursor::ActivationMethod::ETD);
-          }
-          else if (act_type == "ECD" || act_type == "ElectronCaptureDissociation")
-          {
-            prec.getActivationMethods().insert(Precursor::ActivationMethod::ECD);
-          }
-          else if (act_type == "PQD")
-          {
-            prec.getActivationMethods().insert(Precursor::ActivationMethod::PQD);
-          }
-          else if (!act_type.empty())
-          {
-            OPENMS_LOG_WARN << "ThermoRawFile: unknown activation type '" << act_type
-                            << "' for scan " << scan << ", defaulting to CID\n";
-            prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
-          }
-          const double ce = raw.collision_energy(scan);
-          if (ce > 0.0)
-          {
-            prec.setActivationEnergy(ce);
-          }
-          const double iso_width = raw.isolation_width(scan);
-          if (iso_width > 0.0)
-          {
-            prec.setIsolationWindowLowerOffset(iso_width / 2.0);
-            prec.setIsolationWindowUpperOffset(iso_width / 2.0);
-          }
-          spectrum.getPrecursors().push_back(prec);
-        }
-
-        // Read spectrum data (prefer centroided data for centroid scans)
-        auto data = raw.spectrum_data(scan, centroid);
-
-        // Populate peaks, tracking the lowest/highest observed m/z (PSI-MS MS:1000528/MS:1000527).
-        spectrum.resize(data.mz.size());
-        double lowest_mz = std::numeric_limits<double>::max();
-        double highest_mz = std::numeric_limits<double>::lowest();
-        for (size_t i = 0; i < data.mz.size(); ++i)
-        {
-          const double mz = data.mz[i];
-          spectrum[i].setMZ(mz);
-          spectrum[i].setIntensity(static_cast<Peak1D::IntensityType>(data.intensities[i]));
-          lowest_mz = std::min(lowest_mz, mz);
-          highest_mz = std::max(highest_mz, mz);
-        }
-        if (!data.mz.empty())
-        {
-          spectrum.setMetaValue("lowest observed m/z", lowest_mz);
-          spectrum.setMetaValue("highest observed m/z", highest_mz);
-        }
-
-        exp.addSpectrum(std::move(spectrum));
-      }
-
-      endProgress();
-
-      // --- Instrument component lists (single OpenMS Instrument) ---
-      // OpenMS represents one instrument configuration per experiment, whereas Thermo files may use
-      // several (e.g. FTMS + ion trap). We capture the union of analyzers seen plus the ion source and
-      // detector(s) implied by the instrument model.
-      Instrument& instrument = exp.getInstrument();
-      Int component_order = 1;
-      if (!ionization_mode.empty())
-      {
-        const IonSource::IonizationMethod method = mapIonization(ionization_mode);
-        if (method != IonSource::IonizationMethod::IONMETHODNULL)
-        {
-          IonSource source;
-          source.setIonizationMethod(method);
-          source.setOrder(component_order++);
-          instrument.getIonSources().push_back(source);
-        }
-      }
-      std::set<IonDetector::Type> detector_types;
-      for (const std::string& analyzer : analyzer_types)
-      {
-        const MassAnalyzer::AnalyzerType type = mapAnalyzer(analyzer, model);
-        if (type == MassAnalyzer::AnalyzerType::ANALYZERNULL) { continue; }
-        MassAnalyzer mass_analyzer;
-        mass_analyzer.setType(type);
-        mass_analyzer.setOrder(component_order++);
-        instrument.getMassAnalyzers().push_back(mass_analyzer);
-
-        const IonDetector::Type detector = detectorForAnalyzer(type);
-        if (detector != IonDetector::Type::TYPENULL) { detector_types.insert(detector); }
-      }
-      for (const IonDetector::Type type : detector_types)
-      {
-        IonDetector ion_detector;
-        ion_detector.setType(type);
-        ion_detector.setOrder(component_order++);
-        instrument.getIonDetectors().push_back(ion_detector);
-      }
-
-      // --- TIC chromatogram ---
-      const openms::thermo_bridge::ChromatogramData tic_data = raw.chromatogram_data();
-      if (!tic_data.times.empty())
-      {
-        MSChromatogram tic;
-        tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
-        tic.setNativeID("TIC");
-        for (size_t i = 0; i < tic_data.times.size(); ++i)
-        {
-          tic.push_back(ChromatogramPeak(tic_data.times[i] * 60.0, tic_data.intensities[i]));
-        }
-        exp.addChromatogram(std::move(tic));
-      }
-
-      // Sort by RT
-      exp.sortSpectra(true);
-      exp.updateRanges();
-
-      OPENMS_LOG_INFO << "ThermoRawFile: loaded " << exp.size() << " spectra\n";
+      return candidate;
     }
-    catch (const openms::thermo_bridge::bridge_error& e)
+    return std::nullopt;
+  }
+
+  /// Map a Thermo MassAnalyzerType enum string (e.g. "MassAnalyzerFTMS") to an
+  /// OpenMS analyzer type. FTMS is disambiguated into Orbitrap vs. FT-ICR via the
+  /// instrument model, mirroring the logic in openms-thermo-bridge
+  /// cv_mapping::cv_mass_analyzer().
+  MassAnalyzer::AnalyzerType mapAnalyzer(const std::string& t, const std::string& model)
+  {
+    if (t == "MassAnalyzerFTMS" || t == "FTMS")
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path, std::string("Thermo bridge error: ") + e.what());
+      if (containsCI(model, "Orbitrap") || containsCI(model, "Exactive") || containsCI(model, "Exploris") || containsCI(model, "Astral"))
+      {
+        return MassAnalyzer::AnalyzerType::ORBITRAP;
+      }
+      return MassAnalyzer::AnalyzerType::FOURIERTRANSFORM; // FT-ICR
+    }
+    if (t == "MassAnalyzerITMS") { return MassAnalyzer::AnalyzerType::IT; } // ion trap (MS:1000264)
+    if (t == "MassAnalyzerTQMS" || t == "MassAnalyzerSQMS") { return MassAnalyzer::AnalyzerType::QUADRUPOLE; }
+    if (t == "MassAnalyzerTOFMS" || t == "MassAnalyzerASTMS") { return MassAnalyzer::AnalyzerType::TOF; }
+    if (t == "MassAnalyzerSector") { return MassAnalyzer::AnalyzerType::SECTOR; }
+    return MassAnalyzer::AnalyzerType::ANALYZERNULL;
+  }
+
+  /// Map a Thermo IonizationModeType enum string (e.g. "ElectroSpray") to an
+  /// OpenMS ionization method.
+  IonSource::IonizationMethod mapIonization(const std::string& t)
+  {
+    if (t == "ElectroSpray") { return IonSource::IonizationMethod::ESI; }
+    if (t == "NanoSpray" || t == "CardNanoSprayIonization") { return IonSource::IonizationMethod::NESI; }
+    if (t == "AtmosphericPressureChemicalIonization") { return IonSource::IonizationMethod::APCI; }
+    if (t == "ChemicalIonization") { return IonSource::IonizationMethod::CI; }
+    if (t == "MatrixAssistedLaserDesorptionIonization") { return IonSource::IonizationMethod::MALDI; }
+    if (t == "ElectronImpact") { return IonSource::IonizationMethod::EI; }
+    if (t == "FastAtomBombardment") { return IonSource::IonizationMethod::FAB; }
+    if (t == "ThermoSpray") { return IonSource::IonizationMethod::TSP; }
+    if (t == "FieldDesorption") { return IonSource::IonizationMethod::FD; }
+    if (t == "GlowDischarge") { return IonSource::IonizationMethod::GD_MS; }
+    return IonSource::IonizationMethod::IONMETHODNULL;
+  }
+
+  /// Infer the ion detector type from the mass analyzer: Orbitrap/FT-ICR use
+  /// image-current (inductive) detection, while ion traps and quadrupoles use an
+  /// electron multiplier. Choose the detector for this scan's analyzer, rather
+  /// than every detector in the instrument.
+  IonDetector::Type detectorForAnalyzer(MassAnalyzer::AnalyzerType analyzer)
+  {
+    switch (analyzer)
+    {
+      case MassAnalyzer::AnalyzerType::ORBITRAP:
+      case MassAnalyzer::AnalyzerType::FOURIERTRANSFORM:
+        return IonDetector::Type::INDUCTIVEDETECTOR;
+      case MassAnalyzer::AnalyzerType::IT:
+      case MassAnalyzer::AnalyzerType::QUADRUPOLE:
+        return IonDetector::Type::ELECTRONMULTIPLIER;
+      default:
+        return IonDetector::Type::TYPENULL;
     }
   }
 
-} // namespace OpenMS
+} // anonymous namespace
 
+void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
+{
+  exp = MSExperiment();
+  if (! File::exists(path)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path); }
+  const std::filesystem::path raw_path(path);
+  using Json = nlohmann::json;
+  using Metadata = Internal::ThermoRawFileMetadata;
+  auto text = [](const Json& object, const std::string& key) -> std::string {
+    return object.contains(key) && object[key].is_string() ? object[key].get<std::string>() : "";
+  };
+  auto numeric = [](const Json& object, const std::string& key, double fallback = 0.0) -> double {
+    return object.contains(key) && object[key].is_number() ? object[key].get<double>() : fallback;
+  };
+  auto unit_value = [](double value, int unit) -> DataValue {
+    DataValue result(value);
+    result.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+    result.setUnit(unit);
+    return result;
+  };
+  auto ms_unit_value = [](double value, int unit) -> DataValue {
+    DataValue result(value);
+    result.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+    result.setUnit(unit);
+    return result;
+  };
+  auto copy_values = [](const Json& object, MetaInfoInterface& target, const std::string& prefix = "") {
+    for (const auto& [key, value] : object.items())
+    {
+      if (value.is_number_integer()) { target.setMetaValue(prefix + key, value.get<Int64>()); }
+      else if (value.is_number()) { target.setMetaValue(prefix + key, value.get<double>()); }
+      else if (value.is_string()) { target.setMetaValue(prefix + key, value.get<std::string>()); }
+    }
+  };
+  try
+  {
+    const std::optional<std::filesystem::path> managed_dir = resolveManagedDirectory();
+    openms::thermo_bridge::RawFile raw = managed_dir
+      ? openms::thermo_bridge::RawFile(raw_path, *managed_dir)
+      : openms::thermo_bridge::RawFile(raw_path);
+    const Json metadata = Json::parse(raw.file_metadata_json(options_.instrument_methods, options_.checksum));
+    if (metadata.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo metadata schema"); }
+    const auto& file = metadata.at("file");
+    SourceFile source;
+    source.setNameOfFile(raw_path.filename().string());
+    source.setPathToFile(raw_path.parent_path().string());
+    source.setFileType("Thermo RAW format");
+    source.setNativeIDType("Thermo nativeID format");
+    source.setNativeIDTypeAccession("MS:1000768");
+    if (! text(file, "sha1").empty()) { source.setChecksum(text(file, "sha1"), SourceFile::ChecksumType::SHA1); }
+    source.setMetaValue("RAW file revision", file.at("revision").get<int>());
+    source.setMetaValue("file description", text(file, "description"));
+    exp.getSourceFiles().push_back(source);
+    const std::string date = text(file, "creation_date"); // ISO-8601, e.g. "2018-05-31T12:34:56.789Z"
+    if (date.size() >= 19)
+    {
+      try
+      {
+        // OpenMS DateTime only resolves seconds; the full timestamp is kept for the mzML startTimeStamp.
+        exp.setDateTime(DateTime::fromString(date.substr(0, 19), "yyyy-MM-ddThh:mm:ss"));
+        exp.setMetaValue("mzml_start_time_stamp", date);
+      }
+      catch (const Exception::BaseException&)
+      {
+        OPENMS_LOG_WARN << "ThermoRawFile: could not parse creation date '" << date << "'\n";
+      }
+    }
+    copy_values(metadata.at("sample"), exp.getSample(), "Thermo ");
+    exp.getSample().setName(text(metadata.at("sample"), "sample name"));
+    exp.getSample().setNumber(text(metadata.at("sample"), "sample number"));
+    exp.getSample().setComment(text(metadata.at("sample"), "sample comment"));
+    exp.getSample().setMetaValue("Thermo user sample fields", metadata.at("user_sample_fields").dump());
+    if (options_.instrument_methods) { exp.setMetaValue("Thermo instrument methods", metadata.at("instrument_methods").dump()); }
+    if (metadata.at("run").is_object()) { copy_values(metadata.at("run"), exp, "Thermo run "); }
+    exp.setMetaValue("Thermo RawFileReader version", text(metadata, "reader_version"));
+
+    Instrument instrument;
+    std::string model;
+    if (metadata.at("instrument").is_object())
+    {
+      const auto& info = metadata.at("instrument");
+      model = text(info, "model");
+      instrument.setName(openms::thermo_bridge::cv_instrument_model(model).name);
+      instrument.setModel(model);
+      instrument.setMetaValue("Thermo instrument name", text(info, "name"));
+      instrument.setMetaValue("instrument serial number", text(info, "serial_number"));
+      instrument.setMetaValue("Thermo hardware version", text(info, "hardware_version"));
+      instrument.setMetaValue("Thermo instrument units", text(info, "units"));
+      instrument.getSoftware().setName("Thermo acquisition software");
+      instrument.getSoftware().setVersion(text(info, "software_version"));
+    }
+    exp.setInstrument(instrument);
+    auto processing = std::make_shared<DataProcessing>();
+    processing->getSoftware().setName("OpenMS Thermo RAW reader");
+    processing->getSoftware().setVersion(VersionInfo::getVersion());
+    processing->setMetaValue("Thermo RawFileReader version", text(metadata, "reader_version"));
+    processing->getProcessingActions().insert(DataProcessing::ProcessingAction::FORMAT_CONVERSION);
+    if (options_.centroid) { processing->getProcessingActions().insert(DataProcessing::ProcessingAction::PEAK_PICKING); }
+
+    std::map<std::string, std::string> configurations;
+    Metadata precursor_parser;
+    std::map<int, Size> spectrum_by_scan;
+    auto activation = [&](Precursor& precursor, const Json& reaction, bool supplemental) {
+      const std::string type = text(reaction, "activation");
+      if (reaction.value("collision_energy_valid", false) && reaction.at("collision_energy").is_number())
+      {
+        precursor.setMetaValue(supplemental ? "supplemental collision energy" : "collision energy",
+                               unit_value(numeric(reaction, "collision_energy"), 266));
+      }
+      if (supplemental)
+      {
+        // Keep the vendor terms and record the combined method (EThcD / ETciD) that downstream
+        // consumers such as TheoreticalSpectrumGenerator use; MzMLHandler writes the same pair.
+        if (type == "HigherEnergyCollisionalDissociation")
+        {
+          precursor.setMetaValue("supplemental beam-type collision-induced dissociation", "");
+          precursor.getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
+        }
+        else if (type == "CollisionInducedDissociation")
+        {
+          precursor.setMetaValue("supplemental collision-induced dissociation", "");
+          precursor.getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
+        }
+        else
+        {
+          precursor.setMetaValue("Thermo supplemental activation", type);
+        }
+        return;
+      }
+      static const std::map<std::string, Precursor::ActivationMethod> methods = {
+        {"CollisionInducedDissociation", Precursor::ActivationMethod::CID}, {"HigherEnergyCollisionalDissociation", Precursor::ActivationMethod::HCD},
+        {"ElectronTransferDissociation", Precursor::ActivationMethod::ETD}, {"ElectronCaptureDissociation", Precursor::ActivationMethod::ECD},
+        {"MultiPhotonDissociation", Precursor::ActivationMethod::IMD},      {"PQD", Precursor::ActivationMethod::PQD}};
+      auto it = methods.find(type);
+      if (it != methods.end()) { precursor.getActivationMethods().insert(it->second); }
+      else
+      {
+        const auto term = openms::thermo_bridge::cv_activation_type(type);
+        if (term.accession != "MS:1000044") { precursor.setMetaValue(term.name, ""); }
+        precursor.setMetaValue("Thermo activation type", type);
+      }
+    };
+    if (raw.has_ms_data())
+    {
+      const int first = raw.first_scan_number(), last = raw.last_scan_number();
+      exp.reserve(raw.scan_count());
+      startProgress(first, last, "Loading Thermo RAW file");
+      for (int scan = first; scan <= last; ++scan)
+      {
+        setProgress(scan);
+        const Json meta = Json::parse(raw.scan_metadata_json(scan));
+        if (meta.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo scan metadata schema"); }
+        MSSpectrum spectrum;
+        const int level = meta.at("ms_level").get<int>();
+        spectrum.setMSLevel(level > 0 ? level : 0);
+        const std::string order = text(meta, "ms_order_name");
+        auto mode = level == 1 ? InstrumentSettings::ScanMode::MS1SPECTRUM : InstrumentSettings::ScanMode::MSNSPECTRUM;
+        if (order == "Par") { mode = InstrumentSettings::ScanMode::PRECURSOR; }
+        else if (order == "Nl") { mode = InstrumentSettings::ScanMode::CNL; }
+        else if (order == "Ng") { mode = InstrumentSettings::ScanMode::CNG; }
+        spectrum.getInstrumentSettings().setScanMode(mode);
+        spectrum.setRT(meta.at("retention_time").get<double>() * 60.0);
+        spectrum.setNativeID(text(meta, "native_id"));
+        const bool centroid = options_.centroid || meta.at("centroid").get<bool>();
+        spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
+        const int polarity = meta.at("polarity").get<int>();
+        if (polarity == 1) { spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE); }
+        else if (polarity == 0) { spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE); }
+        const std::string filter = text(meta, "filter");
+        Acquisition acquisition;
+        acquisition.setMetaValue("filter string", filter);
+        // Keep the historical spectrum-level accessor as well as the mzML
+        // scan-level term.
+        spectrum.setMetaValue("filter string", filter);
+        if (options_.preserve_trailers) { acquisition.setMetaValue("Thermo trailer extra", meta.at("trailer").dump()); }
+        auto injection = Metadata::number(Metadata::trailer(meta, "Ion Injection Time (ms):"));
+        if (injection.is_number()) { acquisition.setMetaValue("ion injection time", unit_value(injection.get<double>(), 28)); }
+        auto mono = Metadata::number(Metadata::trailer(meta, "Monoisotopic M/Z:"));
+        if (mono.is_number() && mono.get<double>() > 0) { acquisition.setMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:", mono.get<double>()); }
+        const auto voltage_on = Metadata::number(Metadata::trailer(meta, "FAIMS Voltage On:"));
+        const auto voltage = Metadata::number(Metadata::trailer(meta, "FAIMS CV:"));
+        std::string enabled = Metadata::trailer(meta, "FAIMS Voltage On:");
+        std::transform(enabled.begin(), enabled.end(), enabled.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (((voltage_on.is_number() && voltage_on.get<double>() != 0) || (enabled == "true" || enabled == "on" || enabled == "yes"))
+            && voltage.is_number())
+        {
+          spectrum.setDriftTime(voltage.get<double>());
+          spectrum.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+        }
+        const std::string analyzer = text(meta, "analyzer"), ionization = text(meta, "ionization");
+        const std::string configuration_key = analyzer + ":" + ionization;
+        if (! configurations.count(configuration_key))
+        {
+          const std::string id = configurations.empty() ? "ic_0" : "thermo_ic_" + std::to_string(configurations.size());
+          configurations[configuration_key] = id;
+          Instrument config = instrument;
+          IonSource ion_source;
+          ion_source.setIonizationMethod(mapIonization(ionization));
+          ion_source.setOrder(1);
+          ion_source.setMetaValue("ionization accession", openms::thermo_bridge::cv_ionization_mode(ionization).accession);
+          config.getIonSources().push_back(ion_source);
+          MassAnalyzer mass_analyzer;
+          mass_analyzer.setType(mapAnalyzer(analyzer, model));
+          mass_analyzer.setOrder(2);
+          mass_analyzer.setMetaValue("mass analyzer accession", openms::thermo_bridge::cv_mass_analyzer(analyzer, model).accession);
+          config.getMassAnalyzers().push_back(mass_analyzer);
+          IonDetector detector;
+          detector.setType(analyzer == "MassAnalyzerASTMS" ? IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER
+                                                           : detectorForAnalyzer(mass_analyzer.getType()));
+          detector.setOrder(3);
+          config.getIonDetectors().push_back(detector);
+          if (id != "ic_0") { exp.getInstrumentConfigurations()[id] = config; }
+          if (configurations.size() == 1) { exp.setInstrument(config); }
+        }
+        if (configurations.at(configuration_key) != "ic_0")
+        {
+          acquisition.setMetaValue("instrument_configuration_ref", configurations.at(configuration_key));
+        }
+        spectrum.getAcquisitionInfo().push_back(acquisition);
+        ScanWindow window;
+        window.begin = numeric(meta, "low_mass");
+        window.end = numeric(meta, "high_mass");
+        if (meta.at("low_mass").is_number() && meta.at("high_mass").is_number() && window.end >= window.begin)
+        {
+          spectrum.getInstrumentSettings().getScanWindows().push_back(window);
+        }
+        if (meta.at("tic").is_number()) { spectrum.setMetaValue("total ion current", numeric(meta, "tic")); }
+        if (meta.at("base_peak_mass").is_number())
+        {
+          spectrum.setMetaValue("base peak m/z", ms_unit_value(numeric(meta, "base_peak_mass"), 1000040));
+        }
+        if (meta.at("base_peak_intensity").is_number())
+        {
+          spectrum.setMetaValue("base peak intensity", ms_unit_value(numeric(meta, "base_peak_intensity"), 1000131));
+        }
+        const bool neutral = order == "Nl" || order == "Ng";
+        if (neutral && ! meta.at("reactions").empty())
+        {
+          const auto& reaction = meta.at("reactions").front();
+          spectrum.setMetaValue(order == "Nl" ? "neutral loss" : "neutral gain", numeric(reaction, "precursor_mass"));
+          Product product;
+          const double width = numeric(reaction, "isolation_width", -1);
+          const double offset = numeric(reaction, "isolation_offset");
+          if (width >= 0 && width / 2 >= std::abs(offset))
+          {
+            product.setIsolationWindowLowerOffset(width / 2 - offset);
+            product.setIsolationWindowUpperOffset(width / 2 + offset);
+          }
+          spectrum.getProducts().push_back(product);
+        }
+        for (const auto& descriptor : neutral ? Json::array() : precursor_parser.precursors(meta))
+        {
+          Precursor precursor;
+          precursor.setMZ(numeric(descriptor, "selected_mz")); // OpenMS default: selected ion
+          precursor.setMetaValue("isolation window target m/z", numeric(descriptor, "target_mz"));
+          precursor.setMetaValue("selected ion m/z", numeric(descriptor, "selected_mz"));
+          if (descriptor.at("charge").is_number()) { precursor.setCharge(static_cast<int>(numeric(descriptor, "charge"))); }
+          if (descriptor.at("width").is_number())
+          {
+            const double lower = numeric(descriptor, "lower_offset"), upper = numeric(descriptor, "upper_offset");
+            if (lower >= 0) { precursor.setIsolationWindowLowerOffset(lower); }
+            if (upper >= 0) { precursor.setIsolationWindowUpperOffset(upper); }
+            if (lower <= 0) { precursor.setMetaValue("isolation window lower offset", lower); }
+            if (upper <= 0) { precursor.setMetaValue("isolation window upper offset", upper); }
+          }
+          if (! text(descriptor, "spectrum_ref").empty()) { precursor.setMetaValue("spectrum_ref", text(descriptor, "spectrum_ref")); }
+          activation(precursor, descriptor.at("activation"), false);
+          if (descriptor.at("supplemental").is_object()) { activation(precursor, descriptor.at("supplemental"), true); }
+          auto parent = spectrum_by_scan.find(descriptor.at("parent_scan").get<int>());
+          if (descriptor.at("estimate_intensity").get<bool>() && parent != spectrum_by_scan.end() && precursor.getMZ() > 0)
+          {
+            // TRFP's precursor-intensity estimate sums the target +/- 1.5 m/z.
+            double intensity = 0;
+            const auto& parent_spectrum = exp[parent->second];
+            const double target = numeric(descriptor, "target_mz");
+            const double half_width = numeric(descriptor, "width") > 0 ? 1.5 : 0.0;
+            for (auto peak = parent_spectrum.MZBegin(target - half_width); peak != parent_spectrum.end() && peak->getMZ() < target + half_width;
+                 ++peak)
+            {
+              intensity += peak->getIntensity();
+            }
+            precursor.setIntensity(intensity);
+            if (intensity == 0) { precursor.setMetaValue("peak intensity", 0.0); }
+            precursor.setMetaValue("peak intensity unit accession", "MS:1000131");
+          }
+          spectrum.getPrecursors().push_back(precursor);
+        }
+        auto data = raw.spectrum_data(scan, options_.centroid);
+        spectrum.resize(data.mz.size());
+        for (Size i = 0; i < data.mz.size(); ++i)
+        {
+          spectrum[i].setMZ(data.mz[i]);
+          spectrum[i].setIntensity(data.intensities[i]);
+        }
+        if (! data.mz.empty())
+        {
+          if (centroid)
+          {
+            const Size basepeak = std::distance(data.intensities.begin(), std::max_element(data.intensities.begin(), data.intensities.end()));
+            spectrum.setMetaValue("base peak m/z", ms_unit_value(data.mz[basepeak], 1000040));
+            spectrum.setMetaValue("base peak intensity", ms_unit_value(data.intensities[basepeak], 1000131));
+          }
+          const auto [lo, hi] = std::minmax_element(data.mz.begin(), data.mz.end());
+          spectrum.setMetaValue("lowest observed m/z", ms_unit_value(*lo, 1000040));
+          spectrum.setMetaValue("highest observed m/z", ms_unit_value(*hi, 1000040));
+        }
+        if (options_.charge_data && options_.centroid)
+        {
+          auto charges = raw.spectrum_auxiliary_array(scan, 0);
+          if (! charges.empty() && charges.size() == spectrum.size())
+          {
+            MSSpectrum::IntegerDataArray array;
+            array.setName("charge array");
+            for (double charge : charges)
+            {
+              array.push_back(static_cast<Int64>(charge));
+            }
+            spectrum.getIntegerDataArrays().push_back(std::move(array));
+          }
+        }
+        // The independently sampled noise grid must not be sorted/filtered with
+        // peaks. Store double lists; MzMLHandler serializes these as 64-bit
+        // binary arrays.
+        if (options_.noise_data)
+        {
+          const char* names[] = {"", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"};
+          for (int kind = 1; kind <= 3; ++kind)
+          {
+            auto values = raw.spectrum_auxiliary_array(scan, kind);
+            if (! values.empty()) { spectrum.setMetaValue(names[kind], values); }
+          }
+        }
+        spectrum.getDataProcessing().push_back(processing);
+        if (! spectrum.isSorted()) { spectrum.sortByPosition(); }
+        spectrum_by_scan[scan] = exp.size();
+        exp.addSpectrum(std::move(spectrum));
+      }
+      endProgress();
+      const auto data = raw.chromatogram_data();
+      MSChromatogram tic;
+      tic.setNativeID("TIC");
+      tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+      for (Size i = 0; i < data.times.size(); ++i)
+      {
+        tic.push_back(ChromatogramPeak(data.times[i] * 60.0, data.intensities[i]));
+      }
+      tic.getDataProcessing().push_back(processing);
+      if (! tic.empty()) { exp.addChromatogram(std::move(tic)); }
+    }
+    if (options_.all_detectors)
+    {
+      const Json detectors = Json::parse(raw.detector_chromatograms_json());
+      for (const auto& trace : detectors.at("chromatograms"))
+      {
+        MSChromatogram chromatogram;
+        chromatogram.setNativeID(text(trace, "native_id"));
+        chromatogram.setName(text(trace, "label"));
+        const std::string label = text(trace, "label"), device = text(trace, "device");
+        const bool absorption = device == "UV" || device == "Pda";
+        chromatogram.setChromatogramType(absorption ? ChromatogramSettings::ChromatogramType::ABSORPTION_CHROMATOGRAM
+                                                    : ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM);
+        chromatogram.setMetaValue("Thermo detector units", text(trace, "units"));
+        if (absorption) { chromatogram.setMetaValue("mzml intensity array", "absorption"); }
+        else if (containsCI(label, "pressure"))
+        {
+          chromatogram.setMetaValue("chromatogram type accession", "MS:1003019");
+          chromatogram.setMetaValue("mzml intensity array", "pressure");
+        }
+        else if (containsCI(label, "flow"))
+        {
+          chromatogram.setMetaValue("chromatogram type accession", "MS:1003020");
+          chromatogram.setMetaValue("mzml intensity array", "flow");
+        }
+        else if (! containsCI(label, "current") && ! containsCI(label, "fid"))
+        {
+          chromatogram.setMetaValue("chromatogram type accession", "MS:1000626");
+          chromatogram.setMetaValue("mzml intensity array", "nonstandard");
+        }
+        const auto times = trace.at("times").get<std::vector<double>>();
+        const auto values = trace.at("intensities").get<std::vector<double>>();
+        if (times.size() != values.size()) { throw std::runtime_error("Inconsistent Thermo detector array lengths"); }
+        for (Size i = 0; i < times.size(); ++i)
+        {
+          chromatogram.push_back(ChromatogramPeak(times[i] * 60.0, values[i]));
+        }
+        chromatogram.getDataProcessing().push_back(processing);
+        exp.addChromatogram(std::move(chromatogram));
+      }
+      for (const auto& controller : metadata.at("controllers"))
+      {
+        if (text(controller, "name") != "Pda") { continue; }
+        raw.select_instrument(controller.at("type").get<int>(), controller.at("number").get<int>());
+        for (int scan = raw.first_scan_number(); scan <= raw.last_scan_number(); ++scan)
+        {
+          const Json meta = Json::parse(raw.scan_metadata_json(scan));
+          MSSpectrum spectrum;
+          spectrum.setNativeID(text(meta, "native_id"));
+          spectrum.setRT(meta.at("retention_time").get<double>() * 60.0);
+          spectrum.setMSLevel(0);
+          spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
+          spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
+          spectrum.setMetaValue("mzml coordinate array", "wavelength");
+          spectrum.setMetaValue("mzml intensity array", "absorption");
+          Acquisition acquisition;
+          spectrum.getAcquisitionInfo().push_back(acquisition);
+          ScanWindow window;
+          window.begin = numeric(meta, "low_wavelength");
+          window.end = numeric(meta, "high_wavelength");
+          window.setMetaValue("unit_accession", "UO:0000018");
+          if (meta.at("low_wavelength").is_number() && meta.at("high_wavelength").is_number())
+          {
+            spectrum.getInstrumentSettings().getScanWindows().push_back(window);
+          }
+          const auto data = raw.spectrum_data(scan, false);
+          for (Size i = 0; i < data.mz.size(); ++i)
+          {
+            Peak1D peak;
+            peak.setMZ(data.mz[i]);
+            peak.setIntensity(data.intensities[i]);
+            spectrum.push_back(peak);
+          }
+          if (! data.mz.empty())
+          {
+            const auto [lo, hi] = std::minmax_element(data.mz.begin(), data.mz.end());
+            spectrum.setMetaValue("lowest observed wavelength", unit_value(*lo, 18));
+            spectrum.setMetaValue("highest observed wavelength", unit_value(*hi, 18));
+          }
+          spectrum.getDataProcessing().push_back(processing);
+          exp.addSpectrum(std::move(spectrum));
+        }
+      }
+    }
+    exp.sortSpectra(true);
+    exp.updateRanges();
+  }
+  catch (const std::exception& error)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::string("Thermo RAW reader: ") + error.what());
+  }
+}
+
+} // namespace OpenMS
 #endif // WITH_THERMO_RAW
