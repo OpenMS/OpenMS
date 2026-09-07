@@ -102,6 +102,19 @@ int main()
     check(op[0]["target_mz"] == 300, "Truncated file starts at last reaction");
     check(op[0]["spectrum_ref"] == "" && op[0]["width"].is_null(), "No fabricated parent or negative width");
 
+    // Lumos/Tribrid files can point the master scan of an MS2 at a sibling MS2 of the same
+    // precursor (e.g. HCD scan first, then EThcD). The sibling's reaction must not be consumed.
+    auto sibling = scan(14, 2, "FTMS + c ESI d Full ms2 432.90@hcd30.00 [100-1300]", Json::array({reaction(432.9, "HigherEnergyCollisionalDissociation")}));
+    trailer(sibling, "Master Scan Number:", "10");
+    check(parser.precursors(sibling)[0]["parent_scan"] == 10, "Sibling descends from the MS1");
+    auto ethcd = scan(15, 2, "FTMS + c ESI d sa Full ms2 432.90@etd54.00 432.90@hcd30.00 [100-1300]",
+                      Json::array({reaction(432.9, "ElectronTransferDissociation"), reaction(432.9, "HigherEnergyCollisionalDissociation")}));
+    trailer(ethcd, "Master Scan Number:", "14");
+    auto pe = parser.precursors(ethcd);
+    check(pe.size() == 1 && pe[0]["activation"]["activation"] == "ElectronTransferDissociation", "Same-order master does not consume the primary reaction");
+    check(pe[0]["supplemental"].is_object() && pe[0]["supplemental"]["activation"] == "HigherEnergyCollisionalDissociation", "Supplemental HCD retained");
+    check(pe[0]["parent_scan"] == 10 && pe[0]["spectrum_ref"] == "controllerType=0 controllerNumber=1 scan=10", "Resolve the sibling's own parent");
+
     auto unusual = scan(13, 2, "ITMS + c NSI Full ms2 500.00@cid35.00 500.00@hcd20.00 [100-1000]",
                         Json::array({reaction(500), reaction(500, "HigherEnergyCollisionalDissociation")}));
     trailer(unusual, "Master Scan Number:", "10");

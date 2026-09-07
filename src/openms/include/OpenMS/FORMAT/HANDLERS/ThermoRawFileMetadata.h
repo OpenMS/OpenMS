@@ -78,14 +78,22 @@ public:
     int parent
       = master.is_number() && master.get<double>() > 0 && master.get<double>() < scan_number ? static_cast<int>(master.get<double>()) : fallback;
     auto parent_it = scans_.find(parent);
+    // A master scan of the same MS order is a sibling (Tribrid decision trees, or several
+    // activations of one isolation such as HCD / ETD / EThcD scans of the same precursor).
+    // Its reactions do not apply here; descend from the scan the sibling was triggered by.
+    if (parent_it != scans_.end() && parent_it->second.level == level)
+    {
+      parent = parent_it->second.parent;
+      parent_it = scans_.find(parent);
+    }
     std::size_t index = parent_it == scans_.end() ? lastReaction_(reactions) : parent_it->second.reactions;
-    // Tribrid decision-tree scans may refer to a scan of the same MS order.
-    if (index >= reactions.size() && parent_it != scans_.end() && parent_it->second.level == level)
+    if (index >= reactions.size() && parent_it != scans_.end())
     {
       parent = fallback;
       parent_it = scans_.find(parent);
       index = parent_it == scans_.end() ? lastReaction_(reactions) : parent_it->second.reactions;
     }
+    state.parent = parent_it == scans_.end() ? 0 : parent;
     if (index < reactions.size())
     {
       const auto& reaction = reactions[index];
@@ -143,7 +151,8 @@ private:
   struct State
   {
     int level = 1;
-    std::size_t reactions = 0;
+    int parent = 0;              ///< scan this one descends from (0 if unknown)
+    std::size_t reactions = 0;   ///< reactions consumed up to and including this scan
     std::string native_id;
     nlohmann::json precursors = nlohmann::json::array();
   };
