@@ -619,7 +619,7 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        4c0edddf5a49879e0470b0ca08cfe9955ceba3c9
+      GIT_TAG        v0.3.0
     )
 
     # Configure the thermo bridge build options

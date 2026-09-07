@@ -37,7 +37,7 @@ set -euo pipefail
 
 # Git tag or commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
 # cmake/cmake_findExternalLibs.cmake (checked below).
-BRIDGE_TAG="4c0edddf5a49879e0470b0ca08cfe9955ceba3c9"
+BRIDGE_TAG="v0.3.0"
 RAW_URL="https://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
 RAW_SHA256="3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f"
 
@@ -126,7 +126,7 @@ elif [[ -z "$managed_sha256" ]]; then
 else
   zip_name="openms-thermo-bridge-managed-${platform}-${BRIDGE_TAG}.zip"
   zip_path="$(mktemp -d)/${zip_name}"
-  download "https://github.com/jpfeuffer/openms-thermo-bridge/releases/download/${BRIDGE_TAG}/${zip_name}" \
+  download "https://github.com/OpenMS/openms-thermo-bridge/releases/download/${BRIDGE_TAG}/${zip_name}" \
            "$zip_path" "${managed_sha256}"
   # cmake -E tar is available on every runner and understands zip on all platforms.
   (cd "${dest}/thermo-managed" && cmake -E tar xf "$zip_path")
