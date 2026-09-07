@@ -1,0 +1,92 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+/**
+  @page thermo_raw_mzml Thermo RAW to mzML with metadata preservation
+
+  @tableofcontents
+
+  %ThermoRawFile requires the openms-thermo-bridge revision pinned in
+  <tt>cmake/cmake_findExternalLibs.cmake</tt> (native and managed components from the same
+  revision; see @ref install_linux "WITH_THERMO_RAW" for how to enable the bridge in your build).
+  It loads source SHA-1, the complete creation timestamp,
+  sample fields, user sample fields, embedded method texts and the full scan trailer.
+  Vendor values without a confirmed standardized unit are kept under <tt>Thermo ...</tt>
+  metadata keys; they are not assigned guessed units.
+
+  @section thermo_raw_mzml_usage Usage
+
+  @code
+  OpenMS::ThermoRawFile reader;
+  OpenMS::ThermoRawFile::Options options;
+  options.centroid = true;       // matches TRFP's default peak picking
+  options.charge_data = true;    // TRFP --chargeData
+  options.noise_data = true;     // TRFP --noiseData
+  options.all_detectors = true;  // TRFP --allDetectors
+  reader.setOptions(options);
+  OpenMS::MSExperiment experiment;
+  reader.load("input.raw", experiment);
+  OpenMS::MzMLFile().store("output.mzML", experiment);
+  @endcode
+
+  The same options are exposed in pyOpenMS as <tt>ThermoRawFileOptions</tt> and through
+  <tt>ThermoRawFile.getOptions()</tt> / <tt>setOptions()</tt>. The default preserves the acquired
+  profile/centroid representation; compare with TRFP's no-peak-picking mode or
+  set <tt>centroid = true</tt> on both conversion paths. Optional charge/noise/detector
+  exports are disabled by default. Trailer preservation, methods and SHA-1 are on;
+  each can be disabled separately to control output size or hashing cost.
+
+  @section thermo_raw_mzml_mapping Metadata mapping
+
+  <table>
+  <tr><th>Metadata</th><th>%OpenMS representation</th></tr>
+  <tr><td>Default instrument</td><td><tt>MSExperiment.getInstrument()</tt></td></tr>
+  <tr><td>Other analyzer/source configurations</td><td><tt>getInstrumentConfigurations()</tt>, referenced by acquisition <tt>instrument_configuration_ref</tt></td></tr>
+  <tr><td>Isolation target versus monoisotopic selection</td><td><tt>Precursor.getMZ()</tt> is the selected ion; <tt>isolation window target m/z</tt> metadata preserves the target</td></tr>
+  <tr><td>MSn hierarchy and SPS</td><td>Ordered precursor list with each precursor's <tt>spectrum_ref</tt>; ancestor descriptors retain their own references</td></tr>
+  <tr><td>Supplemental activation</td><td>Separate supplemental CID/HCD and collision energy metadata; main activation remains distinct</td></tr>
+  <tr><td>Full trailer</td><td>Acquisition <tt>Thermo trailer extra</tt>, JSON label/value pairs</td></tr>
+  <tr><td>Embedded methods</td><td>Experiment <tt>Thermo instrument methods</tt>, JSON string array</td></tr>
+  <tr><td>Native peak charges</td><td>Integer data array named <tt>charge array</tt></td></tr>
+  <tr><td>Sampled noise</td><td>Double-list metadata named <tt>sampled noise m/z array</tt>, <tt>sampled noise intensity array</tt>, <tt>sampled noise baseline array</tt>; written as independent 64-bit mzML binary arrays</td></tr>
+  <tr><td>PDA spectra</td><td>Wavelength coordinates in the peak position slot, absorption scan mode and <tt>mzml coordinate array = wavelength</tt> / <tt>mzml intensity array = absorption</tt></td></tr>
+  <tr><td>Detector signals</td><td>Chromatograms with original labels/units; pressure/flow/absorption CV array types retained</td></tr>
+  </table>
+
+  Sampled noise is deliberately separate from peak annotations. Its point count
+  and mass grid can differ from the spectrum; sorting or restricting spectrum
+  peaks does not reorder, truncate or reduce precision in these arrays.
+
+  The target is comparable mzML content, not identical XML bytes: %OpenMS writes
+  retention times in seconds, has its own software/data-processing records and
+  compression/index layout, and its peak intensity container is float32. Extra
+  vendor metadata is preserved beyond what TRFP writes to mzML. Match centroiding
+  and optional export flags before comparing the files. Independently sampled
+  noise values and m/z coordinates retain double precision.
+
+  Regression coverage includes the standalone <tt>ThermoRawFileMetadata_test</tt> for
+  precursor reconstruction, <tt>MzMLFile_test</tt> for synthetic metadata round trips,
+  <tt>ExperimentalSettings_test</tt> for configuration ownership, and <tt>ThermoRawFile_test</tt>
+  for RAW-to-mzML integration when <tt>ENABLE_THERMO_RAW_TESTS=ON</tt>. Python API tests
+  are in <tt>test_ThermoRawFile.py</tt>.
+
+  @section thermo_raw_mzml_building Building the paired branches locally
+
+  The bridge source revision is pinned in <tt>cmake_findExternalLibs.cmake</tt> and the
+  vcpkg overlay. The paired bridge is published in
+  https://github.com/OpenMS/openms-thermo-bridge/pull/11 . To use a local checkout,
+  use CMake's standard
+  <tt>-DFETCHCONTENT_SOURCE_DIR_OPENMSTHERMOBRIDGE=/absolute/path/to/openms-thermo-bridge</tt>
+  override to use the paired checkout. A matching prebuilt managed directory can
+  be supplied with <tt>OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR</tt>; otherwise a .NET 8
+  SDK is required. Older system/vcpkg installations of the bridge are rejected by
+  the minimum-version check. The vcpkg overlay builds the matching managed component
+  from source and requires a .NET 8 SDK on the build host; it does not depend on a
+  pre-built binary asset. The overlay fetches the pinned GitHub source archive with
+  a verified SHA-512 checksum.
+*/
