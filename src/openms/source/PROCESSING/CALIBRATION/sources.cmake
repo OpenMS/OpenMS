@@ -4,6 +4,7 @@ set(directory source/PROCESSING/CALIBRATION)
 ### list all filenames of the directory here
 set(sources_list
 InternalCalibration.cpp
+MassErrorEstimator.cpp
 MZTrafoModel.cpp
 PrecursorCorrection.cpp
 )
