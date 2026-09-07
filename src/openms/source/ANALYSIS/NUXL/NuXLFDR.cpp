@@ -80,12 +80,11 @@ namespace OpenMS
       {
         // spectrum already identified
         size_t index = native_id_to_id_index.at(pi.getMetaValue("spectrum_reference"));
-        auto hits = peptide_ids[index].getHits();
-        for (auto h : pi.getHits())
+        auto& hits = peptide_ids[index].getHits();
+        for (const auto& h : pi.getHits())
         {
           hits.push_back(h);
         }
-        peptide_ids[index].setHits(hits);
         peptide_ids[index].sort();
       }
     }

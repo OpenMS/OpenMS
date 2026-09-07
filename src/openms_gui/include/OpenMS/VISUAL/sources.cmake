@@ -52,7 +52,6 @@ RecentFilesMenu.h
 SequenceVisualizer.h
 SpectraTreeTab.h
 SpectraIDViewTab.h
-SwathLibraryStats.h
 TableView.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h

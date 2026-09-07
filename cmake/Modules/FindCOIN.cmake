@@ -54,12 +54,15 @@ find_path(COIN_SYS_INCLUDE_DIR coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsCo
   ${COIN_ROOT_DIR}/include
 )
 
-if (COIN_SYS_INCLUDE_DIR)
+if(VCPKG_TOOLCHAIN AND COIN_VCPKG_INCLUDE_DIR)
+  set(COIN_INCLUDE_DIR ${COIN_VCPKG_INCLUDE_DIR})
+  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN CACHE)
+elseif(COIN_SYS_INCLUDE_DIR)
   set(COIN_INCLUDE_DIR ${COIN_SYS_INCLUDE_DIR})
   set(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN 1 CACHE BOOL "If the subdir for including coin-or headers is 'coin' (1) or 'coin-or' (undefined).")
 elseif (COIN_VCPKG_INCLUDE_DIR)
   set(COIN_INCLUDE_DIR ${COIN_VCPKG_INCLUDE_DIR})
-  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN)
+  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN CACHE)
 endif() # find_package_handle_standard_args will handle missingness
 
 # helper macro to find specific coin sub-libraries
@@ -117,7 +120,7 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
 
     # create final library to be exported
     select_library_configurations(COIN_${_libname})
-    if(NOT TARGET COIN_${_libname})
+    if(NOT TARGET CoinOR::${_libname})
       add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static instead of UNKNOWN
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION "${COIN_${_libname}_LIBRARY_RELEASE}")
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION_DEBUG "${COIN_${_libname}_LIBRARY_DEBUG}")
@@ -138,8 +141,8 @@ if(NOT TARGET CoinOR::CoinOR)
     #  Maybe we can parse a header file? Or try_compile?
     #  The current approach fails if VCPKG toolchain is used but CMake somehow finds
     #  an external coin-or. Should be rare to impossible.
-    find_package(BLAS)
-    find_package(LAPACK)
+    find_package(BLAS REQUIRED)
+    find_package(LAPACK REQUIRED)
     target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
   endif()
 endif()

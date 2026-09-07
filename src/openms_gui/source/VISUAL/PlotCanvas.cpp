@@ -66,7 +66,7 @@ namespace OpenMS
 
     // set move cursor and connect signal that updates the cursor automatically
     updateCursor_();
-    connect(this, SIGNAL(actionModeChange()), this, SLOT(updateCursor_()));
+    connect(this, &PlotCanvas::actionModeChange, this, &PlotCanvas::updateCursor_);
   }
 
   PlotCanvas::~PlotCanvas() = default;

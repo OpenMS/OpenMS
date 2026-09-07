@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.4" id="cm_proteinquantifier_18" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<!--
+	   Minimal input for the file+channel level ("detailed") protein output.
+	   Protein "Protein" has three distinct peptides:
+	     PEPTIDEMK  - two peptidoforms in sample1 (unmodified c2 = 100, Oxidation c3 = 900) -> 1000
+	     AAAAAK     - two charge states in sample1 (c2 = 300, c3 = 200)                     ->  500
+	     CCCCCK     - one observation in sample1 (c2 = 300)                                 ->  300
+	   sample2 sees only AAAAAK (c2 = 20), i.e. a single peptide.
+
+	   For iBAQ: the protein sequence digests into 3 fully tryptic peptides, not 4 -
+	   trypsin does not cleave before proline, so CCCCCK|PEPTIDEMK is not split:
+	     AAAAAK / CCCCCKPEPTIDEMK / EEEEEK
+	-->
+	<IdentificationRun id="PI_0" date="1999-12-31T23:59:59" search_engine="Epifany" search_engine_version="2.6.0">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="Protein" score="0.99" sequence="AAAAAKCCCCCKPEPTIDEMKEEEEEK">
+			</ProteinHit>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.99,PH_0"/>
+			<UserParam type="stringList" name="spectra_data" value="[sample1.mzML,sample2.mzML]" />
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="2">
+		<map id="0" name="sample1.mzML" unique_id="0" label="" size="5">
+		</map>
+		<map id="1" name="sample2.mzML" unique_id="1" label="" size="1">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="1" charge="2">
+			<centroid rt="100" mz="100" it="100"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="100" mz="100" it="100" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
+				<PeptideHit score="1" sequence="PEPTIDEMK" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_1" quality="1" charge="3">
+			<centroid rt="110" mz="110" it="900"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="110" mz="110" it="900" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="110" RT="110" >
+				<PeptideHit score="1" sequence="PEPTIDEM(Oxidation)K" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_2" quality="1" charge="2">
+			<centroid rt="200" mz="200" it="300"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="200" mz="200" it="300" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
+				<PeptideHit score="1" sequence="AAAAAK" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3" quality="1" charge="3">
+			<centroid rt="210" mz="210" it="200"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="210" mz="210" it="200" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="210" RT="210" >
+				<PeptideHit score="1" sequence="AAAAAK" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_4" quality="1" charge="2">
+			<centroid rt="300" mz="300" it="300"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="300" mz="300" it="300" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
+				<PeptideHit score="1" sequence="CCCCCK" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_5" quality="1" charge="2">
+			<centroid rt="400" mz="200" it="20"/>
+			<groupedElementList>
+				<element map="1" id="0" rt="400" mz="200" it="20" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="400" >
+				<PeptideHit score="1" sequence="AAAAAK" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

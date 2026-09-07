@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 ///////////////////////////
 
 using namespace OpenMS;

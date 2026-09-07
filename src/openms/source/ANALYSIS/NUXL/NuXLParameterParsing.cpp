@@ -215,6 +215,7 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
       c_term->setFullId(name + " (C-term)");
       c_term->setTermSpecificity(ResidueModification::C_TERM);
       c_term->setDiffMonoMass(fad.mass);
+      c_term->setProvenance(ResidueModification::DEFINED); // defined at run time, must be serialised
       ModificationsDB::getInstance()->addModification(std::move(c_term));
 
       std::unique_ptr<ResidueModification> n_term{new ResidueModification()};
@@ -223,6 +224,7 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
       n_term->setFullId(name + " (N-term)");
       n_term->setTermSpecificity(ResidueModification::N_TERM);
       n_term->setDiffMonoMass(fad.mass);
+      n_term->setProvenance(ResidueModification::DEFINED); // defined at run time, must be serialised
       ModificationsDB::getInstance()->addModification(std::move(n_term));
     }
   }

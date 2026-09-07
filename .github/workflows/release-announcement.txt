@@ -1,0 +1,13 @@
+Dear OpenMS-Users,
+
+We are proud to announce the release of OpenMS @@VERSION@@. 
+
+Grab it <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/@@VERSION_TYPE@@/@@VERSION@@">here</a>
+
+In the following you find all important changes to the previous version:
+
+@@CHANGELOG@@
+
+Best regards,
+The OpenMS-Developers
+

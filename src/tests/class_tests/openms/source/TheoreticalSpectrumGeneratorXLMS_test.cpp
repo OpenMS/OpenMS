@@ -43,6 +43,21 @@ END_SECTION
 START_SECTION(TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS& source))
   TheoreticalSpectrumGeneratorXLMS copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  TheoreticalSpectrumGeneratorXLMS configured;
+  Param p(configured.getParameters());
+  p.setValue("add_b_ions", "false");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGeneratorXLMS configured_copy(configured);
+
+  AASequence seq = AASequence::fromString("IFSQVGK");
+  PeakSpectrum from_source, from_copy;
+  configured.getLinearIonSpectrum(from_source, seq, 3, true, 2);
+  configured_copy.getLinearIonSpectrum(from_copy, seq, 3, true, 2);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGeneratorXLMS())
@@ -56,6 +71,20 @@ START_SECTION(TheoreticalSpectrumGeneratorXLMS& operator = (const TheoreticalSpe
   TheoreticalSpectrumGeneratorXLMS copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  TheoreticalSpectrumGeneratorXLMS configured;
+  Param p(configured.getParameters());
+  p.setValue("add_b_ions", "false");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGeneratorXLMS assigned;
+  assigned = configured;
+
+  PeakSpectrum from_source, from_assigned;
+  configured.getLinearIonSpectrum(from_source, peptide, 3, true, 2);
+  assigned.getLinearIonSpectrum(from_assigned, peptide, 3, true, 2);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

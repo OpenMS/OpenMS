@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 ///////////////////////////
 
@@ -16,8 +17,17 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <fstream>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -29,6 +39,60 @@ DRange<1> makeRange(double a, double b)
 }
 
 ///////////////////////////
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
+}
 
 START_TEST(FeatureXMLFile, "$Id$")
 
@@ -219,6 +283,82 @@ START_SECTION((void store(const std::string &filename, const FeatureMap&feature_
 }
 END_SECTION
 
+START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
+{
+  // XMLFile::save_() compresses on the fly when the filename ends in
+  // ".gz"/".bz2" and load() transparently decompresses. This verifies that a
+  // store->load round-trip through a compressed file preserves the feature
+  // content (mirrors IdXMLFile_test's compressed round-trip).
+  // Note: a full FeatureMap operator== comparison is intentionally avoided
+  // because store() regenerates invalid unique ids on every call, which is
+  // unrelated to compression; instead the actual feature data is checked.
+  FeatureXMLFile f;
+
+  FeatureMap map_original;
+  f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), map_original);
+  TEST_EQUAL(map_original.size() > 0, true) // guard against a vacuous test
+
+  // read the leading bytes of a file to confirm it is really compressed
+  auto first_bytes = [](const std::string& fn, size_t n) -> std::string
+  {
+    std::ifstream is(fn.c_str(), std::ios::in | std::ios::binary);
+    std::string buf(n, '\0');
+    is.read(&buf[0], static_cast<std::streamsize>(n));
+    buf.resize(static_cast<size_t>(is.gcount()));
+    return buf;
+  };
+
+  // compare the feature content (everything except regenerated unique ids)
+  auto check_same_features = [](const FeatureMap& a, const FeatureMap& b)
+  {
+    TEST_EQUAL(a.size(), b.size())
+    for (Size i = 0; i < a.size() && i < b.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(a[i].getRT(), b[i].getRT())
+      TEST_REAL_SIMILAR(a[i].getMZ(), b[i].getMZ())
+      TEST_REAL_SIMILAR(a[i].getIntensity(), b[i].getIntensity())
+      TEST_EQUAL(a[i].getCharge(), b[i].getCharge())
+      TEST_REAL_SIMILAR(a[i].getOverallQuality(), b[i].getOverallQuality())
+    }
+  };
+
+  // gzip round-trip
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".featureXML.gz";
+    f.store(tmp_gz, map_original);
+
+    // the written file must really be gzip-compressed (magic bytes 0x1f 0x8b),
+    // otherwise the round-trip could pass on a plain-text file with a .gz name
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+
+    FeatureMap map_gz;
+    f.load(tmp_gz, map_gz);
+    check_same_features(map_original, map_gz);
+  }
+
+  // bzip2 round-trip
+  {
+    std::string tmp_bz2;
+    NEW_TMP_FILE(tmp_bz2);
+    tmp_bz2 += ".featureXML.bz2";
+    f.store(tmp_bz2, map_original);
+
+    // the written file must really be bzip2-compressed (magic bytes "BZh")
+    std::string magic = first_bytes(tmp_bz2, 3);
+    TEST_STRING_EQUAL(magic, "BZh")
+
+    FeatureMap map_bz2;
+    f.load(tmp_bz2, map_bz2);
+    check_same_features(map_original, map_bz2);
+  }
+}
+END_SECTION
+
 START_SECTION((FeatureFileOptions & getOptions()))
 {
   FeatureXMLFile f;
@@ -364,6 +504,105 @@ END_SECTION
 
 
 
+START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and unassigned identifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestFXML:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestFXML:Unassigned", 'R', "CH2") != nullptr)
+  FeatureMap map;
+  map.ensureUniqueId();
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestFXML:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestFXML:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  FeatureXMLFile().store(tmp_filename, map);
+  TEST_TRUE(fileContains4b(tmp_filename, "name=\"modification_definitions\""))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestFXML:Assigned|TestFXML:Assigned (K)|"))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestFXML:Unassigned|TestFXML:Unassigned (R)|"))
+
+  FeatureMap in;
+  FeatureXMLFile().load(tmp_filename, in);
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestFXML:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestFXML:Unassigned)IDE")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] load - definitions are registered before the sequences are parsed)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestFXML:Fresh"))
+  FeatureMap map;
+  map.ensureUniqueId();
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestFXML:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b_fresh");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTKIDE"));
+  pep.insertHit(hit);
+  f.getPeptideIdentifications().push_back(pep);
+  map.push_back(f);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  FeatureXMLFile().store(tmp_filename, map);
+  TEST_FALSE(db->hasDefinedModification("TestFXML:Fresh")) // storing registers nothing
+  // a hit using the not-yet-registered name, as a file from another process would carry it
+  TEST_TRUE(replaceInFile4b(tmp_filename, "sequence=\"PEPTKIDE\"", "sequence=\"PEPTK(TestFXML:Fresh)IDE\""))
+
+  FeatureMap in;
+  FeatureXMLFile().load(tmp_filename, in);
+  TEST_TRUE(db->hasDefinedModification("TestFXML:Fresh"))
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestFXML:Fresh)IDE")
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

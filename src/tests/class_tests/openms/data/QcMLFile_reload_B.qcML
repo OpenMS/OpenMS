@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<qcML xmlns="https://github.com/qcML/qcml" >
+	<runQuality ID="runB_id">
+		<qualityParameter name="mzML file" ID="runB_run_name" cvRef="MS" accession="MS:1000577" value="runBeta"/>
+	</runQuality>
+	<setQuality ID="setB_id">
+		<qualityParameter name="raw data file" ID="setB_set_name" cvRef="QC" accession="QC:0000058" value="setBeta"/>
+	</setQuality>
+</qcML>

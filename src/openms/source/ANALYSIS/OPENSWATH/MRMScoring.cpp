@@ -391,14 +391,14 @@ namespace OpenSwath
     // return $deltascore_mean + $deltascore_stdev
     double MRMScoring::calcXcorrCoelutionScore()
     {
-      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_.rows() > 1, "Expect cross-correlation matrix of at least 2x2");
+      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_.rows() > 0, "Expect cross-correlation matrix of at least 1x1");
       return meanStdevUpperTriangle(xcorr_matrix_max_peak_);
     }
 
     double MRMScoring::calcXcorrCoelutionWeightedScore(
             const std::vector<double>& normalized_library_intensity)
     {
-      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_.rows() > 1, "Expect cross-correlation matrix of at least 2x2");
+      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_.rows() > 0, "Expect cross-correlation matrix of at least 1x1");
       return weightedTriangularSum(xcorr_matrix_max_peak_, normalized_library_intensity);
     }
 
@@ -455,14 +455,14 @@ namespace OpenSwath
     ///
     double MRMScoring::calcXcorrShapeScore()
     {
-      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_sec_.rows() > 1, "Expect cross-correlation matrix of at least 2x2");
+      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_sec_.rows() > 0, "Expect cross-correlation matrix of at least 1x1");
       return meanUpperTriangle(xcorr_matrix_max_peak_sec_);
     }
 
     double MRMScoring::calcXcorrShapeWeightedScore(
             const std::vector<double>& normalized_library_intensity)
     {
-      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_sec_.rows() > 1, "Expect cross-correlation matrix of at least 2x2");
+      OPENSWATH_PRECONDITION(xcorr_matrix_max_peak_sec_.rows() > 0, "Expect cross-correlation matrix of at least 1x1");
       return weightedTriangularSum(xcorr_matrix_max_peak_sec_, normalized_library_intensity);
     }
 
@@ -776,7 +776,7 @@ namespace OpenSwath
     
     double MRMScoring::calcMIScore()
     {
-      OPENSWATH_PRECONDITION(mi_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
+      OPENSWATH_PRECONDITION(mi_matrix_.rows() > 0, "Expect mutual information matrix of at least 1x1");
       auto em = OpenMS::eigenView(mi_matrix_);
       double mi_scores = em.sum();
       //mi_matrix_ is a triangular matrix
@@ -787,7 +787,7 @@ namespace OpenSwath
     double MRMScoring::calcMIWeightedScore(
             const std::vector<double>& normalized_library_intensity)
     {
-      OPENSWATH_PRECONDITION(mi_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
+      OPENSWATH_PRECONDITION(mi_matrix_.rows() > 0, "Expect mutual information matrix of at least 1x1");
       return weightedTriangularSum(mi_matrix_, normalized_library_intensity);
     }
 

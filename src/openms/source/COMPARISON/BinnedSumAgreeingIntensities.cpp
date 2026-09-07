@@ -49,7 +49,11 @@ namespace OpenMS
 
   double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
-    OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
+    if (!BinnedSpectrum::isCompatible(spec1, spec2))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Binned spectra have different bin size or spread (incompatible binning)");
+    }
 
     const double sum1 = spec1.getBins()->sum();
     const double sum2 = spec2.getBins()->sum();

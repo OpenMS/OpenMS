@@ -57,7 +57,7 @@ namespace OpenMS
     addLabel_("Show protein hits with score equal or better than a threshold.");
     QPushButton * button;
     addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
-    connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()));
+    connect(button, &QPushButton::clicked, this, &ProteinIdentificationVisualizer::updateTree_);
 
     finishAdding_();
   }

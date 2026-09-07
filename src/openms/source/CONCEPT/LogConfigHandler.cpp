@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using std::cout;
 using std::cerr;

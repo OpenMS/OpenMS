@@ -68,7 +68,10 @@ if(ENABLE_DOCS)
 
   # collection target
   add_custom_target(doc_progs)
-  add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP)
+  add_dependencies(doc_progs ${OpenMS_doc_executables})
+  if(TARGET TOPP)
+    add_dependencies(doc_progs TOPP)
+  endif()
 
   if(WITH_GUI)
     add_dependencies(doc_progs GUI)
@@ -88,8 +91,8 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # the doc targets
   #------------------------------------------------------------------------------
-  # As soon as there is a TeX formula in the html documentation we need LaTeX, dvips and ghostscript.
-  # Probably only affects class documentation.
+  # TeX formulas in the HTML documentation are rendered client-side via MathJax
+  # (USE_MATHJAX=YES in the Doxyfiles), so LaTeX, dvips and ghostscript are not needed.
 
   if (Doxygen_FOUND)
 
@@ -123,7 +126,6 @@ if(ENABLE_DOCS)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_dot)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_noclass)
-    configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_xml)
 
     #------------------------------------------------------------------------------
     # doc paths (bin path, topp documenter, defaultparamhandler documenter)
@@ -254,22 +256,6 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_xml target
-    add_custom_target(doc_xml
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating XML documentation"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E remove_directory xml_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_xml
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "The XML documentation has been successfully created."
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMENT "Build the doxygen documentation"
-                      VERBATIM)
-
-    #------------------------------------------------------------------------------
     # doc_noclass target
     add_custom_target(doc_noclass
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -310,7 +296,9 @@ if(ENABLE_DOCS)
     # add virtual dependency of doc_minimal on TOPP
     # this is not necessary but defers the generation of doc_minimal to a later
     # stage to avoid confusion if doc_minimal is built first
-    add_dependencies(doc_minimal TOPP)
+    if(TARGET TOPP)
+      add_dependencies(doc_minimal TOPP)
+    endif()
 
     if (TARGET Doxygen::dot)
       #------------------------------------------------------------------------------

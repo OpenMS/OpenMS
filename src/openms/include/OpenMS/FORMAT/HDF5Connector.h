@@ -10,7 +10,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 // forward declarations
 namespace H5

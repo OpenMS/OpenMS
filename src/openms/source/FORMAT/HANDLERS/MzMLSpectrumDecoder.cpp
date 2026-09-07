@@ -16,6 +16,7 @@
 #include <xercesc/dom/DOMNodeList.hpp>
 
 #include <memory>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -422,8 +423,9 @@ namespace OpenMS
     return sptr;
   }
 
-  void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data)
+  void MzMLSpectrumDecoder::handleBinaryDataArray_(void* indexListNode_opaque, std::vector<BinaryData>& data)
   {
+    xercesc::DOMNode* indexListNode = static_cast<xercesc::DOMNode*>(indexListNode_opaque);
     // access result through data.back()
     data.emplace_back();
 

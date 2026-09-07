@@ -11,6 +11,8 @@ ParameterInformation.h
 SearchEngineBase.h
 ToolHandler.h
 TOPPBase.h
+TOPPBase_defs.h
+TOPPExternalToolBase.h
 )
 
 ### add path to the filenames

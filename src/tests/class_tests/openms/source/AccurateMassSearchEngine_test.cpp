@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -282,7 +283,7 @@ END_SECTION
 FuzzyStringComparator fsc;
 // fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1); // 1.3242891228060217e-10
 // also Linux may give slightly different results depending on optimization level (O0 vs O1) 
-// note that the default value for TEST_REAL_SIMILAR is 1e-5, see ./source/CONCEPT/ClassTest.cpp
+// note that the default value for TEST_REAL_SIMILAR is 1e-5, see src/testframework/source/CONCEPT/ClassTest.cpp
 fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
@@ -420,4 +421,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

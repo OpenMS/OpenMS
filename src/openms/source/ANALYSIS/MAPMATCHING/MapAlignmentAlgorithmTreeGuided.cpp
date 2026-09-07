@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 // calculate pearson distance
 #include <OpenMS/MATH/StatisticFunctions.h>

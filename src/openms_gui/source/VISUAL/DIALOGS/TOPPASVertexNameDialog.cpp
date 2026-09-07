@@ -29,8 +29,8 @@ namespace OpenMS
     }
 
     ui_->line_edit->setText(name);
-    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->ok_button, &QPushButton::clicked, this, &QDialog::accept);
+    connect(ui_->cancel_button, &QPushButton::clicked, this, &QDialog::reject);
   }
 
   TOPPASVertexNameDialog::~TOPPASVertexNameDialog()

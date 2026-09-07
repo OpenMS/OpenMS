@@ -13,9 +13,6 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
-// forward declarations
-struct sqlite3;
-
 namespace OpenMS
 {
 

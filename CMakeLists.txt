@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
@@ -8,6 +8,24 @@
 
 
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+
+# The vcpkg toolchain must be selected before project() initializes compilers.
+# Existing system/contrib dependency discovery remains the default.
+option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management." OFF)
+
+if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
+  set(_openms_submodule_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
+  if(EXISTS "${_openms_submodule_vcpkg_toolchain}")
+    set(CMAKE_TOOLCHAIN_FILE "${_openms_submodule_vcpkg_toolchain}" CACHE FILEPATH "CMake toolchain file")
+  else()
+    message(FATAL_ERROR
+      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found. Initialize the "
+      "vcpkg submodule or set CMAKE_TOOLCHAIN_FILE.")
+  endif()
+
+  unset(_openms_submodule_vcpkg_toolchain)
+endif()
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -54,6 +72,8 @@ option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
+option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
+option(INSTALL_OPENMS_EXAMPLES "Install the OpenMS example data." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
@@ -69,6 +89,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
 endif()
 option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
+option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
@@ -89,6 +110,9 @@ endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
+endif()
+if(ENABLE_CWL_GENERATION AND NOT BUILD_TOPP_TOOLS)
+    message(FATAL_ERROR "ENABLE_CWL_GENERATION requires BUILD_TOPP_TOOLS to be ON.")
 endif()
 
 if(MSVC)
@@ -146,6 +170,38 @@ if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
   )
   FetchContent_MakeAvailable(thermo_raw_testdata)
   set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/Angiotensin_AllScans.raw" CACHE PATH "Path to Thermo RAW test file")
+endif()
+
+# Optional end-to-end FAIMS-DIA integration fixture. A developer can either set
+# THERMO_FAIMS_DIA_TEST_DATA explicitly to an existing local RAW file, or enable
+# ENABLE_THERMO_FAIMS_DIA_TESTS to fetch the pinned public PRIDE fixture. The
+# ~308 MB download remains opt-in and is not part of normal OpenMS builds/tests.
+set(THERMO_FAIMS_DIA_TEST_DATA "${THERMO_FAIMS_DIA_TEST_DATA}" CACHE FILEPATH
+    "Path to a Thermo FAIMS-DIA RAW file for integration testing")
+if (ENABLE_THERMO_FAIMS_DIA_TESTS AND WITH_THERMO_RAW AND NOT THERMO_FAIMS_DIA_TEST_DATA)
+  include(FetchContent)
+  # Public single-CV FAIMS-DIA run from PRIDE PXD029902. The pinned hash fixes
+  # the exact 308,209,820-byte input used by ThermoRawFile_test.
+  FetchContent_Declare(
+    thermo_faims_dia_testdata
+    URL "https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/08/PXD029902/20210213_WTC11_DIA_5CV.raw"
+    URL_HASH SHA256=e98b2cc95d162b1dfd24cf003434ef0deef085d7c99ffc0fde695aec8bf236b1
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(thermo_faims_dia_testdata)
+  set(THERMO_FAIMS_DIA_TEST_DATA
+      "${thermo_faims_dia_testdata_SOURCE_DIR}/20210213_WTC11_DIA_5CV.raw"
+      CACHE FILEPATH "Path to a Thermo FAIMS-DIA RAW file for integration testing" FORCE)
+endif()
+
+if (THERMO_FAIMS_DIA_TEST_DATA AND NOT EXISTS "${THERMO_FAIMS_DIA_TEST_DATA}")
+  message(FATAL_ERROR
+    "THERMO_FAIMS_DIA_TEST_DATA does not exist: ${THERMO_FAIMS_DIA_TEST_DATA}")
+endif()
+
+if ((ENABLE_THERMO_FAIMS_DIA_TESTS OR THERMO_FAIMS_DIA_TEST_DATA) AND NOT WITH_THERMO_RAW)
+  message(WARNING
+    "Thermo FAIMS-DIA integration testing was requested but WITH_THERMO_RAW=OFF; the test will not run.")
 endif()
 
 #------------------------------------------------------------------------------
@@ -235,6 +291,11 @@ endif()
 #------------------------------------------------------------------------------
 # Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
 #------------------------------------------------------------------------------
+if(OPENMS_USE_VCPKG)
+  message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
+else()
+  message(STATUS "Dependency provider: system/contrib")
+endif()
 include(cmake/setup_lib_find_paths.cmake)
 
 #------------------------------------------------------------------------------
@@ -330,7 +391,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Enable AddressSanitizer
-#------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
@@ -459,10 +520,10 @@ if(UNIX)
 			# Since we rely on copying instead of "installing" for KNIME packaging
 			# we need to do it during building already.
 			# In this case, make sure that e.g. Qt is in a system path if you want to test it locally.
-			
+
 			# bakes in "@executable_path/../lib" for all targets
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-			
+
 			# makes sure that our libs are built in a way that their install names are:
 			# @rpath/libOpenMS.dylib
 			# such that when executables link to it, they can look it up via rpath above
@@ -472,18 +533,18 @@ if(UNIX)
 			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
 		endif()
   endif()
-  
+
   # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
   # We need to include all link directories that should be specified by the
   # dependency target to our RPATH as well.
   if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
-  
+
   #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
   #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
   #endif()
-  
+
   # our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
   if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
@@ -529,6 +590,15 @@ include(cmake/cmake_findExternalLibs.cmake)
 ## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
+if(WITH_ONNX)
+  # 1. Tell CMake to look for the package ONLY if the switch is ON.
+  if(OPENMS_USE_VCPKG)
+    find_package(onnxruntime CONFIG REQUIRED)
+  else()
+    find_package(ONNXRuntime REQUIRED)
+  endif() 
+endif()
+
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
@@ -549,6 +619,9 @@ set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.
  Note, this will build all binaries with install RPATHs already in the build folder, so they may not be relocatable anymore. Only enable if needed.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)
+	if(NOT BUILD_TOPP_TOOLS)
+		message(FATAL_ERROR "ENABLE_PREPARE_KNIME_PACKAGE requires BUILD_TOPP_TOOLS to be ON.")
+	endif()
 	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
 
@@ -598,7 +671,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     endif()
     set(CPACK_GENERATOR "ZIP")
     # For now we use the package nsis script to ensure all dependencies
-    # are met for the portable version. 
+    # are met for the portable version.
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()

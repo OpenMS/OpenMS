@@ -6,6 +6,7 @@
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include "FeatureLinkerBase.cpp"
 

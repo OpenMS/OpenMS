@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -414,11 +415,9 @@ protected:
     }
     FeatureMap feature_map;
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
-    // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
-    // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
-    std::string locale_before =std::string(OpenMS::Internal::OpenMS_locale);
+    // Reset it to "C" afterwards. TODO this needs to be fixed more thoroughly.
     FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
-    setlocale(LC_ALL, locale_before.c_str());
+    setlocale(LC_ALL, "C");
     if (feature_map.getIdentifier().empty())
     {
       feature_map.setIdentifier("run0");

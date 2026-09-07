@@ -1,9 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>FLASHDeconvWizard.png</file>
         <file>INIFileEditor.png</file>
         <file>Recycling_symbol.svg</file>
-        <file>SwathWizard.png</file>
         <file>TOPPAS.png</file>
         <file>TOPPAS_Splashscreen.png</file>
         <file>TOPPView.png</file>

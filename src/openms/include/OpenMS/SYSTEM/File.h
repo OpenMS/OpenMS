@@ -82,6 +82,17 @@ public:
     static UInt64 fileSize(const std::string& file);
 
     /**
+       @brief Last modification time of @p file, in seconds since the Unix epoch (or -1 on error).
+
+       Reported against the Unix epoch rather than as a std::filesystem::file_time_type, whose
+       clock epoch is implementation-defined: two standard libraries report different numbers for
+       the same file. That distinction only matters once the value leaves the process -- written
+       to a file, or compared against one another machine recorded -- which is exactly what a
+       caller doing change detection tends to do with it.
+    */
+    static Int64 getModificationTime(const std::string& file);
+
+    /**
        @brief Rename a file
        
        If @p from and @p to point to the same file (symlinks are resolved),
@@ -222,11 +233,27 @@ public:
     */
     static std::string getUniqueName(bool include_hostname = true);
 
-    /// Returns the OpenMS data path (environment variable overwrites the default installation path)
+    /// Returns the OpenMS data path (resolved from the compiled-in path and executable location;
+    /// the OPENMS_DATA_PATH environment variable is only used as a last-resort fallback)
     static std::string getOpenMSDataPath();
+
+    /**
+      @brief Returns a human-readable description of where getOpenMSDataPath() resolved from
+
+      (e.g. "exe-relative (../share/OpenMS)"). Useful for diagnostics.
+    */
+    static const std::string& getOpenMSDataPathSource();
 
     /// Returns the OpenMS home path (environment variable overwrites the default home path)
     static std::string getOpenMSHomePath();
+
+    /// @brief Returns the per-user OpenMS configuration directory (the directory that holds OpenMS.ini)
+    ///
+    /// Follows the XDG base directory specification on unix-like systems
+    /// (&lt;XDG_CONFIG_HOME&gt;/OpenMS or &lt;home&gt;/.config/OpenMS) and uses &lt;home&gt;/.OpenMS otherwise.
+    /// The returned path has no trailing separator and the directory is not guaranteed to exist.
+    /// @return String containing the per-user OpenMS configuration directory path
+    static std::string getOpenMSConfigDir();
 
     /// The current OpenMS temporary data path (for temporary files).
     /// Looks up the following locations, taking the first one which is non-null:
@@ -262,9 +289,18 @@ public:
       E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
             or 'PATH=c:\\temp;c:\\Windows' the result is {"c:/temp/", "c:/Windows/"}
 
-      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+      Uses the value of the $PATH environment variable (or an empty string if $PATH is unset).
     */
-    static StringList getPathLocations(const std::string& path = std::getenv("PATH"));
+    static StringList getPathLocations();
+
+    /**
+      @brief Extract list of directories from an explicit concatenated path string.
+
+      Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
+      All paths use the '/' as separator and end in '/'.
+      Note: the path string is passed as input to enable proper testing (env vars are usually read-only).
+    */
+    static StringList getPathLocations(const std::string& path);
 
     /**
       @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
@@ -343,6 +379,16 @@ private:
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const std::string& path);
 
+    /// Bundles the resolved OpenMS data path with a human-readable description of where it was found (for diagnostics).
+    struct OpenMSDataPath_
+    {
+      std::string path;    ///< the resolved shared-data directory
+      std::string source;  ///< human-readable origin, e.g. "the OPENMS_DATA_PATH environment variable"
+    };
+
+    /// Resolve (once, thread-safe) and return the OpenMS data path together with where it was found.
+    static const OpenMSDataPath_& resolveOpenMSDataPath_();
+
 #ifdef OPENMS_WINDOWSPLATFORM
     /**
       @brief Get list of file suffices to try during search on PATH (usually .exe, .bat etc)
@@ -351,10 +397,18 @@ private:
       If the result does not contain at least ".exe", then we assume the environment variable is broken and return a
       fallback, i.e. {".exe", ".bat"}.
 
-      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
-
+      Uses the value of the %PATHEXT% environment variable (or an empty string if %PATHEXT% is unset).
     */
-    static StringList executableExtensions_(const std::string& ext = std::getenv("PATHEXT"));
+    static StringList executableExtensions_();
+
+    /**
+      @brief Get list of file suffices to try during search on an explicit PATHEXT-like string.
+
+      Input could be ".COM;.EXE;.BAT;.CMD;.VBS".
+      If the result does not contain at least ".exe", then we assume the input is broken and return a
+      fallback, i.e. {".exe", ".bat"}.
+    */
+    static StringList executableExtensions_(const std::string& ext);
 #endif
 
     /**
@@ -380,4 +434,3 @@ private:
     static TemporaryFiles_ temporary_files_;
   };
 }
-

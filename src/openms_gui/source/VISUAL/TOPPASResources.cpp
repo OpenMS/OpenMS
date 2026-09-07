@@ -6,6 +6,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>

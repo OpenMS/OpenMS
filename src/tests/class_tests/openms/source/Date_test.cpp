@@ -14,6 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <iostream>
 #include <vector>
+#include <clocale>
+#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -145,6 +147,53 @@ END_SECTION
 
 START_SECTION((static Date today()))
   TEST_EQUAL(Date::today().isValid(), true)
+END_SECTION
+
+START_SECTION([EXTRA] locale-independent date parsing and formatting)
+{
+  // Date is naive and date-only: set() parses via sscanf("%d.%d.%d", ...) and get()
+  // formats via snprintf("%04d-%02d-%02d", ...) -- both locale-independent integer
+  // operations, with no locale-sensitive number/string functions. So parsing and
+  // formatting must be byte-identical across C locales (e.g. tr_TR's dotted-i,
+  // de_DE's decimal comma). The other sections never vary the locale. (There is no
+  // TZ axis -- Date carries no time-of-day; today(), which reads local time, is
+  // excluded.)
+  auto check_invariant = []()
+  {
+    Date d;
+    UInt mo, dy, yr;
+
+    d.set("01.12.1977");          // dd.mm.yyyy (German)
+    d.get(mo, dy, yr);
+    TEST_EQUAL(mo, 12) TEST_EQUAL(dy, 1) TEST_EQUAL(yr, 1977)
+    TEST_EQUAL(d.get(), "1977-12-01")
+
+    d.set("12/01/1977");          // mm/dd/yyyy (English)
+    TEST_EQUAL(d.get(), "1977-12-01")
+
+    d.set("1967-12-23");          // ISO yyyy-mm-dd
+    TEST_EQUAL(d.get(), "1967-12-23")
+  };
+
+  // Baseline: whatever locale the test process started in.
+  check_invariant();
+
+#ifndef OPENMS_WINDOWSPLATFORM
+  // Vary the C locale (guarded: unavailable locales are simply skipped, so the
+  // section still passes on minimal images that lack de_DE / tr_TR).
+  const char* cur = setlocale(LC_ALL, nullptr);
+  const std::string saved_loc = (cur != nullptr) ? std::string(cur) : std::string("C");
+
+  for (const char* loc : {"C", "POSIX", "de_DE.UTF-8", "tr_TR.UTF-8", "de_DE.utf8", "tr_TR.utf8"})
+  {
+    if (setlocale(LC_ALL, loc) != nullptr)
+    {
+      check_invariant();
+    }
+  }
+  setlocale(LC_ALL, saved_loc.c_str());
+#endif
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

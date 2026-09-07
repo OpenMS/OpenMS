@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <map>
 
 namespace OpenMS

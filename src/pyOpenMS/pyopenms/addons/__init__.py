@@ -51,6 +51,53 @@ def addon(class_name: str, method_name: str | None = None):
     return decorator
 
 
+def register_element_views(class_name: str, singular: str,
+                           count_method: str, plural: str) -> None:
+    """
+    Register the ``<singular>_views()`` / ``iter_<singular>_views()`` pair.
+
+    Every element-view family has the same shape: the C++ binding provides
+    the bounds-checked live accessor ``<singular>_view(i)`` plus a count
+    method, and the plural list and iterator forms are generated here — one
+    template instead of a hand-written pair per family, so the naming scheme
+    and the contract wording cannot drift between families (the view
+    contract itself lives in OWNERSHIP.md).
+
+    Parameters
+    ----------
+    class_name : str
+        Class to register the pair on (as understood by ``addon``).
+    singular : str
+        Singular element name; ``<singular>_view(i)`` must exist on the class.
+    count_method : str
+        Name of the zero-argument method returning the element count.
+    plural : str
+        Noun phrase for the docstrings (e.g. ``"spectra"``,
+        ``"float data arrays"``).
+    """
+    view_name = f"{singular}_view"
+
+    def views(self):
+        view = getattr(self, view_name)
+        return [view(i) for i in range(getattr(self, count_method)())]
+
+    views.__name__ = f"{singular}_views"
+    views.__qualname__ = views.__name__
+    views.__doc__ = f"Returns a list of live views of the {plural} (see {view_name})."
+
+    def iter_views(self):
+        view = getattr(self, view_name)
+        for i in range(getattr(self, count_method)()):
+            yield view(i)
+
+    iter_views.__name__ = f"iter_{singular}_views"
+    iter_views.__qualname__ = iter_views.__name__
+    iter_views.__doc__ = f"Yields live views of the {plural}, one at a time (see {view_name})."
+
+    addon(class_name, views.__name__)(views)
+    addon(class_name, iter_views.__name__)(iter_views)
+
+
 def apply_addons(namespace: Dict[str, Any]) -> None:
     """
     Apply all registered addons to classes in the given namespace.

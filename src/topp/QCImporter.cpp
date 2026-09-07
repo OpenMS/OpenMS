@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <iostream>
 #include <fstream>

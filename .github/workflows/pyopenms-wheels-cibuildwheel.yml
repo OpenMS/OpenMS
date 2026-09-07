@@ -4,6 +4,16 @@
 # using cibuildwheel. It requires OpenMS to be built first on each platform.
 #
 # Trigger: Release tags, nightly branch, develop PRs, or manual dispatch
+#
+# Thermo RAW support: the Linux x86_64, macOS arm64 and Windows wheels are built with
+# WITH_THERMO_RAW=ON. The managed half of openms-thermo-bridge (ThermoWrapperManaged.dll
+# and the Thermo CommonCore assemblies) is taken from the bridge's pre-built release zip
+# via tools/ci/fetch_thermo_assets.sh (retried, SHA-256 pinned, cached between runs)
+# when one is published for the pinned bridge revision; otherwise the bridge publishes
+# it with the .NET SDK during the OpenMS build (NuGet restore + Thermo package download).
+# Compiling the native bridge always needs the nethost headers from a .NET SDK. The
+# finished wheels are smoke-tested by loading a real RAW file. Linux aarch64 stays off:
+# Thermo ships no native RawFileReader dependencies for it.
 
 name: pyopenms-wheels-cibuildwheel
 
@@ -16,7 +26,7 @@ on:
         default: false
   push:
     tags:
-      - 'Release*'
+      - 'v[0-9]*'
     branches: [nightly, py_nightly_test]
   pull_request:
     branches: [develop]
@@ -37,12 +47,13 @@ jobs:
       cibw-build-macos-arm64: ${{ steps.set-versions.outputs.cibw-build-macos-arm64 }}
       cibw-build-windows-x64: ${{ steps.set-versions.outputs.cibw-build-windows-x64 }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           sparse-checkout: |
             .github/workflows/python_versions.json
             CMakeLists.txt
           sparse-checkout-cone-mode: false
+          persist-credentials: false
 
       - name: Read Python versions and calculate package version
         id: set-versions
@@ -103,14 +114,29 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Thermo bridge assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            thermo-managed
+            thermo-testdata
+          key: thermo-assets-linux-x64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
+
+      # Idempotent: reuses cached files after verifying their SHA-256, downloads
+      # (with retries) only what is missing.
+      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+        run: bash tools/ci/fetch_thermo_assets.sh linux-x64 "$GITHUB_WORKSPACE"
 
       - name: Build and install OpenMS in container
         run: |
@@ -120,7 +146,23 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
-              yum install -y cmake ninja-build libcurl-devel
+              # The native thermo bridge compiles against the nethost headers/library
+              # from the .NET host pack, and the same SDK publishes the managed
+              # assemblies unless tools/ci/fetch_thermo_assets.sh provided pre-built
+              # ones. The pinned, SHA-512 verified SDK tarball is used instead of the
+              # distro dotnet-sdk-8.0 RPM, whose host pack is named with the
+              # rhel.9-x64 RID that the bridge does not search (see
+              # tools/ci/install_dotnet_sdk_linux.sh). libicu is the only dependency
+              # the SDK needs.
+              yum install -y cmake ninja-build libcurl-devel libicu
+              bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
+              export DOTNET_ROOT=/usr/share/dotnet
+              export PATH="$DOTNET_ROOT:$PATH"
+              export DOTNET_CLI_TELEMETRY_OPTOUT=1
+              THERMO_MANAGED_OPT=""
+              if [ -f /project/thermo-managed/ThermoWrapperManaged.dll ]; then
+                THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed"
+              fi
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
@@ -131,7 +173,10 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
-                -DWITH_THERMO_RAW=OFF \
+                -DBUILD_TOPP_TOOLS=OFF \
+                -DINSTALL_OPENMS_EXAMPLES=OFF \
+                -DWITH_THERMO_RAW=ON \
+                $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
@@ -159,12 +204,16 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel
-          # Use install directory with stripped libraries
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          # Use install directory with stripped libraries.
+          # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            DOTNET_ROOT=/usr/lib64/dotnet
+            PYOPENMS_THERMO_RAW_TEST_FILE=/project/thermo-testdata/Angiotensin_AllScans.raw
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
@@ -183,10 +232,12 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -211,6 +262,8 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DBUILD_TOPP_TOOLS=OFF \
+                -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -222,6 +275,8 @@ jobs:
               cmake --install . --component share
               cmake --install . --component cmake
             '
+          # WITH_THERMO_RAW stays OFF here: Thermo's RawFileReader has no native
+          # dependencies for Linux aarch64 (https://github.com/thermofisherlsms/RawFileReader/issues/21).
 
       - name: Set pyOpenMS version
         run: |
@@ -256,21 +311,62 @@ jobs:
     needs: [setup]
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
+        run: |
+          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
 
-      # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
-      # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the
-      # action installs the SDK and exports DOTNET_ROOT.
+          # These dependencies are need only in this workflow:
+          brew install \
+            uv
+
+          # These are now provided by vcpkg and thus removed from
+          # `tools/ci/deps-macos.sh`:
+          brew install \
+            apache-arrow \
+            boost \
+            cbc \
+            cgl \
+            clp \
+            coinutils \
+            eigen \
+            libomp \
+            libsvm \
+            libzip \
+            sqlite \
+            xerces-c \
+            zstd
+
+      # OpenMSThermoBridge needs the nethost headers/library from the .NET host
+      # pack for osx-arm64 to compile the native bridge and, unless pre-built
+      # assemblies are available (see below), the SDK to publish the managed
+      # half; the action installs the SDK and exports DOTNET_ROOT, which is also
+      # what the wheel test suite uses to find the runtime.
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      - name: Cache Thermo bridge assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            thermo-managed
+            thermo-testdata
+          key: thermo-assets-osx-arm64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
+
+      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+        run: bash tools/ci/fetch_thermo_assets.sh osx-arm64 "$GITHUB_WORKSPACE"
+
       - name: Build and install OpenMS
         run: |
+          THERMO_MANAGED_OPT=""
+          if [ -f "${{ github.workspace }}/thermo-managed/ThermoWrapperManaged.dll" ]; then
+            THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=${{ github.workspace }}/thermo-managed"
+          fi
           mkdir build && cd build
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
           # BOOST_USE_STATIC=OFF works around Boost's incomplete find_dependency calls
@@ -287,6 +383,10 @@ jobs:
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
+            -DBUILD_TOPP_TOOLS=OFF \
+            -DINSTALL_OPENMS_EXAMPLES=OFF \
+            -DWITH_THERMO_RAW=ON \
+            $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON
@@ -316,11 +416,14 @@ jobs:
           CIBW_ARCHS_MACOS: "arm64"
           # Use old mechanism: copy libraries and use @loader_path
           # NO_DEPENDENCIES=OFF enables legacy library copying for macOS (with our fix_dependencies script)
+          # DOTNET_ROOT and PYOPENMS_THERMO_RAW_TEST_FILE enable the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ github.workspace }}/install"
             CMAKE_PREFIX_PATH="/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install"
             MACOSX_DEPLOYMENT_TARGET=15.0
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            DOTNET_ROOT="$DOTNET_ROOT"
+            PYOPENMS_THERMO_RAW_TEST_FILE="${{ github.workspace }}/thermo-testdata/Angiotensin_AllScans.raw"
           CIBW_BUILD_VERBOSITY: 1
           #CIBW_TEST_SKIP: "*"
 
@@ -334,7 +437,9 @@ jobs:
     needs: [setup]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -360,6 +465,21 @@ jobs:
         with:
           arch: x64
 
+      - name: Cache Thermo bridge assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            thermo-managed
+            thermo-testdata
+          key: thermo-assets-win-x64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
+
+      # The Windows runner image ships .NET SDKs under C:\Program Files\dotnet, which
+      # FindDotNetHost.cmake searches by default for the nethost host pack; the same
+      # SDK publishes the managed assemblies when no pre-built ones are available.
+      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+        shell: bash
+        run: bash tools/ci/fetch_thermo_assets.sh win-x64 "$GITHUB_WORKSPACE"
+
       - name: Build libcurl from source
         shell: bash
         run: |
@@ -384,6 +504,10 @@ jobs:
           # Workaround for MSVC constexpr mutex constructor bug
           CXXFLAGS: "-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"
         run: |
+          THERMO_MANAGED_OPT=""
+          if [ -f "$GITHUB_WORKSPACE/thermo-managed/ThermoWrapperManaged.dll" ]; then
+            THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=$GITHUB_WORKSPACE/thermo-managed"
+          fi
           mkdir build && cd build
           cmake .. \
             -G Ninja \
@@ -393,7 +517,10 @@ jobs:
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
-            -DWITH_THERMO_RAW=OFF \
+            -DBUILD_TOPP_TOOLS=OFF \
+            -DINSTALL_OPENMS_EXAMPLES=OFF \
+            -DWITH_THERMO_RAW=ON \
+            $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF
           cmake --build . --target OpenMS OpenSwathAlgo
@@ -420,9 +547,11 @@ jobs:
           OPENMS_ROOT_CMAKE=$(echo "${{ github.workspace }}/install" | sed 's|\\|/|g')
           CONTRIB_CMAKE=$(echo "${{ github.workspace }}/contrib" | sed 's|\\|/|g')
           QT_CMAKE=$(echo "${{ env.QT_ROOT_DIR }}" | sed 's|\\|/|g')
+          THERMO_RAW_TEST_FILE=$(echo "${{ github.workspace }}/thermo-testdata/Angiotensin_AllScans.raw" | sed 's|\\|/|g')
           echo "OPENMS_ROOT_CMAKE=${OPENMS_ROOT_CMAKE}" >> $GITHUB_ENV
           echo "CONTRIB_CMAKE=${CONTRIB_CMAKE}" >> $GITHUB_ENV
           echo "QT_CMAKE=${QT_CMAKE}" >> $GITHUB_ENV
+          echo "THERMO_RAW_TEST_FILE=${THERMO_RAW_TEST_FILE}" >> $GITHUB_ENV
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v3.3
@@ -431,10 +560,14 @@ jobs:
           output-dir: wheelhouse
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-windows-x64 }}
+          # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite
+          # (the runner image provides the .NET runtime).
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            PYOPENMS_THERMO_RAW_TEST_FILE="${{ env.THERMO_RAW_TEST_FILE }}"
+          # install/bin and install/lib also hold openms_thermo_bridge.dll and nethost.dll
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -455,17 +588,30 @@ jobs:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         os: [ubuntu-latest, ubuntu-22.04-arm, macos-15, windows-latest]
         include:
-          # Map os to artifact names
+          # Map os to artifact names and to the openms-thermo-bridge platform tag
+          # (empty = no Thermo RAW support in that wheel)
           - os: ubuntu-latest
             artifact: wheels-linux-x64
+            thermo-platform: linux-x64
           - os: ubuntu-22.04-arm
             artifact: wheels-linux-arm64
+            thermo-platform: ''
           - os: macos-15
             artifact: wheels-macos-arm64
+            thermo-platform: osx-arm64
           - os: windows-latest
             artifact: wheels-windows-x64
+            thermo-platform: win-x64
 
     steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            tools/ci/fetch_thermo_assets.sh
+            cmake/cmake_findExternalLibs.cmake
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.artifact }}
@@ -485,6 +631,47 @@ jobs:
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
 
+      # Thermo RAW smoke test on a fresh runner: only the .NET runtime may be
+      # present, everything else (bridge library, managed assemblies) must come
+      # from the wheel itself.
+      - name: Install .NET runtime for the Thermo RAW smoke test
+        if: matrix.thermo-platform != ''
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache Thermo RAW test file
+        if: matrix.thermo-platform != ''
+        uses: actions/cache@v4
+        with:
+          path: |
+            thermo-managed
+            thermo-testdata
+          key: thermo-assets-${{ matrix.thermo-platform }}-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
+
+      - name: Fetch Thermo RAW test file
+        if: matrix.thermo-platform != ''
+        shell: bash
+        run: bash tools/ci/fetch_thermo_assets.sh ${{ matrix.thermo-platform }} "$GITHUB_WORKSPACE"
+
+      - name: Smoke-test Thermo RAW reading
+        if: matrix.thermo-platform != ''
+        shell: bash
+        env:
+          PYOPENMS_THERMO_RAW_TEST_FILE: ${{ github.workspace }}/thermo-testdata/Angiotensin_AllScans.raw
+        run: |
+          python - <<'EOF'
+          import os, pyopenms
+          share = os.environ["OPENMS_DATA_PATH"]
+          managed = os.path.join(share, "openms_thermo_bridge", "managed")
+          assert os.path.isfile(os.path.join(managed, "ThermoWrapperManaged.dll")), managed
+          exp = pyopenms.MSExperiment()
+          pyopenms.FileHandler().loadExperiment(os.environ["PYOPENMS_THERMO_RAW_TEST_FILE"], exp)
+          n = exp.getNrSpectra()
+          print("Thermo RAW spectra loaded:", n)
+          assert n > 1000, n
+          EOF
+
   #----------------------------------------------------------------------------
   # Publish wheels
   #----------------------------------------------------------------------------
@@ -503,16 +690,16 @@ jobs:
       - name: Publish to nightly PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://pypi.cs.uni-tuebingen.de/
+          repository-url: https://pypi.openms.de/
           user: openms
-          password: ${{ secrets.abiservices_pypi_pw }}
+          password: ${{ secrets.openms_pypi_pw }}
           verbose: true
 
   publish-release-pypi:
     name: Upload release to PyPI
     needs: [test-wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/Release')
+    if: github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/v')
     environment:
       name: pypi
       url: https://pypi.org/p/pyopenms
@@ -531,3 +718,48 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           verbose: true
+
+  publish-archive-openms:
+    name: Upload wheels to archive.openms.de
+    needs: [setup, test-wheels]
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+        (startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/tags/v')))
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Upload wheels to archive
+        shell: bash
+        env:
+          PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          # Pass interpolations through env (GITHUB_REF/GITHUB_REF_NAME are runner
+          # built-ins) so they are never expanded into the shell script directly.
+          PYOPENMS_VERSION: ${{ needs.setup.outputs.pyopenms-version }}
+        run: |
+          # Pick destination folder mirroring the OpenMSInstaller/Documentation layout.
+          # Sanitize externally-influenced values with a strict whitelist before
+          # using them in a path (branch/tag names may contain shell metacharacters).
+          sanitize() { printf '%s' "${1//[^a-zA-Z0-9._-]/_}"; }
+
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            folder="release/$(sanitize "$PYOPENMS_VERSION")"
+          elif [[ "$GITHUB_REF_NAME" == "nightly" ]]; then
+            folder=nightly
+          else
+            folder="experimental/$(sanitize "$GITHUB_REF_NAME")"
+          fi
+          echo "Uploading wheels to: $folder"
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          chmod 600 ~/.ssh/private.key
+          rsync --progress -avz --mkpath -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" dist/*.whl "$USER@$HOST:/pyopenms/${folder}/"

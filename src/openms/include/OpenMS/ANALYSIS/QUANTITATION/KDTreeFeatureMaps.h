@@ -218,7 +218,7 @@ protected:
   std::vector<double> rt_;
 
   /// Number of source maps (set by addMaps())
-  Size num_maps_;
+  Size num_maps_{0};
 
   /// 2D kd-tree on features from all input maps (queried in (RT, m/z))
   FeatureKDTree kd_tree_;

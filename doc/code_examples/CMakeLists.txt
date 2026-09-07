@@ -26,17 +26,12 @@ foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
   target_link_libraries(${i} OpenMS)
 
-  # if not GUI and no style tests requested -> add as test
-  if(NOT ENABLE_STYLE_TESTING)
-    add_test(NAME ${i}
-             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
-  endif()
+  add_test(NAME ${i}
+           COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
 ## expect "Tutorial_Template"" to fail, since its a proper TOPP tool invoked without arguments
 ## i.e. TOPPBase will print a usage() and return an error code
-if(NOT ENABLE_STYLE_TESTING)
-  set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
-endif()
+set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
 
 # add collection target
 add_custom_target(Tutorials_build)

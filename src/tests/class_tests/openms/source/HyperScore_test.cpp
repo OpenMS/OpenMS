@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>

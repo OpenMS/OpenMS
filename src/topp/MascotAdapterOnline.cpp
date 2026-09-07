@@ -21,6 +21,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <sstream>
 #include <fstream>

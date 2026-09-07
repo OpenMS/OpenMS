@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 
 
@@ -203,9 +204,48 @@ START_SECTION(bool isNeighborPeptide(const AASequence& neighbor_candidate,
 }
 END_SECTION
 
+START_SECTION([EXTRA] NeighborSeq owns its moved-in peptides)
+{
+  std::vector<AASequence> source_peptides{AASequence::fromString("VELQSK"),
+                                          AASequence::fromString("TVDQLK")};
+  NeighborSeq ns(std::move(source_peptides));
+
+  // Reusing the moved-from source must not alter the instance. The old const-reference member
+  // observed these replacement peptides instead of the ones supplied at construction.
+  source_peptides = {AASequence::fromString(std::string(100, 'A')),
+                     AASequence::fromString(std::string(100, 'W'))};
+
+  const double pc_tolerance = 0.01;
+  const double mz_bin_size = 0.05;
+  TEST_TRUE(ns.isNeighborPeptide(AASequence::fromString("VESQLK"), pc_tolerance, false, 0.25, mz_bin_size))
+  auto stats = ns.getNeighborStats();
+  TEST_EQUAL(stats.total(), 2)
+}
+END_SECTION
+
 START_SECTION(NeighborStats getNeighborStats() const)
 {
   NOT_TESTABLE // tested above
+}
+END_SECTION
+
+START_SECTION([EXTRA] NeighborStats percentage formatters)
+{
+  // total() == 0 must not divide by zero (regression): all formatters return "X (0%)"
+  NeighborSeq::NeighborStats s;
+  TEST_EQUAL(s.total(), 0)
+  TEST_EQUAL(s.unfindable(), "0 (0%)")
+  TEST_EQUAL(s.noNB(), "0 (0%)")
+  TEST_EQUAL(s.oneNB(), "0 (0%)")
+  TEST_EQUAL(s.multiNB(), "0 (0%)")
+
+  // non-zero total: percentages computed normally
+  NeighborSeq::NeighborStats s2;
+  s2.findable_no_neighbors = 1;
+  s2.findable_one_neighbor = 3;
+  TEST_EQUAL(s2.total(), 4)
+  TEST_EQUAL(s2.noNB(), "1 (25%)")
+  TEST_EQUAL(s2.oneNB(), "3 (75%)")
 }
 END_SECTION
 

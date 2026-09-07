@@ -24,7 +24,7 @@
 				<pt x="2532.799844000000121" y="586.263817813247442" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T28.1"/>
-			<UserParam type="float" name="FWHM" value="2.077579498291016"/>
+			<UserParam type="float" name="FWHM" value="2.316673040390015"/>
 			<UserParam type="float" name="SD" value="2.040110307101272e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.479845293625085"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.958540049317429"/>
@@ -48,7 +48,7 @@
 				<pt x="2532.799844000000121" y="586.269799306988716" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T12.1"/>
-			<UserParam type="float" name="FWHM" value="2.206154584884644"/>
+			<UserParam type="float" name="FWHM" value="2.784978866577148"/>
 			<UserParam type="float" name="SD" value="2.650975919558898e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.521753250225454"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.890567813440126"/>
@@ -70,7 +70,7 @@
 				<pt x="2532.799844000000121" y="586.272788610309362" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T2.1"/>
-			<UserParam type="float" name="FWHM" value="2.132786273956299"/>
+			<UserParam type="float" name="FWHM" value="3.222526788711548"/>
 			<UserParam type="float" name="SD" value="6.335536308694976e-04"/>
 			<UserParam type="float" name="SD_ppm" value="1.080647810199658"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.917498953875773"/>
@@ -100,7 +100,7 @@
 				<pt x="2532.799844000000121" y="586.281494602560997" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T46.1"/>
-			<UserParam type="float" name="FWHM" value="1.266115427017212"/>
+			<UserParam type="float" name="FWHM" value="2.508222103118896"/>
 			<UserParam type="float" name="SD" value="5.990808888478321e-03"/>
 			<UserParam type="float" name="SD_ppm" value="10.218366132952216"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.977017833191157"/>
@@ -126,7 +126,7 @@
 				<pt x="2532.799844000000121" y="586.281386492773891" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T23.1"/>
-			<UserParam type="float" name="FWHM" value="2.157987356185913"/>
+			<UserParam type="float" name="FWHM" value="3.197325706481934"/>
 			<UserParam type="float" name="SD" value="2.265388343597989e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.863976719484799"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.112439294977861"/>
@@ -154,7 +154,7 @@
 				<pt x="2532.799844000000121" y="586.286266399547458" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T10.1"/>
-			<UserParam type="float" name="FWHM" value="1.89652156829834"/>
+			<UserParam type="float" name="FWHM" value="2.688366651535034"/>
 			<UserParam type="float" name="SD" value="2.210412438442117e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.770191689652954"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.180587164304924"/>
@@ -176,7 +176,7 @@
 				<pt x="2532.799844000000121" y="586.29290771484375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T40.1"/>
-			<UserParam type="float" name="FWHM" value="4.622543811798096"/>
+			<UserParam type="float" name="FWHM" value="4.304343223571777"/>
 			<UserParam type="float" name="SD" value="3.51560026968248e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.996272274656625"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.03416062782296"/>
@@ -198,7 +198,7 @@
 				<pt x="2532.799844000000121" y="586.310105245560408" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T47.1"/>
-			<UserParam type="float" name="FWHM" value="7.119040489196777"/>
+			<UserParam type="float" name="FWHM" value="3.815663576126099"/>
 			<UserParam type="float" name="SD" value="9.950457317381348e-03"/>
 			<UserParam type="float" name="SD_ppm" value="16.971603378660078"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.136848426573604"/>
@@ -222,7 +222,7 @@
 				<pt x="2532.799844000000121" y="586.30426025390625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T92.1"/>
-			<UserParam type="float" name="FWHM" value="13.093226432800293"/>
+			<UserParam type="float" name="FWHM" value="8.334294319152832"/>
 			<UserParam type="float" name="SD" value="0.011802376200805"/>
 			<UserParam type="float" name="SD_ppm" value="20.129472246804461"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.075367459456339"/>
@@ -246,7 +246,7 @@
 				<pt x="2532.799844000000121" y="586.326965793967247" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T3.1"/>
-			<UserParam type="float" name="FWHM" value="9.536968231201172"/>
+			<UserParam type="float" name="FWHM" value="5.517395496368408"/>
 			<UserParam type="float" name="SD" value="3.344866626745483e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.704734906898595"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.163072784990574"/>
@@ -270,7 +270,7 @@
 				<pt x="2534.585121000000072" y="586.31561279296875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T61.1"/>
-			<UserParam type="float" name="FWHM" value="10.457926750183106"/>
+			<UserParam type="float" name="FWHM" value="10.970033645629883"/>
 			<UserParam type="float" name="SD" value="0.012501901800546"/>
 			<UserParam type="float" name="SD_ppm" value="21.322709094888264"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.094594537896854"/>
@@ -290,7 +290,7 @@
 				<pt x="2536.371418000000176" y="586.23223876953125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T57.1"/>
-			<UserParam type="float" name="FWHM" value="1.822018265724182"/>
+			<UserParam type="float" name="FWHM" value="3.536068677902222"/>
 			<UserParam type="float" name="SD" value="3.381102054061044e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.767550223106521"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.160491848983287"/>
@@ -334,7 +334,7 @@
 				<pt x="2536.371418000000176" y="586.292907366529107" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T58.1"/>
-			<UserParam type="float" name="FWHM" value="3.671329498291016"/>
+			<UserParam type="float" name="FWHM" value="4.379779815673828"/>
 			<UserParam type="float" name="SD" value="7.649372654589293e-03"/>
 			<UserParam type="float" name="SD_ppm" value="13.047199494320342"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.015744651964788"/>
@@ -356,7 +356,7 @@
 				<pt x="2534.585121000000072" y="586.308044895529747" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8.1"/>
-			<UserParam type="float" name="FWHM" value="6.111080169677734"/>
+			<UserParam type="float" name="FWHM" value="8.308010101318359"/>
 			<UserParam type="float" name="SD" value="4.851433753714426e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.274611076481376"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.158162242750686"/>
@@ -408,7 +408,7 @@
 				<pt x="2538.156911000000036" y="586.220886692404747" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T68.1"/>
-			<UserParam type="float" name="FWHM" value="16.186269760131836"/>
+			<UserParam type="float" name="FWHM" value="16.542930603027344"/>
 			<UserParam type="float" name="SD" value="6.905484393637491e-03"/>
 			<UserParam type="float" name="SD_ppm" value="11.779717156658682"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.918661457675817"/>
@@ -446,7 +446,7 @@
 				<pt x="2532.799844000000121" y="586.330749049782753" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.1"/>
-			<UserParam type="float" name="FWHM" value="10.196977615356445"/>
+			<UserParam type="float" name="FWHM" value="8.566371917724609"/>
 			<UserParam type="float" name="SD" value="1.845653162599424e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.147810105040947"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.952755533568727"/>
@@ -470,7 +470,7 @@
 				<pt x="2538.156911000000036" y="586.357300266623497" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T9.1"/>
-			<UserParam type="float" name="FWHM" value="1.745125651359558"/>
+			<UserParam type="float" name="FWHM" value="2.276514768600464"/>
 			<UserParam type="float" name="SD" value="3.790108271068796e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.463770330914006"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.952539173139826"/>
@@ -516,7 +516,7 @@
 				<pt x="2534.585121000000072" y="586.284152466803789" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T29.1"/>
-			<UserParam type="float" name="FWHM" value="3.077399730682373"/>
+			<UserParam type="float" name="FWHM" value="4.512391090393066"/>
 			<UserParam type="float" name="SD" value="2.511055866765744e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.282986020193151"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.939371360895066"/>
@@ -536,7 +536,7 @@
 				<pt x="2539.942202000000179" y="586.326964870095253" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T27.1"/>
-			<UserParam type="float" name="FWHM" value="4.265017986297607"/>
+			<UserParam type="float" name="FWHM" value="4.661734104156494"/>
 			<UserParam type="float" name="SD" value="1.776373193353005e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.029656620389647"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.996922011725851"/>
@@ -572,7 +572,7 @@
 				<pt x="2541.727386000000024" y="586.24365234375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T57.2"/>
-			<UserParam type="float" name="FWHM" value="6.332413673400879"/>
+			<UserParam type="float" name="FWHM" value="6.168796062469482"/>
 			<UserParam type="float" name="SD" value="5.435100743725906e-03"/>
 			<UserParam type="float" name="SD_ppm" value="9.271120197433671"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.160491848983287"/>
@@ -594,7 +594,7 @@
 				<pt x="2541.727386000000024" y="586.243651874363422" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T71.1"/>
-			<UserParam type="float" name="FWHM" value="6.785195827484131"/>
+			<UserParam type="float" name="FWHM" value="7.499529838562012"/>
 			<UserParam type="float" name="SD" value="6.431191743804185e-03"/>
 			<UserParam type="float" name="SD_ppm" value="10.970151247720205"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.027429960326537"/>
@@ -614,7 +614,7 @@
 				<pt x="2543.51319599999988" y="586.283420875668526" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T47.2"/>
-			<UserParam type="float" name="FWHM" value="3.455405712127686"/>
+			<UserParam type="float" name="FWHM" value="3.688370227813721"/>
 			<UserParam type="float" name="SD" value="4.652310579983983e-03"/>
 			<UserParam type="float" name="SD_ppm" value="7.935275242151578"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.136848426573604"/>
@@ -644,7 +644,7 @@
 				<pt x="2532.799844000000121" y="586.273926243185997" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T52.1"/>
-			<UserParam type="float" name="FWHM" value="6.10332727432251"/>
+			<UserParam type="float" name="FWHM" value="7.928380012512207"/>
 			<UserParam type="float" name="SD" value="9.585189802828273e-03"/>
 			<UserParam type="float" name="SD_ppm" value="16.349098825595608"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.835193993728903"/>
@@ -680,7 +680,7 @@
 				<pt x="2541.727386000000024" y="586.368718054145575" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T6.1"/>
-			<UserParam type="float" name="FWHM" value="6.327377796173096"/>
+			<UserParam type="float" name="FWHM" value="7.737544059753418"/>
 			<UserParam type="float" name="SD" value="1.709633078125726e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.915642299883178"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.175209308733987"/>
@@ -712,7 +712,7 @@
 				<pt x="2538.156911000000036" y="586.251220703125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T31.1"/>
-			<UserParam type="float" name="FWHM" value="8.093544960021973"/>
+			<UserParam type="float" name="FWHM" value="12.825636863708496"/>
 			<UserParam type="float" name="SD" value="9.880314752662342e-03"/>
 			<UserParam type="float" name="SD_ppm" value="16.853231773811242"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.105913973334926"/>
@@ -766,7 +766,7 @@
 				<pt x="2545.300262000000203" y="586.295059523545206" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8.2"/>
-			<UserParam type="float" name="FWHM" value="7.934205532073975"/>
+			<UserParam type="float" name="FWHM" value="6.843042373657227"/>
 			<UserParam type="float" name="SD" value="3.435196553416771e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.859095325699468"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.158162242750686"/>
@@ -842,7 +842,7 @@
 				<pt x="2548.871662000000015" y="586.29669189453125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T40.2"/>
-			<UserParam type="float" name="FWHM" value="8.12725830078125"/>
+			<UserParam type="float" name="FWHM" value="7.944304466247559"/>
 			<UserParam type="float" name="SD" value="4.961999752753553e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.463269905111947"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.03416062782296"/>
@@ -862,7 +862,7 @@
 				<pt x="2548.871662000000015" y="586.32318115234375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T61.2"/>
-			<UserParam type="float" name="FWHM" value="3.044488668441772"/>
+			<UserParam type="float" name="FWHM" value="4.099778175354004"/>
 			<UserParam type="float" name="SD" value="0.015195960301833"/>
 			<UserParam type="float" name="SD_ppm" value="25.918217530718618"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.094594537896854"/>
@@ -894,7 +894,7 @@
 				<pt x="2548.871662000000015" y="586.300299152731895" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T5.2"/>
-			<UserParam type="float" name="FWHM" value="7.282027721405029"/>
+			<UserParam type="float" name="FWHM" value="8.210253715515137"/>
 			<UserParam type="float" name="SD" value="7.413433583701599e-04"/>
 			<UserParam type="float" name="SD_ppm" value="1.264443990121847"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.923374857783085"/>
@@ -926,7 +926,7 @@
 				<pt x="2538.156911000000036" y="586.376220414415002" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T34.1"/>
-			<UserParam type="float" name="FWHM" value="1.549063682556152"/>
+			<UserParam type="float" name="FWHM" value="2.628629922866821"/>
 			<UserParam type="float" name="SD" value="8.193117700283e-03"/>
 			<UserParam type="float" name="SD_ppm" value="13.972639338768632"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.997628105635216"/>
@@ -960,7 +960,7 @@
 				<pt x="2536.371418000000176" y="586.23223876953125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T32.1"/>
-			<UserParam type="float" name="FWHM" value="6.353658199310303"/>
+			<UserParam type="float" name="FWHM" value="6.891959667205811"/>
 			<UserParam type="float" name="SD" value="0.013000623801782"/>
 			<UserParam type="float" name="SD_ppm" value="22.175586233229637"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.860220011224265"/>
@@ -982,7 +982,7 @@
 				<pt x="2548.871662000000015" y="586.266357421875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T25.2"/>
-			<UserParam type="float" name="FWHM" value="3.000484228134155"/>
+			<UserParam type="float" name="FWHM" value="5.035494327545166"/>
 			<UserParam type="float" name="SD" value="7.632383052053305e-03"/>
 			<UserParam type="float" name="SD_ppm" value="13.018690059089394"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.141614675152577"/>
@@ -1014,7 +1014,7 @@
 				<pt x="2552.443309000000227" y="586.300590377300978" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T41.1"/>
-			<UserParam type="float" name="FWHM" value="8.421712875366211"/>
+			<UserParam type="float" name="FWHM" value="9.434637069702148"/>
 			<UserParam type="float" name="SD" value="2.1245105560313e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.623576323120195"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.891840257567629"/>
@@ -1042,7 +1042,7 @@
 				<pt x="2550.656902000000173" y="586.372436061501503" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T9.2"/>
-			<UserParam type="float" name="FWHM" value="7.91636323928833"/>
+			<UserParam type="float" name="FWHM" value="9.939422607421875"/>
 			<UserParam type="float" name="SD" value="6.025969170520701e-03"/>
 			<UserParam type="float" name="SD_ppm" value="10.276811538904399"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.952539173139826"/>
@@ -1062,7 +1062,7 @@
 				<pt x="2554.228778000000148" y="586.292847028002143" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T47.3"/>
-			<UserParam type="float" name="FWHM" value="1.761977314949036"/>
+			<UserParam type="float" name="FWHM" value="10.424509048461914"/>
 			<UserParam type="float" name="SD" value="0.010200755623053"/>
 			<UserParam type="float" name="SD_ppm" value="17.398938383915791"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.136848426573604"/>
@@ -1084,7 +1084,7 @@
 				<pt x="2554.228778000000148" y="586.33453369140625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T84.1"/>
-			<UserParam type="float" name="FWHM" value="6.223569869995117"/>
+			<UserParam type="float" name="FWHM" value="8.059980392456055"/>
 			<UserParam type="float" name="SD" value="3.293544961360113e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.617222493616467"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.762230648391582"/>
@@ -1104,7 +1104,7 @@
 				<pt x="2554.228778000000148" y="586.334533229470253" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T27.2"/>
-			<UserParam type="float" name="FWHM" value="3.532690763473511"/>
+			<UserParam type="float" name="FWHM" value="4.743550300598145"/>
 			<UserParam type="float" name="SD" value="3.159257024931748e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.388180698872636"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.996922011725851"/>
@@ -1128,7 +1128,7 @@
 				<pt x="2556.014506999999867" y="586.23223876953125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T71.2"/>
-			<UserParam type="float" name="FWHM" value="9.98460865020752"/>
+			<UserParam type="float" name="FWHM" value="11.44240665435791"/>
 			<UserParam type="float" name="SD" value="3.753055211562631e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.401960831515847"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.027429960326537"/>
@@ -1174,7 +1174,7 @@
 				<pt x="2541.727386000000024" y="586.239807592704892" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T17.1"/>
-			<UserParam type="float" name="FWHM" value="9.840561866760254"/>
+			<UserParam type="float" name="FWHM" value="9.051732063293457"/>
 			<UserParam type="float" name="SD" value="2.680724524439879e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.572763071020709"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.92948335222968"/>
@@ -1196,7 +1196,7 @@
 				<pt x="2556.014506999999867" y="586.273925319314003" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T107.1"/>
-			<UserParam type="float" name="FWHM" value="5.439149856567383"/>
+			<UserParam type="float" name="FWHM" value="4.236355781555176"/>
 			<UserParam type="float" name="SD" value="2.653761203069703e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.526501438941278"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.696226353777565"/>
@@ -1222,7 +1222,7 @@
 				<pt x="2556.014506999999867" y="586.2928466796875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T46.2"/>
-			<UserParam type="float" name="FWHM" value="14.731191635131836"/>
+			<UserParam type="float" name="FWHM" value="15.624369621276855"/>
 			<UserParam type="float" name="SD" value="0.01004848601657"/>
 			<UserParam type="float" name="SD_ppm" value="17.139095481152278"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.977017833191157"/>
@@ -1242,7 +1242,7 @@
 				<pt x="2556.014506999999867" y="586.32696533203125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T85.1"/>
-			<UserParam type="float" name="FWHM" value="3.891676902770996"/>
+			<UserParam type="float" name="FWHM" value="5.03604793548584"/>
 			<UserParam type="float" name="SD" value="1.793973108071598e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.059673789918164"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.111457985538798"/>
@@ -1278,7 +1278,7 @@
 				<pt x="2532.799844000000121" y="586.334533229470253" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T53.1"/>
-			<UserParam type="float" name="FWHM" value="3.349653244018555"/>
+			<UserParam type="float" name="FWHM" value="4.735874176025391"/>
 			<UserParam type="float" name="SD" value="0.025234450161486"/>
 			<UserParam type="float" name="SD_ppm" value="43.037050061355387"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.045558772046842"/>
@@ -1312,7 +1312,7 @@
 				<pt x="2552.443309000000227" y="586.23533408716321" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T16.1"/>
-			<UserParam type="float" name="FWHM" value="8.720842361450195"/>
+			<UserParam type="float" name="FWHM" value="9.468531608581543"/>
 			<UserParam type="float" name="SD" value="3.840664758319653e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.551356405161686"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.903463278054977"/>
@@ -1360,7 +1360,7 @@
 				<pt x="2547.085352000000057" y="586.268673915416002" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T2.2"/>
-			<UserParam type="float" name="FWHM" value="7.605861663818359"/>
+			<UserParam type="float" name="FWHM" value="8.644768714904785"/>
 			<UserParam type="float" name="SD" value="6.565948085082564e-04"/>
 			<UserParam type="float" name="SD_ppm" value="1.119952457847601"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.917498953875773"/>
@@ -1384,7 +1384,7 @@
 				<pt x="2552.443309000000227" y="586.270141139626503" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T52.2"/>
-			<UserParam type="float" name="FWHM" value="7.446278095245361"/>
+			<UserParam type="float" name="FWHM" value="8.625664710998535"/>
 			<UserParam type="float" name="SD" value="0.012812353645982"/>
 			<UserParam type="float" name="SD_ppm" value="21.853473718783402"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.835193993728903"/>
@@ -1418,7 +1418,7 @@
 				<pt x="2557.799836000000141" y="586.2928466796875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T61.3"/>
-			<UserParam type="float" name="FWHM" value="14.246692657470703"/>
+			<UserParam type="float" name="FWHM" value="12.537931442260742"/>
 			<UserParam type="float" name="SD" value="0.018849521742432"/>
 			<UserParam type="float" name="SD_ppm" value="32.14910522750997"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.094594537896854"/>
@@ -1460,7 +1460,7 @@
 				<pt x="2557.799836000000141" y="586.334533229470253" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.3"/>
-			<UserParam type="float" name="FWHM" value="7.795534610748291"/>
+			<UserParam type="float" name="FWHM" value="8.272885322570801"/>
 			<UserParam type="float" name="SD" value="3.346191655178489e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.707018066437659"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.952755533568727"/>
@@ -1484,7 +1484,7 @@
 				<pt x="2552.443309000000227" y="586.32696533203125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T77.1"/>
-			<UserParam type="float" name="FWHM" value="1.679163694381714"/>
+			<UserParam type="float" name="FWHM" value="3.082583665847778"/>
 			<UserParam type="float" name="SD" value="3.411557437915648e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.81848630786754"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.796347550222082"/>
@@ -1516,7 +1516,7 @@
 				<pt x="2543.51319599999988" y="586.364868625998497" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T90.1"/>
-			<UserParam type="float" name="FWHM" value="23.085109710693359"/>
+			<UserParam type="float" name="FWHM" value="21.769012451171875"/>
 			<UserParam type="float" name="SD" value="0.011449128823157"/>
 			<UserParam type="float" name="SD_ppm" value="19.525338787935834"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.971004124909291"/>
@@ -1554,7 +1554,7 @@
 				<pt x="2550.656902000000173" y="586.395219096913934" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T13.2"/>
-			<UserParam type="float" name="FWHM" value="1.750340938568115"/>
+			<UserParam type="float" name="FWHM" value="3.232689380645752"/>
 			<UserParam type="float" name="SD" value="4.138637138486949e-03"/>
 			<UserParam type="float" name="SD_ppm" value="7.057810105294954"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.197449376679493"/>
@@ -1576,7 +1576,7 @@
 				<pt x="2556.014506999999867" y="586.292847028002143" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T26.1"/>
-			<UserParam type="float" name="FWHM" value="4.030863285064697"/>
+			<UserParam type="float" name="FWHM" value="4.532767772674561"/>
 			<UserParam type="float" name="SD" value="9.63135711847492e-03"/>
 			<UserParam type="float" name="SD_ppm" value="16.428030666727739"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.170169046364679"/>
@@ -1596,7 +1596,7 @@
 				<pt x="2559.585911000000124" y="586.2852783203125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T69.1"/>
-			<UserParam type="float" name="FWHM" value="4.763246536254883"/>
+			<UserParam type="float" name="FWHM" value="5.221062183380127"/>
 			<UserParam type="float" name="SD" value="3.43506375957886e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.859006025870372"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.715986015144235"/>
@@ -1646,7 +1646,7 @@
 				<pt x="2545.300262000000203" y="586.326965793967247" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T3.2"/>
-			<UserParam type="float" name="FWHM" value="9.485996246337891"/>
+			<UserParam type="float" name="FWHM" value="7.958104133605957"/>
 			<UserParam type="float" name="SD" value="9.578889404405866e-04"/>
 			<UserParam type="float" name="SD_ppm" value="1.633698773846236"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.163072784990574"/>
@@ -1682,7 +1682,7 @@
 				<pt x="2547.085352000000057" y="586.202039703726769" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T20.1"/>
-			<UserParam type="float" name="FWHM" value="17.286825180053711"/>
+			<UserParam type="float" name="FWHM" value="14.730523109436035"/>
 			<UserParam type="float" name="SD" value="5.579012439956951e-03"/>
 			<UserParam type="float" name="SD_ppm" value="9.517115532583862"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.138567033414096"/>
@@ -1710,7 +1710,7 @@
 				<pt x="2556.014506999999867" y="586.3875732421875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T92.3"/>
-			<UserParam type="float" name="FWHM" value="2.260934114456177"/>
+			<UserParam type="float" name="FWHM" value="3.054811716079712"/>
 			<UserParam type="float" name="SD" value="0.028981334946903"/>
 			<UserParam type="float" name="SD_ppm" value="49.427163195988811"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.075367459456339"/>
@@ -1734,7 +1734,7 @@
 				<pt x="2563.156364999999823" y="586.23980712890625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T98.1"/>
-			<UserParam type="float" name="FWHM" value="4.023362636566162"/>
+			<UserParam type="float" name="FWHM" value="7.822348594665527"/>
 			<UserParam type="float" name="SD" value="7.609481440392196e-03"/>
 			<UserParam type="float" name="SD_ppm" value="12.980039437928774"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.05389251452775"/>
@@ -1766,7 +1766,7 @@
 				<pt x="2563.156364999999823" y="586.285278784111142" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T52.3"/>
-			<UserParam type="float" name="FWHM" value="18.324953079223633"/>
+			<UserParam type="float" name="FWHM" value="19.172941207885742"/>
 			<UserParam type="float" name="SD" value="0.013682166360469"/>
 			<UserParam type="float" name="SD_ppm" value="23.337833202804614"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.835193993728903"/>
@@ -1790,7 +1790,7 @@
 				<pt x="2559.585911000000124" y="586.285278782248497" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T40.3"/>
-			<UserParam type="float" name="FWHM" value="6.202353954315186"/>
+			<UserParam type="float" name="FWHM" value="8.082545280456543"/>
 			<UserParam type="float" name="SD" value="0.010497990167498"/>
 			<UserParam type="float" name="SD_ppm" value="17.90568695854369"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.03416062782296"/>
@@ -1812,7 +1812,7 @@
 				<pt x="2563.156364999999823" y="586.361083984375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T80.3"/>
-			<UserParam type="float" name="FWHM" value="9.210556030273438"/>
+			<UserParam type="float" name="FWHM" value="10.430168151855469"/>
 			<UserParam type="float" name="SD" value="9.270357338910175e-03"/>
 			<UserParam type="float" name="SD_ppm" value="15.809853020534654"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.213757163255841"/>
@@ -1840,7 +1840,7 @@
 				<pt x="2563.156364999999823" y="586.273925319314003" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T25.4"/>
-			<UserParam type="float" name="FWHM" value="7.35215425491333"/>
+			<UserParam type="float" name="FWHM" value="8.648842811584473"/>
 			<UserParam type="float" name="SD" value="5.347112855635963e-03"/>
 			<UserParam type="float" name="SD_ppm" value="9.12051694453598"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.141614675152577"/>
@@ -1864,7 +1864,7 @@
 				<pt x="2564.94106899999997" y="586.368651881814003" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T53.2"/>
-			<UserParam type="float" name="FWHM" value="1.967138528823853"/>
+			<UserParam type="float" name="FWHM" value="3.360327243804932"/>
 			<UserParam type="float" name="SD" value="0.012395772611205"/>
 			<UserParam type="float" name="SD_ppm" value="21.140224355267002"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.045558772046842"/>
@@ -1884,7 +1884,7 @@
 				<pt x="2564.94106899999997" y="586.372436061501503" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T34.2"/>
-			<UserParam type="float" name="FWHM" value="4.372993469238281"/>
+			<UserParam type="float" name="FWHM" value="5.596091747283936"/>
 			<UserParam type="float" name="SD" value="6.610936045322257e-03"/>
 			<UserParam type="float" name="SD_ppm" value="11.274441711755271"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.997628105635216"/>
@@ -1948,7 +1948,7 @@
 				<pt x="2550.656902000000173" y="586.235952405259013" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T7.1"/>
-			<UserParam type="float" name="FWHM" value="16.225534439086914"/>
+			<UserParam type="float" name="FWHM" value="16.028347015380859"/>
 			<UserParam type="float" name="SD" value="1.83820056591022e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.135591972046196"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.117257777178002"/>
@@ -1970,7 +1970,7 @@
 				<pt x="2566.728205999999773" y="586.372436176985502" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T51.2"/>
-			<UserParam type="float" name="FWHM" value="9.782684326171875"/>
+			<UserParam type="float" name="FWHM" value="9.856788635253906"/>
 			<UserParam type="float" name="SD" value="4.1915167814982e-03"/>
 			<UserParam type="float" name="SD_ppm" value="7.148285111708444"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.01593893920557"/>
@@ -1990,7 +1990,7 @@
 				<pt x="2568.513973999999962" y="586.270142063498497" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T54.1"/>
-			<UserParam type="float" name="FWHM" value="6.493722915649414"/>
+			<UserParam type="float" name="FWHM" value="7.788506031036377"/>
 			<UserParam type="float" name="SD" value="4.785128043487762e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.162020020655632"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.081562670077499"/>
@@ -2010,7 +2010,7 @@
 				<pt x="2568.513973999999962" y="586.304017269983888" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T45.1"/>
-			<UserParam type="float" name="FWHM" value="3.040565490722656"/>
+			<UserParam type="float" name="FWHM" value="3.673845052719116"/>
 			<UserParam type="float" name="SD" value="1.679735154359811e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.86496215792757"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.18441148747525"/>
@@ -2032,7 +2032,7 @@
 				<pt x="2568.513973999999962" y="586.270358249545097" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T32.2"/>
-			<UserParam type="float" name="FWHM" value="2.733171939849854"/>
+			<UserParam type="float" name="FWHM" value="3.780052900314331"/>
 			<UserParam type="float" name="SD" value="0.013315078994216"/>
 			<UserParam type="float" name="SD_ppm" value="22.711836309265923"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.860220011224265"/>
@@ -2058,7 +2058,7 @@
 				<pt x="2572.083372999999938" y="586.330749049782753" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.4"/>
-			<UserParam type="float" name="FWHM" value="5.654991626739502"/>
+			<UserParam type="float" name="FWHM" value="6.841239452362061"/>
 			<UserParam type="float" name="SD" value="2.697847814739893e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.60124468556978"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.952755533568727"/>
@@ -2082,7 +2082,7 @@
 				<pt x="2572.083372999999938" y="586.3837890625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T90.2"/>
-			<UserParam type="float" name="FWHM" value="1.821007251739502"/>
+			<UserParam type="float" name="FWHM" value="3.535605907440186"/>
 			<UserParam type="float" name="SD" value="0.013412942373936"/>
 			<UserParam type="float" name="SD_ppm" value="22.874235952118831"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.971004124909291"/>
@@ -2102,7 +2102,7 @@
 				<pt x="2573.869270000000142" y="586.23223876953125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T97.1"/>
-			<UserParam type="float" name="FWHM" value="6.326057910919189"/>
+			<UserParam type="float" name="FWHM" value="7.746186256408691"/>
 			<UserParam type="float" name="SD" value="3.641808676929059e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.212188494674817"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.007641176250466"/>
@@ -2126,7 +2126,7 @@
 				<pt x="2570.29801499999985" y="586.273925434798002" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T31.2"/>
-			<UserParam type="float" name="FWHM" value="3.096042156219482"/>
+			<UserParam type="float" name="FWHM" value="6.417413234710693"/>
 			<UserParam type="float" name="SD" value="5.109623576226728e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.715452882927385"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.105913973334926"/>
@@ -2146,7 +2146,7 @@
 				<pt x="2573.869270000000142" y="586.330749973654747" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T79.1"/>
-			<UserParam type="float" name="FWHM" value="6.069299697875977"/>
+			<UserParam type="float" name="FWHM" value="6.42632532119751"/>
 			<UserParam type="float" name="SD" value="7.115055301639743e-03"/>
 			<UserParam type="float" name="SD_ppm" value="12.134752903628362"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.055350604836138"/>
@@ -2188,7 +2188,7 @@
 				<pt x="2556.014506999999867" y="586.29752698354423" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8.3"/>
-			<UserParam type="float" name="FWHM" value="8.091300964355469"/>
+			<UserParam type="float" name="FWHM" value="7.416188716888428"/>
 			<UserParam type="float" name="SD" value="1.964105356160001e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.349988290223811"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.158162242750686"/>
@@ -2216,7 +2216,7 @@
 				<pt x="2572.083372999999938" y="586.285277916118503" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T46.3"/>
-			<UserParam type="float" name="FWHM" value="9.84459114074707"/>
+			<UserParam type="float" name="FWHM" value="11.147788047790527"/>
 			<UserParam type="float" name="SD" value="0.011754773462123"/>
 			<UserParam type="float" name="SD_ppm" value="20.049156781732744"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.977017833191157"/>
@@ -2268,7 +2268,7 @@
 				<pt x="2572.083372999999938" y="586.361527616158128" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T15.1"/>
-			<UserParam type="float" name="FWHM" value="10.523706436157227"/>
+			<UserParam type="float" name="FWHM" value="10.216153144836426"/>
 			<UserParam type="float" name="SD" value="6.026933821561107e-03"/>
 			<UserParam type="float" name="SD_ppm" value="10.278611919631137"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.184620243154299"/>
@@ -2288,7 +2288,7 @@
 				<pt x="2579.224666999999954" y="586.30419921875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T40.4"/>
-			<UserParam type="float" name="FWHM" value="5.003527641296387"/>
+			<UserParam type="float" name="FWHM" value="7.496638298034668"/>
 			<UserParam type="float" name="SD" value="2.975563047165065e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.075085158245488"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.03416062782296"/>
@@ -2312,7 +2312,7 @@
 				<pt x="2579.224666999999954" y="586.380004536360502" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T80.4"/>
-			<UserParam type="float" name="FWHM" value="9.621076583862305"/>
+			<UserParam type="float" name="FWHM" value="11.808567047119141"/>
 			<UserParam type="float" name="SD" value="0.010109777830809"/>
 			<UserParam type="float" name="SD_ppm" value="17.241423464596288"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.213757163255841"/>
@@ -2336,7 +2336,7 @@
 				<pt x="2577.439851999999974" y="586.349670873954892" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T48.1"/>
-			<UserParam type="float" name="FWHM" value="11.382285118103027"/>
+			<UserParam type="float" name="FWHM" value="10.142284393310547"/>
 			<UserParam type="float" name="SD" value="7.81914275375356e-03"/>
 			<UserParam type="float" name="SD_ppm" value="13.335324182213977"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.124120540263584"/>
@@ -2356,7 +2356,7 @@
 				<pt x="2582.798706000000038" y="586.330749973654747" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T3.3"/>
-			<UserParam type="float" name="FWHM" value="5.405526638031006"/>
+			<UserParam type="float" name="FWHM" value="8.80264949798584"/>
 			<UserParam type="float" name="SD" value="1.767349807227562e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.014261339424251"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.163072784990574"/>
@@ -2386,7 +2386,7 @@
 				<pt x="2577.439851999999974" y="586.2701416015625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T32.3"/>
-			<UserParam type="float" name="FWHM" value="6.776464939117432"/>
+			<UserParam type="float" name="FWHM" value="5.103811264038086"/>
 			<UserParam type="float" name="SD" value="8.564931354080734e-03"/>
 			<UserParam type="float" name="SD_ppm" value="14.609304238231323"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.860220011224265"/>
@@ -2414,7 +2414,7 @@
 				<pt x="2577.439851999999974" y="586.262572780251503" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T38.1"/>
-			<UserParam type="float" name="FWHM" value="10.008508682250977"/>
+			<UserParam type="float" name="FWHM" value="10.55519962310791"/>
 			<UserParam type="float" name="SD" value="7.317214436305188e-03"/>
 			<UserParam type="float" name="SD_ppm" value="12.481321766710101"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.126816034556137"/>
@@ -2436,7 +2436,7 @@
 				<pt x="2584.584104999999909" y="586.25872802734375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T54.2"/>
-			<UserParam type="float" name="FWHM" value="1.720215082168579"/>
+			<UserParam type="float" name="FWHM" value="2.782639503479004"/>
 			<UserParam type="float" name="SD" value="6.42608496461858e-03"/>
 			<UserParam type="float" name="SD_ppm" value="10.961266365533083"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.081562670077499"/>
@@ -2456,7 +2456,7 @@
 				<pt x="2586.368915000000015" y="586.263455086387694" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T26.3"/>
-			<UserParam type="float" name="FWHM" value="1.704308152198792"/>
+			<UserParam type="float" name="FWHM" value="4.995758533477783"/>
 			<UserParam type="float" name="SD" value="0.011664692972659"/>
 			<UserParam type="float" name="SD_ppm" value="19.896180480699023"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.170169046364679"/>
@@ -2488,7 +2488,7 @@
 				<pt x="2579.224666999999954" y="586.306907039135695" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T5.4"/>
-			<UserParam type="float" name="FWHM" value="8.635432243347168"/>
+			<UserParam type="float" name="FWHM" value="8.067363739013672"/>
 			<UserParam type="float" name="SD" value="4.192963754667828e-04"/>
 			<UserParam type="float" name="SD_ppm" value="0.715147025952393"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.923374857783085"/>
@@ -2514,7 +2514,7 @@
 				<pt x="2577.439851999999974" y="586.3724365234375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T34.3"/>
-			<UserParam type="float" name="FWHM" value="13.927986145019531"/>
+			<UserParam type="float" name="FWHM" value="18.212667465209961"/>
 			<UserParam type="float" name="SD" value="0.011383164646951"/>
 			<UserParam type="float" name="SD_ppm" value="19.413234526992589"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.997628105635216"/>
@@ -2536,7 +2536,7 @@
 				<pt x="2584.584104999999909" y="586.34588623046875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T53.3"/>
-			<UserParam type="float" name="FWHM" value="2.988002777099609"/>
+			<UserParam type="float" name="FWHM" value="3.440503835678101"/>
 			<UserParam type="float" name="SD" value="6.430588492600569e-03"/>
 			<UserParam type="float" name="SD_ppm" value="10.967145968180375"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.045558772046842"/>
@@ -2578,7 +2578,7 @@
 				<pt x="2589.940243999999893" y="586.258727565407753" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T18.1"/>
-			<UserParam type="float" name="FWHM" value="3.994400024414063"/>
+			<UserParam type="float" name="FWHM" value="4.693867683410645"/>
 			<UserParam type="float" name="SD" value="2.180282068534741e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.718991873445501"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="0.925166281547031"/>
@@ -2600,7 +2600,7 @@
 				<pt x="2588.154144999999971" y="586.261301634833217" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T25.6"/>
-			<UserParam type="float" name="FWHM" value="2.719205617904663"/>
+			<UserParam type="float" name="FWHM" value="3.783587217330933"/>
 			<UserParam type="float" name="SD" value="5.220028845055098e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.904003068411168"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.141614675152577"/>
@@ -2622,7 +2622,7 @@
 				<pt x="2589.940243999999893" y="586.281494140625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T72.1"/>
-			<UserParam type="float" name="FWHM" value="4.2279372215271"/>
+			<UserParam type="float" name="FWHM" value="4.116352558135986"/>
 			<UserParam type="float" name="SD" value="2.5841935316188e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.4077478952737"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.210507187410145"/>
@@ -2648,7 +2648,7 @@
 				<pt x="2584.584104999999909" y="586.307982936501503" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T33.1"/>
-			<UserParam type="float" name="FWHM" value="4.120307922363281"/>
+			<UserParam type="float" name="FWHM" value="5.005055904388428"/>
 			<UserParam type="float" name="SD" value="4.146219506554669e-03"/>
 			<UserParam type="float" name="SD_ppm" value="7.071773106457512"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.125817132781601"/>
@@ -2676,7 +2676,7 @@
 				<pt x="2579.224666999999954" y="586.323181498795748" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T22.2"/>
-			<UserParam type="float" name="FWHM" value="6.256279468536377"/>
+			<UserParam type="float" name="FWHM" value="7.579315662384033"/>
 			<UserParam type="float" name="SD" value="5.2857339837779e-03"/>
 			<UserParam type="float" name="SD_ppm" value="9.014977046256366"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.190629344118153"/>
@@ -2712,7 +2712,7 @@
 				<pt x="2579.224666999999954" y="586.395142063498497" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T13.3"/>
-			<UserParam type="float" name="FWHM" value="6.502987861633301"/>
+			<UserParam type="float" name="FWHM" value="5.366214275360107"/>
 			<UserParam type="float" name="SD" value="2.968551420304832e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.062405728858935"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.197449376679493"/>
@@ -2778,7 +2778,7 @@
 				<pt x="2552.443309000000227" y="586.27392578125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T58.2"/>
-			<UserParam type="float" name="FWHM" value="17.166208267211914"/>
+			<UserParam type="float" name="FWHM" value="17.751728057861328"/>
 			<UserParam type="float" name="SD" value="0.017930509024351"/>
 			<UserParam type="float" name="SD_ppm" value="30.582979329488381"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.015744651964788"/>
@@ -2798,7 +2798,7 @@
 				<pt x="2591.724685000000136" y="586.312013039365411" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T36.1"/>
-			<UserParam type="float" name="FWHM" value="5.657530307769775"/>
+			<UserParam type="float" name="FWHM" value="6.839602470397949"/>
 			<UserParam type="float" name="SD" value="3.93504811060338e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.711490984686339"/>
 			<UserParam type="float" name="Ion Mobility Centroid" value="1.158383853846457"/>

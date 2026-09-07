@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h> // StringList
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 

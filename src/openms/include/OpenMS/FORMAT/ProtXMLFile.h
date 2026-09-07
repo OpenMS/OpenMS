@@ -29,11 +29,35 @@ namespace OpenMS
     OpenMS can only read parts of the protein_summary subtree to extract
     protein-peptide associations. All other parts are silently ignored.
 
-    For protein groups, only the "group leader" (which is annotated with a
-    probability and coverage) receives these attributes. All indistinguishable
-    proteins of the same group only have an accession and score of -1.
+    For protein groups, only the "group leader" carries its own probability and
+    coverage in the protXML. Indistinguishable siblings (\<indistinguishable_protein\>)
+    carry only a protein_name in the file (no probability or coverage of their own);
+    on read they inherit the group leader's score (so that score-based filtering does
+    not tear groups apart) and are left without a coverage value.
 
-    @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
+    @note ProteinProphet assigns probability=0 to "unneeded" (subsumable) proteins
+    whose peptides are fully explained by higher-probability proteins in the same
+    protein_group. These are distinct from truly indistinguishable proteins (which
+    share 100% of their peptides and are represented as \<indistinguishable_protein\>
+    elements in the protXML). During parsing, probability=0 \<protein\> elements are
+    filtered out entirely: no ProteinHit, group entry, or peptide evidence is created
+    for them. This prevents downstream tools like ProteinQuantifier from treating
+    subsumable proteins as separate indistinguishable groups, which would incorrectly
+    cause shared peptides to be discarded during quantification.
+
+    Data filled when reading a protXML:
+    - ProteinHit: accession (from @p protein_name), score (ProteinProphet
+      probability; indistinguishable siblings inherit the group leader's score),
+      and coverage (from @p percent_coverage, group leader only). No meta values
+      are set on ProteinHit.
+    - PeptideHit: sequence (from @p peptide_sequence, including any modifications
+      derived from \<mod_aminoacid_mass\>), score (from @p nsp_adjusted_probability),
+      charge, and one PeptideEvidence per protein of the enclosing indistinguishable
+      group. Meta values: @p is_unique (1/0 from @p is_nondegenerate_evidence) and
+      @p is_contributing (1/0 from @p is_contributing_evidence).
+    - The score type of both the ProteinIdentification and PeptideIdentification is
+      set to "ProteinProphet probability" (higher is better).
+
     @todo Writing of protXML is currently not supported
 
     @ingroup FileIO
@@ -77,10 +101,10 @@ protected:
     void resetMembers_();
 
     /// Docu in base class
-    void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
+    void onEndElement(const char16_t* qname) override;
 
     /// Docu in base class
-    void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
+    void onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes) override;
 
     /// Creates a new protein entry (if not already present) and appends it to the current group
     void registerProtein_(const std::string & protein_name);
@@ -109,7 +133,9 @@ protected:
     PeptideHit * pep_hit_;
     /// protein group
     ProteinGroup protein_group_;
-
+    /// true when inside a \<protein\> element with probability=0 (subsumable/"unneeded" protein);
+    /// all child elements (peptides, indistinguishable_protein) are skipped during parsing
+    bool skip_protein_;
 
     //@}
   };

@@ -201,7 +201,7 @@ def test_synthetic_modification_discovery():
     p.setValue("fragment:mass_tolerance_unit", "ppm")
     p.setValue("modifications:fixed", ["Carbamidomethyl (C)"])
     p.setValue("modifications:variable", [])
-    p.setValue("decoys", "false")
+    p.setValue("decoys", "ignore")
     p.setValue("peptide:min_size", 7)
     p.setValue("peptide:max_size", 40)
     p.setValue("peptide:missed_cleavages", 1)
@@ -305,7 +305,7 @@ def test_closed_search_baseline():
     p.setValue("fragment:mass_tolerance_unit", "ppm")
     p.setValue("modifications:fixed", ["Carbamidomethyl (C)"])
     p.setValue("modifications:variable", ["Oxidation (M)"])
-    p.setValue("decoys", "false")
+    p.setValue("decoys", "ignore")
     p.setValue("peptide:min_size", 7)
     p.setValue("peptide:max_size", 40)
     p.setValue("peptide:missed_cleavages", 1)
@@ -328,7 +328,7 @@ def test_empty_spectra():
 
     algo = ProSEAlgorithm()
     p = algo.getParameters()
-    p.setValue("decoys", "false")
+    p.setValue("decoys", "ignore")
     algo.setParameters(p)
 
     prot_ids = []
@@ -360,7 +360,7 @@ def test_fdr_filtered_modification_discovery():
     p.setValue("fragment:mass_tolerance_unit", "ppm")
     p.setValue("modifications:fixed", ["Carbamidomethyl (C)"])
     p.setValue("modifications:variable", [])
-    p.setValue("decoys", "true")  # Required for FDR
+    p.setValue("decoys", "generate")  # Required for FDR
     p.setValue("peptide:min_size", 7)
     p.setValue("peptide:max_size", 40)
     p.setValue("peptide:missed_cleavages", 1)
@@ -441,7 +441,7 @@ def test_score_filtered_modification_discovery():
     p.setValue("fragment:mass_tolerance_unit", "ppm")
     p.setValue("modifications:fixed", ["Carbamidomethyl (C)"])
     p.setValue("modifications:variable", [])
-    p.setValue("decoys", "false")
+    p.setValue("decoys", "ignore")
     p.setValue("peptide:min_size", 7)
     p.setValue("peptide:max_size", 40)
     p.setValue("peptide:missed_cleavages", 1)

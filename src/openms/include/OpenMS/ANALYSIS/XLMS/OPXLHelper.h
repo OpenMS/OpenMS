@@ -102,7 +102,7 @@ namespace OpenMS
        * @param[in] max_variable_mods_per_peptide The maximal number of variable modifications per peptide
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db,
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(const std::vector<FASTAFile::FASTAEntry>& fasta_db,
         const EnzymaticDigestion& digestor, Size min_peptide_length, const StringList& cross_link_residue1, const StringList& cross_link_residue2,
         const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
         const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,

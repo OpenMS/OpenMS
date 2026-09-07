@@ -22,8 +22,8 @@ namespace OpenMS
     ui_->setupUi(this);
 
     ui_->input_file->setFilename(file_name);
-    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
-    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->ok_button, &QPushButton::clicked, this, &TOPPASInputFileDialog::checkValidity_);
+    connect(ui_->cancel_button, &QPushButton::clicked, this, &QDialog::reject);
   }
 
   TOPPASInputFileDialog::~TOPPASInputFileDialog()

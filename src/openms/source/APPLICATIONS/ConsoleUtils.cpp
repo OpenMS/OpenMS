@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM

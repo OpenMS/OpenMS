@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -30,6 +31,7 @@
 #include <streambuf>
 
 #include <memory>
+#include <xercesc/util/XMLString.hpp>
 
 using namespace std;
 
@@ -80,8 +82,10 @@ private:
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
-      parser->setContentHandler(handler);
-      parser->setErrorHandler(handler);
+      // XMLHandler exposes only Xerces-free callbacks; bridge it to the SAX parser.
+      SAX2HandlerAdapter adapter(*handler);
+      parser->setContentHandler(&adapter);
+      parser->setErrorHandler(&adapter);
 
 
       // try to parse file

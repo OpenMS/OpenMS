@@ -7,9 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
+#include <fstream>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
-#include <iomanip>
+
 
 namespace OpenMS
   {

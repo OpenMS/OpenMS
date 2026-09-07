@@ -475,7 +475,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   P::Globals::getInstance()->setNoTerminate(true);
   P::Normalizer::resetNormalizer();
   P::Normalizer::setType(norm_type);
-  P::Normalizer* normalizer = P::Normalizer::getNormalizer();
+  // normalizeFeatures() owns Normalizer construction via its out-parameter.
+  P::Normalizer* normalizer = nullptr;
 
   // SanityCheck: reset static state so successive calls don't leak configuration.
   P::SanityCheck::setInitDefaultDir(0);
@@ -765,7 +766,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   P::Globals::getInstance()->setNoTerminate(true);
   P::Normalizer::resetNormalizer();
   P::Normalizer::setType(norm_type);
-  P::Normalizer* normalizer = P::Normalizer::getNormalizer();
+  // normalizeFeatures() owns Normalizer construction via its out-parameter.
+  P::Normalizer* normalizer = nullptr;
 
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
@@ -1010,9 +1012,9 @@ void Percolator::fillPINCompatibleFields(
         scan_identifier, scan_regex, /*no_error=*/true);
 
     const std::string file_key =
-      static_cast<std::string>(pid.getMetaValue("file_origin", std::string())) +
+      pid.getMetaValue("file_origin", std::string()).toString() +
       "|" +
-      static_cast<std::string>(pid.getMetaValue("id_merge_index", std::string()));
+      pid.getMetaValue("id_merge_index", std::string()).toString();
 
     int spec_file = 0;
     auto it = spec_file_to_idx.find(file_key);

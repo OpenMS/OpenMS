@@ -16,6 +16,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
@@ -428,11 +429,22 @@ namespace OpenMS
     }
   }
 
-  OpenSwath::LightTargetedExperiment TOPPOpenSwathBase::loadTransitionList(const FileTypes::Type& tr_type,
-                                                        const std::string& tr_file,
-                                                        const Param& tsv_reader_param)
+  OpenSwath::LightTargetedExperiment TOPPOpenSwathBase::loadTransitionList(
+    const FileTypes::Type& tr_type,
+    const std::string& tr_file,
+    const Param& tsv_reader_param)
+  {
+    return loadTransitionList(tr_type, tr_file, tsv_reader_param, nullptr);
+  }
+
+  OpenSwath::LightTargetedExperiment TOPPOpenSwathBase::loadTransitionList(
+    const FileTypes::Type& tr_type,
+    const std::string& tr_file,
+    const Param& tsv_reader_param,
+    OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
+    OpenSwathLibraryIDNormalizer::SourceIDMapping loaded_source_ids;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     if (tr_type == FileTypes::TRAML)
@@ -460,7 +472,8 @@ namespace OpenMS
     else if (tr_type == FileTypes::OSWPQ)
     {
       progresslogger.startProgress(0, 1, "Load Parquet library");
-      TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
+      TransitionParquetFile().convertParquetToTargetedExperiment(
+        tr_file, transition_exp, source_ids != nullptr ? &loaded_source_ids : nullptr);
       progresslogger.endProgress();
     }
     else
@@ -468,6 +481,64 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Provide valid TraML, TSV, PQP or OSWPQ transition file." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
+
+    // OpenSWATH uses one operational precursor/transition ID space independent of
+    // library format. Source-oriented formats carry arbitrary identifiers and are
+    // normalized once here; database-backed formats already carry persistent IDs.
+    if (tr_type == FileTypes::TRAML || tr_type == FileTypes::TSV)
+    {
+      loaded_source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(transition_exp);
+    }
+    else
+    {
+      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(transition_exp);
+      if (source_ids != nullptr && tr_type == FileTypes::PQP)
+      {
+        TransitionPQPFile pqp_reader;
+        const auto precursor_provenance =
+          pqp_reader.getPQPCurrentIDToTraMLIDMap(tr_file.c_str(), "PRECURSOR");
+        loaded_source_ids.precursor_canonical_to_source.reserve(precursor_provenance.size());
+        loaded_source_ids.precursor_source_to_canonical.reserve(precursor_provenance.size());
+        for (const auto& [canonical_id, source_id] : precursor_provenance)
+        {
+          // An empty TRAML_ID carries no provenance. Keeping it would replace a valid
+          // canonical precursor ID with "" in consumers that resolve source IDs.
+          if (source_id.empty())
+          {
+            continue;
+          }
+          loaded_source_ids.precursor_canonical_to_source.emplace(canonical_id, source_id);
+          const auto [it, inserted] = loaded_source_ids.precursor_source_to_canonical.emplace(source_id, canonical_id);
+          if (!inserted && it->second != canonical_id)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "PQP precursor TRAML_ID maps to multiple PRECURSOR.ID values",
+                                          source_id);
+          }
+        }
+
+        loaded_source_ids.transition_canonical_to_source =
+          pqp_reader.getPQPCurrentIDToTraMLIDMap(tr_file.c_str(), "TRANSITION");
+        for (auto it = loaded_source_ids.transition_canonical_to_source.begin();
+             it != loaded_source_ids.transition_canonical_to_source.end();)
+        {
+          if (it->second.empty())
+          {
+            it = loaded_source_ids.transition_canonical_to_source.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+      }
+    }
+
+    if (source_ids != nullptr)
+    {
+      *source_ids = std::move(loaded_source_ids);
+    }
+
     return transition_exp;
   }
 } //  end NS OpenMS

@@ -9,7 +9,8 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
+#include <string>
 
 namespace OpenMS
 {

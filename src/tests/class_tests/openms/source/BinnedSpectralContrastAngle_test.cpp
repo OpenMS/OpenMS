@@ -67,6 +67,11 @@ START_SECTION((double operator()(const BinnedSpectrum &spec1, const BinnedSpectr
   BinnedSpectrum bs2 (s2, 1.5, false, 2, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
   double score = (*ptr)(bs1, bs2);
   TEST_REAL_SIMILAR(score,0.999985)
+
+  // empty / all-zero spectrum must yield a defined score of 0 (regression: was 0/0 = NaN)
+  PeakSpectrum empty_s;
+  BinnedSpectrum empty_bs(empty_s, 1.5, false, 2, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+  TEST_REAL_SIMILAR((*ptr)(empty_bs, bs1), 0.0)
 }
 END_SECTION
 

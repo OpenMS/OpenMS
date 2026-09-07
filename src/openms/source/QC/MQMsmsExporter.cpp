@@ -9,6 +9,7 @@
 #include <OpenMS/QC/MQMsmsExporter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MathFunctions.h>

@@ -23,8 +23,8 @@ namespace OpenMS
     ifl_->setCWD(cwd);
     ifl_->setFilenames(list);
 
-    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->ok_button, &QPushButton::clicked, this, &QDialog::accept);
+    connect(ui_->cancel_button, &QPushButton::clicked, this, &QDialog::reject);
     setAcceptDrops(true);
   }
 

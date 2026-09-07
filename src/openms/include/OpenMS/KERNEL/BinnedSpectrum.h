@@ -10,7 +10,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <cmath>
 

@@ -21,6 +21,13 @@ add_subdirectory(openswathalgo)
 add_subdirectory(openms)
 
 #------------------------------------------------------------------------------
+# Class-test framework lib (ClassTest macros, FuzzyStringComparator);
+# standard-library-only; used by the class tests of all OpenMS libraries and
+# by the FuzzyDiff tool
+#------------------------------------------------------------------------------
+add_subdirectory(testframework)
+
+#------------------------------------------------------------------------------
 # pyOpenMS
 #------------------------------------------------------------------------------
 # Note: pyOpenMS is optional and can be disabled with -DPYOPENMS=OFF
@@ -69,7 +76,12 @@ endif()
 # TOPP tools (must come before openms_gui so TOPP_TOOLS cache is initialized
 # before the GUI appends its tools to it)
 #------------------------------------------------------------------------------
-add_subdirectory(topp)
+if(BUILD_TOPP_TOOLS)
+  add_subdirectory(topp)
+else()
+  # Clear a value left by a previous configure in the same build directory.
+  set(TOPP_TOOLS "" CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+endif()
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------

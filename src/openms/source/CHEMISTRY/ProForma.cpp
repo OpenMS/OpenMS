@@ -20,8 +20,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
@@ -1612,6 +1614,145 @@ namespace
   using ConversionIssueType = ProForma::ConversionIssueType;
   using ConversionPolicy = ProForma::ConversionPolicy;
 
+  /**
+    @brief Intern a ProForma `Formula:` tag as a ResidueModification carrying that chemistry.
+
+    Keyed on the canonical formula (not the mass) so it never collides with a formula-less mass-bracket
+    entry. FullName is the mass bracket, so an AASequence carrying it serialises to a spelling every
+    reader parses.
+  */
+  const ResidueModification* resolveFormulaTag_(const FormulaTag& ft, char residue,
+                                                ResidueModification::TermSpecificity term_spec)
+  {
+    // a charge has no representation in ResidueModification
+    if (ft.charge.has_value() && ft.charge.value() != 0) return nullptr;
+
+    EmpiricalFormula ef;
+    try
+    {
+      ef = EmpiricalFormula(ft.formula_string);
+    }
+    catch (const Exception::BaseException&)
+    { // spellings OpenMS cannot parse, e.g. the "[13C2]" isotope form
+      return nullptr;
+    }
+    if (ef.isEmpty() || ef.getCharge() != 0) return nullptr;
+
+    const ResidueModification::TermSpecificity ts =
+      (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ? ResidueModification::ANYWHERE : term_spec;
+
+    // the site is part of the key: PROTEIN_N_TERM and N_TERM must not share an entry
+    std::string site;
+    const Residue* res = nullptr;
+    switch (ts)
+    {
+      case ResidueModification::N_TERM:         site = ".n";  break;
+      case ResidueModification::PROTEIN_N_TERM: site = ".pn"; break;
+      case ResidueModification::C_TERM:         site = ".c";  break;
+      case ResidueModification::PROTEIN_C_TERM: site = ".pc"; break;
+      default:
+        // no origin: the entry could neither be attached nor serialised; getResidue() returns null
+        // for letters ResidueDB does not know (ProForma accepts lowercase)
+        if (residue == '\0') return nullptr;
+        res = ResidueDB::getInstance()->getResidue(static_cast<unsigned char>(residue));
+        if (res == nullptr) return nullptr;
+        site = std::string(1, residue);
+        break;
+    }
+
+    const double diff_mono = ef.getMonoWeight();
+    const std::string full_id = site + "[Formula:" + ef.toString() + "]";
+
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
+    if (mod_db->has(full_id))
+    { // one entry per (formula, site); searchModificationsFast returns the pointer under the DB lock
+      bool multiple_matches = false;
+      const ResidueModification* existing = mod_db->searchModificationsFast(full_id, multiple_matches);
+      if (existing != nullptr) return existing;
+    }
+
+    std::unique_ptr<ResidueModification> new_mod(new ResidueModification);
+    new_mod->setFullId(full_id); // FullId without Id keeps this an anonymous (user-defined) modification
+    new_mod->setProvenance(ResidueModification::MASS_ONLY); // reconstructible from its own tag
+    new_mod->setFullName(ResidueModification::getDiffMonoMassWithBracket(diff_mono));
+    new_mod->setTermSpecificity(ts);
+    // setDiffFormula() alone leaves getDiffMonoMass() at 0.0
+    new_mod->setDiffFormula(ef);
+    new_mod->setDiffMonoMass(diff_mono);
+    new_mod->setDiffAverageMass(ef.getAverageWeight());
+
+    // absolute masses as createUnknownFromMassString sets them, so Residue::setModification behaves the same
+    if (res != nullptr)
+    {
+      new_mod->setOrigin(residue);
+      new_mod->setMonoMass(diff_mono + res->getMonoWeight());
+      new_mod->setAverageMass(ef.getAverageWeight() + res->getAverageWeight());
+    }
+    else if (ts == ResidueModification::N_TERM || ts == ResidueModification::PROTEIN_N_TERM)
+    {
+      new_mod->setMonoMass(diff_mono + Residue::getInternalToNTerm().getMonoWeight());
+    }
+    else
+    {
+      new_mod->setMonoMass(diff_mono + Residue::getInternalToCTerm().getMonoWeight());
+    }
+
+    // addModification re-checks the FullId under its lock and returns the existing entry
+    return mod_db->addModification(std::move(new_mod));
+  }
+
+  /**
+    @brief Combine the modifications on one residue into a single one with the summed chemistry.
+
+    The sum of the diff mono masses is authoritative. The diff formulas are summed as well but only used
+    when their mass agrees with that sum (a database entry can carry a formula that contradicts its
+    mass); otherwise the result is a mass-only modification. Interned via resolveFormulaTag_.
+
+    @param[out] net_zero true when the components cancel; the caller then applies no modification
+    @return the combined modification, or nullptr when @p net_zero or the residue is unknown
+  */
+  const ResidueModification* combineOnOneResidue_(const std::vector<const ResidueModification*>& mods,
+                                                  char residue, bool& net_zero)
+  {
+    net_zero = false;
+    if (residue == '\0') return nullptr;
+
+    double mass_sum = 0.0;
+    EmpiricalFormula formula_sum;
+    bool all_have_formulas = true;
+    for (const ResidueModification* m : mods) // repeated identical brackets each count
+    {
+      mass_sum += m->getDiffMonoMass();
+      if (m->getDiffFormula().isEmpty()) all_have_formulas = false;
+      else formula_sum += m->getDiffFormula();
+    }
+
+    if (std::fabs(mass_sum) <= 1e-6)
+    {
+      net_zero = true;
+      return nullptr;
+    }
+
+    if (all_have_formulas && !formula_sum.isEmpty() && std::fabs(formula_sum.getMonoWeight() - mass_sum) <= 1e-3)
+    {
+      FormulaTag ft;
+      ft.formula_string = formula_sum.toString();
+      return resolveFormulaTag_(ft, residue, ResidueModification::ANYWHERE);
+    }
+
+    if (all_have_formulas)
+    {
+      OPENMS_LOG_WARN << "ProForma: the summed diff formula of the modifications on one residue ("
+                      << formula_sum.toString() << ", " << formula_sum.getMonoWeight()
+                      << " Da) disagrees with the sum of their diff masses (" << mass_sum
+                      << " Da); a database entry carries a formula inconsistent with its mass. Using the masses." << std::endl;
+    }
+    const Residue* res = ResidueDB::getInstance()->getResidue(static_cast<unsigned char>(residue));
+    if (res == nullptr) return nullptr;
+    return ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(mass_sum),
+                                                            mass_sum, true, ResidueModification::ANYWHERE, res);
+  }
+
   // Helper to resolve a single modification tag to a ResidueModification
   const ResidueModification* resolveModificationTag_(
     const ModificationTag& tag,
@@ -1639,7 +1780,10 @@ namespace
           std::string residue_str = (residue != '\0') ? std::string(1, residue) : "";
           return mod_db->getModification(full_accession, residue_str, term_spec);
         }
-        catch (const Exception::ElementNotFound&) { return nullptr; }
+        catch (const Exception::BaseException&)
+        { // not found, or not valid for this residue (InvalidValue): both are unresolved, not exceptions
+          return nullptr;
+        }
       }
       else if constexpr (std::is_same_v<T, NamedMod>)
       {
@@ -1652,18 +1796,95 @@ namespace
         std::string residue_str = (residue != '\0') ? std::string(1, residue) : "";
         return mod_db->getBestModificationByDiffMonoMass(arg.mass, 0.01, residue_str, term_spec);
       }
-      else if constexpr (std::is_same_v<T, FormulaTag>) { return nullptr; }
+      else if constexpr (std::is_same_v<T, FormulaTag>) { return resolveFormulaTag_(arg, residue, term_spec); }
       else if constexpr (std::is_same_v<T, GlycanComposition>) { return nullptr; }
       else if constexpr (std::is_same_v<T, InfoTag>) { return nullptr; }
       else { return nullptr; }
     }, tag);
   }
 
+  /// Is this tag a description of chemistry, as opposed to a free-text annotation or a position hint?
+  bool isChemistryTag_(const ModificationTag& tag)
+  {
+    return !std::holds_alternative<InfoTag>(tag) && !std::holds_alternative<PositionConstraint>(tag);
+  }
+
+  bool sameChemistry_(const ResidueModification& a, const ResidueModification& b)
+  {
+    if (!a.getDiffFormula().isEmpty() && !b.getDiffFormula().isEmpty()) return a.getDiffFormula() == b.getDiffFormula();
+    return std::fabs(a.getDiffMonoMass() - b.getDiffMonoMass()) <= 1e-6;
+  }
+
   void resolveModification_(Modification& mod, char residue, ResidueModification::TermSpecificity term_spec)
   {
     if (mod.alternatives.empty()) return;
-    const auto& [tag, label] = mod.alternatives[0];
-    mod.resolved_mod = resolveModificationTag_(tag, residue, term_spec);
+
+    // an INFO tag naming a registered definition identifies the modification; the inline chemistry is
+    // the fallback. Gated on hasDefinedModification(), so free text naming a vocabulary entry has no effect.
+    const ResidueModification* by_name = nullptr;
+    for (const auto& [tag, label] : mod.alternatives)
+    {
+      const auto* info = std::get_if<InfoTag>(&tag);
+      if (info == nullptr || info->text.empty()) continue;
+      if (!ModificationsDB::getInstance()->hasDefinedModification(info->text)) continue;
+      NamedMod nm;
+      nm.name = info->text;
+      by_name = resolveModificationTag_(ModificationTag(nm), residue, term_spec);
+      if (by_name != nullptr) break;
+    }
+
+    // the first chemistry-carrying alternative, so the tag order inside the bracket does not matter
+    const ResidueModification* by_tag = nullptr;
+    bool has_chemistry = false;
+    for (const auto& [tag, label] : mod.alternatives)
+    {
+      if (!isChemistryTag_(tag)) continue;
+      has_chemistry = true;
+      by_tag = resolveModificationTag_(tag, residue, term_spec);
+      break;
+    }
+
+    if (by_name != nullptr)
+    {
+      if (by_tag != nullptr && !sameChemistry_(*by_name, *by_tag))
+      {
+        OPENMS_LOG_WARN << "ProForma: the definition of '" << by_name->getFullId() << "' ("
+                        << by_name->getDiffFormula().toString() << " / " << by_name->getDiffMonoMass()
+                        << " Da) disagrees with the inline chemistry (" << by_tag->getDiffFormula().toString()
+                        << " / " << by_tag->getDiffMonoMass() << " Da); using the definition." << std::endl;
+      }
+      mod.resolved_mod = by_name;
+      return;
+    }
+    if (has_chemistry)
+    {
+      mod.resolved_mod = by_tag;
+      return;
+    }
+    // annotations only: report what alternatives[0] gives
+    mod.resolved_mod = resolveModificationTag_(mod.alternatives[0].first, residue, term_spec);
+  }
+
+  /// Does this bracket offer a real choice between chemistries? `INFO:` is an annotation, not a
+  /// candidate: `[Formula:C2H2O|INFO:x]` names one modification, it does not offer two.
+  bool hasGenuineAlternatives_(const Modification& mod)
+  {
+    size_t chemistry = 0;
+    for (const auto& [tag, label] : mod.alternatives)
+    {
+      if (isChemistryTag_(tag)) ++chemistry;
+    }
+    return chemistry > 1;
+  }
+
+  /// Does this bracket describe a modification at all (not just an annotation or a label such as "[#XL1]")?
+  bool carriesChemistry_(const Modification& mod)
+  {
+    for (const auto& [tag, label] : mod.alternatives)
+    {
+      if (isChemistryTag_(tag)) return true;
+    }
+    return false;
   }
 
   // Helper to get modification mass from a Modification struct
@@ -1672,7 +1893,13 @@ namespace
     if (mod.resolved_mod != nullptr) return {true, mod.resolved_mod->getDiffMonoMass()};
     if (mod.alternatives.empty()) return {false, 0.0};
 
-    const auto& tag = mod.alternatives[0].first;
+    // same pick as resolution: the first chemistry-carrying alternative
+    const ModificationTag* chosen = nullptr;
+    for (const auto& [t, l] : mod.alternatives)
+    {
+      if (isChemistryTag_(t)) { chosen = &t; break; }
+    }
+    const ModificationTag& tag = (chosen != nullptr) ? *chosen : mod.alternatives[0].first;
 
     if (const auto* md = std::get_if<MassDelta>(&tag)) return {true, md->mass};
     if (const auto* ft = std::get_if<FormulaTag>(&tag))
@@ -1911,11 +2138,24 @@ void ProForma::resolveModifications(Peptidoform& pf)
 // AASequence conversion
 //============================================================================
 
+namespace
+{
+  /// Issues of an already resolved peptidoform; lets toAASequence resolve once
+  std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::Peptidoform& pf_copy);
+} // namespace
+
 std::vector<ProForma::ConversionIssue> ProForma::getAASequenceConversionIssues(const Peptidoform& pf)
 {
-  std::vector<ConversionIssue> issues;
   Peptidoform pf_copy = pf;
   resolveModifications(pf_copy);
+  return collectConversionIssues_(pf_copy);
+}
+
+namespace
+{
+std::vector<ProForma::ConversionIssue> collectConversionIssues_(const ProForma::Peptidoform& pf_copy)
+{
+  std::vector<ConversionIssue> issues;
 
   if (!pf_copy.unlocalised_mods.empty())
     issues.push_back({ConversionIssueType::UNLOCALISED_MOD, "Peptidoform contains unlocalised modifications", SIZE_MAX});
@@ -1941,19 +2181,29 @@ std::vector<ProForma::ConversionIssue> ProForma::getAASequenceConversionIssues(c
         "Peptidoform contains modified range at position " + std::to_string(position), position});
     else if (const auto* elem = std::get_if<SequenceElement>(&section))
     {
+      size_t chemistry_brackets = 0;
+      for (const auto& mod : elem->modifications)
+      {
+        if (carriesChemistry_(mod)) ++chemistry_brackets;
+      }
+      if (chemistry_brackets > 1)
+        issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
+          "Residue at position " + std::to_string(position) + " carries multiple modification brackets; "
+          "an AASequence residue holds only one, so they are combined into one anonymous modification and the individual identities are lost", position});
+
       for (const auto& mod : elem->modifications)
       {
         if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
         {
-          const auto& [tag, label] = mod.alternatives[0];
-          bool is_empty_info = std::holds_alternative<InfoTag>(tag) && std::get<InfoTag>(tag).text.empty();
-          if (!is_empty_info)
+          // a bracket without any chemistry (label-only or annotations only) is not an unresolved modification
+          if (carriesChemistry_(mod))
             issues.push_back({ConversionIssueType::UNRESOLVED_MOD,
               "Modification at position " + std::to_string(position) + " could not be resolved", position});
         }
-        if (mod.alternatives.size() > 1)
+        if (hasGenuineAlternatives_(mod))
           issues.push_back({ConversionIssueType::ALTERNATIVE_MODS,
             "Modification at position " + std::to_string(position) + " has multiple alternatives", position});
+
 
         for (const auto& [tag, label] : mod.alternatives)
           if (label.has_value() && label->type == Label::Type::CROSSLINK)
@@ -1967,34 +2217,53 @@ std::vector<ProForma::ConversionIssue> ProForma::getAASequenceConversionIssues(c
     position++;
   }
 
+  {
+    size_t n_term_mods_chemistry = 0;
+    for (const auto& mod : pf_copy.n_term_mods)
+    {
+      if (carriesChemistry_(mod)) ++n_term_mods_chemistry;
+    }
+    if (n_term_mods_chemistry > 1)
+      issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
+        "N-terminal modifications: an AASequence holds only one, so all but the first are lost", SIZE_MAX});
+  }
+
   for (const auto& mod : pf_copy.n_term_mods)
   {
     if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
     {
-      const auto& [tag, label] = mod.alternatives[0];
-      bool is_empty_info = std::holds_alternative<InfoTag>(tag) && std::get<InfoTag>(tag).text.empty();
-      if (!is_empty_info)
+      if (carriesChemistry_(mod))
         issues.push_back({ConversionIssueType::UNRESOLVED_MOD, "N-terminal modification could not be resolved", SIZE_MAX});
     }
-    if (mod.alternatives.size() > 1)
+    if (hasGenuineAlternatives_(mod))
       issues.push_back({ConversionIssueType::ALTERNATIVE_MODS, "N-terminal modification has multiple alternatives", SIZE_MAX});
+  }
+
+  {
+    size_t c_term_mods_chemistry = 0;
+    for (const auto& mod : pf_copy.c_term_mods)
+    {
+      if (carriesChemistry_(mod)) ++c_term_mods_chemistry;
+    }
+    if (c_term_mods_chemistry > 1)
+      issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
+        "C-terminal modifications: an AASequence holds only one, so all but the first are lost", SIZE_MAX});
   }
 
   for (const auto& mod : pf_copy.c_term_mods)
   {
     if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
     {
-      const auto& [tag, label] = mod.alternatives[0];
-      bool is_empty_info = std::holds_alternative<InfoTag>(tag) && std::get<InfoTag>(tag).text.empty();
-      if (!is_empty_info)
+      if (carriesChemistry_(mod))
         issues.push_back({ConversionIssueType::UNRESOLVED_MOD, "C-terminal modification could not be resolved", SIZE_MAX});
     }
-    if (mod.alternatives.size() > 1)
+    if (hasGenuineAlternatives_(mod))
       issues.push_back({ConversionIssueType::ALTERNATIVE_MODS, "C-terminal modification has multiple alternatives", SIZE_MAX});
   }
 
   return issues;
 }
+} // namespace
 
 bool ProForma::isRepresentableAsAASequence(const Peptidoform& pf)
 {
@@ -2003,7 +2272,9 @@ bool ProForma::isRepresentableAsAASequence(const Peptidoform& pf)
 
 AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy)
 {
-  std::vector<ConversionIssue> issues = getAASequenceConversionIssues(pf);
+  Peptidoform pf_copy = pf;
+  resolveModifications(pf_copy);
+  std::vector<ConversionIssue> issues = collectConversionIssues_(pf_copy);
 
   if (policy == ConversionPolicy::FAIL_ON_LOSS && !issues.empty())
   {
@@ -2011,9 +2282,6 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
     for (const auto& issue : issues) error_msg += issue.description + "; ";
     throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
   }
-
-  Peptidoform pf_copy = pf;
-  resolveModifications(pf_copy);
 
   std::string unmod_seq;
   for (const auto& section : pf_copy.sequence)
@@ -2034,12 +2302,33 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
   {
     if (const auto* elem = std::get_if<SequenceElement>(&section))
     {
+      // an AASequence residue holds one modification: combine the chemistry (the lost identities are
+      // reported by collectConversionIssues_)
+      std::vector<const ResidueModification*> resolved;
       for (const auto& mod : elem->modifications)
       {
-        if (mod.resolved_mod != nullptr) seq.setModification(seq_pos, mod.resolved_mod);
+        if (mod.resolved_mod != nullptr) resolved.push_back(mod.resolved_mod);
         else if (policy == ConversionPolicy::FAIL_ON_LOSS)
           throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Unresolved modification at position " + std::to_string(seq_pos));
+      }
+      if (resolved.size() == 1)
+      {
+        seq.setModification(seq_pos, resolved[0]);
+      }
+      else if (resolved.size() > 1)
+      {
+        bool net_zero = false;
+        const ResidueModification* combined = combineOnOneResidue_(resolved, elem->amino_acid, net_zero);
+        if (combined != nullptr)
+        {
+          seq.setModification(seq_pos, combined);
+        }
+        else if (!net_zero)
+        { // unknown residue letter: the only case left with no combined modification
+          seq.setModification(seq_pos, resolved.back());
+        }
+        // else: the components cancel; leave the residue unmodified
       }
       seq_pos++;
     }
@@ -2047,14 +2336,111 @@ AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy
     else if (const auto* range = std::get_if<ModifiedRange>(&section)) seq_pos += range->elements.size();
   }
 
-  if (!pf_copy.n_term_mods.empty() && pf_copy.n_term_mods[0].resolved_mod != nullptr)
-    seq.setNTerminalModification(pf_copy.n_term_mods[0].resolved_mod);
-
-  if (!pf_copy.c_term_mods.empty() && pf_copy.c_term_mods[0].resolved_mod != nullptr)
-    seq.setCTerminalModification(pf_copy.c_term_mods[0].resolved_mod);
+  // the first RESOLVED terminal bracket: a label-only "[#XL1]" may precede the chemistry
+  for (const auto& mod : pf_copy.n_term_mods)
+  {
+    if (mod.resolved_mod != nullptr) { seq.setNTerminalModification(mod.resolved_mod); break; }
+  }
+  for (const auto& mod : pf_copy.c_term_mods)
+  {
+    if (mod.resolved_mod != nullptr) { seq.setCTerminalModification(mod.resolved_mod); break; }
+  }
 
   return seq;
 }
+
+namespace
+{
+  /**
+    @brief Render a mass delta as ProForma-parseable text at full precision.
+
+    getDiffMonoMassString() switches to scientific notation below 1e-2 and above 1e4, which
+    ProForma::parseMassDelta_ cannot read back.
+  */
+  std::string massDeltaText_(double mass)
+  {
+    // fixed without a precision: the shortest string that reads back as the same double
+    if (!std::isfinite(mass))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Cannot serialise a non-finite modification mass as ProForma", std::to_string(mass));
+    }
+    // 400 bytes: the longest fixed-notation double has 309 integer digits
+    char buf[400];
+    const double abs_mass = std::fabs(mass);
+    auto res = std::to_chars(buf, buf + sizeof(buf), abs_mass, std::chars_format::fixed);
+    if (res.ec != std::errc())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Cannot serialise modification mass as ProForma", std::to_string(mass));
+    }
+    return (mass < 0.0 && abs_mass != 0.0 ? "-" : "+") + std::string(buf, res.ptr);
+  }
+
+  /**
+    @brief Render one ResidueModification as a ProForma modification bracket.
+
+    An anonymous modification (empty getId()) is written as a `Formula:` tag when it carries a formula
+    and as a mass delta otherwise - never as a NamedMod with an empty name, which produced the
+    unparseable "[]". A tool-defined modification is written the same way plus an `INFO:` tag carrying
+    its name, so the peptidoform is chemically complete on its own and the name still travels.
+  */
+  ProForma::Modification modificationToProForma_(const ResidueModification* mod)
+  {
+    ProForma::Modification pf_mod;
+    const std::string unimod_acc = mod->getUniModAccession();
+    if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
+    {
+      ProForma::CvAccession cv;
+      cv.database = ProForma::CvDatabase::UNIMOD;
+      cv.accession = StringUtils::substr(unimod_acc, 7);
+      pf_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
+    }
+    else if (mod->getId().empty() && !mod->getDiffFormula().isEmpty())
+    {
+      ProForma::FormulaTag ft;
+      ft.formula_string = mod->getDiffFormula().toString();
+      pf_mod.alternatives.emplace_back(std::move(ft), std::nullopt);
+    }
+    else if (!mod->getId().empty() && mod->getProvenance() == ResidueModification::DEFINED)
+    { // tool-defined: the chemistry first (it resolves anywhere), the name as an annotation
+      if (!mod->getDiffFormula().isEmpty())
+      {
+        ProForma::FormulaTag ft;
+        ft.formula_string = mod->getDiffFormula().toString();
+        pf_mod.alternatives.emplace_back(std::move(ft), std::nullopt);
+      }
+      else
+      {
+        ProForma::MassDelta md;
+        md.source = ProForma::MassDelta::Source::NONE;
+        md.mass = mod->getDiffMonoMass();
+        md.original_text = massDeltaText_(md.mass);
+        pf_mod.alternatives.emplace_back(std::move(md), std::nullopt);
+      }
+      ProForma::InfoTag info;
+      info.text = mod->getId();
+      pf_mod.alternatives.emplace_back(std::move(info), std::nullopt);
+    }
+    else if (!mod->getId().empty())
+    {
+      ProForma::NamedMod nm;
+      nm.name = mod->getId();
+      nm.cv_hint = std::nullopt;
+      pf_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
+    }
+    else
+    {
+      ProForma::MassDelta md;
+      md.source = ProForma::MassDelta::Source::NONE;
+      md.mass = mod->getDiffMonoMass();
+      md.original_text = massDeltaText_(md.mass);
+      pf_mod.alternatives.emplace_back(std::move(md), std::nullopt);
+    }
+    pf_mod.resolved_mod = mod;
+    return pf_mod;
+  }
+} // namespace
 
 ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
 {
@@ -2070,24 +2456,7 @@ ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
       const ResidueModification* mod = seq[i].getModification();
       if (mod != nullptr)
       {
-        Modification proforma_mod;
-        std::string unimod_acc = mod->getUniModAccession();
-        if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
-        {
-          CvAccession cv;
-          cv.database = CvDatabase::UNIMOD;
-          cv.accession = StringUtils::substr(unimod_acc, 7);
-          proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
-        }
-        else
-        {
-          NamedMod nm;
-          nm.name = mod->getId();
-          nm.cv_hint = std::nullopt;
-          proforma_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
-        }
-        proforma_mod.resolved_mod = mod;
-        elem.modifications.push_back(std::move(proforma_mod));
+        elem.modifications.push_back(modificationToProForma_(mod));
       }
     }
     pf.sequence.push_back(std::move(elem));
@@ -2098,24 +2467,7 @@ ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
     const ResidueModification* mod = seq.getNTerminalModification();
     if (mod != nullptr)
     {
-      Modification proforma_mod;
-      std::string unimod_acc = mod->getUniModAccession();
-      if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
-      {
-        CvAccession cv;
-        cv.database = CvDatabase::UNIMOD;
-        cv.accession = StringUtils::substr(unimod_acc, 7);
-        proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
-      }
-      else
-      {
-        NamedMod nm;
-        nm.name = mod->getId();
-        nm.cv_hint = std::nullopt;
-        proforma_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
-      }
-      proforma_mod.resolved_mod = mod;
-      pf.n_term_mods.push_back(std::move(proforma_mod));
+      pf.n_term_mods.push_back(modificationToProForma_(mod));
     }
   }
 
@@ -2124,24 +2476,7 @@ ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
     const ResidueModification* mod = seq.getCTerminalModification();
     if (mod != nullptr)
     {
-      Modification proforma_mod;
-      std::string unimod_acc = mod->getUniModAccession();
-      if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
-      {
-        CvAccession cv;
-        cv.database = CvDatabase::UNIMOD;
-        cv.accession = StringUtils::substr(unimod_acc, 7);
-        proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
-      }
-      else
-      {
-        NamedMod nm;
-        nm.name = mod->getId();
-        nm.cv_hint = std::nullopt;
-        proforma_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
-      }
-      proforma_mod.resolved_mod = mod;
-      pf.c_term_mods.push_back(std::move(proforma_mod));
+      pf.c_term_mods.push_back(modificationToProForma_(mod));
     }
   }
 

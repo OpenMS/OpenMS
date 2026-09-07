@@ -20,6 +20,7 @@
 #include <nanobind/stl/unique_ptr.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/pair.h>
+#include <nanobind/stl/tuple.h>
 #include <nanobind/ndarray.h>
 
 // OpenMS-specific type casters (prefixed to avoid collision with system headers)

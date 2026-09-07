@@ -73,6 +73,7 @@ void KDTreeFeatureMaps::clear()
 {
   features_.clear();
   map_index_.clear();
+  rt_.clear();
   kd_tree_.clear();
 }
 

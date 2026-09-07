@@ -11,7 +11,7 @@ def test_spectrum_zero_copy_modification():
     spec.push_back(poms.Peak1D(200.0, 75.0))
     
     # Get the zero-copy structured array view
-    peaks_array = spec.get_peaks_struct()
+    peaks_array = spec.peaks_struct()
     
     # 1. Check if values match
     assert np.isclose(peaks_array['mz'][0], 100.0)
@@ -26,7 +26,7 @@ def test_spectrum_memory_safety():
     def get_view():
         spec = poms.MSSpectrum()
         spec.push_back(poms.Peak1D(300.0, 10.0))
-        return spec.get_peaks_struct()
+        return spec.peaks_struct()
     
     # 'spec' goes out of scope here and would normally be destroyed, 
     # but the numpy array view should keep the C++ memory alive.
@@ -40,9 +40,9 @@ def test_spectrum_memory_safety():
     assert np.isclose(peaks_array['mz'][0], 300.0), "Memory safety/lifetime sharing failed!"
 
 def test_spectrum_empty_struct():
-    """get_peaks_struct() on empty MSSpectrum should return empty structured array."""
+    """peaks_struct() on empty MSSpectrum should return empty structured array."""
     spec = poms.MSSpectrum()
-    arr = spec.get_peaks_struct()
+    arr = spec.peaks_struct()
     assert isinstance(arr, np.ndarray)
     assert arr.shape == (0,)
     assert arr.dtype['mz'] == np.float64

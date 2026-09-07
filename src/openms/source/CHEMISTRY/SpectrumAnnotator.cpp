@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -77,19 +78,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumAnnotator::SpectrumAnnotator(const SpectrumAnnotator & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  SpectrumAnnotator::SpectrumAnnotator(const SpectrumAnnotator& rhs) = default;
 
-  SpectrumAnnotator & SpectrumAnnotator::operator=(const SpectrumAnnotator & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  SpectrumAnnotator& SpectrumAnnotator::operator=(const SpectrumAnnotator& rhs) = default;
 
   SpectrumAnnotator::~SpectrumAnnotator() = default;
 

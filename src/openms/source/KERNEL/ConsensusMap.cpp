@@ -202,7 +202,7 @@ namespace OpenMS
         Size old_index = (Size)pid.getMetaValue("map_index");
         pid.setMetaValue("map_index", lhs_map_size + old_index);
       }
-      unassigned_peptide_identifications_.push_back(pid);
+      unassigned_peptide_identifications_.push_back(std::move(pid));
     }
 
     // combine IDs (new format):
@@ -234,7 +234,7 @@ namespace OpenMS
       // update IDs (new format):
       cf.updateIDReferences(trans);
 
-      emplace_back(cf);
+      emplace_back(std::move(cf));
     }
 
     // consistency

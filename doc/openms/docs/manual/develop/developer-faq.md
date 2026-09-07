@@ -24,7 +24,7 @@ Follow the [OpenMS coding conventions](https://abibuilder.cs.uni-tuebingen.de/ar
 Coding style (brackets, variable names, etc.) must conform to the conventions.
 
 * The class and all the members should be properly documented.
-* Check your code with the tool  `tools/checker.php`. Call `php tools/checker.php` for detailed instructions.
+* Check your code style by using the `.clang-format` file in the repository root.
 
 Please open a pull request and follow the [pull request guidelines](/manual/contribute/pull-request-checklist.md).
 

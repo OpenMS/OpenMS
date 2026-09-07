@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 namespace OpenMS
 {

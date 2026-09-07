@@ -76,7 +76,9 @@ namespace OpenMS
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", cat_linking);
     tools_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", cat_linking);
     tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", cat_linking);
+#ifdef WITH_WNETALIGN
     tools_map["FeatureLinkerWNet"] = Internal::ToolDescription("FeatureLinkerWNet", cat_linking);
+#endif
     tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", cat_file_converter);
     tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", cat_file_filter_extract_merge);
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", cat_file_filter_extract_merge);
@@ -146,6 +148,8 @@ namespace OpenMS
     tools_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", cat_targeted);
     tools_map["OpenSwathInfer"] = Internal::ToolDescription("OpenSwathInfer", cat_targeted);
     tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", cat_targeted);
+    tools_map["OpenSwathPeakMapExtractor"] = Internal::ToolDescription("OpenSwathPeakMapExtractor", cat_targeted);
+    tools_map["OpenSwathPercolatorScoring"] = Internal::ToolDescription("OpenSwathPercolatorScoring", cat_targeted);
     tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", cat_targeted);
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
@@ -160,8 +164,8 @@ namespace OpenMS
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
-    tools_map["QPXConverter"] = Internal::ToolDescription("QPXConverter", cat_file_converter);
     tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
+    tools_map["ParquetDiff"] = Internal::ToolDescription("ParquetDiff", cat_dev);
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
     tools_map["QCExporter"] = Internal::ToolDescription("QCExporter", cat_QC);
@@ -190,7 +194,8 @@ namespace OpenMS
     tools_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", cat_file_converter);
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
-    tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
+    tools_map["TransitionListEvidenceFilter"] = Internal::ToolDescription("TransitionListEvidenceFilter", cat_targeted);
+    tools_map["UniPEFF"] = Internal::ToolDescription("UniPEFF", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
 
@@ -201,7 +206,6 @@ namespace OpenMS
     StringList GUI_tools = {
       "ExecutePipeline",
       "ImageCreator",
-      "INIUpdater",
     };
     for (const auto& tool : GUI_tools) {
       tools_map.erase(tool);
@@ -245,11 +249,6 @@ namespace OpenMS
       tools_internal_loaded_ = true;
     }
     return tools_internal_;
-  }
-
-  std::string ToolHandler::getExternalToolsPath()
-  {
-    return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
   }
 
   std::string ToolHandler::getInternalToolsPath()

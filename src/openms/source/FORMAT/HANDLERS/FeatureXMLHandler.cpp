@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 
@@ -107,6 +108,7 @@ namespace OpenMS::Internal
 
     // write identification runs
     Size prot_count = 0;
+    const auto definitions = ModificationDefinitionIO::collect(feature_map);
     for (Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i)
     {
       const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
@@ -118,7 +120,11 @@ namespace OpenMS::Internal
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
+      ProteinIdentification::SearchParameters search_param = current_prot_id.getSearchParameters();
+      if (const auto d = definitions.find(current_prot_id.getIdentifier()); d != definitions.end())
+      {
+        ModificationDefinitionIO::attach(search_param, d->second);
+      }
       os << "\t\t<SearchParameters "
          << "db=\"" << writeXMLEscape(search_param.db) << "\" "
          << "db_version=\"" << writeXMLEscape(search_param.db_version) << "\" "
@@ -238,19 +244,19 @@ namespace OpenMS::Internal
     options_ = options;
   }
 
-  void FeatureXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void FeatureXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
   {
-    static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
-    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-    static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-    static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-    static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-    static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
-    static const XMLCh* s_document_id = xercesc::XMLString::transcode("document_id");
-    static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+    static const char16_t* s_dim = u"dim";
+    static const char16_t* s_name = u"name";
+    static const char16_t* s_version = u"version";
+    static const char16_t* s_value = u"value";
+    static const char16_t* s_type = u"type";
+    static const char16_t* s_completion_time = u"completion_time";
+    static const char16_t* s_document_id = u"document_id";
+    static const char16_t* s_id = u"id";
 
     // TODO The next line should be removed in OpenMS 1.7 or so!
-    static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
+    static const char16_t* s_unique_id = u"unique_id";
 
     std::string tag = sm_.convert(qname);
 
@@ -599,10 +605,9 @@ namespace OpenMS::Internal
       pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
-      if (refs != nullptr)
+      std::string accession_string;
+      if (optionalAttributeAsString_(accession_string, attributes, "protein_refs"))
       {
-        std::string accession_string = sm_.convert(refs);
         StringUtils::trim(accession_string);
         vector<std::string> accessions;
         StringUtils::split(accession_string, ' ', accessions);
@@ -700,7 +705,7 @@ namespace OpenMS::Internal
     }
   }
 
-  void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void FeatureXMLHandler::onEndElement(const char16_t* qname)
   {
     std::string tag = sm_.convert(qname);
 
@@ -793,6 +798,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "SearchParameters")
     {
+      ModificationDefinitionIO::registerFrom(search_param_); // before any peptide sequence is parsed
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
@@ -833,7 +839,7 @@ namespace OpenMS::Internal
     }
   }
 
-  void FeatureXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+  void FeatureXMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
   {
     // handle skipping of whole sections
     if (disable_parsing_)

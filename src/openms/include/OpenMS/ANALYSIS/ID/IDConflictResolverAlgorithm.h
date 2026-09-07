@@ -101,7 +101,48 @@ public:
    appears only once, i.e. no multiplicities.
    **/
   static void resolveBetweenFeatures(ConsensusMap& features);
-  
+
+  /// What reduceToOnePerSpectrum() found and did. All counts are over the input list.
+  struct OPENMS_DLLAPI UnresolvedIdentifications
+  {
+    /// Identifications removed because another one claimed the same
+    /// (spectrum reference, top-hit sequence, top-hit charge).
+    Size removed = 0;
+    /// Spectra that still carry more than one identification AFTER the reduction, i.e. ones
+    /// whose identifications name different peptidoforms (a chimeric spectrum, or search
+    /// engines that disagree). Not reduced - both are quantifiable - but worth reporting.
+    Size multiply_identified_spectra = 0;
+    /// Identifications that could not be keyed because they carry no spectrum reference.
+    /// Left untouched: without a reference there is nothing to tell them apart by.
+    Size without_spectrum_reference = 0;
+    /// Identifications whose group disagreed on isHigherScoreBetter(), so "best" was undefined.
+    /// Left untouched rather than reduced by a coin flip.
+    Size inconsistent_score_direction = 0;
+    /// First reduced group, as "<spectrum reference> / <sequence> / charge <n>", for logging.
+    std::string example;
+  };
+
+  /**
+    @brief Reduce identifications a quantification workflow cannot tell apart to one per spectrum.
+
+    Quantification tools measure one value per (spectrum, peptidoform, charge). Where the input
+    carries several identifications of that same triple - e.g. two search engines that agree,
+    concatenated rather than combined - only one of them can own the measurement, and keeping
+    all of them counts one measurement several times.
+
+    This keeps the best-scoring identification of each such group and removes the rest. That is a
+    tie-break on scores something upstream already assigned, not a scoring decision: combining
+    scores from different engines is ConsensusIDAlgorithm's job and is deliberately not done here.
+
+    Identifications are keyed on the top hit as stored; hits are never re-sorted, so the key
+    matches what the exporters and quantifiers read. Surviving identifications keep their
+    original relative order.
+
+    @param[in,out] ids One identification run's peptide identifications.
+    @return What was found and removed; see UnresolvedIdentifications.
+  **/
+  static UnresolvedIdentifications reduceToOnePerSpectrum(PeptideIdentificationList& ids);
+
 protected:
 
   template<class T>

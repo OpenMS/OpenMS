@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;

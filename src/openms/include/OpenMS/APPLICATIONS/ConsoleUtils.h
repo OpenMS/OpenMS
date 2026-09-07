@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h> // for StringList definition
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h> // for StringList definition
 
 #include <limits>
 

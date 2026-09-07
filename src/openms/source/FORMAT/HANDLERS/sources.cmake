@@ -9,6 +9,9 @@ set(sources_list
   FidHandler.cpp
   FeatureXMLHandler.cpp
   IndexedMzMLDecoder.cpp
+  ImzMLHandler.cpp
+  ImzMLHandlerHelper.cpp
+  ImzMLWriter.cpp
   IndexedMzMLHandler.cpp
   MascotXMLHandler.cpp
   MzDataHandler.cpp
@@ -26,6 +29,9 @@ set(sources_list
   ToolDescriptionHandler.cpp
   TraMLHandler.cpp
   UnimodXMLHandler.cpp
+  UniProtXMLHandler.cpp
+  StringManager.cpp
+  XMLAttributes.cpp
   XMLHandler.cpp
   XQuestResultXMLHandler.cpp
 )

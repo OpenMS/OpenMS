@@ -22,7 +22,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 #include <boost/range/adaptor/map.hpp>

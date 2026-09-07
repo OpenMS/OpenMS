@@ -163,8 +163,8 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
-    FileNotFound::FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept :
-      BaseException(file, line, function, "FileNotFound", "the file '" + filename + "' could not be found")
+    FileNotFound::FileNotFound(const char* file, int line, const char* function, const std::string& filename, const std::string& additional_message) noexcept :
+      BaseException(file, line, function, "FileNotFound", "the file '" + filename + "' could not be found" + (additional_message.empty() ? "" : ". " + additional_message))
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }

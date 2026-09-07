@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/INIUpdater.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
 

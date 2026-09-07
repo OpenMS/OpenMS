@@ -72,9 +72,14 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       @brief Search the MS2 spectra in @p in_spectra against the protein database in @p in_db.
 
       Spectra and database are loaded from disk; the result is written into the two
-      output arguments. Existing contents of @p prot_ids and @p pep_ids are not
-      cleared by this call. The current parameter set (see the class brief) controls
-      tolerances, modifications, enzyme, FDR, etc.
+      output arguments. The two outputs are NOT treated symmetrically and this call is
+      NOT additive: @p prot_ids is overwritten (replaced by a single fresh
+      ProteinIdentification run for this search), whereas new PSMs are appended to
+      @p pep_ids. In addition, the run identifier of the freshly created protein run is
+      stamped onto EVERY element of @p pep_ids (including pre-existing entries), so do
+      not reuse a @p pep_ids vector that already holds PSMs from another run — pass
+      freshly constructed (empty) vectors. The current parameter set (see the class
+      brief) controls tolerances, modifications, enzyme, FDR, etc.
 
       @param[in]  in_spectra Path to the spectrum input (mzML or any format readable by @ref FileHandler).
       @param[in]  in_db      Path to the protein FASTA database to search against.

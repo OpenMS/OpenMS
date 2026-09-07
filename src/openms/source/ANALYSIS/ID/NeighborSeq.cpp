@@ -6,6 +6,7 @@
 // $Authors: Chris Bielow, Philipp Wang $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>

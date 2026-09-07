@@ -11,6 +11,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -235,14 +236,7 @@ protected:
     std::string format = getStringOption_("out_type");
     if (StringUtils::trim(format).empty()) // get from filename
     {
-      try
-      {
-        format = StringUtils::suffix(out, '.');
-      }
-      catch (Exception::ElementNotFound& /*e*/)
-      {
-        format = "nosuffix";
-      }
+      format = StringUtils::has(out, '.') ? StringUtils::suffix(out, '.') : "nosuffix";
       if (!ListUtils::contains(out_formats_, StringUtils::toLower(format)))
       {
         OPENMS_LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;

@@ -48,7 +48,7 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<chromatogramList count="15" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="PEPTIDEA_Precursor_i0" index="0" defaultArrayLength="50">
+			<chromatogram id="0_Precursor_i0" index="0" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -85,7 +85,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_1" index="1" defaultArrayLength="50">
+			<chromatogram id="0" index="1" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -123,7 +123,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_2" index="2" defaultArrayLength="50">
+			<chromatogram id="1" index="2" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -161,7 +161,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_3" index="3" defaultArrayLength="50">
+			<chromatogram id="2" index="3" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -199,7 +199,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_4" index="4" defaultArrayLength="50">
+			<chromatogram id="3" index="4" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -237,7 +237,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_5" index="5" defaultArrayLength="50">
+			<chromatogram id="4" index="5" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -275,7 +275,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_Precursor_i0" index="6" defaultArrayLength="50">
+			<chromatogram id="1_Precursor_i0" index="6" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -312,7 +312,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_Precursor_i0" index="7" defaultArrayLength="50">
+			<chromatogram id="2_Precursor_i0" index="7" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -349,7 +349,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_1" index="8" defaultArrayLength="50">
+			<chromatogram id="5" index="8" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -387,7 +387,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_1" index="9" defaultArrayLength="50">
+			<chromatogram id="10" index="9" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -425,7 +425,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_2" index="10" defaultArrayLength="50">
+			<chromatogram id="6" index="10" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -463,7 +463,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_2" index="11" defaultArrayLength="50">
+			<chromatogram id="11" index="11" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -501,7 +501,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_3" index="12" defaultArrayLength="50">
+			<chromatogram id="7" index="12" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -539,7 +539,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_3" index="13" defaultArrayLength="50">
+			<chromatogram id="12" index="13" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -577,7 +577,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_4" index="14" defaultArrayLength="50">
+			<chromatogram id="8" index="14" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -615,7 +615,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_4" index="15" defaultArrayLength="50">
+			<chromatogram id="13" index="15" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -653,7 +653,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_5" index="16" defaultArrayLength="50">
+			<chromatogram id="9" index="16" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -691,7 +691,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_5" index="17" defaultArrayLength="50">
+			<chromatogram id="14" index="17" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -734,26 +734,26 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="PEPTIDEA_Precursor_i0">3268</offset>
-		<offset idRef="PEPTIDEA_1">5564</offset>
-		<offset idRef="PEPTIDEA_2">8046</offset>
-		<offset idRef="PEPTIDEA_3">10528</offset>
-		<offset idRef="PEPTIDEA_4">13010</offset>
-		<offset idRef="PEPTIDEA_5">15492</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">17974</offset>
-		<offset idRef="PEPTIDEC_Precursor_i0">20270</offset>
-		<offset idRef="PEPTIDEB_1">22566</offset>
-		<offset idRef="PEPTIDEC_1">25051</offset>
-		<offset idRef="PEPTIDEB_2">27536</offset>
-		<offset idRef="PEPTIDEC_2">30022</offset>
-		<offset idRef="PEPTIDEB_3">32508</offset>
-		<offset idRef="PEPTIDEC_3">34994</offset>
-		<offset idRef="PEPTIDEB_4">37480</offset>
-		<offset idRef="PEPTIDEC_4">39966</offset>
-		<offset idRef="PEPTIDEB_5">42452</offset>
-		<offset idRef="PEPTIDEC_5">44938</offset>
+		<offset idRef="0_Precursor_i0">3268</offset>
+		<offset idRef="0">5557</offset>
+		<offset idRef="1">8030</offset>
+		<offset idRef="2">10503</offset>
+		<offset idRef="3">12976</offset>
+		<offset idRef="4">15449</offset>
+		<offset idRef="1_Precursor_i0">17922</offset>
+		<offset idRef="2_Precursor_i0">20211</offset>
+		<offset idRef="5">22500</offset>
+		<offset idRef="10">24976</offset>
+		<offset idRef="6">27453</offset>
+		<offset idRef="11">29930</offset>
+		<offset idRef="7">32408</offset>
+		<offset idRef="12">34885</offset>
+		<offset idRef="8">37363</offset>
+		<offset idRef="13">39840</offset>
+		<offset idRef="9">42318</offset>
+		<offset idRef="14">44795</offset>
 	</index>
 </indexList>
-<indexListOffset>47458</indexListOffset>
+<indexListOffset>47307</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

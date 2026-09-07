@@ -9,9 +9,6 @@ OpenMS provides additional graphical user interfaces besides TOPPAS and TOPPView
 
   A GUI application used to edit TOPP INI files. TOPP INI files are used to configure TOPP tool parameters. TOPP INI files are files with the extension `.ini`. For mor information, read our [INIFileEditor](additional/ini-file-editor.md) section.
 
-- **SwathWizard**
-  An application for SWATH analysis. SwathWizard is used to analyze DIA swath data. For more information, read our [SwathWizard](additional/swathwizard.md) section.
-
 
 A possible workflow would consist of the following steps:
 
@@ -27,6 +24,5 @@ maxdepth: 1
 hidden: True
 ---
 
-additional/swathwizard.md
 additional/ini-file-editor.md
 ```

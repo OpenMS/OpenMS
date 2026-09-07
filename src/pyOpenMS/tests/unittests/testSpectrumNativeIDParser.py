@@ -79,6 +79,28 @@ def testSpectrumNativeIDParser():
         "MS:1000768"
     ) == 200
 
+    # Bruker timsTOF .d (TDF) native IDs use "frame=<F> scan=<S>" with optional trailing
+    # tokens (precursor=, windowGroup=, scanStart=/scanEnd=, merged=) emitted by the OpenMS
+    # DDA/DIA-PASEF reader (MS:1002818). The parser recognizes the frame= prefix and targets
+    # the scan=<int> token as the scan-number proxy. The accession-based cases above stop at
+    # scan=/MS:1000776 and never exercise frame=; these pin that contract on the Python side,
+    # mirroring the C++ SpectrumNativeIDParser_test "[EXTRA] Bruker TDF frame= / MS:1002818" section.
+
+    # isNativeID recognizes the frame= prefix
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("frame=2 scan=529")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("frame=10 scan=42 precursor=3")
+
+    # getRegExFromNativeID targets the scan= token for the frame= format
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("frame=2 scan=529") == "scan=(?<GROUP>\\d+)"
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("frame=10 scan=42 precursor=3") == "scan=(?<GROUP>\\d+)"
+
+    # extractScanNumber via the Bruker TDF accession (MS:1002818) returns the scan= integer
+    assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=2 scan=529", "MS:1002818") == 529
+    assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=10 scan=42 precursor=3", "MS:1002818") == 42
+
+    # merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
+    assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818") == 9
+
     print("All SpectrumNativeIDParser tests passed!")
 
 

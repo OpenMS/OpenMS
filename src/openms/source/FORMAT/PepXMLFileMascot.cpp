@@ -16,7 +16,7 @@ namespace OpenMS
 
   PepXMLFileMascot::PepXMLFileMascot() :
     XMLHandler("", "1.8"),
-    XMLFile("/SCHEMAS/PepXML_1_8.xsd", "1.8"),
+    XMLFile("", "1.8"), // no bundled XSD (PepXML_1_8.xsd never existed; see share/OpenMS/SCHEMAS/README.md)
     peptides_(nullptr)
   {
 
@@ -63,7 +63,7 @@ namespace OpenMS
     }
   }
 
-  void PepXMLFileMascot::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void PepXMLFileMascot::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string element = sm_.convert(qname);
 
@@ -121,7 +121,7 @@ namespace OpenMS
     }
   }
 
-  void PepXMLFileMascot::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void PepXMLFileMascot::onEndElement(const char16_t* qname)
   {
     std::string element = sm_.convert(qname);
 

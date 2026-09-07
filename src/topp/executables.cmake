@@ -55,6 +55,7 @@ IDRipper
 IDRTCalibration
 IDScoreSwitcher
 IDSplitter
+INIUpdater
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
@@ -98,6 +99,7 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathExport
 OpenSwathInfer
+OpenSwathPercolatorScoring
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
@@ -137,7 +139,7 @@ SpectraSTSearchAdapter
 StaticModification
 TICCalculator
 TextExporter
-TriqlerConverter
+UniPEFF
 XFDR
 XMLValidator
 )
@@ -148,6 +150,8 @@ if(NOT DISABLE_OPENSWATH)
     TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
+    OpenSwathPeakMapExtractor
+    TransitionListEvidenceFilter
     OpenSwathWorkflow
     OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML
@@ -157,8 +161,8 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(TOPP_executables
   ${TOPP_executables}
-  QPXConverter
   ParquetConverter
+  ParquetDiff
 )
 
 if(WITH_WNETALIGN)

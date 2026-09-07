@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
@@ -15,6 +14,7 @@
 //#include <sys/types.h>
 #include <csignal> // for SIGSEGV and kill
 #include <iostream>
+#include <new>
 
 #ifndef OPENMS_WINDOWSPLATFORM
   #ifdef OPENMS_HAS_UNISTD_H

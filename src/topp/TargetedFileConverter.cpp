@@ -6,6 +6,7 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -141,6 +142,8 @@ protected:
     {
       // Memory-efficient Light path for TSV/PQP workflows
       OpenSwath::LightTargetedExperiment light_exp;
+      OpenSwathLibraryIDNormalizer::SourceIDMapping source_ids;
+      const bool persistent_output = out_type == FileTypes::PQP || out_type == FileTypes::OSWPQ;
 
       if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
       {
@@ -149,6 +152,10 @@ protected:
         tsv_reader.setLogType(log_type_);
         tsv_reader.setParameters(reader_parameters);
         tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
+        if (persistent_output)
+        {
+          source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(light_exp);
+        }
       }
       else if (in_type == FileTypes::PQP)
       {
@@ -156,13 +163,49 @@ protected:
         Param reader_parameters = getParam_().copy("algorithm:", true);
         pqp_reader.setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
-        // Light path uses TRAML_ID (legacy_traml_id=true) to preserve original string identifiers
-        pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp, true);
+        // TSV conversion may explicitly request source/TRAML identifiers. Persistent
+        // outputs, however, stay in the existing canonical PQP ID domain.
+        const bool restore_source_ids = !persistent_output;
+        pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp, restore_source_ids);
+        if (persistent_output)
+        {
+          source_ids.precursor_canonical_to_source =
+            pqp_reader.getPQPCurrentIDToTraMLIDMap(in.c_str(), "PRECURSOR");
+          source_ids.precursor_source_to_canonical.reserve(source_ids.precursor_canonical_to_source.size());
+          for (const auto& [canonical_id, source_id] : source_ids.precursor_canonical_to_source)
+          {
+            if (source_id.empty())
+            {
+              continue;
+            }
+            const auto [it, inserted] = source_ids.precursor_source_to_canonical.emplace(source_id, canonical_id);
+            if (!inserted && it->second != canonical_id)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "PQP precursor TRAML_ID maps to multiple PRECURSOR.ID values",
+                                            source_id);
+            }
+          }
+          source_ids.transition_canonical_to_source =
+            pqp_reader.getPQPCurrentIDToTraMLIDMap(in.c_str(), "TRANSITION");
+          for (auto it = source_ids.transition_canonical_to_source.begin();
+               it != source_ids.transition_canonical_to_source.end();)
+          {
+            if (it->second.empty())
+            {
+              it = source_ids.transition_canonical_to_source.erase(it);
+            }
+            else
+            {
+              ++it;
+            }
+          }
+        }
       }
       else if (in_type == FileTypes::OSWPQ)
       {
         TransitionParquetFile parquet_reader;
-        parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
+        parquet_reader.convertParquetToTargetedExperiment(in, light_exp, persistent_output ? &source_ids : nullptr);
       }
 
       if (out_type == FileTypes::TSV)
@@ -175,12 +218,12 @@ protected:
       {
         TransitionPQPFile pqp_writer;
         pqp_writer.setLogType(log_type_);
-        pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
+        pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp, &source_ids);
       }
       else if (out_type == FileTypes::OSWPQ)
       {
         TransitionParquetFile parquet_writer;
-        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp, &source_ids);
       }
     }
     else
@@ -236,8 +279,9 @@ protected:
       {
         OpenSwath::LightTargetedExperiment light_exp;
         OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+        auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(light_exp);
         TransitionParquetFile parquet_writer;
-        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp, &source_ids);
       }
     }
 

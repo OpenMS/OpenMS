@@ -16,7 +16,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
@@ -55,14 +54,12 @@ namespace OpenMS
           std::string ini_file,
           std::string default_dir,
           LayerDataBase::DataType layer_type,
-          const std::string& layer_name,
-          TVToolDiscovery* tool_scanner)
+          const std::string& layer_name)
     : QDialog(parent),
       max_threads_(std::max(1, omp_get_max_threads())),
       ini_file_(std::move(ini_file)),
       default_dir_(std::move(default_dir)),
       tool_params_(params.copy("tool_params:", true)),
-      tool_scanner_(tool_scanner),
       layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
@@ -93,10 +90,6 @@ namespace OpenMS
     connect(tools_combo_, CONNECTCAST(QComboBox, activated, (int)), this, &ToolsDialog::setTool_);
 
     main_grid->addWidget(tools_combo_, 1, 1);
-
-    reload_plugins_button_ = new QPushButton("Reload Plugins");
-    connect(reload_plugins_button_, &QPushButton::clicked, this, &ToolsDialog::reloadPlugins_);
-    main_grid->addWidget(reload_plugins_button_, 0, 2);
 
     label = new QLabel("input argument:");
     const QString input_tooltip = "Select the input parameter for the tool to which the current layer's data will be forwarded to.";
@@ -241,7 +234,6 @@ namespace OpenMS
     QStringList list;
 
     const auto& tools = ToolHandler::getTOPPToolList();
-    plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)
     {
@@ -249,15 +241,6 @@ namespace OpenMS
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
         list << toQString(pair.first);
-      }
-    }
-    //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
-    for (const auto& name : tool_scanner_->getPlugins())
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << toQString(std::string(name));
       }
     }
 
@@ -280,10 +263,6 @@ namespace OpenMS
     }
     auto tool_name = getTool();
     arg_param_ = tool_params_.copy(tool_name + ":");
-    if (arg_param_.empty())
-    {
-      arg_param_ = plugin_params_.copy(tool_name + ":");
-    }
 
     tool_desc_->setText(toQString(std::string(arg_param_.getSectionDescription(tool_name))));
     single_tool_param_ = arg_param_.copy(tool_name + ":1:", true);
@@ -429,32 +408,6 @@ namespace OpenMS
     }
   }
 
-  void ToolsDialog::reloadPlugins_()
-  {
-    QStringList list = createToolsList_();
-
-    int32_t selected_index = list.indexOf(tools_combo_->currentText());
-
-    if (selected_index < 1)
-    {
-      tool_desc_->clear();
-      arg_param_.clear();
-      single_tool_param_.clear();
-      gui_param_.clear();
-      editor_->clear();
-      input_combo_->clear();
-      output_combo_->clear();
-      disable_();
-    }
-    tools_combo_->clear();
-    tools_combo_->addItems(list);
-    if (selected_index > 0)
-    {
-      tools_combo_->setCurrentIndex(selected_index);
-      createINI_();
-    }
-  }
-
   std::string ToolsDialog::getOutput()
   {
     if (output_combo_->currentText() == "<select>")
@@ -585,7 +538,7 @@ namespace OpenMS
   {
     const int threads = threads_combo_->currentData().toInt();
 
-    if (single_tool_param_.exists("threads")) // safeguard for tools without a threads parameter (could be the case for plugins)
+    if (single_tool_param_.exists("threads")) // safeguard for tools without a threads parameter
     {
       single_tool_param_.setValue("threads", threads);
     }

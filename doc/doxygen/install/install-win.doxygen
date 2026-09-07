@@ -154,7 +154,7 @@
   This section is optional. If you can live with the online documentation, you do not need to build your own.
 
   In order to build the class documentation (<tt>doc</tt> target), TOPP tutorials (<tt>doc_tutorials</tt> target) and more,
-  you will need to install three programs:
+  you will need to install two programs:
 
   <ol>
     <li> Doxygen (1.8.16 is tested, others might work as well; older versions might produce errors or incomplete documentation due to lack of support for certain commands or bugs)
@@ -167,11 +167,6 @@
          <li> Download binaries for Windows (http://miktex.org/)
          <li> During installation tick "install missing packages on the fly = yes"
          <li> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
-      </ul>
-    <li> GPL Ghostscript (e.g. 8.60, 9.19) for Windows
-      <ul>
-         <li> Download binaries for Windows (http://www.ghostscript.com/) and install
-         <li> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. `c:\programs\gs\gs8.60\bin`) to the Windows PATH Environment
       </ul>
     <li>
       Optional:<br>

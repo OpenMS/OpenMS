@@ -7,9 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
-
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-
+#include <string>
+#include <thread>
 #include <boost/version.hpp>
 #include <boost/asio/io_context.hpp>
 
@@ -34,6 +33,7 @@
 
 #include <array>
 #include <chrono>
+#include <thread>
 #include <utility>
 
 #ifndef _WIN32

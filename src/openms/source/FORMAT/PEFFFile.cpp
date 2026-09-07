@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
 #include <algorithm>
+#include <bitset>
 #include <cctype>
 #include <limits>
 #include <map>
@@ -27,6 +28,31 @@ namespace OpenMS
 
   namespace
   {
+    /// Reverse the PEFF 1.0 escape rules: \\, \|, \(, \) → \, |, (, ). Other
+    /// backslash sequences are passed through verbatim (a literal backslash that
+    /// happens to precede an un-escapable character is preserved). Idempotent on
+    /// already-unescaped values.
+    std::string peffUnescape(const std::string& s)
+    {
+      std::string out;
+      out.reserve(s.size());
+      for (size_t i = 0; i < s.size(); ++i)
+      {
+        if (s[i] == '\\' && i + 1 < s.size())
+        {
+          const char next = s[i + 1];
+          if (next == '\\' || next == '|' || next == '(' || next == ')')
+          {
+            out.push_back(next);
+            ++i;
+            continue;
+          }
+        }
+        out.push_back(s[i]);
+      }
+      return out;
+    }
+
     /// Sentinel value for "annotation ID not set"
     constexpr UInt ANNOT_ID_NOT_SET = std::numeric_limits<UInt>::max();
 
@@ -935,7 +961,8 @@ namespace OpenMS
   std::vector<std::pair<std::string, AASequence>> PEFFEntry::enumeratePEFFModifications_(
     const AASequence& peptide,
     const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
-    const std::string& base_description)
+    const std::string& base_description,
+    Size max_selected)
   {
     std::vector<std::pair<std::string, AASequence>> result;
 
@@ -958,6 +985,14 @@ namespace OpenMS
 
     for (size_t combo = 0; combo < num_combinations; ++combo)
     {
+      // Cap the number of simultaneously applied modifications per proteoform.
+      // popcount(combo) is the size of the selected mod subset; the unmodified
+      // peptide (combo == 0, popcount 0) is always retained.
+      if (max_selected > 0 && std::bitset<64>(combo).count() > max_selected)
+      {
+        continue;
+      }
+
       AASequence mod_peptide = peptide;
       std::string description = base_description;
       bool mod_failed = false;
@@ -1042,7 +1077,8 @@ namespace OpenMS
     Size max_length,
     bool include_reference,
     bool include_peff_variants,
-    bool include_peff_modifications) const
+    bool include_peff_modifications,
+    Size max_peff_mods_per_proteoform) const
   {
     descriptions.clear();
     sequences.clear();
@@ -1199,7 +1235,7 @@ namespace OpenMS
         }
 
         // Step 4: Enumerate PEFF modification combinations
-        auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc);
+        auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc, max_peff_mods_per_proteoform);
 
         // Filter out the base (no-PEFF-mod) entry when reference not wanted
         // This handles the case where var_combo == 0 but local_mods is not empty:
@@ -2144,18 +2180,50 @@ namespace OpenMS
 
       if (key == "PName")
       {
-        // Protein names can be multiple: (Name1)(Name2)
-        std::vector<std::string> names = parseParenList_(value);
-        if (names.empty() && !value.empty())
-        {
-          entry.protein_names.push_back(value);
-        }
-        else
-        {
-          for (const std::string& name : names)
+        // PName accepts both scalar form (\PName=Insulin (Fragment)) and list form
+        // (\PName=(Insulin)(Insulin Fragment)). The list form is detected only if the entire
+        // trimmed value is a sequence of paren-balanced groups (starts with '(', ends with ')',
+        // and parens balance to zero only at group boundaries). Anything else — including a
+        // perfectly legal scalar like "(R)-amino acid hydroxylase" — is taken verbatim, so we
+        // don't silently truncate names that happen to begin with a parenthesised qualifier.
+        std::string trimmed(value);
+        StringUtils::trim(trimmed);
+        auto isListForm = [](const std::string& s) {
+          if (s.empty() || s.front() != '(' || s.back() != ')') return false;
+          int depth = 0;
+          bool zero_in_interior = false;
+          for (size_t i = 0; i < s.size(); ++i)
           {
-            entry.protein_names.push_back(name);
+            if (s[i] == '\\' && i + 1 < s.size()) { i += 1; continue; }
+            if (s[i] == '(') ++depth;
+            else if (s[i] == ')') --depth;
+            if (depth == 0 && i + 1 < s.size()) zero_in_interior = true;
+            if (depth < 0) return false;
           }
+          if (depth != 0) return false;
+          // Accept either a single group ((R)-only fails this — there's text after the first
+          // zero-depth point), or several adjacent groups where every zero-depth point sits
+          // immediately before the next '('.
+          if (!zero_in_interior) return true;
+          // Multi-group case: verify the structure is "(...)(...)..." with no text between groups.
+          for (size_t i = 0; i < s.size(); ++i)
+          {
+            if (s[i] == '\\' && i + 1 < s.size()) { i += 1; continue; }
+            if (s[i] == '(') ++depth;
+            else if (s[i] == ')') { --depth; if (depth == 0 && i + 1 < s.size() && s[i + 1] != '(') return false; }
+          }
+          return true;
+        };
+        if (isListForm(trimmed))
+        {
+          for (const std::string& name : parseParenList_(trimmed))
+          {
+            entry.protein_names.push_back(peffUnescape(name));
+          }
+        }
+        else if (!trimmed.empty())
+        {
+          entry.protein_names.push_back(peffUnescape(trimmed));
         }
       }
       else if (key == "GName")
@@ -2201,11 +2269,12 @@ namespace OpenMS
       }
       else if (key == "AltAC")
       {
-        // May be parenthesized list: (AC1)(AC2) or single value
+        // May be parenthesized list: (AC1)(AC2) or single value. Each accession is a
+        // single scalar (not further pipe-split), so un-escape happens here at the call site.
         std::vector<std::string> acs = parseParenList_(value);
         for (const std::string& ac : acs)
         {
-          entry.alt_accessions.push_back(ac);
+          entry.alt_accessions.push_back(peffUnescape(ac));
         }
       }
       else if (key == "ModRes" || key == "ModResPsi" || key == "ModResUnimod")
@@ -2532,10 +2601,12 @@ namespace OpenMS
       }
       else if (key == "Proteoform")
       {
+        // Each item is a single ProForma string scalar; PEFF-escape applies on the wire,
+        // so reverse it now. ProForma's own grammar inside the value is opaque to us.
         std::vector<std::string> pforms = parseParenList_(value);
         for (const std::string& pf : pforms)
         {
-          entry.proteoforms.push_back(pf);
+          entry.proteoforms.push_back(peffUnescape(pf));
         }
       }
       else
@@ -2670,6 +2741,12 @@ namespace OpenMS
 
         if (end > start)
         {
+          // Items are returned with PEFF escapes intact: the structured-tuple parsers
+          // (parseModification_, parseVariantComplex_, parseProcessedRegion_, …) call
+          // splitByPipeEscapeAware() next and need to see the raw `\|` to distinguish
+          // an escaped pipe inside a name from a real field separator. Callers that
+          // take the item as a single scalar (PName list, AltAC, Proteoform) un-escape
+          // via peffUnescape() at the call site.
           result.push_back(StringUtils::substr(value, start, end - start));
         }
         pos = end + 1;
@@ -2741,13 +2818,14 @@ namespace OpenMS
         mod.type = PEFFModification::Type::GENERIC;
       }
 
-      // Name
+      // splitByPipeEscapeAware() already un-escapes PEFF reserved chars in each field, so
+      // we store its output directly here — calling peffUnescape() again would double-decode
+      // legitimate literal-backslash values (e.g. an on-wire "\\\\" survives the split as "\\"
+      // and a second pass would collapse it to "\").
       if (parts.size() >= 3)
       {
         mod.name = parts[2];
       }
-
-      // OptionalTag
       if (parts.size() >= 4)
       {
         mod.optional_tag = parts[3];
@@ -2777,6 +2855,7 @@ namespace OpenMS
       var.position = StringUtils::toInt32(pos_field);
       var.variant_aa = parts[1].empty() ? '\0' : parts[1][0];
 
+      // splitByPipeEscapeAware() un-escapes for us; don't double-decode.
       if (parts.size() >= 3)
       {
         var.optional_tag = parts[2];
@@ -2800,6 +2879,7 @@ namespace OpenMS
       var.annotation_id = annotation_id;
       var.start_position = StringUtils::toInt32(start_field);
       var.end_position = StringUtils::toInt32(parts[1]);
+      // splitByPipeEscapeAware() un-escapes for us; don't double-decode.
       var.replacement = parts[2];
 
       if (parts.size() >= 4)
@@ -2827,6 +2907,7 @@ namespace OpenMS
       reg.end_position = StringUtils::toInt32(parts[1]);
       reg.accession = parts[2];
 
+      // splitByPipeEscapeAware() un-escapes for us; don't double-decode.
       if (parts.size() >= 4)
       {
         reg.name = parts[3];
@@ -2854,7 +2935,10 @@ namespace OpenMS
 
     if (pipe_pos != std::string::npos)
     {
-      bond.optional_tag = StringUtils::substr(tuple, pipe_pos + 1);
+      // The DisulfideBond tuple parser does a plain find('|'), not splitByPipeEscapeAware,
+      // because the IDs part has its own comma syntax that splitByPipe would over-tokenize.
+      // The trailing description IS still PEFF-escaped on the wire, so un-escape it here.
+      bond.optional_tag = peffUnescape(StringUtils::substr(tuple, pipe_pos + 1));
     }
 
     // Extract annotation ID prefix from the IDs portion

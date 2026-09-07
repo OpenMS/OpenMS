@@ -6,7 +6,7 @@ jobs:
     name: cppcheck-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
           
       - name: cppcheck
         uses: deep5050/cppcheck-action@main

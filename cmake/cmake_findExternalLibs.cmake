@@ -354,45 +354,55 @@ option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" 
 set(WNETALIGN_INCLUDE_DIRS "")
 
 if(WITH_WNETALIGN)
-  include(FetchContent)
+  if(OPENMS_USE_VCPKG)
 
-  # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
-  # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
-  # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
-  FetchContent_Declare(
-    pylmcf
-    GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
-    GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
-    GIT_SHALLOW    TRUE
-    SOURCE_SUBDIR  _no_cmake
-  )
-  FetchContent_Declare(
-    wnet
-    GIT_REPOSITORY https://github.com/michalsta/wnet.git
-    GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
-    GIT_SHALLOW    TRUE
-    SOURCE_SUBDIR  _no_cmake
-  )
-  FetchContent_Declare(
-    wnetalign
-    GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
-    GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
-    GIT_SHALLOW    TRUE
-    SOURCE_SUBDIR  _no_cmake
-  )
+    find_path(WNETALIGN_INC NAMES aligner.hpp PATH_SUFFIXES wnetalign)
+    find_path(WNET_INC NAMES graph_elements.hpp PATH_SUFFIXES wnet)
+    find_path(PYLMCF_INC NAMES lmcf.hpp PATH_SUFFIXES pylmcf)
 
-  # MakeAvailable populates source dirs without running the top-level
-  # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
-  # nanobind Python modules are never configured.
-  FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+    set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
 
-  set(WNETALIGN_INCLUDE_DIRS
-    "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
-    "${wnet_SOURCE_DIR}/src/wnet/cpp"
-    "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
-  )
+  else()
+    include(FetchContent)
 
-  message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+    # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+    # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+    # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
+    FetchContent_Declare(
+      pylmcf
+      GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+      GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+    FetchContent_Declare(
+      wnet
+      GIT_REPOSITORY https://github.com/michalsta/wnet.git
+      GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+    FetchContent_Declare(
+      wnetalign
+      GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+      GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+
+    # MakeAvailable populates source dirs without running the top-level
+    # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
+    # nanobind Python modules are never configured.
+    FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+    set(WNETALIGN_INCLUDE_DIRS
+      "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+      "${wnet_SOURCE_DIR}/src/wnet/cpp"
+      "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+    )
+
+    message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -492,12 +502,30 @@ if (WITH_OPENTIMS)
     # package), INTERFACE_COMPILE_DEFINITIONS may not be set; in that case we
     # conservatively inject sqlite3 because we cannot know how it was built.
     get_target_property(_opentims_defs opentims::opentims_cpp INTERFACE_COMPILE_DEFINITIONS)
+    set(_opentims_needs_sqlite FALSE)
     if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY"
        OR ((_opentims_defs MATCHES "NOTFOUND" OR _opentims_defs STREQUAL "") AND NOT opentims_FOUND))
-      target_include_directories(opentims::opentims_cpp INTERFACE
-        "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
-      target_link_libraries(opentims::opentims_cpp INTERFACE sqlite3)
-      message(STATUS "opentims: injecting OpenMS sqlite3 (library was built with static sqlite)")
+      set(_opentims_needs_sqlite TRUE)
+    endif()
+
+    if(_opentims_needs_sqlite)
+      #Deferred because unofficial::sqlite3::sqlite3 or SQLite::SQLite3 or SQLiteCpp doesn't exist yet,
+      #they are created inside add_subdirectory(src).
+      function(_openms_inject_opentims_sqlite)
+        if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+          target_link_libraries(opentims::opentims_cpp INTERFACE unofficial::sqlite3::sqlite3)
+          message(STATUS "opentims: injected sqlite3 (unofficial::sqlite3::sqlite3 via vcpkg)")
+        elseif(TARGET SQLite::SQLite3)
+          target_link_libraries(opentims::opentims_cpp INTERFACE SQLite::SQLite3)
+          message(STATUS "opentims: injected sqlite3 (SQLite::SQLite3)")
+        elseif(TARGET SQLiteCpp)
+          target_link_libraries(opentims::opentims_cpp INTERFACE SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+          message(STATUS "opentims: injected sqlite3 (SQLiteCpp)")
+        else()
+          message(FATAL_ERROR "opentims requires sqlite3 symbols but no suitable target is available.")
+        endif()
+      endfunction()
+      cmake_language(DEFER CALL _openms_inject_opentims_sqlite)
     endif()
   else()
     # No system install found — fetch and build from source.
@@ -578,7 +606,7 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  find_package(OpenMSThermoBridge QUIET)
+  find_package(OpenMSThermoBridge 0.3 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -589,9 +617,9 @@ if (WITH_THERMO_RAW)
 
     FetchContent_Declare(
       OpenMSThermoBridge
-      GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
+      GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        v0.2.3
+      GIT_TAG        4c0edddf5a49879e0470b0ca08cfe9955ceba3c9
     )
 
     # Configure the thermo bridge build options
@@ -611,7 +639,14 @@ if (WITH_THERMO_RAW)
     # the CMake export set so downstream consumers resolve it via RPATH.
     set(_openms_saved_build_testing ${BUILD_TESTING})
     set(BUILD_TESTING OFF)
+    # The sub-project's install() calls have no COMPONENT, so CMake defaults them
+    # to "Unspecified". On macOS, that creates an unsigned dylib in Unspecified.pkg
+    # that fails Apple notarization. Route them to "library" instead — the same
+    # component used by install_library() below — so the existing signing step
+    # in cmake/package_mac_productbuild.cmake covers the library.
+    set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME library)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
+    unset(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME)
     set(BUILD_TESTING ${_openms_saved_build_testing})
 
     # Place the bridge shared library next to libOpenMS in the build tree so
@@ -633,6 +668,28 @@ if (WITH_THERMO_RAW)
     # consumers that don't have the .NET SDK.
     install_library(openms_thermo_bridge)
     openms_register_export_target(openms_thermo_bridge)
+
+    if(WIN32)
+      # On Windows the bridge links the nethost *import* library, so
+      # openms_thermo_bridge.dll needs nethost.dll at run time. The .NET host pack
+      # that provides it is not on PATH, so install a copy next to the OpenMS
+      # libraries; installers and wheel repair tools (delvewheel) pick it up from
+      # there. FindDotNetHost.cmake ran inside the bridge's directory scope, so its
+      # result variables are not visible here: run it again in this scope.
+      list(APPEND CMAKE_MODULE_PATH "${OpenMSThermoBridge_SOURCE_DIR}/cmake")
+      find_package(DotNetHost QUIET)
+      list(POP_BACK CMAKE_MODULE_PATH)
+      if(DotNetHost_RUNTIME_LIBRARY)
+        install(FILES "${DotNetHost_RUNTIME_LIBRARY}"
+                DESTINATION ${INSTALL_LIB_DIR}
+                COMPONENT library)
+        message(STATUS "openms-thermo-bridge: installing ${DotNetHost_RUNTIME_LIBRARY} alongside libOpenMS")
+      else()
+        message(WARNING
+          "openms-thermo-bridge: nethost.dll was not located; openms_thermo_bridge.dll "
+          "will only load if nethost.dll is found on PATH at run time.")
+      endif()
+    endif()
 
     message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
 
@@ -666,9 +723,35 @@ if (WITH_THERMO_RAW)
       if(EXISTS "${_openms_thermo_license_file}")
         install(FILES "${_openms_thermo_license_file}"
                 DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
-                RENAME "ThermoRawFileReader-License.doc")
+                RENAME "ThermoRawFileReader-License.doc"
+                COMPONENT share)
       endif()
     endif()
+  endif()
+
+  # Ship the managed half of the bridge (ThermoWrapperManaged.dll, its
+  # runtimeconfig.json and the Thermo CommonCore assemblies) inside the
+  # shared-data directory as well. The bridge installs them to
+  # <libdir>/openms_thermo_bridge/managed and locates them relative to its own
+  # shared library; that link breaks in relocated layouts such as Python wheels,
+  # where wheel repair tools rename and move the library. ThermoRawFile looks in
+  # <share>/openms_thermo_bridge/managed first, so every consumer that carries
+  # share/OpenMS (pyOpenMS wheels included) gets a working reader. The files are
+  # platform-independent IL assemblies (~1.6 MB), so they belong to 'share'.
+  # OpenMSThermoBridge_MANAGED_DIR is set by the bridge for both the
+  # FetchContent build (internal cache variable) and a system installation
+  # (OpenMSThermoBridgeHelpers.cmake). The directory is populated at build time
+  # when the bridge publishes the assemblies itself, which is fine for install().
+  if(OpenMSThermoBridge_MANAGED_DIR)
+    install(DIRECTORY "${OpenMSThermoBridge_MANAGED_DIR}/"
+            DESTINATION "${INSTALL_SHARE_DIR}/openms_thermo_bridge/managed"
+            COMPONENT share
+            PATTERN "*.pdb" EXCLUDE
+            PATTERN "*.zip" EXCLUDE)
+  else()
+    message(WARNING
+      "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "
+      "bridge assemblies will not be installed into ${INSTALL_SHARE_DIR}.")
   endif()
 endif()
 #------------------------------------------------------------------------------

@@ -43,6 +43,9 @@ START_SECTION( static void readSwathWindows(const std::string& filename, std::ve
   std::vector<double> swath_prec_upper;
   SwathWindowLoader::readSwathWindows(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_prec_lower, swath_prec_upper);
 
+  // a missing/unreadable file must throw instead of silently returning / undefined behavior (regression)
+  TEST_EXCEPTION(Exception::FileNotFound, SwathWindowLoader::readSwathWindows("/does/not/exist_swath_windows.txt", swath_prec_lower, swath_prec_upper))
+
   TEST_EQUAL(swath_prec_lower.size(), swath_prec_upper.size())
   TEST_REAL_SIMILAR(swath_prec_lower[0], 400)
   TEST_REAL_SIMILAR(swath_prec_lower[1], 425)

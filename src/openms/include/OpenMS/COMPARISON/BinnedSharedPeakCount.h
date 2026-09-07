@@ -52,7 +52,7 @@ public:
 
       @param[in] spec1 First spectrum given as a binned representation
       @param[in] spec2 Second spectrum given as a binned representation
-      @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
+      @throw Exception::IllegalArgument is thrown if the binning of the two input spectra are not the same (different bin size, offset or unit)
     */
     double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const override;
 

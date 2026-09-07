@@ -259,13 +259,13 @@ public:
 
 
       // Docu in base class
-      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       // Docu in base class
-      void characters(const XMLCh* const chars, const XMLSize_t length) override;
+      void onCharacters(const char16_t* chars, Size length) override;
 
       //Docu in base class
       void writeTo(std::ostream& os) override;
@@ -302,7 +302,7 @@ protected:
       IdentificationHit current_id_hit_;
 
       /// Handles CV terms
-      void handleCVParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const xercesc::Attributes& attributes, const std::string& cv_ref /* ,  const std::string& unit_accession="" */);
+      void handleCVParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const XMLAttributes& attributes, const std::string& cv_ref /* ,  const std::string& unit_accession="" */);
 
       /// Handles user terms
       void handleUserParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const std::string& name, const std::string& type, const std::string& value);

@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
@@ -371,6 +372,7 @@ int main(int argc, char** argv)
   DOCME(FeatureGroupingAlgorithmKD);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
   DOCME(FeatureGroupingAlgorithmWNet);
+  DOCME(PipEchoAlgorithm);
   DOCME(MapAlignmentAlgorithmIdentification);
   DOCME(MapAlignmentAlgorithmTreeGuided);
   DOCME(MassTraceDetection);

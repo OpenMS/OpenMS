@@ -167,10 +167,17 @@ iterate through the spectra as follows:
 Iteration
 *********
 
+.. note::
+
+   Core classes such as :py:class:`~.MSSpectrum` and :py:class:`~.Peak1D`
+   expose common scalar attributes as snake_case properties (e.g.
+   ``spec.ms_level``, ``spec.rt``, ``peak.mz``, ``peak.intensity``). These are
+   equivalent to the ``getX()`` / ``setX()`` methods, which still work.
+
 .. code-block:: python
 
     for spec in exp:
-        print("MS Level:", spec.getMSLevel())
+        print("MS Level:", spec.ms_level)
 
 .. code-block:: output
 
@@ -183,7 +190,7 @@ This iterates through all available :py:class:`~.MSSpectra`, we can also access 
 
 .. code-block:: python
 
-    print("MS Level:", exp[1].getMSLevel())
+    print("MS Level:", exp[1].ms_level)
 
 .. code-block:: output
 
@@ -209,7 +216,7 @@ slower):
 .. code-block:: python
 
     for peak in spec:
-        print(peak.getIntensity())
+        print(peak.intensity)
 
 .. code-block:: output
 
@@ -223,6 +230,62 @@ slower):
     6.0
     4.0
     2.0
+
+Copies, Not References
+**********************
+
+pyOpenMS containers use **value semantics** for element access: every
+object you retrieve is an independent copy. Whether you use indexing
+(``exp[0]``), iteration (``for spec in exp:``) or a getter
+(``exp.getSpectrum(0)``, ``spec.getPrecursors()``), the returned object
+owns its own data. Editing it does not modify the container, and later
+changes to the container do not affect objects retrieved earlier.
+
+A common pitfall follows directly from this: editing the copy does *not*
+edit the experiment.
+
+.. code-block:: python
+
+    spec = exp[0]
+    spec.setRT(999.9)      # edits only our copy
+    print(exp[0].getRT())  # the experiment is unchanged
+
+.. code-block:: output
+
+    353.43
+
+To change data inside a container, follow the pattern
+**read it, edit it, put it back**:
+
+.. code-block:: python
+
+    spec = exp[0]        # read it
+    spec.setRT(999.9)    # edit it
+    exp[0] = spec        # put it back
+    print(exp[0].getRT())
+
+.. code-block:: output
+
+    999.9
+
+Why does pyOpenMS work this way? Because the alternative -- handing out
+live references into the container's internal storage -- makes ordinary
+code unsafe: appending a spectrum can reallocate the container's memory
+and invalidate every previously returned object (a use-after-free), and
+sorting would silently re-bind held objects to different elements. With
+copies, nothing you hold ever becomes invalid.
+
+Two things complete the picture:
+
+* **The naming is the contract.** As a rule, anything called ``getX()`` or
+  ``get_*`` returns a copy you own. The deliberate exceptions end in
+  ``_view``, ``_views`` or ``_struct``: those return zero-copy *views* that
+  alias the container's storage for speed -- edits through a view land
+  immediately, but the view is only valid until the container is resized or
+  sorted. Views are introduced in the `MS data <ms_data.html>`_ chapter.
+* **Copies cost time on big objects.** For read-only sweeps over large
+  experiments, iterate views instead of copies:
+  ``for spec in exp.iter_spectrum_views(): ...``.
 
 Total Ion Current Calculation
 *****************************

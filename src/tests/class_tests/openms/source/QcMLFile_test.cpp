@@ -13,6 +13,9 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 ///////////////////////////
 
+#include <algorithm>
+#include <vector>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -178,7 +181,37 @@ END_SECTION
 
 START_SECTION((void load(const std::string &filename)))
 {
-	NOT_TESTABLE
+  // Regression: loading a second file into the same object must NOT leave stale
+  // run/set names from the first file behind (the derived name->ID maps have to
+  // be cleared in load() alongside the data maps).
+  QcMLFile qcml;
+
+  // --- first file A ---
+  qcml.load(OPENMS_GET_TEST_DATA_PATH("QcMLFile_reload_A.qcML"));
+
+  std::vector<std::string> run_names_a;
+  qcml.getRunNames(run_names_a);
+  TEST_EQUAL(run_names_a.size(), 1)
+  TEST_TRUE(std::find(run_names_a.begin(), run_names_a.end(), "runAlpha") != run_names_a.end())
+  TEST_TRUE(qcml.existsRun("runAlpha", true))
+  TEST_TRUE(qcml.existsSet("setAlpha", true))
+
+  // --- second file B (disjoint run/set names) into the SAME object ---
+  qcml.load(OPENMS_GET_TEST_DATA_PATH("QcMLFile_reload_B.qcML"));
+
+  std::vector<std::string> run_names_b;
+  qcml.getRunNames(run_names_b);
+  // only B's run name must remain, none of A's
+  TEST_EQUAL(run_names_b.size(), 1)
+  TEST_TRUE(std::find(run_names_b.begin(), run_names_b.end(), "runBeta") != run_names_b.end())
+  TEST_TRUE(std::find(run_names_b.begin(), run_names_b.end(), "runAlpha") == run_names_b.end())
+
+  // stale name lookups from file A must no longer resolve
+  TEST_FALSE(qcml.existsRun("runAlpha", true))
+  TEST_FALSE(qcml.existsSet("setAlpha", true))
+  // B's names resolve
+  TEST_TRUE(qcml.existsRun("runBeta", true))
+  TEST_TRUE(qcml.existsSet("setBeta", true))
 }
 END_SECTION
 

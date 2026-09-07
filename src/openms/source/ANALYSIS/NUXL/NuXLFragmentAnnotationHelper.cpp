@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
+
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -41,11 +43,11 @@ namespace OpenMS
         fa.intensity = sit.intensity;
         if (sit.shift.empty())
         {
-          fa.annotation = ion_type + StringUtils::toStr(ait.first) + std::string(fa.charge, '+');
+          fa.annotation = ion_type + StringUtils::toStr(ait.first) + IonNaming::chargeSuffix(fa.charge);
         }
         else
         {
-          const std::string annotation_text = ion_type + StringUtils::toStr(ait.first) + "+" + sit.shift + std::string(fa.charge, '+'); 
+          const std::string annotation_text = ion_type + StringUtils::toStr(ait.first) + "+" + sit.shift + IonNaming::chargeSuffix(fa.charge);
           fa.annotation = annotation_text;
         }
         fas.push_back(std::move(fa));

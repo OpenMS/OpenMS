@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

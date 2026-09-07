@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -160,11 +161,6 @@ class TOPPBaseTest
     bool parseRange(const std::string& text, double& low, double& high) const
     {
       return parseRange_(text, low, high);
-    }
-
-    TOPPBase::ExitCodes runExternalProcess(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const
-    {
-      return runExternalProcess_(executable, arguments, workdir);
     }
 
 };
@@ -456,25 +452,25 @@ START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) cons
 	//command line (when there is a ini file value too)
 	const char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(5,both_cl);
-	TEST_EQUAL(tmp3.getStringOption("stringoption"),DataValue("commandline"));
+	TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
 
 	//ini file: instance section
 	const char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp4(3,common_cl);
-	TEST_EQUAL(tmp4.getStringOption("stringoption"),DataValue("instance1"));
+	TEST_EQUAL(tmp4.getStringOption("stringoption"), "instance1");
 	const char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
 	TOPPBaseTest tmp5(5,common5_cl);
-	TEST_EQUAL(tmp5.getStringOption("stringoption"),DataValue("instance5"));
+	TEST_EQUAL(tmp5.getStringOption("stringoption"), "instance5");
 
 	//ini file: tool common section
 	const char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
 	TOPPBaseTest tmp6(5,common6_cl);
-	TEST_EQUAL(tmp6.getStringOption("stringoption"),DataValue("toolcommon"));
+	TEST_EQUAL(tmp6.getStringOption("stringoption"), "toolcommon");
 
 	//ini file: common section
 	const char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
 	TOPPBaseTest tmp7(5,common7_cl);
-	TEST_EQUAL(tmp7.getStringOption("stringoption"),DataValue("common"));
+	TEST_EQUAL(tmp7.getStringOption("stringoption"), "common");
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringOption("doubleoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringOption("imleeewenit"));
@@ -705,35 +701,16 @@ START_SECTION(([EXTRA]void parseRange_(const std::string& text, double& low, dou
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
+
+  // a colon-less range string is malformed (documented format is "[min]:[max]") and must
+  // fail loudly, not be silently interpreted as the degenerate range value:value
+  s = "400";
+  TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b));
 }
 END_SECTION
 
-START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const))
-{
-
-// we just need ANY commandline tool available on (hopefully) all boxes.
-// note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
-#ifdef OPENMS_WINDOWSPLATFORM
-  const std::string exe = "cmd";
-  const std::vector<std::string> args = {"/C", "echo hi"};
-  const std::vector<std::string> args_broken = {"/C", "doesnotexist"};
-#else
-  const std::string exe = "ls";
-  const std::vector<std::string> args = {"-l"};
-  const std::vector<std::string> args_broken = {"-0"};
-#endif //
-
-  TOPPBaseTest topp;
-  auto result = topp.runExternalProcess("/path/does/not/exists.exe", {}, "");
-  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_NOTFOUND);
-
-  result = topp.runExternalProcess(exe, args_broken, "");
-  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_ERROR);
-
-  result = topp.runExternalProcess(exe, args, "");
-  TEST_EQUAL(result, TOPPBase::EXECUTION_OK);
-}
-END_SECTION
+// NOTE: runExternalProcess_() moved to TOPPExternalToolBase; its test lives in
+// TOPPExternalToolBase_test.cpp.
 
 START_SECTION(([EXTRA] data processing methods))
 	PeakMap exp;
@@ -890,11 +867,43 @@ START_SECTION(([EXTRA] test flag with trailing arguments))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] -log writes a log file))
+{
+  // Characterize the '-log' behaviour (protects the TOPPLogger composition refactor):
+  // running with '-log <file> -debug 1' must create a non-empty log file whose
+  // lines carry the tool's ini-location prefix (written by writeDebug_/writeLog*_).
+  std::string logfilename;
+  NEW_TMP_FILE(logfilename);
+  const char* lf = logfilename.c_str();
+  const char* log_opt = "-log";
+  const char* dbg_opt = "-debug";
+  const char* dbg_val = "1";
+  const char* log_cl[5] = {a1, log_opt, lf, dbg_opt, dbg_val}; // "TOPPBaseTest -log <file> -debug 1"
+  TOPPBaseTest tmp_log(5, log_cl);
+
+  TextFile tf(logfilename);
+  std::string content;
+  for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it) { content += *it + "\n"; }
+  TEST_FALSE(content.empty())
+  TEST_TRUE(content.find("TOPPBaseTest:1:") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Citation::toString()))
+{
+  Citation c = {"Surname I", "A title", "Journal. 2024; 1:2-3", "10.1000/xyz"};
+  TEST_EQUAL(c.toString(), "Surname I. A title. Journal. 2024; 1:2-3. doi:10.1000/xyz.")
+}
+END_SECTION
+
 delete [] a7;
 delete [] a8;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST
 
 

@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 using namespace OpenMS;

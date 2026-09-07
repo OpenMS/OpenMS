@@ -58,10 +58,36 @@ namespace OpenMS
     // Use a larger default row_group_size than 1024 to improve compression and reduce metadata overhead.
     // Default is configurable by callers via the row_group_size parameter.
     auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, static_cast<int>(row_group_size));
+
+    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+    // reader reports it as corrupt rather than as the smaller table it looks like. This one throws
+    // rather than returning, so a caller writing several tables into a directory would otherwise
+    // leave the earlier ones plus one truncated file. Close before removing: on Windows an open
+    // handle blocks the unlink.
+    const auto abandon = [&](const std::string& what, const std::string& detail)
+    {
+      (void)outfile->Close();
+      if (!File::remove(filename))
+      {
+        OPENMS_LOG_ERROR << "ParquetFile: Failed to remove incomplete output " << filename
+                         << std::endl;
+      }
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, what, detail);
+    };
+
     if (!status.ok())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to write parquet table", status.ToString());
+      abandon("Failed to write parquet table", status.ToString());
+    }
+
+    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+    // final flush is where a full disk surfaces, and returning normally there would hand back a
+    // truncated file.
+    auto close_status = outfile->Close();
+    if (!close_status.ok())
+    {
+      abandon("Failed to close parquet file", close_status.ToString());
     }
   }
 

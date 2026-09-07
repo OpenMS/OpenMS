@@ -27,14 +27,18 @@ set(sources_list
   MRMScoring.cpp
   MRMTransitionGroupPicker.cpp
   OpenSwathHelper.cpp
+  OpenSwathLibraryIDNormalizer.cpp
   OpenSwathMatrixExporter.cpp
   OpenSwathParquetExporter.cpp
   OpenSwathScores.cpp
   OpenSwathScoring.cpp
   OpenSwathOSWParquetReader.cpp
+  OpenSwathPercolatorScoring.cpp
   OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
+  PeakMapExtractor.cpp
   OpenSwathResultsExporter.cpp
+  TransitionListEvidenceFilter.cpp
   OpenSwathWorkflow.cpp
   OpenSwathWorkflowScheduler.cpp
   PeakIntegrator.cpp

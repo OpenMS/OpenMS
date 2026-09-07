@@ -21,26 +21,26 @@ def _deprecated_mv(cls_name, old_name, new_name):
 
 
 # FloatDataArray
-_deprecated_mv("FloatDataArray", "get_data_mv", "get_data_view")
+_deprecated_mv("FloatDataArray", "get_data_mv", "data_view")
 
 # IntegerDataArray
-_deprecated_mv("IntegerDataArray", "get_data_mv", "get_data_view")
+_deprecated_mv("IntegerDataArray", "get_data_mv", "data_view")
 
 # MatrixDouble
-_deprecated_mv("MatrixDouble", "get_matrix_mv", "get_matrix_view")
-_deprecated_mv("MatrixDouble", "get_matrix_as_view", "get_matrix_view")
+_deprecated_mv("MatrixDouble", "get_matrix_mv", "matrix_view")
+_deprecated_mv("MatrixDouble", "get_matrix_as_view", "matrix_view")
 
 # MSSpectrum
-_deprecated_mv("MSSpectrum", "get_drift_time_array_mv", "get_drift_time_array_view")
+_deprecated_mv("MSSpectrum", "get_drift_time_array_mv", "drift_time_array_view")
 
 # OSBinaryDataArray
-_deprecated_mv("OSBinaryDataArray", "get_data_mv", "get_data_view")
+_deprecated_mv("OSBinaryDataArray", "get_data_mv", "data_view")
 
 # OSSpectrum
-_deprecated_mv("OSSpectrum", "get_mz_array_mv", "get_mz_array_view")
-_deprecated_mv("OSSpectrum", "get_intensity_array_mv", "get_intensity_array_view")
-_deprecated_mv("OSSpectrum", "get_drift_time_array_mv", "get_drift_time_array_view")
+_deprecated_mv("OSSpectrum", "get_mz_array_mv", "mz_array_view")
+_deprecated_mv("OSSpectrum", "get_intensity_array_mv", "intensity_array_view")
+_deprecated_mv("OSSpectrum", "get_drift_time_array_mv", "drift_time_array_view")
 
 # OSChromatogram
-_deprecated_mv("OSChromatogram", "get_time_array_mv", "get_time_array_view")
-_deprecated_mv("OSChromatogram", "get_intensity_array_mv", "get_intensity_array_view")
+_deprecated_mv("OSChromatogram", "get_time_array_mv", "time_array_view")
+_deprecated_mv("OSChromatogram", "get_intensity_array_mv", "intensity_array_view")

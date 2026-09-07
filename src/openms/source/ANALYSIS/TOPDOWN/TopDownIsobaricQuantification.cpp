@@ -8,13 +8,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -43,7 +37,13 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
   void TopDownIsobaricQuantification::setDefaultParams_()
   {
     defaults_.setValue("type", "none", "Specifies the isobaric quantification method used in the experiment.");
-    defaults_.setValidStrings("type", {"none", "itraq4plex", "itraq8plex", "tmt10plex", "tmt11plex", "tmt16plex", "tmt18plex", "tmt6plex"});
+    using MT = IsobaricQuantitationMethod::MethodType;
+    std::vector<std::string> valid_types{"none"};
+    for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+    {
+      valid_types.emplace_back(IsobaricQuantitationMethod::methodTypeName(static_cast<MT>(i)));
+    }
+    defaults_.setValidStrings("type", valid_types);
     defaults_.setValue("isotope_correction", "true",
                        "Enable isotope correction (highly recommended).");
     defaults_.setValidStrings("isotope_correction", {"true", "false"});
@@ -55,13 +55,6 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
   void TopDownIsobaricQuantification::updateMembers_()
   {
-    addMethod_(std::make_unique<ItraqFourPlexQuantitationMethod>());
-    addMethod_(std::make_unique<ItraqEightPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTSixPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTTenPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTElevenPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTSixteenPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTEighteenPlexQuantitationMethod>());
     only_fully_quantified_ = param_.getValue("only_fully_quantified").toString() == "true";
   }
 
@@ -75,7 +68,11 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       return;
     }
 
-    const auto& quant_method = quant_methods_[type];
+    auto quant_method = IsobaricQuantitationMethod::create(IsobaricQuantitationMethod::methodTypeFromName(type));
+    if (!quant_method) // unrecognized method name -> nothing to quantify
+    {
+      return;
+    }
 
     IsobaricChannelExtractor channel_extractor(quant_method.get());
     Param extract_param = channel_extractor.getDefaults();

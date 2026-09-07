@@ -10,6 +10,8 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <OpenMS/CHEMISTRY/IonNaming.h>
+
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -29,9 +31,22 @@ namespace OpenMS
     public Annotation1DItem
   {
 public:
-    /// Constructor
-    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color) :
-      Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color)
+    /**
+      @brief Constructor
+
+      @p charge is the charge of the annotated peak for producers that keep it in
+      PeptideHit::PeakAnnotation::charge rather than spelling it out in @p text. It is drawn next to the
+      ion name but deliberately kept out of @p text, so that reading the item back yields the name the
+      producer wrote: putting it into the text made every redraw rewrite the stored annotation.
+      Pass 0 (the default) when the text is all there is, as for a plain user label.
+
+      @param[in] peak_position The peak this annotation belongs to
+      @param[in] text The annotation text, i.e. the ion name as the producer wrote it
+      @param[in] color The colour to draw it in
+      @param[in] charge Charge of the peak when @p text does not spell one out, 0 otherwise
+    */
+    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color, int charge = 0) :
+      Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color), charge_(charge)
     {
     }
 
@@ -120,6 +135,24 @@ public:
         text.replace("H3PO4", "H<sub>3</sub>PO<sub>4</sub>");
         text.replace("HPO3", "HPO<sub>3</sub>");
         text.replace("C3O", "C<sub>3</sub>O");
+
+        // A charge that is not in the name at all (see the constructor) is drawn from the member, so
+        // that it never has to travel through the label and get written back into the stored annotation.
+        // Charge 1 is implied and left off, exactly as it is for a named ion like "y3+" whose lone sign
+        // is stripped below; only |charge| >= 2 is drawn, and next to the ion name (end of the first
+        // line) rather than after a trailing free-text comment.
+        if (charge_ != 0 && IonNaming::chargeFromName(fromQString(text_)) == 0)
+        {
+          // magnitude in a wider type: std::abs(INT_MIN) is undefined behaviour
+          const long long magnitude = (charge_ < 0) ? -static_cast<long long>(charge_) : static_cast<long long>(charge_);
+          if (magnitude > 1)
+          {
+            const QString sup = QString("<sup>") + QString::number(magnitude) + ((charge_ < 0) ? "-" : "+") + QString("</sup>");
+            static const QRegularExpression first_break(R"([\r\n])");
+            const int eol = text.indexOf(first_break);
+            text.insert((eol < 0) ? text.size() : eol, sup);
+          }
+        }
 
         // charge format: +z
         QRegularExpression charge_rx(R"([\+|\-](\d+)$)");
@@ -218,70 +251,41 @@ public:
       // add new fragment annotation
       QString peak_anno = this->getText().trimmed();
 
-      // check for newlines in the label and only continue with the first line for charge determination
-      peak_anno.remove('\r');
-      QStringList lines = peak_anno.split('\n', Qt::SkipEmptyParts);
+      // check for newlines in the label and only continue with the first line for charge determination.
+      // KeepEmptyParts: a blank line inside a label is the user's text, and dropping it here would
+      // silently rewrite the label every time the annotations are read back.
+      // Same rule as the identification view uses when it builds the label: "\r\n" first in the
+      // alternation so a CRLF is one break, a lone CR is a break of its own, and KeepEmptyParts so a
+      // blank line the user typed survives. IonNaming::chargeFromName likewise ends the ion name at
+      // either character, so all three agree on where the first line stops.
+      static const QRegularExpression line_break(R"(\r\n|[\r\n])");
+      QStringList lines = peak_anno.split(line_break, Qt::KeepEmptyParts);
       if (lines.size() > 1)
       {
         peak_anno = lines[0];
       }
 
-      // regular expression for a charge at the end of the annotation
-      QRegularExpression reg_exp(R"(([\+|\-]\d+)$)");
-
-      // read charge and text from annotation item string
-      // we support two notations for the charge suffix: '+2' or '++'
-      // cut and convert the trailing + or - to a proper charge
-      int match_pos = peak_anno.indexOf(reg_exp);
-      int tmp_charge(0);
-      if (match_pos >= 0)
-      {
-        tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
-        peak_anno = peak_anno.left(match_pos);
-      }
-      else
-      {
-        // count number of + and - in suffix (e.g., to support "++" as charge 2 annotation)
-        int plus(0), minus(0);
-
-        for (int p = (int)peak_anno.size() - 1; p >= 0; --p)
-        {
-          if (peak_anno[p] == '+')
-          {
-            ++plus;
-            continue;
-          }
-          else if (peak_anno[p] == '-')
-          {
-            ++minus;
-            continue;
-          }
-          else // not '+' or '-'?
-          {
-            if (plus > 0 && minus == 0) // found pluses?
-            {
-              tmp_charge = plus;
-              peak_anno = peak_anno.left(peak_anno.size() - plus);
-              break;
-            }
-            else if (minus > 0 && plus == 0) // found minuses?
-            {
-              tmp_charge = -minus;
-              peak_anno = peak_anno.left(peak_anno.size() - minus);
-              break;
-            }
-            break;
-          }
-        }
-      }
+      // Read the charge from the label but leave the label alone. Cutting the charge off used to
+      // corrupt the stored annotation: the identification view puts the charge back on redraw, so a
+      // round trip through this function turned "y3+" into "y3" and then into "y3++".
+      // IonNaming::chargeFromName understands all notations that occur ('+2', '++' and mzPAF's '^2').
+      // A charge the user typed into the label wins; otherwise fall back to the one the item was built
+      // with. The ion name (the first line) is returned exactly, so viewing a spectrum never rewrites
+      // it. The free-text remainder is intentionally normalised -- edge whitespace is trimmed (above)
+      // and CR/CRLF line endings fold to LF (the split and rejoin below); that is a no-op on producer
+      // annotations, which are single-line ion names, and only tidies a comment a user typed. So the
+      // round trip is identity for the ion name and any interior blank line, not byte-for-byte for a
+      // free-text comment's surrounding whitespace or line endings.
+      const int named_charge = IonNaming::chargeFromName(fromQString(peak_anno));
+      const int tmp_charge = (named_charge != 0) ? named_charge : charge_;
 
       PeptideHit::PeakAnnotation fa;
       fa.charge = tmp_charge;
       fa.mz = this->getPeakPosition().getMZ();
       fa.intensity = this->getPeakPosition().getIntensity();
-      if (lines.size() > 1)
-      {
-        peak_anno.append("\n").append(lines[1]);
+      for (int l = 1; l < lines.size(); ++l)
+      { // keep every extra label line, not just the first (they are free text below the ion name)
+        peak_anno.append("\n").append(lines[l]);
       }
       fa.annotation = fromQString(peak_anno);
 
@@ -303,5 +307,8 @@ public:
 
     /// The color of the label
     QColor color_;
+
+    /// Charge of the annotated peak when its name does not spell one out; 0 if unknown or already named
+    int charge_ = 0;
   };
 } // namespace OpenMS

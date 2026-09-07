@@ -58,15 +58,25 @@ namespace OpenMS
     }
     const auto& best_hit = id.getHits()[0];
     double score = best_hit.getScore();
-    auto [it, found] = seq_to_score_labels.try_emplace(
-      best_hit.getSequence().toUnmodifiedString(),
-      score,
+    const bool is_target =
       (best_hit.getMetaValue("target_decoy") != DataValue::EMPTY) &&
-        StringUtils::hasPrefix(best_hit.getMetaValue("target_decoy").toString(), "target"));
+      StringUtils::hasPrefix(best_hit.getMetaValue("target_decoy").toString(), "target");
+    auto [it, inserted] = seq_to_score_labels.try_emplace(
+      best_hit.getSequence().toUnmodifiedString(), score, is_target);
 
-    if (found && isFirstBetterScore_(score, it->second.first, higher_better))
+    // A freshly inserted entry already stores this hit's (score, label). Only when the
+    // sequence was already present can a later hit need to replace the stored
+    // representative: when it scores strictly better, or when it ties but is a target
+    // while the stored one is a decoy (prefer targets on ties, as getPickedProteinScores_
+    // does). Update BOTH the score and its target/decoy label together, so the
+    // representative stays deterministic and independent of input order.
+    const bool replaces_representative =
+      isFirstBetterScore_(score, it->second.first, higher_better) ||
+      (score == it->second.first && is_target && !it->second.second);
+    if (!inserted && replaces_representative)
     {
       it->second.first = score;
+      it->second.second = is_target;
     }
   }
 

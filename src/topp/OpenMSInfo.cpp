@@ -122,7 +122,8 @@ protected:
        << "Git branch   : " << VersionInfo::getBranch() << '\n'
        << '\n'
        << green("<< Installation information >>\n")
-       << "Data path    : " << File::getOpenMSDataPath() << '\n'
+       << "Data path    : " << File::getOpenMSDataPath()
+       << " (via " << File::getOpenMSDataPathSource() << ")" << '\n'
        << "Temp path    : " << File::getTempDirectory() << '\n'
        << "Userdata path: " << File::getUserDirectory() << '\n'
        << '\n'

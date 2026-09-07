@@ -27,6 +27,7 @@ set(sources_list_h
   MRMTransitionGroupPicker.h
   OpenSwathGeneInference.h
   OpenSwathHelper.h
+  OpenSwathLibraryIDNormalizer.h
   OpenSwathExportConfig.h
   OpenSwathExportData.h
   OpenSwathMatrixExporter.h
@@ -36,11 +37,14 @@ set(sources_list_h
   OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathOSWParquetReader.h
+  OpenSwathPercolatorScoring.h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathResultsExporter.h
+  TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
   OpenSwathWorkflowScheduler.h
+  PeakMapExtractor.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h

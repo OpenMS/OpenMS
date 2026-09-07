@@ -154,6 +154,11 @@ START_SECTION((Size getReferenceChannel() const ))
   quant_meth.setParameters(p);
 
   TEST_EQUAL(quant_meth.getReferenceChannel(), 7)
+
+  // 120 is within the accepted parameter range but is not a valid 8-plex channel:
+  // it must throw instead of warning and leaving a stale reference channel (regression)
+  p.setValue("reference_channel",120);
+  TEST_EXCEPTION(Exception::InvalidParameter, quant_meth.setParameters(p))
 }
 END_SECTION
 

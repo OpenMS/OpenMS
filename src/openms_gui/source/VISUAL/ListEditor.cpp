@@ -337,15 +337,15 @@ namespace OpenMS
     OkButton_ = new QPushButton(tr("&ok"));
     CancelButton_ = new QPushButton(tr("&cancel"));
 
-    connect(newRowButton_, SIGNAL(clicked()), listTable_, SLOT(createNewRow()));
-    connect(removeRowButton_, SIGNAL(clicked()), listTable_, SLOT(removeCurrentRow()));
+    connect(newRowButton_, &QPushButton::clicked, listTable_, &Internal::ListTable::createNewRow);
+    connect(removeRowButton_, &QPushButton::clicked, listTable_, &Internal::ListTable::removeCurrentRow);
 
     QDialogButtonBox * rightLayout = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Vertical);
     rightLayout->addButton(newRowButton_, QDialogButtonBox::ActionRole);
     rightLayout->addButton(removeRowButton_, QDialogButtonBox::ActionRole);
 
-    connect(rightLayout, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(rightLayout, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(rightLayout, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(rightLayout, &QDialogButtonBox::rejected, this, &QDialog::reject);
     QHBoxLayout * mainLayout = new QHBoxLayout;
     mainLayout->addWidget(listTable_);
     mainLayout->addWidget(rightLayout);

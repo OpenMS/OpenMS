@@ -185,9 +185,13 @@ public:
     @param[out] hills Output container for all detected hills that survived filtering steps. Useful for diagnostics and quality control.
     @param[out] peptide_features Output container storing intermediate peptide feature representations before conversion to FeatureMap entries
 
-    @note The input MS data must be set via setMSData() before calling this method
-    @note All spectra with MS level != 1 will be removed from the internal MS data
-    @note If profile_mode is enabled, spectra will be centroided using PeakPickerHiRes
+    @note The input MS data must be set via setMSData() before calling this method.
+    @note <b>This method modifies the stored MS data.</b> All spectra with MS level != 1 are removed;
+          if profile_mode is enabled the remaining spectra are centroided with PeakPickerHiRes; if
+          tof_mode is enabled TOF intensity filtering is applied. Data containing FAIMS compensation
+          voltages is split by CV internally and reassembled afterwards, so getMSData() returns the
+          same kind of processed experiment on both paths. run() is therefore not idempotent — call
+          setMSData() again before re-running.
   */
   void run(FeatureMap& feature_map,
            std::vector<Hill>& hills,

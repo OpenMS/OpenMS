@@ -35,8 +35,8 @@ namespace OpenMS
       ui_->num_jobs_box->setValue(num_jobs);
     }
     
-    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
-    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->ok_button, &QPushButton::clicked, this, &TOPPASOutputFilesDialog::checkValidity_);
+    connect(ui_->cancel_button, &QPushButton::clicked, this, &QDialog::reject);
     
     // make Ok the default (just pressing Enter will run the workflow)
     ui_->ok_button->setFocus();

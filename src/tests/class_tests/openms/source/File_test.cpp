@@ -11,15 +11,20 @@
 
 /////////////////////////////////////////////////////////////
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <atomic>
+#include <ctime>
 #include <fstream>
 #include <filesystem>
+#include <thread>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,6 +57,29 @@ START_SECTION((static UInt64 fileSize(const std::string& file)))
   TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), 15)
 END_SECTION
 
+START_SECTION((static Int64 getModificationTime(const std::string& file)))
+  TEST_EQUAL(File::getModificationTime("does_not_exists.txt"), -1)
+
+  // Bracketed by the wall clock around a file this test writes itself. That pins both properties
+  // the method promises: the number is that file's actual modification time, and it counts seconds
+  // from the Unix epoch rather than from file_clock's implementation-defined one -- 2174 on
+  // libstdc++, 1601 on MSVC -- so it means the same thing to a reader on another platform.
+  //
+  // Deliberately not read off a file in the source tree: distributions building reproducibly
+  // (Debian, Nix) normalise every source timestamp to the epoch, which is a property of the build
+  // environment and not of this method (see issue #10018). The few seconds of slack absorb coarse
+  // filesystem timestamp granularity; the errors this guards against are off by billions.
+  const Int64 t_before = static_cast<Int64>(std::time(nullptr));
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  { std::ofstream os(tmp.c_str()); os << "x"; }
+  const Int64 t_after = static_cast<Int64>(std::time(nullptr));
+
+  const Int64 t_tmp = File::getModificationTime(tmp);
+  TEST_TRUE(t_tmp >= t_before - 5)
+  TEST_TRUE(t_tmp <= t_after + 5)
+END_SECTION
+
 START_SECTION((static bool remove(const std::string &file)))
   //deleting non-existing file
   TEST_EQUAL(File::remove("does_not_exists.txt"), true)
@@ -77,10 +105,138 @@ START_SECTION((static bool writable(const std::string &file)))
   TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
   TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
   TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
+  TEST_EQUAL(File::writable(""), false)
 
   std::string filename;
   NEW_TMP_FILE(filename);
   TEST_EQUAL(File::writable(filename), true)
+
+  // writable() is a query: asking the question must not change the answer, and must not
+  // touch anything on disk that the caller did not ask about.
+  {
+    std::string probed;
+    NEW_TMP_FILE(probed);
+    { std::ofstream os(probed.c_str()); os << "payload"; }
+    TEST_EQUAL(File::writable(probed), true)
+    TEST_EQUAL(File::exists(probed), true)                        // still there
+    TEST_EQUAL(size_t(std::filesystem::file_size(probed)), size_t(7)) // and still intact
+
+    std::string absent;
+    NEW_TMP_FILE(absent);
+    std::filesystem::remove(absent);
+    TEST_EQUAL(File::writable(absent), true)
+    TEST_EQUAL(File::exists(absent), false)                       // probing left no litter
+  }
+
+  // A long path must not make writable() lie. writable() answers "could this be
+  // created?" by creating a file of its own in the same directory, and that name is
+  // longer than a typical caller's -- so close to the platform's path limit there is a
+  // band where the caller's own file still fits but the probe no longer does. Reporting
+  // "not writable" there is exactly the false negative this function exists to avoid.
+  //
+  // The limit is not the same on every platform (PATH_MAX, MAX_PATH, and whatever the
+  // filesystem says), so rather than hard-code a length, grow a directory until the OS
+  // refuses to go deeper and then sweep the last stretch of headroom. At every depth the
+  // requirement is the same and is checked against reality rather than against an
+  // expected answer: if the file can actually be created, writable() must say true.
+  {
+    File::TempDir long_path_dir;
+    std::error_code ec;
+    std::string deep = long_path_dir.getPath();
+    const std::string chunk(60, 'd');
+
+    // Cap the descent: a filesystem with no practical path limit must not loop forever.
+    for (int level = 0; level < 200; ++level)
+    {
+      const std::string next = deep + chunk + "/";
+      std::filesystem::create_directory(next, ec);
+      if (ec || !std::filesystem::is_directory(next, ec)) break;
+      deep = next;
+    }
+
+    int agreed = 0, checked = 0;
+    for (size_t tail = 1; tail < 60; tail += 6)
+    {
+      const std::string leaf = deep + std::string(tail, 'e');
+      std::filesystem::create_directory(leaf, ec);
+      if (ec || !std::filesystem::is_directory(leaf, ec)) continue;
+
+      // Ground truth: let the OS itself say whether this file can be created.
+      const std::string target = leaf + "/o";
+      std::ofstream os(target.c_str());
+      const bool creatable = os.is_open() && os.good();
+      os.close();
+      if (creatable) std::filesystem::remove(target, ec);
+
+      ++checked;
+      if (File::writable(target) == creatable) ++agreed;
+      std::filesystem::remove(leaf, ec);
+    }
+
+    TEST_NOT_EQUAL(checked, 0)      // the sweep has to have probed something
+    TEST_EQUAL(agreed, checked)     // ... and writable() has to agree with the OS at every depth
+
+    std::filesystem::remove_all(deep, ec);
+  }
+
+  // Concurrent callers must not sabotage each other. Both of the following are races, so a
+  // single attempt proves nothing -- before the fix they went wrong in roughly 2% and 79% of
+  // attempts respectively, which a one-shot check sails straight past. Repeat instead, and
+  // use a spin barrier: without one the first thread finishes before the second even starts,
+  // and the two never overlap at all.
+  //
+  // The spins yield rather than burn the core. That costs nothing natively (500 repeats run in
+  // ~0.1 s either way) but matters by three orders of magnitude under valgrind, whose scheduler
+  // hands a spinning thread a full quantum before switching: measured on the same binary,
+  // 5 repeats take 67 s with a bare spin and 0.11 s with the yield.
+  //
+  // Note this section can only catch the bug where the threads genuinely overlap; pinned to a
+  // single core they serialise and the pre-fix implementation passes too. It is a regression
+  // guard on ordinary multi-core runners, not a proof on every machine.
+  {
+    const int repeats = 500;
+    int both_writable = 0;   // two probes of the same new path must both answer 'true'
+    int output_survived = 0; // a probe must not delete what a concurrent writer produced
+
+    std::string shared;
+    NEW_TMP_FILE(shared);
+    std::string contended;
+    NEW_TMP_FILE(contended);
+
+    for (int i = 0; i < repeats; ++i)
+    {
+      // Two callers race to probe one path that does not exist yet. Probing used to create
+      // and delete that very path, so one prober would delete the other's file and then
+      // report it unwritable -- the intermittent 'Cannot write output file' seen on Windows
+      // CI when two TOPP tools were given the same -out path.
+      std::filesystem::remove(shared);
+      std::atomic<int> go_probe{0};
+      bool first = false, second = false;
+      std::thread p1([&]() { while (go_probe == 0) { std::this_thread::yield(); } first = File::writable(shared); });
+      std::thread p2([&]() { while (go_probe == 0) { std::this_thread::yield(); } second = File::writable(shared); });
+      go_probe = 1;
+      p1.join();
+      p2.join();
+      if (first && second) ++both_writable;
+
+      // A probe running alongside a real writer must leave that writer's output alone.
+      std::filesystem::remove(contended);
+      std::atomic<int> go_write{0};
+      std::thread writer([&]() { while (go_write == 0) { std::this_thread::yield(); } std::ofstream os(contended.c_str()); os << "important"; });
+      std::thread prober([&]() { while (go_write == 0) { std::this_thread::yield(); } File::writable(contended); });
+      go_write = 1;
+      writer.join();
+      prober.join();
+      std::error_code ec;
+      if (std::filesystem::exists(contended, ec) && std::filesystem::file_size(contended, ec) == 9) ++output_survived;
+    }
+
+    TEST_EQUAL(both_writable, repeats)
+    TEST_EQUAL(output_survived, repeats)
+
+    std::filesystem::remove(shared);
+    std::filesystem::remove(contended);
+  }
 END_SECTION
 
 START_SECTION((static std::string find(const std::string &filename, StringList directories=StringList())))
@@ -88,8 +244,23 @@ START_SECTION((static std::string find(const std::string &filename, StringList d
   std::string s_obo = File::find("CV/psi-ms.obo");
   TEST_EQUAL(s_obo.empty(), false);
   TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
-  
+
   TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
+
+  // a missing standard data file should point the user at the resolved data path and OPENMS_DATA_PATH (issue #9636)
+  {
+    std::string msg;
+    try
+    {
+      File::find("CHEMISTRY/this_file_does_not_exist_9636.xml");
+    }
+    catch (Exception::FileNotFound& e)
+    {
+      msg = e.getMessage();
+    }
+    TEST_EQUAL(msg.find("OPENMS_DATA_PATH") != std::string::npos, true)
+    TEST_EQUAL(msg.find(File::getOpenMSDataPath()) != std::string::npos, true)
+  }
 END_SECTION
 
 #ifdef ENABLE_DOCS
@@ -231,7 +402,13 @@ START_SECTION(static bool copyDirRecursively(const std::string &fromDir, const s
   std::string source_name = OPENMS_GET_TEST_DATA_PATH("XMassFile_test");
   std::string target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/"; 
   // test canonical path
-  TEST_EQUAL(File::copyDirRecursively(source_name,source_name),false)
+  // Rejecting the self-copy is reported on the error log. That report is expected here -- the
+  // assertion below is what checks it -- so keep it off the console: an 'Error:' line in the
+  // output of a passing test reads as a broken build to anyone packaging OpenMS (issue #10019).
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
+    TEST_EQUAL(File::copyDirRecursively(source_name,source_name),false)
+  }
   // test default
   TEST_EQUAL(File::copyDirRecursively(source_name,target_name),true)
   TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
@@ -248,7 +425,11 @@ START_SECTION(static bool copyDirRecursively(const std::string &fromDir, const s
   infile.close();
   TEST_EQUAL(file_size,50)
   // test option skip
-  TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::SKIP),true)
+  // SKIP announces every file it leaves alone on the warning log; expected, and equally noisy.
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogWarn(), std::cerr);
+    TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::SKIP),true)
+  }
   infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
@@ -317,6 +498,23 @@ START_SECTION(static std::string getUserDirectory())
   // OpenMS.ini file exists at the new location.
 END_SECTION
 
+START_SECTION((static std::string getOpenMSConfigDir()))
+  std::string config_dir = File::getOpenMSConfigDir();
+  TEST_NOT_EQUAL(config_dir, std::string())
+  // every platform branch resolves to a folder named "OpenMS" with no trailing separator
+  TEST_EQUAL(StringUtils::hasSuffix(config_dir, "OpenMS"), true)
+  TEST_EQUAL(StringUtils::hasSuffix(config_dir, "/"), false)
+#ifdef __unix__
+  // on unix-like systems, XDG_CONFIG_HOME takes precedence when set
+  const char* xdg_backup = getenv("XDG_CONFIG_HOME");
+  setenv("XDG_CONFIG_HOME", "/tmp/openms_xdg_test", 1);
+  TEST_EQUAL(File::getOpenMSConfigDir(), "/tmp/openms_xdg_test/OpenMS")
+  // restore previous environment to avoid side effects on later tests
+  if (xdg_backup) { setenv("XDG_CONFIG_HOME", xdg_backup, 1); }
+  else { unsetenv("XDG_CONFIG_HOME"); }
+#endif
+END_SECTION
+
 START_SECTION(static Param getSystemParameters())
   Param p = File::getSystemParameters();
   TEST_EQUAL(!p.empty(), true)
@@ -325,8 +523,19 @@ END_SECTION
 
 START_SECTION(static std::string findDatabase(const std::string &db_name))
 
-  TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
-  std::string db = File::findDatabase("./CV/unimod.obo");
+  // findDatabase() logs the miss before rethrowing; the exception is what this asserts on.
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
+  }
+  // The success path is chatty too -- it announces the resolved path on the info log (which goes
+  // to stdout, so the stderr check above does not cover it), and since nothing flushes it until
+  // teardown it surfaces *after* the test's PASSED banner. Same packaging-log noise as the errors.
+  std::string db;
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogInfo(), std::cout);
+    db = File::findDatabase("./CV/unimod.obo");
+  }
   //TEST_EQUAL(db,"wtf")
   TEST_EQUAL(StringUtils::hasSubstring(db, "share/OpenMS"), true)
 
@@ -346,10 +555,15 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
   TEST_EQUAL(File::findExecutable(find), true)
   TEST_EQUAL(StringUtils::hasSuffix(find, "echo"), true) // should be /usr/bin/echo or similar
 #endif
+
+  // negative case: a name that is neither an existing path nor on PATH is not found
+  std::string missing = "openms_no_such_executable_4711";
+  TEST_EQUAL(File::findExecutable(missing), false)
+  TEST_EQUAL(missing, "openms_no_such_executable_4711") // left unchanged when not found
 }
 END_SECTION
 
-START_SECTION(static StringList getPathLocations(const std::string& path = std::getenv("PATH")))
+START_SECTION(static StringList getPathLocations(const std::string& path))
 {
   // set env-variables is not portable across platforms, thus we inject the PATH values
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -363,6 +577,13 @@ START_SECTION(static StringList getPathLocations(const std::string& path = std::
 #else
   TEST_EQUAL(ListUtils::contains(l, "/usr/bin/"), true)
 #endif
+
+  StringList empty = File::getPathLocations("");
+  TEST_EQUAL(empty.empty(), true)
+
+  // Also exercise the no-argument overload, which reads PATH safely even when the
+  // environment lookup would otherwise return nullptr.
+  File::getPathLocations();
 }
 END_SECTION
 
@@ -371,6 +592,15 @@ START_SECTION(static std::string findSiblingTOPPExecutable(const std::string& to
 {
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
+
+  // Sibling resolution looks next to the running executable only; it does NOT fall back to a
+  // PATH lookup. A binary that exists only on PATH (e.g. the "echo"/"cmd" resolved by findExecutable
+  // above) is therefore reported as not found here. This pins the current "siblings only" contract.
+#ifdef OPENMS_WINDOWSPLATFORM
+  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("cmd"))
+#else
+  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("echo"))
+#endif
 }
 END_SECTION
 

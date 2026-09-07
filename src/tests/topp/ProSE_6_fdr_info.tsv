@@ -1,0 +1,13 @@
+general: file name	ProSE_6_fdr_out.tmp.idXML
+general: file type	idXML
+general: database	DatabaseSuitability_database.fasta
+general: database version	
+general: taxonomy	
+general: search engine	ProSE	(version: )
+general: num. of runs	1
+general: num. of protein hits	47
+general: num. of non-redundant protein hits (only hits that differ in the accession)	47
+general: num. of matched spectra	895
+general: num. of peptide hits	895
+general: num. of modified top-hits	0
+general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): 	895

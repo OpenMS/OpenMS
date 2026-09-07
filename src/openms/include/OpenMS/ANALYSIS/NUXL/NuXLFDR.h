@@ -49,20 +49,24 @@ class OPENMS_DLLAPI NuXLFDR
     explicit NuXLFDR(size_t report_top_hits);
 
     /**
-      @brief Partition @p peptide_ids into plain-peptide and cross-link PSM lists.
+      @brief Partition @p peptide_ids into plain-peptide and cross-link PSM lists by their single top hit.
 
-      For each input @c PeptideIdentification, walks its hits and keeps **only the first**
-      hit encountered for each class — even when @c report_top_hits @c >= @c 2 was passed
-      to the constructor. The classification is based on the integer meta value
-      @c "NuXL:isXL" (zero → plain peptide; anything else → cross-link). An input
-      identification contributes to @p pep_pi or @p xl_pi (or both, if it had hits of both
-      classes), but never to @p pep_pi twice.
+      For each input @c PeptideIdentification this keeps **only the single top-ranked hit**
+      (the first hit; hits are assumed sorted best-first) and assigns it to exactly one
+      output list according to the integer meta value @c "NuXL:isXL" (zero → plain peptide,
+      → @p pep_pi; anything else → cross-link, → @p xl_pi). This is a winner-takes-the-spectrum
+      class competition: a spectrum is claimed by whichever class its best hit belongs to and
+      therefore contributes to @p pep_pi @b or @p xl_pi but @b never to both. Lower-ranked hits
+      of the other class are intentionally dropped so that, e.g., a spectrum best explained as a
+      plain peptide does not also inflate the cross-link FDR pool. This single-top-hit split is
+      applied regardless of @c report_top_hits (which only toggles @c use_all_hits inside the
+      underlying @ref FalseDiscoveryRate q-value estimation, not the class split here).
 
       @p pep_pi and @p xl_pi are cleared on entry.
 
       @param[in]  peptide_ids Input mixed plain-peptide / cross-link PSMs.
-      @param[out] pep_pi      Receives the plain-peptide PSMs (one hit per PSM, the first encountered with @c NuXL:isXL @c == @c 0).
-      @param[out] xl_pi       Receives the cross-link PSMs (one hit per PSM, the first encountered with @c NuXL:isXL @c != @c 0).
+      @param[out] pep_pi      Receives the PSMs whose top hit is a plain peptide (@c NuXL:isXL @c == @c 0), one hit each.
+      @param[out] xl_pi       Receives the PSMs whose top hit is a cross-link (@c NuXL:isXL @c != @c 0), one hit each.
     */
     void splitIntoPeptidesAndXLs(const PeptideIdentificationList& peptide_ids,
       PeptideIdentificationList& pep_pi,
@@ -77,6 +81,11 @@ class OPENMS_DLLAPI NuXLFDR
           appended as a new @c PeptideIdentification;
         - if a plain-peptide entry already exists for this spectrum, the XL hits are
           appended to its hit list and that hit list is re-sorted in place.
+
+      @note For lists produced by @ref splitIntoPeptidesAndXLs the second case never occurs:
+            that split assigns each spectrum's single top hit to exactly one class, so a given
+            @c "spectrum_reference" appears in at most one of @p pep_pi / @p xl_pi. The append
+            branch only matters when merging lists assembled by other means.
 
       @p peptide_ids is cleared on entry.
 

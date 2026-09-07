@@ -53,6 +53,21 @@ clicking anywhere and selecting **Add Label**, respectively. Multiple annotation
 
 ![TOPPView 1D](/_images/tutorials/topp/TOPPView_1D.png)
 
+When inspecting fragment (`MS2`) spectra of isobarically labeled samples, the 1D view can overlay the theoretical
+reporter-ion `m/z` positions of a chosen labeling method. Right-click the spectrum and pick a method from the
+**Isobaric m/z reference (TMT/iTRAQ)** submenu; the supported methods include TMT 6-, 10-, 11-, 16-, 18-, 32- and
+35-plex as well as iTRAQ 4- and 8-plex. For every channel a vertical reference line is drawn at its expected `m/z`: a
+solid green line when a matching peak is found in the spectrum, and a dashed grey line labeled with the channel name
+when the channel is missing. Matched peaks are highlighted and annotated with the measured mass deviation in ppm. The
+overlay works for both profile and centroided spectra and is updated automatically as you navigate between spectra.
+Choose **Disable** from the same submenu to remove it again.
+
+The following example shows a TMT 11-plex fragment spectrum with the **Isobaric m/z reference (TMT/iTRAQ)** submenu open.
+Matched reporter ions are drawn in orange and labeled with their channel name and mass deviation (e.g. `127N -14.2 ppm`,
+`127C -15.0 ppm`):
+
+![TOPPView 1D isobaric annotation](/_images/tutorials/topp/TOPPView_1D_isobaric_annotation.png)
+
 Through the **context menu**: of the 1D view you can:
 
 1. View/edit meta data.
@@ -60,6 +75,7 @@ Through the **context menu**: of the 1D view you can:
 3. Change display settings.
 4. Add peak annotations or arbitrary text labels.
 5. Reset a performed alignment.
+6. Overlay theoretical isobaric (TMT/iTRAQ) reporter-ion `m/z` references via the **Isobaric m/z reference (TMT/iTRAQ)** submenu.
 
 ## 2D View
 
@@ -74,6 +90,21 @@ The following example image shows a small section of a peak map and the detected
 
 In addition to the normal top-down view, the 2D view can display the projections of the data to the `m/z` and `RT` axis.
 This feature is mainly used to assess the quality of a feature without opening the data region in 3D view.
+
+When you move the mouse over the 2D view, the data point closest to the cursor is highlighted with a red circle and its
+coordinates (`RT`, `m/z` and intensity) are shown in the upper left corner of the view.
+
+If the display of `MS/MS` precursors is enabled (see *Display Modes and View Options*, option **2D (Peaks)**), the
+precursor of each fragment (`MS2`) scan is marked as well: a rhombus at the precursor position in the preceding survey
+(`MS1`) scan, a line connecting it to the retention time of the fragment scan, and – if isolation window information is
+available – a dashed line indicating the isolated `m/z` range. Precursor markers are treated just like peaks when
+highlighting: moving the mouse over a precursor marker highlights it and shows the precursor's `RT`, `m/z` and charge in
+the upper left corner.
+
+The following example shows a fragment scan precursor (red circle) with its connecting line and isolation window (dashed
+line); the upper left corner displays the precursor's `RT`, `m/z` and charge:
+
+![TOPPView 2D precursor highlighting](/_images/tutorials/topp/TOPPView_2D_precursor_highlight.png)
 
 Through the **context menu:** of the 2D view you can:
 

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>

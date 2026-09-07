@@ -53,6 +53,9 @@ namespace OpenMS
     connect(canvas(), &Plot2DCanvas::showProjections, this, &Plot2DWidget::showProjections_);
     connect(canvas(), &Plot2DCanvas::toggleProjections, this, &Plot2DWidget::toggleProjections);
     connect(canvas(), &Plot2DCanvas::visibleAreaChanged, this, &Plot2DWidget::autoUpdateProjections_);
+    // re-pick the projection layer when the active layer changes, so the projections follow the
+    // currently selected layer (pickProjectionLayer()'s first choice is the current layer)
+    connect(canvas(), &Plot2DCanvas::layerActivated, this, &Plot2DWidget::refreshProjections_);
     // delegate signals from canvas
     connect(canvas(), &Plot2DCanvas::showSpectrumAsNew1D, this, &Plot2DWidget::showSpectrumAsNew1D);
     connect(canvas(), &Plot2DCanvas::showChromatogramsAsNew1D, this, &Plot2DWidget::showChromatogramsAsNew1D);
@@ -117,7 +120,20 @@ namespace OpenMS
 
   void Plot2DWidget::toggleProjections()
   {
-    if (projectionsVisible())
+    setProjectionsVisible(!projectionsVisible());
+  }
+
+  void Plot2DWidget::setProjectionsVisible(bool visible)
+  {
+    if (visible)
+    {
+      setMinimumSize(500, 500);
+      // pickProjectionLayer() emits showProjections() synchronously (direct connection),
+      // which shows the projection widgets. If no suitable peak layer exists, nothing is shown
+      // and projectionsVisible() stays false below.
+      canvas()->pickProjectionLayer();
+    }
+    else
     {
       setMinimumSize(250, 250);
       projection_box_->hide();
@@ -126,11 +142,8 @@ namespace OpenMS
       grid_->setColumnStretch(3, 0);
       grid_->setRowStretch(0, 0);
     }
-    else
-    {
-      setMinimumSize(500, 500);
-      canvas()->pickProjectionLayer();
-    }
+    // report the *actual* resulting state (a requested 'show' may have failed for lack of a layer)
+    emit projectionsVisibilityChanged(projectionsVisible());
   }
 
   //  projections
@@ -254,6 +267,16 @@ namespace OpenMS
   bool Plot2DWidget::projectionsVisible() const
   {
     return projection_onto_Y_->isVisible() || projection_onto_X_->isVisible();
+  }
+
+  void Plot2DWidget::refreshProjections_()
+  {
+    // only re-extract if the projections are currently shown; otherwise picking a layer
+    // would (via showProjections_) pop them open unexpectedly
+    if (projectionsVisible())
+    {
+      canvas()->pickProjectionLayer();
+    }
   }
 
   void Plot2DWidget::autoUpdateProjections_()

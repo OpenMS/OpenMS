@@ -1,7 +1,7 @@
 """ConsensusMap addon methods for DataFrame support."""
 import numpy as np
 from collections import defaultdict as _defaultdict
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("ConsensusMap")
@@ -42,7 +42,7 @@ def get_intensity_df(self):
     file_to_idx = {k: v for v, k in enumerate(files)}
 
     def gen(cmap, fun):
-        for f in cmap:
+        for f in cmap.iter_consensus_feature_views():
             yield from fun(f)
 
     if not labelfree:
@@ -67,7 +67,7 @@ def get_intensity_df(self):
         dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
         dtypes.append(('file', 'U300'))
 
-        total_rows = sum(len(extract_row_blocks_channel_wide_file_long(f)[1]) for f in self)
+        total_rows = sum(len(extract_row_blocks_channel_wide_file_long(f)[1]) for f in self.iter_consensus_feature_views())
         intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=total_rows)
 
         return pd.DataFrame(intyarr).set_index('id')
@@ -95,7 +95,7 @@ def get_metadata_df(self):
         raise ImportError("pandas is required for get_metadata_df(). Install with: pip install pandas")
 
     def gen(cmap, fun):
-        for f in cmap:
+        for f in cmap.iter_consensus_feature_views():
             yield from fun(f)
 
     def extract_meta_data(f):
@@ -330,7 +330,7 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
                     pg_lookup[acc_str].extend([a.decode() if isinstance(a, bytes) else str(a) for a in pg.accessions])
                     pg_qvalue_lookup[acc_str] = pg.probability
 
-    for cf in self:
+    for cf in self.iter_consensus_feature_views():
         pep_ids = cf.getPeptideIdentifications()
         best_hit = None
         if pep_ids:
@@ -476,7 +476,7 @@ def to_feature_parquet(self, filename, compression='snappy', **kwargs):
 
 
 @addon("ConsensusMap")
-def to_feature_qpx(self, qpx_version="1.0", creator="pyopenms", software_provider="OpenMS",
+def to_feature_qpx(self, qpx_version="1.1", creator="pyopenms", software_provider="OpenMS",
                    **kwargs):
     """
     Export consensus features as QPX format (dict with file_metadata and features).
@@ -516,3 +516,10 @@ def to_feature_qpx(self, qpx_version="1.0", creator="pyopenms", software_provide
         "file_metadata": file_metadata,
         "features": table.to_pylist()
     }
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("ConsensusMap", "consensus_feature", "size", "consensus features")
+
+

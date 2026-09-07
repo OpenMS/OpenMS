@@ -196,6 +196,31 @@ START_SECTION([EXTRA] Edge cases and error handling)
 }
 END_SECTION
 
+START_SECTION([EXTRA] Bruker TDF frame= / MS:1002818 native ID)
+{
+  // Bruker timsTOF .d (TDF) native IDs use "frame=<F> scan=<S>" with optional trailing
+  // tokens (precursor=, windowGroup=, scanStart=/scanEnd=, merged=) emitted by the OpenMS
+  // DDA/DIA-PASEF reader (MS:1002818). The parser recognizes the frame= prefix and targets
+  // the scan=<int> token as the scan-number proxy. The method-level sections above stop at
+  // scan=/MS:1000776 and never exercise frame=; these cases pin that contract.
+
+  // isNativeID recognizes the frame= prefix
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("frame=2 scan=529"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("frame=10 scan=42 precursor=3"), true);
+
+  // getRegExFromNativeID targets the scan= token for the frame= format
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=2 scan=529"), R"(scan=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=10 scan=42 precursor=3"), R"(scan=(?<GROUP>\d+))");
+
+  // extractScanNumber via the Bruker TDF accession (MS:1002818) returns the scan= integer
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=2 scan=529", "MS:1002818"), 529);
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=10 scan=42 precursor=3", "MS:1002818"), 42);
+
+  // merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818"), 9);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

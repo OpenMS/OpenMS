@@ -153,22 +153,6 @@ class OPENMS_DLLAPI PrecursorCorrection
   protected:
 
       /**
-      @brief Check if precursor is located in the bounding box of a features convex hull.
-      Here the bounding box of the feature is extended by the retention time tolerance and
-      afterwards the precursor location is validated.
-
-      @param[in] feature: constant Feature.
-      @param[in] rt: constant double retention time.
-      @param[in] pc_mz: constant double precursor mass to charge.
-      @param[in] rt_tolerance: constant double retention time tolerance in seconds.
-      @return static boolean to check if the precursor is located in the bounding box of a features convex hull.
-      */
-      static bool overlaps_(const Feature& feature,
-                            const double rt,
-                            const double pc_mz,
-                            const double rt_tolerance);
-
-      /**
       @brief Check precursor and feature compatibility
       If the precursor mz is in one of the masstraces the feature is compatible.
       Dependent on 13C mass difference and charge.

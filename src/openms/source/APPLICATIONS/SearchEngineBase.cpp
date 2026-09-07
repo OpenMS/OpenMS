@@ -21,7 +21,7 @@ using namespace std;
 namespace OpenMS
 {
   SearchEngineBase::SearchEngineBase(const std::string& tool_name, const std::string& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
-    TOPPBase(tool_name, tool_description, official, citations, toolhandler_test)
+    TOPPExternalToolBase(tool_name, tool_description, official, citations, toolhandler_test)
   {
   }
 

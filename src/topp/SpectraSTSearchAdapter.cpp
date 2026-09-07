@@ -5,8 +5,10 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
+#include <fstream>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -39,7 +41,7 @@ SpectraST: Version: 5
 /// @cond TOPPCLASSES
 
 class TOPPSpectraSTSearchAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
  public:
   // Define parameter name
@@ -59,7 +61,7 @@ class TOPPSpectraSTSearchAdapter :
   static const std::string param_user_mod_file;
 
   TOPPSpectraSTSearchAdapter() :
-    TOPPBase("SpectraSTSearchAdapter", "Interface to the SEARCH Mode of the SpectraST executable")
+    TOPPExternalToolBase("SpectraSTSearchAdapter", "Interface to the SEARCH Mode of the SpectraST executable")
   {
   }
 

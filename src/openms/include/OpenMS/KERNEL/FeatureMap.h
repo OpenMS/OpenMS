@@ -106,7 +106,7 @@ namespace OpenMS
     FeatureMap& operator=(const FeatureMap& rhs);
 
     /// Move assignment
-    //FeatureMap& FeatureMap::operator=(FeatureMap&&);
+    FeatureMap& operator=(FeatureMap&& rhs);
 
     /// Destructor
     ~FeatureMap() override;

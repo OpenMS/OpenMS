@@ -8,13 +8,21 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -22,40 +30,346 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <algorithm>
+#include <exception>
+#include <functional>
 #include <limits>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
 
 namespace // anonymous
 {
-  /// Try to extract a scan number from a native ID string.
-  /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
-  /// Returns -1 on failure.
-  Int extractScan(const std::string& native_id)
+  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
+  /// MetaInfoRegistry::getName() takes an `omp critical` lock, so caching by index pays
+  /// that lock at most once per unique key for the whole range instead of once per
+  /// metavalue per feature (as getKeys()/getMetaValue() would). Registered names are
+  /// non-empty, so an empty cache slot reliably means "not yet resolved".
+  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
   {
-    std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
-    if (regex_str.empty())
-    {
-      return -1;
-    }
-    boost::regex scan_regex(regex_str);
-    return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
+    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
+    std::string& name = cache[index];
+    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
+    return name;
   }
 } // anonymous namespace
 
 
-std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap)
+namespace // anonymous (feature range builder + shared per-map lookups)
+{
+
+/// Per-map, read-only lookups derived once from the ConsensusMap's protein
+/// identifications. Shared by the whole-table and streaming feature export paths
+/// (built once, reused across all batches).
+struct FeatureIdLookups
+{
+  std::unordered_map<std::string, double> pg_qvalue;               ///< accession -> protein-group q-value
+  std::unordered_map<std::string, std::vector<std::string>> gg_accessions; ///< accession -> gene accessions
+  std::unordered_map<std::string, std::vector<std::string>> gg_names;      ///< accession -> gene names
+  /// Resolves a PeptideIdentification to its own source run via id_merge_index, for
+  /// id_run_file_name. Read-only after construction, so it is safe to share across the
+  /// streaming path's OpenMP workers.
+  IdentifierMSRunMapper run_mapper;
+
+  /// Per column header (map index): the QPX run name and intensity label.
+  /// Both are expensive to derive and depend only on the header, of which there are at most
+  /// a few dozen -- while the export loop touches them once per FeatureHandle per row.
+  /// File::stemName() scans the 73-entry file-type table, and reading the header's
+  /// channel_name by string takes the MetaInfoRegistry omp-critical lock, which would
+  /// serialize the parallel batch build (see the note on pre-resolved metavalue indices).
+  struct RunColumnInfo
+  {
+    std::string source;     ///< ColumnHeader::filename, the run's identity
+    std::string run_name;   ///< stemmed run_file_name, the emitted value
+    std::string label;      ///< QPX intensities[].label
+  };
+  std::unordered_map<UInt64, RunColumnInfo> run_columns;
+
+  /// Whether the map is isobaric, deciding where a row's coordinates come from.
+  bool is_isobaric = false;
+  /// Set when a column header names a channel QPX cannot label; the export must not proceed,
+  /// since the label is a join key.
+  bool has_unlabelable_channel = false;
+};
+
+/// Build the per-map protein-group q-value and gene-info lookups from the
+/// ConsensusMap's ProteinIdentifications.
+FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
+{
+  FeatureIdLookups lut;
+
+  // Deliberately OUTSIDE the try below: that catch exists to tolerate a duplicate PATH LIST,
+  // for which the forward map is still complete. A duplicate IDENTIFIER is the opposite -- the
+  // forward map assigns with operator[], so only the last run's paths survive and a feature of
+  // the first would be stamped with a file it never came from, silently, since a single row
+  // gives nothing away. The pg exporter refuses the same input.
+  {
+    std::set<std::string> seen_identifiers;
+    for (const auto& prot_id : cmap.getProteinIdentifications())
+    {
+      if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ConsensusMapArrowExport: several identification runs share the identifier '"
+          + prot_id.getIdentifier() + "'. Their MS run paths cannot be told apart, so a feature "
+          "would be attributed to the wrong run file.", prot_id.getIdentifier());
+      }
+    }
+  }
+
+  // The mapper's constructor throws when two identifiers share a path list; that guards only
+  // the reverse map, which is never used here, and the forward map is fully populated before
+  // the throw. Degrade to a warning rather than failing an otherwise-exportable map.
+  try
+  {
+    lut.run_mapper.create(cmap.getProteinIdentifications());
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    OPENMS_LOG_WARN << "ConsensusMapArrowExport: ambiguous MS run paths across identification "
+                       "runs (" << e.getMessage() << "); id_run_file_name resolution continues "
+                       "on the identifier -> path mapping." << std::endl;
+  }
+  // A map is isobaric if it says so OR if its headers carry channel annotations. Neither
+  // signal alone is reliable: IsobaricWorkflow annotates channels without ever calling
+  // setExperimentType, while other producers declare a labelled experiment type without
+  // writing channel_name. Getting this wrong writes reporter-ion m/z into observed_mz, so
+  // accept either. (The sibling pg exporter reaches the same conclusion via
+  // ColumnHeader::getLabelAsUInt(getExperimentType()).)
+  lut.is_isobaric = (cmap.getExperimentType() != "label-free");
+
+  // Same policy as the PSM exporter: two source paths sharing a stem are indistinguishable
+  // as a join key, but same-named files in different directories are a legitimate layout, so
+  // warn rather than fail. Rows stay separate -- grouping keys on the source path, not the
+  // stem -- so this reports an ambiguous key, never a merged one.
+  {
+    std::vector<std::string> header_paths;
+    header_paths.reserve(cmap.getColumnHeaders().size());
+    for (const auto& [map_index, header] : cmap.getColumnHeaders()) { header_paths.push_back(header.filename); }
+    (void)ArrowIOHelpers::qpxWarnOnRunNameCollisions("ConsensusMapArrowExport", header_paths);
+  }
+  const auto qpx_labels = ArrowIOHelpers::qpxIntensityLabels(cmap);
+  for (const auto& [map_index, header] : cmap.getColumnHeaders())
+  {
+    const std::string channel_name = header.metaValueExists("channel_name")
+                                   ? header.getMetaValue("channel_name").toString() : "";
+    if (!channel_name.empty()) { lut.is_isobaric = true; }
+
+    std::string label = qpx_labels.at(map_index);
+    if (label.empty())
+    {
+      // qpxIntensityLabels() documents that callers must handle this: the channel's method
+      // could not be identified, so any token written here would be a guessed join key.
+      lut.has_unlabelable_channel = true;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: column header '" << header.label
+                       << "' names channel '" << channel_name << "' whose quantitation method "
+                          "cannot be identified, so no QPX intensity label can be derived for it."
+                       << std::endl;
+    }
+    lut.run_columns[map_index] = FeatureIdLookups::RunColumnInfo{
+      header.filename, ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
+  }
+
+  for (const auto& prot_id : cmap.getProteinIdentifications())
+  {
+    // Gene info from ProteinHit metavalues
+    for (const auto& ph : prot_id.getHits())
+    {
+      const std::string& acc = ph.getAccession();
+      if (ph.metaValueExists("gene_accession"))
+      {
+        lut.gg_accessions[acc].push_back(ph.getMetaValue("gene_accession").toString());
+      }
+      if (ph.metaValueExists("gene_name"))
+      {
+        lut.gg_names[acc].push_back(ph.getMetaValue("gene_name").toString());
+      }
+    }
+
+    for (const auto& pg : prot_id.getProteinGroups())
+    {
+      for (const auto& acc : pg.accessions)
+      {
+        lut.pg_qvalue[acc] = pg.probability;
+      }
+    }
+    for (const auto& ig : prot_id.getIndistinguishableProteins())
+    {
+      for (const auto& acc : ig.accessions)
+      {
+        if (!lut.pg_qvalue.contains(acc))
+        {
+          lut.pg_qvalue[acc] = ig.probability;
+        }
+      }
+    }
+  }
+  return lut;
+}
+
+/// Select the identity of a consensus feature: the best-scoring hit across ALL of its
+/// peptide identifications, together with the index of the identification holding it.
+///
+/// Deliberately local rather than an IDFilter addition. IDFilter::getBestHit() reports only
+/// the hit, and its internal "best" iterator is the score-type *reference* (pinned to the
+/// first non-empty identification), not the winner -- while the QPX feature view needs the
+/// winner's parent to resolve id_run_file_name. Exposing that would mean new public API in a
+/// widely-included header for a single caller, and it could not replace the existing
+/// per-identification helpers (MapAlignmentAlgorithmIdentification::getBestScoringHit is
+/// protected, works within one identification and returns a pointer; MzTab aggregates scores
+/// with different tie-breaking). Score comparison itself is not duplicated -- it delegates to
+/// PeptideIdentification::getScoreComparator, the same primitive those helpers use.
+///
+/// Comparison uses ONE orientation, taken from the first identification that has a hit. Using
+/// each identification's own orientation would compare in different directions within a single
+/// selection and make the winner depend on identification order.
+///
+/// Identifications that disagree on score type or orientation are a pipeline defect, not a
+/// case to recover from: scores of different types are not comparable, harmonizing them is an
+/// explicit step (IDScoreSwitcher / IDScoreSwitcherAlgorithm, which ProteomicsLFQ, Epifany and
+/// FalseDiscoveryRate all run), and IDFilter::getBestHit throws outright on the same condition.
+/// This warns via @p inconsistent_scores and proceeds with the reference orientation rather
+/// than inventing a recovery, which would only turn a broken input into an arbitrary answer.
+///
+/// @param[in] pep_ids The feature's peptide identifications
+/// @param[out] best_id_index Index into @p pep_ids of the identification holding the winner
+/// @param[out] inconsistent_scores Set when the identifications disagree on score type or orientation
+/// @return Pointer to the winning hit, or nullptr when no identification has one
+const PeptideHit* selectFeatureIdentity(
+  const PeptideIdentificationList& pep_ids,
+  Size& best_id_index,
+  bool& inconsistent_scores)
+{
+  const PeptideHit* best_hit = nullptr;
+  const PeptideIdentification* ref_id = nullptr;   // fixes the score type and orientation
+  std::function<bool(const PeptideHit&, const PeptideHit&)> better;
+  best_id_index = 0;
+  inconsistent_scores = false;
+
+  for (Size i = 0; i < pep_ids.size(); ++i)
+  {
+    const auto& pid = pep_ids[i];
+    if (pid.getHits().empty()) { continue; }       // hitless ids must not veto later ones
+
+    if (ref_id == nullptr)
+    {
+      ref_id = &pid;
+      better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
+    }
+    else if (ref_id->getScoreType() != pid.getScoreType()
+          || ref_id->isHigherScoreBetter() != pid.isHigherScoreBetter())
+    {
+      inconsistent_scores = true;                  // reported once per export by the caller
+    }
+
+    for (const auto& hit : pid.getHits())
+    {
+      if (best_hit == nullptr || better(hit, *best_hit))
+      {
+        best_hit = &hit;
+        best_id_index = i;
+      }
+    }
+  }
+  return best_hit;
+}
+
+/// Build Parquet WriterProperties from the OpenMS config (shared by the one-shot
+/// and streaming feature export paths).
+std::shared_ptr<parquet::WriterProperties> makeFeatureWriterProperties(const ParquetWriteConfig& config)
+{
+  auto builder = parquet::WriterProperties::Builder();
+  switch (config.compression)
+  {
+    case ParquetWriteConfig::Compression::NONE:   builder.compression(arrow::Compression::UNCOMPRESSED); break;
+    case ParquetWriteConfig::Compression::SNAPPY: builder.compression(arrow::Compression::SNAPPY); break;
+    case ParquetWriteConfig::Compression::GZIP:   builder.compression(arrow::Compression::GZIP); builder.compression_level(config.compression_level); break;
+    case ParquetWriteConfig::Compression::LZ4:    builder.compression(arrow::Compression::LZ4); break;
+    case ParquetWriteConfig::Compression::ZSTD:   builder.compression(arrow::Compression::ZSTD); builder.compression_level(config.compression_level); break;
+  }
+  builder.data_pagesize(config.data_page_size);
+  if (config.write_statistics) { builder.enable_statistics(); }
+  else                         { builder.disable_statistics(); }
+  return builder.build();
+}
+
+/// The @c run_file_name and @c psm_id the psm view writes for one identification's top hit.
+///
+/// This is how the feature view works out which of its rows a PSM belongs to, and it must agree
+/// with QPXFile exactly or the collection's cross-references stop resolving. Both go through the
+/// same ArrowIOHelpers derivations, so the agreement is structural rather than a coincidence of
+/// two copies staying in sync.
+///
+/// Only the TOP hit is linked. The psm view writes hits[0] per identification by default, and a
+/// lower-ranked hit names a different peptide than the one the feature was quantified for -- it
+/// is not evidence for this feature.
+///
+/// @return false when the identification carries no hits and therefore no psm row
+bool topHitPsmIdentity(const PeptideIdentification& pid,
+                       const IdentifierMSRunMapper& mapper,
+                       const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                       std::string& run_file_name,
+                       Int64& psm_id)
+{
+  const auto& hits = pid.getHits();
+  if (hits.empty()) { return false; }
+  const PeptideHit& hit = hits.front();
+  run_file_name = ArrowIOHelpers::qpxPsmRunFileName(hit, pid, mapper.getPrimaryMSRunPath(pid),
+                                                    run_file_name_keys);
+  // The psm view reads the spectrum reference from the member only, with no metavalue fallback;
+  // matching that matters because `scan` is part of the key.
+  const auto scan = ArrowIOHelpers::qpxScanComponents(pid.getSpectrumReference());
+  const auto pf = ProForma::fromAASequence(hit.getSequence());
+  psm_id = QPXIdentity::psmId(run_file_name, scan,
+                              ProForma::toString(pf, ProForma::WriteMode::CANONICAL),
+                              static_cast<int16_t>(hit.getCharge()));
+  return true;
+}
+
+/// Record one reciprocal feature-to-PSM edge without hiding an ambiguous owner.
+std::string insertFeatureLink(QPXIdentity::FeatureLinks& links, Int64 psm_id, Int64 feature_id)
+{
+  const auto [existing, inserted] = links.emplace(psm_id, feature_id);
+  if (inserted || existing->second == feature_id) { return {}; }
+
+  return "QPX psm_id " + std::to_string(psm_id) + " is claimed by feature_id "
+         + std::to_string(existing->second) + " and feature_id " + std::to_string(feature_id);
+}
+
+/// Build a QPXFeatureSchema Arrow table for the half-open feature range
+/// [range_begin, range_end) of @p cmap. @p id_lut holds the prebuilt per-map
+/// protein-group/gene lookups. Each row is independent (no cross-row state), so
+/// any contiguous sub-range yields a self-contained, schema-valid table; this is
+/// what lets exportToParquetStreaming() flush one batch at a time. Shared by
+/// exportToArrow() (whole map) and exportToParquetStreaming() (one batch per call).
+/// @param[out] out_links Optional psm_id -> feature_id map for this range, for the psm view's
+///             feature_id column. One slot per caller: the streaming path runs this inside an
+///             OpenMP region, so a shared map would be a data race.
+std::shared_ptr<arrow::Table> buildFeatureTableRange(
+  const ConsensusMap& cmap,
+  const FeatureIdLookups& id_lut,
+  size_t range_begin,
+  size_t range_end,
+  QPXIdentity::FeatureLinks* out_links = nullptr)
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder, anchor_protein_builder;
   arrow::StringBuilder run_file_name_builder, id_run_file_name_builder;
   arrow::Int16Builder charge_builder, missed_cleavages_builder;
   arrow::BooleanBuilder is_decoy_builder, unique_builder;
+  arrow::Int64Builder feature_id_builder;
+
+  // -- psm_ids list<int64> --
+  auto psm_ids_val_b = std::make_shared<arrow::Int64Builder>();
+  arrow::ListBuilder psm_ids_builder(arrow::default_memory_pool(), psm_ids_val_b);
   arrow::FloatBuilder calculated_mz_builder, observed_mz_builder, rt_builder;
   arrow::FloatBuilder mass_error_ppm_builder;
   arrow::FloatBuilder rt_start_builder, rt_stop_builder;
@@ -205,7 +519,65 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   arrow::ListBuilder pg_positions_builder(arrow::default_memory_pool(), pgp_struct_b);
 
   arrow::Status status;
-  const Size num_features = cmap.size();
+
+  // -- Melt: one output row per (ConsensusFeature, run) --
+  //
+  // QPX's feature view is long -- "a quantified peptidoform in a specific run file"
+  // (docs/spec/feature.md) -- so a ConsensusFeature spanning N runs expands to N rows, each
+  // carrying only that run's intensities. Emitting one wide row per feature instead made
+  // run_file_name an arbitrary pick among the contributing runs and forced every intensity
+  // into a single list distinguishable only by a non-conformant label.
+  //
+  // The coordinate rule differs by acquisition mode:
+  //  - label-free: each FeatureHandle holds that run's own RT / m/z / charge / width, so the
+  //    row takes its quantitative coordinates from the handle.
+  //  - isobaric: the handles are reporter ions -- their m/z is the reporter mass and their RT
+  //    the quantification scan -- while precursor m/z and RT live on the ConsensusFeature.
+  //    Keep the consensus coordinates and use the handles only for channel intensities.
+  const bool is_isobaric = id_lut.is_isobaric;
+
+  struct RowSpec
+  {
+    size_t feat_idx;
+    std::string run;                            ///< stemmed run_file_name
+    std::vector<const FeatureHandle*> handles;  ///< this run's handles, in map-index order
+  };
+
+  std::vector<RowSpec> rows;
+  rows.reserve(range_end - range_begin);
+  Size dropped_handleless = 0;
+  for (size_t feat_idx = range_begin; feat_idx < range_end; ++feat_idx)
+  {
+    // Group by the run's SOURCE path, not by its stemmed name. Two runs whose paths differ
+    // only in directory (/a/run1.mzML, /b/run1.mzML) share a stem; grouping on the stem
+    // would silently merge them into one row carrying both runs' intensities -- strictly
+    // worse than the ambiguous-but-separate rows #9818 warns about. Channels of one isobaric
+    // run share ColumnHeader::filename, so they still group together, which is the point.
+    // std::map keeps the order deterministic, so output is stable for any thread count.
+    std::map<std::string, std::vector<const FeatureHandle*>> by_source;
+    for (const auto& fh : cmap[feat_idx].getFeatures())
+    {
+      auto it = id_lut.run_columns.find(fh.getMapIndex());
+      if (it == id_lut.run_columns.end()) { continue; }
+      by_source[it->second.source].push_back(&fh);
+    }
+    if (by_source.empty()) { ++dropped_handleless; continue; }
+    for (auto& [source, handles] : by_source)
+    {
+      // The emitted key is the stem; the grouping key was the full path.
+      rows.push_back(RowSpec{feat_idx,
+                             id_lut.run_columns.at(handles.front()->getMapIndex()).run_name,
+                             std::move(handles)});
+    }
+  }
+  if (dropped_handleless > 0)
+  {
+    OPENMS_LOG_INFO << "ConsensusMapArrowExport: skipped " << dropped_handleless
+                    << " consensus feature(s) with no feature handles (no quantification and "
+                       "no source run to key a QPX feature row on)." << std::endl;
+  }
+
+  const Size num_features = rows.size();
 
   // Reserve capacity for simple column builders
   #define RESERVE_OR_FAIL(builder) \
@@ -236,48 +608,11 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
   #undef RESERVE_OR_FAIL
 
-  // Build column header lookup
-  const auto& column_headers = cmap.getColumnHeaders();
 
-  // Build protein group q-value lookup and gene info lookup
-  std::unordered_map<std::string, double> pg_qvalue_lookup;
-  std::unordered_map<std::string, std::vector<std::string>> gg_accessions_lookup;
-  std::unordered_map<std::string, std::vector<std::string>> gg_names_lookup;
-
-  for (const auto& prot_id : cmap.getProteinIdentifications())
-  {
-    // Gene info from ProteinHit metavalues
-    for (const auto& ph : prot_id.getHits())
-    {
-      const std::string& acc = ph.getAccession();
-      if (ph.metaValueExists("gene_accession"))
-      {
-        gg_accessions_lookup[acc].push_back(ph.getMetaValue("gene_accession").toString());
-      }
-      if (ph.metaValueExists("gene_name"))
-      {
-        gg_names_lookup[acc].push_back(ph.getMetaValue("gene_name").toString());
-      }
-    }
-
-    for (const auto& pg : prot_id.getProteinGroups())
-    {
-      for (const auto& acc : pg.accessions)
-      {
-        pg_qvalue_lookup[acc] = pg.probability;
-      }
-    }
-    for (const auto& ig : prot_id.getIndistinguishableProteins())
-    {
-      for (const auto& acc : ig.accessions)
-      {
-        if (!pg_qvalue_lookup.contains(acc))
-        {
-          pg_qvalue_lookup[acc] = ig.probability;
-        }
-      }
-    }
-  }
+  // Per-map protein-group q-value and gene-info lookups (prebuilt once, shared across batches)
+  const auto& pg_qvalue_lookup = id_lut.pg_qvalue;
+  const auto& gg_accessions_lookup = id_lut.gg_accessions;
+  const auto& gg_names_lookup = id_lut.gg_names;
 
   // Metavalue keys excluded from additional_scores on PeptideHit
   static const std::unordered_set<std::string> excluded_hit_mvs = {
@@ -286,11 +621,81 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
   IDScoreSwitcherAlgorithm idsa;
 
-  for (const auto& cf : cmap)
+  // Lazily-filled MetaInfo index->name cache shared across all features in this range
+  // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
+  std::vector<std::string> meta_name_cache;
+
+  // Pre-resolve the fixed dedicated-column metavalue names to registry indices ONCE for this range.
+  // String-keyed exists()/getValue() take the MetaInfoRegistry omp-critical lock via getIndex() on
+  // every call; resolving once and using the index overloads (lock-free flat_map lookups) keeps the
+  // parallel build from serializing on that lock. UInt(-1) = name never registered on any object =>
+  // treated as absent (matches the sentinel check in the string-keyed exists()).
+  auto& mreg = MetaInfoInterface::metaRegistry();
+  const UInt idx_target_decoy       = mreg.getIndex("target_decoy");
+  const UInt idx_predicted_RT       = mreg.getIndex("predicted_RT");
+  const UInt idx_predicted_rt       = mreg.getIndex("predicted_rt");
+  const UInt idx_ion_mobility       = mreg.getIndex("ion_mobility");
+  const UInt idx_IM                 = mreg.getIndex("IM");
+  const UInt idx_spectrum_reference = mreg.getIndex("spectrum_reference");
+  const UInt idx_missed_cleavages   = mreg.getIndex("missed_cleavages");
+  const UInt idx_start_ion_mobility = mreg.getIndex("start_ion_mobility");
+  const UInt idx_stop_ion_mobility  = mreg.getIndex("stop_ion_mobility");
+  const UInt idx_rt_start           = mreg.getIndex("rt_start");
+  const UInt idx_rt_stop            = mreg.getIndex("rt_stop");
+  // Same reason as the indices above: resolving a metavalue key by name takes the
+  // MetaInfoRegistry's `omp critical` lock, and the psm identities are derived per row.
+  const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
+  // metaValueExists() does not special-case the sentinel the way the string overload does.
+  auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
+  { return idx != static_cast<UInt>(-1) && m.metaValueExists(idx); };
+
+  bool warned_mixed_scores = false;
+  for (const auto& row : rows)
   {
+    const auto& cf = cmap[row.feat_idx];
     const auto& pep_ids = cf.getPeptideIdentifications();
-    bool has_id = !pep_ids.empty() && !pep_ids[0].getHits().empty();
-    const PeptideHit* best_hit = has_id ? &pep_ids[0].getHits()[0] : nullptr;
+
+    // The six columns feature_id is derived from, filled as each is written below. They are
+    // collected rather than recomputed so the id is a function of what the row actually holds.
+    std::string peptidoform;                // stays empty for an unidentified feature
+    std::vector<Int32> scan_components;     // ditto
+
+    // The feature's identity: the best-scoring hit across ALL of its identifications, not
+    // pep_ids[0].getHits()[0]. The positional pick discarded a feature's identity whenever its
+    // *first* identification happened to carry no hits, even if a later one did.
+    Size best_id_index = 0;
+    bool inconsistent_scores = false;
+    const PeptideHit* best_hit = selectFeatureIdentity(pep_ids, best_id_index, inconsistent_scores);
+    const bool has_id = (best_hit != nullptr);
+    if (inconsistent_scores && !warned_mixed_scores)
+    {
+      warned_mixed_scores = true;
+      OPENMS_LOG_WARN << "ConsensusMapArrowExport: consensus feature carries identifications that "
+                         "disagree on score type or orientation, so their scores are not "
+                         "comparable. Harmonize them upstream (e.g. IDScoreSwitcher); the best "
+                         "hit was selected using the first identification's orientation."
+                      << std::endl;
+    }
+
+    // The row's quantitative coordinates, fixed here so that charge, observed_mz,
+    // calculated_mz, mass_error_ppm, rt and the rt bounds are all mutually consistent.
+    // Computing some against the consensus centroid and others against the run's handle
+    // would report a ppm error measured against an m/z the row does not contain.
+    //  - label-free: the run's own FeatureHandle carries that run's RT / m/z / charge / width.
+    //  - isobaric: handles are reporter ions (m/z = reporter mass, RT = quantification scan),
+    //    so precursor coordinates must come from the ConsensusFeature.
+    const FeatureHandle* coord = (!is_isobaric && !row.handles.empty()) ? row.handles.front() : nullptr;
+    const double row_mz     = coord ? coord->getMZ()     : cf.getMZ();
+    const double row_rt     = coord ? coord->getRT()     : cf.getRT();
+    const double row_width  = coord ? coord->getWidth()  : cf.getWidth();
+    const int    row_charge = coord ? coord->getCharge() : cf.getCharge();
+
+    // EVERY identification-level column must come from this one identification. Reading some
+    // columns from pep_ids[0] and others from the winner would emit a row describing one
+    // peptide's sequence next to another's scan number and ion mobility.
+    const PeptideIdentification* best_pid =
+      (has_id && best_id_index < pep_ids.size()) ? &pep_ids[best_id_index] : nullptr;
 
     // === sequence / peptidoform ===
     if (best_hit)
@@ -298,15 +703,16 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       const auto& seq = best_hit->getSequence();
       (void)sequence_builder.Append(seq.toUnmodifiedString());
       auto pf = ProForma::fromAASequence(seq);
-      (void)peptidoform_builder.Append(ProForma::toString(pf, ProForma::WriteMode::CANONICAL));
+      peptidoform = ProForma::toString(pf, ProForma::WriteMode::CANONICAL);
+      (void)peptidoform_builder.Append(peptidoform);
 
       // calculated_mz
-      int charge = cf.getCharge();
+      int charge = row_charge;
       if (charge > 0)
       {
         float calc_mz = static_cast<float>(seq.getMZ(charge));
         (void)calculated_mz_builder.Append(calc_mz);
-        float obs_mz = static_cast<float>(cf.getMZ());
+        float obs_mz = static_cast<float>(row_mz);
         // mass_error_ppm = (observed - calculated) / calculated * 1e6
         if (calc_mz > 0)
         {
@@ -319,7 +725,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       }
       else
       {
-        (void)calculated_mz_builder.Append(static_cast<float>(cf.getMZ()));
+        (void)calculated_mz_builder.Append(static_cast<float>(row_mz));
         (void)mass_error_ppm_builder.AppendNull();
       }
 
@@ -418,30 +824,39 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     else
     {
       (void)sequence_builder.Append("");
-      (void)peptidoform_builder.Append("");
-      (void)calculated_mz_builder.Append(static_cast<float>(cf.getMZ()));
+      (void)peptidoform_builder.Append(""); // unidentified: only rt/observed_mz identify this row
+      (void)calculated_mz_builder.Append(static_cast<float>(row_mz));
       (void)mass_error_ppm_builder.AppendNull();
       // empty modifications list
       (void)modifications_builder.Append();
     }
 
-    (void)charge_builder.Append(static_cast<int16_t>(cf.getCharge()));
-    (void)observed_mz_builder.Append(static_cast<float>(cf.getMZ()));
-    (void)rt_builder.Append(static_cast<float>(cf.getRT()));
+    // Quantitative coordinates: this run's handle for label-free, the consensus centroid for
+    // isobaric (whose handles carry reporter-ion m/z and the quantification scan's RT).
+    // Narrowed once and reused for feature_id: the identity hashes the columns AS PERSISTED, so
+    // deriving it from the wider values would disagree with any reader that re-derives it.
+    const int16_t row_charge16 = static_cast<int16_t>(row_charge);
+    const float row_mz32 = static_cast<float>(row_mz);
+    const float row_rt32 = static_cast<float>(row_rt);
+    (void)charge_builder.Append(row_charge16);
+    (void)observed_mz_builder.Append(row_mz32);
+    (void)rt_builder.Append(row_rt32);
 
     // === PEP ===
     if (has_id)
     {
-      auto result = idsa.findScoreType(pep_ids[0], IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      auto result = idsa.findScoreType(*best_pid, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      // Resolve the (dynamic) PEP score name to an index once per feature (lock-free use below).
+      const UInt idx_pep = result.score_name.empty() ? static_cast<UInt>(-1) : mreg.getIndex(result.score_name);
       if (!result.score_name.empty() && best_hit)
       {
         if (result.is_main_score_type)
         {
           (void)pep_builder.Append(best_hit->getScore());
         }
-        else if (best_hit->metaValueExists(result.score_name))
+        else if (metaHas(*best_hit, idx_pep))
         {
-          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(result.score_name)));
+          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(idx_pep)));
         }
         else
         {
@@ -459,9 +874,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === is_decoy ===
-    if (best_hit && best_hit->metaValueExists("target_decoy"))
+    if (best_hit && metaHas(*best_hit, idx_target_decoy))
     {
-      std::string td = best_hit->getMetaValue("target_decoy").toString();
+      std::string td = best_hit->getMetaValue(idx_target_decoy).toString();
       (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
     }
     else
@@ -473,13 +888,16 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)additional_scores_builder.Append();
     if (best_hit)
     {
-      std::vector<std::string> keys;
-      best_hit->getKeys(keys);
-      for (const auto& key : keys)
+      // Single index-based pass over the hit's metavalues (avoids getKeys()/getMetaValue(string),
+      // which take the MetaInfoRegistry lock per key); names resolved via the shared cache. Same
+      // iteration order (by index) and same filtering as the previous getKeys() loop.
+      for (auto mv_it = best_hit->metaBegin(); mv_it != best_hit->metaEnd(); ++mv_it)
       {
+        const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
         if (excluded_hit_mvs.contains(key)) continue;
-        const DataValue& val = best_hit->getMetaValue(key);
-        if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
+        const DataValue& val = mv_it->second;
+        const auto vt = val.valueType();
+        if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
             && Scores::isKnownScoreType(key))
         {
           (void)as_struct_b->Append();
@@ -499,13 +917,13 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === predicted_rt ===
-    if (best_hit && best_hit->metaValueExists("predicted_RT"))
+    if (best_hit && metaHas(*best_hit, idx_predicted_RT))
     {
-      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue("predicted_RT"))));
+      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue(idx_predicted_RT))));
     }
-    else if (best_hit && best_hit->metaValueExists("predicted_rt"))
+    else if (best_hit && metaHas(*best_hit, idx_predicted_rt))
     {
-      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue("predicted_rt"))));
+      (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(best_hit->getMetaValue(idx_predicted_rt))));
     }
     else
     {
@@ -513,45 +931,65 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === run_file_name ===
-    // Derive from the first FeatureHandle's map index -> column header filename
-    {
-      bool found_run = false;
-      for (const auto& fh : cf.getFeatures())
-      {
-        auto it = column_headers.find(fh.getMapIndex());
-        if (it != column_headers.end())
-        {
-          (void)run_file_name_builder.Append(it->second.filename);
-          found_run = true;
-          break;
-        }
-      }
-      if (!found_run)
-      {
-        (void)run_file_name_builder.Append("");
-      }
-    }
+    // The run this melted row belongs to, already stemmed. QPX defines the column as the
+    // spectrum file name without path or extension, and joins the psm, feature and pg views
+    // on it, so all three must agree on the same spelling.
+    // For isobaric input all channels of one file share ColumnHeader::filename (the channel
+    // identity lives in ColumnHeader::label), so a run groups all of its channels.
+    (void)run_file_name_builder.Append(row.run);
 
     // === scan (list<int32>) ===
     {
       std::string spec_ref;
-      if (!pep_ids.empty())
+      if (best_pid)   // NOT !pep_ids.empty(): all of them may be hitless
       {
         // Prefer the dedicated member, fall back to metavalue
-        spec_ref = pep_ids[0].getSpectrumReference();
-        if (spec_ref.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+        spec_ref = best_pid->getSpectrumReference();
+        if (spec_ref.empty() && metaHas(*best_pid, idx_spectrum_reference))
         {
-          spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
+          spec_ref = best_pid->getMetaValue(idx_spectrum_reference).toString();
         }
       }
 
+      scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);
       (void)scan_builder.Append();
-      if (!spec_ref.empty())
+      for (const Int32 component : scan_components) { (void)scan_val_b->Append(component); }
+    }
+
+    // === feature_id (int64, non-nullable) and psm_ids (list<int64>, nullable) ===
+    // Every component of the composite has been written by now, so the id is derived from the
+    // row as persisted rather than from a second reading of the ConsensusFeature.
+    const Int64 feature_id = QPXIdentity::featureId(row.run, peptidoform, row_charge16,
+                                                    row_rt32, scan_components, row_mz32);
+    (void)feature_id_builder.Append(feature_id);
+    {
+      // A consensus feature spans runs but emits one row per run, so its identifications have to
+      // be distributed to the row of their OWN run -- listing all of them on every row would
+      // claim a PSM as evidence for a quantity measured in a different file.
+      (void)psm_ids_builder.Append();
+      std::vector<Int64> linked;
+      for (const auto& pid : pep_ids)
       {
-        Int scan_num = extractScan(spec_ref);
-        if (scan_num >= 0)
+        std::string psm_run;
+        Int64 psm_id = 0;
+        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, psm_run, psm_id)) { continue; }
+        if (psm_run != row.run) { continue; }
+        // Two identifications of one feature can agree on all four key columns; the psm view
+        // stores one row for them, so this must list it once.
+        if (std::find(linked.begin(), linked.end(), psm_id) != linked.end()) { continue; }
+        linked.push_back(psm_id);
+        (void)psm_ids_val_b->Append(psm_id);
+        // Both directions come from this one loop, which is what keeps them reciprocal: qpx
+        // validates that a psm pointing at a feature is listed back by it.
+        if (out_links != nullptr)
         {
-          (void)scan_val_b->Append(scan_num);
+          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          if (!conflict.empty())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "ConsensusMapArrowExport: " + conflict
+              + ". A QPX PSM can reference only one feature row.", std::to_string(psm_id));
+          }
         }
       }
     }
@@ -560,31 +998,31 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)cv_params_builder.AppendNull();
 
     // === ion_mobility, start/stop ===
-    if (!pep_ids.empty() && pep_ids[0].metaValueExists("ion_mobility"))
+    if (best_pid && metaHas(*best_pid, idx_ion_mobility))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue("ion_mobility"))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(best_pid->getMetaValue(idx_ion_mobility))));
     }
-    else if (!pep_ids.empty() && pep_ids[0].metaValueExists("IM"))
+    else if (best_pid && metaHas(*best_pid, idx_IM))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_ids[0].getMetaValue("IM"))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(best_pid->getMetaValue(idx_IM))));
     }
     else
     {
       (void)ion_mobility_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("start_ion_mobility"))
+    if (metaHas(cf, idx_start_ion_mobility))
     {
-      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("start_ion_mobility"))));
+      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_start_ion_mobility))));
     }
     else
     {
       (void)im_start_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("stop_ion_mobility"))
+    if (metaHas(cf, idx_stop_ion_mobility))
     {
-      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("stop_ion_mobility"))));
+      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_stop_ion_mobility))));
     }
     else
     {
@@ -592,9 +1030,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === missed_cleavages ===
-    if (best_hit && best_hit->metaValueExists("missed_cleavages"))
+    if (best_hit && metaHas(*best_hit, idx_missed_cleavages))
     {
-      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue("missed_cleavages"))));
+      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue(idx_missed_cleavages))));
     }
     else
     {
@@ -605,7 +1043,22 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)additional_intensities_builder.AppendNull();
 
     // === id_run_file_name ===
-    (void)id_run_file_name_builder.AppendNull();
+    // Spec: "run file containing best PSM". This may legitimately differ from run_file_name
+    // — a match-between-runs feature is quantified in one run but identified in another, and
+    // that divergence is exactly what this column records.
+    // Resolved from the identification that actually holds the best hit, not pep_ids[0] --
+    // a feature's identifications can come from different runs, which is the whole point.
+    if (best_pid)
+    {
+      const std::string id_run =
+        ArrowIOHelpers::qpxRunFileName(id_lut.run_mapper.getPrimaryMSRunPath(*best_pid));
+      if (id_run.empty()) { (void)id_run_file_name_builder.AppendNull(); }
+      else                { (void)id_run_file_name_builder.Append(id_run); }
+    }
+    else
+    {
+      (void)id_run_file_name_builder.AppendNull();
+    }
 
     // === Protein accessions (now list<struct>) ===
     // Collect ALL peptide evidences (including repeated accessions with different positions)
@@ -674,10 +1127,12 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       }
     }
 
-    // anchor_protein
+    // anchor_protein — null, not "", when the feature has no protein mapping. bigbio/qpx#212
+    // made this nullable for de novo workflows: "null when no protein mapping was performed".
+    // An empty string would satisfy the column but is neither an accession nor an absence.
     if (protein_accs.empty())
     {
-      (void)anchor_protein_builder.Append("");
+      (void)anchor_protein_builder.AppendNull();
     }
     else
     {
@@ -745,26 +1200,32 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === rt_start / rt_stop ===
-    if (cf.metaValueExists("rt_start"))
+    // NOTE: the explicit rt_start/rt_stop metavalues are authored on the ConsensusFeature,
+    // so a melted per-run row inherits the consensus window even when it reports the run
+    // handle's RT. Where the two RTs diverge that window does not bracket the row's own RT.
+    // Left as-is deliberately: overriding an authored value is a semantic change beyond this
+    // PR, and existing coverage pins the current behaviour. The width fallback below does use
+    // the row's own coordinates.
+    if (metaHas(cf, idx_rt_start))
     {
-      (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("rt_start"))));
+      (void)rt_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_start))));
     }
-    else if (cf.getWidth() > 0)
+    else if (row_width > 0)
     {
-      (void)rt_start_builder.Append(static_cast<float>(cf.getRT() - cf.getWidth() / 2.0));
+      (void)rt_start_builder.Append(static_cast<float>(row_rt - row_width / 2.0));
     }
     else
     {
       (void)rt_start_builder.AppendNull();
     }
 
-    if (cf.metaValueExists("rt_stop"))
+    if (metaHas(cf, idx_rt_stop))
     {
-      (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("rt_stop"))));
+      (void)rt_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue(idx_rt_stop))));
     }
-    else if (cf.getWidth() > 0)
+    else if (row_width > 0)
     {
-      (void)rt_stop_builder.Append(static_cast<float>(cf.getRT() + cf.getWidth() / 2.0));
+      (void)rt_stop_builder.Append(static_cast<float>(row_rt + row_width / 2.0));
     }
     else
     {
@@ -772,18 +1233,19 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === intensities: list<struct{label, intensity}> ===
+    // Only this run's handles: one entry for label-free ("LFQ"), one per reporter channel for
+    // isobaric ("TMT126", ...). The label is a join key against run.samples[].label, so it
+    // must be a canonical channel token rather than the source file name.
     (void)intensities_builder.Append();
-    for (const auto& fh : cf.getFeatures())
+    for (const auto* fh : row.handles)
     {
-      auto it = column_headers.find(fh.getMapIndex());
-      if (it != column_headers.end())
-      {
-        (void)intensity_struct_b->Append();
-        (void)intensity_label_b->Append(it->second.filename);
-        (void)intensity_val_b->Append(static_cast<float>(fh.getIntensity()));
-      }
+      auto it = id_lut.run_columns.find(fh->getMapIndex());
+      if (it == id_lut.run_columns.end()) { continue; }
+      (void)intensity_struct_b->Append();
+      (void)intensity_label_b->Append(it->second.label);
+      (void)intensity_val_b->Append(static_cast<float>(fh->getIntensity()));
     }
-  } // end feature loop
+  } // end melted row loop
 
   // Finalize all arrays
   #define FINISH_OR_FAIL(builder, arr) \
@@ -835,6 +1297,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   FINISH_OR_FAIL(id_run_file_name_builder, arr_id_run_file)
   FINISH_OR_FAIL(rt_start_builder, arr_rt_start)
   FINISH_OR_FAIL(rt_stop_builder, arr_rt_stop)
+  std::shared_ptr<arrow::Array> arr_feature_id, arr_psm_ids;
+  FINISH_OR_FAIL(feature_id_builder, arr_feature_id)
+  FINISH_OR_FAIL(psm_ids_builder, arr_psm_ids)
 
   #undef FINISH_OR_FAIL
 
@@ -842,6 +1307,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   auto schema = QPXFeatureSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
+    arr_feature_id,
     arr_sequence, arr_peptidoform, arr_modifications,
     arr_charge, arr_pep, arr_is_decoy,
     arr_calc_mz, arr_obs_mz, arr_mass_error_ppm,
@@ -853,6 +1319,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     arr_pg_positions, arr_im_start, arr_im_stop,
     arr_gg_acc, arr_gg_names, arr_id_run_file,
     arr_rt_start, arr_rt_stop,
+    arr_psm_ids,
   });
 
   // Validate table against registry schema (strict — write path must match exactly)
@@ -866,16 +1333,144 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   return table;
 }
 
+/// Build the canonical QPX "feature" file metadata for @p cmap. Each call mints a fresh
+/// uuid/creation_date, so build it once per output file and reuse it for the writer schema
+/// and every batch. Returns nullptr when QPX defines no token for the configured compression.
+std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
+  const ConsensusMap& cmap,
+  const ParquetWriteConfig& config)
+{
+  // scan_format describes the `scan` column, which is extracted from the spectrum native
+  // IDs of the features' peptide identifications (and the unassigned ones, which share the
+  // same source runs).
+  std::vector<std::string> refs;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications())
+    {
+      if (!pid.getSpectrumReference().empty()) { refs.push_back(pid.getSpectrumReference()); }
+    }
+  }
+  for (const auto& pid : cmap.getUnassignedPeptideIdentifications())
+  {
+    if (!pid.getSpectrumReference().empty()) { refs.push_back(pid.getSpectrumReference()); }
+  }
+
+  std::map<std::string, std::string> extra;
+  const std::string scan_format = ArrowIOHelpers::qpxScanFormat(refs);
+  if (!scan_format.empty()) { extra["scan_format"] = scan_format; }
+  return ArrowIOHelpers::qpxFileMetadata("feature_file", config, extra);
+}
+
+/// Refuse a merged run whose PSMs cannot be attributed to one of its files.
+///
+/// The feature view resolves id_run_file_name through IdentifierMSRunMapper, which falls back to
+/// the run's FIRST file when 'id_merge_index' is missing -- so the column would name a run the
+/// best PSM did not come from, silently. The psm and pg views already refuse this input; matching
+/// them matters beyond consistency, because ProteomicsLFQ and ProteinQuantifier write the feature
+/// view FIRST and pg third. Accepting here and refusing there leaves a wrong feature.parquet on
+/// disk next to a half-written collection; refusing here fails before this view is written.
+/// Note the pg ConsensusMap overload does NOT check merge indices -- only the psm view does --
+/// so this is not redundant with it. QPXCollectionExport::requireExportable() is what makes the
+/// whole collection fail before the FIRST file.
+///
+/// Must run as a preflight -- single-threaded, before any OpenMP region and before the output
+/// file is opened -- for the same reason as requireUnambiguousIdentities().
+void requireResolvableIdRunsWith(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
+{
+  for (Size i = 0; i < cmap.size(); ++i)
+  {
+    // Only the identification the row actually uses. Validating every attached one refused a
+    // feature whose winning hit resolves perfectly, because a sibling identification -- hitless,
+    // or simply not selected -- lacked an index that is never asked for.
+    const auto& pep_ids = cmap[i].getPeptideIdentifications();
+    Size best_id_index = 0;
+    bool inconsistent_scores = false;
+    if (selectFeatureIdentity(pep_ids, best_id_index, inconsistent_scores) == nullptr) { continue; }
+    mapper.validateMergeIndex(pep_ids[best_id_index], i);
+  }
+}
+
+} // anonymous namespace (feature range builder + shared per-map lookups)
+
+
+void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& cmap)
+{
+  Size divergent = 0;
+  Size first_index = 0;
+  for (Size i = 0; i < cmap.size(); ++i)
+  {
+    if (cmap[i].getAnnotationState() != BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT) { continue; }
+    if (divergent++ == 0) { first_index = i; }
+  }
+  if (divergent == 0) { return; }
+
+  throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+    std::to_string(divergent) + " consensus feature(s), the first at index "
+    + std::to_string(first_index) + ", carry peptide identifications that disagree on the top "
+    "peptide. The QPX feature and protein-group views record one peptide per feature and cannot "
+    "represent this. Resolve the conflicts first (IDConflictResolver, ConsensusID with "
+    "algorithm 'best', or FileFilter with id:keep_best_score_id), or export the unresolved data "
+    "as consensusparquet, which preserves every identification.");
+}
+
+void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& cmap)
+{
+  // Builds its own mapper so the check is usable without the rest of buildFeatureIdLookups().
+  // The in-exporter paths pass the lookup's mapper instead, to avoid building it twice.
+  std::set<std::string> seen_identifiers;
+  for (const auto& prot_id : cmap.getProteinIdentifications())
+  {
+    if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ConsensusMapArrowExport: several identification runs share the identifier '"
+        + prot_id.getIdentifier() + "'. Their MS run paths cannot be told apart, so a feature "
+        "would be attributed to the wrong run file.", prot_id.getIdentifier());
+    }
+  }
+  IdentifierMSRunMapper mapper;
+  try { mapper.create(cmap.getProteinIdentifications()); }
+  catch (const Exception::InvalidValue&) { /* duplicate path lists; forward map is complete */ }
+  requireResolvableIdRunsWith(cmap, mapper);
+}
+
+std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap,
+                                                                     QPXIdentity::FeatureLinks* out_links)
+{
+  requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
+  const auto id_lut = buildFeatureIdLookups(cmap);
+  requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
+  // A channel QPX cannot name would be written into intensities[].label, a documented join
+  // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
+  if (id_lut.has_unlabelable_channel) { return nullptr; }
+  return buildFeatureTableRange(cmap, id_lut, 0, cmap.size(), out_links);
+}
+
 
 bool ConsensusMapArrowExport::exportToParquet(
   const ConsensusMap& cmap,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  QPXIdentity::FeatureLinks* out_links)
 {
-  auto table = exportToArrow(cmap);
+  auto table = exportToArrow(cmap, out_links);
   if (!table)
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to create Arrow table" << std::endl;
+    return false;
+  }
+
+  auto meta = qpxFeatureMetadata(cmap, config);
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
+  table = table->ReplaceSchemaMetadata(meta);
+
+  QPXValueValidation value_validator(QPXValueValidation::View::FEATURE);
+  const auto value_validation = value_validator.validate(table);
+  if (!value_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: refusing invalid QPX feature table ("
+                     << filename << "): " << value_validation.toString() << std::endl;
     return false;
   }
 
@@ -888,43 +1483,7 @@ bool ConsensusMapArrowExport::exportToParquet(
   }
   const auto& outfile = *result;
 
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-
+  auto writer_props = makeFeatureWriterProperties(config);
   auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
 
   // Write
@@ -932,14 +1491,243 @@ bool ConsensusMapArrowExport::exportToParquet(
     *table, arrow::default_memory_pool(), outfile,
     config.row_group_size, writer_props, arrow_props);
 
+  // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+  // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+  // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+  // removing: on Windows an open handle blocks the unlink.
+  const auto abandon = [&](const std::string& what)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " << what << std::endl;
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                       << filename << std::endl;
+    }
+    return false;
+  };
+
   if (!status.ok())
   {
-    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write Parquet: "
-                     << status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to write Parquet: " + status.ToString());
+  }
+
+  // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+  // final flush is where a full disk surfaces, and reporting success there would hand back a
+  // truncated file.
+  auto close_status = outfile->Close();
+  if (!close_status.ok())
+  {
+    return abandon("Failed to close " + filename + ": " + close_status.ToString());
   }
 
   return true;
+}
+
+
+bool ConsensusMapArrowExport::exportToParquetStreaming(
+  const ConsensusMap& cmap,
+  const std::string& filename,
+  size_t batch_size,
+  const ParquetWriteConfig& config,
+  int n_threads,
+  QPXIdentity::FeatureLinks* out_links)
+{
+  if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
+
+  // Resolve the number of OpenMP threads used to build each batch's partitions.
+  // 1 = serial (default), 0 = all cores, N = fixed. Without OpenMP, always serial.
+  int threads = n_threads;
+#ifdef _OPENMP
+  if (threads <= 0) { threads = omp_get_max_threads(); }
+#endif
+  if (threads < 1) { threads = 1; }
+
+  // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
+  // Preflight before the writer is opened and before the OpenMP batch build: a throw from
+  // inside that region would be captured by the worker's catch-all and flattened to a bool.
+  requireUnambiguousIdentities(cmap);
+
+  const auto id_lut = buildFeatureIdLookups(cmap);
+  requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
+  if (id_lut.has_unlabelable_channel) { return false; } // already logged
+
+  // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
+  // cannot race across the OpenMP workers below. Runs once, serially. (ProForma and the
+  // SpectrumNativeIDParser scan path resolve through ModificationsDB/ResidueDB/AASequence, which are
+  // warmed here — the same set the PSM streaming path pre-warms.)
+  ModificationsDB::getInstance();
+  ResidueDB::getInstance();
+  (void)Scores::isKnownScoreType("q-value");
+  (void)AASequence::fromString("PEPTIDEK").getMZ(2); // inits AASequence static residue path
+
+  // One metadata identity (uuid/creation_date) for the whole file, reused for the writer
+  // schema and every batch so their schemas are identical.
+  auto meta = qpxFeatureMetadata(cmap, config);
+  if (!meta) { return false; } // unsupported compression for QPX; already logged
+
+  // The writer's schema must match each batch table's schema exactly. buildFeatureTableRange()
+  // stamps QPXFeatureSchema::schema() on every batch, so open the writer with the same schema
+  // plus the shared metadata (re-stamped per batch below).
+  const auto schema = QPXFeatureSchema::schema()->WithMetadata(meta);
+
+  auto file_result = arrow::io::FileOutputStream::Open(filename);
+  if (!file_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open " << filename << " for writing: "
+                     << file_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto outfile = file_result.ValueOrDie();
+
+  auto writer_props = makeFeatureWriterProperties(config);
+  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+
+  auto writer_result = parquet::arrow::FileWriter::Open(
+    *schema, arrow::default_memory_pool(), outfile, writer_props, arrow_props);
+  if (!writer_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open Parquet writer for " << filename << ": "
+                     << writer_result.status().ToString() << std::endl;
+    // FileOutputStream::Open above already created (and truncated) the file, so returning here
+    // would leave a zero-byte .parquet behind that no reader can open.
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                       << filename << std::endl;
+    }
+    return false;
+  }
+  auto writer = std::move(writer_result).ValueOrDie();
+
+  const int64_t rg = static_cast<int64_t>(config.row_group_size);
+  QPXValueValidation value_validator(QPXValueValidation::View::FEATURE);
+
+  // Build one feature batch [b, e): partition it into W contiguous sub-ranges, build each sub-table
+  // in parallel (OpenMP), then write them in index order (serial — the FileWriter is not thread-safe).
+  // Peak memory stays batch-bounded (the W sub-tables together hold one batch's rows). Row content and
+  // order are identical to the serial path (contiguous, in-order), so output is deterministic for any
+  // thread count.
+  auto write_batch = [&](size_t b, size_t e) -> bool
+  {
+    const size_t rows = e - b;
+    const int W = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(rows, 1)));
+    std::vector<std::shared_ptr<arrow::Table>> parts(W);
+    std::vector<std::exception_ptr> errs(W);
+    // One links slot per worker; a shared map would be a data race. Merged below in index
+    // order, so the result does not depend on the thread count.
+    std::vector<QPXIdentity::FeatureLinks> part_links(out_links != nullptr ? W : 0);
+
+    #pragma omp parallel for num_threads(W) schedule(static)
+    for (int t = 0; t < W; ++t)
+    {
+      try
+      {
+        const size_t base = rows / W, rem = rows % W;
+        const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
+        const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
+        parts[t] = buildFeatureTableRange(cmap, id_lut, sb, se,
+                                          out_links != nullptr ? &part_links[t] : nullptr);
+      }
+      catch (...)
+      {
+        errs[t] = std::current_exception(); // never let an exception escape the OpenMP region
+      }
+    }
+
+    // Surface any worker exception as a logged failure (convert to the bool error contract).
+    for (int t = 0; t < W; ++t)
+    {
+      if (errs[t])
+      {
+        try { std::rethrow_exception(errs[t]); }
+        catch (const std::exception& ex) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw: " << ex.what() << std::endl; }
+        catch (...)                      { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature batch build threw (unknown exception)" << std::endl; }
+        return false;
+      }
+    }
+
+    if (out_links != nullptr)
+    {
+      // Merge in feature-row order. insertFeatureLink() retains the first owner and refuses a
+      // conflicting one, including conflicts split across workers or streaming batches.
+      for (int t = 0; t < W; ++t)
+      {
+        for (const auto& [psm_id, feature_id] : part_links[t])
+        {
+          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          if (!conflict.empty())
+          {
+            OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " << conflict
+                             << ". A QPX PSM can reference only one feature row." << std::endl;
+            return false;
+          }
+        }
+      }
+    }
+
+    // Write partitions in index order (serial — the FileWriter is not thread-safe).
+    for (int t = 0; t < W; ++t)
+    {
+      if (!parts[t])
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to build feature batch partition " << t << std::endl;
+        return false;
+      }
+      const auto value_validation = value_validator.validate(parts[t]);
+      if (!value_validation.valid)
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: refusing invalid QPX feature batch for "
+                         << filename << ": " << value_validation.toString() << std::endl;
+        return false;
+      }
+      auto st = writer->WriteTable(*parts[t]->ReplaceSchemaMetadata(meta), rg);
+      if (!st.ok())
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to write feature batch to " << filename << ": "
+                         << st.ToString() << std::endl;
+        return false;
+      }
+    }
+    return true;
+  };
+
+  bool ok = true;
+  const size_t N = cmap.size();
+  if (N == 0)
+  {
+    ok = write_batch(0, 0); // valid 0-row file (schema only), matching the one-shot path
+  }
+  else
+  {
+    for (size_t b = 0; b < N && ok; b += batch_size)
+    {
+      ok = write_batch(b, std::min(b + batch_size, N));
+    }
+  }
+
+  // Close the writer (flushes the footer) then the sink, regardless of write outcome.
+  auto writer_close = writer->Close();
+  if (!writer_close.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close Parquet writer for " << filename << ": "
+                     << writer_close.ToString() << std::endl;
+    ok = false;
+  }
+  auto outfile_close = outfile->Close();
+  if (!outfile_close.ok())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to close output stream for " << filename << ": "
+                     << outfile_close.ToString() << std::endl;
+    ok = false;
+  }
+  if (!ok && !File::remove(filename))
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to remove incomplete output "
+                     << filename << std::endl;
+  }
+  return ok;
 }
 
 } // namespace OpenMS

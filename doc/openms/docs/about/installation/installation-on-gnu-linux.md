@@ -70,6 +70,34 @@ If you encounter errors with unavailable packages, troubleshoot using the follow
 :start-after: "% start-after"
 ```
 
+## Reading Thermo Fisher RAW files
+
+OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
+enabled by default in the release binaries on supported platforms. This requires a **.NET 8
+runtime** to be present at run time so that the managed bridge libraries can be loaded.
+
+Install it from the [.NET download page](https://dotnet.microsoft.com/download) or via your
+distribution's package manager, for example:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install dotnet-runtime-8.0
+```
+
+If .NET is installed to a non-standard location (for example via the `dotnet-install.sh`
+script), point the `DOTNET_ROOT` environment variable at the install directory — the folder
+that contains the `dotnet` host and the `shared/` sub-directory — so the bridge can locate the
+runtime:
+
+```bash
+export DOTNET_ROOT=/usr/share/dotnet
+```
+
+```{note}
+Native Thermo RAW reading is not available on Linux/aarch64 (ARM64), because Thermo's
+RawFileReader does not ship native dependencies for that platform.
+```
+
 ## Build OpenMS from source
 
 To build OpenMS from source, follow the build instructions for [Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html).

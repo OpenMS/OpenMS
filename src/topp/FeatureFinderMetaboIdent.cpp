@@ -23,7 +23,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/OMSFileLoad.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <cmath>
 

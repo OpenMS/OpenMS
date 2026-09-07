@@ -4,6 +4,8 @@ pyOpenMS is a Python library for the analysis of mass spectrometry data. It uses
 
 Additionally, it provides convenience functions for plotting and converting from/to DataFrames or NumPy/pyarrow arrays.
 
+For binding-specific development guidance, see [the wrapping guide](README_WRAPPING_NEW_CLASSES.md) and the [thread-safety contract](THREAD_SAFETY.md).
+
 ## Build Instructions
 
 There are two main ways to build pyOpenMS:
@@ -339,19 +341,25 @@ Common methods to add for container-like classes:
 - `__repr__()`: Return `f"ClassName(key_prop={value}, ...)"` with important properties
 - `__str__()`: Delegate to `__repr__()` or return simpler output
 - `get_data()`: Return safe copy of data (for DataArray classes)
-- `get_data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Note: `get_data_mv()` is a deprecated alias.
+- `data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Note: `get_data_mv()` is a deprecated alias.
 
 ### Zero-copy API Naming Conventions
 
-When exposing zero-copy numpy access to C++ memory, use these suffixes consistently:
+The prefix is the ownership contract: anything called `get_*` (or `getX()`)
+returns a copy the caller owns; aliasing accessors never carry the `get_`
+prefix and end in `_view`, `_views`, or `_struct` (see `OWNERSHIP.md` for the
+full rule and its exceptions).
+
+When exposing zero-copy access to C++ memory, use these suffixes consistently:
 
 | Suffix | Returns | Empty behavior | Use when |
 |--------|---------|----------------|----------|
 | `_view` | Typed 1-D `ndarray<T>` (writable) | Empty `ndarray` (not `None`) | Single array column (mz, intensity, rt…) |
 | `_struct` | Structured `ndarray` with named fields | Empty structured `ndarray` (not `None`) | Multiple fields together (e.g. mz + intensity) |
+| `<singular>_view(i)` / `<singular>_views()` / `iter_<singular>_views()` | Live element view / list / iterator of views (`reference_internal`, parent kept alive) | `IndexError` out of range (indexed form); empty list / exhausted iterator (plural forms) | Aliasing object element access (`spectrum_view(i)`, `feature_views()`) |
 
 **Rules:**
-- `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `get_drift_time_array_view()` on a spectrum without IM data — returns `None`).
+- `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `drift_time_array_view()` on a spectrum without IM data — returns `None`).
 - `_struct` methods **always** return a structured `ndarray` (empty if container is empty), never `None`.
 - The old `_mv` suffix is **deprecated**; use `_view` for new bindings. Deprecated aliases live in `pyopenms/addons/deprecated_mv_aliases.py`.
 - Do not use `_as_view` for new methods.

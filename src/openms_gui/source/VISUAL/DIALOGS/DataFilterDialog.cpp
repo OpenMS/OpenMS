@@ -29,9 +29,10 @@ namespace OpenMS
     ui_(new Ui::DataFilterDialogTemplate)
   {
     ui_->setupUi(this);
-    connect(ui_->ok_button_, SIGNAL(clicked()), this, SLOT(check_()));
-    connect(ui_->field_, SIGNAL(activated(const QString &)), this, SLOT(field_changed_(const QString &)));
-    connect(ui_->op_, SIGNAL(activated(const QString &)), this, SLOT(op_changed_(const QString &)));
+    connect(ui_->ok_button_, &QPushButton::clicked, this, &DataFilterDialog::check_);
+    // QComboBox::activated(const QString&) was removed in Qt6; use textActivated(const QString&)
+    connect(ui_->field_, &QComboBox::textActivated, this, &DataFilterDialog::field_changed_);
+    connect(ui_->op_, &QComboBox::textActivated, this, &DataFilterDialog::op_changed_);
 
     //set values for edit mode
     ui_->field_->setCurrentIndex((UInt)filter.field);

@@ -1,0 +1,41 @@
+name: "Build and Test"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - nightly
+      - release/*
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            compiler: cl.exe
+          - os: macos-15
+            compiler: xcode
+          - os: ubuntu-24.04
+            compiler: g++
+          - os: ubuntu-24.04-arm
+            compiler: g++
+          - os: ubuntu-24.04
+            compiler: clang++
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build OpenMS
+        uses: ./.github/actions/build
+        with:
+          compiler: ${{ matrix.compiler }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}

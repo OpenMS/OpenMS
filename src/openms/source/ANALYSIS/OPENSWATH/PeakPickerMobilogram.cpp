@@ -11,6 +11,7 @@
 #include <iomanip>    // For std::setw
 #include <vector>
 #include <algorithm>  // For std::min_element and std::max_element
+#include <numeric>    // For std::iota
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -262,43 +263,47 @@ namespace OpenMS
 
     void PeakPickerMobilogram::filterPeakIntensities_(Mobilogram& mobilogram,
                                size_t left_index,
-                               size_t right_index) 
+                               size_t right_index)
     {
-      // Create a temporary vector to hold the filtered peaks
-      std::vector<MobilityPeak1D> filtered_peaks;
-
-      for (size_t i = left_index; i <= right_index; ++i) {
-        const auto& peak = mobilogram[i];
-        // Collect the peaks within the range
-        filtered_peaks.push_back(peak); 
+      // Guard against invalid ranges before building 'keep'. An empty mobilogram makes
+      // findHighestPeak_ return right_index == size()-1 == SIZE_MAX, which would underflow
+      // the reserve below and spin the (i <= right_index) loop indefinitely. Inverted or
+      // out-of-range bounds cannot yield a meaningful subset either, so leave the mobilogram
+      // untouched. (select() validates its indices too, but is reached too late to help here.)
+      if (mobilogram.empty() || right_index >= mobilogram.size() || left_index > right_index)
+      {
+        OPENMS_LOG_DEBUG << "[DBG] filterPeakIntensities_: skipping filter for invalid range ["
+                         << left_index << ", " << right_index << "] on mobilogram of size "
+                         << mobilogram.size() << "; leaving it unchanged" << std::endl;
+        return;
       }
-
-      // Clear existing data and replace with filtered peaks
-      mobilogram.clear();
-      for (const auto& peak : filtered_peaks) {
-        mobilogram.push_back(peak);
-      }
+      // Subset via select() so that any data arrays are subset alongside the peaks;
+      // clear()+push_back would drop them (they are parallel to the peaks).
+      std::vector<Size> keep(right_index - left_index + 1);
+      std::iota(keep.begin(), keep.end(), left_index);
+      mobilogram.select(keep);
     }
 
     void PeakPickerMobilogram::filterPeakIntensities_(std::vector<Mobilogram>& mobilograms,
                                 size_t left_index,
-                                size_t right_index) 
+                                size_t right_index)
     {
-      for (auto& mobilogram : mobilograms) {
-        // Create a temporary vector to hold the filtered peaks
-        std::vector<MobilityPeak1D> filtered_peaks;
-
-        for (size_t i = left_index; i <= right_index; ++i) {
-          const auto& peak = mobilogram[i];
-          // Collect the peaks within the range
-          filtered_peaks.push_back(peak); 
+      for (auto& mobilogram : mobilograms)
+      {
+        // See the single-mobilogram overload: reject empty/inverted/out-of-range bounds before
+        // building 'keep' so a SIZE_MAX right_index cannot underflow the reserve and loop.
+        if (mobilogram.empty() || right_index >= mobilogram.size() || left_index > right_index)
+        {
+          OPENMS_LOG_DEBUG << "[DBG] filterPeakIntensities_: skipping filter for invalid range ["
+                           << left_index << ", " << right_index << "] on mobilogram of size "
+                           << mobilogram.size() << "; leaving it unchanged" << std::endl;
+          continue;
         }
-
-        // Clear existing data and replace with filtered peaks
-        mobilogram.clear(); 
-        for (const auto& peak : filtered_peaks) {
-          mobilogram.push_back(peak);
-        }
+        // Subset via select() so that any data arrays are subset alongside the peaks;
+        // clear()+push_back would drop them (they are parallel to the peaks).
+        std::vector<Size> keep(right_index - left_index + 1);
+        std::iota(keep.begin(), keep.end(), left_index);
+        mobilogram.select(keep);
       }
     }
 

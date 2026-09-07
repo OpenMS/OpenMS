@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
+#include <OpenMS/FORMAT/QPXIdentity.h>
 
 #include <memory>
 #include <vector>
@@ -61,15 +62,20 @@ public:
      * round-trips, this method produces a QPXPSMSchema table optimized for
      * cross-tool exchange (quantms format).
      *
-     * @param protein_identifications  Protein identifications (for file name lookup)
-     * @param peptide_identifications  Peptide identifications to export
-     * @param export_all_psms  If true, export all PSM hits; if false, only best hit per spectrum
+     * @param[in] protein_identifications  Protein identifications (for file name lookup)
+     * @param[in] peptide_identifications  Peptide identifications to export
+     * @param[in] export_all_psms  If true, export all PSM hits; if false, only best hit per spectrum
+     * @param[in] feature_links  Optional psm_id -> feature_id map for the feature view of the
+     *        same collection, collected by ConsensusMapArrowExport's @c out_links. Fills the optional
+     *        @c feature_id cross-reference; without it every row's @c feature_id is null, which
+     *        is the correct answer for a psm-only producer.
      * @return Arrow table with QPXPSMSchema columns, or nullptr on failure
      */
   static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
-    bool export_all_psms = false);
+    bool export_all_psms = false,
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
 
   /**
     @brief Export PSM data to Parquet file
@@ -79,6 +85,7 @@ public:
     @param[in] filename Output file path
     @param[in] export_all_psms If true, export all hits per spectrum (default: false, only best hit)
     @param[in] config Parquet writing options
+    @param[in] feature_links Optional psm_id -> feature_id map, see exportPSMsToQPXArrow()
     @return true on success, false on error
   */
   static bool exportToParquet(
@@ -86,25 +93,110 @@ public:
     const PeptideIdentificationList& peptide_identifications,
     const std::string& filename,
     bool export_all_psms = false,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
 
   /**
     @brief Write a pre-built QPX PSM Arrow table to a Parquet file
 
     The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow).
-    Attaches QPX file metadata (qpx_version, file_type="psm", UUID, creation_date)
-    before writing. Use this overload when the caller already has the table built
-    (e.g., for merged output) to avoid rebuilding it.
+    Attaches QPX file metadata (qpx_version, file_type="psm_file", UUID, creation_date,
+    compression_format) before writing. Use this overload when the caller already has the
+    table built (e.g., for merged output) to avoid rebuilding it.
 
     @param[in] table QPX PSM Arrow table (must not be null)
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[in] scan_format QPX scan_format token for the source native IDs, from
+               ArrowIOHelpers::qpxScanFormat(). A pre-built table no longer carries the
+               native IDs, so the caller must supply it; when empty the key is omitted
+               rather than guessed.
     @return true on success, false on error
   */
   static bool exportToParquet(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::string& scan_format = "");
+
+  /**
+    @brief Stream PSMs to a QPX Parquet file in row-batches to cap peak memory.
+
+    Builds and flushes the QPXPSMSchema table in batches through a persistent Parquet
+    writer instead of materializing the entire table in memory. Intended for very large
+    inputs (e.g. millions of PSMs), where the one-shot exportToParquet would spike memory
+    by holding all columns for all rows at once. Output is equivalent to exportToParquet
+    (same schema and QPX metadata), but written as multiple Parquet row groups.
+
+    @param[in] protein_identifications Protein identifications (for run-file-name lookup)
+    @param[in] peptide_identification_ptrs NON-OWNING pointers to the PSMs to export. The
+               caller guarantees they outlive the call and are non-null.
+    @param[in] filename Output file path
+    @param[in] export_all_psms If true, export all hits per spectrum (default: best hit only)
+    @param[in] batch_size Number of PeptideIdentifications materialized into one in-memory
+               Arrow table at a time. This is the peak-memory knob ONLY; it does not
+               determine row-group count (with @p export_all_psms a single
+               PeptideIdentification can emit several rows). 0 is treated as the default.
+    @param[in] config Parquet writing options. config.row_group_size is the maximum number
+               of rows per Parquet row group (the WriteTable chunk size).
+    @param[in] n_threads OpenMP threads used to build each batch's partitions in parallel.
+               1 = serial (default, preserves prior behaviour); 0 = auto (all available cores,
+               i.e. omp_get_max_threads(), which honours the OMP_NUM_THREADS environment variable);
+               N = fixed count. The per-row build dominates export cost, so parallelism here is
+               the main speedup. Output is identical in row content and order regardless of
+               @p n_threads (contiguous partitions are written in index order). The Parquet write
+               itself stays serial. Without OpenMP support the export always runs serially.
+               @note On hyper-threaded CPUs, using all logical cores (0) can be slower than the
+               physical-core count because the build is memory-bandwidth bound; set OMP_NUM_THREADS
+               (or pass N) to the physical-core count for best throughput on such machines.
+    @param[in] feature_links Optional psm_id -> feature_id map, see exportPSMsToQPXArrow(). Read
+               concurrently by the OpenMP workers, so it must not be modified during the call.
+    @return true on success, false on error (errors are logged)
+  */
+  static bool exportToParquetStreaming(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::vector<const PeptideIdentification*>& peptide_identification_ptrs,
+    const std::string& filename,
+    bool export_all_psms = false,
+    size_t batch_size = 1000000,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    int n_threads = 1,
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
+
+  /**
+    @brief Refuse PSMs of a merged run that carry no usable @c id_merge_index
+
+    Without the index every PSM of a merged identification run resolves to the run's FIRST
+    file, so @c run_file_name -- a QPX primary-key component -- would be wrong rather than
+    missing.
+
+    @note Preflight: call before the output file is opened. The streaming build runs inside an
+          OpenMP region whose exception firewall would flatten a throw into a logged
+          @c return @c false, leaving a truncated .parquet behind.
+
+    @param[in] protein_identifications Identification runs supplying @c spectra_data
+    @param[in] peptide_identifications The PSMs about to be exported
+    @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::InvalidValue if identification runs share an identifier
+  */
+  static void requireResolvableMergeIndices(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications);
+
+  /**
+    @brief Pointer-based overload of requireResolvableMergeIndices()
+
+    Avoids copying every PSM when a caller already owns the identifications in another container.
+    Null pointers are ignored, matching the streaming exporter.
+
+    @param[in] protein_identifications Identification runs supplying @c spectra_data
+    @param[in] peptide_identifications The PSMs about to be exported
+    @throws Exception::MissingInformation if a PSM of a merged run has no usable index
+    @throws Exception::InvalidValue if identification runs share an identifier
+  */
+  static void requireResolvableMergeIndices(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::vector<const PeptideIdentification*>& peptide_identifications);
 
   /**
     @brief Import PSMs from a PSMSchema Arrow table.

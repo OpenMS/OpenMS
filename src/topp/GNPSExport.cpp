@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
 #include <OpenMS/FORMAT/GNPSQuantificationFile.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 

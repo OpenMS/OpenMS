@@ -22,19 +22,9 @@ namespace OpenMS
 
   Normalizer::~Normalizer() = default;
 
-  Normalizer::Normalizer(const Normalizer & source) :
-    DefaultParamHandler(source)
-  {
-  }
+  Normalizer::Normalizer(const Normalizer& source) = default;
 
-  Normalizer & Normalizer::operator=(const Normalizer & source)
-  {
-    if (this != &source)
-    {
-      DefaultParamHandler::operator=(source);
-    }
-    return *this;
-  }
+  Normalizer& Normalizer::operator=(const Normalizer& source) = default;
 
   void Normalizer::filterPeakSpectrum(PeakSpectrum& spectrum) const
   {

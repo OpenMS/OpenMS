@@ -112,7 +112,10 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   ## smoke test for the new -allow_dense_centroided_peaks flag: same input/output as test 1, only the flag differs.
   ## The flag does not change the search result for these (non-dense) spectra, so the output equals MSGFPlusAdapter_1_out
   ## except for the recorded parameter value (allow_dense_centroided_peaks=true instead of false), which is whitelisted.
+  ## Must run after test 1: both share the same proteins.fasta and spectra.mzML; MSGF+ creates temp/cache files
+  ## alongside those inputs, causing file-access conflicts on Windows when the two tests run in parallel.
   add_test("TOPP_MSGFPlusAdapter_2" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_2_out1.tmp.idXML -mzid_out MSGFPlusAdapter_2_out2.tmp.mzid -executable "${MSGFPLUS_BINARY}" -allow_dense_centroided_peaks)
+  set_tests_properties("TOPP_MSGFPlusAdapter_2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
   add_test("TOPP_MSGFPlusAdapter_2_out1" ${DIFF} -in1 MSGFPlusAdapter_2_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=" "MSGFPlusAdapter:1:out\"" "MSGFPlusAdapter:1:mzid_out\"" "MSGFPlusAdapter:1:allow_dense_centroided_peaks")
   set_tests_properties("TOPP_MSGFPlusAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_2")
   add_test("TOPP_MSGFPlusAdapter_2_out2" ${DIFF} -in1 MSGFPlusAdapter_2_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")
@@ -198,6 +201,17 @@ endif()
 add_test("TOPP_CometAdapter_missing" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Comet_1_out.tmp.idXML -comet_executable "/does/not/exists/path.exe")
 set_tests_properties("TOPP_CometAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
 
+## test returncode when the external program is present but FAILS to run: must be EXTERNAL_PROGRAM_ERROR (9),
+## distinct from EXTERNAL_PROGRAM_NOTFOUND (14) above. The false executable exits 1,
+## so the adapter runs it and maps the non-zero exit to code 9. Unix-only (no portable always-failing exe on Windows).
+if (NOT WIN32)
+  find_program(FALSE_EXECUTABLE false)
+  if (FALSE_EXECUTABLE)
+    add_test("TOPP_CometAdapter_failing" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Comet_failing_out.tmp.idXML -comet_executable "${FALSE_EXECUTABLE}")
+    set_tests_properties("TOPP_CometAdapter_failing" PROPERTIES SKIP_RETURN_CODE 9) ## EXTERNAL_PROGRAM_ERROR
+  endif()
+endif()
+
 
 #------------------------------------------------------------------------------
 if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
@@ -211,6 +225,9 @@ if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
 endif()
 
 #------------------------------------------------------------------------------
+# Shared by the in-process tests in CMakeLists.txt and the subprocess tests below,
+# so it must be defined outside the PERCOLATOR_BINARY gate.
+set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
 if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
   ### TOPP_PercolatorAdapter_1 has TWO variants — one per backend — so a
@@ -219,11 +236,7 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### other. Each compares against its own reference idXML; the in-process
   ### path also stamps additional metadata via stampPercolatorAdapterMetadata_
   ### that previously only the subprocess path produced.
-  set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
   ### in-process backend (default — no -use_subprocess flag)
-  add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
-  add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
-  set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
   ### subprocess backend (forced via -use_subprocess true)
   add_test("TOPP_PercolatorAdapter_1_subprocess" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess true -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_subprocess_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
   add_test("TOPP_PercolatorAdapter_1_subprocess_out" ${DIFF} -in1 PercolatorAdapter_1_subprocess_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_subprocess_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
@@ -313,19 +326,6 @@ add_test("TOPP_MSFraggerAdapter_missing" ${TOPP_BIN_PATH}/MSFraggerAdapter -test
 set_tests_properties("TOPP_MSFraggerAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
 
 
-
-#------------------------------------------------------------------------------
-# RAW file conversion
-# Test data was made available for software developers and data processing workflow testing by Stephen Brockman
-option(WITH_THERMORAWFILEPARSER_TEST "Runs the Thermo Raw file conversion test." ON)
-if (WITH_THERMORAWFILEPARSER_TEST)
-  if (NOT (${THERMORAWFILEPARSER_BINARY} STREQUAL "THERMORAWFILEPARSER_BINARY-NOTFOUND"))
-    add_test("TOPP_THERMORAWFILEPARSER_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/ginkgotoxin-ms-switching.raw -RawToMzML:ThermoRaw_executable "${THERMORAWFILEPARSER_BINARY}" -out ginkgotoxin-ms-switching_out_tmp.mzML)
-    add_test("TOPP_THERMORAWFILEPARSER_1_out" ${DIFF} -in1 ginkgotoxin-ms-switching_out_tmp.mzML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/ginkgotoxin-ms-switching_out.mzML -whitelist "offset" "sourceFile" "fileChecksum" "version") 
-    set_tests_properties("TOPP_THERMORAWFILEPARSER_1_out" PROPERTIES DEPENDS "TOPP_THERMORAWFILEPARSER_1")
-  endif()
-endif()
-
 #------------------------------------------------------------------------------
 if (NOT (${NOVOR_BINARY} STREQUAL "NOVOR_BINARY-NOTFOUND"))
   add_test("TOPP_NovorAdapter_1" ${TOPP_BIN_PATH}/NovorAdapter -test -java_memory 512 -executable "${NOVOR_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_in.mzML -out NovorAdapter_1_out.tmp.idXML -variable_modifications "Acetyl (K)" -fixed_modifications "Carbamidomethyl (C)" -forbiddenResidues "I")
@@ -350,4 +350,3 @@ if (NOT (${LUCIPHOR_BINARY} STREQUAL "LUCIPHOR_BINARY-NOTFOUND"))
   add_test("TOPP_LuciphorAdapter_1_out1" ${DIFF} -in1 LuciphorAdapter_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/LuciphorAdapter_1_output.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_LuciphorAdapter_1_out1" PROPERTIES DEPENDS "TOPP_LuciphorAdapter_1")
 endif()
-

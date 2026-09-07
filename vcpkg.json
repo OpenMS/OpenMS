@@ -2,50 +2,162 @@
   "name": "openms",
   "version-string": "3.6.0",
   "dependencies": [
-    "boost-core",
-    "boost-math",
-    "boost-functional",
-    "boost-graph",
-    "boost-variant",
-    "boost-heap",
-    "boost-random",
-    "boost-unordered",
-    "boost-smart-ptr",
-    "boost-numeric-conversion",
-    "boost-regex",
-    "boost-multi-index",
-    "boost-iterator",
-    "boost-iostreams",
+    {
+      "name": "arrow",
+      "default-features": false,
+      "features": ["compute", "dataset", "filesystem", "json", "parquet", "s3"]
+    },
+    "boost-accumulators",
+    "boost-algorithm",
+    "boost-array",
+    "boost-asio",
+    "boost-assign",
     "boost-bimap",
-    "boost-interprocess",
+    "boost-bind",
+    "boost-config",
+    "boost-container",
+    "boost-container-hash",
+    "boost-date-time",
     "boost-dynamic-bitset",
     "boost-foreach",
-    "boost-algorithm",
-    "boost-container",
+    "boost-function",
+    "boost-graph",
+    "boost-headers",
+    "boost-heap",
+    "boost-interprocess",
+    "boost-iostreams",
+    "boost-iterator",
     "boost-lexical-cast",
-    "boost-assign",
+    "boost-math",
+    "boost-multi-index",
+    "boost-numeric-conversion",
+    "boost-process",
+    "boost-random",
     "boost-range",
+    "boost-regex",
     "boost-serialization",
-    "boost-type-traits",
+    "boost-smart-ptr",
     "boost-sort",
     "boost-spirit",
-    "boost-date-time",
-    "boost-accumulators",
-    "boost-typeof",
-    "boost-process",
-    "xerces-c",
-    "qtbase",
-    "libsvm",
-    "qtsvg",
-    "zlib",
-    "curl",
+    "boost-type-traits",
+    "boost-unordered",
+    "boost-variant",
+    "bzip2",
+    "coin-or-cbc",
     "coin-or-cgl",
     "coin-or-clp",
-    "coin-or-cbc",
+    "coin-or-osi",
     "coinutils",
+    "curl",
     "eigen3",
-    "bzip2",
-    "arrow",
-    "libzip"
-  ]
+    "libsvm",
+    "libxml2",
+    "libzip",
+    "xerces-c",
+    "zlib"
+  ],
+  "overrides": [{ "name": "openssl", "version": "3.0.8" }],
+  "features": {
+    "hdf5": {
+      "description": "HDF5 C and C++ libraries for builds configured with -DWITH_HDF5=ON.",
+      "dependencies": [
+        {
+          "name": "hdf5",
+          "features": ["cpp"]
+        }
+      ]
+    },
+    "eol-bspline": {
+      "description": "Use external eol-bspline library instead of vendored version via -DUSE_EXTERNAL_EOLBSPLINE=ON.",
+      "dependencies": [
+        {
+          "name": "eol-bspline"
+        }
+      ]
+    },
+    "isospec": {
+      "description": "Use external IsoSpec library instead of vendored version via -DUSE_EXTERNAL_ISOSPEC=ON.",
+      "dependencies": [
+        {
+          "name": "isospec"
+        }
+      ]
+    },
+    "sqlitecpp": {
+      "description": "Use external SQLiteCpp library instead of vendored version via -DUSE_EXTERNAL_SQLITECPP=ON.",
+      "dependencies": [
+        {
+          "name": "sqlitecpp"
+        }
+      ]
+    },
+    "nlohmann-json": {
+      "description": "Use external nlohmann-json library instead of vendored version via -DUSE_EXTERNAL_JSON=ON.",
+      "dependencies": [
+        {
+          "name": "nlohmann-json"
+        }
+      ]
+    },
+    "simde": {
+      "description": "Use external SIMDe library instead of vendored version via -DUSE_EXTERNAL_SIMDE=ON.",
+      "dependencies": [
+        {
+          "name": "simde"
+        }
+      ]
+    },
+    "wnetalign": {
+      "description": "Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool) via -DWITH_WNETALIGN=ON. When enabled, the three header-only libraries pylmcf, wnet, and wnetalign are installed",
+      "dependencies": [
+        {
+          "name": "pylmcf"
+        },
+        {
+          "name": "wnet"
+        },
+        {
+          "name": "wnetalign"
+        }
+      ]
+    },
+    "onnxruntime": {
+      "description": "Enables ONNX Runtime support for machine-learning based inference modules via -DWITH_ONNX=ON.",
+      "dependencies": [
+        {
+          "name": "onnxruntime"
+        }
+      ]
+    },
+    "opentims": {
+      "description": "Enables support for reading Bruker TimsTOF .d directories directly (without prior conversion to mzML) via the opentims library with -DWITH_OPENTIMS=ON.",
+      "dependencies": [
+        {
+          "name": "opentims"
+        }
+      ]
+    },
+    "openms-thermo-bridge": {
+      "description": "Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library via -DWITH_THERMO_RAW=ON.",
+      "dependencies": [
+        {
+          "name": "openms-thermo-bridge",
+          "platform": "!(linux & arm64)"
+        }
+      ]
+    },
+    "lp-glpk": {
+      "description": "Select glpk as linear programming solver backend via -DLP_SOLVER=GLPK.",
+      "dependencies": [
+        {
+          "name": "glpk",
+          "default-features": false
+        }
+      ]
+    },
+    "lp-highs": {
+      "description": "Select highs as linear programming solver backend via -DLP_SOLVER=HIGHS.",
+      "dependencies": ["highs"]
+    }
+  }
 }

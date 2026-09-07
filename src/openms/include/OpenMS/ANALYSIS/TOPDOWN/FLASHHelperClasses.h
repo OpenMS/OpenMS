@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #ifdef _MSC_VER
 using uint = unsigned int; // POSIX uint not available on MSVC; was provided transitively via Qt

@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/QC/QCBase.h>
 
 namespace OpenMS

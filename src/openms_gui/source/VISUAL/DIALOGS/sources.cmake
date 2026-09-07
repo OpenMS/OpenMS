@@ -7,17 +7,11 @@ DataFilterDialog.cpp
 DataFilterDialog.ui
 FeatureEditDialog.cpp
 FeatureEditDialog.ui
-FLASHDeconvTabWidget.cpp
-FLASHDeconvTabWidget.ui
 HistogramDialog.cpp
 LayerStatisticsDialog.cpp
 LayerStatisticsDialog.ui
 ListFilterDialog.cpp
 ListFilterDialog.ui
-PythonModuleRequirement.cpp
-PythonModuleRequirement.ui
-PythonSelector.cpp
-PythonSelector.ui
 SaveImageDialog.cpp
 Plot1DGoToDialog.cpp
 Plot1DGoToDialog.ui
@@ -31,8 +25,6 @@ Plot3DPrefDialog.cpp
 Plot3DPrefDialog.ui
 SpectrumAlignmentDialog.cpp
 SpectrumAlignmentDialog.ui
-SwathTabWidget.cpp
-SwathTabWidget.ui
 TOPPASIOMappingDialog.cpp
 TOPPASIOMappingDialog.ui
 TOPPASInputFileDialog.cpp

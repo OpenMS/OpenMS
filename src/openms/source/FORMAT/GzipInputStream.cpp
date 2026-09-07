@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
+#include <xercesc/util/XMLString.hpp>
 
 using namespace xercesc;
 

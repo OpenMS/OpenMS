@@ -9,7 +9,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <string_view>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
@@ -88,6 +88,7 @@
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
@@ -634,7 +635,7 @@ struct NuXLRTPrediction
     mzml.getOptions().addMSLevel(1);
     mzml.load(spectra_filename, ffid_algo.getMSData());
     FeatureMap features;
-    ffid_algo.run(peptides, proteins, {}, {}, features, FeatureMap(), spectra_filename);
+    ffid_algo.run(peptides, proteins, features, FeatureMap(), spectra_filename);
     
     auto [x, y] = buildPredictorsAndResponseFromIdentifiedFeatures_(features);
 
@@ -784,14 +785,16 @@ struct ImmoniumIonsInPeptide
 /// @cond TOPPCLASSES
 
 class OpenNuXL :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
   bool fast_scoring_ = true; // fast or all fragment adduct scoring mode
   set<char> can_xl_; ///< nucleotides that can form cross-links
+  Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
+  Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
 
 public:
   OpenNuXL() :
-    TOPPBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
+    TOPPExternalToolBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
   {
   }
 
@@ -3696,8 +3699,31 @@ static void scoreXLIons_(
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
       ph.setMetaValue(std::string("NuXL:ladder_score"), ah.ladder_score);
       ph.setMetaValue(std::string("NuXL:sequence_score"), ah.sequence_score);
-      ph.setMetaValue(std::string("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
-      // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
+      // CalcMass must be based on the peptide before embedding the adduct. It remains the
+      // only representation of the full precursor mass when the cross-link is unlocalized.
+      const double calc_mass = (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0) / charge;
+      ph.setMetaValue(std::string("CalcMass"), calc_mass); // overwrites CalcMass in PercolatorAdapter
+
+      if (na_mass_z0 > 0.0 && ah.best_localization_position >= 0)
+      {
+        const Size localization_position = static_cast<Size>(ah.best_localization_position);
+        const ResidueModification* adduct = NuXLModificationsGenerator::registerPrecursorAdduct(
+          NA, EmpiricalFormula(mod_combinations_it->first), fixed_and_variable_modified_peptide[localization_position]);
+        if (adduct != nullptr)
+        {
+          fixed_and_variable_modified_peptide.setModification(localization_position, adduct);
+          ++named_adduct_count_;
+        }
+        else
+        {
+          // the existing modification has no id or formula to fold into a definition; keep the summed mass delta
+          fixed_and_variable_modified_peptide.setModificationByDiffMonoMass(localization_position, na_mass_z0);
+          ++mass_delta_adduct_count_;
+        }
+      }
+
+      // Localized cross-links carry the precursor adduct on the identified residue. An
+      // unlocalized cross-link deliberately remains a bare peptide instead of inventing a site.
       ph.setSequence(fixed_and_variable_modified_peptide);
 
       ProteaseDigestion pd;
@@ -3793,6 +3819,24 @@ static void scoreXLIons_(
     }
     // hits have rank and are sorted by score
 
+    Size unlocalized_cross_link_count = 0;
+    for (const PeptideIdentification& peptide_id : peptide_ids)
+    {
+      for (const PeptideHit& hit : peptide_id.getHits())
+      {
+        const bool is_cross_link = static_cast<int>(hit.getMetaValue("NuXL:isXL")) != 0;
+        const int localization_position = static_cast<int>(hit.getMetaValue("NuXL:best_localization_position"));
+        if (is_cross_link && localization_position < 0)
+        {
+          ++unlocalized_cross_link_count;
+        }
+      }
+    }
+    OPENMS_LOG_INFO << "Cross-linked PSMs left without an adduct in the sequence because localization was unavailable: "
+                    << unlocalized_cross_link_count << '\n';
+    OPENMS_LOG_INFO << "Localized cross-links written as a named modification: " << named_adduct_count_
+                    << ", as a mass delta: " << mass_delta_adduct_count_ << '\n';
+
     map<std::string, Size> sequence_is_topPSM;
     map<std::string, set<int>> sequence_charges; // of top PSM
     map<std::string, Size> sequence_is_XL;
@@ -3834,7 +3878,7 @@ static void scoreXLIons_(
     {
       for (auto & ph : pid.getHits())
       {
-        identified_adducts.insert(ph.getMetaValue("NuXL:NA"));
+        identified_adducts.insert(ph.getMetaValue("NuXL:NA").toString());
       }
     } 
 

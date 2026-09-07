@@ -331,7 +331,18 @@ public:
     /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const std::string& name);
 
-    /// sets the modification by existing ResMod (make sure it exists in ModificationsDB)
+    /**
+       @brief sets the modification by existing ResMod (make sure it exists in ModificationsDB)
+
+       The residue's formula and masses are updated from the modification: if it has a diff
+       formula, that is added to the residue's formula (which also sets the masses); otherwise
+       the modification's absolute masses are adopted if set (or its mass difference is added)
+       and its absolute formula, if any, replaces the residue's. A modification that defines
+       neither a mass nor a formula difference (e.g. a PSI-MOD term that merely describes the
+       residue) leaves the residue's masses and formula untouched -- its absolute values follow
+       the conventions of the source database and are not comparable to a Residue's
+       free-amino-acid mass.
+    */
     void setModification(const ResidueModification* mod);
 
     /// sets the modification by looking for an exact match in the DB first, otherwise creating a

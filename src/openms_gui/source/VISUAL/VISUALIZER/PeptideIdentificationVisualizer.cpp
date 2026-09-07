@@ -41,7 +41,7 @@ namespace OpenMS
     addLabel_("Show peptide hits with score equal or better than a threshold.");
     QPushButton * button;
     addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
-    connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()));
+    connect(button, &QPushButton::clicked, this, &PeptideIdentificationVisualizer::updateTree_);
 
     finishAdding_();
   }

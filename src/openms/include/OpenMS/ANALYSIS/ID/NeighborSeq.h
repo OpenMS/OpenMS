@@ -51,10 +51,8 @@ namespace OpenMS
         theoretical-spectrum generator for charge-1 b/y ions including
         the @c b1 prefix ion.
 
-        @note The class stores a @c const-reference to the moved-in
-              vector via its internal member (not a copy). The vector
-              passed to the constructor must therefore outlive every
-              call on this instance.
+        @note The vector is moved into the instance, which then owns it for its
+              lifetime; the caller's argument is left in a moved-from state.
 
         @param[in] digested_relevant_peptides Digested peptides to use
                                               as the "relevant" reference
@@ -168,33 +166,35 @@ namespace OpenMS
           return unfindable_peptides + findable_no_neighbors + findable_one_neighbor + findable_multiple_neighbors;
         }
 
-        /**
-          @brief @ref unfindable_peptides formatted as @c "X (Y%)".
+        /// percentage (0..100) of @p count relative to @ref total; returns 0 when @ref total is 0 (avoids integer division by zero)
+        int percentOfTotal_(int count) const
+        {
+          const int t = total();
+          return (t == 0) ? 0 : count * 100 / t;
+        }
 
-          @warning Triggers integer division by zero when @ref total is @c 0
-                   (the four counters and the formatter share an integer denominator).
-        */
+        /// @ref unfindable_peptides formatted as @c "X (Y%)"; returns @c "X (0%)" when @ref total is 0.
         std::string unfindable() const
         {
-          return StringUtils::toStr(unfindable_peptides) + " (" + unfindable_peptides * 100 / total() + "%)";
+          return StringUtils::toStr(unfindable_peptides) + " (" + StringUtils::toStr(percentOfTotal_(unfindable_peptides)) + "%)";
         }
 
-        /// @ref findable_no_neighbors formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
+        /// @ref findable_no_neighbors formatted as @c "X (Y%)"; returns @c "X (0%)" when @ref total is 0.
         std::string noNB() const
         {
-          return StringUtils::toStr(findable_no_neighbors) + " (" + findable_no_neighbors * 100 / total() + "%)";
+          return StringUtils::toStr(findable_no_neighbors) + " (" + StringUtils::toStr(percentOfTotal_(findable_no_neighbors)) + "%)";
         }
 
-        /// @ref findable_one_neighbor formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
+        /// @ref findable_one_neighbor formatted as @c "X (Y%)"; returns @c "X (0%)" when @ref total is 0.
         std::string oneNB() const
         {
-          return StringUtils::toStr(findable_one_neighbor) + " (" + findable_one_neighbor * 100 / total() + "%)";
+          return StringUtils::toStr(findable_one_neighbor) + " (" + StringUtils::toStr(percentOfTotal_(findable_one_neighbor)) + "%)";
         }
 
-        /// @ref findable_multiple_neighbors formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
+        /// @ref findable_multiple_neighbors formatted as @c "X (Y%)"; returns @c "X (0%)" when @ref total is 0.
         std::string multiNB() const
         {
-          return StringUtils::toStr(findable_multiple_neighbors) + " (" + findable_multiple_neighbors * 100 / total() + "%)";
+          return StringUtils::toStr(findable_multiple_neighbors) + " (" + StringUtils::toStr(percentOfTotal_(findable_multiple_neighbors)) + "%)";
         }
       };
 
@@ -219,7 +219,7 @@ namespace OpenMS
 
 
     private:
-      const std::vector<AASequence>& digested_relevant_peptides_; ///< digested relevant peptides
+      std::vector<AASequence> digested_relevant_peptides_; ///< digested relevant peptides (owned: moved in at construction)
       std::map<double, std::vector<int>> mass_position_map_; ///< map of masses to positions in digested_relevant_peptides_
 
       TheoreticalSpectrumGenerator spec_gen_; ///< for b/y ions with charge 1

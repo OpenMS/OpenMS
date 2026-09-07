@@ -30,6 +30,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

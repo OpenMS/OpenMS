@@ -45,8 +45,7 @@ See the manual for coding style recommended by OpenMS: [Coding conventions](http
 [C++ Guide](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/developer_faq.html).
 ```
 
-OpenMS automatically tests for common coding convention violations using a modified version of `cpplint`.
-Style testing can be enabled using `cmake` options. [clang-format](https://github.com/OpenMS/OpenMS/blob/develop/.clang-format) is used for formatting the cpp code.
+[clang-format](https://github.com/OpenMS/OpenMS/blob/develop/.clang-format) is used for formatting the cpp code.
 
 ### Commit messages
 

@@ -379,31 +379,44 @@ namespace OpenMS
   {
     modification_ = mod;
 
-    // update all the members
-    if (mod->getAverageMass() != 0)
-    {
-      average_weight_ = mod->getAverageMass();
-    }
-    if (mod->getMonoMass() != 0)
-    {
-      mono_weight_ = mod->getMonoMass();
-    }
-    // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
-    // as in the case of XLMOD.obo modifications
-    if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
-    {
-      mono_weight_ += mod->getDiffMonoMass();
-    }
+    // A modification that describes neither a mass nor a formula difference does not change the
+    // residue. Its absolute mass and formula must not be adopted in that case: those follow the
+    // convention of the database the modification was read from, and PSI-MOD stores the residue
+    // as it occurs inside a peptide chain, i.e. without the water that Residue's (free amino
+    // acid) mass and formula include. Adopting them would silently strip a water, e.g. for the
+    // PSI-MOD "residue" terms such as 'MOD:00026 L-threonine residue'.
+    const bool changes_residue = (mod->getDiffMonoMass() != 0.0) ||
+                                 (mod->getDiffAverageMass() != 0.0) ||
+                                 !mod->getDiffFormula().isEmpty();
 
-    if (!mod->getDiffFormula().isEmpty())
+    // update all the members
+    if (changes_residue)
     {
-      setFormula(getFormula() + mod->getDiffFormula());
-    }
-    else if (!mod->getFormula().empty())
-    {
-      std::string formula = mod->getFormula();
-      StringUtils::removeWhitespaces(formula);
-      setFormula(EmpiricalFormula(formula));
+      if (mod->getAverageMass() != 0)
+      {
+        average_weight_ = mod->getAverageMass();
+      }
+      if (mod->getMonoMass() != 0)
+      {
+        mono_weight_ = mod->getMonoMass();
+      }
+      // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
+      // as in the case of XLMOD.obo modifications
+      if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
+      {
+        mono_weight_ += mod->getDiffMonoMass();
+      }
+
+      if (!mod->getDiffFormula().isEmpty())
+      {
+        setFormula(getFormula() + mod->getDiffFormula());
+      }
+      else if (!mod->getFormula().empty())
+      {
+        std::string formula = mod->getFormula();
+        StringUtils::removeWhitespaces(formula);
+        setFormula(EmpiricalFormula(formula));
+      }
     }
 
     // neutral losses
@@ -455,7 +468,7 @@ namespace OpenMS
     if (mod == nullptr)
     {
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
-      mod = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      mod = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         ResidueModification::ANYWHERE,

@@ -65,6 +65,11 @@ START_SECTION(void load(const std::string &filename, std::vector< PeptideIdentif
 	TEST_EQUAL(exp.size(), 7)
 	TEST_EQUAL(ids.size(), 7)
 
+	// loading again into the same containers must replace, not accumulate (regression: 'ids' was previously appended to)
+	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
+	TEST_EQUAL(exp.size(), 7)
+	TEST_EQUAL(ids.size(), 7)
+
 		//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"));
   TEST_STRING_EQUAL(FileTypes::typeToName(exp.getLoadedFileType()),"msp");

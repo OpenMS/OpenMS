@@ -10,6 +10,7 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -146,6 +147,18 @@ namespace OpenMS
 
     double MassTrace::estimateFWHM(bool use_smoothed_ints)
     {
+      // The flank search below walks peak indices outward from the apex, so the trace
+      // has to be sorted along its x axis. This used to be caught only indirectly, by
+      // the postcondition of linearInterpolationAtY_ firing when a shuffled axis
+      // happened to hand it a descending bracketing pair (see #10051, where a
+      // non-stable sort on equal RT permutes the ion-mobility axis PeakPickerIM builds
+      // its traces from). That postcondition is not a sortedness check -- it is correct
+      // for either x order -- so the invariant is stated here instead, where it holds
+      // for every shuffle rather than only the ones that invert a bracket.
+      OPENMS_PRECONDITION(std::is_sorted(trace_peaks_.begin(), trace_peaks_.end(),
+                                         [](const PeakType& a, const PeakType& b) { return a.getRT() < b.getRT(); }),
+                          "mass trace is not sorted along its x (RT) axis")
+
       Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
 
       std::vector<double> tmp_ints;
@@ -188,6 +201,8 @@ namespace OpenMS
       fwhm_end_idx_ = right_border;
 
       // calculate RT of left side
+      // the pair below half max is (left_rt_bottom, tmp_ints[left_border]),
+      // the pair above half max is (left_rt_top, tmp_ints[fwhm_left_top_idx])
       Size fwhm_left_top_idx = left_border + 1;
       double left_rt_bottom = trace_peaks_[left_border].getRT();
       double left_rt_top = trace_peaks_[fwhm_left_top_idx].getRT();
@@ -206,6 +221,11 @@ namespace OpenMS
       }
 
       // calculate RT of right side
+      // as on the left side, the point below half max comes first: it is
+      // (right_rt_bottom, tmp_ints[right_border]), the one above half max is
+      // (right_rt_top, tmp_ints[fwhm_right_top_idx]). Each x must travel with
+      // its own y, so the x arguments are in descending order here for a trace
+      // with ascending RT.
       Size fwhm_right_top_idx = right_border - 1;
       double right_rt_bottom = trace_peaks_[right_border].getRT();
       double right_rt_top = trace_peaks_[fwhm_right_top_idx].getRT();
@@ -218,7 +238,7 @@ namespace OpenMS
       }
       else
       {
-        fwhm_end_rt = linearInterpolationAtY_(right_rt_top, right_rt_bottom,
+        fwhm_end_rt = linearInterpolationAtY_(right_rt_bottom, right_rt_top,
                                               (tmp_ints[right_border]),
                                               (tmp_ints[fwhm_right_top_idx]),
                                               (half_max_int));
@@ -238,7 +258,9 @@ namespace OpenMS
       if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
 
       double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
-      OPENMS_POSTCONDITION(xA <= xC && xC <= xB, "xC is not between xA and xB");
+      // the interpolation parameter is in [0, 1] because of the precondition, so xC lies
+      // between xA and xB -- in either x order, since x need not ascend with y
+      OPENMS_POSTCONDITION(std::min(xA, xB) <= xC && xC <= std::max(xA, xB), "xC is not between xA and xB");
 
       return xC;
     }

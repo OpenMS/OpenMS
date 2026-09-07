@@ -20,7 +20,8 @@ namespace OpenMS
 
   ProtXMLFile::ProtXMLFile() :
     XMLHandler("", "1.2"),
-    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0")
+    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0"),
+    skip_protein_(false)
   {
   }
 
@@ -55,9 +56,10 @@ namespace OpenMS
     pep_id_ = nullptr;
     pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
+    skip_protein_ = false;
   }
 
-  void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void ProtXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string tag = sm_.convert(qname);
 
@@ -104,12 +106,42 @@ namespace OpenMS
       // internal group structure
       protein_group_ = ProteinGroup();
       protein_group_.probability = attributeAsDouble_(attributes, "probability");
+      skip_protein_ = false;
     }
     else if (tag == "protein")
     {
-      // usually there will be just one <protein> per <protein_group>, but more
+      // Usually there will be just one <protein> per <protein_group>, but more
       // are possible; each <protein> is distinguishable from the other, we
-      // nevertheless group them
+      // nevertheless group them.
+      //
+      // ProteinProphet assigns probability=0 to "unneeded" proteins that are not
+      // part of its minimal (parsimonious) protein list. This covers BOTH
+      //   - subset proteins    (peptides are a strict subset of another protein's), and
+      //   - subsumable proteins (peptides jointly explained by a combination of others).
+      // These are NOT truly indistinguishable (they don't share 100% of their
+      // peptides with a leader). We filter them out to prevent ProteinQuantifier
+      // from creating spurious indistinguishable groups that would cause shared
+      // peptides to be discarded during quantification.
+      //
+      // We key on probability==0 rather than the 'subsuming_protein_entry' attribute
+      // on purpose: that attribute is optional and is written ONLY for the subsumable
+      // subclass, so it would miss subset proteins. Every protein ProteinProphet
+      // actually needs carries a non-zero probability, so probability==0 is the
+      // reliable, complete predicate for "unneeded".
+
+      double probability = attributeAsDouble_(attributes, "probability");
+      // ProteinProphet writes exactly "0.0000" for these proteins.
+      // IEEE 754 parsing of this string yields exactly 0.0, so exact comparison is safe.
+      if (probability == 0.0)
+      {
+        skip_protein_ = true;
+        OPENMS_LOG_DEBUG << "Skipping unneeded (subset/subsumable) protein '"
+                        << attributeAsString_(attributes, "protein_name")
+                        << "' (probability=0) in protein_group "
+                        << protein_group_.probability << "\n";
+        return;
+      }
+      skip_protein_ = false;
 
       std::string protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
@@ -126,11 +158,13 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Required attribute 'percent_coverage' missing\n";
       }
-      prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
+      prot_id_->getHits().back().setScore(probability);
 
     }
     else if (tag == "indistinguishable_protein")
     {
+      if (skip_protein_) return; // child of a filtered probability=0 protein
+
       std::string protein_name = attributeAsString_(attributes, "protein_name");
       // current last protein is from the same "indistinguishable" group:
       double score = prot_id_->getHits().back().getScore();
@@ -142,6 +176,8 @@ namespace OpenMS
     }
     else if (tag == "peptide")
     {
+      if (skip_protein_) return; // peptide under a filtered probability=0 protein
+
       // If a peptide is degenerate it will show in multiple groups, but have different statistics (e.g. 'nsp_adjusted_probability')
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
@@ -172,6 +208,8 @@ namespace OpenMS
     }
     else if (tag == "mod_aminoacid_mass")
     {
+      if (skip_protein_) return; // mod under a filtered probability=0 protein
+
       // relates to the last seen peptide (we hope)
       Size position = attributeAsInt_(attributes, "position");
       double mass = attributeAsDouble_(attributes, "mass");
@@ -218,17 +256,29 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void ProtXMLFile::onEndElement(const char16_t* qname)
   {
     std::string tag = sm_.convert(qname);
 
 
     if (tag == "protein_group")
     {
-      prot_id_->insertProteinGroup(protein_group_);
+      // Only insert non-empty groups. A group can become empty if all of its
+      // <protein> elements were subsumable (probability=0) and thus skipped.
+      // Inserting an accession-less group would break downstream consumers that
+      // assume group.accessions[0] exists (e.g. TextExporter).
+      if (!protein_group_.accessions.empty())
+      {
+        prot_id_->insertProteinGroup(protein_group_);
+      }
+    }
+    else if (tag == "protein")
+    {
+      skip_protein_ = false; // defensive reset when leaving any <protein> element
     }
     else if (tag == "peptide")
     {
+      if (skip_protein_) return; // peptide under a filtered probability=0 protein
       pep_id_->insertHit(*pep_hit_);
       delete pep_hit_;
     }

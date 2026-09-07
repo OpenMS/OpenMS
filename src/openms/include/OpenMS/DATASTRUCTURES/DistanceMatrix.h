@@ -226,7 +226,13 @@ public:
     if (i != j)
     {
       if (i < j) { std::swap(i, j); }
-      if (i != min_element_.first && j != min_element_.second)
+      // Fast path whenever (i,j) is NOT the current minimum cell: writing into any
+      // other cell can only introduce a new (smaller) minimum, never invalidate the
+      // existing one. Using '||' (i.e. "not the min cell") instead of '&&' is required:
+      // with '&&' a cell that shares exactly one index with the min coordinate fell into
+      // the else-branch, which never refreshes min_element_ when the new value is smaller,
+      // leaving a stale cached minimum (issue #9488, DATA-24).
+      if (i != min_element_.first || j != min_element_.second)
       {
         matrix_[i][j] = value;
         if (value < matrix_[min_element_.first][min_element_.second]) // keep min_element_ up-to-date
@@ -386,11 +392,11 @@ public:
   /**
     @brief Equality comparator.
 
-    @throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
+    Matrices of different sizes always compare unequal (returns false).
   */
   bool operator==(DistanceMatrix<ValueType> const& rhs) const
   {
-    OPENMS_PRECONDITION(dimensionsize_ == rhs.dimensionsize_, "DistanceMatrices have different sizes.");
+    if (dimensionsize_ != rhs.dimensionsize_) { return false; }
     for (Size i = 1; i < rhs.dimensionsize(); ++i)
     {
       for (Size j = 0; j < i; ++j)

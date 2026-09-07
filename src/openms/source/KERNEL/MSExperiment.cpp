@@ -1209,8 +1209,20 @@ namespace OpenMS
     return chromatograms_[id];
   }
 
-  /// returns a single spectrum 
+  /// returns a single chromatogram (immutable)
+  const MSChromatogram & MSExperiment::getChromatogram(Size id) const
+  {
+    return chromatograms_[id];
+  }
+
+  /// returns a single spectrum
   MSSpectrum & MSExperiment::getSpectrum(Size id)
+  {
+    return spectra_[id];
+  }
+
+  /// returns a single spectrum (immutable)
+  const MSSpectrum & MSExperiment::getSpectrum(Size id) const
   {
     return spectra_[id];
   }
