@@ -49,9 +49,9 @@ dest="${2:-.}"
 # while no release asset exists for BRIDGE_TAG (the bridge then builds the managed
 # assemblies itself, see above).
 case "$platform" in
-  linux-x64) managed_sha256="" ;;
-  osx-arm64) managed_sha256="" ;;
-  win-x64)   managed_sha256="" ;;
+  linux-x64) managed_sha256="a26d846a584d57bb0febab5f3552c34a4a2e6d4a29881f5ebe420166748814fd" ;;
+  osx-arm64) managed_sha256="402c927f2062cafa66ca67254203e265f769bb8f6d2845a0264a9167680ad924" ;;
+  win-x64)   managed_sha256="bbbebd847bbe08b3168aab63185a0b6950cb3fa8e4a4c150ed55672e586ac195" ;;
   *)
     echo "usage: $0 <linux-x64|osx-arm64|win-x64> [dest-dir]" >&2
     exit 2
