@@ -207,10 +207,10 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tic native">10320</offset>
-		<offset idRef="sic native">11943</offset>
+		<offset idRef="tic native">10326</offset>
+		<offset idRef="sic native">12053</offset>
 	</index>
 </indexList>
-<indexListOffset>13524</indexListOffset>
+<indexListOffset>13634</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

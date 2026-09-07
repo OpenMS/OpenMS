@@ -514,16 +514,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13665</offset>
-		<offset idRef="index=1">17752</offset>
-		<offset idRef="index=2">26638</offset>
-		<offset idRef="index=3">31448</offset>
+		<offset idRef="index=0">13671</offset>
+		<offset idRef="index=1">17758</offset>
+		<offset idRef="index=2">26644</offset>
+		<offset idRef="index=3">31454</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32788</offset>
-		<offset idRef="sic native">34167</offset>
+		<offset idRef="tic native">32794</offset>
+		<offset idRef="sic native">34277</offset>
 	</index>
 </indexList>
-<indexListOffset>35748</indexListOffset>
+<indexListOffset>35858</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -144,10 +144,10 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="sample=1 period=1 cycle=1 experiment=1">4412</offset>
-		<offset idRef="sample=2 period=2 cycle=2 experiment=2">7208</offset>
+		<offset idRef="sample=1 period=1 cycle=1 experiment=1">4413</offset>
+		<offset idRef="sample=2 period=2 cycle=2 experiment=2">7209</offset>
 	</index>
 </indexList>
-<indexListOffset>10006</indexListOffset>
+<indexListOffset>10007</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

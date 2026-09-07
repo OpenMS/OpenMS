@@ -25,6 +25,7 @@ namespace OpenMS::Internal
 class ThermoRawFileMetadata
 {
 public:
+  /// Value of the trailer-extra entry with exactly this @p label, or "" if absent / not a string.
   static std::string trailer(const nlohmann::json& scan, const std::string& label)
   {
     for (const auto& entry : scan.at("trailer"))
@@ -34,6 +35,11 @@ public:
     return "";
   }
 
+  /**
+    @brief Parse a trailer value as a number.
+    @return the number, or JSON null when the value is empty, not fully numeric (e.g. "2,5"
+            or "12.3abc") or not finite. A literal zero is a valid number, not "missing".
+  */
   static nlohmann::json number(const std::string& value)
   {
     std::istringstream stream(value);
@@ -44,6 +50,14 @@ public:
     return stream.eof() ? nlohmann::json(result) : nlohmann::json(nullptr);
   }
 
+  /**
+    @brief Selected ion m/z of a precursor (ThermoRawFileParser rule).
+    @param target isolation window target m/z of the reaction
+    @param mono "Monoisotopic M/Z:" trailer value as returned by number()
+    @param width isolation width (0 if unknown)
+    @return the monoisotopic m/z when it is set and plausibly inside the isolation window
+            (narrow windows accept -3.0 / +2.5 Th around the target), otherwise the target
+  */
   static double selectedIon(double target, const nlohmann::json& mono, double width)
   {
     if (! mono.is_number() || mono.get<double>() <= 1e-8) { return target; }
@@ -54,6 +68,16 @@ public:
     return mz >= target - half && mz <= target + half ? mz : target;
   }
 
+  /**
+    @brief Precursor descriptors of one scan; scans must be passed in acquisition order.
+
+    MS1 scans return an empty array and are only recorded as potential parents. For MSn
+    scans the array holds the scan's own precursor (isolation target, selected ion, charge,
+    window, parent scan / spectrum reference, activation and supplemental activation),
+    followed by further SPS selections and then the precursors of every ancestor scan, so
+    an MS3 scan lists its MS2 parent's precursor as well. Only each scan's own precursors
+    are retained internally; ancestors are resolved through parent links on request.
+  */
   nlohmann::json precursors(const nlohmann::json& scan)
   {
     const int scan_number = scan.at("scan_number").get<int>();
@@ -66,7 +90,7 @@ public:
     {
       filters_[""] = scan_number;
       scans_[scan_number] = state;
-      return state.precursors;
+      return nlohmann::json::array();
     }
     std::smatch match;
     const std::string filter = scan.at("filter").get<std::string>();
@@ -94,6 +118,7 @@ public:
       index = parent_it == scans_.end() ? lastReaction_(reactions) : parent_it->second.reactions;
     }
     state.parent = parent_it == scans_.end() ? 0 : parent;
+    nlohmann::json result = nlohmann::json::array();
     if (index < reactions.size())
     {
       const auto& reaction = reactions[index];
@@ -121,7 +146,7 @@ public:
       // Like TRFP, retain the remaining reaction as supplemental activation even
       // when the vendor's activation flag or type is unexpected.
       if (index < reactions.size()) { precursor["supplemental"] = reactions[index++]; }
-      state.precursors.push_back(precursor);
+      state.own.push_back(precursor);
       auto masses = spsMasses_(scan);
       // First SPS selection is represented by the primary reaction.
       for (std::size_t i = 1; i < masses.size(); ++i)
@@ -131,20 +156,26 @@ public:
         sps["selected_mz"] = masses[i];
         sps["charge"] = nullptr;
         sps["estimate_intensity"] = false;
-        state.precursors.push_back(std::move(sps));
-      }
-      if (parent_it != scans_.end())
-      {
-        for (const auto& ancestor : parent_it->second.precursors)
-        {
-          state.precursors.push_back(ancestor);
-        }
+        state.own.push_back(std::move(sps));
       }
       state.reactions = index;
+      result = state.own;
+      // Ancestors are resolved through the parent chain (MS3 -> MS2 -> MS1) instead of being
+      // copied into every scan, so retained metadata stays one descriptor per MSn scan.
+      for (int ancestor = state.parent; ancestor != 0;)
+      {
+        const auto it = scans_.find(ancestor);
+        if (it == scans_.end()) { break; }
+        for (const auto& descriptor : it->second.own)
+        {
+          result.push_back(descriptor);
+        }
+        ancestor = it->second.parent;
+      }
     }
     if (! key.empty()) { filters_[key] = scan_number; }
-    scans_[scan_number] = state;
-    return state.precursors;
+    scans_[scan_number] = std::move(state);
+    return result;
   }
 
 private:
@@ -154,7 +185,7 @@ private:
     int parent = 0;              ///< scan this one descends from (0 if unknown)
     std::size_t reactions = 0;   ///< reactions consumed up to and including this scan
     std::string native_id;
-    nlohmann::json precursors = nlohmann::json::array();
+    nlohmann::json own = nlohmann::json::array(); ///< this scan's own precursor descriptors
   };
   std::map<int, State> scans_;
   std::map<std::string, int> filters_;

@@ -118,6 +118,11 @@ if [[ "$managed_complete" == true ]]; then
 elif [[ -z "$managed_sha256" ]]; then
   echo "no pre-built managed bridge is published for openms-thermo-bridge ${BRIDGE_TAG};"
   echo "the bridge will publish ThermoWrapperManaged.dll with the .NET SDK during the OpenMS build"
+  # Never leave a partial directory behind: the wheel jobs hand thermo-managed to CMake
+  # as soon as ThermoWrapperManaged.dll exists, and a stale or incomplete copy (e.g. from
+  # a cache of another bridge revision) would end up inside the wheel.
+  rm -rf "${dest}/thermo-managed"
+  mkdir -p "${dest}/thermo-managed"
 else
   zip_name="openms-thermo-bridge-managed-${platform}-${BRIDGE_TAG}.zip"
   zip_path="$(mktemp -d)/${zip_name}"
@@ -137,7 +142,11 @@ fi
 download "$RAW_URL" "${dest}/thermo-testdata/Angiotensin_AllScans.raw" "$RAW_SHA256"
 
 echo "Thermo assets ready:"
-if [[ -f "${dest}/thermo-managed/ThermoWrapperManaged.dll" ]]; then
+managed_complete=true
+for required in "${required_managed[@]}"; do
+  [[ -f "${dest}/thermo-managed/${required}" ]] || managed_complete=false
+done
+if [[ "$managed_complete" == true ]]; then
   echo "  managed bridge: ${dest}/thermo-managed"
 else
   echo "  managed bridge: built from source (dotnet publish)"
