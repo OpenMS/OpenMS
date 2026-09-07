@@ -1,0 +1,9 @@
+binary: b4b9e343eba86579131ed2b5d6ffa439b8ce93486144a6d0a2e43339f6e50e93  /home/user/andes/target/release/andes
+commit: 1254cb7d227548b440b54a8df38eeb903dad92b3
+db: 5ee15d8d3ef05b28586dabfca459a6fa2581a5c11144feeed4f07e90c595386f  /home/user/andes-bench/databases/mouse_entrap.fasta
+raw: 2f0142b7d79a73cb7fca84f62835af36402d24353be708aacbc0b62d66e5f071 MouseLiver-Z-T-1.raw
+host: 4 threads, 15 GB, 2026-09-07T07:15:23Z
+flags: --glyco-index-sequon-only
+andes exit 0 wall 9561 s
+percolator exit 0 wall 14 s
+DONE

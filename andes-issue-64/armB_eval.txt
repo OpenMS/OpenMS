@@ -1,0 +1,76 @@
+=== armB: eval_yield
+  glycoPSMs @1%        : 7109
+  unique glycopeptides : 3042
+  unique glycan comps  : 931
+  unique glycosites    : 925
+
+=== armB: eval_entrap (1:1 shuffled-self database)
+q threshold      : 0.0100
+sample glycoPSMs : 7072
+entrapment hits  : 37
+raw entrap frac  : 0.52%   (entrap / accepted -- NOT the FDP)
+space (sequons)  : sample 50606 / entrap 45098  -> correction 2.12x
+space (proteins) : sample 17277 / entrap 17277  -> correction 2.00x
+entrapment FDP   : 1.10%   (sequon-corrected)
+  95% CI on FDP  : 0.78% - 1.52%   (37 hits)
+verdict          : OPTIMISTIC — reported FDR understates the real error
+
+=== armB: score_vs_truth pGlyco2
+reference : /home/user/andes/docs/benchmarks/glyco/truth/pglyco2_mouse_liver.tsv.gz
+spectra   : 3877   (runs: 1)
+q cutoff  : 0.01
+
+  CONFIRMED            3361  ( 86.7%)
+  WRONG_TARGET_WON      216  (  5.6%)
+  DECOY_WON             282  (  7.3%)
+  FDR_REJECTED           15  (  0.4%)
+  NOT_EMITTED             3  (  0.1%)
+
+  selection loss (wrong target + decoy): 498 (12.8%)
+  andes accepted 7109 spectra @q<=0.01; 3748 of those are NOT in this reference
+
+=== armB: score_vs_truth MSFragger
+reference : /home/user/andes/docs/benchmarks/glyco/truth/msfragger_mouse_liver.tsv.gz
+spectra   : 3040   (runs: 1)
+q cutoff  : 0.01
+
+  CONFIRMED            2669  ( 87.8%)
+  WRONG_TARGET_WON      161  (  5.3%)
+  DECOY_WON             206  (  6.8%)
+  FDR_REJECTED            0  (  0.0%)
+  NOT_EMITTED             4  (  0.1%)
+
+  selection loss (wrong target + decoy): 367 (12.1%)
+  andes accepted 7109 spectra @q<=0.01; 4440 of those are NOT in this reference
+
+=== armB: agreement pGlyco2
+reference          : /home/user/andes/docs/benchmarks/glyco/truth/pglyco2_mouse_liver.tsv.gz
+q cutoff           : 0.01
+
+                          reference        andes
+glycoPSMs                     3,877        7,109
+glycopeptides                   633          925
+glycopeptidoforms             1,674        3,042
+
+  peptide agreement     95.1%   (602 of 633 reference backbones also found by andes)
+  co-identified scans  3,380   (spectra identified by BOTH)
+  same-scan BACKBONE    99.4%   (3,361 of 3,380)
+  same-scan PEPTIDOFORM 96.3%   (3,255 of 3,380 with a composition on both sides)   <-- the agreement figure
+  scans only reference 497
+  scans only andes     3,729
+
+=== armB: agreement MSFragger
+reference          : /home/user/andes/docs/benchmarks/glyco/truth/msfragger_mouse_liver.tsv.gz
+q cutoff           : 0.01
+
+                          reference        andes
+glycoPSMs                     3,040        7,109
+glycopeptides                   528          925
+glycopeptidoforms             1,186        3,042
+
+  peptide agreement     94.1%   (497 of 528 reference backbones also found by andes)
+  co-identified scans  2,676   (spectra identified by BOTH)
+  same-scan BACKBONE    99.7%   (2,669 of 2,676)
+  same-scan PEPTIDOFORM 95.7%   (2,560 of 2,676 with a composition on both sides)   <-- the agreement figure
+  scans only reference 364
+  scans only andes     4,433

@@ -1,0 +1,1968 @@
+From bc50a352b248ba9b01f431838f582e4f70cda295 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 7 Sep 2026 13:01:51 +0000
+Subject: [PATCH] glyco: correct precursors to the monoisotopic peak from the
+ MS1 envelope (#64)
+
+On pGlyco2 mouse liver T-1 the firmware records a class of wide, high-mass
+glycopeptide envelopes on an M+3..M+6 isotopologue (88 of 3,824 mass-resolvable
+reference scans at exactly +4). Widening --isotope-error reaches them but is
+mass-degenerate with a glycan composition change, so arms C/D of #64 piled
+hundreds of arbitrary compositions onto the largest allowed offset.
+
+`--precursor-mono auto` (glyco, mzML/.raw) reads the preceding MS1 and fits the
+observed envelope at the reported charge against an exact multi-element
+glycopeptide isotope model under "the recorded precursor is M+k", k = 0..6
+(cosine over M-1..M+n with a zero-weight pre-mono slot). When a k > 0 clears a
+fit floor, beats the recorded hypothesis by a margin and its monoisotope is
+above the MS1 noise, the precursor is moved down by k-1 isotopes and searched
+with the DEFAULT 0..2 window; the sweep's +1 takes the last step so an overshoot
+cannot lose the true mass. Never widens. `off` (default) and inputs without MS1
+are byte-identical (goldens unchanged; `main` vs this binary flag-off: identical).
+
+Glyco PIN gains MonoShift/MonoFit/MonoFitGain/MonoSNR only when the flag fitted
+something; `--precursor-mono-dump` writes every hypothesis' fit per MS2.
+
+Also: `--glyco-index-sequon-only` (hidden) enumerates only N-X-S/T-bearing
+peptides into the candidate index (3.4 GB instead of ~27 GB on the mouse
+entrapment recipe); the glyco scorer never reads other candidates. Measured on
+a 1,500-protein subset: same rows, peptides and labels, 16 of 7,113 rows differ
+in RawScore/CandidateRankEntropy only.
+
+Measured, one session, one binary, one database, Percolator --seed 42 -Y
+(4-thread 16 GB VM, both arms with the sequon-only index; arm B reproduces the
+README quick tier within seed noise):
+
+                              off        auto
+  glycoPSMs @1%              7,109      7,225
+  entrapment FDP (1:1)       1.10%      0.91%  (CI 0.62-1.29)
+  pGlyco2 confirmed (3,877)  3,361      3,444  (+89 / -6, all 6 FDR-rejected)
+  MSFragger confirmed        2,669      2,746
+  peptidoform agreement      96.3%      96.8%
+  the 84 target spectra          0         69 confirmed (+5 FDR-rejected)
+  accepted at +3/+4/+5/+6        -   16/80/50/15; 0 entrapment; HexNAc3 1.2% at +4
+
+Offline (dump, 23 s): the fit reaches 3,783 of 3,824 resolvable reference
+scans vs 3,671 without correction, 1 wrong shift. The Thermo reader's precursor
+m/z equals both the isolation target and the trailer Monoisotopic M/Z on all
+45,905 MS2 (step 1 of #64): the +4 scans are firmware picks.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Ss95yjhVadqJ1dNrGV4VCQ
+---
+ DOCS.md                                    |   3 +
+ crates/andes/src/bin/andes.rs              |   2 +
+ crates/andes/src/bin/andes/cli.rs          |  78 ++++
+ crates/andes/src/bin/andes/glyco_run.rs    |   5 +
+ crates/andes/src/bin/andes/mono.rs         | 258 ++++++++++++
+ crates/andes/src/bin/andes/search.rs       | 192 ++++++++-
+ crates/andes/tests/glyco_golden.rs         |  42 ++
+ crates/andes/tests/glyco_golden_highres.rs |  75 ++++
+ crates/model/src/isotope.rs                | 153 ++++++++
+ crates/output/src/glyco_pin.rs             |  79 +++-
+ crates/output/src/pin.rs                   |   1 +
+ crates/output/src/tsv.rs                   |   1 +
+ crates/search/src/candidate_gen.rs         |  12 +
+ crates/search/src/glyco_search.rs          |  11 +-
+ crates/search/src/lib.rs                   |   1 +
+ crates/search/src/mass_calibrator.rs       |   1 +
+ crates/search/src/precursor_mono.rs        | 435 +++++++++++++++++++++
+ crates/search/src/search_params.rs         |  12 +
+ docs/benchmarks/README.md                  |  90 +++++
+ 19 files changed, 1424 insertions(+), 27 deletions(-)
+ create mode 100644 crates/andes/src/bin/andes/mono.rs
+ create mode 100644 crates/search/src/precursor_mono.rs
+
+diff --git a/DOCS.md b/DOCS.md
+index fc0f9fc..08b987f 100644
+--- a/DOCS.md
++++ b/DOCS.md
+@@ -677,6 +677,7 @@ CLI flags** (advanced; the shipped defaults are validated and rarely need changi
+ | `--glyco-taxon` | `auto` | Glycan biology: `auto` surveys the NeuGc/NeuAc oxonium ratio across the run and uses the FASTA `OX=` taxa as a veto; `human` / `mouse` force it. |
+ | `--glyco-no-neugc` | off | Drop NeuGc compositions. Humans cannot synthesise NeuGc, and every NeuGc composition has an exact Hex+Fuc isobar, so on human samples this removes shadows; on mouse it removes real glycans. `--glyco-taxon auto` normally makes this decision for you. |
+ | `--glyco-isotope-error` | `default` | Precursor isotope-error range: `default` is 0..=2 (dropping −1 measured +81 backbone-correct @1%), `negative` restores −1..=2. |
++| `--precursor-mono` | `off` | `auto`: correct each precursor to the monoisotope its MS1 isotope envelope supports **before** searching, then keep the default narrow window (needs MS1: mzML or Thermo `.raw`). Fits the observed envelope at the reported charge against a glycopeptide isotope model under "the recorded precursor is M+k", k = 0..6, and moves the precursor down by k−1 isotopes when a k > 0 clearly wins (the sweep's +1 takes the last step, so an overshoot can never lose the true mass). Written for a firmware failure mode measured on pGlyco2 mouse liver: 88 of 3,824 reference scans recorded exactly +4 isotopes above the monoisotope, unreachable by the window and mass-degenerate with a glycan composition change if the window is widened (issue #64). Adds `MonoShift`/`MonoFit`/`MonoFitGain`/`MonoSNR` to the glyco PIN; byte-identical output with `off` or without MS1. |
+ | `--glyco-max-peaks` | 0 (no cap) | Cap the peaks the **generation** stage considers to the N most intense; scoring always sees the full spectrum. 300–500 rescues profile-mode or very dense scans that otherwise take seconds each. |
+ | `--glyco-retrieval-tol-ppm` / `--glyco-retrieval-tol-da` | tol-ppm on high-res, 0.5 Da on low-res | Peptide-first candidate **retrieval** window (retrieval only; scoring is unchanged). 20 ppm retrieval on high-res data measured 6.9x faster at no identification cost. |
+ | `--glyco-y-max-charge` | 3 | Maximum glycan-Y fragment charge. Raising it reaches 4+/5+ Y ions on highly charged precursors at the cost of chance matches. |
+@@ -696,6 +697,8 @@ CLI flags** (advanced; the shipped defaults are validated and rarely need changi
+ | Flag | Default | Purpose |
+ |---|---|---|
+ | `--glyco-backbone-top-k` | 150 | Max backbone candidates per spectrum after DB/de-novo union. |
++| `--glyco-index-sequon-only` | off | Enumerate only N-X-S/T-bearing peptides into the candidate index. Glyco scoring never reads any other candidate (the peptide-first fragment index and the backbone→candidate loop both gate on the same sequon test), so this only shrinks the in-RAM index (~10x; the mouse entrapment recipe needs ~27 GB without it, 3.4 GB with it). Measured on a 1,500-protein subset: same rows, peptides and labels as the full index; 16 of 7,113 rows (0.2%) differ in `RawScore`/`CandidateRankEntropy` only. |
++| `--precursor-mono-max-shift` / `-min-fit` / `-min-gain` / `-min-snr` / `-tol-ppm` / `-backoff` | 6 / 0.90 / 0.15 / 3.0 / 10 / 1 | `--precursor-mono` tuning: largest shift tested; minimum cosine fit of the winning hypothesis; minimum fit gain over the recorded precursor; minimum monoisotope intensity over the MS1 median; MS1 matching tolerance; isotopes held back from the best fit when applying it. Swept on pGlyco2 liver T-1: the defaults recover 112 of 153 reference scans the window cannot reach with 1 wrong shift; back-off 0 recovers 106 with 8 wrong. `--precursor-mono-dump <FILE>` writes one row per MS2 with every hypothesis' fit. |
+ | `--glyco-max-neugc` | auto | NeuGc per composition in the default list: 4 (NeuAc's bound) when NeuGc is kept on positive evidence (`--glyco-taxon mammal`, or `auto` with a conclusive survey that finds NeuGc), else the human-validated 1. Runs that exclude NeuGc are byte-identical either way. `1` reproduces the pre-2026-09 behaviour on a CMAH-competent sample. Why: the list is human-tuned, and a composition it cannot name falls to de-novo, which never reaches the FDR PIN — on pGlyco2 mouse liver T-1, 501 of 3,877 reference spectra carry NeuGc ≥ 2. |
+ | `--glyco-gp-k` / `--glyco-gp-j` / `--glyco-gp-h` | 10 / 5 / 1 | Weights of the fused per-scan selector `rank + K·ladder + J·core_y + H·hyper` (`H = 0` disables the hyperscore term). |
+ | `--glyco-gp-cz` | 15 | Weight of the ETD c/z hyperscore; added only on ETD/AI-ETD spectra. |
+diff --git a/crates/andes/src/bin/andes.rs b/crates/andes/src/bin/andes.rs
+index 4f660ad..c9caa88 100644
+--- a/crates/andes/src/bin/andes.rs
++++ b/crates/andes/src/bin/andes.rs
+@@ -20,6 +20,8 @@ mod config;
+ mod glyco_run;
+ #[path = "andes/model_select.rs"]
+ mod model_select;
++#[path = "andes/mono.rs"]
++mod mono;
+ #[path = "../rescore.rs"]
+ mod rescore;
+ #[path = "andes/search.rs"]
+diff --git a/crates/andes/src/bin/andes/cli.rs b/crates/andes/src/bin/andes/cli.rs
+index 7939dd1..7be4420 100644
+--- a/crates/andes/src/bin/andes/cli.rs
++++ b/crates/andes/src/bin/andes/cli.rs
+@@ -448,6 +448,18 @@ pub(crate) struct SearchArgs {
+     #[arg(long = "glyco-scans")]
+     pub(crate) glyco_scans: Option<PathBuf>,
+ 
++    /// Memory: enumerate only N-X-S/T-bearing peptides into the `--glyco` candidate
++    /// index. Glyco scoring never reads any other candidate (the peptide-first
++    /// fragment index and the backbone→candidate loop both gate on the same sequon
++    /// test), so this shrinks the in-RAM index roughly 10x. Measured on a
++    /// 1,500-protein mouse subset: identical rows, peptides and labels; 16 of 7,113
++    /// rows (0.2%) differ in `RawScore`/`CandidateRankEntropy` only (per-spectrum
++    /// candidate-distribution terms). Use on hosts where the full index does not fit
++    /// (the mouse entrapment recipe needs ~27 GB without it, 3.4 GB with it).
++    /// Hidden; requires `--glyco`.
++    #[arg(long = "glyco-index-sequon-only", hide = true, default_value_t = false)]
++    pub(crate) glyco_index_sequon_only: bool,
++
+     /// Diagnostic: log resident set size at each phase boundary.
+     #[arg(long = "rss-probe", default_value_t = false)]
+     pub(crate) rss_probe: bool,
+@@ -525,6 +537,63 @@ pub(crate) struct SearchArgs {
+     #[arg(long = "glyco-isotope-error", value_enum, default_value_t = GlycoIsotopeFlag::Default)]
+     pub(crate) glyco_isotope_error: GlycoIsotopeFlag,
+ 
++    /// Correct each precursor to its monoisotopic peak from the preceding MS1
++    /// isotope envelope BEFORE searching (`--glyco`; needs MS1, so mzML or Thermo
++    /// `.raw`). `auto` fits the observed envelope at the reported charge against a
++    /// glycopeptide isotope model under the hypotheses "the recorded precursor is
++    /// the M+k peak", k = 0..6, and moves the precursor down when a k > 0 clearly
++    /// wins; the search then keeps its DEFAULT narrow `--isotope-error` window.
++    /// `off` (default) leaves every precursor as recorded. Motivation: on pGlyco2
++    /// mouse liver the firmware records 3-6 Da above the monoisotope on a class of
++    /// wide, high-mass glycopeptide envelopes, and widening the isotope window to
++    /// reach them is mass-degenerate with a glycan composition change
++    /// (bigbio/andes#64). Byte-identical output with `off`, or without MS1.
++    #[arg(long = "precursor-mono", value_enum, default_value_t = PrecursorMonoFlag::Off)]
++    pub(crate) precursor_mono: PrecursorMonoFlag,
++
++    /// Diagnostic: write one TSV row per MS2 with the recorded/corrected precursor,
++    /// the applied shift, and the envelope fit under every hypothesis. Hidden.
++    #[arg(long = "precursor-mono-dump", hide = true)]
++    pub(crate) precursor_mono_dump: Option<PathBuf>,
++
++    /// `--precursor-mono` tuning: largest shift (isotopes) considered. Hidden.
++    #[arg(long = "precursor-mono-max-shift", hide = true, default_value_t = 6u8,
++          value_parser = clap::value_parser!(u8).range(1..=12))]
++    pub(crate) precursor_mono_max_shift: u8,
++
++    /// `--precursor-mono` tuning: minimum cosine fit of the winning shifted
++    /// hypothesis. Hidden.
++    #[arg(
++        long = "precursor-mono-min-fit",
++        hide = true,
++        default_value_t = 0.90f32
++    )]
++    pub(crate) precursor_mono_min_fit: f32,
++
++    /// `--precursor-mono` tuning: minimum fit improvement over the recorded
++    /// precursor. Hidden.
++    #[arg(
++        long = "precursor-mono-min-gain",
++        hide = true,
++        default_value_t = 0.15f32
++    )]
++    pub(crate) precursor_mono_min_gain: f32,
++
++    /// `--precursor-mono` tuning: minimum monoisotope intensity of the winning
++    /// hypothesis, in units of the MS1 median non-zero intensity. Hidden.
++    #[arg(long = "precursor-mono-min-snr", hide = true, default_value_t = 3.0f32)]
++    pub(crate) precursor_mono_min_snr: f32,
++
++    /// `--precursor-mono` tuning: MS1 peak-matching tolerance in ppm. Hidden.
++    #[arg(long = "precursor-mono-tol-ppm", hide = true, default_value_t = 10.0f64, value_parser = parse_positive_tol)]
++    pub(crate) precursor_mono_tol_ppm: f64,
++
++    /// `--precursor-mono` tuning: isotopes held back from the best-fitting shift
++    /// when applying it (the `--isotope-error` sweep takes the last step). Hidden.
++    #[arg(long = "precursor-mono-backoff", hide = true, default_value_t = 1u8,
++          value_parser = clap::value_parser!(u8).range(0..=2))]
++    pub(crate) precursor_mono_backoff: u8,
++
+     /// Fragment tolerance (ppm) for the glyco-specific matching: oxonium ions,
+     /// the core-Y ladder, backbone mass search, and c/z. Default 20 ppm, which
+     /// suits Orbitrap MS2. **Raise this for low-resolution (ion-trap) MS2** —
+@@ -891,6 +960,15 @@ pub(crate) enum GlycoIsotopeFlag {
+     Wide,
+ }
+ 
++/// `--precursor-mono`: MS1 isotope-envelope precursor correction.
++#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
++pub(crate) enum PrecursorMonoFlag {
++    /// Leave every precursor m/z as recorded (default).
++    Off,
++    /// Move a precursor down to the monoisotope its MS1 envelope supports.
++    Auto,
++}
++
+ /// Parse `--fragmentation` value. Accepts named values (case-insensitive: auto,
+ /// CID, ETD, HCD, UVPD).
+ pub(crate) fn parse_fragmentation(s: &str) -> Result<Fragmentation, String> {
+diff --git a/crates/andes/src/bin/andes/glyco_run.rs b/crates/andes/src/bin/andes/glyco_run.rs
+index 9eaf7b3..87aeab6 100644
+--- a/crates/andes/src/bin/andes/glyco_run.rs
++++ b/crates/andes/src/bin/andes/glyco_run.rs
+@@ -21,6 +21,10 @@ pub(crate) fn run_glyco(
+     spectrum_paths: &[PathBuf],
+     target_db: &ProteinDb,
+     detected_activation_instrument: Option<(ActivationMethod, Option<InstrumentType>)>,
++    // `--precursor-mono`: per-spectrum MS1 envelope corrections, aligned with
++    // `spectra` (`Some` only when the flag is active; the PIN then carries the
++    // Mono* columns). `None` keeps the PIN byte-identical.
++    mono: Option<&[Option<search::precursor_mono::MonoCorrection>]>,
+     t_total: std::time::Instant,
+ ) -> Result<(), Box<dyn std::error::Error>> {
+     let t_glyco = std::time::Instant::now();
+@@ -326,6 +330,7 @@ pub(crate) fn run_glyco(
+         params,
+         idx,
+         cli.debug_glyco,
++        mono,
+     )?;
+     eprintln!(
+         "Wrote glyco PIN: {} ({} PSM rows) [PHASE TOTAL: {:.2}s]",
+diff --git a/crates/andes/src/bin/andes/mono.rs b/crates/andes/src/bin/andes/mono.rs
+new file mode 100644
+index 0000000..7451cf9
+--- /dev/null
++++ b/crates/andes/src/bin/andes/mono.rs
+@@ -0,0 +1,258 @@
++//! `--precursor-mono`: apply the MS1 isotope-envelope precursor correction to
++//! a streamed chunk of MS2 spectra, and keep the per-scan record the glyco PIN
++//! and the diagnostic dump read. The decision itself lives in
++//! `search::precursor_mono`; this is the driver-side plumbing.
++
++use std::fs::File;
++use std::io::{self, BufWriter, Write};
++use std::path::Path;
++
++use input::Ms1Link;
++use model::Spectrum;
++use search::precursor_mono::{
++    correct_precursor, median_nonzero_intensity, MonoCorrection, MonoParams,
++};
++
++/// Running tally of what the correction did, for the end-of-stream log line.
++#[derive(Debug, Default)]
++pub(crate) struct MonoStats {
++    /// MS2 spectra seen while the correction was active.
++    pub seen: usize,
++    /// MS2 with a linked MS1 and a known charge (fit attempted).
++    pub fitted: usize,
++    /// Applied shifts, indexed by shift (0 = left as recorded).
++    pub by_shift: Vec<usize>,
++}
++
++impl MonoStats {
++    pub fn shifted(&self) -> usize {
++        self.by_shift.iter().skip(1).sum()
++    }
++}
++
++/// Diagnostic TSV writer (`--precursor-mono-dump`): one row per MS2.
++pub(crate) struct MonoDump {
++    w: BufWriter<File>,
++}
++
++impl MonoDump {
++    pub fn create(path: &Path, max_shift: u8) -> io::Result<Self> {
++        let mut w = BufWriter::new(File::create(path)?);
++        let fits: Vec<String> = (0..=max_shift).map(|k| format!("fit{k}")).collect();
++        writeln!(
++            w,
++            "scan\tcharge\trt_s\trecorded_mz\tcorrected_mz\tshift\tbest_shift\tfit_recorded\t\
++             fit_best\tfit_up\tsnr\tn_iso\t{}",
++            fits.join("\t")
++        )?;
++        Ok(Self { w })
++    }
++
++    fn row(&mut self, spec: &Spectrum, c: Option<&MonoCorrection>) -> io::Result<()> {
++        let scan = spec.scan.unwrap_or(-1);
++        let z = spec.precursor_charge.unwrap_or(0);
++        let rt = spec.rt_seconds.unwrap_or(0.0);
++        match c {
++            Some(c) => {
++                write!(
++                    self.w,
++                    "{scan}\t{z}\t{rt:.3}\t{:.6}\t{:.6}\t{}\t{}\t{:.4}\t{:.4}\t{:.4}\t{:.3}\t{}",
++                    c.recorded_mz,
++                    c.corrected_mz,
++                    c.shift,
++                    c.best_shift,
++                    c.fit_recorded,
++                    c.fit_best,
++                    c.fit_up,
++                    c.snr,
++                    c.n_iso
++                )?;
++                for f in &c.fits {
++                    write!(self.w, "\t{f:.4}")?;
++                }
++                writeln!(self.w)
++            }
++            None => writeln!(
++                self.w,
++                "{scan}\t{z}\t{rt:.3}\t{:.6}\t{:.6}\tNA\tNA\tNA\tNA\tNA\tNA\tNA",
++                spec.precursor_mz, spec.precursor_mz
++            ),
++        }
++    }
++
++    pub fn finish(mut self) -> io::Result<()> {
++        self.w.flush()
++    }
++}
++
++/// Correct the precursors of one streamed chunk in place, appending one
++/// `Option<MonoCorrection>` per spectrum to `table` (so `table` stays aligned
++/// with the driver's `all_spectra`). A spectrum with no linked MS1 or no
++/// charge gets `None` and is left untouched.
++pub(crate) fn correct_chunk(
++    chunk: &mut [Spectrum],
++    link: &Ms1Link,
++    params: &MonoParams,
++    table: &mut Vec<Option<MonoCorrection>>,
++    stats: &mut MonoStats,
++    dump: Option<&mut MonoDump>,
++) -> io::Result<()> {
++    if stats.by_shift.len() <= params.max_shift as usize {
++        stats.by_shift.resize(params.max_shift as usize + 1, 0);
++    }
++    // The MS1 median noise is a property of the MS1 scan, shared by every MS2
++    // it precedes: compute it once per MS1, lazily.
++    let mut medians: Vec<Option<Option<f32>>> = vec![None; link.ms1_peaks.len()];
++    let mut dump = dump;
++    for (i, spec) in chunk.iter_mut().enumerate() {
++        stats.seen += 1;
++        let ms1_idx = link.ms2_to_ms1.get(i).copied().flatten();
++        let charge = spec
++            .precursor_charge
++            .filter(|&z| z > 0 && z <= u8::MAX as i32)
++            .map(|z| z as u8);
++        let correction = match (ms1_idx, charge) {
++            (Some(mi), Some(z)) => {
++                let ms1 = &link.ms1_peaks[mi];
++                let med = *medians[mi].get_or_insert_with(|| median_nonzero_intensity(ms1));
++                correct_precursor(ms1, spec.precursor_mz, z, med, params)
++            }
++            _ => None,
++        };
++        if let Some(c) = &correction {
++            stats.fitted += 1;
++            stats.by_shift[c.shift as usize] += 1;
++            if c.applied() {
++                spec.precursor_mz = c.corrected_mz;
++            }
++        }
++        if let Some(d) = dump.as_deref_mut() {
++            d.row(spec, correction.as_ref())?;
++        }
++        table.push(correction);
++    }
++    Ok(())
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use model::isotope::glycopeptide_isotope_envelope;
++    use model::mass::{ISOTOPE, PROTON};
++
++    fn spec(scan: i32, mz: f64, z: Option<i32>) -> Spectrum {
++        Spectrum {
++            title: format!("scan={scan}"),
++            precursor_mz: mz,
++            precursor_charge: z,
++            scan: Some(scan),
++            ..Default::default()
++        }
++    }
++
++    /// One MS1 carrying a 3 kDa z=2 glycopeptide envelope with its monoisotope
++    /// at `mono`.
++    fn ms1(mono: f64) -> Vec<(f64, f32)> {
++        let env = glycopeptide_isotope_envelope((mono - PROTON) * 2.0, 8);
++        let mut p: Vec<(f64, f32)> = (0..30)
++            .map(|i| (mono - 50.0 + i as f64 * 1.7, 50.0))
++            .collect();
++        p.extend(
++            env.iter()
++                .enumerate()
++                .map(|(k, &e)| (mono + k as f64 * ISOTOPE / 2.0, 1e6 * e as f32)),
++        );
++        p.sort_by(|a, b| a.0.total_cmp(&b.0));
++        p
++    }
++
++    #[test]
++    fn correct_chunk_shifts_only_the_linked_mispicked_scan_and_keeps_the_table_aligned() {
++        let mono = 1500.25;
++        let link = Ms1Link {
++            ms1_peaks: vec![ms1(mono)],
++            // scan 1: linked, recorded on M+4; scan 2: linked, on the mono;
++            // scan 3: no MS1 link; scan 4: linked but no charge.
++            ms2_to_ms1: vec![Some(0), Some(0), None, Some(0)],
++        };
++        let m4 = mono + 4.0 * ISOTOPE / 2.0;
++        let mut chunk = vec![
++            spec(1, m4, Some(2)),
++            spec(2, mono, Some(2)),
++            spec(3, m4, Some(2)),
++            spec(4, m4, None),
++        ];
++        let mut table = Vec::new();
++        let mut stats = MonoStats::default();
++        correct_chunk(
++            &mut chunk,
++            &link,
++            &MonoParams::default(),
++            &mut table,
++            &mut stats,
++            None,
++        )
++        .unwrap();
++        assert_eq!(table.len(), 4, "one table entry per spectrum");
++        // Default back-off: M+4 is searched from M+1 (shift 3).
++        let c1 = table[0].as_ref().expect("linked scan is fitted");
++        assert_eq!(c1.shift, 3);
++        assert!((chunk[0].precursor_mz - (mono + ISOTOPE / 2.0)).abs() < 1e-9);
++        assert_eq!(table[1].as_ref().unwrap().shift, 0);
++        assert_eq!(
++            chunk[1].precursor_mz, mono,
++            "a correct precursor is untouched"
++        );
++        assert!(table[2].is_none(), "no MS1 link → no fit");
++        assert_eq!(chunk[2].precursor_mz, m4, "unlinked scan is untouched");
++        assert!(table[3].is_none(), "no charge → no fit");
++        assert_eq!(chunk[3].precursor_mz, m4);
++        assert_eq!(stats.seen, 4);
++        assert_eq!(stats.fitted, 2);
++        assert_eq!(stats.shifted(), 1);
++        assert_eq!(stats.by_shift[3], 1);
++    }
++
++    #[test]
++    fn dump_writes_one_row_per_spectrum_with_na_for_unfitted() {
++        let dir = tempfile::tempdir().unwrap();
++        let path = dir.path().join("dump.tsv");
++        let mono = 1500.25;
++        let link = Ms1Link {
++            ms1_peaks: vec![ms1(mono)],
++            ms2_to_ms1: vec![Some(0), None],
++        };
++        let mut chunk = vec![
++            spec(7, mono + 2.0 * ISOTOPE, Some(2)),
++            spec(8, mono, Some(2)),
++        ];
++        let mut dump = MonoDump::create(&path, 6).unwrap();
++        let mut table = Vec::new();
++        let mut stats = MonoStats::default();
++        correct_chunk(
++            &mut chunk,
++            &link,
++            &MonoParams::default(),
++            &mut table,
++            &mut stats,
++            Some(&mut dump),
++        )
++        .unwrap();
++        dump.finish().unwrap();
++        let text = std::fs::read_to_string(&path).unwrap();
++        let lines: Vec<&str> = text.lines().collect();
++        assert_eq!(lines.len(), 3, "header + 2 rows:\n{text}");
++        assert!(lines[0].starts_with("scan\tcharge\trt_s\trecorded_mz\tcorrected_mz\tshift"));
++        assert!(lines[0].ends_with("fit6"));
++        let r7: Vec<&str> = lines[1].split('\t').collect();
++        assert_eq!(r7[0], "7");
++        assert_eq!(r7[5], "3", "M+4 → shift 3 with back-off: {}", lines[1]);
++        assert_eq!(r7.len(), 12 + 7, "12 fixed columns + fit0..fit6");
++        assert!(lines[2].starts_with("8\t2\t"));
++        assert!(
++            lines[2].ends_with("\tNA"),
++            "unlinked scan writes NA: {}",
++            lines[2]
++        );
++    }
++}
+diff --git a/crates/andes/src/bin/andes/search.rs b/crates/andes/src/bin/andes/search.rs
+index 6a0d4f3..3463838 100644
+--- a/crates/andes/src/bin/andes/search.rs
++++ b/crates/andes/src/bin/andes/search.rs
+@@ -8,13 +8,14 @@ use std::thread;
+ 
+ use crate::cli::{
+     CandidateIndexFlag, Cli, EnzymeSpecificity, EthcdActivationFlag, Fragmentation,
+-    GlycoIsotopeFlag, Protocol, ScoreFlag,
++    GlycoIsotopeFlag, PrecursorMonoFlag, Protocol, ScoreFlag,
+ };
+ use crate::glyco_run::run_glyco;
+ use crate::model_select::{
+     cli_fragment_tol_override, default_aa_set_with_tag, load_param_from_store, parse_enzymes,
+     resolve_metadataless_selection, warn_if_universal_protease_combo,
+ };
++use crate::mono::{correct_chunk, MonoDump, MonoStats};
+ use crate::rescore;
+ use crate::spectra::{
+     detect_dominant_activation, detect_instrument_type_for_path, detect_isobaric_sampled,
+@@ -31,6 +32,7 @@ use model::{
+ };
+ use scoring_crate::RankScorer;
+ use search::candidate_index::index_cache_path;
++use search::precursor_mono::{MonoCorrection, MonoParams};
+ use search::{
+     apply_shift_for_mode, apply_tightened_precursor_tolerance, PrecursorCalMode, PreparedSearch,
+     SearchIndex, SearchParams, TopNQueue,
+@@ -449,6 +451,59 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+         );
+     }
+     params.chimeric = chimeric_active;
++    // `--glyco-index-sequon-only`: glyco-only index shrink (see the flag's doc).
++    if cli.glyco_index_sequon_only && !cli.glyco {
++        return Err(
++            "--glyco-index-sequon-only requires --glyco (the standard peptide \
++                    search scores every candidate)"
++                .into(),
++        );
++    }
++    params.require_nxst_sequon = cli.glyco && cli.glyco_index_sequon_only;
++    if params.require_nxst_sequon {
++        eprintln!(
++            "candidate index: N-X-S/T sequon-bearing peptides only (--glyco-index-sequon-only)"
++        );
++    }
++    // `--precursor-mono auto`: MS1 isotope-envelope precursor correction. Glyco
++    // only (the standard path's -1..2 sweep and PIN are untouched), and it needs
++    // MS1, so mzML or Thermo `.raw`; anywhere else it is inert and says so. When
++    // active the input is streamed with its MS1 link exactly like `--chimeric`
++    // and each chunk's precursors are corrected BEFORE they reach the search.
++    let mono_active =
++        cli.precursor_mono == PrecursorMonoFlag::Auto && cli.glyco && (is_mzml || is_raw);
++    if cli.precursor_mono == PrecursorMonoFlag::Auto && !mono_active {
++        eprintln!(
++            "WARN: --precursor-mono auto needs --glyco and an input with MS1 (mzML or Thermo \
++             .raw); the input is {} — precursors are left as recorded.",
++            if !cli.glyco {
++                "searched without --glyco".to_string()
++            } else {
++                spectrum_path.display().to_string()
++            }
++        );
++    }
++    let mono_params = MonoParams {
++        max_shift: cli.precursor_mono_max_shift,
++        tol_ppm: cli.precursor_mono_tol_ppm,
++        min_fit: cli.precursor_mono_min_fit,
++        min_gain: cli.precursor_mono_min_gain,
++        min_snr: cli.precursor_mono_min_snr,
++        backoff: cli.precursor_mono_backoff,
++        ..MonoParams::default()
++    };
++    if mono_active {
++        eprintln!(
++            "precursor-mono: auto (max shift {}, min fit {:.2}, min gain {:.2}, min SNR {:.1}, \
++             {} ppm, back-off {})",
++            mono_params.max_shift,
++            mono_params.min_fit,
++            mono_params.min_gain,
++            mono_params.min_snr,
++            mono_params.tol_ppm,
++            mono_params.backoff
++        );
++    }
+     // Fallback isolation half-width (Da) used only when the file omits per-scan
+     // isolation offsets; a fixed sensible default (was the --isolation-halfwidth flag).
+     params.chimeric_isolation_halfwidth_da = 1.5;
+@@ -985,8 +1040,26 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+     // bounded to ~CHUNK_SIZE spectra (NOT the whole file). The parser runs on a
+     // dedicated thread so chunk N+1 parses while chunk N scores. The streaming
+     // pipeline in the `else` branch handles the (default) non-chimeric path.
+-    let chimeric_input = chimeric_active;
++    let ms1_input = chimeric_active || mono_active;
+     let mut parse_stats = ParseStats::default();
++    // `--precursor-mono`: one entry per accumulated spectrum (aligned with
++    // `all_spectra`); stays empty when the flag is off.
++    let mut mono_table: Vec<Option<MonoCorrection>> = Vec::new();
++    let mut mono_stats = MonoStats::default();
++    let mut mono_dump: Option<MonoDump> = match (&cli.precursor_mono_dump, mono_active) {
++        (Some(p), true) => Some(
++            MonoDump::create(p, mono_params.max_shift)
++                .map_err(|e| format!("create --precursor-mono-dump {}: {e}", p.display()))?,
++        ),
++        (Some(p), false) => {
++            eprintln!(
++                "WARN: --precursor-mono-dump {} ignored: the correction is not active.",
++                p.display()
++            );
++            None
++        }
++        (None, _) => None,
++    };
+ 
+     for (file_idx, input_path) in spectrum_paths.iter().enumerate() {
+         if bench_mode && all_spectra.len() >= bench_cap {
+@@ -1014,15 +1087,20 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+             );
+         }
+ 
+-        if chimeric_input && !(file_is_mzml || file_is_raw) {
++        if ms1_input && !(file_is_mzml || file_is_raw) {
+             return Err(format!(
+-                "--chimeric only supports mzML/.raw inputs, got {}",
++                "{} only supports mzML/.raw inputs, got {}",
++                if chimeric_active {
++                    "--chimeric"
++                } else {
++                    "--precursor-mono"
++                },
+                 input_path.display()
+             )
+             .into());
+         }
+ 
+-        let file_stats = if chimeric_input {
++        let file_stats = if ms1_input {
+             let (tx, rx) = sync_channel::<(Vec<Spectrum>, Ms1Link)>(2);
+             let spectrum_path = input_path.clone();
+             let cap = remaining_cap;
+@@ -1069,19 +1147,40 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+                 if let Some(prefix) = &title_prefix {
+                     prefix_spectrum_titles(&mut chunk_spectra, prefix);
+                 }
++                // `--precursor-mono`: correct precursors from the linked MS1
++                // BEFORE anything scores the chunk, so every consumer (the glyco
++                // driver, the PIN's ExpMass) sees the corrected m/z.
++                if mono_active {
++                    correct_chunk(
++                        &mut chunk_spectra,
++                        &chunk_link,
++                        &mono_params,
++                        &mut mono_table,
++                        &mut mono_stats,
++                        mono_dump.as_mut(),
++                    )
++                    .map_err(|e| format!("write --precursor-mono-dump: {e}"))?;
++                }
+                 let offset = all_spectra.len();
+-                let mut queues = prepared.run_chunk(&chunk_spectra, offset);
+-                search::match_engine::run_pass2_coisolation(
+-                    &prepared,
+-                    &chunk_spectra,
+-                    &mut queues,
+-                    &params,
+-                    &chunk_link,
+-                    offset,
+-                );
++                if chimeric_active {
++                    let mut queues = prepared.run_chunk(&chunk_spectra, offset);
++                    search::match_engine::run_pass2_coisolation(
++                        &prepared,
++                        &chunk_spectra,
++                        &mut queues,
++                        &params,
++                        &chunk_link,
++                        offset,
++                    );
++                    all_queues.extend(queues);
++                } else if !cli.glyco {
++                    // Unreachable today (`mono_active` implies `--glyco`), kept so
++                    // an MS1-linked stream never silently skips the peptide search.
++                    let queues = prepared.run_chunk(&chunk_spectra, offset);
++                    all_queues.extend(queues);
++                }
+                 file_offset += chunk_spectra.len();
+                 ms1_linked += chunk_link.ms1_peaks.len();
+-                all_queues.extend(queues);
+                 for mut spec in chunk_spectra.into_iter() {
+                     // Peaks are normally dropped post-scoring to bound memory
+                     // (only the metadata is needed downstream). Under `--refine`
+@@ -1098,14 +1197,19 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+             }
+             let (err_count, first_errors) = parser_handle
+                 .join()
+-                .map_err(|_| "chimeric parser thread panicked".to_string())??;
++                .map_err(|_| "MS1-linked parser thread panicked".to_string())??;
+             eprintln!(
+-                "chimeric mode: streamed {} MS2 spectra ({} MS1 scans linked) from {}",
++                "{}: streamed {} MS2 spectra ({} MS1 scans linked) from {}",
++                if chimeric_active {
++                    "chimeric mode"
++                } else {
++                    "precursor-mono"
++                },
+                 file_offset,
+                 ms1_linked,
+                 input_path.display()
+             );
+-            log_rss("after_chimeric_stream_search");
++            log_rss("after_ms1_linked_stream_search");
+             ParseStats {
+                 error_count: err_count,
+                 first_errors,
+@@ -1252,6 +1356,53 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+     // in the default `Ram` mode, where candidates already live there).
+     prepared.sync_materialized_candidates();
+ 
++    // No MS1 reached the correction (an MS2-only mzML, or no charges): nothing was
++    // fitted, so the PIN keeps its flag-off schema — "byte-identical when no MS1 is
++    // available" (bigbio/andes#64) holds for the file, not just the format.
++    let mono_active = mono_active && {
++        if mono_stats.fitted == 0 {
++            eprintln!(
++                "WARN: --precursor-mono auto: no MS2 could be fitted ({} MS2 seen, none with \
++                 a linked MS1 and a known charge); precursors are left as recorded and the \
++                 glyco PIN carries no Mono columns.",
++                mono_stats.seen
++            );
++            if let Some(d) = mono_dump.take() {
++                d.finish()
++                    .map_err(|e| format!("flush --precursor-mono-dump: {e}"))?;
++            }
++            mono_table.clear();
++        }
++        mono_stats.fitted > 0
++    };
++    if mono_active {
++        let hist: Vec<String> = mono_stats
++            .by_shift
++            .iter()
++            .enumerate()
++            .skip(1)
++            .filter(|(_, &n)| n > 0)
++            .map(|(k, n)| format!("{k}:{n}"))
++            .collect();
++        eprintln!(
++            "precursor-mono: {} of {} MS2 fitted (linked MS1 + known charge), {} shifted \
++             down [shift:count {}]",
++            mono_stats.fitted,
++            mono_stats.seen,
++            mono_stats.shifted(),
++            if hist.is_empty() {
++                "-".to_string()
++            } else {
++                hist.join(" ")
++            }
++        );
++        if let Some(d) = mono_dump.take() {
++            d.finish()
++                .map_err(|e| format!("flush --precursor-mono-dump: {e}"))?;
++        }
++        debug_assert_eq!(mono_table.len(), all_spectra.len());
++    }
++
+     // Downstream code uses these names.
+     let spectra = all_spectra;
+     let mut queues = all_queues;
+@@ -1287,6 +1438,11 @@ pub(crate) fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+             spectrum_paths,
+             &target_db,
+             detected_activation_instrument,
++            if mono_active {
++                Some(mono_table.as_slice())
++            } else {
++                None
++            },
+             t_total,
+         )?;
+         return Ok(());
+diff --git a/crates/andes/tests/glyco_golden.rs b/crates/andes/tests/glyco_golden.rs
+index decca32..12f134d 100644
+--- a/crates/andes/tests/glyco_golden.rs
++++ b/crates/andes/tests/glyco_golden.rs
+@@ -231,3 +231,45 @@ fn glyco_elect_top_k_one_is_identical_to_off() {
+         "--glyco-elect-top-k 1 must be byte-identical to off"
+     );
+ }
++
++/// `--precursor-mono auto` needs MS1. On MGF there is none, so the flag must warn
++/// and write the same `.glyco.pin` as the flag being off (bigbio/andes#64:
++/// "byte-identical when no MS1 is available or the flag is off").
++#[test]
++fn glyco_precursor_mono_on_mgf_is_identical_to_off() {
++    let root = workspace_root();
++    let binary = PathBuf::from(env!("CARGO_BIN_EXE_andes"));
++    let spectra = root.join("test-fixtures/glyco_fixture.mgf.gz");
++    let fasta = root.join("test-fixtures/glyco_fixture.fasta");
++    let outdir = tempfile::tempdir().expect("tempdir");
++    let run = |name: &str, extra: &[&str]| -> (String, String) {
++        let out_pin = outdir.path().join(format!("{name}.pin"));
++        let mut cmd = Command::new(&binary);
++        cmd.arg("--spectrum")
++            .arg(&spectra)
++            .arg("--database")
++            .arg(&fasta)
++            .args(["--glyco", "--glyco-tol-ppm", "20", "--fragmentation", "HCD"])
++            .args(["--glyco-taxon", "human"])
++            .args(extra)
++            .arg("--output-pin")
++            .arg(&out_pin);
++        let out = cmd.output().expect("run andes");
++        assert!(out.status.success(), "andes exited {}", out.status);
++        let glyco = outdir.path().join(format!("{name}.glyco.pin"));
++        let pin = std::fs::read_to_string(&glyco)
++            .unwrap_or_else(|e| panic!("read {}: {e}", glyco.display()));
++        (pin, String::from_utf8_lossy(&out.stderr).into_owned())
++    };
++    let (off, _) = run("off", &[]);
++    let (auto, log) = run("auto", &["--precursor-mono", "auto"]);
++    assert!(off.lines().count() > 1, "fixture produced no glyco rows");
++    assert_eq!(
++        off, auto,
++        "--precursor-mono auto on MGF must be byte-identical to off"
++    );
++    assert!(
++        log.contains("--precursor-mono auto needs --glyco and an input with MS1"),
++        "expected the no-MS1 warning, got:\n{log}"
++    );
++}
+diff --git a/crates/andes/tests/glyco_golden_highres.rs b/crates/andes/tests/glyco_golden_highres.rs
+index 420e97d..737d184 100644
+--- a/crates/andes/tests/glyco_golden_highres.rs
++++ b/crates/andes/tests/glyco_golden_highres.rs
+@@ -211,3 +211,78 @@ fn glyco_highres_pin_matches_golden() {
+         }
+     }
+ }
++
++/// `--precursor-mono auto` on an mzML with NO MS1 scans (this fixture declares
++/// "MS1 spectrum" only in its file-content header): the run streams with the MS1
++/// link, fits nothing, says so, and writes a `.glyco.pin` byte-identical to the
++/// golden — no Mono columns — while the diagnostic dump still has one NA row
++/// per MS2. (The linked case is covered by the `mono` unit tests and the
++/// measured pGlyco2 liver run in docs/benchmarks/README.md.)
++#[test]
++fn glyco_highres_precursor_mono_without_ms1_is_identical_to_golden() {
++    let root = repo_root();
++    let spectra = root.join("test-fixtures/orbitrap_lumos_120.mzML.gz");
++    let fasta = root.join("test-fixtures/glyco_fixture.fasta");
++    let golden = root.join("test-fixtures/parity/goldens/glyco_highres.pin");
++    let tmpdir = tempfile::tempdir().expect("tempdir");
++    let out = tmpdir.path().join("out.pin");
++    let dump = tmpdir.path().join("mono.tsv");
++    let binary = PathBuf::from(env!("CARGO_BIN_EXE_andes"));
++    let result = Command::new(&binary)
++        .arg("--spectrum")
++        .arg(&spectra)
++        .arg("--database")
++        .arg(&fasta)
++        .args(["--glyco", "--glyco-tol-ppm", "20", "--glyco-taxon", "human"])
++        .args(["--precursor-mono", "auto", "--precursor-mono-dump"])
++        .arg(&dump)
++        .arg("--output-pin")
++        .arg(&out)
++        .output()
++        .expect("run andes");
++    let log = String::from_utf8_lossy(&result.stderr).into_owned();
++    assert!(
++        result.status.success(),
++        "andes exited {}\n{log}",
++        result.status
++    );
++    assert!(
++        log.contains("precursor-mono: streamed 120 MS2 spectra (0 MS1 scans linked)"),
++        "expected the MS1-linked stream summary, got:\n{log}"
++    );
++    assert!(
++        log.contains("no MS2 could be fitted"),
++        "expected the nothing-fitted warning, got:\n{log}"
++    );
++
++    let actual = std::fs::read_to_string(tmpdir.path().join("out.glyco.pin")).expect("read pin");
++    let golden_txt = std::fs::read_to_string(&golden).expect("read golden");
++    let a_hdr = actual.lines().next().unwrap();
++    assert!(
++        !a_hdr.contains("MonoShift"),
++        "no Mono columns without a fitted MS2: {a_hdr}"
++    );
++    // Same rows as the golden (order-insensitive, like the golden test above).
++    let mut a_rows: Vec<&str> = actual.lines().skip(1).collect();
++    let mut g_rows: Vec<&str> = golden_txt.lines().skip(1).collect();
++    a_rows.sort_by_key(|r| spec_id(r).to_string());
++    g_rows.sort_by_key(|r| spec_id(r).to_string());
++    assert_eq!(a_hdr, golden_txt.lines().next().unwrap());
++    assert_eq!(
++        a_rows.len(),
++        g_rows.len(),
++        "row count differs from the golden"
++    );
++    for (i, (g, a)) in g_rows.iter().zip(a_rows.iter()).enumerate() {
++        if let Some(d) = row_diff(g, a) {
++            panic!("row {i} differs from the golden ({d})\n golden: {g}\n actual: {a}");
++        }
++    }
++
++    let dump_txt = std::fs::read_to_string(&dump).expect("read dump");
++    assert_eq!(dump_txt.lines().count(), 121, "header + one row per MS2");
++    assert!(
++        dump_txt.lines().skip(1).all(|l| l.ends_with("\tNA")),
++        "no MS2 has a linked MS1, so every row is NA"
++    );
++}
+diff --git a/crates/model/src/isotope.rs b/crates/model/src/isotope.rs
+index 3c884bf..61133c8 100644
+--- a/crates/model/src/isotope.rs
++++ b/crates/model/src/isotope.rs
+@@ -37,6 +37,108 @@ pub fn averagine_isotope_envelope(mass: f64, n_isotopes: usize) -> Vec<f64> {
+     env
+ }
+ 
++/// Per-atom isotope abundance ladders (`[M, M+1, M+2, ...]`), natural
++/// abundances (IUPAC/CIAAW representative values). Index k is the fraction of
++/// atoms that are k nominal mass units above the lightest isotope.
++const C_ISO: &[f64] = &[0.9893, 0.0107];
++const H_ISO: &[f64] = &[0.999_885, 0.000_115];
++const N_ISO: &[f64] = &[0.996_36, 0.003_64];
++const O_ISO: &[f64] = &[0.997_57, 0.000_38, 0.002_05];
++const S_ISO: &[f64] = &[0.9499, 0.0075, 0.0425, 0.0, 0.0001];
++
++/// Theoretical isotope envelope of a molecule from its elemental formula
++/// (C, H, N, O, S atom counts), as the first `n_isotopes` nominal-mass peaks
++/// normalised to sum 1.0. Exact per-element multinomial convolution (no
++/// averagine, no Poisson approximation): every atom's own ladder is folded
++/// in, so the O18 and S34 contributions to M+2 are kept — they matter for
++/// glycans, whose oxygen fraction is roughly twice a peptide's.
++///
++/// Empty when `n_isotopes == 0`. A formula with no atoms returns a pure
++/// monoisotope (`[1, 0, 0, ...]`).
++pub fn isotope_envelope_from_formula(
++    c: u32,
++    h: u32,
++    n: u32,
++    o: u32,
++    s: u32,
++    n_isotopes: usize,
++) -> Vec<f64> {
++    if n_isotopes == 0 {
++        return Vec::new();
++    }
++    let mut env = vec![0.0f64; n_isotopes];
++    env[0] = 1.0;
++    let mut scratch = vec![0.0f64; n_isotopes];
++    for (ladder, count) in [(C_ISO, c), (H_ISO, h), (N_ISO, n), (O_ISO, o), (S_ISO, s)] {
++        for _ in 0..count {
++            scratch.iter_mut().for_each(|v| *v = 0.0);
++            for (i, &e) in env.iter().enumerate() {
++                if e == 0.0 {
++                    continue;
++                }
++                for (k, &a) in ladder.iter().enumerate() {
++                    if i + k >= n_isotopes {
++                        break;
++                    }
++                    scratch[i + k] += e * a;
++                }
++            }
++            std::mem::swap(&mut env, &mut scratch);
++        }
++    }
++    let sum: f64 = env.iter().sum();
++    if sum > 0.0 {
++        for v in &mut env {
++            *v /= sum;
++        }
++    }
++    env
++}
++
++/// Approximate elemental formula of an N-glycopeptide of neutral mass `mass`
++/// (Da), as (C, H, N, O, S) atom counts.
++///
++/// A glycopeptide is not averagine: the glycan half carries ~14% fewer
++/// carbons per Da and about twice the oxygen, so the peptide averagine
++/// (`averagine_isotope_envelope`) overstates M+1 and understates the O18
++/// share of M+2. This blends the peptide averagine residue
++/// (C4.9384 H7.7583 N1.3577 O1.4773 S0.0417 per 111.1254 Da) with an
++/// average complex N-glycan (HexNAc4 Hex5 Fuc1 NeuAc1 = C79 H129 N5 O57 per
++/// 2059.73 Da) at equal mass share — the typical split for a tryptic
++/// N-glycopeptide in the 2.5–5 kDa range where the precursor
++/// mono-correction operates. Counts are rounded to whole atoms.
++pub fn glycopeptide_formula(mass: f64) -> (u32, u32, u32, u32, u32) {
++    // Per-Da atom densities of the two halves.
++    const PEP: [f64; 5] = [
++        4.9384 / 111.1254,
++        7.7583 / 111.1254,
++        1.3577 / 111.1254,
++        1.4773 / 111.1254,
++        0.0417 / 111.1254,
++    ];
++    const GLY: [f64; 5] = [
++        79.0 / 2059.73,
++        129.0 / 2059.73,
++        5.0 / 2059.73,
++        57.0 / 2059.73,
++        0.0,
++    ];
++    const GLYCAN_MASS_SHARE: f64 = 0.5;
++    let m = mass.max(0.0);
++    let at = |i: usize| -> u32 {
++        (m * (PEP[i] * (1.0 - GLYCAN_MASS_SHARE) + GLY[i] * GLYCAN_MASS_SHARE)).round() as u32
++    };
++    (at(0), at(1), at(2), at(3), at(4))
++}
++
++/// Theoretical precursor isotope envelope of an N-glycopeptide of neutral
++/// mass `mass`, first `n_isotopes` peaks normalised to sum 1.0. See
++/// [`glycopeptide_formula`] for the element model.
++pub fn glycopeptide_isotope_envelope(mass: f64, n_isotopes: usize) -> Vec<f64> {
++    let (c, h, n, o, s) = glycopeptide_formula(mass);
++    isotope_envelope_from_formula(c, h, n, o, s, n_isotopes)
++}
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+@@ -80,4 +182,55 @@ mod tests {
+             "single-isotope envelope is all monoisotope"
+         );
+     }
++
++    #[test]
++    fn formula_envelope_is_normalized_and_matches_known_shape() {
++        // Bovine insulin-like size check is overkill; use a peptide of known
++        // formula: angiotensin II DRVYIHPF = C50 H71 N13 O12, M0 1045.53.
++        // First-order expectation: M+1/M0 ~ 50*0.0107 + 13*0.00364 + 71*0.000115
++        // + 12*0.00038 = 0.60; M+2/M0 ~ 0.20 (13C pairs + O18).
++        let env = isotope_envelope_from_formula(50, 71, 13, 12, 0, 5);
++        let sum: f64 = env.iter().sum();
++        assert!((sum - 1.0).abs() < 1e-9, "sum {sum}");
++        let r1 = env[1] / env[0];
++        let r2 = env[2] / env[0];
++        assert!((r1 - 0.60).abs() < 0.02, "M+1/M0 {r1}");
++        assert!((r2 - 0.20).abs() < 0.02, "M+2/M0 {r2}");
++    }
++
++    #[test]
++    fn formula_envelope_degenerate_inputs() {
++        assert!(isotope_envelope_from_formula(10, 10, 1, 1, 0, 0).is_empty());
++        let none = isotope_envelope_from_formula(0, 0, 0, 0, 0, 3);
++        assert_eq!(none, vec![1.0, 0.0, 0.0]);
++    }
++
++    #[test]
++    fn glycopeptide_envelope_has_fewer_carbons_than_averagine() {
++        // Same mass, same convolution: the glycopeptide model must put LESS
++        // weight on M+1 relative to M0 than an all-peptide averagine formula
++        // (fewer carbons and far less nitrogen per Da).
++        let m = 3500.0;
++        let g = glycopeptide_isotope_envelope(m, 6);
++        let pep = |d: f64| (m * d / 111.1254).round() as u32;
++        let a = isotope_envelope_from_formula(
++            pep(4.9384),
++            pep(7.7583),
++            pep(1.3577),
++            pep(1.4773),
++            pep(0.0417),
++            6,
++        );
++        assert!(
++            g[1] / g[0] < a[1] / a[0],
++            "glyco M+1/M0 {} should be below peptide {}",
++            g[1] / g[0],
++            a[1] / a[0]
++        );
++        let (c, h, n, o, s) = glycopeptide_formula(m);
++        assert!(
++            c > 100 && h > 200 && n > 10 && o > 50 && s <= 2,
++            "{c} {h} {n} {o} {s}"
++        );
++    }
+ }
+diff --git a/crates/output/src/glyco_pin.rs b/crates/output/src/glyco_pin.rs
+index bb2b049..53e1e9c 100644
+--- a/crates/output/src/glyco_pin.rs
++++ b/crates/output/src/glyco_pin.rs
+@@ -31,6 +31,16 @@ use crate::percolator_enz::{count_internal_enzymatic, is_enzymatic_boundary};
+ use crate::pin::{psm_feature_values, FeatureFmt};
+ use crate::row_context::RowContext;
+ use search::glyco_search::{FullGlycoPsm, GlycoSpectrumResult};
++use search::precursor_mono::MonoCorrection;
++
++/// `--precursor-mono` columns, appended after `IsobaricRTMargin` and only when
++/// the run carried MS1 envelope corrections (the flag off keeps the schema).
++/// `MonoShift`: isotopes subtracted from the recorded precursor before the
++/// search (0 = as recorded); `MonoFit`: cosine of the observed MS1 envelope
++/// against the glycopeptide isotope model at the SEARCHED precursor;
++/// `MonoFitGain`: `MonoFit` minus the fit at the recorded precursor (0 when
++/// unshifted); `MonoSNR`: searched monoisotope intensity over the MS1 median.
++pub const GLYCO_PIN_MONO_COLS: [&str; 4] = ["MonoShift", "MonoFit", "MonoFitGain", "MonoSNR"];
+ 
+ // ── header ────────────────────────────────────────────────────────────────────
+ 
+@@ -39,6 +49,7 @@ fn write_glyco_header<W: Write>(
+     min_charge: u8,
+     max_charge: u8,
+     curated: bool,
++    mono: bool,
+ ) -> io::Result<()> {
+     let mut cols: Vec<String> = vec![
+         "SpecId".to_string(),
+@@ -152,6 +163,14 @@ fn write_glyco_header<W: Write>(
+     // Apply the column policy LAST, so header and row writer share one source
+     // of truth (`glyco_col_kept`) and cannot drift positionally.
+     cols.retain(|c| glyco_col_kept(c, curated));
++    if mono {
++        // Present only under `--precursor-mono`, in both policies (they are
++        // never structurally dead there: MonoFit varies on every row).
++        let at = cols.len() - 2; // before Peptide/Proteins
++        for (i, c) in GLYCO_PIN_MONO_COLS.iter().enumerate() {
++            cols.insert(at + i, c.to_string());
++        }
++    }
+     writeln!(writer, "{}", cols.join("\t"))
+ }
+ 
+@@ -172,6 +191,9 @@ fn write_glyco_psm_row<W: Write>(
+     params: &SearchParams,
+     // All of THIS scan's candidate hits (for the within-scan DeltaRTRank).
+     scan_hits: &[FullGlycoPsm],
++    // `Some(..)` when the run carried `--precursor-mono` (outer), and the
++    // scan's own correction when it had a linked MS1 (inner).
++    mono: Option<Option<&MonoCorrection>>,
+ ) -> io::Result<()> {
+     let psm = &hit.psm;
+     let key = &hit.glycan_key;
+@@ -334,6 +356,25 @@ fn write_glyco_psm_row<W: Write>(
+     // row shares its paired target's psm, so it inherits the same value.
+     write_double_tab(writer, psm.features.isobaric_rt_margin as f64)?;
+ 
++    // `--precursor-mono` columns (see `GLYCO_PIN_MONO_COLS`). A scan without a
++    // linked MS1 writes the neutral row (0, 0, 0, 0).
++    if let Some(m) = mono {
++        match m {
++            Some(c) => {
++                write!(writer, "\t{}", c.shift)?;
++                write_double_tab(writer, c.fit_searched() as f64)?;
++                let gain = if c.applied() {
++                    c.fit_best - c.fit_recorded
++                } else {
++                    0.0
++                };
++                write_double_tab(writer, gain as f64)?;
++                write_double_tab(writer, c.snr as f64)?;
++            }
++            None => write!(writer, "\t0\t0\t0\t0")?,
++        }
++    }
++
+     // Peptide column: backbone sequence + optional glycan tag.
+     //
+     // The tag carries the glycosite as `@N<pos>` (1-based position of the sequon
+@@ -495,7 +536,7 @@ pub fn write_glyco_header_for_test<W: Write>(
+     max_charge: u8,
+     curated: bool,
+ ) -> io::Result<()> {
+-    write_glyco_header(writer, min_charge, max_charge, curated)
++    write_glyco_header(writer, min_charge, max_charge, curated, false)
+ }
+ 
+ #[allow(clippy::too_many_arguments)]
+@@ -508,6 +549,7 @@ pub fn write_glyco_pin(
+     params: &SearchParams,
+     search_index: &SearchIndex,
+     debug: bool,
++    mono: Option<&[Option<MonoCorrection>]>,
+ ) -> io::Result<()> {
+     let file = std::fs::File::create(path)?;
+     let mut writer = BufWriter::new(file);
+@@ -520,6 +562,7 @@ pub fn write_glyco_pin(
+         params,
+         search_index,
+         debug,
++        mono,
+     )
+ }
+ 
+@@ -652,11 +695,13 @@ pub fn write_glyco_pin_to<W: Write>(
+     params: &SearchParams,
+     search_index: &SearchIndex,
+     debug: bool,
++    // `--precursor-mono` corrections aligned with `spectra`; `None` = flag off.
++    mono: Option<&[Option<MonoCorrection>]>,
+ ) -> io::Result<()> {
+     let min_charge = *params.charge_range.start();
+     let max_charge = *params.charge_range.end();
+ 
+-    write_glyco_header(writer, min_charge, max_charge, curated)?;
++    write_glyco_header(writer, min_charge, max_charge, curated, mono.is_some())?;
+ 
+     // Top-1-per-scan collapse + enumerated-only is the honest default (see
+     // `select_emitted_hits`). `--debug-glyco` restores the full multi-row / de-novo
+@@ -692,6 +737,7 @@ pub fn write_glyco_pin_to<W: Write>(
+                 search_index,
+                 params,
+                 &result.hits,
++                mono.map(|m| m.get(spec_idx).and_then(|c| c.as_ref())),
+             )?;
+             row_count += 1;
+         }
+@@ -866,13 +912,33 @@ mod tests {
+         assert!(glycan_tag_with_site(&g, b"AANLTK").starts_with("[HexNAc2Hex5Fuc0NeuAc0NeuGc0"));
+     }
+ 
++    #[test]
++    fn mono_columns_appear_only_when_requested_and_sit_before_peptide() {
++        for curated in [false, true] {
++            let mut off = Vec::new();
++            write_glyco_header(&mut off, 2, 4, curated, false).unwrap();
++            let off = String::from_utf8(off).unwrap();
++            assert!(
++                GLYCO_PIN_MONO_COLS.iter().all(|c| !off.contains(c)),
++                "no Mono columns without --precursor-mono (curated={curated}): {off}"
++            );
++            let mut on = Vec::new();
++            write_glyco_header(&mut on, 2, 4, curated, true).unwrap();
++            let on = String::from_utf8(on).unwrap();
++            let cols: Vec<&str> = on.trim_end().split('\t').collect();
++            let pep = cols.iter().position(|c| *c == "Peptide").unwrap();
++            assert_eq!(&cols[pep - 4..pep], &GLYCO_PIN_MONO_COLS[..]);
++            assert_eq!(cols.len(), off.trim_end().split('\t').count() + 4);
++        }
++    }
++
+     #[test]
+     fn glyco_pin_header_contains_glyco_columns() {
+         // Build a tiny result and write to a Vec<u8>.
+         // We can't call write_glyco_pin_to without real candidates + index,
+         // so we test the header directly.
+         let mut buf = Vec::new();
+-        write_glyco_header(&mut buf, 2, 4, false).unwrap();
++        write_glyco_header(&mut buf, 2, 4, false, false).unwrap();
+         let header = String::from_utf8(buf).unwrap();
+         assert!(
+             header.contains("OxoniumScore"),
+@@ -896,7 +962,7 @@ mod tests {
+     #[test]
+     fn glyco_pin_header_deltartrank_is_last_before_peptide() {
+         let mut buf = Vec::new();
+-        write_glyco_header(&mut buf, 2, 4, false).unwrap();
++        write_glyco_header(&mut buf, 2, 4, false, false).unwrap();
+         let header = String::from_utf8(buf).unwrap();
+         let cols: Vec<&str> = header.trim().split('\t').collect();
+         let pos = |c: &str| cols.iter().position(|&h| h == c).unwrap();
+@@ -925,7 +991,7 @@ mod tests {
+     #[test]
+     fn glyco_pin_header_glyco_columns_before_peptide() {
+         let mut buf = Vec::new();
+-        write_glyco_header(&mut buf, 2, 3, false).unwrap();
++        write_glyco_header(&mut buf, 2, 3, false, false).unwrap();
+         let header = String::from_utf8(buf).unwrap();
+         let cols: Vec<&str> = header.trim().split('\t').collect();
+         let glycan_pos = cols.iter().position(|&c| c == "GlycanMass").unwrap();
+@@ -1038,6 +1104,7 @@ mod tests {
+             score_mode: search::ScoreMode::Rank,
+             refine_select_psm_fdr: 0.01,
+             candidate_index: search::CandidateIndexMode::Ram,
++            require_nxst_sequon: false,
+         }
+     }
+ 
+@@ -1107,6 +1174,7 @@ mod tests {
+             &params,
+             &search_index,
+             false,
++            None,
+         )
+         .expect("write_glyco_pin_to must succeed");
+         let text = String::from_utf8(buf).unwrap();
+@@ -1334,6 +1402,7 @@ mod tests {
+                 &params,
+                 &search_index,
+                 false,
++                None,
+             )
+             .expect("write must succeed");
+             let text = String::from_utf8(buf).unwrap();
+diff --git a/crates/output/src/pin.rs b/crates/output/src/pin.rs
+index 0eca9bb..a975ad4 100644
+--- a/crates/output/src/pin.rs
++++ b/crates/output/src/pin.rs
+@@ -977,6 +977,7 @@ mod tests {
+             score_mode: search::ScoreMode::Rank,
+             refine_select_psm_fdr: 0.01,
+             candidate_index: search::CandidateIndexMode::Ram,
++            require_nxst_sequon: false,
+         }
+     }
+ 
+diff --git a/crates/output/src/tsv.rs b/crates/output/src/tsv.rs
+index 6c2bfc0..3f06dc5 100644
+--- a/crates/output/src/tsv.rs
++++ b/crates/output/src/tsv.rs
+@@ -410,6 +410,7 @@ mod tests {
+             score_mode: search::ScoreMode::Rank,
+             refine_select_psm_fdr: 0.01,
+             candidate_index: search::CandidateIndexMode::Ram,
++            require_nxst_sequon: false,
+         }
+     }
+ 
+diff --git a/crates/search/src/candidate_gen.rs b/crates/search/src/candidate_gen.rs
+index 6455acd..ff08adb 100644
+--- a/crates/search/src/candidate_gen.rs
++++ b/crates/search/src/candidate_gen.rs
+@@ -49,6 +49,7 @@ pub fn enumerate_candidates<'a>(
+     // accession merely starting with the bare prefix is NOT a decoy); the suffix
+     // form recognizes externally-built decoys (e.g. quantms "<orig>_rev").
+     let suffix = idx.decoy_suffix.clone();
++    let require_sequon = params.require_nxst_sequon;
+     idx.db
+         .proteins
+         .iter()
+@@ -58,6 +59,17 @@ pub fn enumerate_candidates<'a>(
+                 is_decoy_accession_affix(&protein.accession, decoy_prefix, suffix.as_deref());
+             enumerate_protein(protein, p_idx, is_decoy, params).into_iter()
+         })
++        .filter(move |c| !require_sequon || candidate_has_nxst_sequon(c))
++}
++
++/// The glyco path's sequon membership test (`glyco_search::GlycoCtxOwned::build`):
++/// an internal N-X-S/T, or one completed by the residue after the peptide.
++/// Kept in one place so `SearchParams::require_nxst_sequon` can never admit a
++/// different candidate set than the scorer would use.
++pub fn candidate_has_nxst_sequon(c: &Candidate) -> bool {
++    use andes_glyco::sequon::{boundary_nxst_site, has_nxst_sequon};
++    let res: Vec<u8> = c.peptide.residues.iter().map(|aa| aa.residue).collect();
++    has_nxst_sequon(&res) || boundary_nxst_site(&res, c.peptide.post).is_some()
+ }
+ 
+ fn enumerate_protein(
+diff --git a/crates/search/src/glyco_search.rs b/crates/search/src/glyco_search.rs
+index 22b3735..75d267c 100644
+--- a/crates/search/src/glyco_search.rs
++++ b/crates/search/src/glyco_search.rs
+@@ -190,7 +190,7 @@ use andes_glyco::hybrid::{
+     hybrid_candidates_presolved, solve_backbones_for_charge, BackboneHit, Source,
+ };
+ use andes_glyco::oxonium::{oxonium_gate, sialic_consistency, OXONIUM_GATE_MIN_FRAC};
+-use andes_glyco::sequon::{boundary_nxst_site, has_nxst_sequon};
++use andes_glyco::sequon::has_nxst_sequon;
+ 
+ use crate::glyco_fragment_index::FragmentIndex;
+ 
+@@ -804,9 +804,12 @@ impl GlycoCtxOwned {
+         let sequon_membership: Vec<bool> = candidates
+             .iter()
+             .map(|c| {
+-                let res: Vec<u8> = c.peptide.residues.iter().map(|aa| aa.residue).collect();
+-                has_nxst_sequon(&res)
+-                    || (sequon_boundary_on && boundary_nxst_site(&res, c.peptide.post).is_some())
++                if sequon_boundary_on {
++                    crate::candidate_gen::candidate_has_nxst_sequon(c)
++                } else {
++                    let res: Vec<u8> = c.peptide.residues.iter().map(|aa| aa.residue).collect();
++                    has_nxst_sequon(&res)
++                }
+             })
+             .collect();
+         // CHARGE-AWARE peptide-first index (--glyco-pf-charge): index b/y at charges
+diff --git a/crates/search/src/lib.rs b/crates/search/src/lib.rs
+index e22890f..93efaec 100644
+--- a/crates/search/src/lib.rs
++++ b/crates/search/src/lib.rs
+@@ -16,6 +16,7 @@ pub mod mass_calibrator;
+ pub mod match_engine;
+ pub mod precursor_cal;
+ pub mod precursor_matching;
++pub mod precursor_mono;
+ pub mod psm;
+ pub mod refine_config;
+ pub mod refinement;
+diff --git a/crates/search/src/mass_calibrator.rs b/crates/search/src/mass_calibrator.rs
+index ff0e9fd..4e134da 100644
+--- a/crates/search/src/mass_calibrator.rs
++++ b/crates/search/src/mass_calibrator.rs
+@@ -465,6 +465,7 @@ mod tests {
+             score_mode: crate::search_params::ScoreMode::Rank,
+             refine_select_psm_fdr: 0.01,
+             candidate_index: crate::search_params::CandidateIndexMode::Ram,
++            require_nxst_sequon: false,
+         }
+     }
+ 
+diff --git a/crates/search/src/precursor_mono.rs b/crates/search/src/precursor_mono.rs
+new file mode 100644
+index 0000000..b11a23b
+--- /dev/null
++++ b/crates/search/src/precursor_mono.rs
+@@ -0,0 +1,435 @@
++//! MS1 isotope-envelope precursor correction (`--precursor-mono`).
++//!
++//! WHY. On pGlyco2 mouse liver (`MouseLiver-Z-T-1`), 84 of the 515 reference
++//! spectra andes misses have the true backbone in the candidate set, but the
++//! precursor m/z the instrument recorded sits 3–6 Da (70 of them exactly
++//! +4.01 Da) ABOVE the glycopeptide's monoisotopic mass: the firmware's
++//! monoisotopic-peak pick failed on a wide, high-mass envelope and the scan
++//! was recorded on an M+3..M+6 isotopologue. Widening `--isotope-error` to
++//! reach them is not a fix — every extra offset `k` is mass-degenerate with a
++//! glycan-composition change (`(k, X)` ≡ `(k−1, X + Hex + Fuc − NeuGc)` within
++//! 20 ppm), so the search fills the largest allowed offset with hundreds of
++//! PSMs whose composition is arbitrary (bigbio/andes#64, arms C and D).
++//!
++//! WHAT. For each MS2, read the preceding MS1, and score the observed isotope
++//! envelope at the reported charge against the theoretical glycopeptide
++//! envelope under every hypothesis "the recorded precursor is the M+k peak",
++//! `k = 0..=max_shift`. If a `k > 0` hypothesis fits clearly better than the
++//! recorded one, move the precursor m/z down by `k` isotopes and search it
++//! with the DEFAULT narrow window. Nothing is widened.
++//!
++//! HOW THE FIT WORKS. Under hypothesis `k` the monoisotope sits at
++//! `mz − k·ISO/z`; the observed vector is the max MS1 intensity within
++//! tolerance of `mono + i·ISO/z` for `i = −1..n`, and the theoretical vector
++//! is `[0, t_0, …, t_{n−1}]` from [`model::isotope::glycopeptide_isotope_envelope`].
++//! The fit is their cosine. Two properties make it discriminative between
++//! neighbouring `k` (which a KL on the observed distribution is not):
++//!
++//! * the `i = −1` slot, whose theoretical intensity is 0, penalises a
++//!   hypothesis that leaves a real peak one isotope BELOW its monoisotope —
++//!   exactly what the recorded (`k = 0`) hypothesis does on a mis-picked scan;
++//! * a missing peak where theory expects one lowers the cosine, so a
++//!   hypothesis whose monoisotope is not observed at all cannot win.
++//!
++//! WHEN IT APPLIES. A shift is applied only when the best `k > 0` clears an
++//! absolute fit floor, beats the recorded hypothesis by a margin, and its
++//! monoisotope is above the MS1 noise floor ([`MonoParams`]). Otherwise the
++//! precursor is left as recorded, and with no MS1 (MGF, MS2-only mzML) or the
++//! flag off nothing in the run changes.
++//!
++//! BACK-OFF BY ONE. Neighbouring hypotheses differ by one smooth step of a
++//! wide envelope, so `k` versus `k−1` is the one confusion the fit cannot
++//! always settle (synthetic z=3, 3.5 kDa: 1.00 vs 0.87). The search still
++//! sweeps `--isotope-error 0..2` from the corrected mass, so an UNDERSHOOT by
++//! one costs nothing while an OVERSHOOT by one puts the true mass out of
++//! reach. The applied shift is therefore `best_k − backoff` (default 1): a
++//! scan recorded on M+4 is searched from M+3 and the sweep's `+1` lands it,
++//! and a scan the fit reads as M+1 is left alone — the sweep already covers
++//! it. `MonoShift` in the PIN is the applied shift; the effective offset of a
++//! PSM is `MonoShift + isotope_error`.
++
++use model::isotope::glycopeptide_isotope_envelope;
++use model::mass::{ISOTOPE, PROTON};
++
++/// Tunables for [`correct_precursor`]. Defaults are what `--precursor-mono
++/// auto` ships; every field has a hidden CLI override.
++#[derive(Debug, Clone, Copy, PartialEq)]
++pub struct MonoParams {
++    /// Largest number of isotopes the recorded precursor may be moved DOWN by.
++    /// The pGlyco2 liver misses reach +6 (bigbio/andes#64 test set).
++    pub max_shift: u8,
++    /// MS1 peak-matching tolerance, ppm of the target m/z.
++    pub tol_ppm: f64,
++    /// Floor on the matching tolerance in Da (low m/z).
++    pub tol_min_da: f64,
++    /// Minimum cosine fit of the winning shifted hypothesis.
++    pub min_fit: f32,
++    /// Minimum cosine improvement of the winning shifted hypothesis over the
++    /// recorded (`k = 0`) hypothesis.
++    pub min_gain: f32,
++    /// Minimum monoisotope intensity of the winning hypothesis, in units of
++    /// the MS1 median non-zero intensity.
++    pub min_snr: f32,
++    /// Longest theoretical envelope considered.
++    pub max_isotopes: usize,
++    /// Isotopes held back from the best-fitting shift when applying it (see
++    /// the module doc). 0 applies the best fit verbatim.
++    pub backoff: u8,
++}
++
++impl Default for MonoParams {
++    fn default() -> Self {
++        Self {
++            max_shift: 6,
++            tol_ppm: 10.0,
++            tol_min_da: 0.005,
++            min_fit: 0.90,
++            min_gain: 0.15,
++            min_snr: 3.0,
++            max_isotopes: 10,
++            backoff: 1,
++        }
++    }
++}
++
++/// Outcome of [`correct_precursor`] for one MS2. `shift == 0` means the
++/// precursor was left as recorded (the diagnostic fields still describe the
++/// envelope at the recorded m/z).
++#[derive(Debug, Clone, PartialEq)]
++pub struct MonoCorrection {
++    /// Precursor m/z as recorded by the instrument.
++    pub recorded_mz: f64,
++    /// Precursor m/z to search: `recorded_mz − shift · ISO / charge`.
++    pub corrected_mz: f64,
++    pub charge: u8,
++    /// Isotopes subtracted from the recorded precursor (0 = unchanged). This
++    /// is `best_shift − backoff` when the correction was accepted.
++    pub shift: i8,
++    /// Best-fitting `k` in `0..=max_shift` whether or not it was applied.
++    pub best_shift: i8,
++    /// Cosine fit of the recorded hypothesis (`k = 0`).
++    pub fit_recorded: f32,
++    /// Cosine fit of `best_shift`.
++    pub fit_best: f32,
++    /// Cosine fit of the "monoisotope one isotope ABOVE the recorded peak"
++    /// hypothesis (`k = −1`). Diagnostic only, never applied: the firmware
++    /// mis-picks only ever too high.
++    pub fit_up: f32,
++    /// Monoisotope intensity of the SEARCHED hypothesis over the MS1 median
++    /// non-zero intensity.
++    pub snr: f32,
++    /// Number of theoretical isotopes fitted.
++    pub n_iso: u8,
++    /// Cosine fit per `k` in `0..=max_shift` (diagnostic dump).
++    pub fits: Vec<f32>,
++}
++
++impl MonoCorrection {
++    pub fn applied(&self) -> bool {
++        self.shift != 0
++    }
++    /// Fit of the hypothesis the search actually uses.
++    pub fn fit_searched(&self) -> f32 {
++        if self.applied() {
++            self.fit_best
++        } else {
++            self.fit_recorded
++        }
++    }
++}
++
++/// Number of isotopes to fit for a theoretical envelope: enough to cover
++/// 98.5% of the distribution, at least 4, at most `max`.
++fn envelope_length(theo: &[f64], max: usize) -> usize {
++    let mut cum = 0.0;
++    for (i, &t) in theo.iter().enumerate() {
++        cum += t;
++        if cum >= 0.985 {
++            return (i + 1).clamp(4, max);
++        }
++    }
++    theo.len().clamp(1, max)
++}
++
++/// Max MS1 intensity within `tol` of `target` (0.0 if none). `ms1` is
++/// m/z-ascending.
++fn peak_at(ms1: &[(f64, f32)], target: f64, tol: f64) -> f32 {
++    let lo = target - tol;
++    let hi = target + tol;
++    let start = ms1.partition_point(|&(mz, _)| mz < lo);
++    let mut best = 0.0f32;
++    for &(mz, inten) in &ms1[start..] {
++        if mz > hi {
++            break;
++        }
++        if inten > best {
++            best = inten;
++        }
++    }
++    best
++}
++
++/// Cosine fit of the observed MS1 envelope with its monoisotope at `mono_mz`
++/// against the theoretical glycopeptide envelope. Returns
++/// `(fit, mono_intensity, n_iso)`; `fit` is 0.0 when nothing is observed at
++/// any position.
++pub fn envelope_fit(
++    ms1: &[(f64, f32)],
++    mono_mz: f64,
++    charge: u8,
++    params: &MonoParams,
++) -> (f32, f32, usize) {
++    let z = charge as f64;
++    let neutral = (mono_mz - PROTON) * z;
++    if neutral <= 0.0 {
++        return (0.0, 0.0, 0);
++    }
++    let theo_full = glycopeptide_isotope_envelope(neutral, params.max_isotopes.max(1));
++    let n = envelope_length(&theo_full, params.max_isotopes.max(1));
++    let spacing = ISOTOPE / z;
++
++    // Slot 0 is the i = −1 position (theory 0), slots 1..=n are M+0..M+(n−1).
++    let mut dot = 0.0f64;
++    let mut o2 = 0.0f64;
++    let mut t2 = 0.0f64;
++    let mut mono_intensity = 0.0f32;
++    for i in -1..(n as i32) {
++        let target = mono_mz + (i as f64) * spacing;
++        let tol = (target * params.tol_ppm * 1e-6).max(params.tol_min_da);
++        let obs = peak_at(ms1, target, tol) as f64;
++        let theo = if i < 0 { 0.0 } else { theo_full[i as usize] };
++        if i == 0 {
++            mono_intensity = obs as f32;
++        }
++        dot += obs * theo;
++        o2 += obs * obs;
++        t2 += theo * theo;
++    }
++    if o2 <= 0.0 || t2 <= 0.0 {
++        return (0.0, mono_intensity, n);
++    }
++    let fit = (dot / (o2.sqrt() * t2.sqrt())).clamp(0.0, 1.0) as f32;
++    (fit, mono_intensity, n)
++}
++
++/// Median of the non-zero MS1 intensities (robust noise proxy); `None` when
++/// there are none.
++pub fn median_nonzero_intensity(ms1: &[(f64, f32)]) -> Option<f32> {
++    let mut nz: Vec<f32> = ms1.iter().map(|&(_, i)| i).filter(|&i| i > 0.0).collect();
++    if nz.is_empty() {
++        return None;
++    }
++    let mid = nz.len() / 2;
++    let (_, m, _) = nz.select_nth_unstable_by(mid, |a, b| a.total_cmp(b));
++    let m = *m;
++    if nz.len() % 2 == 1 {
++        Some(m)
++    } else {
++        let (_, lo, _) = nz.select_nth_unstable_by(mid - 1, |a, b| a.total_cmp(b));
++        Some(0.5 * (*lo + m))
++    }
++}
++
++/// Decide whether the recorded precursor `mz` (charge `charge`) of an MS2 is
++/// a higher isotopologue of its glycopeptide, from the preceding MS1 `ms1`
++/// (m/z-ascending peaks). `median_noise` is
++/// [`median_nonzero_intensity`] of that MS1 (computed once per MS1 by the
++/// caller; `None` disables the SNR gate).
++///
++/// Returns `None` when there is nothing to fit (empty MS1, unknown charge,
++/// non-positive m/z); otherwise a [`MonoCorrection`] whose `shift` is 0 when
++/// the precursor is kept as recorded.
++pub fn correct_precursor(
++    ms1: &[(f64, f32)],
++    mz: f64,
++    charge: u8,
++    median_noise: Option<f32>,
++    params: &MonoParams,
++) -> Option<MonoCorrection> {
++    if ms1.is_empty() || charge == 0 || mz.is_nan() || mz <= 0.0 {
++        return None;
++    }
++    let spacing = ISOTOPE / charge as f64;
++    let max_shift = params.max_shift as i32;
++
++    let mut fits: Vec<f32> = Vec::with_capacity(max_shift as usize + 1);
++    let mut monos: Vec<f32> = Vec::with_capacity(max_shift as usize + 1);
++    let mut n_iso = 0usize;
++    for k in 0..=max_shift {
++        let mono_mz = mz - (k as f64) * spacing;
++        let (fit, mono, n) = envelope_fit(ms1, mono_mz, charge, params);
++        fits.push(fit);
++        monos.push(mono);
++        if k == 0 {
++            n_iso = n;
++        }
++    }
++    let (fit_up, _, _) = envelope_fit(ms1, mz + spacing, charge, params);
++
++    // argmax over k, the SMALLEST k taking a tie: the correction should move
++    // a precursor no further than the envelope demands.
++    let mut best_shift = 0usize;
++    for (k, &f) in fits.iter().enumerate() {
++        if f > fits[best_shift] {
++            best_shift = k;
++        }
++    }
++    let snr_of = |k: usize| -> f32 {
++        match median_noise {
++            Some(med) if med > 0.0 => monos[k] / med,
++            _ => f32::INFINITY,
++        }
++    };
++    let apply = best_shift > 0
++        && fits[best_shift] >= params.min_fit
++        && fits[best_shift] - fits[0] >= params.min_gain
++        && snr_of(best_shift) >= params.min_snr;
++    let shift = if apply {
++        best_shift.saturating_sub(params.backoff as usize)
++    } else {
++        0
++    };
++    let snr = {
++        let v = snr_of(shift);
++        if v.is_finite() {
++            v
++        } else {
++            0.0
++        }
++    };
++    Some(MonoCorrection {
++        recorded_mz: mz,
++        corrected_mz: mz - (shift as f64) * spacing,
++        charge,
++        shift: shift as i8,
++        best_shift: best_shift as i8,
++        fit_recorded: fits[0],
++        fit_best: fits[best_shift],
++        fit_up,
++        snr,
++        n_iso: n_iso as u8,
++        fits,
++    })
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// An MS1 carrying one glycopeptide envelope with its monoisotope at
++    /// `mono_mz`, on a floor of `noise` peaks away from it.
++    fn synth_ms1(mono_mz: f64, charge: u8, n: usize, scale: f32, noise: f32) -> Vec<(f64, f32)> {
++        let neutral = (mono_mz - PROTON) * charge as f64;
++        let env = glycopeptide_isotope_envelope(neutral, n);
++        let spacing = ISOTOPE / charge as f64;
++        let mut peaks: Vec<(f64, f32)> = (0..40)
++            .map(|i| (mono_mz - 60.0 + i as f64 * 1.37, noise))
++            .collect();
++        for (k, &e) in env.iter().enumerate() {
++            peaks.push((mono_mz + k as f64 * spacing, scale * e as f32));
++        }
++        peaks.sort_by(|a, b| a.0.total_cmp(&b.0));
++        peaks
++    }
++
++    #[test]
++    fn recorded_monoisotope_is_left_alone() {
++        let mono = 1500.25;
++        let ms1 = synth_ms1(mono, 2, 8, 1e6, 100.0);
++        let med = median_nonzero_intensity(&ms1);
++        let c = correct_precursor(&ms1, mono, 2, med, &MonoParams::default()).unwrap();
++        assert_eq!(c.shift, 0, "{c:?}");
++        assert_eq!(c.best_shift, 0, "{c:?}");
++        assert!(c.fit_recorded > 0.99, "{c:?}");
++        assert_eq!(c.corrected_mz, mono);
++    }
++
++    #[test]
++    fn precursor_recorded_on_m_plus_4_is_moved_down_four() {
++        // A 3 kDa glycopeptide at z=2 whose scan was recorded on M+4.
++        let mono = 1500.25;
++        let ms1 = synth_ms1(mono, 2, 8, 1e6, 100.0);
++        let med = median_nonzero_intensity(&ms1);
++        let recorded = mono + 4.0 * ISOTOPE / 2.0;
++        let c = correct_precursor(&ms1, recorded, 2, med, &MonoParams::default()).unwrap();
++        assert_eq!(c.best_shift, 4, "{c:?}");
++        // Default back-off: searched from M+1, the 0..2 sweep takes the last step.
++        assert_eq!(c.shift, 3, "{c:?}");
++        assert!((c.corrected_mz - (mono + ISOTOPE / 2.0)).abs() < 1e-9);
++        assert!(c.fit_best > 0.99 && c.fit_recorded < 0.8, "{c:?}");
++        assert!(c.applied());
++        assert!(c.snr > 100.0, "{c:?}");
++        let exact = MonoParams {
++            backoff: 0,
++            ..MonoParams::default()
++        };
++        let c0 = correct_precursor(&ms1, recorded, 2, med, &exact).unwrap();
++        assert_eq!(c0.shift, 4, "{c0:?}");
++        assert!((c0.corrected_mz - mono).abs() < 1e-9);
++    }
++
++    #[test]
++    fn every_shift_from_two_to_six_is_recovered_at_z3() {
++        let mono = 1180.7;
++        let ms1 = synth_ms1(mono, 3, 10, 5e5, 50.0);
++        let med = median_nonzero_intensity(&ms1);
++        for k in 2..=6i32 {
++            let recorded = mono + k as f64 * ISOTOPE / 3.0;
++            let c = correct_precursor(&ms1, recorded, 3, med, &MonoParams::default()).unwrap();
++            assert_eq!(c.best_shift as i32, k, "k={k}: {c:?}");
++            assert_eq!(c.shift as i32, k - 1, "k={k}: {c:?}");
++        }
++        // k = 1 is the by-one ambiguity the sweep owns: the fit still names it,
++        // but nothing is applied (best 1 − backoff 1 = 0).
++        let c =
++            correct_precursor(&ms1, mono + ISOTOPE / 3.0, 3, med, &MonoParams::default()).unwrap();
++        assert_eq!(c.best_shift, 1, "{c:?}");
++        assert_eq!(c.shift, 0, "{c:?}");
++        assert!(!c.applied());
++    }
++
++    #[test]
++    fn no_envelope_near_precursor_keeps_recorded() {
++        let ms1: Vec<(f64, f32)> = (0..50).map(|i| (400.0 + i as f64 * 7.3, 1000.0)).collect();
++        let med = median_nonzero_intensity(&ms1);
++        let c = correct_precursor(&ms1, 1500.0, 2, med, &MonoParams::default()).unwrap();
++        assert_eq!(c.shift, 0);
++        assert_eq!(c.fit_recorded, 0.0);
++    }
++
++    #[test]
++    fn weak_monoisotope_below_snr_floor_is_not_applied() {
++        let mono = 1500.25;
++        // Envelope barely above a heavy noise floor: fits may look fine, but
++        // the mono peak is ~1x the median, under the default SNR gate.
++        let ms1 = synth_ms1(mono, 2, 8, 800.0, 200.0);
++        let med = median_nonzero_intensity(&ms1);
++        let recorded = mono + 4.0 * ISOTOPE / 2.0;
++        let c = correct_precursor(&ms1, recorded, 2, med, &MonoParams::default()).unwrap();
++        assert_eq!(c.best_shift, 4, "{c:?}");
++        assert_eq!(c.shift, 0, "SNR gate must hold: {c:?}");
++        let loose = MonoParams {
++            min_snr: 0.0,
++            ..MonoParams::default()
++        };
++        let c2 = correct_precursor(&ms1, recorded, 2, med, &loose).unwrap();
++        assert_eq!(c2.shift, 3, "{c2:?}");
++    }
++
++    #[test]
++    fn degenerate_inputs_return_none() {
++        let ms1 = synth_ms1(1500.25, 2, 8, 1e6, 100.0);
++        assert!(correct_precursor(&[], 1500.0, 2, None, &MonoParams::default()).is_none());
++        assert!(correct_precursor(&ms1, 1500.0, 0, None, &MonoParams::default()).is_none());
++        assert!(correct_precursor(&ms1, 0.0, 2, None, &MonoParams::default()).is_none());
++    }
++
++    #[test]
++    fn median_nonzero_ignores_zero_intensities() {
++        let ms1 = vec![(1.0, 0.0), (2.0, 5.0), (3.0, 1.0), (4.0, 3.0)];
++        assert_eq!(median_nonzero_intensity(&ms1), Some(3.0));
++        let even = vec![(1.0, 4.0), (2.0, 1.0), (3.0, 3.0), (4.0, 2.0)];
++        assert_eq!(median_nonzero_intensity(&even), Some(2.5));
++        assert_eq!(median_nonzero_intensity(&[(1.0, 0.0)]), None);
++    }
++}
+diff --git a/crates/search/src/search_params.rs b/crates/search/src/search_params.rs
+index 7b34331..cc984d7 100644
+--- a/crates/search/src/search_params.rs
++++ b/crates/search/src/search_params.rs
+@@ -117,6 +117,17 @@ pub struct SearchParams {
+     /// `--candidate-index {ram,mmap}`. Carries the user selection into
+     /// `PreparedSearch`; `Ram` leaves every code path unchanged.
+     pub candidate_index: CandidateIndexMode,
++    /// Enumerate only peptides carrying an N-X-S/T sequon (internal, or completed
++    /// by the following residue) into the candidate index. `--glyco` scoring
++    /// never consults any other candidate — the peptide-first fragment index and
++    /// the backbone→candidate loop both gate on the same sequon membership — so
++    /// on the glyco path this shrinks the in-RAM index (~10x on a mouse proteome at
++    /// 3 missed cleavages) and leaves rows, peptides and labels unchanged; a few
++    /// per-spectrum candidate-distribution features (`RawScore`,
++    /// `CandidateRankEntropy`) can move on ~0.2% of rows. Off by default;
++    /// `--glyco-index-sequon-only`.
++    /// Not for the standard peptide search, whose scoring reads every candidate.
++    pub require_nxst_sequon: bool,
+ }
+ 
+ /// Candidate-resolution backing selected by `--candidate-index`. Mirrors
+@@ -173,6 +184,7 @@ impl SearchParams {
+             score_mode: ScoreMode::Rank,
+             refine_select_psm_fdr: 0.01,
+             candidate_index: CandidateIndexMode::Ram,
++            require_nxst_sequon: false,
+         }
+     }
+ 
+diff --git a/docs/benchmarks/README.md b/docs/benchmarks/README.md
+index 1e11c00..c0e30f5 100644
+--- a/docs/benchmarks/README.md
++++ b/docs/benchmarks/README.md
+@@ -256,6 +256,96 @@ regenerated 2026-09-06 (on the previous list the corrected figure is 95.2%). Bac
+ columns — confirmed, coverage, same-scan backbone — were never affected. andes accepts 7,122
+ spectra of which roughly 3,800–4,500 are in neither reference at a measured 1.13% FDP.
+ 
++### Precursor mono-correction A/B (`--precursor-mono`, issue #64)
++
++The firmware records a class of wide, high-mass glycopeptide envelopes on an M+3..M+6
++isotopologue instead of the monoisotope. On this fraction 153 of 3,824 mass-resolvable
++pGlyco2 reference scans sit above the default `0..2` window (88 of them at exactly +4),
++and widening the window is not a fix: every extra offset is mass-degenerate with a glycan
++composition change, so arms C and D of #64 piled hundreds of arbitrary compositions onto
++the largest allowed offset. `--precursor-mono auto` instead reads the preceding MS1,
++fits the observed envelope at the reported charge against a glycopeptide isotope model
++under "the recorded precursor is M+k" (k = 0..6), and moves the precursor down by
++k−1 isotopes when a k > 0 clearly wins (the sweep's +1 takes the last step, so an
++overshoot cannot lose the true mass); the window stays `0..2`.
++
++**Measured 2026-09-07, one session, one binary, one database, one Percolator seed** (this
++commit; 4-thread, 16 GB sandbox VM; native `.raw`; Percolator 3.7.1 `--seed 42 -Y`;
++the gated NeuGc default, 852 compositions). The 16 GB host cannot hold the full
++candidate index (~27 GB, killed at the cgroup limit twice), so **both arms ran with
++`--glyco-index-sequon-only`** (3.2 M sequon-bearing candidates, 3.4 GB; peak RSS
++11.5 GB). The glyco scorer never reads a non-sequon candidate, and arm B reproduces the
++full-index quick-tier row above to within Percolator seed noise (42,108 glyco rows in
++both; 7,109 vs 7,122 glycoPSMs; 3,361 vs 3,362 pGlyco2 confirmed; 2,669 vs 2,669
++MSFragger confirmed; 96.3% vs 96.3% peptidoform agreement; 37 vs 38 entrapment hits),
++so the two arms are comparable with each other and, within seed noise, with the table
++above. Measured directly on a 1,500-protein subset (8,000 spectra, same binary): the
++sequon-only index writes the same 7,113 rows with the same peptides and labels as the
++full index; 16 rows (0.2%) differ in `RawScore`/`CandidateRankEntropy` only, and the
++flag-off binary is byte-identical to `main`.
++
++| | B: `--precursor-mono off` | **E: `--precursor-mono auto`** | #64 acceptance |
++|---|---:|---:|---|
++| search wall (4 threads) | 9,561 s | 9,730 s (+1.8%; envelope fit itself is ~20 s) | — |
++| MS2 shifted before search | 0 | **447 of 45,905** (shift 1:106 2:37 3:202 4:74 5:28) | — |
++| glycoPSMs @1% | 7,109 | **7,225** (+116) | — |
++| **true FDP** (1:1 database) | 1.10% (37 hits; CI 0.78–1.52%) | **0.91%** (31 hits; CI 0.62–1.29%) | inside B's CI ✔ |
++| pGlyco2 confirmed (3,877) | 3,361 (86.7%) | **3,444 (88.8%)** | ≥ 3,386 ✔ |
++| reference spectra gained / lost vs B | — | **+89 / −6** (all 6 lost are FDR-rejected, right answer emitted) | fewer than arm D's 64 flips ✔ |
++| MSFragger confirmed (3,040) | 2,669 (87.8%) | **2,746 (90.3%)** | — |
++| same-scan peptidoform agreement vs pGlyco2 / MSFragger | 96.3% / 95.7% | **96.8% / 95.9%** | ≥ 96.3% ✔ |
++| the 84 target spectra | 0 confirmed (46 wrong target, 38 decoy) | **69 confirmed**, 5 FDR-rejected, 6 wrong target, 4 decoy | — |
++| the 62 targets at +4 | 0 | **55 confirmed** + 4 FDR-rejected (59 emitted right) | ≥ 58 confirmed: **55**, short by 3 |
++| accepted PSMs by effective offset (shift + `isotope_error`) | +0 5,332 · +1 1,347 · +2 430 | +0 5,325 · +1 1,337 · +2 402 · **+3 16 · +4 80 · +5 50 · +6 15** | no pile-up at the largest offset ✔ |
++| HexNAc3 share at +0 / at the corrected tiers | 5.4% / — | 5.5% / **1.2% at +4, 0% at +5 and +6** (arm D: 79% at +4) | matches the offset-0 population ✔ |
++| reference coverage of the corrected tiers | — | +4: 71 of 80 in pGlyco2 (89%); +5: 15 of 50; +6: 4 of 15; **0 entrapment hits** in all of +3..+6 | — |
++
++**What the +4 tier is.** 80 accepted PSMs, 71 of them pGlyco2 reference spectra and 47
++MSFragger's, no entrapment hit, 1.2% HexNAc3 — the real firmware-failure population, not
++the offset-0 population shifted. The +5 and +6 tiers are small (50 and 15) and clean
++(0 entrapment, 0% HexNAc3). There is no pile-up: the largest allowed shift carries 15
++PSMs, against 613 and 735 for arms C and D.
++
++**Where it falls short.** The strict "≥ 58 of 62 at +4 confirmed" criterion lands at 55:
++four more have the right peptidoform emitted but q slightly above 1% (they are searched at
++`isotope_error = 1` because of the back-off, and a corrected scan's mass-error columns are
++computed one isotope from the searched mono), and three lose the collapse. Arms C and D
++reached 58 by widening the window, at the cost of the degenerate tiers above. The
++offline envelope fit alone reaches 85 of the 88 reference scans at +4 (below).
++
++**Offline validation of the corrector** (`--precursor-mono-dump`, 23 s for the file, no
++search). For every pGlyco2 reference scan the true offset is the integer k that makes
++recorded − (peptide + Cam-C + Ox-M + glycan) an isotope multiple. Best-fitting
++hypothesis vs true offset, 3,824 resolvable scans:
++
++| true offset | n | fit picks 0 | picks 1 | picks 2 | picks 3 | picks 4 | picks 5 | picks 6 |
++|---|---:|---:|---:|---:|---:|---:|---:|---:|
++| −1 | 30 | 25 | 3 | 2 | 0 | 0 | 0 | 0 |
++| 0 | 3,488 | 3,459 | 26 | 1 | 0 | 1 | 0 | 1 |
++| 1 | 158 | 9 | 137 | 11 | 0 | 1 | 0 | 0 |
++| 2 | 25 | 0 | 1 | 22 | 1 | 1 | 0 | 0 |
++| 3 | 10 | 2 | 0 | 0 | 7 | 1 | 0 | 0 |
++| 4 | 88 | 1 | 0 | 0 | 1 | 86 | 0 | 0 |
++| 5 | 17 | 2 | 0 | 0 | 0 | 1 | 14 | 0 |
++| 6 | 8 | 0 | 1 | 0 | 0 | 0 | 1 | 6 |
++
++With the shipped rule (fit ≥ 0.90, gain ≥ 0.15 over the recorded hypothesis, mono SNR
++≥ 3, back-off 1) the scans the `0..2` sweep can reach go from 3,671 to 3,783 (+112) with
++**one** wrong shift (a true −1 scan). Sweeping the thresholds moved this by ±4; back-off 0
++(apply the best fit verbatim) reaches 3,777 with 8 wrong shifts, which is why the default
++backs off. The 30 true −1 scans (recorded one isotope *below* the monoisotope) are
++unreachable in every arm and are not touched.
++
++**Step 1 of #64, settled.** The Thermo reader's precursor m/z equals both the isolation
++window target and the trailer `Monoisotopic M/Z` on all 45,905 MS2 of this file (probe
++over `thermorawfilereader` 0.7.0), so the trailer holds nothing the reader is not already
++using; the +4 scans are firmware picks.
++
++Reproduce: the quick-tier recipe with `--precursor-mono auto` (add
++`--glyco-index-sequon-only` on a < 32 GB host); score with `score_vs_truth.py --run
++MouseLiver-Z-T-1 --buckets ...` and read the `MonoShift` / `isotope_error` PIN columns for
++the per-offset table.
++
+ This number needs no cluster, which is the point, but two hours is a pre-merge check,
+ not an inner loop. One fraction clears Percolator's q floor here because a liver fraction
+ carries thousands of confident targets; see the floor rule below before assuming that of
+-- 
+2.43.0
+

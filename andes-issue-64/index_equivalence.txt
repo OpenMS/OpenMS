@@ -1,0 +1,10 @@
+main_full vs new_full: IDENTICAL
+new_full vs new_seq:   new_full.glyco.pin new_seq.glyco.pin differ: char 718618, line 1532
+DIFFER
+PreparedSearch: 3220596 candidates, 5728 mass buckets (candidate-index: ram)
+PreparedSearch: 374301 candidates, 5523 mass buckets (candidate-index: ram)
+    7114 main_full.glyco.pin
+    7114 new_full.glyco.pin
+    7114 new_seq.glyco.pin
+   21342 total
+equiv EXIT 0

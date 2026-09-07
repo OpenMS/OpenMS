@@ -1,0 +1,33 @@
+
+=== armE: 7225 accepted glycoPSMs @1% (Mono columns: True)
+    rows with an applied MonoShift among accepted: {1: 27, 2: 11, 3: 87, 4: 51, 5: 8}
+offset	accepted	in_pGlyco2	in_MSFragger	entrap	HexNAc3%	NeuGc>=1%
++0	5325	3169	2355	24	5.5	21.0
++1	1337	167	281	5	4.1	21.5
++2	402	27	34	2	12.4	27.4
++3	16	7	4	0	0.0	43.8
++4	80	71	47	0	1.2	16.2
++5	50	15	26	0	0.0	8.0
++6	15	4	3	0	0.0	20.0
+84-scan test set: {'CONFIRMED': 69, 'FDR_REJECTED': 5, 'WRONG_TARGET_WON': 6, 'DECOY_WON': 4}
+   issue offset +3: {'CONFIRMED': 3, 'FDR_REJECTED': 1, 'WRONG_TARGET_WON': 1}
+   issue offset +4: {'CONFIRMED': 55, 'FDR_REJECTED': 4, 'WRONG_TARGET_WON': 3}
+   issue offset +5: {'CONFIRMED': 8, 'DECOY_WON': 1}
+   issue offset +6: {'WRONG_TARGET_WON': 2, 'CONFIRMED': 3, 'DECOY_WON': 3}
+
+=== armB: 7109 accepted glycoPSMs @1% (Mono columns: False)
+offset	accepted	in_pGlyco2	in_MSFragger	entrap	HexNAc3%	NeuGc>=1%
++0	5332	3171	2357	28	5.4	21.0
++1	1347	169	282	6	4.2	21.6
++2	430	40	37	3	11.6	26.5
+84-scan test set: {'WRONG_TARGET_WON': 46, 'DECOY_WON': 38}
+   issue offset +3: {'WRONG_TARGET_WON': 3, 'DECOY_WON': 2}
+   issue offset +4: {'WRONG_TARGET_WON': 34, 'DECOY_WON': 28}
+   issue offset +5: {'DECOY_WON': 4, 'WRONG_TARGET_WON': 5}
+   issue offset +6: {'WRONG_TARGET_WON': 4, 'DECOY_WON': 4}
+
+=== armE vs armB (pGlyco2 reference)
+confirmed: 3361 -> 3444; gained 89, lost (flips) 6
+flipped scans: 5188:FDR_REJECTED, 5311:FDR_REJECTED, 5453:FDR_REJECTED, 8346:FDR_REJECTED, 13612:FDR_REJECTED, 17287:FDR_REJECTED 
+accepted scans: base 7109, arm 7225, both 7035, only arm 190, only base 74
+same-scan peptidoform agreement between arms: 7005/7035 = 99.6%
