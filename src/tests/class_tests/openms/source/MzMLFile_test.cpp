@@ -1354,7 +1354,8 @@ START_SECTION((XML metadata uses UTF-8 and a strict ASCII fast path))
   TEST_TRUE(Internal::StringManager::isASCII(u"ASCII", 5))
   TEST_FALSE(Internal::StringManager::isASCII(u"M\u00fcller", 6))
   TEST_FALSE(Internal::StringManager::isASCII(u"1234567\u00fc", 8))
-  TEST_EQUAL(Internal::StringManager::convert(u"M\u00fcller \u03b1 \U0001f9ea"), "Müller \u03b1 \U0001f9ea")
+  // UTF-8 spelled out in bytes: MSVC narrow literals follow the system code page, not UTF-8
+  TEST_EQUAL(Internal::StringManager::convert(u"M\u00fcller \u03b1 \U0001f9ea"), std::string("M\xC3\xBC" "ller \xCE\xB1 \xF0\x9F\xA7\xAA"))
 }
 END_SECTION
 
@@ -1365,7 +1366,8 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   original.setMetaValue("mzml_start_time_stamp", "2024-01-02T03:04:05.1234567Z");
   original.setMetaValue("Thermo instrument methods", "[\"method\\nsecond line\"]");
   original.getSample().setMetaValue("Thermo sample volume", 2.5);
-  original.getSample().setName("Müller & sample \u03b1 \U0001f9ea");
+  const std::string utf8_sample_name("M\xC3\xBC" "ller & sample \xCE\xB1 \xF0\x9F\xA7\xAA"); // "Müller & sample α 🧪" as UTF-8 bytes
+  original.getSample().setName(utf8_sample_name);
   original.getSample().setComment("first line\nsecond line\tend");
   Instrument instrument;
   instrument.setName("Orbitrap Astral");
@@ -1468,7 +1470,7 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   PeakMap loaded;
   file.loadBuffer(encoded, loaded);
   TEST_EQUAL(loaded.size(), 3)
-  TEST_EQUAL(loaded.getSample().getName(), "Müller & sample \u03b1 \U0001f9ea")
+  TEST_EQUAL(loaded.getSample().getName(), utf8_sample_name)
   TEST_EQUAL(loaded.getSample().getComment(), "first line\nsecond line\tend")
   TEST_EQUAL(loaded.getInstrumentConfigurations().size(), 1)
   TEST_EQUAL(loaded.getInstrumentConfigurations().at("astral").getMassAnalyzers()[0].getMetaValue("mass analyzer accession"), "MS:1003379")

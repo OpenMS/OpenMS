@@ -22,39 +22,79 @@
 #include <atomic>
 #include <map>
 #include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/TransService.hpp>
 
 namespace OpenMS::Internal
 {
     namespace
     {
+      /**
+        @brief Escape an attribute value for the mzML writer.
+
+        Non-ASCII UTF-8 text is emitted as numeric character references, which keeps the
+        historical ISO-8859-1 declaration valid without losing Unicode metadata. Bytes that
+        are not part of a well-formed UTF-8 sequence (e.g. a path in a legacy code page on
+        Windows) are passed through unchanged, as the writer always did. Line breaks and
+        tabs are escaped so attribute-value normalization does not alter them on reading.
+      */
       std::string writeXMLAttribute_(const std::string& value)
       {
-        // Emit non-ASCII UTF-8 text as character references. This preserves the
-        // historical ISO-8859-1 declaration without losing Unicode metadata.
+        std::string result;
         if (std::all_of(value.begin(), value.end(), [](unsigned char c) { return c < 128; }))
         {
-          std::string result = XMLHandler::writeXMLEscape(value);
-          StringUtils::substitute(result, "\r", "&#13;");
-          StringUtils::substitute(result, "\n", "&#10;");
-          StringUtils::substitute(result, "\t", "&#9;");
-          return result;
+          result = XMLHandler::writeXMLEscape(value);
         }
-        const xercesc::TranscodeFromStr decoded(
-          reinterpret_cast<const XMLByte*>(value.data()), value.size(), "UTF-8");
-        std::string escaped;
-        const XMLCh* chars = decoded.str();
-        for (XMLSize_t i = 0; i < decoded.length(); ++i)
+        else
         {
-          unsigned int code = chars[i];
-          if (code >= 0xD800 && code <= 0xDBFF && i + 1 < decoded.length())
+          result.reserve(value.size() + 16);
+          std::string ascii_run;
+          const auto flush_ascii = [&]() {
+            if (ascii_run.empty()) return;
+            result += XMLHandler::writeXMLEscape(ascii_run);
+            ascii_run.clear();
+          };
+          const Size n = value.size();
+          for (Size i = 0; i < n;)
           {
-            code = 0x10000 + ((code - 0xD800) << 10) + (chars[++i] - 0xDC00);
+            const unsigned char c = value[i];
+            if (c < 0x80)
+            {
+              ascii_run += static_cast<char>(c);
+              ++i;
+              continue;
+            }
+            // decode one UTF-8 sequence (2-4 bytes); anything malformed is copied verbatim
+            Size length = 0;
+            unsigned int code = 0;
+            if ((c & 0xE0) == 0xC0) { length = 2; code = c & 0x1F; }
+            else if ((c & 0xF0) == 0xE0) { length = 3; code = c & 0x0F; }
+            else if ((c & 0xF8) == 0xF0) { length = 4; code = c & 0x07; }
+            bool valid = length != 0 && i + length <= n;
+            for (Size k = 1; valid && k < length; ++k)
+            {
+              const unsigned char cc = value[i + k];
+              if ((cc & 0xC0) != 0x80) { valid = false; break; }
+              code = (code << 6) | (cc & 0x3F);
+            }
+            if (valid)
+            {
+              // reject overlong encodings, surrogates and out-of-range values
+              valid = !(length == 2 && code < 0x80) && !(length == 3 && code < 0x800) && !(length == 4 && code < 0x10000)
+                      && code <= 0x10FFFF && !(code >= 0xD800 && code <= 0xDFFF);
+            }
+            flush_ascii();
+            if (valid)
+            {
+              result += "&#" + std::to_string(code) + ";";
+              i += length;
+            }
+            else
+            {
+              result += static_cast<char>(c);
+              ++i;
+            }
           }
-          if (code < 128) { escaped += XMLHandler::writeXMLEscape(std::string(1, static_cast<char>(code))); }
-          else { escaped += "&#" + std::to_string(code) + ";"; }
+          flush_ascii();
         }
-        std::string result = std::move(escaped);
         StringUtils::substitute(result, "\r", "&#13;");
         StringUtils::substitute(result, "\n", "&#10;");
         StringUtils::substitute(result, "\t", "&#9;");
