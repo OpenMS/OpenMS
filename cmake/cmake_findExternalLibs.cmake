@@ -365,6 +365,21 @@ if(WITH_WNETALIGN)
     # not mention wnetalign at all. On a miss we fall through to the FetchContent
     # path below, the same find-then-fetch pattern used for opentims and
     # openms-thermo-bridge, both of which are likewise ON by default.
+    # find_path() caches its result, and CMake only repeats the search when the
+    # cached value is <VAR>-NOTFOUND. A path found by an earlier configure therefore
+    # survives even once it has gone away -- switching VCPKG_TARGET_TRIPLET moves
+    # vcpkg_installed/<triplet>/include, and disabling the manifest feature removes
+    # the headers altogether. Without this, a stale entry would still satisfy the
+    # check below and be handed to target_include_directories() as a non-existent
+    # include directory. Drop entries that no longer resolve so the search reflects
+    # what is on disk now.
+    foreach(_wnetalign_cache_var WNETALIGN_INC WNET_INC PYLMCF_INC)
+      if(DEFINED ${_wnetalign_cache_var} AND NOT EXISTS "${${_wnetalign_cache_var}}")
+        unset(${_wnetalign_cache_var} CACHE)
+      endif()
+    endforeach()
+    unset(_wnetalign_cache_var)
+
     find_path(WNETALIGN_INC NAMES aligner.hpp PATH_SUFFIXES wnetalign)
     find_path(WNET_INC NAMES graph_elements.hpp PATH_SUFFIXES wnet)
     find_path(PYLMCF_INC NAMES lmcf.hpp PATH_SUFFIXES pylmcf)

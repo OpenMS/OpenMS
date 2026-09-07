@@ -84,7 +84,7 @@ OpenMS/
 ### Windows
 - **MSYS/MinGW NOT supported** — must use Visual Studio environment
 - **Minimum compiler versions are defined once** in `cmake/min_compiler_versions.cmake`, which both enforces them at configure time and feeds the numbers quoted in the doxygen install docs (via `ALIASES` in `doc/doxygen/Doxyfile.in`). Edit them there, not in the docs
-- **64-bit only**; use Visual Studio generator (not Ninja/Make)
+- **64-bit only**. The presets in `CMakePresets.json` build with **Ninja** on every platform, Windows included, so `cmake --preset windows-x64-*` produces a Ninja tree and no `.sln`. Pass `-G "Visual Studio 17 2022" -A x64` on the configure line to get a solution instead; the older contrib-based instructions in `install-win.doxygen` still require a Visual Studio generator, because some contrib libraries cannot be built with anything else
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults
 - Compiler must match between contrib and OpenMS builds

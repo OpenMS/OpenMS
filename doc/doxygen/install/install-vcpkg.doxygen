@@ -41,7 +41,7 @@
 
     @subsection install_vcpkg_prereqs_windows Microsoft Windows
 
-    The officially supported compiler is Microsoft Visual C++ which comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools"> Microsoft Visual Studio Build Tools.  For a minimal installation we recommend you scroll to the bottom of the page and get the build tools only.
+    The officially supported compiler is Microsoft Visual C++ which comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools">Microsoft Visual Studio Build Tools</a>.  For a minimal installation we recommend you scroll to the bottom of the page and get the build tools only.
 
     Visual Studio @minMSVCYear version @minMSVC (MSVC toolset @minMSVCToolset) or later is required.  Note that this is higher than what C++23 alone would need: older toolsets cannot compile the Apache Arrow dependency, because of a bug in the standard library's `<chrono>` formatter for `zoned_time` durations coarser than seconds (LWG-4124, fixed by [microsoft/STL#5155](https://github.com/microsoft/STL/pull/5155)).
 

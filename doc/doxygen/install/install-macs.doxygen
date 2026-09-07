@@ -1,6 +1,11 @@
 /**
 
-  \include{doc} "../doxygen/install/install-vcpkg.doxygen"
+  @page install_mac Building %OpenMS on macOS
+
+  %OpenMS obtains its dependencies through vcpkg on every platform, so the build
+  instructions are shared: see @ref install_vcpkg for the system prerequisites,
+  the Apple Clang / Xcode version required, and the configure/build/test
+  commands. The macOS-specific notes are below.
 
   @section install_mac_testing_openms Testing the OpenMS/TOPP Installation
 

@@ -1,6 +1,11 @@
 /**
 
-  \include{doc} "../doxygen/install/install-vcpkg.doxygen"
+  @page install_linux Building %OpenMS on GNU/Linux
+
+  %OpenMS obtains its dependencies through vcpkg on every platform, so the build
+  instructions are shared: see @ref install_vcpkg for the system prerequisites,
+  the GCC/Clang versions required, and the configure/build/test commands. The
+  Linux-specific notes are below.
 
   @section install_linux_testing_openms Testing the OpenMS/TOPP Installation
 
