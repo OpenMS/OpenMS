@@ -17,7 +17,10 @@
 #      'dotnet publish' step, and with it the five Thermo .nupkg downloads from
 #      raw.githubusercontent.com and the nuget.org restore of their dependencies.
 #      Compiling the native bridge still needs the nethost headers from a .NET
-#      SDK / host pack.
+#      SDK / host pack. When no release asset has been published for the pinned
+#      bridge revision (the per-platform SHA-256 below is empty), this step is
+#      skipped and the wheel jobs let the bridge publish the managed assemblies
+#      with the .NET SDK they install anyway.
 #   2. PNNL's Angiotensin_AllScans.raw from archive.openms.de, used to smoke-test
 #      the finished wheel.
 #
@@ -32,7 +35,9 @@
 
 set -euo pipefail
 
-BRIDGE_TAG="v0.2.3"
+# Git tag or commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
+# cmake/cmake_findExternalLibs.cmake (checked below).
+BRIDGE_TAG="4c0edddf5a49879e0470b0ca08cfe9955ceba3c9"
 RAW_URL="https://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
 RAW_SHA256="3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f"
 
@@ -40,10 +45,13 @@ platform="${1:-}"
 dest="${2:-.}"
 # Plain case instead of an associative array: the stock macOS Bash is 3.2, which
 # has no 'declare -A', and the test-wheels job runs this script with that Bash.
+# SHA-256 of openms-thermo-bridge-managed-<platform>-<BRIDGE_TAG>.zip; leave empty
+# while no release asset exists for BRIDGE_TAG (the bridge then builds the managed
+# assemblies itself, see above).
 case "$platform" in
-  linux-x64) managed_sha256="c3388188f350280e1532d69e460c2cd76f5c69f4b4e6e4616a1a21e4347f5e4f" ;;
-  osx-arm64) managed_sha256="0253e156630db5bca4cdd4d401cfec5bfc532349b73b48ed2a60a004e3ff4f80" ;;
-  win-x64)   managed_sha256="ac737effe6e5c4b379bf9fe242ac7c969f7b61616741bfb7241f3fdc9c620581" ;;
+  linux-x64) managed_sha256="" ;;
+  osx-arm64) managed_sha256="" ;;
+  win-x64)   managed_sha256="" ;;
   *)
     echo "usage: $0 <linux-x64|osx-arm64|win-x64> [dest-dir]" >&2
     exit 2
@@ -107,6 +115,9 @@ for required in "${required_managed[@]}"; do
 done
 if [[ "$managed_complete" == true ]]; then
   echo "reusing extracted managed bridge in ${dest}/thermo-managed"
+elif [[ -z "$managed_sha256" ]]; then
+  echo "no pre-built managed bridge is published for openms-thermo-bridge ${BRIDGE_TAG};"
+  echo "the bridge will publish ThermoWrapperManaged.dll with the .NET SDK during the OpenMS build"
 else
   zip_name="openms-thermo-bridge-managed-${platform}-${BRIDGE_TAG}.zip"
   zip_path="$(mktemp -d)/${zip_name}"
@@ -126,5 +137,9 @@ fi
 download "$RAW_URL" "${dest}/thermo-testdata/Angiotensin_AllScans.raw" "$RAW_SHA256"
 
 echo "Thermo assets ready:"
-echo "  managed bridge: ${dest}/thermo-managed"
+if [[ -f "${dest}/thermo-managed/ThermoWrapperManaged.dll" ]]; then
+  echo "  managed bridge: ${dest}/thermo-managed"
+else
+  echo "  managed bridge: built from source (dotnet publish)"
+fi
 echo "  RAW test file:  ${dest}/thermo-testdata/Angiotensin_AllScans.raw"
