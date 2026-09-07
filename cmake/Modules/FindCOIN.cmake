@@ -76,18 +76,52 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
       set(HNAME ${_libname_camel}Config.h)
     endif()
 
-    # find release version
-    find_library(COIN_${_libname}_LIBRARY_RELEASE
-      NAMES ${_lib_file_names}
-      HINTS ${COIN_ROOT_DIR}/lib/coin
-            ${COIN_ROOT_DIR}/lib
-    )
-    # .. and debug version
-    find_library(COIN_${_libname}_LIBRARY_DEBUG
-      NAMES ${_lib_file_names_debug}
-      HINTS ${COIN_ROOT_DIR}/lib/coin
-      HINTS ${COIN_ROOT_DIR}/lib
-    )
+    if(VCPKG_TOOLCHAIN AND _VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+      # Take the libraries from the vcpkg tree only. The headers already come from
+      # there (COIN_VCPKG_INCLUDE_DIR above), and mixing the two providers is what
+      # a plain search produces here: find_library() also scans the directories in
+      # %PATH% on Windows, and the contrib install instructions ask you to put
+      # <contrib_build>/lib on PATH, so a leftover contrib coin-or wins and the
+      # version skew only shows up much later as unresolved symbols at link time
+      # (e.g. CglCutGenerator::needsOriginalModel).
+      #
+      # NO_DEFAULT_PATH rather than HINTS on purpose: HINTS are consulted *after*
+      # CMAKE_PREFIX_PATH, which vcpkg populates with both <triplet> and
+      # <triplet>/debug, so a hint cannot stop the debug tree from satisfying the
+      # release search. Naming each directory explicitly keeps the two
+      # configurations apart. With a release-only triplet there is no debug/lib and
+      # the debug variable stays NOTFOUND, which select_library_configurations()
+      # below resolves to the release library for both.
+      #
+      # NAMES_PER_DIR: by default find_library() takes one name at a time and scans
+      # every directory for it, so the contrib-style "libCgl" would be preferred over
+      # the vcpkg-style "Cgl" regardless of directory order.
+      find_library(COIN_${_libname}_LIBRARY_RELEASE
+        NAMES ${_lib_file_names}
+        NAMES_PER_DIR
+        PATHS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib"
+        NO_DEFAULT_PATH
+      )
+      find_library(COIN_${_libname}_LIBRARY_DEBUG
+        NAMES ${_lib_file_names_debug}
+        NAMES_PER_DIR
+        PATHS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib"
+        NO_DEFAULT_PATH
+      )
+    else()
+      # find release version
+      find_library(COIN_${_libname}_LIBRARY_RELEASE
+        NAMES ${_lib_file_names}
+        HINTS ${COIN_ROOT_DIR}/lib/coin
+              ${COIN_ROOT_DIR}/lib
+      )
+      # .. and debug version
+      find_library(COIN_${_libname}_LIBRARY_DEBUG
+        NAMES ${_lib_file_names_debug}
+        HINTS ${COIN_ROOT_DIR}/lib/coin
+        HINTS ${COIN_ROOT_DIR}/lib
+      )
+    endif()
 
     find_path(
       ${_libname}_INCLUDE_DIR
