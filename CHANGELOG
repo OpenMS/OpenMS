@@ -19,6 +19,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 General:
   - Share alignment model defaults through TransformationModelDefaults in the analysis layer;
     tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction.
+  - Explicitly disable AUTOMOC for OpenMS and OpenSwathAlgo even when Qt is found;
+    GUI libraries retain their own AUTOMOC setting.
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10072)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument

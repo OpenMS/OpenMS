@@ -306,6 +306,9 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
+# The core library has no QObject classes, including in builds that also find Qt.
+set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
+
 # The vendored percolator headers (#include "X.h", no subdir) are used only by
 # libOpenMS's Percolator pimpl TU. Their directory is made visible via the
 # PUBLIC include dir propagated from the linked OpenMS_Percolator target (see
