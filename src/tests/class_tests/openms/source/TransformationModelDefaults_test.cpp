@@ -36,8 +36,8 @@ START_SECTION((model selection and compatibility parameter trees))
     TEST_EQUAL(params.getValue("b_spline:num_nodes"), 5)
     TEST_EQUAL(params.getValue("b_spline:boundary_condition"), 2)
     TEST_REAL_SIMILAR(static_cast<double>(params.getValue("lowess:span")), 2.0 / 3.0)
-    TEST_EQUAL(params.getMinFloat("lowess:span"), 0.0)
-    TEST_EQUAL(params.getMaxFloat("lowess:span"), 1.0)
+    TEST_EQUAL(params.getEntry("lowess:span").min_float, 0.0)
+    TEST_EQUAL(params.getEntry("lowess:span").max_float, 1.0)
     TEST_EQUAL(params.getValue("interpolated:interpolation_type"), "cspline")
   }
 END_SECTION
