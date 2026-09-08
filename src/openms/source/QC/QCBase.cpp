@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/DataProcessingUtils.h>
 
 namespace OpenMS
 {
@@ -81,13 +82,7 @@ namespace OpenMS
 
   bool QCBase::isLabeledExperiment(const ConsensusMap& cm)
   {
-    bool iso_analyze = true;
-    auto cm_dp = cm.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
-    if (all_of(cm_dp.begin(), cm_dp.end(), [](const OpenMS::DataProcessing& dp) { return (dp.getSoftware().getName() != "IsobaricAnalyzer"); }))
-    {
-      iso_analyze = false;
-    }
-    return iso_analyze;
+    return DataProcessingUtils::hasIsobaricAnalyzer(cm.getDataProcessing());
   }
 
 } // namespace OpenMS
