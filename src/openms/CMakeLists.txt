@@ -75,7 +75,6 @@ add_subdirectory(thirdparty/percolator)
 ## public — it propagates include dirs but no link libraries; the compiled Boost
 ## components (date_time/iostreams/regex) stay PRIVATE below.
 set(OPENMS_DEP_LIBRARIES
-  CURL::libcurl
   Boost::boost
 )
 
@@ -85,6 +84,7 @@ set(OPENMS_DEP_LIBRARIES
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  CURL::libcurl
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}

@@ -254,6 +254,11 @@ runs:
       shell: bash
       run: ctest --preset "${{ steps.preset.outputs.name }}"
 
+    - name: Test installed CMake consumer
+      if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      shell: bash
+      run: python tools/ci/test_installed_consumer.py "build/${{ steps.preset.outputs.name }}"
+
     ############################################################################
     # Saved on every event, including pull requests.  A cache written by a pull
     # request run is scoped to that pull request, so it only speeds up later
