@@ -5,6 +5,7 @@ set(directory include/OpenMS/IONMOBILITY)
 set(sources_list_h
 IMTypes.h
 IMDataConverter.h
+IMDataArrayUtils.h
 FAIMSHelper.h
 )
 

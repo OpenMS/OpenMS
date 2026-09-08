@@ -15,7 +15,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 
 namespace OpenMS
 {
@@ -811,7 +811,7 @@ namespace OpenMS
   {
     for (index = 0; index < fdas.size(); ++index)
     {
-      if (IMDataConverter::getIMUnit(fdas[index], unit))
+      if (IMDataArrayUtils::getIMUnit(fdas[index], unit))
       {
         return true;
       }

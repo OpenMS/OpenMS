@@ -713,6 +713,7 @@ endif(NOT DISABLE_OPENSWATH)
 set(ionmobility_executables_list
   FAIMSHelper_test
   IMDataConverter_test
+  IMDataArrayUtils_test
   IMTypes_test
 )
 
