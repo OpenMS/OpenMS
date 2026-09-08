@@ -83,9 +83,6 @@ def main():
         for key, flag in (("CMAKE_GENERATOR_PLATFORM", "-A"), ("CMAKE_GENERATOR_TOOLSET", "-T")):
             if cache.get(key):
                 command.extend([flag, cache[key]])
-        run(command)
-        run([cmake, "--build", str(consumer), "--config", config, "--parallel", "2"])
-
         env = os.environ.copy()
         dependency_prefixes = [Path(p) for p in cache.get("CMAKE_PREFIX_PATH", "").split(";") if p]
         if cache.get("VCPKG_INSTALLED_DIR") and cache.get("VCPKG_TARGET_TRIPLET"):
@@ -98,6 +95,11 @@ def main():
         for key in ("PATH", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
             env[key] = os.pathsep.join([str(p) for p in runtime] + ([env[key]] if env.get(key) else []))
         env.pop("OPENMS_DATA_PATH", None)
+
+        # Native linkers also need to locate the shared library's private
+        # dependencies, before we get to running the consumer executable.
+        run(command, env=env)
+        run([cmake, "--build", str(consumer), "--config", config, "--parallel", "2"], env=env)
 
         # File's development fallback otherwise finds the source data directory,
         # hiding missing install rules. Restore it even when the consumer fails.
