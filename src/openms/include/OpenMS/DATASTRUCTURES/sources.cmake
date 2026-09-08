@@ -43,6 +43,7 @@ QTCluster.h
 StringUtils.h
 StringListUtils.h
 ToolDescription.h
+ToolInfo.h
 TypeAliases.h
 )
 

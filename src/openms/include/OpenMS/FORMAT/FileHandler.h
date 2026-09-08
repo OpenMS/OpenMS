@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -19,6 +18,7 @@
 // as references/pointers in method signatures, so full definitions are not needed.
 namespace OpenMS
 {
+  class TransformationDescription;
   class PeakFileOptions;
   class MSSpectrum;
   class MSExperiment;
@@ -425,4 +425,3 @@ private:
   };
 
 } //namespace
-
