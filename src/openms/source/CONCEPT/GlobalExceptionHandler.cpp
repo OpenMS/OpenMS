@@ -8,6 +8,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <cstdlib>  // for getenv in terminate()
 //#include <sys/types.h>
