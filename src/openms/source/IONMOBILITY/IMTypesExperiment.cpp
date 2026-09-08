@@ -57,7 +57,7 @@ namespace OpenMS
     {
       return current_format;
     }
-    
+
     // If format is UNKNOWN, determine it
     bool has_float_data = spec.containsIMData(); // cache value; query is 'expensive'
     bool has_drift_time = spec.getDriftTime() != DRIFTTIME_NOT_SET;

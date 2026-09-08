@@ -21,7 +21,7 @@ namespace OpenMS
     const auto& cv = ControlledVocabulary::getPSIMSCV();
     switch (unit)
     {
-      case DriftTimeUnit::MILLISECOND: 
+      case DriftTimeUnit::MILLISECOND:
         fda.setName(cv.getTerm("MS:1002816").name); // MS:1002816 ! mean ion mobility array
         return;
       case DriftTimeUnit::VSSC:
