@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
