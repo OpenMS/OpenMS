@@ -23,6 +23,9 @@ General:
     GUI libraries retain their own AUTOMOC setting (#10099)
   - Move the IsobaricAnalyzer provenance query to DataProcessingUtils so ConsensusMap no longer
     depends on QCBase; retain the existing QCBase entry point and labeling convention (#10101)
+  - Keep CURL and OpenSwathAlgo's Boost headers private in CMake usage requirements, and stop
+    requiring CURL/Xerces development packages for shared-library consumers. CI now installs
+    OpenMS and builds/runs the external consumer with discovery of those packages disabled.
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument

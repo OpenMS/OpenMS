@@ -1,8 +1,10 @@
 ## Use CMake 3.17 to correctly find OpenMP on macOS
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
+
+include(CTest)
 
 message("Received CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 if (DEFINED OPENMS_CONTRIB_LIBS)
@@ -21,11 +23,23 @@ set(my_sources
 )
 
 ## find OpenMS package and register target "OpenMS" (our library)
-## Note: This is customized to fit the nightly test scenario. In a
-##       regular build find_package(OpenMS) should be sufficient.
-## This will also try to find all dependencies of OpenMS, so make sure
-##  they are findable by e.g. providing CMAKE_PREFIX_PATH
-find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}" NO_CMAKE_PACKAGE_REGISTRY)
+## Select an installation with OpenMS_DIR or CMAKE_PREFIX_PATH. CI explicitly
+## supplies the installed config directory and disables the package registries.
+find_package(OpenMS CONFIG REQUIRED)
+
+if(DEFINED OPENMS_EXPECTED_PREFIX)
+  # Catch accidental consumption of the build tree or a different installation.
+  foreach(_target IN ITEMS OpenMS OpenSwathAlgo)
+    get_target_property(_configs ${_target} IMPORTED_CONFIGURATIONS)
+    foreach(_config IN LISTS _configs)
+      get_target_property(_location ${_target} IMPORTED_LOCATION_${_config})
+      cmake_path(IS_PREFIX OPENMS_EXPECTED_PREFIX "${_location}" NORMALIZE _installed)
+      if(NOT _installed)
+        message(FATAL_ERROR "${_target} is not from the tested installation: ${_location}")
+      endif()
+    endforeach()
+  endforeach()
+endif()
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
@@ -33,6 +47,10 @@ if (OpenMS_FOUND)
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})
   target_link_libraries(my_custom_lib OpenMS)
+  if(DEFINED OPENMS_EXPECTED_PREFIX)
+    target_compile_definitions(my_custom_lib PRIVATE
+      OPENMS_EXPECTED_DATA_DIR="${OPENMS_EXPECTED_PREFIX}/share/OpenMS")
+  endif()
   ## disable auto-linking of boost (mainly needed for Windows. CMake takes care of choosing the right library)
   target_compile_definitions(my_custom_lib PUBLIC BOOST_ALL_NO_LIB)
 
@@ -63,5 +81,4 @@ else(OpenMS_FOUND)
 endif(OpenMS_FOUND)
 
 ## Enable testing - for Nightly Build log
-include(Dart)
 add_test(TestExternalCode TestExternalCode)
