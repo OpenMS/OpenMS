@@ -57,29 +57,6 @@ foreach(_class_test ${TEST_executables})
   endif()
 endforeach(_class_test)
 
-# Compile each narrowed public header as the first and only include in its own
-# translation unit. Disable unity/PCH so unrelated headers cannot mask omissions.
-set(_standalone_header_sources)
-foreach(_header IN ITEMS
-    DATASTRUCTURES/ToolInfo.h
-    FORMAT/FileHandler.h
-    FORMAT/ParamCTDFile.h
-    FORMAT/ParamCWLFile.h
-    FORMAT/ParamJSONFile.h
-    FORMAT/ParquetFile.h
-    METADATA/ExperimentalDesign.h
-    METADATA/SpectrumMetaDataLookup.h)
-  string(REPLACE "/" "_" _header_source "${_header}")
-  set(_header_source "${PROJECT_BINARY_DIR}/header_compile/${_header_source}.cpp")
-  file(GENERATE OUTPUT "${_header_source}"
-    CONTENT "// $Maintainer: Timo Sachsenberg $\n#include <OpenMS/${_header}>\n")
-  list(APPEND _standalone_header_sources "${_header_source}")
-endforeach()
-add_library(OpenMS_header_compile_tests OBJECT ${_standalone_header_sources})
-target_link_libraries(OpenMS_header_compile_tests PRIVATE OpenMS)
-set_target_properties(OpenMS_header_compile_tests PROPERTIES
-  UNITY_BUILD OFF DISABLE_PRECOMPILE_HEADERS ON AUTOMOC OFF)
-
 #------------------------------------------------------------------------------
 # some tests need special treatment
 

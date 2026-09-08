@@ -18,7 +18,6 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/XIPMParquetConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 

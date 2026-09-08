@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml

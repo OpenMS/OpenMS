@@ -21,7 +21,6 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>

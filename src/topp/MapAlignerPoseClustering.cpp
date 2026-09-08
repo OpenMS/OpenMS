@@ -11,7 +11,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 //TODO remove when we get loadsize support in handler
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
