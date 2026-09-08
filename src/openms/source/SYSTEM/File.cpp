@@ -22,6 +22,7 @@
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
+#include <set>
 #include <vector>
 
 #include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
