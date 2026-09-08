@@ -1,0 +1,31 @@
+name: Core dependency boundary
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Test dependency scanner
+        run: python -m unittest discover -s tools/ci -p 'test_check_core_dependencies.py' -v
+      - name: Check core boundary
+        run: python tools/ci/check_core_dependencies.py --report core-dependencies.json
+      - name: Upload dependency inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-dependencies
+          path: core-dependencies.json
+          if-no-files-found: ignore
