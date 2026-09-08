@@ -17,7 +17,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <algorithm>
 #include <atomic>
@@ -475,19 +475,19 @@ namespace
   }
 
   std::string File::basename(const std::string& file)
-  { // using well-defined overflow of unsigned ints here if path separator is not found
-    return StringUtils::substr(file, file.find_last_of("\\/") + 1);
+  {
+    return PathUtils::basename(file);
   }
 
   std::string File::stemName(const std::string& file)
   {
-    return FileHandler::stripExtension(basename(file));
+    return FileNameUtils::stripExtension(basename(file));
   }
 
   std::string File::extension(const std::string& file)
   {
     std::string base = basename(file);
-    std::string stem = FileHandler::stripExtension(base);
+    std::string stem = FileNameUtils::stripExtension(base);
     if (stem.size() >= base.size())
     {
       return ""; // no extension (stripExtension returned the same or longer string)
@@ -1212,8 +1212,8 @@ namespace
 
           if (ignore_extension)
           {
-              sl1_name = FileHandler::stripExtension(sl1_name);
-              sl2_name = FileHandler::stripExtension(sl2_name);
+              sl1_name = FileNameUtils::stripExtension(sl1_name);
+              sl2_name = FileNameUtils::stripExtension(sl2_name);
           }
 
           sl1_set.insert(sl1_name);

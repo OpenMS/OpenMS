@@ -13,6 +13,20 @@
 
 namespace OpenMS
 {
+  namespace PathUtils
+  {
+    /**
+      @brief Return the basename using either slash style on every platform.
+      @param[in] file Path to inspect without filesystem access or normalization.
+      @return The part after the last slash, or the entire string without a slash.
+    */
+    inline std::string basename(const std::string& file)
+    {
+      // Preserve File::basename's unsigned npos + 1 wraparound to zero.
+      return file.substr(file.find_last_of("\\/") + 1);
+    }
+  }
+
   /// Convert a UTF-8 std::string to std::filesystem::path safely on all platforms.
   /// On Windows, std::filesystem::path(std::string) uses the current code page, not UTF-8,
   /// so we explicitly construct from u8string. If the bytes are not valid UTF-8 (e.g., a
