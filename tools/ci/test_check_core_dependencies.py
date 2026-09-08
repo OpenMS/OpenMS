@@ -53,6 +53,7 @@ class BoundaryTests(unittest.TestCase):
     source = "src/openms/source/KERNEL/Peak.cpp"
     extra_source = "src/openms/source/KERNEL/PeakIO.cpp"
     format_header = "src/openms/include/OpenMS/FORMAT/Reader.h"
+    format_source = "src/openms/source/FORMAT/Reader.cpp"
     private_header = "src/openms/include/OpenMS/FORMAT/Private.h"
 
     def setUp(self):
@@ -82,6 +83,7 @@ class BoundaryTests(unittest.TestCase):
             self.header: '#include <OpenMS/config.h>\n#include <vector>\n',
             self.source: '#include <OpenMS/KERNEL/Peak.h>\n',
             self.format_header: '',
+            self.format_source: '#include <OpenMS/FORMAT/Reader.h>\n#include <OpenMS/FORMAT/Private.h>\n',
             self.private_header: '',
             "src/openswathalgo/CMakeLists.txt": "openms_add_library(HEADER_FILES ${OpenSwathAlgoHeaders})",
             "src/openswathalgo/source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake": """
@@ -94,12 +96,10 @@ class BoundaryTests(unittest.TestCase):
         }
         for name, content in files.items():
             self.write(name, content)
-        self.manifest = {
-            "schema_version": 1,
-            "seeds": [self.header],
-            "core_files": {self.header: "Core value.", self.source: "Core value implementation."},
-            "generated_headers": {"OpenMS/config.h": "CMake platform configuration."},
-        }
+        self.seeds = dependencies.SEEDS
+        dependencies.SEEDS = (self.header,)
+        self.addCleanup(setattr, dependencies, "SEEDS", self.seeds)
+        self.core = {self.header, self.source}
         self.baseline = {"schema_version": 1, "edges": []}
 
     def write(self, name, content):
@@ -107,30 +107,41 @@ class BoundaryTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
 
-    def scan(self):
-        return dependencies.scan(self.root, self.manifest)
+    def stop(self):
+        return {(edge["source"], edge["target"]) for edge in self.baseline["edges"]}
 
-    def cli(self):
-        self.write("manifest.json", json.dumps(self.manifest))
+    def scan(self):
+        return dependencies.scan(self.root, self.core, self.stop())
+
+    def cli(self, *extra):
+        self.write("core_files.txt", "# comment\n" + "".join(f"{name}\n" for name in sorted(self.core)))
         self.write("baseline.json", json.dumps(self.baseline))
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-            return dependencies.main([
-                "--root", str(self.root), "--manifest", str(self.root / "manifest.json"),
+            status = dependencies.main([
+                "--root", str(self.root), "--core", str(self.root / "core_files.txt"),
                 "--baseline", str(self.root / "baseline.json"),
-                "--report", str(self.root / "report.json"),
+                "--report", str(self.root / "report.json"), *extra,
             ])
+        self.core = dependencies.read_core(self.root / "core_files.txt")
+        return status
+
+    def report(self):
+        return json.loads((self.root / "report.json").read_text())
 
     def test_new_edge_fails_cli_and_exact_baseline_allows_only_that_edge(self):
         self.assertEqual(self.cli(), 0)
         self.write(self.source, '#include <include/OpenMS/FORMAT/Reader.h>\n')
         self.assertEqual(self.cli(), 1)
-        report = json.loads((self.root / "report.json").read_text())
+        report = self.report()
         self.assertEqual(report["new_violations"][0]["target"], self.format_header)
+        # Without an exception the derived core would absorb the reader and its implementation.
+        self.assertEqual(report["new_core_files"], [self.private_header, self.format_header, self.format_source])
         self.baseline["edges"] = [{
             "rule": "core-to-noncore", "source": self.source,
             "target": self.format_header, "reason": "Legacy reader convenience method.",
         }]
         self.assertEqual(self.cli(), 0)
+        self.assertEqual(self.report()["new_core_files"], [])
         # An exception for one source does not exempt its header or directory.
         self.write(self.header, '#include "../FORMAT/Reader.h"\n')
         self.assertEqual(self.cli(), 1)
@@ -141,9 +152,36 @@ class BoundaryTests(unittest.TestCase):
             "target": self.format_header, "reason": "Already removed dependency.",
         }]
         self.assertEqual(self.cli(), 1)
-        report = json.loads((self.root / "report.json").read_text())
+        report = self.report()
         self.assertEqual(len(report["stale_baseline"]), 1)
         self.assertEqual(report["new_violations"], [])
+
+    def test_update_core_regenerates_the_snapshot_from_seeds_and_baseline(self):
+        self.write(self.source, '#include <OpenMS/FORMAT/Reader.h>\n')
+        self.assertEqual(self.cli("--update-core"), 0)
+        self.assertTrue((self.root / "core_files.txt").read_text().startswith("# Generated by"))
+        self.assertEqual(self.core, {self.header, self.source, self.format_header,
+                                     self.format_source, self.private_header})
+        self.assertEqual(self.cli(), 0)
+        # Baselining the crossing edge shrinks the derived core; the snapshot must follow.
+        self.baseline["edges"] = [{
+            "rule": "core-to-noncore", "source": self.source,
+            "target": self.format_header, "reason": "Legacy reader convenience method.",
+        }]
+        self.assertEqual(self.cli(), 1)
+        self.assertEqual(self.report()["stale_core_files"],
+                         [self.private_header, self.format_header, self.format_source])
+        self.assertEqual(self.cli("--update-core"), 0)
+        self.assertEqual(self.core, {self.header, self.source})
+
+    def test_missing_snapshot_is_an_error_unless_updating(self):
+        self.write("baseline.json", json.dumps(self.baseline))
+        arguments = ["--root", str(self.root), "--core", str(self.root / "missing.txt"),
+                     "--baseline", str(self.root / "baseline.json")]
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(dependencies.main(arguments), 2)
+            self.assertEqual(dependencies.main(arguments + ["--update-core"]), 0)
+        self.assertEqual(dependencies.read_core(self.root / "missing.txt"), self.core)
 
     def test_install_lists_include_optional_headers_but_exclude_private_headers(self):
         self.write(self.format_header, '#include "Private.h"\n')
@@ -160,16 +198,14 @@ class BoundaryTests(unittest.TestCase):
         self.assertEqual(len(report["violations"]), 2)
         self.assertEqual(self.cli(), 1)
 
-    def test_translation_units_stay_separate_and_do_not_pollute_header_closure(self):
+    def test_only_mirrored_translation_units_join_the_core(self):
         self.write(self.extra_source, '#include <OpenMS/KERNEL/Peak.h>\n#include <OpenMS/FORMAT/Reader.h>\n')
         report = self.scan()
         self.assertEqual(report["seed_header_reachability"][self.header], [self.header])
         self.assertEqual(report["violations"], [])
         self.assertIn(self.extra_source, report["files"])
-        self.assertNotIn(self.extra_source, report["core_file_reachability"])
-        self.manifest["core_files"][self.extra_source] = "Explicitly classify this translation unit."
-        report = self.scan()
-        self.assertEqual(report["violations"][0]["source"], self.extra_source)
+        self.assertEqual(report["core_files"], sorted(self.core))
+        self.assertEqual(self.cli(), 0)
 
     def test_cycles_and_runtime_data_are_separate(self):
         self.write(self.header, '#include <OpenMS/FORMAT/Reader.h>\n')
@@ -183,9 +219,11 @@ class BoundaryTests(unittest.TestCase):
         }])
         self.assertEqual(report, self.scan())
 
-    def test_missing_classified_file_is_an_error(self):
+    def test_missing_core_file_is_an_error_but_update_drops_it(self):
         (self.root / self.source).unlink()
         self.assertEqual(self.cli(), 2)
+        self.assertEqual(self.cli("--update-core"), 0)
+        self.assertEqual(self.core, {self.header})
 
     def test_invalid_baseline_is_an_error(self):
         edge = {"rule": "core-to-noncore", "source": self.source, "target": self.format_header, "reason": ""}

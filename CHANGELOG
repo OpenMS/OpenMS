@@ -1499,8 +1499,9 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
-  - Added a source-only dependency inventory and CI guard for the proposed scientific core.
-    Existing boundary crossings are recorded as individual source/target exceptions (#10083).
+  - Added a source-only dependency inventory and CI guard for the proposed scientific core. The core
+    is derived from five seed headers; existing boundary crossings are recorded as individual
+    source/target exceptions (#10083).
   - pyOpenMS wheel workflow: Thermo RAW support is built into the Linux x86_64, macOS arm64 and Windows
     wheels. The managed half of openms-thermo-bridge comes from the bridge's pre-built release zip via
     tools/ci/fetch_thermo_assets.sh (curl with retries, pinned SHA-256, cached with actions/cache,
