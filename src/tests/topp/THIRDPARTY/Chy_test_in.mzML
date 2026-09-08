@@ -49,7 +49,7 @@
 	</softwareList>
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ic_0">
-			<cvParam cvRef="MS" accession="MS:1001910" name="LTQ Orbitrap Elite" />
+			<cvParam cvRef="MS" accession="MS:1001910" name="Orbitrap Elite" />
 			<cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="SN03293B"/>
 			<componentList count="3">
 				<source order="1">
@@ -244,9 +244,9 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="controllerType=0 controllerNumber=1 scan=7904">13712</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=7904">13708</offset>
 	</index>
 </indexList>
-<indexListOffset>21085</indexListOffset>
+<indexListOffset>21082</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

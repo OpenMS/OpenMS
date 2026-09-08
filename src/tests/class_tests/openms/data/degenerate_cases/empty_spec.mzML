@@ -36,7 +36,7 @@
             <cvParam cvRef="MS" accession="MS:1000398" value="" name="nanoelectrospray" />
           </source>
           <analyzer order="2">
-            <cvParam cvRef="MS" accession="MS:1000079" value="" name="fourier transform ion cyclotron resonance mass spectrometer" />
+            <cvParam cvRef="MS" accession="MS:1000079" value="" name="fourier transform ion cyclotron resonance" />
           </analyzer>
           <detector order="3">
             <cvParam cvRef="MS" accession="MS:1000624" value="" name="inductive detector" />
