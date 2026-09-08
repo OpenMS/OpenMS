@@ -181,7 +181,7 @@ END_TEST
 - Exceptions: derive from `Exception::Base`; throw with file/line/`OPENMS_PRETTY_FUNCTION`; catch by reference; document possible exceptions.
 - Doxygen: `@brief` + blank line + details; use `@defgroup/@ingroup`; use `.doxygen` files for free-standing docs; `@todo` includes assignee name.
 - Comments: at least ~5% of code, use `//` style, plain English describing the next few lines.
-- Each file preamble contains the `$Maintainer:$` marker.
+- Only code files (source files, headers, and scripts) require the `$Maintainer:$` marker in their preamble. Documentation, changelogs, JSON data, and YAML configuration/workflow files do not require it.
 - Formatting: use `./.clang-format` in supporting IDEs.
 
 ## Doxygen Documentation Style
