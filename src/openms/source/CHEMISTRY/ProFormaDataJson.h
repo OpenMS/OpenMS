@@ -5,6 +5,9 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
+//
+// Private header: nlohmann::json ADL serializers for the ProForma data model. Included only
+// by ProForma.cpp and never installed, which keeps nlohmann::json a PRIVATE dependency of libOpenMS.
 
 #pragma once
 
@@ -952,8 +955,7 @@ namespace OpenMS
   /// @}
 
 
-  // Note: The convenience functions toJSON(), peptidoformFromJSON(), peptidoformIonFromJSON()
-  // are declared in ProFormaData.h and implemented in ProFormaDataJson.cpp.
-  // This header provides the nlohmann::json ADL overloads needed by those implementations.
+  // The convenience functions ProForma::toJSON(), peptidoformFromJSON() and peptidoformIonFromJSON()
+  // are declared in ProForma.h and implemented in ProForma.cpp on top of these ADL overloads.
 
 } // namespace OpenMS

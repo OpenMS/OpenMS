@@ -7,48 +7,77 @@
 // --------------------------------------------------------------------------
 #pragma once
 
-#include <cmath>
-#include <locale>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <cstddef>
 #include <map>
-#include <nlohmann/json.hpp>
-#include <regex>
-#include <sstream>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace OpenMS::Internal
 {
+/// One "trailer extra" label/value pair of a Thermo scan.
+struct OPENMS_DLLAPI ThermoTrailerEntry
+{
+  std::string label; ///< e.g. "Monoisotopic M/Z:"
+  std::string value; ///< as reported by the instrument, numbers included
+};
+
+/// One reaction (isolation plus activation step) of a Thermo MSn scan event.
+struct OPENMS_DLLAPI ThermoReaction
+{
+  std::optional<double> precursor_mass;   ///< isolation target m/z
+  std::optional<double> isolation_width;  ///< isolation window width (Th)
+  std::optional<double> isolation_offset; ///< isolation window offset from the target (Th)
+  std::string activation;                 ///< vendor activation type name, e.g. "HigherEnergyCollisionalDissociation"
+  std::optional<double> collision_energy; ///< vendor value; meaningful only if collision_energy_valid
+  bool collision_energy_valid = false;    ///< vendor flag for collision_energy
+};
+
+/// The per-scan metadata needed to reconstruct the precursor hierarchy.
+struct OPENMS_DLLAPI ThermoScan
+{
+  int scan_number = 0;                     ///< 1-based scan number within the controller
+  int ms_level = 0;                        ///< MS order (1 for full scans)
+  std::string filter;                      ///< scan filter string, e.g. "FTMS + c NSI Full ms2 500.00@hcd30.00 [100-1000]"
+  std::string native_id;                   ///< e.g. "controllerType=0 controllerNumber=1 scan=12"
+  std::vector<ThermoTrailerEntry> trailer; ///< trailer-extra entries in file order
+  std::vector<ThermoReaction> reactions;   ///< reactions in acquisition order (MS2 first)
+};
+
+/// One precursor of an MSn scan as reconstructed by ThermoRawFileMetadata::precursors().
+struct OPENMS_DLLAPI ThermoPrecursor
+{
+  double target_mz = 0.0;         ///< isolation window target m/z
+  double selected_mz = 0.0;       ///< monoisotopic m/z when plausible, otherwise the target
+  std::optional<int> charge;      ///< unset if unknown or not positive
+  std::optional<double> width;    ///< isolation width; unset if unknown or negative
+  double lower_offset = 0.0;      ///< width / 2 - isolation offset (0 if the width is unknown)
+  double upper_offset = 0.0;      ///< width / 2 + isolation offset
+  int parent_scan = 0;            ///< scan this precursor was isolated from (0 if unknown)
+  bool estimate_intensity = true; ///< false for additional SPS selections
+  std::string spectrum_ref;       ///< native ID of the parent scan ("" if unknown)
+  ThermoReaction activation;      ///< primary reaction
+  std::optional<ThermoReaction> supplemental; ///< supplemental activation (e.g. the HCD step of EThcD)
+};
+
 /** @brief Resolve the precursor hierarchy from bridge metadata without fetching
    peaks. Keeps isolation targets distinct from selected ions, and retains SPS
    selections and supplemental reactions. The filter fallback follows
    ThermoRawFileParser. */
-class ThermoRawFileMetadata
+class OPENMS_DLLAPI ThermoRawFileMetadata
 {
 public:
-  /// Value of the trailer-extra entry with exactly this @p label, or "" if absent / not a string.
-  static std::string trailer(const nlohmann::json& scan, const std::string& label)
-  {
-    for (const auto& entry : scan.at("trailer"))
-    {
-      if (entry.at("label") == label && entry.at("value").is_string()) { return entry.at("value").get<std::string>(); }
-    }
-    return "";
-  }
+  /// Value of the trailer-extra entry with exactly this @p label, or "" if absent.
+  static std::string trailer(const ThermoScan& scan, const std::string& label);
 
   /**
     @brief Parse a trailer value as a number.
-    @return the number, or JSON null when the value is empty, not fully numeric (e.g. "2,5"
+    @return the number, or an empty optional when the value is empty, not fully numeric (e.g. "2,5"
             or "12.3abc") or not finite. A literal zero is a valid number, not "missing".
   */
-  static nlohmann::json number(const std::string& value)
-  {
-    std::istringstream stream(value);
-    stream.imbue(std::locale::classic());
-    double result;
-    if (! (stream >> result) || ! std::isfinite(result)) { return nullptr; }
-    stream >> std::ws;
-    return stream.eof() ? nlohmann::json(result) : nlohmann::json(nullptr);
-  }
+  static std::optional<double> number(const std::string& value);
 
   /**
     @brief Selected ion m/z of a precursor (ThermoRawFileParser rule).
@@ -58,198 +87,40 @@ public:
     @return the monoisotopic m/z when it is set and plausibly inside the isolation window
             (narrow windows accept -3.0 / +2.5 Th around the target), otherwise the target
   */
-  static double selectedIon(double target, const nlohmann::json& mono, double width)
-  {
-    if (! mono.is_number() || mono.get<double>() <= 1e-8) { return target; }
-    double mz = mono.get<double>();
-    if (std::abs(mz - target) <= 0.0001) { return target; }
-    double half = width / 2;
-    if (half <= 2.0) { return mz >= target - 3.0 && mz <= target + 2.5 ? mz : target; }
-    return mz >= target - half && mz <= target + half ? mz : target;
-  }
+  static double selectedIon(double target, std::optional<double> mono, double width);
 
   /**
     @brief Precursor descriptors of one scan; scans must be passed in acquisition order.
 
-    MS1 scans return an empty array and are only recorded as potential parents. For MSn
-    scans the array holds the scan's own precursor (isolation target, selected ion, charge,
+    MS1 scans return an empty vector and are only recorded as potential parents. For MSn
+    scans the vector holds the scan's own precursor (isolation target, selected ion, charge,
     window, parent scan / spectrum reference, activation and supplemental activation),
     followed by further SPS selections and then the precursors of every ancestor scan, so
     an MS3 scan lists its MS2 parent's precursor as well. Only each scan's own precursors
     are retained internally; ancestors are resolved through parent links on request.
   */
-  nlohmann::json precursors(const nlohmann::json& scan)
-  {
-    const int scan_number = scan.at("scan_number").get<int>();
-    const int level = scan.at("ms_level").get<int>();
-    const auto& reactions = scan.at("reactions");
-    State state;
-    state.level = level;
-    state.native_id = scan.at("native_id").get<std::string>();
-    if (level == 1)
-    {
-      filters_[""] = scan_number;
-      scans_[scan_number] = state;
-      return nlohmann::json::array();
-    }
-    std::smatch match;
-    const std::string filter = scan.at("filter").get<std::string>();
-    std::string key;
-    static const std::regex filter_pattern(R"(ms\d+ (.+?) \[)");
-    if (std::regex_search(filter, match, filter_pattern)) { key = match[1]; }
-    int fallback = parentFromFilter_(key);
-    auto master = number(trailer(scan, "Master Scan Number:"));
-    int parent
-      = master.is_number() && master.get<double>() > 0 && master.get<double>() < scan_number ? static_cast<int>(master.get<double>()) : fallback;
-    auto parent_it = scans_.find(parent);
-    // A master scan of the same MS order is a sibling (Tribrid decision trees, or several
-    // activations of one isolation such as HCD / ETD / EThcD scans of the same precursor).
-    // Its reactions do not apply here; descend from the scan the sibling was triggered by.
-    if (parent_it != scans_.end() && parent_it->second.level == level)
-    {
-      parent = parent_it->second.parent;
-      parent_it = scans_.find(parent);
-    }
-    std::size_t index = parent_it == scans_.end() ? lastReaction_(reactions) : parent_it->second.reactions;
-    if (index >= reactions.size() && parent_it != scans_.end())
-    {
-      parent = fallback;
-      parent_it = scans_.find(parent);
-      index = parent_it == scans_.end() ? lastReaction_(reactions) : parent_it->second.reactions;
-    }
-    state.parent = parent_it == scans_.end() ? 0 : parent;
-    nlohmann::json result = nlohmann::json::array();
-    if (index < reactions.size())
-    {
-      const auto& reaction = reactions[index];
-      auto width = number(trailer(scan, "MS" + std::to_string(level) + " Isolation Width:"));
-      if (width.is_null()) { width = reaction.at("isolation_width"); }
-      if (width.is_number() && width.get<double>() < 0) { width = nullptr; }
-      const double target = reaction.at("precursor_mass").get<double>();
-      const double w = width.is_number() ? width.get<double>() : 0.0;
-      const double offset = reaction.at("isolation_offset").is_number() ? reaction.at("isolation_offset").get<double>() : 0.0;
-      auto charge = number(trailer(scan, "Charge State:"));
-      if (charge.is_number() && charge.get<double>() <= 0) { charge = nullptr; }
-      nlohmann::json precursor = {{"target_mz", target},
-                                  {"selected_mz", selectedIon(target, number(trailer(scan, "Monoisotopic M/Z:")), w)},
-                                  {"charge", charge},
-                                  {"width", width},
-                                  {"lower_offset", w / 2 - offset},
-                                  {"upper_offset", w / 2 + offset},
-                                  {"parent_scan", parent_it == scans_.end() ? 0 : parent},
-                                  {"estimate_intensity", true},
-                                  {"spectrum_ref", parent_it == scans_.end() ? "" : parent_it->second.native_id},
-                                  {"activation", reaction},
-                                  {"supplemental", nullptr}};
-      ++index;
-      // The parent's consumed reactions already account for earlier MS levels.
-      // Like TRFP, retain the remaining reaction as supplemental activation even
-      // when the vendor's activation flag or type is unexpected.
-      if (index < reactions.size()) { precursor["supplemental"] = reactions[index++]; }
-      state.own.push_back(precursor);
-      auto masses = spsMasses_(scan);
-      // First SPS selection is represented by the primary reaction.
-      for (std::size_t i = 1; i < masses.size(); ++i)
-      {
-        auto sps = precursor;
-        sps["target_mz"] = masses[i];
-        sps["selected_mz"] = masses[i];
-        sps["charge"] = nullptr;
-        sps["estimate_intensity"] = false;
-        state.own.push_back(std::move(sps));
-      }
-      state.reactions = index;
-      result = state.own;
-      // Ancestors are resolved through the parent chain (MS3 -> MS2 -> MS1) instead of being
-      // copied into every scan, so retained metadata stays one descriptor per MSn scan.
-      for (int ancestor = state.parent; ancestor != 0;)
-      {
-        const auto it = scans_.find(ancestor);
-        if (it == scans_.end()) { break; }
-        for (const auto& descriptor : it->second.own)
-        {
-          result.push_back(descriptor);
-        }
-        ancestor = it->second.parent;
-      }
-    }
-    if (! key.empty()) { filters_[key] = scan_number; }
-    scans_[scan_number] = std::move(state);
-    return result;
-  }
+  std::vector<ThermoPrecursor> precursors(const ThermoScan& scan);
 
 private:
+  /// What is retained per seen scan to resolve later scans' parents.
   struct State
   {
-    int level = 1;
-    int parent = 0;              ///< scan this one descends from (0 if unknown)
-    std::size_t reactions = 0;   ///< reactions consumed up to and including this scan
-    std::string native_id;
-    nlohmann::json own = nlohmann::json::array(); ///< this scan's own precursor descriptors
+    int level = 1;             ///< MS order
+    int parent = 0;            ///< scan this one descends from (0 if unknown)
+    std::size_t reactions = 0; ///< reactions consumed up to and including this scan
+    std::string native_id;     ///< spectrum reference for descendants
+    std::vector<ThermoPrecursor> own; ///< this scan's own precursor descriptors
   };
-  std::map<int, State> scans_;
-  std::map<std::string, int> filters_;
+  std::map<int, State> scans_;         ///< seen scans by scan number
+  std::map<std::string, int> filters_; ///< most recent scan per filter key ("" for MS1)
 
-  static bool supplemental_(const nlohmann::json& first, const nlohmann::json& second)
-  {
-    const std::string a = first.at("activation").get<std::string>(), b = second.at("activation").get<std::string>();
-    return first.at("precursor_mass").is_number() && second.at("precursor_mass").is_number()
-           && std::abs(first.at("precursor_mass").get<double>() - second.at("precursor_mass").get<double>()) < 0.0001
-           && (a == "ElectronTransferDissociation" || a == "ElectronCaptureDissociation")
-           && (b == "HigherEnergyCollisionalDissociation" || b == "CollisionInducedDissociation");
-  }
-  static std::size_t lastReaction_(const nlohmann::json& reactions)
-  {
-    if (reactions.empty()) { return 0; }
-    std::size_t index = reactions.size() - 1;
-    if (index > 0 && supplemental_(reactions[index - 1], reactions[index])) { --index; }
-    return index;
-  }
-  int parentFromFilter_(const std::string& key) const
-  {
-    std::istringstream stream(key);
-    std::vector<std::string> parts;
-    for (std::string part; stream >> part;)
-    {
-      parts.push_back(part);
-    }
-    if (! parts.empty())
-    {
-      const auto mass = parts.back().substr(0, parts.back().find('@'));
-      while (! parts.empty() && parts.back().substr(0, parts.back().find('@')) == mass)
-      {
-        parts.pop_back();
-      }
-    }
-    std::string parent_key;
-    for (const auto& part : parts)
-    {
-      if (! parent_key.empty()) { parent_key += ' '; }
-      parent_key += part;
-    }
-    auto it = filters_.find(parent_key);
-    return it == filters_.end() ? 0 : it->second;
-  }
-  static std::vector<double> spsMasses_(const nlohmann::json& scan)
-  {
-    std::vector<double> result;
-    const bool modern = ! trailer(scan, "SPS Masses:").empty();
-    static const std::regex legacy_pattern(R"(SPS Mass\s+\d+:)");
-    static const std::regex modern_pattern(R"(SPS Masses(?:\s+Continued)?:)");
-    for (const auto& entry : scan.at("trailer"))
-    {
-      const std::string label = entry.at("label").get<std::string>();
-      if ((! modern && std::regex_match(label, legacy_pattern)) || (modern && std::regex_match(label, modern_pattern)))
-      {
-        std::istringstream values(entry.at("value").get<std::string>());
-        for (std::string value; std::getline(values, value, ',');)
-        {
-          auto mass = number(value);
-          if (mass.is_number() && mass.get<double>() > 0) { result.push_back(mass.get<double>()); }
-        }
-      }
-    }
-    return result;
-  }
+  /// True if @p second is the supplemental (HCD / CID) step of an ETD / ECD reaction @p first on the same target.
+  static bool supplemental_(const ThermoReaction& first, const ThermoReaction& second);
+  /// Index of the reaction that isolated this scan's precursor when no parent is known.
+  static std::size_t lastReaction_(const std::vector<ThermoReaction>& reactions);
+  /// Most recent scan whose filter key is the parent of @p key (0 if none).
+  int parentFromFilter_(const std::string& key) const;
+  /// SPS target masses from the legacy ("SPS Mass N:") or modern ("SPS Masses:") trailer labels.
+  static std::vector<double> spsMasses_(const ThermoScan& scan);
 };
 } // namespace OpenMS::Internal

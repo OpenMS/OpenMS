@@ -38,6 +38,11 @@ General:
     no longer derives from xercesc::DefaultHandler; subclasses must migrate to the native callbacks
     onStartElement(const char16_t*, const XMLAttributes&) / onEndElement() / onCharacters()
     (#8547, #8558, #9712, #9737)
+  - Fix: nlohmann::json no longer leaks out of libOpenMS. ThermoRawFileMetadata gained a typed API
+    (ThermoScan / ThermoReaction / ThermoPrecursor) with its implementation compiled into the library, and
+    the ProForma JSON serializers moved to a private header, so builds whose json headers are not on the
+    public include path (e.g. Nix) compile the class tests again. A configure-time check now rejects
+    installed headers that include nlohmann/json (#10084)
   - Arrow/Parquet is now a required dependency on all platforms; the WITH_PARQUET CMake option was
     removed (#8370, #8422, #8991)
   - macOS Intel builds discontinued and the deployment target raised to macOS 14; Ubuntu CI runners

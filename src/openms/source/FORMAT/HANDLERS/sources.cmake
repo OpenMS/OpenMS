@@ -26,6 +26,7 @@ set(sources_list
   PASEFHillCentroider.cpp
   PTMXMLHandler.cpp
   ParamXMLHandler.cpp
+  ThermoRawFileMetadata.cpp
   ToolDescriptionHandler.cpp
   TraMLHandler.cpp
   UnimodXMLHandler.cpp

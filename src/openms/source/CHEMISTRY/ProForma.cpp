@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ProForma.h>
-#include <OpenMS/CHEMISTRY/ProFormaDataJson.h>
+#include "ProFormaDataJson.h"
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
