@@ -128,9 +128,8 @@ function(openms_add_library)
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
-  if(TARGET Qt6::moc)
-    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
-  endif()
+  # AUTOMOC is chosen by the library's own CMakeLists.txt. Merely finding Qt
+  # elsewhere must not enable Qt code generation for non-GUI libraries.
 
   #------------------------------------------------------------------------------
   # Include directories
