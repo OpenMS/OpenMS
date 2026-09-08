@@ -45,6 +45,12 @@ namespace OpenMS
           in order to update the extra member variables. If the base class is a DefaultParamHandler as well
           make sure to call the updateMembers_() method of the base class in the updateMembers_() method.
       - Call updateMembers_() at the end of the derived classes' copy constructor and assignment operator.
+        Prefer declaring the copy constructor and assignment operator as '= default' instead: the
+        compiler-generated versions copy param_ and the cached extra member variables together, which is
+        exactly the state updateMembers_() would have produced, and there is nothing to forget. A
+        hand-written copy constructor/assignment operator that only forwards to the base class copies
+        param_ but silently leaves the cached members at their (possibly indeterminate) prior value if the
+        updateMembers_() call at the end is missing -- nothing enforces that call.
       - If you need mutable access to the extra member variables, provide a set-method and make sure to set
         the corresponding value in param_ as well!
 

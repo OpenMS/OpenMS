@@ -24,6 +24,16 @@ again make sure to download the 64bit release. You can then open a shell and
 type the two commands above (on Windows you may potentially have to use
 ``C:\Python37\Scripts\pip.exe`` in case ``pip`` is not in your system path).
 
+Reading Thermo Fisher RAW files
+-------------------------------
+
+The Linux x86_64, macOS arm64 and Windows wheels can read Thermo Fisher ``.raw``
+files natively (e.g. via ``FileHandler().loadExperiment("run.raw", exp)``), no
+separate conversion step needed. This requires a **.NET 8 or newer runtime** to
+be installed on the machine; set the ``DOTNET_ROOT`` environment variable if it
+is installed to a non-standard location. Linux aarch64 wheels do not support
+Thermo RAW files, since Thermo does not ship native libraries for that platform.
+
 Nightly/ CI wheels
 ------------------
 
