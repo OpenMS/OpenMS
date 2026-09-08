@@ -25,6 +25,8 @@
 #include <Windows.h>
 #include <rpc.h>
 #pragma comment(lib, "Rpcrt4.lib")
+#else
+#include <unistd.h> // for mkdtemp on macOS
 #endif
 
 namespace OpenMS
