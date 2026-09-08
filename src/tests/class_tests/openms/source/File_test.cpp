@@ -614,6 +614,24 @@ START_SECTION(File::TempDir(bool keep_dir = false))
 }
 END_SECTION
 
+START_SECTION((TempDir with explicit parent and temporary filename registry))
+  File::TempDir parent;
+  std::string child_path;
+  {
+    File::TempDir child(parent.getPath(), false);
+    child_path = child.getPath();
+    TEST_TRUE(File::isDirectory(child_path))
+    TEST_EQUAL(child_path.find(parent.getPath()), 0)
+  }
+  TEST_FALSE(File::exists(child_path))
+  TEST_TRUE(File::exists(parent.getPath()))
+  const std::string first = File::getTemporaryFile();
+  const std::string second = File::getTemporaryFile();
+  TEST_FALSE(first.empty())
+  TEST_NOT_EQUAL(first, second)
+  TEST_EQUAL(File::getTemporaryFile("retain-this-filename"), "retain-this-filename")
+END_SECTION
+
 START_SECTION(File::~TempDir())
 {
   std::string path;
