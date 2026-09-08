@@ -21,7 +21,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <include/OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace std;
 

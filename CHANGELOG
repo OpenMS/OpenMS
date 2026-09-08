@@ -1504,6 +1504,8 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - Removed unused implementation includes and production-only ConstRefVector template-check globals;
+    FeatureMap instantiation coverage now lives in the class test (#10083, step 2).
   - pyOpenMS wheel workflow: Thermo RAW support is built into the Linux x86_64, macOS arm64 and Windows
     wheels. The managed half of openms-thermo-bridge comes from the bridge's pre-built release zip via
     tools/ci/fetch_thermo_assets.sh (curl with retries, pinned SHA-256, cached with actions/cache,
