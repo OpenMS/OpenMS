@@ -32,6 +32,22 @@ endmacro()
 # @param header_list List of headers to install
 macro(install_headers header_list component)
   foreach(_header ${header_list})
+    # nlohmann::json is a PRIVATE dependency of libOpenMS: downstream builds do not have its
+    # include directory, so no installed header may include it (configure-time check only).
+    # Header lists are relative to the calling source directory, like install(FILES) resolves them.
+    # Generated headers in the build tree may not exist yet at this point; they come from OpenMS'
+    # own templates, so only what is already on disk is scanned.
+    set(_header_to_scan "${_header}")
+    if (NOT IS_ABSOLUTE "${_header_to_scan}")
+      set(_header_to_scan "${CMAKE_CURRENT_SOURCE_DIR}/${_header_to_scan}")
+    endif()
+    if (EXISTS "${_header_to_scan}" AND NOT IS_DIRECTORY "${_header_to_scan}")
+      file(STRINGS "${_header_to_scan}" _nlohmann_json_hits REGEX "nlohmann/json")
+      if (_nlohmann_json_hits)
+        message(FATAL_ERROR "Installed header ${_header} includes nlohmann/json. Keep JSON types out of "
+                            "public headers: move the header under source/ or expose value types instead.")
+      endif()
+    endif()
     set(_relative_header_path)
 
     get_filename_component(_target_path ${_header} PATH)
