@@ -7,6 +7,8 @@ BuildInfo.cpp
 CurlInit.cpp
 ExternalProcess.cpp
 File.cpp
+FileConfig.cpp
+FileTemp.cpp
 JavaInfo.cpp
 Network.cpp
 NetworkGetRequest.cpp
@@ -28,4 +30,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\SYSTEM" FILES ${sources})
-

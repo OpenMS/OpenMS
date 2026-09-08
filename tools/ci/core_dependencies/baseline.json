@@ -42,18 +42,6 @@
       "source": "src/openms/source/METADATA/DocumentIdentifier.cpp",
       "target": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
       "reason": "setLoadedFileType performs content-based file detection. Preserve the current behavior; filename-only inference would change the API contract and is deferred in #10083."
-    },
-    {
-      "rule": "core-to-noncore",
-      "source": "src/openms/source/SYSTEM/File.cpp",
-      "target": "src/openms/include/OpenMS/DATASTRUCTURES/Param.h",
-      "reason": "File combines basic paths with parameter-based configuration and temporary-file policy. #10083 item 5 proposes moving those methods to a separately classified translation unit."
-    },
-    {
-      "rule": "core-to-noncore",
-      "source": "src/openms/source/SYSTEM/File.cpp",
-      "target": "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h",
-      "reason": "File reads and writes configuration XML. #10083 item 5 proposes moving configuration methods into a separate translation unit while preserving the File API."
     }
   ]
 }

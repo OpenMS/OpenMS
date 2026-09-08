@@ -66,7 +66,7 @@
     "src/openms/include/OpenMS/METADATA/Software.h": "Software provenance metadata.",
     "src/openms/include/OpenMS/METADATA/SourceFile.h": "Source-file provenance metadata.",
     "src/openms/include/OpenMS/METADATA/SpectrumSettings.h": "Metadata carried by spectra.",
-    "src/openms/include/OpenMS/SYSTEM/File.h": "Candidate path/shared-data service; configuration and format dispatch in its current translation unit remain baselined.",
+    "src/openms/include/OpenMS/SYSTEM/File.h": "File facade declarations; settings-dependent method implementations remain outside the candidate core.",
     "src/openms/include/OpenMS/SYSTEM/PathUtils.h": "Path normalization shared by File and DocumentIdentifier.",
     "src/openms/include/OpenMS/SYSTEM/SIMDe.h": "SIMD compatibility helper used by StringUtils.",
     "src/openms/source/CONCEPT/Colorizer.cpp": "Terminal formatting used by logging; Windows console coupling remains baselined.",
@@ -128,7 +128,7 @@
     "src/openms/source/METADATA/Software.cpp": "Software provenance metadata.",
     "src/openms/source/METADATA/SourceFile.cpp": "Source-file provenance metadata.",
     "src/openms/source/METADATA/SpectrumSettings.cpp": "Metadata carried by spectra.",
-    "src/openms/source/SYSTEM/File.cpp": "Candidate path/shared-data service; configuration and format dispatch in its current translation unit remain baselined."
+    "src/openms/source/SYSTEM/File.cpp": "Basic filesystem, path, and shared-data operations; configuration and temporary-file policy have separate non-core translation units."
   },
   "seeds": [
     "src/openms/include/OpenMS/KERNEL/Peak1D.h",
