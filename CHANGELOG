@@ -1506,6 +1506,8 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - Removed unused implementation includes and production-only ConstRefVector template-check globals;
+    FeatureMap instantiation coverage now lives in the class test (#10083, step 2).
   - Narrowed selected public headers and moved ToolInfo to DATASTRUCTURES/ToolInfo.h (#10083, step 3).
     Consumers relying on incidental transitive includes must include the used types directly.
   - pyOpenMS wheel workflow: Thermo RAW support is built into the Linux x86_64, macOS arm64 and Windows

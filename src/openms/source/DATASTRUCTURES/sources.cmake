@@ -8,7 +8,6 @@ BinaryTreeNode.cpp
 CalibrationData.cpp
 ChargePair.cpp
 Compomer.cpp
-ConstRefVector.cpp
 ConvexHull2D.cpp
 CVMappingTerm.cpp
 CVMappingRule.cpp

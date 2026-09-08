@@ -15,7 +15,6 @@
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <limits>
@@ -1387,4 +1386,3 @@ namespace OpenMS
     return os;
   }
 } //namespace OpenMS
-
