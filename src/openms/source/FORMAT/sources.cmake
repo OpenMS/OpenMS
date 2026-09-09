@@ -26,6 +26,7 @@ FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 FileInfo.cpp
 FileTypes.cpp
+FileNameUtils.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp

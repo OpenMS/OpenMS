@@ -215,6 +215,7 @@ set(format_executables_list
   FLASHDeconvSpectrumFile_test
   FLASHHelperClasses_test
   FileHandler_test
+  FileNameUtils_test
   FileInfo_test
   FileTypes_test
   GNPSMetaValueFile_test

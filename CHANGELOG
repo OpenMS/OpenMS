@@ -1506,6 +1506,8 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - Extracted filename recognition into FileNameUtils while retaining FileHandler entry points;
+    filesystem and protein-metadata code no longer depend on the format dispatcher (#10083, step 4).
   - Removed unused implementation includes and production-only ConstRefVector template-check globals;
     FeatureMap instantiation coverage now lives in the class test (#10083, step 2).
   - Narrowed selected public headers and moved ToolInfo to DATASTRUCTURES/ToolInfo.h (#10083, step 3).
