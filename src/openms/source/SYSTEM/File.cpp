@@ -6,19 +6,24 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
+// This file holds the basic filesystem and shared-data operations of File.
+// The remaining File members are defined in sibling files:
+//   - FileConfig.cpp: OpenMS.ini settings and user/temp/database path policy
+//     (getSystemParameters, getTempDirectory, getUserDirectory, findDatabase, ...)
+//   - FileTemp.cpp:   TempDir, getTemporaryFile and the temporary-file registry
+// Keeping them apart keeps Param and ParamXMLFile out of this translation unit.
+
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/openms_data_path.h>
 
-#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <OpenMS/FORMAT/FileNameUtils.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
@@ -35,13 +40,11 @@
 #include <Shlwapi.h> // for PathMatchSpecA
 #include <io.h>      // for _access_s(), _sopen_s() and _close()
 #include <share.h>   // for _SH_DENYNO
-#include <rpc.h>     // for UuidCreate() / UuidToStringW()
 #pragma comment(lib, "Shlwapi.lib")
-#pragma comment(lib, "Rpcrt4.lib")
 #else
 #include <fnmatch.h>
 #include <unistd.h> // for gethostname() and close()
-#include <cstdlib>  // for mkdtemp
+#include <cstdlib>  // for getenv
 #endif
 
 #include <fcntl.h>    // for O_CREAT/O_EXCL (spelled _O_CREAT/_O_EXCL on Windows) and open()
@@ -60,125 +63,6 @@ namespace fs = std::filesystem;
 using namespace std;
 
 namespace OpenMS{
-namespace
-{
-  std::string createUniqueDir_(const std::string& prefix)
-  {
-#ifdef OPENMS_WINDOWSPLATFORM
-    // Ensure the parent directory chain exists first (old fs::create_directories
-    // behavior created the whole chain; mkdtemp/CreateDirectoryW only create the leaf).
-    std::filesystem::path parent_path = to_path(prefix).parent_path();
-    if (!parent_path.empty())
-    {
-      std::error_code ec;
-      std::filesystem::create_directories(parent_path, ec);
-      if (ec)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, ec.message());
-      }
-    }
-
-    for (int attempt = 0; attempt < 100; ++attempt)
-    {
-      UUID uuid;
-      RPC_STATUS create_status = UuidCreate(&uuid);
-      if (create_status != RPC_S_OK && create_status != RPC_S_UUID_LOCAL_ONLY)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "UuidCreate failed with status " + std::to_string(create_status));
-      }
-
-      RPC_WSTR wstr = nullptr;
-      RPC_STATUS str_status = UuidToStringW(&uuid, &wstr);
-      if (str_status != RPC_S_OK || wstr == nullptr)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "UuidToStringW failed with status " + std::to_string(str_status));
-      }
-      std::wstring wsuffix(reinterpret_cast<wchar_t*>(wstr));
-      RpcStringFreeW(&wstr);
-      std::string suffix;
-      suffix.reserve(wsuffix.size());
-      for (wchar_t wc : wsuffix)
-      {
-        suffix.push_back(static_cast<char>(wc));
-      }
-
-      std::string candidate = prefix + "_" + suffix;
-      std::filesystem::path wcandidate = to_path(candidate);
-
-      if (CreateDirectoryW(wcandidate.native().c_str(), NULL))
-      {
-        return candidate + "/";
-      }
-      DWORD err = GetLastError();
-      if (err != ERROR_ALREADY_EXISTS)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate, "GetLastError() = " + std::to_string(err));
-      }
-      // else: collision, loop and try again with a new UUID
-    }
-    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "exceeded 100 attempts");
-#else
-    // Ensure the parent directory chain exists first (same reasoning as above).
-    std::filesystem::path parent_path = to_path(prefix).parent_path();
-    if (!parent_path.empty())
-    {
-      std::error_code ec;
-      std::filesystem::create_directories(parent_path, ec);
-      if (ec)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, ec.message());
-      }
-    }
-
-    std::string tmpl = prefix + "_XXXXXX";
-    std::vector<char> buf(tmpl.begin(), tmpl.end());
-    buf.push_back('\0');
-    if (::mkdtemp(buf.data()) == nullptr)
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmpl, std::strerror(errno));
-    }
-    return std::string(buf.data()) + "/";
-#endif
-  }
-}
-
-  File::TempDir::TempDir(bool keep_dir)
-    : keep_dir_(keep_dir)
-  {
-    std::string prefix = File::getTempDirectory() + "/" +File::getUniqueName();
-    temp_dir_ = createUniqueDir_(prefix);
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-  };
-
-  File::TempDir::TempDir(const std::string& base_dir, bool keep_dir)
-    : keep_dir_(keep_dir)
-  {
-    std::string prefix = base_dir;
-    if (!prefix.empty() && !StringUtils::hasSuffix(prefix,"/"))
-    {
-      prefix += "/";
-    }
-    prefix += "OpenMSTempDir_" + File::getUniqueName();
-    temp_dir_ = createUniqueDir_(prefix);
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-  };
-
-  File::TempDir::~TempDir()
-  {
-    if (keep_dir_)
-    {
-      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << '\n';
-      return;
-    }
-
-    File::removeDirRecursively(temp_dir_);
-  };
-
-  const std::string& File::TempDir::getPath() const
-  {
-    return temp_dir_;
-  }
-
   std::string File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
@@ -893,157 +777,6 @@ namespace
     return fs::is_directory(to_path(path));
   }
 
-  std::string File::getTempDirectory()
-  {
-    Param p = getSystemParameters();
-    std::string dir;
-    if (getenv("OPENMS_TMPDIR") != nullptr)
-    {
-      dir = getenv("OPENMS_TMPDIR");
-    }
-    else if (p.exists("temp_dir") && !StringUtils::trimmed(p.getValue("temp_dir").toString()).empty())
-    {
-      dir = p.getValue("temp_dir").toString();
-    }
-    else
-    {
-      dir = fs::temp_directory_path().generic_string();
-    }
-    return dir;
-  }
-
-  /// The current OpenMS user data path (for result files)
-  std::string File::getUserDirectory()
-  {
-    Param p = getSystemParameters();
-    std::string dir;
-    if (getenv("OPENMS_HOME_PATH") != nullptr)
-    {
-      dir = getenv("OPENMS_HOME_PATH");
-    }
-    else if (p.exists("home_dir") && !StringUtils::trimmed(p.getValue("home_dir").toString()).empty())
-    {
-      dir = p.getValue("home_dir").toString();
-    }
-    else
-    {
-#ifdef OPENMS_WINDOWSPLATFORM
-      const char* home = getenv("USERPROFILE");
-#else
-      const char* home = getenv("HOME");
-#endif
-      dir = home ? std::string(home) : std::string(".");
-      StringUtils::substitute(dir, '\\', '/');
-    }
-    StringUtils::ensureLastChar(dir, '/');
-    return dir;
-  }
-
-  std::string File::findDatabase(const std::string& db_name)
-  {
-    Param sys_p = getSystemParameters();
-    std::string full_db_name;
-    try
-    {
-      full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
-      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
-    }
-    catch (Exception::FileNotFound& e)
-    {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!\n";
-      throw;
-    }
-
-    return full_db_name;
-  }
-
-  std::string File::getOpenMSHomePath()
-  {
-    std::string home_path;
-    // set path where OpenMS.ini is found from environment or use default
-    if (getenv("OPENMS_HOME_PATH") != nullptr)
-    {
-      home_path = getenv("OPENMS_HOME_PATH");
-    }
-    else
-    {
-#ifdef OPENMS_WINDOWSPLATFORM
-      const char* home = getenv("USERPROFILE");
-#else
-      const char* home = getenv("HOME");
-#endif
-      home_path = home ? std::string(home) : std::string(".");
-      StringUtils::substitute(home_path, '\\', '/');
-    }
-    return home_path;
-  }
-
-  std::string File::getOpenMSConfigDir()
-  {
-    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems.
-    // This is the single source of truth for the per-user config dir (OpenMS.ini, update-check .ver files, ...).
-    #ifdef __unix__
-      if (getenv("XDG_CONFIG_HOME"))
-      {
-        return std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
-      }
-      return File::getOpenMSHomePath() + "/.config/OpenMS";
-    #else
-      return File::getOpenMSHomePath() + "/.OpenMS";
-    #endif
-  }
-
-  Param File::getSystemParameters()
-  {
-    std::string filename = File::getOpenMSConfigDir() + "/OpenMS.ini";
-
-    Param p;
-    if (!File::readable(filename)) // no file, lets keep it that way
-    {
-      p = getSystemParameterDefaults_();
-    }
-    else
-    {
-      ParamXMLFile paramFile;
-      paramFile.load(filename, p);
-
-      // check version
-      if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
-      {
-        if (!p.exists("version"))
-        {
-          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing.\n";
-        }
-        else // old version
-        {
-          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated.\n";
-        }
-        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!\n";
-        Param p_new = getSystemParameterDefaults_();
-        p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
-        p_new.update(p);
-        // no new version is stored
-      }
-    }
-    return p;
-  }
-
-  Param File::getSystemParameterDefaults_()
-  {
-    Param p;
-    p.setValue("version", VersionInfo::getVersion());
-    p.setValue("home_dir", ""); // only active when user enters something in this value
-    p.setValue("temp_dir", ""); // only active when user enters something in this value
-    p.setValue("id_db_dir", std::vector<std::string>(),
-               std::string("Default directory for FASTA and psq files used as databased for id engines. ") + \
-               "This allows you to specify just the filename of the DB in the " + \
-               "respective TOPP tool, and the database will be searched in the directories specified here " + \
-               ""); // only active when user enters something in this value
-    p.setValue("threads", 1);
-
-    return p;
-  }
-
 #ifdef OPENMS_WINDOWSPLATFORM
   StringList File::executableExtensions_()
   {
@@ -1146,44 +879,6 @@ namespace
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
-  std::string File::getTemporaryFile(const std::string& alternative_file)
-  {
-    // take no action
-    if (!alternative_file.empty())
-    {
-      return alternative_file;
-    }
-    // create temporary (and schedule for deletion)
-    return temporary_files_.newFile();
-  }
-
-
-  File::TemporaryFiles_::TemporaryFiles_()
-    : filenames_()
-  {
-  }
-
-  std::string File::TemporaryFiles_::newFile()
-  {
-    std::string s = getTempDirectory(); StringUtils::ensureLastChar(s, '/'); s += getUniqueName();
-    std::lock_guard<std::mutex> _(mtx_);
-    filenames_.push_back(s);
-    // do NOT return filenames_.back() by ref, since another thread might resize the vector and invalidate the reference!
-    return s; // uses RVO, so its efficient
-  }
-
-  File::TemporaryFiles_::~TemporaryFiles_()
-  {
-    std::lock_guard<std::mutex> _(mtx_);
-    for (Size i = 0; i < filenames_.size(); ++i)
-    {
-      if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
-      {
-        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
-      }
-    }
-  }
-
   File::MatchingFileListsStatus File::validateMatchingFileNames(const StringList& sl1,
                                                         const StringList& sl2,
                                                         bool basename,
@@ -1239,6 +934,5 @@ namespace
       return MatchingFileListsStatus::SET_MISMATCH;
   }
 
-  File::TemporaryFiles_ File::temporary_files_;
 
 } // namespace OpenMS

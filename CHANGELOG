@@ -1508,6 +1508,8 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - Separated filesystem configuration and temporary-file policy from basic File operations
+    into FileConfig.cpp and FileTemp.cpp, preserving the existing API (#10083, step 5).
   - Extracted filename recognition into FileNameUtils while retaining FileHandler entry points;
     filesystem and protein-metadata code no longer depend on the format dispatcher (#10083, step 4).
   - Removed unused implementation includes and production-only ConstRefVector template-check globals;
