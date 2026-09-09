@@ -1768,6 +1768,62 @@ def testParamPythonicInterface():
 
 
 @report
+def testParamStrRepr():
+    """
+    @tests: Param
+     Param.__repr__
+     Param.__str__
+     ParamEntry.__repr__
+     ParamEntry.__str__
+    """
+    # empty Param
+    p_empty = pyopenms.Param()
+    assert repr(p_empty) == "Param({})"
+    assert str(p_empty) == "Param({})"
+
+    p = pyopenms.Param()
+    p.setValue("algorithm:threshold", 0.5, "Intensity threshold", ["advanced"])
+    p.setMinFloat("algorithm:threshold", 0.0)
+    p.setMaxFloat("algorithm:threshold", 1.0)
+    p.setValue("algorithm:iterations", 10, "Number of\niterations")
+    p.setMinInt("algorithm:iterations", 1)
+    p.setValue("mode", "fast", "Processing mode")
+    p.setValidStrings("mode", ["fast", "exact"])
+    p.setValue("ms_levels", [1, 2], "")
+    p.setValue("name", "unnamed")
+
+    # repr(): Python-style, mirrors asDict()
+    r = repr(p)
+    assert r.startswith("Param({") and r.endswith("})")
+    assert eval(r[len("Param("):-1]) == p.asDict()
+
+    # str() (used by print()): one line per entry, in Param iteration order
+    # (entries of a section come before its subsections)
+    lines = str(p).split("\n")
+    assert len(lines) == p.size()
+    assert lines == [
+        "mode = 'fast' (valid: 'fast', 'exact')  # Processing mode",
+        "ms_levels = [1, 2]",
+        "name = 'unnamed'",
+        "algorithm:threshold = 0.5 (min=0.0, max=1.0) [advanced]  # Intensity threshold",
+        # multi-line descriptions are flattened so each entry stays on one line
+        "algorithm:iterations = 10 (min=1)  # Number of iterations",
+    ]
+
+    # ParamEntry
+    e = p.getEntry("algorithm:threshold")
+    assert repr(e) == "ParamEntry(name='threshold', value=0.5, description='Intensity threshold', tags=['advanced'])"
+    assert str(e) == "threshold = 0.5 (min=0.0, max=1.0) [advanced]  # Intensity threshold"
+
+    # print() must not raise and prints str()
+    import io, contextlib
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        print(p)
+    assert buf.getvalue() == str(p) + "\n"
+
+
+@report
 def testFeatureFinderAlgorithmPicked():
     """
     @tests: FeatureFinderAlgorithmPicked
