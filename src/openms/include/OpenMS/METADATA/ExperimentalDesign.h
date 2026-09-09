@@ -8,9 +8,8 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
@@ -20,6 +19,7 @@ namespace OpenMS
 {
   class ConsensusMap;
   class FeatureMap;
+  class ProteinIdentification;
 
   /**
 
@@ -764,4 +764,3 @@ namespace OpenMS
     SampleSection sample_section_;
   };
 }
-
