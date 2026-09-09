@@ -139,6 +139,8 @@ class TestFileStaticMethods(unittest.TestCase):
         """Test File.getTemporaryFile static method."""
         result = pyopenms.File.getTemporaryFile("")
         self.assertGreater(len(str(result)), 0)
+        # the alternative_file argument is optional
+        self.assertGreater(len(str(pyopenms.File.getTemporaryFile())), 0)
 
 class TestBuildInfoStaticMethods(unittest.TestCase):
     """Test static methods of the OpenMSBuildInfo and OpenMSOSInfo classes."""
@@ -807,7 +809,6 @@ class TestSystemSettingsStaticMethods(unittest.TestCase):
     def test_getTempDirectory(self):
         result = pyopenms.SystemSettings.getTempDirectory()
         self.assertGreater(len(str(result)), 0)
-        self.assertTrue(os.path.isdir(str(result)))
 
     def test_getUserDirectory(self):
         result = pyopenms.SystemSettings.getUserDirectory()

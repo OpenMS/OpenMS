@@ -43,24 +43,24 @@ public:
     static std::string getOpenMSConfigDir();
 
     /// The current OpenMS temporary data path (for temporary files).
-    /// Looks up the following locations, taking the first one which is non-null:
-    ///   - environment variable OPENMS_TMPDIR
-    ///   - 'temp_dir' in the ~/OpenMS.ini file
-    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
+    /// Looks up the following locations, taking the first one which is set:
+    ///   - the OPENMS_TMPDIR environment variable
+    ///   - a non-empty 'temp_dir' entry in the OpenMS.ini read by getSystemParameters()
+    ///   - the system temp directory (usually defined by environment 'TMP' or 'TEMP')
+    /// The path is returned as configured; it is not checked for existence.
     static std::string getTempDirectory();
 
-    /// The current OpenMS user data path (for result files)
-    /// Tries to set the user directory in following order:
-    ///   1. OPENMS_HOME_DIR if environmental variable set
-    ///   2. "home_dir" entry in OpenMS.ini
-    ///   3. user home directory
+    /// The current OpenMS user data path (for result files), with a trailing '/'.
+    /// Resolved in the following order, taking the first one which is set:
+    ///   1. the OPENMS_HOME_PATH environment variable
+    ///   2. a non-empty "home_dir" entry in the OpenMS.ini read by getSystemParameters()
+    ///   3. the user's home directory (HOME, or USERPROFILE on Windows)
     static std::string getUserDirectory();
 
-    /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
-    /// or create/repair it if required
-    /// order:
-    ///   1. &lt;OPENMS_HOME_DIR&gt;/OpenMS/OpenMS.ini if environmental variable set
-    ///   2. user home directory &lt;home&gt;/OpenMS/OpenMS.ini
+    /// Returns the OpenMS.ini system parameters, read from getOpenMSConfigDir() + "/OpenMS.ini".
+    /// If that file does not exist, the built-in defaults are returned. If it exists but its
+    /// 'version' is missing or outdated, missing entries are filled in from the defaults (the
+    /// file itself is not rewritten).
     static Param getSystemParameters();
 
     /// uses File::find() to search for a file names @p db_name

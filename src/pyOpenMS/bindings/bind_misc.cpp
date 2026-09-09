@@ -941,7 +941,7 @@ FeatureGroupingAlgorithm
         .def_static("getSystemParameters", []() { return OpenMS::SystemSettings::getSystemParameters(); })
         .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::SystemSettings::findDatabase(db_name); }, "db_name"_a)
         .def_static("findExecutable", [](std::string& exe_filename) { return OpenMS::File::findExecutable(exe_filename); }, "exe_filename"_a)
-        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::TempFiles::getTemporaryFile(alternative_file); }, "alternative_file"_a)
+        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::TempFiles::getTemporaryFile(alternative_file); }, "alternative_file"_a = "")
 
         .def_static("exists", [](const std::string& file) {
             return OpenMS::File::exists(file);

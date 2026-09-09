@@ -22,11 +22,48 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <optional>
+#include <string>
 
 using namespace OpenMS;
 using namespace std;
 
+namespace
+{
+  // getenv() pointers may be invalidated by later setenv() calls, so copy the value
+  std::optional<std::string> readEnv(const char* name)
+  {
+    const char* value = getenv(name);
+    if (value == nullptr) return std::nullopt;
+    return std::string(value);
+  }
+
+  void setEnv(const char* name, const std::string& value)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    _putenv_s(name, value.c_str());
+#else
+    setenv(name, value.c_str(), 1);
+#endif
+  }
+
+  void restoreEnv(const char* name, const std::optional<std::string>& previous)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    _putenv_s(name, previous ? previous->c_str() : "");
+#else
+    if (previous) setenv(name, previous->c_str(), 1);
+    else unsetenv(name);
+#endif
+  }
+}
+
 START_TEST(SystemSettings, "$Id$")
+
+// remembered before any section changes it; restored in the getOpenMSHomePath() section
+const std::optional<std::string> home_backup = readEnv("OPENMS_HOME_PATH");
+// the directory OPENMS_HOME_PATH is pointed at by the getUserDirectory() section
+std::string home_dirname;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -40,16 +77,13 @@ START_SECTION(static std::string getUserDirectory())
   TEST_NOT_EQUAL(SystemSettings::getUserDirectory(), std::string())
   TEST_EQUAL(File::exists(SystemSettings::getUserDirectory()), true)
 
-  // set user directory to a path set by environmental variable and test that
-  // it is correctly set (no changes on the file system occur)
-  std::string dirname = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(File::makeDir(dirname), true);
-#ifdef OPENMS_WINDOWSPLATFORM
-  _putenv_s("OPENMS_HOME_PATH", dirname.c_str());
-#else
-  setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);
-#endif
-  TEST_EQUAL(SystemSettings::getUserDirectory(), dirname)
+  // Point OPENMS_HOME_PATH at a fresh directory and check that it takes precedence
+  // (no changes on the file system occur). The previous value is restored at the
+  // end of the getOpenMSHomePath() section below.
+  home_dirname = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "/";
+  TEST_EQUAL(File::makeDir(home_dirname), true);
+  setEnv("OPENMS_HOME_PATH", home_dirname);
+  TEST_EQUAL(SystemSettings::getUserDirectory(), home_dirname)
   // Note: this does not guarantee any more that the user directory or an
   // OpenMS.ini file exists at the new location.
 END_SECTION
@@ -57,7 +91,8 @@ END_SECTION
 START_SECTION(static std::string getOpenMSHomePath())
   // OPENMS_HOME_PATH was set in the section above and takes precedence
   TEST_NOT_EQUAL(SystemSettings::getOpenMSHomePath(), std::string())
-  TEST_EQUAL(SystemSettings::getOpenMSHomePath(), std::string(getenv("OPENMS_HOME_PATH")))
+  TEST_EQUAL(SystemSettings::getOpenMSHomePath(), home_dirname)
+  restoreEnv("OPENMS_HOME_PATH", home_backup);
 END_SECTION
 
 START_SECTION(static std::string getOpenMSConfigDir())
@@ -68,12 +103,11 @@ START_SECTION(static std::string getOpenMSConfigDir())
   TEST_EQUAL(StringUtils::hasSuffix(config_dir, "/"), false)
 #ifdef __unix__
   // on unix-like systems, XDG_CONFIG_HOME takes precedence when set
-  const char* xdg_backup = getenv("XDG_CONFIG_HOME");
-  setenv("XDG_CONFIG_HOME", "/tmp/openms_xdg_test", 1);
+  const std::optional<std::string> xdg_backup = readEnv("XDG_CONFIG_HOME");
+  setEnv("XDG_CONFIG_HOME", "/tmp/openms_xdg_test");
   TEST_EQUAL(SystemSettings::getOpenMSConfigDir(), "/tmp/openms_xdg_test/OpenMS")
   // restore previous environment to avoid side effects on later tests
-  if (xdg_backup) { setenv("XDG_CONFIG_HOME", xdg_backup, 1); }
-  else { unsetenv("XDG_CONFIG_HOME"); }
+  restoreEnv("XDG_CONFIG_HOME", xdg_backup);
 #endif
 END_SECTION
 
