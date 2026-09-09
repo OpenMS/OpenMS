@@ -30,6 +30,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -646,7 +647,7 @@ protected:
 
     // do this early, to see if comet is installed
     std::string comet_executable = getStringOption_("comet_executable");
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
     
@@ -723,7 +724,7 @@ protected:
       // Thermo native IDs are "scan=N" with monotonic N — mzParser handles
       // them correctly, so no native ID rewriting is needed (unlike the
       // Bruker path below where "frame=F scan=S" triggers a sort UB).
-      auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+      auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
       MzMLFile().store(tmp_mzml, exp);
       input_file_with_index = tmp_mzml;
 
@@ -773,7 +774,7 @@ protected:
       CometNativeIDRemapper::rewriteToIndex(exp);
 
       // Write to temporary indexed mzML for Comet
-      auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+      auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
       MzMLFile().store(tmp_mzml, exp);
       input_file_with_index = tmp_mzml;
 
@@ -816,7 +817,7 @@ protected:
 
         CometNativeIDRemapper::rewriteToIndex(exp);
 
-        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
         MzMLFile().store(tmp_mzml, exp);
         input_file_with_index = tmp_mzml;
 
@@ -833,7 +834,7 @@ protected:
         {
           OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                           << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
-          auto tmp_file_mzml = File::getTemporaryFile() + ".mzML";
+          auto tmp_file_mzml = TempFiles::getTemporaryFile() + ".mzML";
           PlainMSDataWritingConsumer consumer(tmp_file_mzml);
           consumer.getOptions().addMSLevel(ms_level);
           bool skip_full_count = true;

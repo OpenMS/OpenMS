@@ -26,6 +26,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
@@ -374,9 +375,9 @@ class ProSE :
           }
 
           // Write intermediate idXML for PercolatorAdapter input
-          std::string tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
-          std::string tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
-          std::string tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
+          std::string tmp_in = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
+          std::string tmp_out = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
+          std::string tmp_weights = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
           FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
 
           std::vector<std::string> perc_params = {

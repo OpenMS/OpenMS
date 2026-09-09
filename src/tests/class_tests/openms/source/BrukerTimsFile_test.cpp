@@ -18,6 +18,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
 using namespace OpenMS;
@@ -664,7 +665,7 @@ START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
   // Write to temporary mzML — avoid NEW_TMP_FILE because the test
   // framework validates all registered .mzML files, and the IM data
   // array CV term MS:1003008 fails semantic validation (known issue).
-  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dda_roundtrip.mzML";
+  std::string tmp_mzml = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_dda_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, orig);
 
   // Reload from mzML
@@ -1204,7 +1205,7 @@ START_SECTION(DIA round-trip test: load .d -> write mzML -> reload -> verify)
   f.load(OPENTIMS_DIA_TEST_DATA, orig);
 
   // Write to temporary mzML — avoid NEW_TMP_FILE (see DDA round-trip comment)
-  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
+  std::string tmp_mzml = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, orig);
 
   // Reload from mzML

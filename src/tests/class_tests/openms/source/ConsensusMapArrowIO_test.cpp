@@ -13,6 +13,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 ///////////////////////////
 
 #include <OpenMS/config.h>
@@ -1034,7 +1035,7 @@ START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
   cf.setIntensity(1000.0f);
   cmap.push_back(cf);
 
-  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_cmio";
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_cmio";
   TEST_TRUE(File::makeDir(dir))
 
   TEST_TRUE(ConsensusMapArrowIO::exportToParquet(cmap, dir))

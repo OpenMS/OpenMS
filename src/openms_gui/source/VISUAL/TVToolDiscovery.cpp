@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
@@ -74,7 +75,7 @@ namespace OpenMS
   {
     static std::mutex io_mutex;
     // Temporary file path and arguments
-    std::string path = File::getTemporaryFile();
+    std::string path = TempFiles::getTemporaryFile();
     std::string working_dir = StringUtils::prefix(path, path.find_last_of('/'));
     std::vector<std::string> args{"-write_ini", path};
     Param tool_param;

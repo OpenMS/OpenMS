@@ -9,9 +9,9 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
-#include <mutex>
 
 
 namespace OpenMS
@@ -27,41 +27,8 @@ namespace OpenMS
   class OPENMS_DLLAPI File
   {
 public:
-    /**
-      @brief Class representing a temporary directory
-    
-    */
-    class OPENMS_DLLAPI TempDir
-    {
-    public:
-      
-      /// Construct temporary folder under system temp directory
-      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
-      TempDir(bool keep_dir = false);
-
-      /// Construct temporary folder under a custom base directory
-      /// Creates a unique subdirectory with a generated name under base_dir.
-      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
-      /// @param base_dir The base directory under which to create the temp folder (e.g., user-specified temp path)
-      /// @param keep_dir If true, the folder will not be deleted on destruction
-      TempDir(const std::string& base_dir, bool keep_dir = false);
-
-      /// Destroy temporary folder (can be prohibited in Constructor)
-      ~TempDir();
-
-      /// delete all means to copy or move a TempDir
-      TempDir(const TempDir&) = delete;
-      TempDir& operator=(const TempDir&) = delete;
-      TempDir(TempDir&&) = delete;
-      TempDir& operator=(TempDir&&) = delete;
-
-      /// Return path to temporary folder
-      const std::string& getPath() const;
-
-    private:
-      std::string temp_dir_;
-      bool keep_dir_;
-    };
+    /// @deprecated Use OpenMS::TempDir from OpenMS/SYSTEM/TempFiles.h; this alias is kept for one release.
+    using TempDir [[deprecated("use OpenMS::TempDir from OpenMS/SYSTEM/TempFiles.h")]] = OpenMS::TempDir;
 
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
@@ -244,41 +211,28 @@ public:
     */
     static const std::string& getOpenMSDataPathSource();
 
-    /// Returns the OpenMS home path (environment variable overwrites the default home path)
+    /// @deprecated Use SystemSettings::getOpenMSHomePath(); forwarder kept for one release.
+    [[deprecated("use SystemSettings::getOpenMSHomePath()")]]
     static std::string getOpenMSHomePath();
 
-    /// @brief Returns the per-user OpenMS configuration directory (the directory that holds OpenMS.ini)
-    ///
-    /// Follows the XDG base directory specification on unix-like systems
-    /// (&lt;XDG_CONFIG_HOME&gt;/OpenMS or &lt;home&gt;/.config/OpenMS) and uses &lt;home&gt;/.OpenMS otherwise.
-    /// The returned path has no trailing separator and the directory is not guaranteed to exist.
-    /// @return String containing the per-user OpenMS configuration directory path
+    /// @deprecated Use SystemSettings::getOpenMSConfigDir(); forwarder kept for one release.
+    [[deprecated("use SystemSettings::getOpenMSConfigDir()")]]
     static std::string getOpenMSConfigDir();
 
-    /// The current OpenMS temporary data path (for temporary files).
-    /// Looks up the following locations, taking the first one which is non-null:
-    ///   - environment variable OPENMS_TMPDIR
-    ///   - 'temp_dir' in the ~/OpenMS.ini file
-    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
+    /// @deprecated Use SystemSettings::getTempDirectory(); forwarder kept for one release.
+    [[deprecated("use SystemSettings::getTempDirectory()")]]
     static std::string getTempDirectory();
 
-    /// The current OpenMS user data path (for result files)
-    /// Tries to set the user directory in following order:
-    ///   1. OPENMS_HOME_DIR if environmental variable set
-    ///   2. "home_dir" entry in OpenMS.ini
-    ///   3. user home directory
+    /// @deprecated Use SystemSettings::getUserDirectory(); forwarder kept for one release.
+    [[deprecated("use SystemSettings::getUserDirectory()")]]
     static std::string getUserDirectory();
 
-    /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
-    /// or create/repair it if required
-    /// order:
-    ///   1. &lt;OPENMS_HOME_DIR&gt;/OpenMS/OpenMS.ini if environmental variable set
-    ///   2. user home directory &lt;home&gt;/OpenMS/OpenMS.ini
+    /// @deprecated Use SystemSettings::getSystemParameters(); forwarder kept for one release.
+    [[deprecated("use SystemSettings::getSystemParameters()")]]
     static Param getSystemParameters();
 
-    /// uses File::find() to search for a file names @p db_name
-    /// in the 'id_db_dir' param of the OpenMS system parameters
-    /// @exception FileNotFound is thrown, if the file is not found
+    /// @deprecated Use SystemSettings::findDatabase(); forwarder kept for one release.
+    [[deprecated("use SystemSettings::findDatabase()")]]
     static std::string findDatabase(const std::string& db_name);
 
     /**
@@ -325,24 +279,9 @@ public:
     */
     static std::string findSiblingTOPPExecutable(const std::string& toolName);
 
-    /**
-      @brief Obtain a temporary filename, ensuring automatic deletion upon exit
-
-      The file is not actually created and only deleted at exit if it exists.
-      
-      However, if 'alternative_file' is given and not empty, no temporary filename
-      is created and 'alternative_file' is returned (and not destroyed upon exit).
-      This is useful if you have an optional
-      output file, which may, or may not be requested, but you need its content regardless,
-      e.g. for intermediate plotting with R.
-      Thus you can just call this function to get a file which can be used and gets automatically
-      destroyed if needed.
-
-      @param[in] alternative_file If this string is not empty, no action is taken and it is used as return value
-      @return Full path to a temporary file
-    */
+    /// @deprecated Use TempFiles::getTemporaryFile(); forwarder kept for one release.
+    [[deprecated("use TempFiles::getTemporaryFile()")]]
     static std::string getTemporaryFile(const std::string& alternative_file = "");
-
 
     enum class MatchingFileListsStatus 
     {
@@ -372,9 +311,6 @@ public:
                                                        bool ignore_extension = true);
 
 private:
-
-    /// get defaults for the system's Temp-path, user home directory etc.
-    static Param getSystemParameterDefaults_();
 
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const std::string& path);
@@ -410,27 +346,5 @@ private:
     */
     static StringList executableExtensions_(const std::string& ext);
 #endif
-
-    /**
-      @brief Internal helper class, which holds temporary filenames and deletes these files at program exit
-    */
-    class TemporaryFiles_
-    {
-      public:
-        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
-        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
-        TemporaryFiles_();
-        /// create a new filename and queue internally for deletion
-        std::string newFile();
-
-        ~TemporaryFiles_();
-      private:
-        StringList filenames_;
-        std::mutex mtx_;
-    };
-
-
-    /// private list of temporary filenames, which are deleted upon program exit
-    static TemporaryFiles_ temporary_files_;
   };
 }
