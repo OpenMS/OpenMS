@@ -6,6 +6,13 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
+// This file holds the basic filesystem and shared-data operations of File.
+// The remaining File members are defined in sibling files:
+//   - FileConfig.cpp: OpenMS.ini settings and user/temp/database path policy
+//     (getSystemParameters, getTempDirectory, getUserDirectory, findDatabase, ...)
+//   - FileTemp.cpp:   TempDir, getTemporaryFile and the temporary-file registry
+// Keeping them apart keeps Param and ParamXMLFile out of this translation unit.
+
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/openms_data_path.h>
