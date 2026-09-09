@@ -647,6 +647,7 @@ set(analysis_executables_list
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelDefaults_test
   TransformationModelBSpline_test
   TransformationModelLowess_test
   TransformationModelInterpolated_test
