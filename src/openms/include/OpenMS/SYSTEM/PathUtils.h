@@ -13,6 +13,11 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Free functions for path/filename manipulation without filesystem access.
+
+    @ingroup System
+  */
   namespace PathUtils
   {
     /**
@@ -27,14 +32,22 @@ namespace OpenMS
     }
   }
 
-  /// Convert a UTF-8 std::string to std::filesystem::path safely on all platforms.
-  /// On Windows, std::filesystem::path(std::string) uses the current code page, not UTF-8,
-  /// so we explicitly construct from u8string. If the bytes are not valid UTF-8 (e.g., a
-  /// filename from argv in the ANSI code page), fall back to the native code page.
-  /// Guard on the compiler's _WIN32, not OPENMS_WINDOWSPLATFORM: this header pulls
-  /// in nothing that defines the latter, so keying an inline function on it would
-  /// select the wrong branch in TUs that haven't seen <OpenMS/config.h> (an ODR
-  /// violation).
+  /**
+    @brief Convert a UTF-8 std::string to std::filesystem::path safely on all platforms.
+
+    On Windows, std::filesystem::path(std::string) uses the current code page, not UTF-8,
+    so we explicitly construct from u8string. If the bytes are not valid UTF-8 (e.g., a
+    filename from argv in the ANSI code page), fall back to the native code page.
+    Guard on the compiler's _WIN32, not OPENMS_WINDOWSPLATFORM: this header pulls
+    in nothing that defines the latter, so keying an inline function on it would
+    select the wrong branch in TUs that haven't seen <OpenMS/config.h> (an ODR
+    violation).
+
+    @param[in] s UTF-8 encoded path string.
+    @return The corresponding std::filesystem::path.
+
+    @ingroup System
+  */
   inline std::filesystem::path to_path(const std::string& s)
   {
 #ifdef _WIN32

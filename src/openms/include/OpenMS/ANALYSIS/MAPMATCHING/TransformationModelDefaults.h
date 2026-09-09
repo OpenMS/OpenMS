@@ -16,6 +16,8 @@ namespace OpenMS
     @brief Shared transformation-model parameters for alignment algorithms and tools.
 
     Parameter values, constraints and descriptions follow the individual models.
+
+    @ingroup MapAlignment
   */
   class OPENMS_DLLAPI TransformationModelDefaults
   {

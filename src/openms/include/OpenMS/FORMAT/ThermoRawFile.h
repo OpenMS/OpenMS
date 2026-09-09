@@ -36,6 +36,9 @@ namespace OpenMS
          openms_thermo_bridge shared library.
     Set DOTNET_ROOT if the .NET runtime is installed in a non-standard location.
 
+    See doc/thermo_raw_mzml.md for the metadata mapping to mzML and how to
+    build against a local openms-thermo-bridge checkout.
+
     @ingroup FileIO
   */
   class OPENMS_DLLAPI ThermoRawFile : public ProgressLogger

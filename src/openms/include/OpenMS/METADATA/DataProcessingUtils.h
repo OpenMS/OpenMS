@@ -18,6 +18,8 @@ namespace OpenMS
     @brief Queries on data-processing provenance records.
 
     These queries do not require a feature map or a quality-control metric.
+
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI DataProcessingUtils
   {

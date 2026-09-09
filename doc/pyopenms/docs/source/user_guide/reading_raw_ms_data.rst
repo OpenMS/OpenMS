@@ -264,3 +264,31 @@ into memory):
 
 This approach is now memory efficient in cases where computation should only occur
 on part of the data or the whole data may not fit into memory.
+
+Thermo RAW Files
+*****************
+
+Wheels built with native Thermo RAW support can load a vendor ``.raw`` file
+directly, without going through ThermoRawFileParser, using
+:py:class:`~.ThermoRawFile`:
+
+.. code-block:: python
+
+    import pyopenms as oms
+
+    if hasattr(oms, "ThermoRawFile"):
+        reader = oms.ThermoRawFile()
+        options = oms.ThermoRawFileOptions()
+        options.centroid = True  # matches ThermoRawFileParser's default peak picking
+        reader.setOptions(options)
+        exp = oms.MSExperiment()
+        reader.load("input.raw", exp)
+        oms.MzMLFile().store("output.mzML", exp)
+
+Since native Thermo support is an optional build feature, check for it with
+``hasattr(oms, "ThermoRawFile")`` before use. Loading requires a .NET 8 (or
+newer) runtime; the managed openms-thermo-bridge assemblies are bundled with
+wheels that ship this feature. See ``doc/thermo_raw_mzml.md`` in the OpenMS
+source tree for the full metadata mapping to mzML and the available
+:py:class:`~.ThermoRawFileOptions` (charge/noise/detector export, trailer and
+instrument-method preservation, checksum).

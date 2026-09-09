@@ -533,6 +533,7 @@ cd OpenMS-build && ctest -R pyopenms -V
 - `CONTRIBUTING.md` - Contribution guidelines
 - `src/pyOpenMS/README.md` - pyOpenMS development
 - `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md` - Wrapping guide
+- `doc/thermo_raw_mzml.md` - ThermoRawFile options, metadata mapping, and building the paired openms-thermo-bridge
 
 **Online resources:**
 - [OpenMS Documentation](https://openms.readthedocs.io/en/latest)
