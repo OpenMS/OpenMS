@@ -33,4 +33,7 @@ openms_add_library(TARGET_NAME OpenSwathAlgo
                    PRIVATE_LINK_LIBRARIES Eigen3::Eigen $<$<BOOL:${OPENMP_FOUND}>:OpenMP::OpenMP_CXX>
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
 
+# Keep this algorithm library independent of Qt code generation in GUI builds.
+set_target_properties(OpenSwathAlgo PROPERTIES AUTOMOC OFF)
+
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
