@@ -192,12 +192,4 @@ namespace
 
   TempFiles::Registry_ TempFiles::registry_;
 
-  // --------------------------------------------------------------------------
-  // Deprecated File forwarder (kept for one release; see TempFiles)
-  // --------------------------------------------------------------------------
-  std::string File::getTemporaryFile(const std::string& alternative_file)
-  {
-    return TempFiles::getTemporaryFile(alternative_file);
-  }
-
 } // namespace OpenMS

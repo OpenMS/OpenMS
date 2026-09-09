@@ -177,14 +177,4 @@ namespace OpenMS
     return p;
   }
 
-  // --------------------------------------------------------------------------
-  // Deprecated File forwarders (kept for one release; see SystemSettings)
-  // --------------------------------------------------------------------------
-  std::string File::getOpenMSHomePath() { return SystemSettings::getOpenMSHomePath(); }
-  std::string File::getOpenMSConfigDir() { return SystemSettings::getOpenMSConfigDir(); }
-  std::string File::getTempDirectory() { return SystemSettings::getTempDirectory(); }
-  std::string File::getUserDirectory() { return SystemSettings::getUserDirectory(); }
-  Param File::getSystemParameters() { return SystemSettings::getSystemParameters(); }
-  std::string File::findDatabase(const std::string& db_name) { return SystemSettings::findDatabase(db_name); }
-
 } // namespace OpenMS

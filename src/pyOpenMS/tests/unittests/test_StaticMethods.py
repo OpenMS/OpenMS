@@ -826,7 +826,7 @@ class TestSystemSettingsStaticMethods(unittest.TestCase):
         self.assertTrue(p.exists("version"))
         self.assertTrue(p.exists("temp_dir"))
 
-    def test_matches_deprecated_File_forwarders(self):
+    def test_matches_File_static_methods(self):
         self.assertEqual(str(pyopenms.SystemSettings.getTempDirectory()), str(pyopenms.File.getTempDirectory()))
         self.assertEqual(str(pyopenms.SystemSettings.getUserDirectory()), str(pyopenms.File.getUserDirectory()))
 

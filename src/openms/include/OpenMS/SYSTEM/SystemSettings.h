@@ -23,8 +23,8 @@ namespace OpenMS
     Every lookup honours the environment overrides (OPENMS_HOME_PATH, OPENMS_TMPDIR,
     XDG_CONFIG_HOME) before consulting OpenMS.ini and the platform defaults.
 
-    This class depends on File and Param; File does not depend on it. The former
-    File entry points remain as deprecated forwarders.
+    This class depends on File and Param; File does not depend on it. These
+    lookups used to be static members of File.
 
     @ingroup System
   */

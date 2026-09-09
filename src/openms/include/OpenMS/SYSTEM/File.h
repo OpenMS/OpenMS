@@ -9,14 +9,12 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
 
 
 namespace OpenMS
 {
-  class Param;
   class TOPPBase;
 
   /**
@@ -27,9 +25,6 @@ namespace OpenMS
   class OPENMS_DLLAPI File
   {
 public:
-    /// @deprecated Use OpenMS::TempDir from OpenMS/SYSTEM/TempFiles.h; this alias is kept for one release.
-    using TempDir [[deprecated("use OpenMS::TempDir from OpenMS/SYSTEM/TempFiles.h")]] = OpenMS::TempDir;
-
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
@@ -211,30 +206,6 @@ public:
     */
     static const std::string& getOpenMSDataPathSource();
 
-    /// @deprecated Use SystemSettings::getOpenMSHomePath(); forwarder kept for one release.
-    [[deprecated("use SystemSettings::getOpenMSHomePath()")]]
-    static std::string getOpenMSHomePath();
-
-    /// @deprecated Use SystemSettings::getOpenMSConfigDir(); forwarder kept for one release.
-    [[deprecated("use SystemSettings::getOpenMSConfigDir()")]]
-    static std::string getOpenMSConfigDir();
-
-    /// @deprecated Use SystemSettings::getTempDirectory(); forwarder kept for one release.
-    [[deprecated("use SystemSettings::getTempDirectory()")]]
-    static std::string getTempDirectory();
-
-    /// @deprecated Use SystemSettings::getUserDirectory(); forwarder kept for one release.
-    [[deprecated("use SystemSettings::getUserDirectory()")]]
-    static std::string getUserDirectory();
-
-    /// @deprecated Use SystemSettings::getSystemParameters(); forwarder kept for one release.
-    [[deprecated("use SystemSettings::getSystemParameters()")]]
-    static Param getSystemParameters();
-
-    /// @deprecated Use SystemSettings::findDatabase(); forwarder kept for one release.
-    [[deprecated("use SystemSettings::findDatabase()")]]
-    static std::string findDatabase(const std::string& db_name);
-
     /**
       @brief Extract list of directories from a concatenated string (usually $PATH).
 
@@ -278,10 +249,6 @@ public:
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
     static std::string findSiblingTOPPExecutable(const std::string& toolName);
-
-    /// @deprecated Use TempFiles::getTemporaryFile(); forwarder kept for one release.
-    [[deprecated("use TempFiles::getTemporaryFile()")]]
-    static std::string getTemporaryFile(const std::string& alternative_file = "");
 
     enum class MatchingFileListsStatus 
     {
