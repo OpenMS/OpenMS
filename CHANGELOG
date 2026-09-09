@@ -1516,6 +1516,8 @@ Build System:
     FeatureMap instantiation coverage now lives in the class test (#10083, step 2).
   - Narrowed selected public headers and moved ToolInfo to DATASTRUCTURES/ToolInfo.h (#10083, step 3).
     Consumers relying on incidental transitive includes must include the used types directly.
+  - Separated ion-mobility array metadata from frame conversion, with IMDataConverter compatibility
+    entry points and unchanged CV lookup, unit handling, and vendor-name fallbacks (#10083, step 6).
   - pyOpenMS wheel workflow: Thermo RAW support is built into the Linux x86_64, macOS arm64 and Windows
     wheels. The managed half of openms-thermo-bridge comes from the bridge's pre-built release zip via
     tools/ci/fetch_thermo_assets.sh (curl with retries, pinned SHA-256, cached with actions/cache,
