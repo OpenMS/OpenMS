@@ -33,6 +33,7 @@ def _assert_flag(p, key, expected):
 
 class TestParamBoolWrite:
     def test_setValue_bool(self):
+        """setValue(key, True/False) stores a flag string and marks the entry as boolean."""
         p = pyopenms.Param()
         p.setValue("flag", True, "a flag")
         _assert_flag(p, "flag", True)
@@ -41,12 +42,14 @@ class TestParamBoolWrite:
         _assert_flag(p, "flag", False)
 
     def test_setValue_bool_with_tags(self):
+        """setValue with description and tags keeps them alongside the boolean marker."""
         p = pyopenms.Param()
         p.setValue("flag", False, "a flag", ["advanced"])
         _assert_flag(p, "flag", False)
         assert p.hasTag("flag", "advanced")
 
     def test_setitem_bool(self):
+        """p[key] = bool creates a boolean parameter."""
         p = pyopenms.Param()
         p["a"] = True
         p["b"] = False
@@ -54,17 +57,20 @@ class TestParamBoolWrite:
         _assert_flag(p, "b", False)
 
     def test_from_dict_bool(self):
+        """Param.from_dict accepts bool values next to other types."""
         p = pyopenms.Param.from_dict({"flag": False, "n": 1, "s": "x"})
         _assert_flag(p, "flag", False)
         assert p["n"] == 1
         assert p["s"] == "x"
 
     def test_update_dict_bool(self):
+        """Param.update with a dict accepts bool values."""
         p = pyopenms.Param()
         p.update({"flag": True})
         _assert_flag(p, "flag", True)
 
     def test_update_param_copies_bool_marker(self):
+        """Param.update from another Param keeps flags readable as bool."""
         src = pyopenms.Param()
         src["flag"] = True
         dst = pyopenms.Param()
@@ -72,6 +78,7 @@ class TestParamBoolWrite:
         _assert_flag(dst, "flag", True)
 
     def test_param_entry_ctor_bool(self):
+        """ParamEntry(name, True, ...) creates a boolean entry; a string does not."""
         e = pyopenms.ParamEntry("flag", True, "a flag")
         assert e.value is True
         assert e.valid_strings == BOOL_VALID
@@ -80,6 +87,7 @@ class TestParamBoolWrite:
         assert e2.valid_strings == []
 
     def test_param_entry_value_setter(self):
+        """Assigning a bool to ParamEntry.value marks an unrestricted entry as boolean."""
         e = pyopenms.ParamEntry("x", "abc", "")
         e.value = False
         assert e.value is False
@@ -92,6 +100,7 @@ class TestParamBoolWrite:
         assert f.valid_strings == []
 
     def test_existing_restrictions_are_kept(self):
+        """A bool assigned to an entry with other valid strings leaves the restriction alone."""
         # a bool assigned to an entry with other valid strings does not touch them
         p = pyopenms.Param()
         p.setValue("mode", "none")
@@ -107,6 +116,7 @@ class TestParamBoolWrite:
             p.checkDefaults("test", defaults)
 
     def test_bool_in_list_rejected(self):
+        """Lists containing bools raise TypeError on every write path."""
         p = pyopenms.Param()
         with pytest.raises(TypeError):
             p.setValue("l", [True, False])
@@ -117,6 +127,7 @@ class TestParamBoolWrite:
         assert "l" not in p
 
     def test_unsupported_type_message(self):
+        """Unsupported value types raise a TypeError naming the accepted types."""
         p = pyopenms.Param()
         with pytest.raises(TypeError, match="bool"):
             p["x"] = object()
@@ -124,6 +135,7 @@ class TestParamBoolWrite:
 
 class TestParamBoolRead:
     def _make(self):
+        """Build a Param with two flags, an int and a string."""
         p = pyopenms.Param()
         p["sec:on"] = True
         p["sec:off"] = False
@@ -132,6 +144,7 @@ class TestParamBoolRead:
         return p
 
     def test_read_paths(self):
+        """Every read path returns boolean parameters as Python bool."""
         p = self._make()
         assert p.getValue("sec:on") is True
         assert p.getValue("sec:off") is False
@@ -148,6 +161,7 @@ class TestParamBoolRead:
         assert {e.name: e.value for e in p}["on"] is True
 
     def test_string_true_on_flag_reads_as_bool(self):
+        """Assigning 'true'/'false' strings to a flag keeps it a boolean parameter."""
         p = pyopenms.Param()
         p["flag"] = False
         p["flag"] = "true"  # plain string keeps the restriction -> still a flag
@@ -156,6 +170,7 @@ class TestParamBoolRead:
         _assert_flag(p, "flag", False)
 
     def test_invalid_string_on_flag_is_returned_unchanged(self):
+        """An invalid string on a flag reads back unchanged (str)."""
         p = pyopenms.Param()
         p["flag"] = True
         p["flag"] = "maybe"
@@ -163,6 +178,7 @@ class TestParamBoolRead:
         assert p.getValidStrings("flag") == BOOL_VALID
 
     def test_unrestricted_string_is_not_converted(self):
+        """'true' on a key without the flag restriction stays a str."""
         p = pyopenms.Param()
         p["s"] = "true"
         assert p["s"] == "true"
@@ -171,12 +187,14 @@ class TestParamBoolRead:
         assert p["s"] == "true"
 
     def test_other_valid_strings_stay_str(self):
+        """String parameters with other valid strings are untouched."""
         p = pyopenms.Param()
         p["mode"] = "a"
         p.setValidStrings("mode", ["a", "b"])
         assert p["mode"] == "a"
 
     def test_round_trip_dict(self):
+        """from_dict(to_dict()) preserves boolean parameters."""
         p = self._make()
         q = pyopenms.Param.from_dict(p.to_dict())
         assert q == p
@@ -185,6 +203,7 @@ class TestParamBoolRead:
         _assert_flag(q, "sec:off", False)
 
     def test_round_trip_ini(self):
+        """ParamXMLFile store/load preserves boolean parameters."""
         p = self._make()
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "p.ini")
@@ -198,6 +217,7 @@ class TestParamBoolRead:
 
 class TestParamBoolAlgorithm:
     def test_algorithm_flag_reads_as_bool(self):
+        """Algorithm default flags read back as bool."""
         gf = pyopenms.GaussFilter()
         p = gf.getDefaults()
         assert p["use_ppm_tolerance"] is False
@@ -205,6 +225,7 @@ class TestParamBoolAlgorithm:
         assert p.asDict()["use_ppm_tolerance"] is False
 
     def test_algorithm_flag_set_with_bool(self):
+        """Setting an algorithm flag with a bool passes checkDefaults/setParameters."""
         gf = pyopenms.GaussFilter()
         p = gf.getParameters()
         p["use_ppm_tolerance"] = True
@@ -218,6 +239,7 @@ class TestParamBoolAlgorithm:
         assert gf.getParameters()["use_ppm_tolerance"] is False
 
     def test_algorithm_invalid_flag_value_still_rejected(self):
+        """An invalid flag string is still rejected by setParameters."""
         gf = pyopenms.GaussFilter()
         p = gf.getParameters()
         p.setValue("use_ppm_tolerance", "maybe")
