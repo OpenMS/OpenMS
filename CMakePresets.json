@@ -105,6 +105,7 @@
             "name": "ci-base",
             "hidden": true,
             "cacheVariables": {
+                "OPENMS_TEST_INSTALLED_CONSUMER": "ON",
                 "WITH_GUI": "ON",
                 "ENABLE_DOCS": "ON",
                 "WITH_THERMO_RAW":"ON",
