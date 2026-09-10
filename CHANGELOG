@@ -20,7 +20,7 @@ General:
   - Move spectrum-type estimation into KERNEL and share the linear resampling implementation
     between MSExperiment::calculateTIC and LinearResamplerAlign, removing three dependencies
     from core code to FORMAT, PROCESSING and APPLICATIONS. Existing APIs, the old estimator
-    include path, numerical behavior and resampling warnings are preserved (see #10083).
+    include path, numerical behavior and resampling warnings are preserved (#10107, see #10083).
   - Share alignment model defaults through TransformationModelDefaults in the analysis layer;
     tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction (#10092)
   - Explicitly disable AUTOMOC for OpenMS and OpenSwathAlgo even when Qt is found;
@@ -30,7 +30,7 @@ General:
   - Keep CURL and OpenSwathAlgo's Boost headers private in CMake usage requirements, and stop
     requiring CURL/Xerces development packages for shared-library consumers. CI now installs
     OpenMS and builds/runs the external consumer with discovery of those packages disabled
-    (CTest test `TestExternalCode_installed`, enabled by `OPENMS_TEST_INSTALLED_CONSUMER`).
+    (CTest test `TestExternalCode_installed`, enabled by `OPENMS_TEST_INSTALLED_CONSUMER`) (#10103)
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
@@ -169,6 +169,12 @@ Dependencies:
     (#8679, #9196, #9221)
 
 PyOpenMS:
+  - BREAKING: the pyopenms.String output-parameter box was removed. MzMLFile.storeBuffer(exp) now
+    returns the encoded mzML buffer as str instead of writing it into a String argument, and
+    MSNumpressCoder.encodeNP(in, zlib_compression, config)/encodeNPRaw(in, config) return the encoded
+    str/bytes instead of writing into a String& output parameter. Plain OpenMS::String values were
+    already accepted and returned as ordinary Python str everywhere else; only these three output
+    parameters still used the shim (#10109)
   - BREAKING: binding backend replaced from Autowrap/Cython by hand-maintained nanobind bindings (#8699)
     - Python-level API is backward compatible (same class names, signatures, return types)
     - 544 classes wrapped across 10 domain-based modules for parallel compilation
