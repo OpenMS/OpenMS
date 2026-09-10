@@ -578,14 +578,16 @@ if(UNIX)
 
   # vcpkg installs the dependencies below the build tree, and CMake deliberately
   # keeps build-tree directories out of the install RPATH, so the link path above
-  # does not cover them. Reference the vcpkg library directory explicitly: an
-  # installation made from a vcpkg build tree then works as long as that tree
-  # exists, which is the situation of a developer or a consumer building against
-  # it. Relocatable installations come from the packaging targets, which copy
-  # the dependencies next to the libraries instead (see package_general.cmake).
+  # does not cover them. For plain (non-packaging) builds, reference the vcpkg
+  # library directory explicitly: an installation made from a vcpkg build tree
+  # then works as long as that tree exists, which is the situation of a developer
+  # or a consumer building against it. Packages copy the dependencies next to
+  # the libraries instead (see package_general.cmake) and must not carry a
+  # build-machine path in their RPATH.
   # The Debug entry is a generator expression so that multi-config generators
   # (Xcode, Ninja Multi-Config) get it for Debug installs as well.
-  if (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+  if (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET
+      AND "${PACKAGE_TYPE}" STREQUAL "none")
     set(_vcpkg_triplet_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
     list(APPEND CMAKE_INSTALL_RPATH
       "$<$<CONFIG:Debug>:${_vcpkg_triplet_dir}/debug/lib>"
