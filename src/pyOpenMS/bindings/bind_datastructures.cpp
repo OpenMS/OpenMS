@@ -544,9 +544,13 @@ A classical configuration would contain a list of settings e.g.
         }, "Returns a zero-copy numpy view of the matrix data (F-contiguous). Modifications affect the C++ object. Returns empty array if empty.")
 
         .def("get_matrix", [](const OpenMS::Matrix<double>& self) {
+            // Return an owned copy (writable, independent of this Matrix's
+            // lifetime). Casting an Eigen::Map would alias the C++ storage
+            // as a read-only array; zero-copy access is matrix_view().
             Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
                 eigen_map(self.data(), self.rows(), self.cols());
-            return nb::cast(eigen_map);
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> copy = eigen_map;
+            return nb::cast(std::move(copy));
         }, "Returns a copy of the matrix as a numpy array")
 
         .def("set_matrix", [](OpenMS::Matrix<double>& self, nb::ndarray<double, nb::ndim<2>> arr) {
@@ -812,10 +816,12 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             return self.exists(key);
         }, "key"_a, "Check if a parameter key exists")
         .def("update", [](OpenMS::Param& self, nb::object source, nb::object flag) {
+            // Evaluate the flag by Python truthiness: nanobind's bool caster
+            // accepts only True/False, but callers pass 0/1 as well.
+            const bool filter = !flag.is_none() && static_cast<bool>(nb::bool_(flag));
             // Check if source is a Param
             try {
                 auto& param_src = nb::cast<const OpenMS::Param&>(source);
-                bool filter = !flag.is_none() && nb::cast<bool>(flag);
                 for (auto it = param_src.begin(); it != param_src.end(); ++it) {
                     std::string key = it.getName();
                     if (filter && !self.exists(key)) continue;
@@ -863,7 +869,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             bool valid = self.isValid(msg);
             return nb::make_tuple(valid, msg);
         }, "Check if value fulfills restrictions. Returns (valid, message)")
-        .def("__eq__", &OpenMS::Param::ParamEntry::operator==)
+        .def("__eq__", &OpenMS::Param::ParamEntry::operator==, nb::is_operator())
         ;
 
 
@@ -881,7 +887,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def_rw("nodes", &OpenMS::Param::ParamNode::nodes)
         .def("size", &OpenMS::Param::ParamNode::size)
         .def("suffix", &OpenMS::Param::ParamNode::suffix, "key"_a)
-        .def("__eq__", &OpenMS::Param::ParamNode::operator==)
+        .def("__eq__", &OpenMS::Param::ParamNode::operator==, nb::is_operator())
         .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> std::optional<OpenMS::Param::ParamEntry> {
             const OpenMS::Param::ParamEntry* entry = self.findEntryRecursive(name);
             if (entry == nullptr) return std::nullopt;

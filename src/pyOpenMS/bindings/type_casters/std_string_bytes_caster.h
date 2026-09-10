@@ -51,6 +51,22 @@ struct type_caster<std::string> {
             return true;
         }
 
+        // pyopenms.String (pyopenms/addons/string_class.py) is a mutable
+        // box around a str/bytes payload kept in `_value`; bindings that
+        // fill C++ String& output parameters write back through the same
+        // attribute. Accept the box as input by unwrapping its payload.
+        if (PyObject_HasAttrString(src.ptr(), "_value")) {
+            PyObject* payload = PyObject_GetAttrString(src.ptr(), "_value");
+            if (!payload) {
+                PyErr_Clear();
+                return false;
+            }
+            bool ok = (PyUnicode_Check(payload) || PyBytes_Check(payload))
+                      && from_python(payload, flags, cleanup);
+            Py_DECREF(payload);
+            return ok;
+        }
+
         return false;
     }
 

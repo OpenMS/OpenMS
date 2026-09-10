@@ -262,10 +262,10 @@ def testAASequence():
     assert seq.size() == 16
 
     # test exception forwarding from C++ to python
-    # classes derived from std::runtime_exception can be caught in python
+    # the binding checks the index and raises IndexError for out-of-range access
     try:
         seq.getResidue(1000) # does not exist
-    except RuntimeError:
+    except IndexError:
         print("Exception successfully triggered.")
     else:
         print("Error: Exception not triggered.")
@@ -342,24 +342,24 @@ def testElement():
     assert e.getSymbol() == "Bl"
     assert oms_string.toString() == "blu"
 
+    # Element has no mutators (see above), so exercise the string handling
+    # of the constructor instead: UTF-8 bytes and str both come back as str
     evil = u"blü"
     evil8 = evil.encode("utf8")
-    evil1 = evil.encode("latin1")
 
-
-    e.setSymbol(evil.encode("utf8"))
+    e = pyopenms.Element("blu", evil8, 998, 1.0, 1.0, iso)
     assert e.getSymbol() == u"blü"
 
     # nanobind returns str, not bytes; latin1 bytes that aren't valid UTF-8
-    # cannot roundtrip through nanobind's String type caster
-    e.setSymbol(evil8.decode("utf8"))
+    # cannot roundtrip through the str type caster
+    e = pyopenms.Element("blu", evil8.decode("utf8"), 998, 1.0, 1.0, iso)
     assert e.getSymbol() == u"blü"
     # OpenMS strings, however, understand the decoding
     assert s(e.getSymbol()) == s(u"blü")
     assert s(e.getSymbol()).toString() == u"blü"
 
-    # UTF-8 encoded bytes roundtrip correctly
-    e.setSymbol(evil8)
+    # a pyopenms.String wrapping the UTF-8 bytes is accepted as well
+    e = pyopenms.Element("blu", s(evil8), 998, 1.0, 1.0, iso)
     assert e.getSymbol() == u"blü"
 
 @report
@@ -1697,16 +1697,21 @@ def testParamPythonicInterface():
     assert len(p) == 3
     assert len(p) == p.size()
 
-    # Test __iter__()
-    keys_from_iter = list(p)
+    # Test __iter__(): iterating a Param yields owned ParamEntry copies,
+    # in the same order as keys()
+    entries_from_iter = list(p)
     keys_from_method = p.keys()
-    assert keys_from_iter == keys_from_method
-    assert len(keys_from_iter) == 3
+    assert all(isinstance(e, pyopenms.ParamEntry) for e in entries_from_iter)
+    assert [e.name for e in entries_from_iter] == keys_from_method
+    assert len(entries_from_iter) == 3
+    # comparing an entry with a non-entry is False rather than a TypeError
+    assert not (entries_from_iter[0] == "not an entry")
+    assert entries_from_iter[0] != "not an entry"
 
     # Test iteration in for loop
     count = 0
-    for key in p:
-        assert p[key] is not None
+    for entry in p:
+        assert p[entry.name] is not None
         count += 1
     assert count == 3
 
@@ -5004,12 +5009,11 @@ def testPeak():
     assert p2.getRT() == 45.0
 
     # Test __repr__ and __str__ methods for Peak1D
+    # __repr__ is the verbose form, __str__ the compact "(mz, intensity)" form
     repr_str = repr(p1)
-    assert "Peak1D(" in repr_str
-    assert "mz=" in repr_str
-    assert "intensity=" in repr_str
+    assert repr_str == "Peak1D(mz=13.0000, intensity=12.00)"
     str_str = str(p1)
-    assert str_str == repr_str
+    assert str_str == "(13.0000, 12.00)"
 
     # Test __repr__ and __str__ methods for Peak2D
     repr_str = repr(p2)
