@@ -4781,14 +4781,14 @@ MzMLFile().store("filtered.mzML", exp)
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")
 
-        .def("storeBuffer", [](OpenMS::MzMLFile& self, nb::object output_str, const OpenMS::MSExperiment& exp) {
+        .def("storeBuffer", [](OpenMS::MzMLFile& self, const OpenMS::MSExperiment& exp) {
             std::string buf;
             {
                 nb::gil_scoped_release release;
                 self.storeBuffer(buf, exp);
             }
-            output_str.attr("_value") = nb::cast(buf);
-        }, "output"_a, "exp"_a, "Store an MSExperiment to an in-memory mzML string buffer")
+            return buf;
+        }, "exp"_a, "Store an MSExperiment to an in-memory mzML buffer and return it as str")
 
         .def("loadBuffer", [](OpenMS::MzMLFile& self, const std::string& buffer, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
