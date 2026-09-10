@@ -37,9 +37,10 @@ set(consumer "${scratch}/build")
 # CMAKE_INSTALL_PREFIX before anything else. An OpenMS installation already
 # present there would therefore shadow the scratch installation this test
 # makes, and the consumer's installed-data check could not tell the two apart.
+string(FIND "${INSTALL_DATA_PATH}" "${prefix}/" _data_below_prefix)
 if(NOT CMAKE_HOST_WIN32 AND INSTALL_DATA_PATH
    AND EXISTS "${INSTALL_DATA_PATH}/CHEMISTRY/unimod.xml"
-   AND NOT INSTALL_DATA_PATH MATCHES "^${prefix}/")
+   AND NOT _data_below_prefix EQUAL 0)
   message(FATAL_ERROR "InstalledConsumerTest: an OpenMS installation exists at the "
     "compiled-in install prefix (${INSTALL_DATA_PATH}). It would shadow the "
     "scratch installation under ${prefix}. Remove or move that installation, "
