@@ -127,8 +127,8 @@ description by using, for instance, the following simple function.
     Param: gaussian_width Value: 0.2 Description: Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).
     Param: ppm_tolerance Value: 10.0 Description: Gaussian width, depending on the m/z position.
     The higher the value, the wider the peak and therefore the wider the gaussian.
-    Param: use_ppm_tolerance Value: false Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
-    Param: write_log_messages Value: false Description: true: Warn if no signal was found by the Gauss filter algorithm.
+    Param: use_ppm_tolerance Value: False Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
+    Param: write_log_messages Value: False Description: true: Warn if no signal was found by the Gauss filter algorithm.
 
 To print a simple key-value list, you can use ``asDict()``, as shown above:
 
@@ -169,27 +169,26 @@ Boolean parameters
 
 OpenMS itself has no boolean parameter type: a flag is a string parameter holding ``'true'`` or
 ``'false'`` that is restricted to exactly these two values (see the next section on restrictions).
-pyOpenMS accepts a Python ``bool`` on assignment and stores it by that convention; assigning a
-``bool`` to a new key creates such a boolean parameter. Reading returns the string as before, so
-``if p["flag"] == "true":`` keeps working; ``getBool()`` converts it to a Python ``bool``
-explicitly (it raises if the value is not ``'true'`` or ``'false'``). ``setMetaValue()`` accepts
-``bool`` the same way.
+pyOpenMS maps this convention to Python ``bool``: such parameters are returned as ``True``/``False``
+by ``getValue()``, ``[]``, ``get()``, ``items()``, ``values()`` and ``asDict()``, and they accept a
+``bool`` on assignment. Assigning a ``bool`` to a new key creates a boolean parameter.
 
 .. code-block:: python
     :linenos:
 
     gf = oms.GaussFilter()
     gfp = gf.getParameters()
-    gfp["use_ppm_tolerance"]             ## 'false'
-    gfp.getBool("use_ppm_tolerance")     ## False
-    gfp["use_ppm_tolerance"] = True      ## stored as 'true'
+    gfp["use_ppm_tolerance"]         ## False
+    gfp["use_ppm_tolerance"] = True  ## stored as 'true', valid strings ['true', 'false']
     gf.setParameters(gfp)
-    gf.getParameters().getBool("use_ppm_tolerance")  ## True
+    gf.getParameters()["use_ppm_tolerance"]  ## True
 
     p = oms.Param()
     p["p_bool"] = False
-    p["p_bool"]                          ## 'false'
-    p.getValidStrings("p_bool")          ## ['true', 'false']
+    p.getValidStrings("p_bool")       ## ['true', 'false']
+
+Assigning the strings ``"true"``/``"false"`` keeps working. Note that a boolean parameter compares
+equal to ``True``/``False``, not to the string ``"true"``.
 
 
 Restrictions(=Validity) of Parameter Values

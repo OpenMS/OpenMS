@@ -1775,7 +1775,9 @@ def testParamBool():
      Param.__setitem__
      Param.__getitem__
      Param.getValue
-     Param.getBool
+     Param.get
+     Param.items
+     Param.values
      Param.asDict
      Param.to_dict
      Param.from_dict
@@ -1786,9 +1788,7 @@ def testParamBool():
      ParamEntry.valid_strings
     """
     # OpenMS stores flags as the strings 'true'/'false' restricted to
-    # ['true', 'false']; pyOpenMS accepts a Python bool on assignment and
-    # stores it by that convention. Reading returns the string; getBool()
-    # converts explicitly.
+    # ['true', 'false']; pyOpenMS maps that convention to Python bool.
     p = pyopenms.Param()
     p.setValue("flag", True, "a flag")
     p["other"] = False
@@ -1796,30 +1796,31 @@ def testParamBool():
         assert p.getValueType(key) == pyopenms.ValueType.STRING_VALUE
         assert p.getValidStrings(key) == ["true", "false"]
         assert p.getEntry(key).valid_strings == ["true", "false"]
-        assert p.getEntry(key).value == ("true" if expected else "false")
-        assert p.getValue(key) == ("true" if expected else "false")
-        assert p[key] == ("true" if expected else "false")
-        assert p.getBool(key) is expected
-    assert p.asDict() == {"flag": "true", "other": "false"}
+        assert p.getEntry(key).value is expected
+        assert p.getValue(key) is expected
+        assert p[key] is expected
+        assert p.get(key) is expected
+    assert p.asDict() == {"flag": True, "other": False}
     assert p.to_dict() == p.asDict()
+    assert dict(p.items()) == p.asDict()
+    assert p.values() == [True, False]
 
     # from_dict / update accept bools too
     q = pyopenms.Param.from_dict({"flag": False, "n": 1})
-    assert q["flag"] == "false"
-    assert q.getBool("flag") is False
+    assert q["flag"] is False
     assert q["n"] == 1
     q.update({"flag": True})
-    assert q.getBool("flag") is True
+    assert q["flag"] is True
+    r = pyopenms.Param()
+    r.update(q)
+    assert r["flag"] is True
 
-    # getBool works on plain 'true'/'false' strings and rejects anything else
+    # plain strings keep working on flag entries and read back as bool
+    p["flag"] = "false"
+    assert p["flag"] is False
+    # a string without restrictions is not converted
     p["s"] = "true"
-    assert p.getBool("s") is True
-    p["s"] = "maybe"
-    try:
-        p.getBool("s")
-        assert False, "expected an exception"
-    except Exception:
-        pass
+    assert p["s"] == "true"
 
     # bools inside lists are not supported (no OpenMS convention for them)
     try:
@@ -1831,17 +1832,10 @@ def testParamBool():
     # real algorithm parameters
     gf = pyopenms.GaussFilter()
     gp = gf.getParameters()
-    assert gp["use_ppm_tolerance"] == "false"
-    assert gp.getBool("use_ppm_tolerance") is False
+    assert gp["use_ppm_tolerance"] is False
     gp["use_ppm_tolerance"] = True
     gf.setParameters(gp)
-    assert gf.getParameters()["use_ppm_tolerance"] == "true"
-    assert gf.getParameters().getBool("use_ppm_tolerance") is True
-
-    # meta values accept bools as well
-    dp = pyopenms.DataProcessing()
-    dp.setMetaValue("flag", True)
-    assert dp.getMetaValue("flag") == "true"
+    assert gf.getParameters()["use_ppm_tolerance"] is True
 
 
 @report
