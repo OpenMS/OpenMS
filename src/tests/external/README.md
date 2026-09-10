@@ -15,7 +15,7 @@ then configure, build and run this project against that installation.
     provider (vcpkg toolchain file or `CMAKE_PREFIX_PATH`) as OpenMS:
 
         cmake -S <OpenMS>/src/tests/external -B ~/example-build -G "<generator used for OpenMS>" \
-              -DOpenMS_DIR=~/OpenMS-install/lib/cmake/OpenMS
+              -DOpenMS_DIR="$HOME/OpenMS-install/lib/cmake/OpenMS"
 
     Alternatively add the installation prefix to `CMAKE_PREFIX_PATH` instead of setting
     `OpenMS_DIR`. On Windows the CMake package lives in `<prefix>/CMake`.
