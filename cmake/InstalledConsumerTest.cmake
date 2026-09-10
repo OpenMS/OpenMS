@@ -141,20 +141,33 @@ run(${_configure})
 run("${CMAKE_COMMAND}" --build "${consumer}" --config "${CONFIG}" --parallel 2)
 
 #------------------------------------------------------------------------------
-# 4. Run the consumer with the source data directory moved aside, so the
-#    compiled-in development fallback (OPENMS_DATA_PATH) cannot hide a missing
-#    install rule. The rename is undone whether or not the tests pass, which is
-#    why this test is registered RUN_SERIAL: other tests read that directory.
+# 4. Run the consumer with the source data directory moved aside. OpenMS probes
+#    the compiled-in build-tree path (OPENMS_DATA_PATH) before the exe-relative
+#    ../share/OpenMS, and skips the compiled-in install prefix on Windows, so
+#    while share/OpenMS exists the consumer would silently read the source tree
+#    and a missing install rule could not be detected. The rename is undone
+#    whether or not the tests pass, which is why this test is registered
+#    RUN_SERIAL: other tests read that directory.
 set(_source_data "${SOURCE_DIR}/share/OpenMS")
 set(_saved_data  "${SOURCE_DIR}/share/OpenMS.installed-consumer-backup")
 if(EXISTS "${_saved_data}")
-  message(FATAL_ERROR "${_saved_data} exists; a previous run was interrupted. Move it back to ${_source_data} first.")
+  if(EXISTS "${_source_data}")
+    message(FATAL_ERROR "Both ${_source_data} and ${_saved_data} exist; remove the stale backup first.")
+  endif()
+  # An earlier run was interrupted between the two renames: put the data back.
+  message(WARNING "Restoring ${_source_data} from the backup left by an interrupted run")
+  file(RENAME "${_saved_data}" "${_source_data}")
 endif()
 file(RENAME "${_source_data}" "${_saved_data}")
+# The consumer tests take seconds. The bound stays well below the outer CTest
+# TIMEOUT (1800 s) so that a hanging consumer test is killed here, where the
+# rename is undone, and not by the outer ctest, which would leave share/OpenMS
+# moved aside.
 execute_process(
   COMMAND "${CTEST_COMMAND}" --test-dir "${consumer}" -C "${CONFIG}" --output-on-failure --no-tests=error
+  TIMEOUT 600
   RESULT_VARIABLE _rc)
 file(RENAME "${_saved_data}" "${_source_data}")
 if(NOT _rc EQUAL 0)
-  message(FATAL_ERROR "Installed consumer tests failed with exit code ${_rc}")
+  message(FATAL_ERROR "Installed consumer tests failed: ${_rc}")
 endif()
