@@ -1768,6 +1768,91 @@ def testParamPythonicInterface():
 
 
 @report
+def testParamBool():
+    """
+    @tests: Param
+     Param.setValue
+     Param.__setitem__
+     Param.__getitem__
+     Param.getValue
+     Param.get
+     Param.items
+     Param.values
+     Param.asDict
+     Param.to_dict
+     Param.from_dict
+     Param.update
+     Param.getEntry
+     Param.getValidStrings
+     Param.setValidStrings
+     Param.getValueType
+     ParamEntry.value
+     ParamEntry.valid_strings
+    """
+    # OpenMS stores flags as the strings 'true'/'false'; pyOpenMS reads them
+    # by content (like ParamValue::toBool) and maps them to Python bool.
+    p = pyopenms.Param()
+    p.setValue("flag", True, "a flag")
+    p["other"] = False
+    for key, expected in (("flag", True), ("other", False)):
+        assert p.getValueType(key) == pyopenms.ValueType.BOOL_VALUE
+        assert p.getValidStrings(key) == [True, False]
+        assert p.getEntry(key).valid_strings == [True, False]
+        assert p.getEntry(key).value is expected
+        assert p.getValue(key) is expected
+        assert p[key] is expected
+        assert p.get(key) is expected
+    assert p.asDict() == {"flag": True, "other": False}
+    assert p.to_dict() == p.asDict()
+    assert dict(p.items()) == p.asDict()
+    assert p.values() == [True, False]
+
+    # from_dict / update accept bools too
+    q = pyopenms.Param.from_dict({"flag": False, "n": 1})
+    assert q["flag"] is False
+    assert q["n"] == 1
+    q.update({"flag": True})
+    assert q["flag"] is True
+    r = pyopenms.Param()
+    r.update(q)
+    assert r["flag"] is True
+
+    # plain strings keep working and read back as bool, restricted or not
+    p["flag"] = "false"
+    assert p["flag"] is False
+    p["s"] = "true"
+    assert p["s"] is True
+    assert p.getValidStrings("s") == []
+    # restrictions of a boolean parameter are shown as bools too; the C++
+    # side stores 'true'/'false', so ["true", "false"] would be equivalent
+    p.setValidStrings("s", [True, False])
+    assert p.getValidStrings("s") == [True, False]
+    # the type follows the entry's current value and restrictions: while
+    # 'tri' is unrestricted it reads as bool, once 'auto' is allowed as
+    # well it is a str on every path (in whichever order the calls happen)
+    p["tri"] = "true"
+    assert p["tri"] is True
+    p.setValidStrings("tri", ["auto", "true", "false"])
+    assert p["tri"] == "true"
+    assert p.getValueType("tri") == pyopenms.ValueType.STRING_VALUE
+
+    # bools inside lists are not supported (no OpenMS convention for them)
+    try:
+        p["l"] = [True, False]
+        assert False, "expected TypeError"
+    except TypeError:
+        pass
+
+    # real algorithm parameters
+    gf = pyopenms.GaussFilter()
+    gp = gf.getParameters()
+    assert gp["use_ppm_tolerance"] is False
+    gp["use_ppm_tolerance"] = True
+    gf.setParameters(gp)
+    assert gf.getParameters()["use_ppm_tolerance"] is True
+
+
+@report
 def testFeatureFinderAlgorithmPicked():
     """
     @tests: FeatureFinderAlgorithmPicked

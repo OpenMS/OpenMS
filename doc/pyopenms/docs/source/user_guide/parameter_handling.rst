@@ -124,11 +124,11 @@ description by using, for instance, the following simple function.
 
 .. code-block:: output
 
-    Param: b'gaussian_width' Value: 0.2 Description: Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).
-    Param: b'ppm_tolerance' Value: 10.0 Description: Gaussian width, depending on the m/z position.
+    Param: gaussian_width Value: 0.2 Description: Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).
+    Param: ppm_tolerance Value: 10.0 Description: Gaussian width, depending on the m/z position.
     The higher the value, the wider the peak and therefore the wider the gaussian.
-    Param: b'use_ppm_tolerance' Value: false Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
-    Param: b'write_log_messages' Value: false Description: true: Warn if no signal was found by the Gauss filter algorithm.
+    Param: use_ppm_tolerance Value: False Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
+    Param: write_log_messages Value: False Description: true: Warn if no signal was found by the Gauss filter algorithm.
 
 To print a simple key-value list, you can use ``asDict()``, as shown above:
 
@@ -149,7 +149,7 @@ A :py:class:`~.Param` object can hold many parameters of mixed value type. Above
     
     new_p.setValue("param2", 9.0, "This is value 9")
     
-Other possible values include ``int``, ``float``, ``bytes``, ``str``, ``List[int]``, ``List[float]``, ``List[bytes]`` (aka StringList).
+Other possible values include ``int``, ``float``, ``bool``, ``bytes``, ``str``, ``List[int]``, ``List[float]``, ``List[bytes]`` (aka StringList).
 E.g.
 
 .. code-block:: python
@@ -158,12 +158,56 @@ E.g.
     p = oms.Param()
     p.setValue("p_float", 4.0, "This is a float")
     p.setValue("p_int", 5, "This is an integer")
+    p.setValue("p_bool", True, "This is a boolean flag")
     p.setValue("p_string", "myvalue", "This is a string")
     p.setValue("p_stringlist", [b"H:+:0.6", b"Na:+:0.2", b"K:+:0.2"], "This is a StringList")
     p.setValue("p_floatlist", [1.0, 2.0, 3.0], "This is a list of floats")
     p.setValue("p_intlist", [1, 2, 3], "This is a list of integers")
-    
-    
+
+Boolean parameters
+******************
+
+OpenMS itself has no boolean parameter type: a flag is a string parameter holding ``'true'`` or
+``'false'`` (usually restricted to exactly these two values, see the next section). The C++ side
+reads such a parameter by content (``ParamValue::toBool()``), and pyOpenMS does the same: from
+Python a boolean parameter is a ``bool`` on every path, whatever its origin (algorithm defaults,
+INI files, ``setDefaults()``/``merge()``/``insert()``, or your own assignment of ``True`` or of
+the string ``"true"``).
+
+* ``getValue()``, ``[]``, ``get()``, ``items()``, ``values()``, ``asDict()`` and
+  ``ParamEntry.value`` return ``True``/``False``
+* ``getValidStrings()`` and ``ParamEntry.valid_strings`` return ``[True, False]``
+* ``getValueType()`` returns ``ValueType.BOOL_VALUE`` (a pyOpenMS-only type tag)
+* assignments accept ``bool``; a new key assigned a ``bool`` gets the restriction ``[True, False]``
+  so that INI/CTD files render it as a flag
+
+.. code-block:: python
+    :linenos:
+
+    gf = oms.GaussFilter()
+    gfp = gf.getParameters()
+    gfp["use_ppm_tolerance"]                    ## False
+    gfp.getValidStrings("use_ppm_tolerance")    ## [True, False]
+    gfp.getValueType("use_ppm_tolerance")       ## ValueType.BOOL_VALUE
+    gfp["use_ppm_tolerance"] = True             ## stored as the string 'true'
+    gf.setParameters(gfp)
+    gf.getParameters()["use_ppm_tolerance"]     ## True
+
+    p = oms.Param()
+    p["p_bool"] = False
+    p["p_str"] = "true"                         ## a string holding 'true' ...
+    p["p_str"]                                  ## ... reads back as True as well
+    p.setValidStrings("p_str", [True, False])   ## makes it a flag for INI/CTD files, too
+
+The only string parameters holding ``'true'``/``'false'`` that stay ``str`` are those whose
+restrictions allow other values as well (e.g. ``['auto', 'true', 'false']``). Note that a boolean
+parameter compares equal to ``True``/``False``, not to the string ``"true"``, and that
+``isinstance(value, bool)`` must be tested before ``isinstance(value, int)`` because ``bool`` is a
+subclass of ``int`` in Python. Lists of bools are not supported (OpenMS has no boolean list type).
+Meta values (``setMetaValue()``/``getMetaValue()``) are not covered: they still take and return
+the strings ``'true'``/``'false'``.
+
+
 Restrictions(=Validity) of Parameter Values
 ******************************************************* 
     
@@ -186,7 +230,7 @@ E.g.
 
     gf = oms.GaussFilter()
     gfp = gf.getParameters()
-    gfp.getValidStrings("use_ppm_tolerance")  ## yields [b'true', b'false']
+    gfp.getValidStrings("use_ppm_tolerance")  ## yields [True, False]
     
     gfp.setValue(b"use_ppm_tolerance", "maybe") ## is invalid but setValue does not complain
     ##  ... until you actually set the parameters:
@@ -199,7 +243,7 @@ E.g.
     
     nor = oms.Normalizer()
     norp = nor.getParameters()
-    norp.getValidStrings("method")  ## yields [b'to_one', b'to_TIC']
+    norp.getValidStrings("method")  ## yields ['to_one', 'to_TIC']
     norp.setValue("method", "to_TIC") ## pick the 'to_TIC' method
     nor.setParameters(norp)
     # ... now run the Normalizer ...
