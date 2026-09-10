@@ -3,7 +3,6 @@
 import copy
 import os
 
-from pyopenms import String as s
 from pyopenms import *
 
 try:
