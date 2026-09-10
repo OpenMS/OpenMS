@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -298,6 +299,83 @@ std::cout << dmz_2[2] << std::endl;
 TEST_REAL_SIMILAR(dmz_2[0], 0.0001);
 TEST_REAL_SIMILAR(dmz_2[1], -0.0003);
 TEST_REAL_SIMILAR(dmz_2[2], -0.0004);
+}
+END_SECTION
+
+START_SECTION((MS1 peak correction rejects ambiguous precursor mappings before modifying outputs))
+{
+  MSExperiment input;
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(9.0);
+  const vector<double> corrected_mzs{500.001, 600.001, 700.002};
+  for (double mz : corrected_mzs)
+  {
+    Peak1D peak;
+    peak.setMZ(mz);
+    peak.setIntensity(1000.0f);
+    ms1.push_back(peak);
+  }
+  MSSpectrum::FloatDataArray mobility;
+  mobility.setName("Ion Mobility");
+  mobility.assign({0.8f, 1.0f, 1.2f});
+  ms1.getFloatDataArrays().push_back(mobility);
+  input.addSpectrum(ms1);
+  for (Size i = 0; i < corrected_mzs.size(); ++i)
+  {
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(10.0 + i);
+    ms2.setNativeID("scan=" + to_string(i + 2));
+    Precursor precursor;
+    precursor.setMZ(500.0 + 100.0 * i);
+    precursor.setCharge(2);
+    ms2.setPrecursors({precursor});
+    input.addSpectrum(ms2);
+  }
+
+  // Leave the first MS2 correctable, so a late check would cause partial mutation.
+  vector<MSExperiment> invalid_inputs(6, input);
+  invalid_inputs[0][3].setRT(11.0); // Different precursors from the same PASEF frame.
+  invalid_inputs[1][3].setRT(11.0);
+  invalid_inputs[1][3].getPrecursors()[0].setMZ(600.0); // Equal m/z does not imply identity.
+  invalid_inputs[2][3].setRT(11.0 + 0.5e-8); // Collision within the RT lookup offset.
+  invalid_inputs[3][2].setMSLevel(1);
+  invalid_inputs[3][2].setPrecursors({});
+  invalid_inputs[3][2].setRT(12.0); // RT lookup resolves the MS2 to an MS1 spectrum.
+  invalid_inputs[4][3].getPrecursors().push_back(input[2].getPrecursors()[0]);
+  swap(invalid_inputs[5][2], invalid_inputs[5][3]); // Unsorted retention times.
+
+  for (auto correct : {&PrecursorCorrection::correctToNearestMS1Peak,
+                       &PrecursorCorrection::correctToHighestIntensityMS1Peak})
+  {
+    for (auto invalid : invalid_inputs)
+    {
+      const MSExperiment before = invalid;
+      vector<double> dmz{1.0}, mz{2.0}, rt{3.0};
+      const auto dmz_before = dmz, mz_before = mz, rt_before = rt;
+      TEST_EXCEPTION(Exception::IllegalArgument, correct(invalid, 10.0, true, dmz, mz, rt));
+      TEST_TRUE(invalid == before);
+      TEST_TRUE(dmz == dmz_before);
+      TEST_TRUE(mz == mz_before);
+      TEST_TRUE(rt == rt_before);
+    }
+
+    // Concatenated mobility arrays are accepted when precursor mapping is unambiguous.
+    MSExperiment valid = input;
+    vector<double> dmz, mz, rt;
+    const auto corrected = correct(valid, 10.0, true, dmz, mz, rt);
+    const set<Size> expected_indices{1, 2, 3};
+    TEST_TRUE(corrected == expected_indices);
+    TEST_EQUAL(dmz.size(), 3);
+    TEST_EQUAL(mz.size(), 3);
+    TEST_EQUAL(rt.size(), 3);
+    TEST_TRUE(valid[0] == input[0]);
+    for (Size i = 0; i < corrected_mzs.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(valid[i + 1].getPrecursors()[0].getMZ(), corrected_mzs[i]);
+    }
+  }
 }
 END_SECTION
 

@@ -1268,6 +1268,9 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: MS1 peak-based PrecursorCorrection now rejects ambiguous RT mappings and spectra with multiple
+    precursors before applying any corrections, preventing updates to the wrong precursor.
+    ProteomicsLFQ sorts spectra by RT before correction, including inputs grouped by MS level.
   - Fix: Deisotoper::deisotopeAndSingleCharge now uses the proton mass in atomic mass units
     for both precursor and fragment neutral masses. The previous kg constant shifted the
     precursor-mass cutoff when precursor and fragment charges differed (#10075)

@@ -511,7 +511,15 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-    // remove MS2 peak data and check if spectra are sorted
+    // Input files can group spectra by MS level instead of retention time.
+    // Precursor correction requires RT order to locate MS2 spectra and their preceding MS1.
+    if (!ms_raw.isSorted(false))
+    {
+      ms_raw.sortSpectra(false);
+      writeLogInfo_("Info: Sorted spectra by retention time.");
+    }
+
+    // remove MS2 peak data and check if peaks are sorted by m/z
     // TODO can we load just MS1 or do we need precursor information?
     for (auto& spec : ms_raw)
     {
