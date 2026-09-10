@@ -28,9 +28,14 @@ General:
   - Move the IsobaricAnalyzer provenance query to DataProcessingUtils so ConsensusMap no longer
     depends on QCBase; retain the existing QCBase entry point and labeling convention (#10101)
   - Keep CURL and OpenSwathAlgo's Boost headers private in CMake usage requirements, and stop
-    requiring CURL/Xerces development packages for shared-library consumers. CI now installs
-    OpenMS and builds/runs the external consumer with discovery of those packages disabled
-    (CTest test `TestExternalCode_installed`, enabled by `OPENMS_TEST_INSTALLED_CONSUMER`).
+    requiring CURL/Xerces development packages for shared-library consumers (#10103). CI installs
+    OpenMS and configures, builds and runs the external consumer (`src/tests/external`) against
+    the installation with plain `find_package(OpenMS)`; the CTest tests `TestExternalCode_*` are
+    enabled by `OPENMS_TEST_INSTALLED_CONSUMER`.
+  - Installed libraries and tools on Linux now carry the directories of the shared dependencies
+    they were linked against (vcpkg, contrib) in their RPATH, as they already did on macOS, and
+    macOS libraries add `@loader_path`. Consumers of an installed OpenMS link and run without
+    LD_LIBRARY_PATH; packaging (deb, pkg) is unchanged.
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument

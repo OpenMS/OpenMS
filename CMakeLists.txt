@@ -534,11 +534,21 @@ if(UNIX)
 		endif()
   endif()
 
-  # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
-  # We need to include all link directories that should be specified by the
-  # dependency target to our RPATH as well.
-  if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
-    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  # Installed binaries must find the shared dependencies they were linked against
+  # (vcpkg, contrib, ...) on their own: add the directories of those libraries to
+  # the install RPATH. Consumers of an installed libOpenMS then link and run
+  # without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve the
+  # private dependencies of libOpenMS. System directories are never added.
+  # On macOS this also covers dependencies built with @rpath install names (e.g.
+  # Qt). Packages that relocate dependencies (deb, macOS pkg) skip or override it.
+  if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+    if (APPLE)
+      if (NOT "${PACKAGE_TYPE}" STREQUAL "pkg")
+        SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+      endif()
+    elseif ("${PACKAGE_TYPE}" STREQUAL "none")
+      SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+    endif()
   endif()
 
   #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
@@ -554,7 +564,9 @@ if(UNIX)
         # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
         # Disadvantage: even on the target machine, they will have the build folder baked in.
         # Alternative: copy all our libs first so they do not need to be found.
-        SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+        # @loader_path lets an installed libOpenMS find its sibling libraries
+        # (OpenSwathAlgo, ...) when loaded by an executable outside the prefix.
+        SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/;@loader_path/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
       else()
         SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/")
       endif()

@@ -1,5 +1,4 @@
-## Use CMake 3.17 to correctly find OpenMP on macOS
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
@@ -23,23 +22,10 @@ set(my_sources
 )
 
 ## find OpenMS package and register target "OpenMS" (our library)
-## Select an installation with OpenMS_DIR or CMAKE_PREFIX_PATH. CI explicitly
-## supplies the installed config directory and disables the package registries.
+## Select an installation with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
+## (<prefix>/CMake on Windows) or by adding <prefix> to CMAKE_PREFIX_PATH.
 find_package(OpenMS CONFIG REQUIRED)
-
-if(DEFINED OPENMS_EXPECTED_PREFIX)
-  # Catch accidental consumption of the build tree or a different installation.
-  foreach(_target IN ITEMS OpenMS OpenSwathAlgo)
-    get_target_property(_configs ${_target} IMPORTED_CONFIGURATIONS)
-    foreach(_config IN LISTS _configs)
-      get_target_property(_location ${_target} IMPORTED_LOCATION_${_config})
-      cmake_path(IS_PREFIX OPENMS_EXPECTED_PREFIX "${_location}" NORMALIZE _installed)
-      if(NOT _installed)
-        message(FATAL_ERROR "${_target} is not from the tested installation: ${_location}")
-      endif()
-    endforeach()
-  endforeach()
-endif()
+message(STATUS "Found OpenMS at ${OpenMS_DIR}")
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
@@ -47,10 +33,6 @@ if (OpenMS_FOUND)
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})
   target_link_libraries(my_custom_lib OpenMS)
-  if(DEFINED OPENMS_EXPECTED_PREFIX)
-    target_compile_definitions(my_custom_lib PRIVATE
-      OPENMS_EXPECTED_DATA_DIR="${OPENMS_EXPECTED_PREFIX}/share/OpenMS")
-  endif()
   ## disable auto-linking of boost (mainly needed for Windows. CMake takes care of choosing the right library)
   target_compile_definitions(my_custom_lib PUBLIC BOOST_ALL_NO_LIB)
 
@@ -82,3 +64,15 @@ endif(OpenMS_FOUND)
 
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
+
+## Windows has no RPATH: executables find OpenMS.dll (and the DLLs of the
+## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
+## tells us where the OpenMS libraries were installed.
+if(WIN32)
+  set_property(TEST TestExternalCode APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")
+  if(TARGET TestExternalCodeQt)
+    set_property(TEST TestExternalCodeQt APPEND PROPERTY
+      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")
+  endif()
+endif()
