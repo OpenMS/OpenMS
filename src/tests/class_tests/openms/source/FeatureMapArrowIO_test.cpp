@@ -13,6 +13,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -1538,7 +1539,7 @@ START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
   f.setIntensity(1000.0f);
   fmap.push_back(f);
 
-  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_fmio";
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmio";
   TEST_TRUE(File::makeDir(dir))
 
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(fmap, dir))
@@ -1581,7 +1582,7 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - the map level uniqu
   f.setUniqueId(42);
   fm.push_back(f);
 
-  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_fmuid";
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmuid";
   TEST_TRUE(File::makeDir(dir))
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
 
@@ -1732,7 +1733,7 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
   un_pid.insertHit(un_hit);
   fm.setUnassignedPeptideIdentifications({un_pid});
 
-  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_plfq";
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_plfq";
   TEST_TRUE(File::makeDir(dir))
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
 

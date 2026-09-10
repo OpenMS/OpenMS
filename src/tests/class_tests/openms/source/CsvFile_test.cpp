@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 ///////////////////////////
 
@@ -90,7 +91,7 @@ START_SECTION(void store(const std::string& filename))
 	StringList list;
 
 	f1.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_2.csv"), '\t', true); // load from a file
-	std::string tmpfile = File::getTemporaryFile();
+	std::string tmpfile = TempFiles::getTemporaryFile();
   f1.store(tmpfile);          // store into a new one
 	f2.load(tmpfile, '\t', true); // load the new one
 	f2.getRow(0,list);
@@ -108,7 +109,7 @@ START_SECTION(void addRow(const StringList& list))
 	f1.addRow(ListUtils::create<std::string>("first,second,third"));
 	f1.addRow(ListUtils::create<std::string>("4,5,6"));
   
-  std::string tmpfile = File::getTemporaryFile();
+  std::string tmpfile = TempFiles::getTemporaryFile();
 	f1.store(tmpfile);
 	f2.load(tmpfile, ',', false);
 	f2.getRow(0,list);

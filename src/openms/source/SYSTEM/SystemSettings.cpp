@@ -6,6 +6,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -25,7 +26,7 @@ using std::getenv;
 
 namespace OpenMS
 {
-  std::string File::getTempDirectory()
+  std::string SystemSettings::getTempDirectory()
   {
     Param p = getSystemParameters();
     std::string dir;
@@ -45,7 +46,7 @@ namespace OpenMS
   }
 
   /// The current OpenMS user data path (for result files)
-  std::string File::getUserDirectory()
+  std::string SystemSettings::getUserDirectory()
   {
     Param p = getSystemParameters();
     std::string dir;
@@ -71,13 +72,13 @@ namespace OpenMS
     return dir;
   }
 
-  std::string File::findDatabase(const std::string& db_name)
+  std::string SystemSettings::findDatabase(const std::string& db_name)
   {
     Param sys_p = getSystemParameters();
     std::string full_db_name;
     try
     {
-      full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
+      full_db_name = File::find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
       OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
     }
     catch (Exception::FileNotFound& e)
@@ -89,7 +90,7 @@ namespace OpenMS
     return full_db_name;
   }
 
-  std::string File::getOpenMSHomePath()
+  std::string SystemSettings::getOpenMSHomePath()
   {
     std::string home_path;
     // set path where OpenMS.ini is found from environment or use default
@@ -110,7 +111,7 @@ namespace OpenMS
     return home_path;
   }
 
-  std::string File::getOpenMSConfigDir()
+  std::string SystemSettings::getOpenMSConfigDir()
   {
     // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems.
     // This is the single source of truth for the per-user config dir (OpenMS.ini, update-check .ver files, ...).
@@ -119,15 +120,15 @@ namespace OpenMS
       {
         return std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
       }
-      return File::getOpenMSHomePath() + "/.config/OpenMS";
+      return SystemSettings::getOpenMSHomePath() + "/.config/OpenMS";
     #else
-      return File::getOpenMSHomePath() + "/.OpenMS";
+      return SystemSettings::getOpenMSHomePath() + "/.OpenMS";
     #endif
   }
 
-  Param File::getSystemParameters()
+  Param SystemSettings::getSystemParameters()
   {
-    std::string filename = File::getOpenMSConfigDir() + "/OpenMS.ini";
+    std::string filename = SystemSettings::getOpenMSConfigDir() + "/OpenMS.ini";
 
     Param p;
     if (!File::readable(filename)) // no file, lets keep it that way
@@ -160,7 +161,7 @@ namespace OpenMS
     return p;
   }
 
-  Param File::getSystemParameterDefaults_()
+  Param SystemSettings::getSystemParameterDefaults_()
   {
     Param p;
     p.setValue("version", VersionInfo::getVersion());

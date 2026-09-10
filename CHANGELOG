@@ -271,6 +271,10 @@ PyOpenMS:
     were built without the reader and the macOS wheel shipped the bridge without its managed half.
     Linux aarch64 wheels stay without Thermo support (no vendor libraries for that platform). New
     test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set (#10070)
+  - New SystemSettings, TempDir and TempFiles classes expose the OpenMS.ini directory policy and
+    temporary directories/files; the Python-level File.getSystemParameters(), File.getTempDirectory(),
+    File.getUserDirectory(), File.findDatabase(), File.getOpenMSHomePath() and File.getTemporaryFile()
+    keep working and now call the new classes (#10083, step 6)
 
 TOPP tools:
   Changes:
@@ -1062,6 +1066,11 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - BREAKING: File no longer owns the OpenMS.ini settings and temporary-file policy. SystemSettings
+      holds getSystemParameters(), getTempDirectory(), getUserDirectory(), findDatabase(),
+      getOpenMSHomePath() and getOpenMSConfigDir(); TempDir is a top-level class and
+      TempFiles::getTemporaryFile() replaces File::getTemporaryFile(). The former File entry points and
+      the nested File::TempDir are removed, and File.h no longer depends on Param (#10083, step 6)
     - Fix: AASequence::setModificationByDiffMonoMass (and the four other call sites that write an
       unknown mass-shift modification: three in AASequence, one in Residue, one in PepXMLFile) built
       its ModificationsDB lookup key with a signed bracket but created the modification from an

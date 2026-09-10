@@ -151,6 +151,8 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  SystemSettings_test
+  TempFiles_test
   UpdateCheck_test
 )
 

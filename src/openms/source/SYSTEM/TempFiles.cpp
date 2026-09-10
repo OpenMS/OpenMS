@@ -6,7 +6,9 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -113,15 +115,15 @@ namespace
   }
 }
 
-  File::TempDir::TempDir(bool keep_dir)
+  TempDir::TempDir(bool keep_dir)
     : keep_dir_(keep_dir)
   {
-    std::string prefix = File::getTempDirectory() + "/" +File::getUniqueName();
+    std::string prefix = SystemSettings::getTempDirectory() + "/" +File::getUniqueName();
     temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
   };
 
-  File::TempDir::TempDir(const std::string& base_dir, bool keep_dir)
+  TempDir::TempDir(const std::string& base_dir, bool keep_dir)
     : keep_dir_(keep_dir)
   {
     std::string prefix = base_dir;
@@ -134,7 +136,7 @@ namespace
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
   };
 
-  File::TempDir::~TempDir()
+  TempDir::~TempDir()
   {
     if (keep_dir_)
     {
@@ -145,12 +147,12 @@ namespace
     File::removeDirRecursively(temp_dir_);
   };
 
-  const std::string& File::TempDir::getPath() const
+  const std::string& TempDir::getPath() const
   {
     return temp_dir_;
   }
 
-  std::string File::getTemporaryFile(const std::string& alternative_file)
+  std::string TempFiles::getTemporaryFile(const std::string& alternative_file)
   {
     // take no action
     if (!alternative_file.empty())
@@ -158,36 +160,36 @@ namespace
       return alternative_file;
     }
     // create temporary (and schedule for deletion)
-    return temporary_files_.newFile();
+    return registry_.newFile();
   }
 
 
-  File::TemporaryFiles_::TemporaryFiles_()
+  TempFiles::Registry_::Registry_()
     : filenames_()
   {
   }
 
-  std::string File::TemporaryFiles_::newFile()
+  std::string TempFiles::Registry_::newFile()
   {
-    std::string s = getTempDirectory(); StringUtils::ensureLastChar(s, '/'); s += getUniqueName();
+    std::string s = SystemSettings::getTempDirectory(); StringUtils::ensureLastChar(s, '/'); s += File::getUniqueName();
     std::lock_guard<std::mutex> _(mtx_);
     filenames_.push_back(s);
     // do NOT return filenames_.back() by ref, since another thread might resize the vector and invalidate the reference!
     return s; // uses RVO, so its efficient
   }
 
-  File::TemporaryFiles_::~TemporaryFiles_()
+  TempFiles::Registry_::~Registry_()
   {
     std::lock_guard<std::mutex> _(mtx_);
-    for (Size i = 0; i < filenames_.size(); ++i)
+    for (const std::string& filename : filenames_)
     {
-      if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
+      if (File::exists(filename) && !File::remove(filename))
       {
-        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
+        std::cerr << "Warning: unable to remove temporary file '" << filename << "'" << std::endl;
       }
     }
   }
 
-  File::TemporaryFiles_ File::temporary_files_;
+  TempFiles::Registry_ TempFiles::registry_;
 
 } // namespace OpenMS

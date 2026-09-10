@@ -27,6 +27,7 @@
 #include <boost/regex.hpp>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 
 #include <iostream>
@@ -854,7 +855,7 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
     
     std::string txt_designator = File::getUniqueName();
     std::string pin_file;

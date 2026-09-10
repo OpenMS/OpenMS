@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -31,7 +32,7 @@ void OpenSwathOSWParquetReader::load(const std::string& oswpq_dir)
   rows_.clear();
   // remember the provided path for later fetch calls
   oswpq_dir_ = oswpq_dir;
-  std::unique_ptr<File::TempDir> temp_dir;
+  std::unique_ptr<TempDir> temp_dir;
   // Extract small library and runs index files only; per-run parquet files will be
   // read on-demand from the archive when possible to avoid unpacking the whole archive.
 
@@ -143,7 +144,7 @@ void OpenSwathOSWParquetReader::load(const std::string& oswpq_dir)
 OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReader::fetchPeakGroupFeatures(const std::string& oswpq_dir, const std::string& level, const std::string& main_score) const
 {
   PeakGroupFeatureScoresResult result;
-  std::unique_ptr<File::TempDir> temp_dir;
+  std::unique_ptr<TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extracting
   // entries to temp files when not available.
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
@@ -403,7 +404,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
 OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::fetchTransitionFeatures(const std::string& oswpq_dir) const
 {
   TransitionFeaturesResult result;
-  std::unique_ptr<File::TempDir> temp_dir;
+  std::unique_ptr<TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
   {
@@ -654,7 +655,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
 OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscoredData(const std::string& oswpq_dir) const
 {
   UnscoredResult result;
-  std::unique_ptr<File::TempDir> temp_dir;
+  std::unique_ptr<TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
   {

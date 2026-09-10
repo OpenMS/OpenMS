@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 using namespace std;
 
@@ -93,7 +94,7 @@ namespace OpenMS
     std::string db_name(db.empty() ? getStringOption_("database") : db);
     if (!File::readable(db_name))
     {
-      db_name = File::findDatabase(db_name);
+      db_name = SystemSettings::findDatabase(db_name);
     }
     return db_name;
   }
