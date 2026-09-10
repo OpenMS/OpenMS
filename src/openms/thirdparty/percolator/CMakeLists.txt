@@ -25,7 +25,6 @@
 # of cluttering the OpenMS target's file list at the project root.
 
 project("OpenMS_Percolator")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # Source list (also consumed by the upstream-sync tooling). It PREPENDs this
 # directory to each entry, so it resolves correctly when included from here.

@@ -8,7 +8,6 @@
 
 
 project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 # For use in the subdirs to cat their license
 function(cat IN_FILE OUT_FILE)
