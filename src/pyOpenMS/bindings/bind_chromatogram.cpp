@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -42,14 +43,16 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-// ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these).
+// ABI guards for zero-copy structured array access (peaks_struct dtype depends on these).
 // The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
-// is refactored away; it also restates the offsets get_peaks_struct publishes to Python.
+// is refactored away; it also restates the offsets peaks_struct publishes to Python.
 using ChromatogramPeakLayout = pyopenms::PeakLayout<OpenMS::ChromatogramPeak>;
 static_assert(ChromatogramPeakLayout::position_offset == 0 && ChromatogramPeakLayout::intensity_offset == 8,
     "ChromatogramPeak's structured dtype is documented as rt (float64) at 0, intensity (float32) at 8");
 
 NB_MODULE(_pyopenms_chromatogram, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSChromatogram>(m, "_MSChromatogramIter");
     m.doc() = "pyOpenMS chromatogram bindings";
 
     // -----------------------------------------------------------------------
@@ -62,7 +65,7 @@ RangeManagerRtInt
 
 The representation of a chromatogram.
 Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-Iterations yields access to underlying peak objects but is slower
+Indexing and iteration yield copies of the peaks; write changes back with chrom[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 See help(ChromatogramSettings) for information about meta-information
 Usage:
@@ -117,27 +120,27 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
         .def("setNativeID", [](OpenMS::MSChromatogram& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
         .def("getComment", [](const OpenMS::MSChromatogram& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::MSChromatogram& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](const OpenMS::MSChromatogram& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns the instrument settings of the current spectrum")
+        .def("getInstrumentSettings", [](const OpenMS::MSChromatogram& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::MSChromatogram& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](const OpenMS::MSChromatogram& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns the acquisition info")
+        .def("getAcquisitionInfo", [](const OpenMS::MSChromatogram& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::MSChromatogram& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](const OpenMS::MSChromatogram& self) -> const OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns the source file")
+        .def("getSourceFile", [](const OpenMS::MSChromatogram& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns the source file")
         .def("setSourceFile", [](OpenMS::MSChromatogram& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursor", [](const OpenMS::MSChromatogram& self) -> const OpenMS::Precursor & { return self.getPrecursor(); }, nb::rv_policy::reference_internal, "Returns the precursors")
+        .def("getPrecursor", [](const OpenMS::MSChromatogram& self) -> OpenMS::Precursor { return self.getPrecursor(); }, "Returns the precursors")
         .def("setPrecursor", [](OpenMS::MSChromatogram& self, const OpenMS::Precursor& precursor) { return self.setPrecursor(precursor); }, "precursor"_a, "Sets the precursors")
-        .def("getProduct", [](const OpenMS::MSChromatogram& self) -> const OpenMS::Product & { return self.getProduct(); }, nb::rv_policy::reference_internal, "Returns the product ion")
+        .def("getProduct", [](const OpenMS::MSChromatogram& self) -> OpenMS::Product { return self.getProduct(); }, "Returns the product ion")
         .def("setProduct", [](OpenMS::MSChromatogram& self, const OpenMS::Product& product) { return self.setProduct(product); }, "product"_a, "Sets the product ion")
         .def("getChromatogramType", [](const OpenMS::MSChromatogram& self) { return self.getChromatogramType(); }, "Get the chromatogram type")
         .def("setChromatogramType", [](OpenMS::MSChromatogram& self, OpenMS::ChromatogramSettings::ChromatogramType type) { return self.setChromatogramType(type); }, "type"_a, "Sets the chromatogram type")
         .def("setDataProcessing", [](OpenMS::MSChromatogram& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getDataProcessing", [](OpenMS::MSChromatogram& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns the description of the applied processing")
+        .def("getDataProcessing", [](OpenMS::MSChromatogram& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); }, "Returns the description of the applied processing")
 
-        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSChromatogram>(), "MSChromatogram_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSChromatogram>(self); })
         .def("__len__", [](OpenMS::MSChromatogram& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak& {
+        .def("__getitem__", [](const OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the peak at index i")
         .def("__setitem__", [](OpenMS::MSChromatogram& self, size_t i, const OpenMS::ChromatogramPeak& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -176,7 +179,7 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying ChromatogramPeak array (AoS layout).")
 
-        .def("get_peaks_struct",
+        .def("peaks_struct",
             [](nb::object self_obj) -> nb::object {
                 auto& self = nb::cast<OpenMS::MSChromatogram&>(self_obj);
                 size_t n = self.size();
@@ -266,25 +269,43 @@ If clear_meta_data is True, also deletes the descriptive meta data (Chromatogram
             self.push_back(peak);
         }, "peak"_a, "Append a peak")
 
-        .def("getFloatDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
+        .def("_float_data_array_count", [](const OpenMS::MSChromatogram& self) { return self.getFloatDataArrays().size(); })
+        .def("float_data_array_view", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::DataArrays::FloatDataArray& {
+            if (i >= self.getFloatDataArrays().size()) throw nb::index_error();
+            return self.getFloatDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the float data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFloatDataArrays()[i].")
+        .def("getFloatDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::FloatDataArray> {
             return self.getFloatDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the float data arrays")
+        }, "Returns the float data arrays")
 
         .def("setFloatDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::FloatDataArray>& arrays) {
             self.setFloatDataArrays(arrays);
         }, "arrays"_a, "Set the float data arrays")
 
-        .def("getIntegerDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray>& {
+        .def("_integer_data_array_count", [](const OpenMS::MSChromatogram& self) { return self.getIntegerDataArrays().size(); })
+        .def("integer_data_array_view", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::DataArrays::IntegerDataArray& {
+            if (i >= self.getIntegerDataArrays().size()) throw nb::index_error();
+            return self.getIntegerDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the integer data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getIntegerDataArrays()[i].")
+        .def("getIntegerDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray> {
             return self.getIntegerDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the integer data arrays")
+        }, "Returns the integer data arrays")
 
         .def("setIntegerDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::IntegerDataArray>& arrays) {
             self.setIntegerDataArrays(arrays);
         }, "arrays"_a, "Set the integer data arrays")
 
-        .def("getStringDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::StringDataArray>& {
+        .def("_string_data_array_count", [](const OpenMS::MSChromatogram& self) { return self.getStringDataArrays().size(); })
+        .def("string_data_array_view", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::DataArrays::StringDataArray& {
+            if (i >= self.getStringDataArrays().size()) throw nb::index_error();
+            return self.getStringDataArrays()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the string data array at index i. Chain .data_view() on it for zero-copy numpy access into this object's storage. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the data array list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getStringDataArrays()[i].")
+        .def("getStringDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::StringDataArray> {
             return self.getStringDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the string data arrays")
+        }, "Returns the string data arrays")
 
         .def("setStringDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
             self.setStringDataArrays(arrays);

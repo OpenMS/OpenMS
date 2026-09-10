@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -310,7 +312,7 @@ namespace OpenMS
         // r will be nullptr if not found. The next line handles it.
         const Residue* r = ResidueDB::getInstance()->getResidue(aminoacid_[0]);
         //TODO check if it is better to create from mass or massdiff
-        registered_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(massdiff_),
+        registered_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(massdiff_),
                                                                                  massdiff_,
                                                                                  true,
                                                                                  term_spec_,

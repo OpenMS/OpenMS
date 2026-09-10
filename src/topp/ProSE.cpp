@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
@@ -25,6 +26,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
@@ -72,6 +74,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
+@note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
 <B>The command line parameters of this tool are:</B>
@@ -286,8 +289,11 @@ class ProSE :
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
       // Timer spans search + Percolator + FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
+      // Keep the algorithm's pooled aggregate only where the -out_merged block below consumes it verbatim; with Percolator that block re-merges the rescored per-file results, so the pre-rescoring pool would be waste.
+      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1 && percolator_executable.empty();
       ProSEAlgorithm::MultiFileSearchResult mfres =
-        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name);
+        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
+                                           build_pooled_aggregate);
 
       if (mfres.per_file.size() != in_list.size())
       {
@@ -369,9 +375,9 @@ class ProSE :
           }
 
           // Write intermediate idXML for PercolatorAdapter input
-          std::string tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
-          std::string tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
-          std::string tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
+          std::string tmp_in = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
+          std::string tmp_out = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
+          std::string tmp_weights = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
           FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
 
           std::vector<std::string> perc_params = {
@@ -759,11 +765,13 @@ class ProSE :
 
           // Search params
           const std::string oms_sp_file = out_parquet_dir + "/" + basename + ".search_params.parquet";
-          auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids);
+          const auto sp_definitions = ModificationDefinitionIO::encodeByRun(
+            result.protein_ids, ModificationDefinitionIO::collect(result.protein_ids, result.peptide_ids));
+          auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids, sp_definitions);
           if (sp_table)
           {
             oms_sp_tables.push_back(sp_table);
-            if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(result.protein_ids, oms_sp_file))
+            if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(result.protein_ids, oms_sp_file, ParquetWriteConfig{}, sp_definitions))
             {
               OPENMS_LOG_ERROR << "Failed to write search params parquet for " << in_file << " -> " << oms_sp_file << endl;
               input_failed = true;
@@ -834,18 +842,49 @@ class ProSE :
           const std::string decoy_string = mfres.decoy_string;
           const bool decoy_is_prefix = mfres.decoy_is_prefix;
 
-          // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
-          IDMergerAlgorithm merger;
-          for (const auto& pf : mfres.per_file)
-          {
-            if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-            merger.insertRuns(pf.protein_ids, pf.peptide_ids);
-          }
-          ProteinIdentification merged_proteins;
+          vector<ProteinIdentification> merged_protein_ids;
           PeptideIdentificationList merged_peptides;
-          merger.returnResultsAndClear(merged_proteins, merged_peptides);
 
-          vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
+          // Without Percolator nothing has mutated the identifications in mfres.per_file since
+          // the search, and the algorithm already produced exactly this merge: the multi-file
+          // searchWithModificationAnalysis pools with the identical sequence of
+          // insertRuns(pf.protein_ids, pf.peptide_ids) calls over the identical per-file results
+          // and then setPrimaryMSRunPath(in_spectra_files) — so re-merging here would only build
+          // a third copy of every PSM. Consume the aggregate by move instead. (An empty aggregate
+          // means every file failed, or build_pooled_aggregate was false; fall through to the
+          // merger, which reproduces the old result in both cases.)
+          // The only run-level value IDMergerAlgorithm derives from its inputs is 'id_merge_index'
+          // = the first-occurrence rank of a run's primary MS run path (the merged run's own path
+          // is overwritten unconditionally right after this block). That rank is unchanged by the
+          // 'file://<basename>' rewrite -test applies to the per-file runs above, because it maps
+          // the -in paths one-to-one -- unless two -in files in different directories share a
+          // basename, which only -test could ever collapse and which no ProSE test does.
+          if (percolator_executable.empty() && !mfres.aggregate.protein_ids.empty())
+          {
+            merged_protein_ids.emplace_back(std::move(mfres.aggregate.protein_ids[0]));
+            merged_peptides = std::move(mfres.aggregate.peptide_ids);
+            mfres.aggregate.protein_ids.clear();
+            mfres.aggregate.peptide_ids.clear();
+          }
+          else
+          {
+            // Percolator rescored the per-file PSMs after the search, so the algorithm's
+            // pre-rescoring aggregate would be WRONG here (and was not built at all, see
+            // build_pooled_aggregate above): merge the rescored results via IDMergerAlgorithm
+            // (accession dedup + identifier remap). Moving out of per_file is safe: past this
+            // block only pf.stats / pf.exit_code / pf.modification_analysis are read (the
+            // search report and renderRunSummaryYaml), never the identifications.
+            IDMergerAlgorithm merger;
+            for (auto& pf : mfres.per_file)
+            {
+              if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
+              merger.insertRuns(std::move(pf.protein_ids), std::move(pf.peptide_ids));
+            }
+            ProteinIdentification merged_proteins;
+            merger.returnResultsAndClear(merged_proteins, merged_peptides);
+            merged_protein_ids.emplace_back(std::move(merged_proteins));
+          }
+
           merged_protein_ids[0].setPrimaryMSRunPath(in_list);
           // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
           // merged idXML is schema-valid (matches the single-file path in ProSEAlgorithm).

@@ -511,8 +511,11 @@ namespace OpenMS
              tolerances);
     }
 
-    // Combine back: merged FAIMS features + untouched non-FAIMS features
-    feature_map.clear();
+    // Combine back: merged FAIMS features + untouched non-FAIMS features.
+    // clear(false): only the feature container is refilled here -- the default
+    // clear(true) would also wipe protein/peptide identifications, data processing
+    // and the unique id that the caller set before calling us.
+    feature_map.clear(false);
     for (auto& f : faims_features)
     {
       feature_map.push_back(std::move(f));

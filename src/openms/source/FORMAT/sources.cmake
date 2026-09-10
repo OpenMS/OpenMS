@@ -26,6 +26,7 @@ FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 FileInfo.cpp
 FileTypes.cpp
+FileNameUtils.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
@@ -75,7 +76,6 @@ ParamXMLFile.cpp
 ParquetTableComparator.cpp
 PEFFFile.cpp
 PTMXMLFile.cpp
-PeakTypeEstimator.cpp
 PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
@@ -129,6 +129,7 @@ list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
 list(APPEND sources_list FeatureMapArrowIO.cpp)
 list(APPEND sources_list ConsensusMapArrowIO.cpp)
 list(APPEND sources_list PSMArrowIO.cpp)
+list(APPEND sources_list ModificationDefinitionIO.cpp)
 list(APPEND sources_list ArrowSchemaRegistry.cpp)
 list(APPEND sources_list ArrowIOHelpers.cpp)
 

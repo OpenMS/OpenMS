@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -158,14 +159,14 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   TEST_EQUAL(var_mods[2], "Oxidation (M)")
   TEST_EQUAL(var_mods[3], "Gln->pyro-Glu (N-term Q)")
 
-  TEST_EQUAL(var_mods[4], "M[1.0]")
-  TEST_EQUAL(var_mods[5], ".n[2.0]")
-  TEST_EQUAL(var_mods[6], ".c[2.0]")
-  TEST_EQUAL(var_mods[7], ".n[2.5]")
-  TEST_EQUAL(var_mods[8], ".n[2.5]")
+  TEST_EQUAL(var_mods[4], "M[+1.0]")
+  TEST_EQUAL(var_mods[5], ".n[+2.0]")
+  TEST_EQUAL(var_mods[6], ".c[+2.0]")
+  TEST_EQUAL(var_mods[7], ".n[+2.5]")
+  TEST_EQUAL(var_mods[8], ".n[+2.5]")
   TEST_EQUAL(var_mods[9], ".n[-2.5]")
-  TEST_EQUAL(var_mods[10], ".n[2.5]")
-  TEST_EQUAL(var_mods[11], ".c[3.4]")
+  TEST_EQUAL(var_mods[10], ".n[+2.5]")
+  TEST_EQUAL(var_mods[11], ".c[+3.4]")
 
   /* TODO Probably would be nicer to have the following as fullID for readability
    *  (with the other notation you can't see if it has AA restrictions or if it is protein term)
@@ -499,4 +500,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

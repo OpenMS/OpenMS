@@ -401,7 +401,19 @@ namespace OpenMS
     int min_charge,
     int max_charge)
   {
+    PinFeatureMetaValueMap added_meta_values;
+    return stampPinFeaturesOnHits(peptide_ids, enz, min_charge, max_charge, added_meta_values);
+  }
+
+  std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
+    PeptideIdentificationList& peptide_ids,
+    const std::string& enz,
+    int min_charge,
+    int max_charge,
+    PinFeatureMetaValueMap& added_meta_values)
+  {
     std::set<std::pair<size_t, size_t>> skipped;
+    added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
 
     // Scan-number regex is derived from the first pid's scan identifier.
@@ -430,6 +442,18 @@ namespace OpenMS
       for (size_t hit_index = 0; hit_index < hits.size(); ++hit_index)
       {
         PeptideHit& hit = hits[hit_index];
+        const std::pair<size_t, size_t> hit_location{pid_index, hit_index};
+
+        // Remember only keys introduced by this call. Existing values are not
+        // cleanup candidates, even when the PIN calculation refreshes them.
+        auto stamp_meta_value = [&](const std::string& key, const auto& value)
+        {
+          if (!hit.metaValueExists(key))
+          {
+            added_meta_values[hit_location].insert(key);
+          }
+          hit.setMetaValue(key, value);
+        };
 
         if (hit.getPeptideEvidences().empty())
         {
@@ -448,9 +472,9 @@ namespace OpenMS
           continue;
         }
 
-        hit.setMetaValue("SpecId", file_identifier + scan_identifier);
-        hit.setMetaValue("ScanNr", scan_number);
-        hit.setMetaValue("Label", hit.isDecoy() ? -1 : 1);
+        stamp_meta_value("SpecId", file_identifier + scan_identifier);
+        stamp_meta_value("ScanNr", scan_number);
+        stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
 
         const int charge = hit.getCharge();
         const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
@@ -459,7 +483,7 @@ namespace OpenMS
         if (!hit.metaValueExists("CalcMass"))
         {
           calc_mass = hit.getSequence().getMZ(charge);
-          hit.setMetaValue("CalcMass", calc_mass);
+          stamp_meta_value("CalcMass", calc_mass);
         }
         else
         {
@@ -478,19 +502,19 @@ namespace OpenMS
           row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
 
-        hit.setMetaValue("ExpMass", row_exp_mass);
+        stamp_meta_value("ExpMass", row_exp_mass);
 
         const double delta_mass = row_exp_mass - calc_mass;
-        hit.setMetaValue("deltamass", delta_mass);
-        hit.setMetaValue("retentiontime", retention_time);
-        hit.setMetaValue("mass", row_exp_mass);
+        stamp_meta_value("deltamass", delta_mass);
+        stamp_meta_value("retentiontime", retention_time);
+        stamp_meta_value("mass", row_exp_mass);
 
-        hit.setMetaValue("score", hit.getScore());
-        hit.setMetaValue("peplen", static_cast<int>(unmodified_sequence.size()));
+        stamp_meta_value("score", hit.getScore());
+        stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
 
         for (int i = min_charge; i <= max_charge; ++i)
         {
-          hit.setMetaValue("charge" + StringUtils::toStr(i), charge == i);
+          stamp_meta_value("charge" + StringUtils::toStr(i), charge == i);
         }
 
         // use first peptide evidence for flanking AAs
@@ -498,13 +522,13 @@ namespace OpenMS
         char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
 
         const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
-        hit.setMetaValue("enzN", enzN);
+        stamp_meta_value("enzN", enzN);
         const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
-        hit.setMetaValue("enzC", enzC);
-        hit.setMetaValue("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
+        stamp_meta_value("enzC", enzC);
+        stamp_meta_value("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
 
-        hit.setMetaValue("dm", delta_mass);
-        hit.setMetaValue("absdm", std::abs(delta_mass));
+        stamp_meta_value("dm", delta_mass);
+        stamp_meta_value("absdm", std::abs(delta_mass));
 
         // Percolator-formatted peptide string with PTM brackets
         aa_before = aa_before == '[' ? '-' : aa_before;
@@ -515,14 +539,14 @@ namespace OpenMS
         sequence += hit.getSequence().toBracketString(false, true);
         sequence += ".";
         sequence += aa_after;
-        hit.setMetaValue("Peptide", sequence);
+        stamp_meta_value("Peptide", sequence);
 
         StringList proteins;
         for (const PeptideEvidence& pep : hit.getPeptideEvidences())
         {
           proteins.push_back(pep.getProteinAccession());
         }
-        hit.setMetaValue("Proteins", ListUtils::concatenate(proteins, "\t"));
+        stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
       }
     }
     return skipped;

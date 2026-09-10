@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -97,6 +98,13 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
+    const LPWrapper::SolverStatus solution_status = problem.getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    { // without this check a failed solve would silently yield an empty feature selection (see issue #9944)
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The LP solver did not find a feasible feature selection (solver status: " +
+        StringUtils::toStr(static_cast<Int>(solution_status)) + ").");
+    }
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
       if (problem.getColumnValue(c) >= parameters.optimal_threshold)
@@ -207,6 +215,13 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
+    const LPWrapper::SolverStatus solution_status = problem.getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    { // without this check a failed solve would silently yield an empty feature selection (see issue #9944)
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The LP solver did not find a feasible feature selection (solver status: " +
+        StringUtils::toStr(static_cast<Int>(solution_status)) + ").");
+    }
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
       const std::string name = problem.getColumnName(c);

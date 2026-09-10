@@ -482,7 +482,7 @@ test_mt2.updateWeightedMeanMZ();
 START_SECTION((double getFWHM() const))
 {
   double test_mt_fwhm = test_mt.getFWHM();
-  TEST_REAL_SIMILAR(test_mt_fwhm, 3.05481743986255);
+  TEST_REAL_SIMILAR(test_mt_fwhm, 2.16656743986252);
 }
 END_SECTION
                                          
@@ -571,8 +571,43 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
   double test_fwhm1 = test_mt.estimateFWHM(false);
   double test_fwhm2 = test_mt.estimateFWHM(true);
 
-  TEST_REAL_SIMILAR(test_fwhm1, 3.07921244222942);
-  TEST_REAL_SIMILAR(test_fwhm2, 3.05481743986255);
+  TEST_REAL_SIMILAR(test_fwhm1, 2.15250939241199);
+  TEST_REAL_SIMILAR(test_fwhm2, 2.16656743986252);
+
+  // a symmetric trace must have symmetric half-maximum crossings around its apex
+  // (regression test: the right flank used to pair each RT with the other point's
+  // intensity, mirroring the right crossing about the midpoint of its bracket)
+  std::vector<PeakType> sym_peaks;
+  double sym_ints[5] = {10.0, 60.0, 100.0, 60.0, 10.0};
+  for (Size i = 0; i < 5; ++i)
+  {
+    sym_peaks.push_back(fillPeak((double)i, 230.1, sym_ints[i]));
+  }
+  MassTrace sym_mt(sym_peaks);
+  // half max is 50, crossed at 0.8 on the left and (symmetrically) at 3.2 on the right
+  TEST_REAL_SIMILAR(sym_mt.estimateFWHM(false), 2.4);
+
+  // an asymmetric trace: the right flank crosses 50 between x=3 (80) and x=4 (40),
+  // i.e. at 3.75, so the FWHM is 3.75 - 0.8
+  std::vector<PeakType> asym_peaks;
+  double asym_ints[5] = {10.0, 60.0, 100.0, 80.0, 40.0};
+  for (Size i = 0; i < 5; ++i)
+  {
+    asym_peaks.push_back(fillPeak((double)i, 230.1, asym_ints[i]));
+  }
+  MassTrace asym_mt(asym_peaks);
+  TEST_REAL_SIMILAR(asym_mt.estimateFWHM(false), 2.95);
+
+  // trace that never drops below half max on the right -> no interpolation there,
+  // the last RT is used instead
+  std::vector<PeakType> open_peaks;
+  double open_ints[5] = {10.0, 60.0, 100.0, 100.0, 100.0};
+  for (Size i = 0; i < 5; ++i)
+  {
+    open_peaks.push_back(fillPeak((double)i, 230.1, open_ints[i]));
+  }
+  MassTrace open_mt(open_peaks);
+  TEST_REAL_SIMILAR(open_mt.estimateFWHM(false), 3.2);
 }
 END_SECTION
 

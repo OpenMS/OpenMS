@@ -71,9 +71,6 @@ Normalizer* Normalizer::getNormalizer() {
     } else {
      theNormalizer = new NoNormalizer();
     }
-  } else {
-    assert(false);
-    cerr << "Multiple instantiations of Normalizer" << endl;
   }
   return theNormalizer;
 }

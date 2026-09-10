@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Satyam Yadav $
+// $Authors: Satyam Yadav, Justin Sing $
 // --------------------------------------------------------------------------
 #pragma once
 
@@ -11,13 +11,29 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <string>
 #include <vector>
+#include <array>
+#include <string_view>
 
 namespace OpenMS {
   namespace ML {
 
     // --- Shared PeptDeep Architecture Constants ---
     constexpr int64_t PEPTDEEP_MOD_ELEMENTS = 109;
-    const std::string PEPTDEEP_VALID_AAS = "ACDEFGHIKLMNPQRSTVWY";
+
+    /// @brief AlphaPeptDeep's exact 109-element array for modification tensor mapping.
+    /// Elements missing from this list are binned into the final "Other" channel ("?").
+    /// Heavy isotopes (2H, 13C, 15N, 18O) map strictly to their dedicated channels.
+    inline constexpr std::array<std::string_view, 109> ALPHAPEPTDEEP_MOD_ELEMENTS = {
+    "C", "H", "N", "O", "P", "S", "B", "F", "I", "K", "U", "V", "W", "X", "Y",
+    "Ac", "Ag", "Al", "Am", "Ar", "As", "At", "Au", "Ba", "Be", "Bi", "Bk",
+    "Br", "Ca", "Cd", "Ce", "Cf", "Cl", "Cm", "Co", "Cr", "Cs", "Cu", "Dy",
+    "Er", "Es", "Eu", "Fe", "Fm", "Fr", "Ga", "Gd", "Ge", "He", "Hf", "Hg",
+    "Ho", "In", "Ir", "Kr", "La", "Li", "Lr", "Lu", "Md", "Mg", "Mn", "Mo",
+    "Na", "Nb", "Nd", "Ne", "Ni", "No", "Np", "Os", "Pa", "Pb", "Pd", "Pm",
+    "Po", "Pr", "Pt", "Pu", "Ra", "Rb", "Re", "Rh", "Rn", "Ru", "Sb", "Sc",
+    "Se", "Si", "Sm", "Sn", "Sr", "Ta", "Tb", "Tc", "Te", "Th", "Ti", "Tl",
+    "Tm", "Xe", "Yb", "Zn", "Zr", "2H", "13C", "15N", "18O", "?"
+    };
 
     /**
      * @brief Maps amino acid characters to 1-based token indices for PeptDeep models.
@@ -37,27 +53,13 @@ namespace OpenMS {
 
     /**
      * @brief Validates a peptide sequence for PeptDeep inference.
-     * Throws explicit OpenMS exceptions if the sequence is invalid, too long, or contains modifications.
-     * * @param peptide The raw peptide string to validate.
+     * Complex character validation and modification parsing is handled downstream by AASequence.
+     * @param peptide The raw peptide string to validate.
      */
     inline void validatePeptide(const std::string& peptide) {
         if (peptide.empty()) {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence cannot be empty.");
         }
-        if (peptide.find_first_of("[]()") != std::string::npos) {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modified peptides are not currently supported in this engine.");
-        }
-        if (peptide.find_first_not_of(PEPTDEEP_VALID_AAS) != std::string::npos) {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unsupported residue encountered.", peptide);
-        }
-    }
-
-    /**
-     * @brief Generates an empty mod_x tensor for unmodified peptides.
-     * Resolves to a flat vector of zeros of size (batch_size * sequence_length * 109).
-     */
-    inline std::vector<float> generateUnmodifiedModXTensor(size_t batch_size, size_t sequence_length) {
-        return std::vector<float>(batch_size * sequence_length * PEPTDEEP_MOD_ELEMENTS, 0.0f);
     }
 
   }

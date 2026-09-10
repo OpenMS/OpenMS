@@ -2798,6 +2798,7 @@ namespace OpenMS::Internal
                       {
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
                         new_mod->setMonoMass(mass_delta + Residue::getInternalToNTerm().getMonoWeight());
@@ -2816,11 +2817,12 @@ namespace OpenMS::Internal
                       std::string residue_id = ".c[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
-                      // ownership to ModDB
-                      if (!mod_db->has(residue_name))
+                      // ownership to ModDB (check residue_id, which is what gets registered)
+                      if (!mod_db->has(residue_id))
                       {
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
                         new_mod->setMonoMass(mass_delta + Residue::getInternalToCTerm().getMonoWeight());
@@ -2843,6 +2845,7 @@ namespace OpenMS::Internal
                         // create new modification
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(modification_name); // display name
 
                         // We will set origin to make sure the same modification will be used

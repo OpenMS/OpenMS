@@ -16,8 +16,10 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -800,7 +802,8 @@ bool ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
 
 
 std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsToArrow(
-  const std::vector<ProteinIdentification>& protein_identifications)
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const std::map<std::string, std::string>& definitions_by_run)
 {
   // -- Simple column builders --
   arrow::StringBuilder run_identifier_builder, search_engine_builder;
@@ -1111,7 +1114,20 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
 
     // === sp_metavalues (not nullable) - from SearchParameters ===
     (void)sp_metavalues_builder.Append();
-    appendMetaValues_(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, no_exclusions);
+    const auto defs_it = definitions_by_run.find(prot_id.getIdentifier());
+    if (defs_it == definitions_by_run.end())
+    {
+      appendMetaValues_(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, no_exclusions);
+    }
+    else
+    { // the freshly collected modification definitions replace an inbound value
+      static const std::unordered_set<std::string> exclude_definitions{Constants::UserParam::MODIFICATION_DEFINITIONS};
+      appendMetaValues_(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, exclude_definitions);
+      (void)sp_mv_struct_b->Append();
+      (void)sp_mv_name_b->Append(Constants::UserParam::MODIFICATION_DEFINITIONS);
+      (void)sp_mv_value_b->Append(defs_it->second);
+      (void)sp_mv_type_b->Append("string");
+    }
 
   } // end prot_id loop
 
@@ -1218,9 +1234,10 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
 bool ProteinIdentificationArrowIO::exportSearchParamsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const std::map<std::string, std::string>& definitions_by_run)
 {
-  auto table = exportSearchParamsToArrow(protein_identifications);
+  auto table = exportSearchParamsToArrow(protein_identifications, definitions_by_run);
   if (!table)
   {
     OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to create Arrow table for search params" << std::endl;
@@ -1405,6 +1422,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
 
     // SearchParameters metavalues (restore before setSearchParameters)
     ArrowIOHelpers::readMetaValues(col_sp_metavalues, row, sp);
+    ModificationDefinitionIO::registerFrom(sp); // before any peptidoform is parsed
 
     prot_id.setSearchParameters(sp);
 

@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
@@ -91,6 +92,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -106,6 +108,9 @@ namespace nb = nanobind;
 using namespace nb::literals;
 
 NB_MODULE(_pyopenms_analysis, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::DeconvolvedSpectrum>(m, "_DeconvolvedSpectrumIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::PeakGroup>(m, "_PeakGroupIter");
     m.doc() = "pyOpenMS analysis bindings";
 
     // -----------------------------------------------------------------------
@@ -285,9 +290,9 @@ the transformation model used for concentration calculation
         .def("setFoundAdduct", [](OpenMS::AccurateMassSearchResult& self, const std::string& p0) { return self.setFoundAdduct(p0); })
         .def("getFormulaString", [](const OpenMS::AccurateMassSearchResult& self) { return self.getFormulaString(); })
         .def("setEmpiricalFormula", [](OpenMS::AccurateMassSearchResult& self, const std::string& p0) { return self.setEmpiricalFormula(p0); })
-        .def("getMatchingHMDBids", [](const OpenMS::AccurateMassSearchResult& self) -> const std::vector<std::string> & { return self.getMatchingHMDBids(); }, nb::rv_policy::reference_internal)
+        .def("getMatchingHMDBids", [](const OpenMS::AccurateMassSearchResult& self) -> const std::vector<std::string> & { return self.getMatchingHMDBids(); })
         .def("setMatchingHMDBids", [](OpenMS::AccurateMassSearchResult& self, const std::vector<std::string>& p0) { return self.setMatchingHMDBids(p0); })
-        .def("getMasstraceIntensities", [](const OpenMS::AccurateMassSearchResult& self) -> const std::vector<double> & { return self.getMasstraceIntensities(); }, nb::rv_policy::reference_internal)
+        .def("getMasstraceIntensities", [](const OpenMS::AccurateMassSearchResult& self) -> const std::vector<double> & { return self.getMasstraceIntensities(); })
         .def("setMasstraceIntensities", [](OpenMS::AccurateMassSearchResult& self, const std::vector<double>& p0) { return self.setMasstraceIntensities(p0); })
         .def("getIsotopesSimScore", [](const OpenMS::AccurateMassSearchResult& self) { return self.getIsotopesSimScore(); })
         .def("setIsotopesSimScore", [](OpenMS::AccurateMassSearchResult& self, const double& p0) { return self.setIsotopesSimScore(p0); })
@@ -417,10 +422,10 @@ Constructors
         .def("__copy__", [](const OpenMS::DeconvolvedSpectrum& self) { return OpenMS::DeconvolvedSpectrum(self); })
         .def("__deepcopy__", [](const OpenMS::DeconvolvedSpectrum& self, nb::dict) { return OpenMS::DeconvolvedSpectrum(self); }, "memo"_a)
         .def("toSpectrum", [](OpenMS::DeconvolvedSpectrum& self, int to_charge, double tol, bool retain_undeconvolved) { return self.toSpectrum(to_charge, tol, retain_undeconvolved); }, "to_charge"_a, "tol"_a = 10.0, "retain_undeconvolved"_a = false)
-        .def("getOriginalSpectrum", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::MSSpectrum & { return self.getOriginalSpectrum(); }, nb::rv_policy::reference_internal, "Returns the original spectrum")
-        .def("getPrecursorPeakGroup", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::PeakGroup & { return self.getPrecursorPeakGroup(); }, nb::rv_policy::reference_internal, "Returns the precursor peak group (MSn, n>1)")
+        .def("getOriginalSpectrum", [](const OpenMS::DeconvolvedSpectrum& self) -> OpenMS::MSSpectrum { return self.getOriginalSpectrum(); }, "Returns the original spectrum")
+        .def("getPrecursorPeakGroup", [](const OpenMS::DeconvolvedSpectrum& self) -> OpenMS::PeakGroup { return self.getPrecursorPeakGroup(); }, "Returns the precursor peak group (MSn, n>1)")
         .def("getPrecursorCharge", [](const OpenMS::DeconvolvedSpectrum& self) { return self.getPrecursorCharge(); }, "Returns the precursor charge")
-        .def("getPrecursor", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::Precursor & { return self.getPrecursor(); }, nb::rv_policy::reference_internal, "Returns the precursor peak")
+        .def("getPrecursor", [](const OpenMS::DeconvolvedSpectrum& self) -> OpenMS::Precursor { return self.getPrecursor(); }, "Returns the precursor peak")
         .def("getCurrentMaxMass", [](const OpenMS::DeconvolvedSpectrum& self, double max_mass) { return self.getCurrentMaxMass(max_mass); }, "max_mass"_a, "Returns the current max mass")
         .def("getCurrentMinMass", [](const OpenMS::DeconvolvedSpectrum& self, double min_mass) { return self.getCurrentMinMass(min_mass); }, "min_mass"_a, "Returns the current min mass")
         .def("getCurrentMaxAbsCharge", [](const OpenMS::DeconvolvedSpectrum& self, int max_abs_charge) { return self.getCurrentMaxAbsCharge(max_abs_charge); }, "max_abs_charge"_a, "Returns the current max charge")
@@ -447,12 +452,12 @@ Constructors
         .def(nb::self < nb::self)
         .def(nb::self > nb::self)
         .def(nb::self == nb::self)
-        .def("__iter__", [](OpenMS::DeconvolvedSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::DeconvolvedSpectrum>(), "DeconvolvedSpectrum_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::DeconvolvedSpectrum>(self); })
         .def("__len__", [](OpenMS::DeconvolvedSpectrum& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::DeconvolvedSpectrum& self, size_t i) -> OpenMS::PeakGroup & { 
+        .def("__getitem__", [](const OpenMS::DeconvolvedSpectrum& self, size_t i) -> OpenMS::PeakGroup {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the peak group at index i")
         .def("__setitem__", [](OpenMS::DeconvolvedSpectrum& self, size_t i, const OpenMS::PeakGroup& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -1196,7 +1201,7 @@ and 0 means no correlation.
         .def("calcMIPrecursorContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorContrastScore(); })
         .def("calcMIPrecursorCombinedScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorCombinedScore(); })
         .def("calcSeparateMIContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcSeparateMIContrastScore(); })
-        .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> const OpenMS::Matrix<double>& { return self.getMIMatrix(); }, nb::rv_policy::reference_internal, "Returns the MI matrix")
+        .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> OpenMS::Matrix<double> { return self.getMIMatrix(); }, "Returns the MI matrix")
         ;
 
     // -----------------------------------------------------------------------
@@ -1893,7 +1898,7 @@ Constructors
         .def("getChargeSNR", [](const OpenMS::PeakGroup& self, int abs_charge) { return self.getChargeSNR(abs_charge); }, "abs_charge"_a, "Returns SNR for given charge")
         .def("getChargeIsotopeCosine", [](const OpenMS::PeakGroup& self, int abs_charge) { return self.getChargeIsotopeCosine(abs_charge); }, "abs_charge"_a, "Returns isotope cosine for given charge")
         .def("getChargeIntensity", [](const OpenMS::PeakGroup& self, int abs_charge) { return self.getChargeIntensity(abs_charge); }, "abs_charge"_a, "Returns intensity for given charge")
-        .def("getIsotopeIntensities", [](const OpenMS::PeakGroup& self) -> const std::vector<float> & { return self.getIsotopeIntensities(); }, nb::rv_policy::reference_internal, "Returns per-isotope intensities")
+        .def("getIsotopeIntensities", [](const OpenMS::PeakGroup& self) -> const std::vector<float> & { return self.getIsotopeIntensities(); }, "Returns per-isotope intensities")
         .def("getIsotopeCosine", [](const OpenMS::PeakGroup& self) { return self.getIsotopeCosine(); }, "Returns the isotope cosine score")
         .def("getPeakOccupancy", [](const OpenMS::PeakGroup& self) { return self.getPeakOccupancy(); }, "Returns peak occupancy (0-1)")
         .def("getRepAbsCharge", [](const OpenMS::PeakGroup& self) { return self.getRepAbsCharge(); }, "Returns the representative charge")
@@ -1926,12 +1931,8 @@ Constructors
         .def("reserve", [](OpenMS::PeakGroup& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for n peaks")
         .def("empty", [](const OpenMS::PeakGroup& self) { return self.empty(); }, "Returns true if no peaks")
         .def("sort", [](OpenMS::PeakGroup& self) { return self.sort(); }, "Sorts peaks by log m/z")
-        .def("__iter__", [](OpenMS::PeakGroup& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::PeakGroup>(), "PeakGroup_iter", self.begin(), self.end()); }, nb::keep_alive<0, 1>())
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::PeakGroup>(self); })
         .def("__len__", [](OpenMS::PeakGroup& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::PeakGroup& self, size_t i) -> const OpenMS::FLASHHelperClasses::LogMzPeak & { 
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
 
         .def("getMonoMass", &OpenMS::PeakGroup::getMonoMass, "Returns the monoisotopic mass")
         ;
@@ -2627,53 +2628,53 @@ production ions
         .def(nb::self + nb::self)
         .def("clear", [](OpenMS::TargetedExperiment& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a)
         .def("setCVs", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::CV>& cvs) { return self.setCVs(cvs); }, "cvs"_a)
-        .def("getCVs", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::CV> & { return self.getCVs(); }, nb::rv_policy::reference_internal)
+        .def("getCVs", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::CV> { return self.getCVs(); })
         .def("addCV", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::CV& cv) { return self.addCV(cv); }, "cv"_a)
         .def("setTargetCVTerms", [](OpenMS::TargetedExperiment& self, const OpenMS::CVTermList& cv_terms) { return self.setTargetCVTerms(cv_terms); }, "cv_terms"_a)
-        .def("getTargetCVTerms", [](const OpenMS::TargetedExperiment& self) -> const OpenMS::CVTermList & { return self.getTargetCVTerms(); }, nb::rv_policy::reference_internal)
+        .def("getTargetCVTerms", [](const OpenMS::TargetedExperiment& self) -> OpenMS::CVTermList { return self.getTargetCVTerms(); })
         .def("addTargetCVTerm", [](OpenMS::TargetedExperiment& self, const OpenMS::CVTerm& cv_term) { return self.addTargetCVTerm(cv_term); }, "cv_term"_a)
         .def("setTargetMetaValue", [](OpenMS::TargetedExperiment& self, const std::string& name, const OpenMS::DataValue& value) { return self.setTargetMetaValue(name, value); }, "name"_a, "value"_a)
         .def("setContacts", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Contact>& contacts) { return self.setContacts(contacts); }, "contacts"_a)
-        .def("getContacts", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Contact> & { return self.getContacts(); }, nb::rv_policy::reference_internal)
+        .def("getContacts", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::Contact> { return self.getContacts(); })
         .def("addContact", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Contact& contact) { return self.addContact(contact); }, "contact"_a)
         .def("setPublications", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Publication>& publications) { return self.setPublications(publications); }, "publications"_a)
-        .def("getPublications", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Publication> & { return self.getPublications(); }, nb::rv_policy::reference_internal)
+        .def("getPublications", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::Publication> { return self.getPublications(); })
         .def("addPublication", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Publication& publication) { return self.addPublication(publication); }, "publication"_a)
         .def("setInstruments", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Instrument>& instruments) { return self.setInstruments(instruments); }, "instruments"_a)
-        .def("getInstruments", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Instrument> & { return self.getInstruments(); }, nb::rv_policy::reference_internal)
+        .def("getInstruments", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::Instrument> { return self.getInstruments(); })
         .def("addInstrument", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Instrument& instrument) { return self.addInstrument(instrument); }, "instrument"_a)
         .def("setSoftware", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::Software>& software) { return self.setSoftware(software); }, "software"_a)
-        .def("getSoftware", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::Software> & { return self.getSoftware(); }, nb::rv_policy::reference_internal)
+        .def("getSoftware", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::Software> { return self.getSoftware(); })
         .def("addSoftware", [](OpenMS::TargetedExperiment& self, const OpenMS::Software& software) { return self.addSoftware(software); }, "software"_a)
         .def("setProteins", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Protein>& proteins) { return self.setProteins(proteins); }, "proteins"_a)
         .def("setProteins", [](OpenMS::TargetedExperiment& self, std::vector<OpenMS::TargetedExperimentHelper::Protein>& proteins) { return self.setProteins(proteins); }, "proteins"_a)
-        .def("getProteins", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Protein> & { return self.getProteins(); }, nb::rv_policy::reference_internal)
-        .def("getProteinByRef", [](const OpenMS::TargetedExperiment& self, const std::string& ref) -> const OpenMS::TargetedExperimentHelper::Protein & { return self.getProteinByRef(ref); }, "ref"_a, nb::rv_policy::reference_internal)
+        .def("getProteins", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::Protein> { return self.getProteins(); })
+        .def("getProteinByRef", [](const OpenMS::TargetedExperiment& self, const std::string& ref) -> OpenMS::TargetedExperimentHelper::Protein { return self.getProteinByRef(ref); }, "ref"_a, "Returns a copy of the protein with the given reference; write changes back with setProteins()")
         .def("hasProtein", [](const OpenMS::TargetedExperiment& self, const std::string& ref) { return self.hasProtein(ref); }, "ref"_a)
         .def("addProtein", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Protein& protein) { return self.addProtein(protein); }, "protein"_a)
         .def("setCompounds", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Compound>& rhs) { return self.setCompounds(rhs); }, "rhs"_a)
-        .def("getCompounds", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Compound> & { return self.getCompounds(); }, nb::rv_policy::reference_internal)
+        .def("getCompounds", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::Compound> { return self.getCompounds(); })
         .def("addCompound", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Compound& rhs) { return self.addCompound(rhs); }, "rhs"_a)
         .def("setPeptides", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Peptide>& rhs) { return self.setPeptides(rhs); }, "rhs"_a)
         .def("setPeptides", [](OpenMS::TargetedExperiment& self, std::vector<OpenMS::TargetedExperimentHelper::Peptide>& rhs) { return self.setPeptides(rhs); }, "rhs"_a)
-        .def("getPeptides", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Peptide> & { return self.getPeptides(); }, nb::rv_policy::reference_internal)
+        .def("getPeptides", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::TargetedExperimentHelper::Peptide> { return self.getPeptides(); })
         .def("hasPeptide", [](const OpenMS::TargetedExperiment& self, const std::string& ref) { return self.hasPeptide(ref); }, "ref"_a)
-        .def("getPeptideByRef", [](const OpenMS::TargetedExperiment& self, const std::string& ref) -> const OpenMS::TargetedExperimentHelper::Peptide & { return self.getPeptideByRef(ref); }, "ref"_a, nb::rv_policy::reference_internal)
+        .def("getPeptideByRef", [](const OpenMS::TargetedExperiment& self, const std::string& ref) -> OpenMS::TargetedExperimentHelper::Peptide { return self.getPeptideByRef(ref); }, "ref"_a, "Returns a copy of the peptide with the given reference; write changes back with setPeptides()")
         .def("hasCompound", [](const OpenMS::TargetedExperiment& self, const std::string& ref) { return self.hasCompound(ref); }, "ref"_a)
-        .def("getCompoundByRef", [](const OpenMS::TargetedExperiment& self, const std::string& ref) -> const OpenMS::TargetedExperimentHelper::Compound & { return self.getCompoundByRef(ref); }, "ref"_a, nb::rv_policy::reference_internal)
+        .def("getCompoundByRef", [](const OpenMS::TargetedExperiment& self, const std::string& ref) -> OpenMS::TargetedExperimentHelper::Compound { return self.getCompoundByRef(ref); }, "ref"_a, "Returns a copy of the compound with the given reference; write changes back with setCompounds()")
         .def("addPeptide", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Peptide& rhs) { return self.addPeptide(rhs); }, "rhs"_a)
         .def("setTransitions", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::ReactionMonitoringTransition>& transitions) { return self.setTransitions(transitions); }, "transitions"_a)
         .def("setTransitions", [](OpenMS::TargetedExperiment& self, std::vector<OpenMS::ReactionMonitoringTransition>& transitions) { return self.setTransitions(transitions); }, "transitions"_a)
-        .def("getTransitions", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::ReactionMonitoringTransition> & { return self.getTransitions(); }, nb::rv_policy::reference_internal)
+        .def("getTransitions", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::ReactionMonitoringTransition> { return self.getTransitions(); })
         .def("addTransition", [](OpenMS::TargetedExperiment& self, const OpenMS::ReactionMonitoringTransition& transition) { return self.addTransition(transition); }, "transition"_a)
         .def("setIncludeTargets", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::IncludeExcludeTarget>& targets) { return self.setIncludeTargets(targets); }, "targets"_a)
-        .def("getIncludeTargets", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::IncludeExcludeTarget> & { return self.getIncludeTargets(); }, nb::rv_policy::reference_internal)
+        .def("getIncludeTargets", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::IncludeExcludeTarget> { return self.getIncludeTargets(); })
         .def("addIncludeTarget", [](OpenMS::TargetedExperiment& self, const OpenMS::IncludeExcludeTarget& target) { return self.addIncludeTarget(target); }, "target"_a)
         .def("setExcludeTargets", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::IncludeExcludeTarget>& targets) { return self.setExcludeTargets(targets); }, "targets"_a)
-        .def("getExcludeTargets", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::IncludeExcludeTarget> & { return self.getExcludeTargets(); }, nb::rv_policy::reference_internal)
+        .def("getExcludeTargets", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::IncludeExcludeTarget> { return self.getExcludeTargets(); })
         .def("addExcludeTarget", [](OpenMS::TargetedExperiment& self, const OpenMS::IncludeExcludeTarget& target) { return self.addExcludeTarget(target); }, "target"_a)
         .def("setSourceFiles", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::SourceFile>& source_files) { return self.setSourceFiles(source_files); }, "source_files"_a)
-        .def("getSourceFiles", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::SourceFile> & { return self.getSourceFiles(); }, nb::rv_policy::reference_internal)
+        .def("getSourceFiles", [](const OpenMS::TargetedExperiment& self) -> std::vector<OpenMS::SourceFile> { return self.getSourceFiles(); })
         .def("addSourceFile", [](OpenMS::TargetedExperiment& self, const OpenMS::SourceFile& source_file) { return self.addSourceFile(source_file); }, "source_file"_a)
         .def("sortTransitionsByProductMZ", [](OpenMS::TargetedExperiment& self) { return self.sortTransitionsByProductMZ(); })
         .def("containsInvalidReferences", [](const OpenMS::TargetedExperiment& self) { return self.containsInvalidReferences(); })
@@ -2728,7 +2729,7 @@ production ions
         .def("__copy__", [](const OpenMS::TransformationDescription& self) { return OpenMS::TransformationDescription(self); })
         .def("__deepcopy__", [](const OpenMS::TransformationDescription& self, nb::dict) { return OpenMS::TransformationDescription(self); }, "memo"_a)
         .def("getModelType", [](const OpenMS::TransformationDescription& self) { return self.getModelType(); }, "Gets the type of the fitted model")
-        .def("getModelParameters", [](const OpenMS::TransformationDescription& self) -> const OpenMS::Param & { return self.getModelParameters(); }, nb::rv_policy::reference_internal, "Returns the model parameters")
+        .def("getModelParameters", [](const OpenMS::TransformationDescription& self) -> OpenMS::Param { return self.getModelParameters(); }, "Returns the model parameters")
         .def("invert", [](OpenMS::TransformationDescription& self) { return self.invert(); }, "Computes an (approximate) inverse of the transformation")
         .def("getDeviations", [](const OpenMS::TransformationDescription& self, bool do_apply, bool do_sort) { std::vector<double> diffs; self.getDeviations(diffs, do_apply, do_sort); return diffs; }, "do_apply"_a = false, "do_sort"_a = true)
         .def("getStatistics", [](const OpenMS::TransformationDescription& self) { return self.getStatistics(); }, 
@@ -2797,7 +2798,7 @@ TransformationModel
         .def("unWeightDatum", [](const OpenMS::TransformationModelLinear& self, const double& datum, const std::string& weight) { return self.unWeightDatum(datum, weight); }, "datum"_a, "weight"_a, "Apply the reverse of the weighting function to the data")
         .def("getValidXWeights", [](const OpenMS::TransformationModelLinear& self) { return self.getValidXWeights(); }, "Returns a list of valid x weight function stringss")
         .def("getValidYWeights", [](const OpenMS::TransformationModelLinear& self) { return self.getValidYWeights(); }, "Returns a list of valid y weight function strings")
-        .def("getParameters", [](const OpenMS::TransformationModelLinear& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelLinear& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
 
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelLinear::getDefaultParameters(params);
@@ -2872,7 +2873,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("get_data", [](const OSBDA& self) {
             return self.data;
         }, "Access to a copy of the underlying data")
-        .def("get_data_view", [](nb::object self_obj) -> nb::object {
+        .def("data_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSBDA&>(self_obj);
             double* data_ptr = self.data.empty() ? nullptr : self.data.data();
             size_t shape[] = {self.data.size()};
@@ -2953,7 +2954,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get m/z array as list")
-        .def("get_mz_array_view", [](OSSpec& self) -> nb::object {
+        .def("mz_array_view", [](OSSpec& self) -> nb::object {
             auto mz_arr = self.getMZArray();
             if (!mz_arr || mz_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -2969,7 +2970,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get intensity array as list")
-        .def("get_intensity_array_view", [](OSSpec& self) -> nb::object {
+        .def("intensity_array_view", [](OSSpec& self) -> nb::object {
             auto int_arr = self.getIntensityArray();
             if (!int_arr || int_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -2985,7 +2986,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return nb::none();
             return nb::cast(arr->data);
         }, "Get drift time array or None")
-        .def("get_drift_time_array_view", [](OSSpec& self) -> nb::object {
+        .def("drift_time_array_view", [](OSSpec& self) -> nb::object {
             auto arr = self.getDriftTimeArray();
             if (!arr || arr->data.empty()) {
                 size_t shape[] = {0};
@@ -3045,7 +3046,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get intensity array as list")
-        .def("get_time_array_view", [](OSChrom& self) -> nb::object {
+        .def("time_array_view", [](OSChrom& self) -> nb::object {
             auto time_arr = self.getTimeArray();
             if (!time_arr || time_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -3056,7 +3057,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, owner).cast();
         }, "Get time array as writable view (empty array if no data)")
-        .def("get_intensity_array_view", [](OSChrom& self) -> nb::object {
+        .def("intensity_array_view", [](OSChrom& self) -> nb::object {
             auto int_arr = self.getIntensityArray();
             if (!int_arr || int_arr->data.empty()) {
                 size_t shape[] = {0};
@@ -3106,7 +3107,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     nb::class_<OpenMS::TransformationModelBSpline>(m, "TransformationModelBSpline", "B-spline model for transformations")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelBSpline& self, double value) { return self.evaluate(value); }, "value"_a)
-        .def("getParameters", [](const OpenMS::TransformationModelBSpline& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelBSpline& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
         .def("weightData", [](OpenMS::TransformationModelBSpline& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
             self.weightData(data);
             return data;
@@ -3132,7 +3133,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     nb::class_<OpenMS::TransformationModelLowess>(m, "TransformationModelLowess", "Lowess model for transformations")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelLowess& self, double value) { return self.evaluate(value); }, "value"_a)
-        .def("getParameters", [](const OpenMS::TransformationModelLowess& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelLowess& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
         .def("weightData", [](OpenMS::TransformationModelLowess& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
             self.weightData(data);
             return data;
@@ -3181,6 +3182,30 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Get chromatogram by index")
         .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
         .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMS& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
+        ;
+
+
+    // -----------------------------------------------------------------------
+    // SpectrumAccessOpenMSCached
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SpectrumAccessOpenMSCached>(m, "SpectrumAccessOpenMSCached",
+        R"doc(Spectrum access backed by an on-disk CachedmzML cache.
+
+Metadata is served from memory; peak data is read on demand from the
+side-car file at ``filename + ".cached"`` (written by ``CachedmzML.store()``),
+so runs far larger than RAM can be processed. Not thread-safe: a single
+file stream is seeked per request, so parallel readers each need their
+own copy of this object.)doc")
+        .def(nb::init<const std::string&>(), "filename"_a)
+        .def(nb::init<const OpenMS::SpectrumAccessOpenMSCached &>())
+        .def("__copy__", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return OpenMS::SpectrumAccessOpenMSCached(self); })
+        .def("__deepcopy__", [](const OpenMS::SpectrumAccessOpenMSCached& self, nb::dict) { return OpenMS::SpectrumAccessOpenMSCached(self); }, "memo"_a)
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrSpectra(); }, "Get number of spectra")
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMSCached& self) { return self.getNrChromatograms(); }, "Get number of chromatograms")
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Read one spectrum from the cache file")
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Read one chromatogram from the cache file")
+        .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMSCached& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
+        .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMSCached& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
         ;
 
 
@@ -3263,7 +3288,7 @@ TransformationModel
 )doc")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelInterpolated& self, double value) { return self.evaluate(value); }, "value"_a)
-        .def("getParameters", [](const OpenMS::TransformationModelInterpolated& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("getParameters", [](const OpenMS::TransformationModelInterpolated& self) -> OpenMS::Param { return self.getParameters(); }, "Gets the (actual) parameters")
         .def("weightData", [](OpenMS::TransformationModelInterpolated& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
             self.weightData(data);
             return data;
@@ -3285,9 +3310,11 @@ TransformationModel
         }, "Get default parameters")
         ;
 
-    // SpectrumAccessOpenMSCached, SpectrumAccessQuadMZTransforming: cannot bind
-    // in analysis because they inherit from ISpectrumAccess/CachedmzML which
-    // are not bound as nanobind base classes. Mark as xfail in tests.
+    // SpectrumAccessQuadMZTransforming: not bound yet (inherits from
+    // SpectrumAccessTransforming). Marked as xfail in tests.
+    // (SpectrumAccessOpenMSCached is bound above -- inheriting from
+    // ISpectrumAccess/CachedmzML does not prevent binding: like the other
+    // SpectrumAccess* classes it is bound without declaring a nanobind base.)
 
     // -----------------------------------------------------------------------
     // ILPDCWrapper

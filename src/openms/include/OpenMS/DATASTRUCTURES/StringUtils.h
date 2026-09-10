@@ -179,9 +179,12 @@ namespace OpenMS
     /// Overloads for std::string iterators (converts to const char* internally)
     inline bool extractDouble(std::string::const_iterator& begin, const std::string::const_iterator& end, double& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractDouble(p, e, target);
       begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
@@ -189,31 +192,40 @@ namespace OpenMS
 
     inline bool extractDouble(std::string::iterator& begin, const std::string::iterator& end, double& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractDouble(p, e, target);
-      begin += (p - p_start);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 
     inline bool extractInt(std::string::const_iterator& begin, const std::string::const_iterator& end, int& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractInt(p, e, target);
-      begin += (p - p_start);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 
     inline bool extractInt(std::string::iterator& begin, const std::string::iterator& end, int& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractInt(p, e, target);
-      begin += (p - p_start);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 

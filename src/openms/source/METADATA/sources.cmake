@@ -14,6 +14,7 @@ ChromatogramSettings.cpp
 ContactPerson.cpp
 DataArrays.cpp
 DataProcessing.cpp
+DataProcessingUtils.cpp
 DocumentIdentifier.cpp
 ExperimentalDesign.cpp
 ExperimentalSettings.cpp
@@ -60,4 +61,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\METADATA" FILES ${sources})
-

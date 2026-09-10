@@ -74,7 +74,6 @@ add_subdirectory(thirdparty/percolator)
 ## public — it propagates include dirs but no link libraries; the compiled Boost
 ## components (date_time/iostreams/regex) stay PRIVATE below.
 set(OPENMS_DEP_LIBRARIES
-  CURL::libcurl
   Boost::boost
 )
 
@@ -84,6 +83,7 @@ set(OPENMS_DEP_LIBRARIES
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  CURL::libcurl
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
@@ -304,6 +304,9 @@ openms_add_library(TARGET_NAME  OpenMS
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+# The core library has no QObject classes, including in builds that also find Qt.
+set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
 
 # The vendored percolator headers (#include "X.h", no subdir) are used only by
 # libOpenMS's Percolator pimpl TU. Their directory is made visible via the

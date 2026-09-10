@@ -73,8 +73,8 @@ START_SECTION([EXTRA](virtual void init(const Container& c)))
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
     TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(i));
-        
-    
+
+
     //Peak1D peak = (*it);
     //peak.setIntensity(sne.getSignalToNoise(it));
     //stn_data.push_back(peak);
@@ -82,7 +82,7 @@ START_SECTION([EXTRA](virtual void init(const Container& c)))
   }
 
   //dta_file.store("./data/SignalToNoiseEstimatorMedian_test.tmp", stn_data);
-  
+
   //TEST_FILE_EQUAL("./data/SignalToNoiseEstimatorMedian_test.tmp", "./data/SignalToNoiseEstimatorMedian_test.out");
 
 

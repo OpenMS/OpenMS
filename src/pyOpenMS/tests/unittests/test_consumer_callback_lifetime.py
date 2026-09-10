@@ -7,7 +7,7 @@
 The spectra and chromatograms it delivers live in the parser's batch buffer, which is
 cleared and refilled as soon as the callback returns.  Passing them with
 ``rv_policy::reference`` therefore left any retained wrapper -- and every child alias
-derived from it, including the zero-copy ndarray from ``get_peaks_struct()`` -- pointing
+derived from it, including the zero-copy ndarray from ``peaks_struct()`` -- pointing
 at storage that had since been reused::
 
     kept = []
@@ -126,7 +126,7 @@ def test_retained_zero_copy_view_stays_valid():
         def consumeSpectrum(self, s):
             super().consumeSpectrum(s)
             if s.size() and not views:
-                views.append(s.get_peaks_struct())
+                views.append(s.peaks_struct())
 
     rec = ViewKeeper()
     pyopenms.MzMLFile().transform(_data("test2.mzML"), rec)
@@ -149,7 +149,7 @@ def test_view_retained_without_the_spectrum_stays_valid():
     class ViewOnlyKeeper:
         def consumeSpectrum(self, s):
             if s.size() and not views:
-                views.append(s.get_peaks_struct())   # note: `s` itself is not retained
+                views.append(s.peaks_struct())   # note: `s` itself is not retained
 
         def consumeChromatogram(self, c):
             pass
@@ -184,7 +184,7 @@ def test_retained_chromatograms_survive_the_transform():
 
 
 def test_view_taken_in_callback_really_is_zero_copy():
-    """Guards the premise of the test above: if get_peaks_struct() ever started copying,
+    """Guards the premise of the test above: if peaks_struct() ever started copying,
     that test would pass for the wrong reason."""
     shared = []
 
@@ -192,10 +192,10 @@ def test_view_taken_in_callback_really_is_zero_copy():
         def consumeSpectrum(self, s):
             super().consumeSpectrum(s)
             if s.size() and not shared:
-                shared.append(bool(np.shares_memory(s.get_peaks_struct(), s.get_peaks_struct())))
+                shared.append(bool(np.shares_memory(s.peaks_struct(), s.peaks_struct())))
 
     pyopenms.MzMLFile().transform(_data("test2.mzML"), ViewKeeper())
-    assert shared and shared[0], "get_peaks_struct() is no longer a zero-copy view"
+    assert shared and shared[0], "peaks_struct() is no longer a zero-copy view"
 
 
 # ---------------------------------------------------------------------------
@@ -585,7 +585,7 @@ def test_imzml_retained_peak_data_and_views_stay_valid():
         def consumeSpectrum(self, s):
             super().consumeSpectrum(s)
             if s.size() and not views:
-                views.append(s.get_peaks_struct())
+                views.append(s.peaks_struct())
 
     rec = ViewKeeper()
     pyopenms.ImzMLFile().load(_imzml_path(), rec)

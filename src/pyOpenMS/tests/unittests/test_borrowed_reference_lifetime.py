@@ -93,6 +93,45 @@ def test_nasequence_terminal_mod_rejects_foreign_ribonucleotide(setter):
         getattr(seq, setter)(_foreign_ribo())
 
 
+@pytest.mark.parametrize("setter,getter", [
+    ("setFivePrimeMod", "getFivePrimeMod"),
+    ("setThreePrimeMod", "getThreePrimeMod"),
+])
+def test_nasequence_terminal_mod_cleared_with_none(setter, getter):
+    """The C++ setters store nullptr as "no modification", so None clears."""
+    seq = pyopenms.NASequence.fromString("AUGC")
+    getattr(seq, setter)(_db_ribo(b"A"))
+    assert getattr(seq, getter)() is not None
+
+    getattr(seq, setter)(None)
+    assert getattr(seq, getter)() is None
+
+
+def test_nasequence_set_rejects_modified_ribonucleotide():
+    """An edited Ribonucleotide copy must fail loudly, not be silently replaced.
+
+    NASequence stores RibonucleotideDB's own entry for the code, so accepting
+    an edited copy would silently discard the edits. (The edit is made on a
+    copy: mutating the alias returned by _db_ribo would corrupt the
+    process-wide DB entry.)
+    """
+    seq = pyopenms.NASequence.fromString("AUGC")
+    r = pyopenms.Ribonucleotide(_db_ribo(b"G"))
+    r.setAvgMass(999.9)
+    with pytest.raises(ValueError, match="differs from the RibonucleotideDB"):
+        seq.set(0, r)
+    assert seq.toString() == "AUGC"
+
+
+def test_nasequence_terminal_mod_rejects_modified_ribonucleotide():
+    seq = pyopenms.NASequence.fromString("AUGC")
+    r = pyopenms.Ribonucleotide(_db_ribo(b"A"))
+    r.setName("customized")
+    with pytest.raises(ValueError, match="differs from the RibonucleotideDB"):
+        seq.setFivePrimeMod(r)
+    assert seq.getFivePrimeMod() is None
+
+
 def test_nasequence_setsequence_rejects_foreign_element():
     seq = pyopenms.NASequence.fromString("AUGC")
     good = _db_ribo(b"A")
@@ -147,8 +186,6 @@ def test_aasequence_setmodification_rejects_out_of_range_index(index):
     "call",
     [
         lambda: pyopenms.NASequence.fromString("AUGC").set(0, None),
-        lambda: pyopenms.NASequence.fromString("AUGC").setFivePrimeMod(None),
-        lambda: pyopenms.NASequence.fromString("AUGC").setThreePrimeMod(None),
         lambda: pyopenms.EnzymaticDigestion().setEnzyme(None),
         lambda: pyopenms.RNaseDigestion().setEnzyme(None),
         lambda: pyopenms.AASequence.fromString("PEPTIDE").setNTerminalModification(None),
@@ -156,13 +193,21 @@ def test_aasequence_setmodification_rejects_out_of_range_index(index):
         lambda: pyopenms.Residue().setModification(None),
     ],
     ids=[
-        "NASequence.set", "setFivePrimeMod", "setThreePrimeMod", "EnzymaticDigestion.setEnzyme",
+        "NASequence.set", "EnzymaticDigestion.setEnzyme",
         "RNaseDigestion.setEnzyme", "setNTerminalModification", "setCTerminalModification",
         "Residue.setModification",
     ],
 )
 def test_none_is_rejected_not_dereferenced(call):
-    """The guarded setters dereference their argument, so None must never reach them."""
+    """The guarded setters dereference their argument, so None must never reach them.
+
+    NASequence.setFivePrimeMod/setThreePrimeMod are deliberately absent: their
+    C++ setters store the pointer without dereferencing and nullptr means "no
+    modification", so None is the documented way to clear them (tested in
+    test_nasequence_terminal_mod_cleared_with_none). AASequence's terminal
+    setters stay here because their pointer overload dereferences; clearing
+    those goes through setNTerminalModification("").
+    """
     with pytest.raises((TypeError, ValueError)):
         call()
 
@@ -328,17 +373,24 @@ def test_terminal_modification_is_interned_not_aliased(setter):
     mod = _well_formed_mod("Grill" + setter[3:8])
     getattr(seq, setter)(mod)
 
-    stored = (
-        seq.getNTerminalModification()
-        if setter.startswith("setN")
-        else seq.getCTerminalModification()
-    )
-    assert stored is not mod, "modification was stored by reference instead of interned"
+    def read_stored():
+        return (
+            seq.getNTerminalModification()
+            if setter.startswith("setN")
+            else seq.getCTerminalModification()
+        )
 
+    # The getter itself now always copies (see OWNERSHIP.md), so `stored is not mod`
+    # would pass either way and cannot detect raw-pointer storage. What still can:
+    # drop the Python object and read the sequence back -- if the raw pointer had
+    # been stored, this reads freed memory.
+    stored_id = read_stored().getFullId()
     expected = seq.toString()
     del mod
     _churn()
     assert seq.toString() == expected
+    assert read_stored().getFullId() == stored_id, \
+        "modification was stored by reference instead of interned"
 
 
 def test_terminal_modification_accepts_both_keyword_spellings():

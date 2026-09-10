@@ -31,6 +31,7 @@ QTClusterFinder.cpp
 StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp
+TransformationModelDefaults.cpp
 TransformationModelBSpline.cpp
 TransformationModelLowess.cpp
 TransformationModelLinear.cpp
@@ -55,4 +56,3 @@ endif()
 
 ### source group definition
 source_group("Source Files\\ANALYSIS\\MAPMATCHING" FILES ${sources})
-

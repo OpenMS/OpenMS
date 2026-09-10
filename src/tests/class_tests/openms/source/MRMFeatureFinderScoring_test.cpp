@@ -94,11 +94,11 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   feature = transition_group.getFeatures()[0];
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR (feature.getRT(), 3119.092);
-  TEST_REAL_SIMILAR (feature.getIntensity(), 3615);
+  TEST_REAL_SIMILAR (feature.getIntensity(), 3599.98);
 
   // feature attributes
-  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3089.42993164062);
-  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3154.53002929688);
+  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3092.85009765625);
+  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3151.10009765625);
   TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 3680.16);
 
   // feature scores
@@ -108,8 +108,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TEST_REAL_SIMILAR(feature.getMetaValue("var_library_corr"), 1);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_elution_model_fit_score"), 0.9854);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_intensity_score"), 0.971);
-  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 86.0);
-  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 4.45439541136954);
+  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 65.2167155356372);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 4.17771580932057);
 
   TOLERANCE_RELATIVE(1.001);
   TEST_REAL_SIMILAR(feature.getMetaValue("rt_score"), 3118.651968);
@@ -126,22 +126,22 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   feature = transition_group.getFeatures()[0];
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(feature.getRT(), 3119.092);
-  TEST_REAL_SIMILAR(feature.getIntensity(), 1077.92);
+  TEST_REAL_SIMILAR(feature.getIntensity(), 1049.65);
 
   // feature attributes
   TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3092.85009765625);
-  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3151.10009765625);
+  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.67993164062);
   TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 1610.27);
 
   // feature scores
-  TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 5.70936);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 7);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_shape"), 0.7245);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_library_rmsd"), 0.43566);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_library_corr"), -0.784);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_elution_model_fit_score"), 0.902);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_intensity_score"), 0.642);
-  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 30.18);
-  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.40718216971789);
+  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 22.9654496908248);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.13399089915908);
 
   // test legacy parameters
   {
@@ -177,16 +177,19 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
     TEST_REAL_SIMILAR (feature.getIntensity(), 3574.23);
 
     // feature attributes
-    TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3096.28);
+    TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3099.69995117188);
     TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
     TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 3680.16);
 
     ///////////////////////////////////////////////////////////////////////////
     //// Scores for the second group
+    // Note: the more accurate (interpolated) S/N estimate now resolves a small,
+    // previously-merged nearby peak as its own separate feature (RT ~3148.6,
+    // intensity ~59.4), so this group now yields 3 features instead of 2.
     transition_group = transition_group_map["tr_gr2"];
     TEST_EQUAL(transition_group.size(), 3)
-    TEST_EQUAL(transition_group.getFeatures().size(), 2)
-    TEST_EQUAL(featureFile.size(), 3)
+    TEST_EQUAL(transition_group.getFeatures().size(), 3)
+    TEST_EQUAL(featureFile.size(), 4)
     // Look closely at the feature we found in the second group
     feature = transition_group.getFeatures()[0];
     TOLERANCE_ABSOLUTE(0.1);
@@ -195,7 +198,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
     // feature attributes
     TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3099.7);
-    TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+    TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3144.25);
     TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 1610.27);
     TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 2.265);
   }
@@ -247,11 +250,14 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
   ///////////////////////////////////////////////////////////////////////////
   //// Scores for the second group
+  // Note: the more accurate (interpolated) S/N estimate now resolves a small,
+  // previously-merged nearby peak as its own separate feature (RT ~3148.6,
+  // intensity ~59.4), so this group now yields 3 features instead of 2.
   MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
   transition_group = transition_group_map["tr_gr2"];
   TEST_EQUAL(transition_group.size(), 3)
-  TEST_EQUAL(transition_group.getFeatures().size(), 2)
-  TEST_EQUAL(featureFile.size(), 3)
+  TEST_EQUAL(transition_group.getFeatures().size(), 3)
+  TEST_EQUAL(featureFile.size(), 4)
 
   // Look closely at the feature we found in the second group
   feature = transition_group.getFeatures()[0];
@@ -261,7 +267,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
   // feature attributes
   TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3099.7);
-  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3144.25);
   TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 1610.27);
 
   // feature scores
@@ -271,8 +277,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TEST_REAL_SIMILAR(feature.getMetaValue("var_library_corr"), -0.784);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_elution_model_fit_score"), 0.902);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_intensity_score"), 2.36342573991536);
-  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 30.18);
-  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.40718216971789);
+  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 22.9654496908248);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.13399089915908);
 
   // feature identification scores
   TEST_EQUAL(feature.getMetaValue("id_target_transition_names").toStringList()[0], "tr5");
@@ -285,7 +291,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_xcorr_shape").toDoubleList()[0], 0.68631);
   TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_xcorr_shape").toDoubleList()[1], 0.690494);
   TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_sn_score").toDoubleList()[0], 1.16692);
-  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_sn_score").toDoubleList()[1], 4.45008);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_sn_score").toDoubleList()[1], 4.18437274576997);
   TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_correlation").toDoubleList().size(), 0);
   TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_overlap").toDoubleList().size(), 0);
   TEST_EQUAL(feature.getMetaValue("id_target_ind_massdev_score").toDoubleList().size(), 0);

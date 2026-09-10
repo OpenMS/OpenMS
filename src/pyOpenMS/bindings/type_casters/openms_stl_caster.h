@@ -261,11 +261,12 @@ public:
 
             // Convert value
             type_caster<V> value_caster;
-            if (!value_caster.from_python(handle(val), flags, cleanup)) {
+            if (!value_caster.from_python(handle(val), flags_for_local_caster<V>(flags), cleanup) ||
+                !value_caster.template can_cast<V>()) {
                 return false;
             }
 
-            value[cpp_key] = std::move(value_caster.value);
+            value.emplace(std::move(cpp_key), value_caster.operator cast_t<V>());
         }
 
         return true;

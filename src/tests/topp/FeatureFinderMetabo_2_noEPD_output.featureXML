@@ -603,7 +603,7 @@
 				<pt x="13.0804104" y="776.571083142212046" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T16_T25_T14"/>
-			<UserParam type="float" name="FWHM" value="5.839231967926025"/>
+			<UserParam type="float" name="FWHM" value="6.368002891540527"/>
 			<UserParam type="float" name="max_height" value="2.14669484375e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[7.6421875e04, 6.849709765625e04, 8.773123437500001e04]"/>
@@ -769,7 +769,7 @@
 				<pt x="15.206044800000001" y="775.593127489377821" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8_T21"/>
-			<UserParam type="float" name="FWHM" value="1.193797826766968"/>
+			<UserParam type="float" name="FWHM" value="1.575002670288086"/>
 			<UserParam type="float" name="max_height" value="4.08845e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[2.125935546875e05, 7.24296171875e04]"/>
@@ -1131,7 +1131,7 @@
 				<pt x="35.400025800000002" y="775.628756919889838" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T13_T24"/>
-			<UserParam type="float" name="FWHM" value="9.121074676513672"/>
+			<UserParam type="float" name="FWHM" value="9.550002098083496"/>
 			<UserParam type="float" name="max_height" value="2.1895634375e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[7.720521875e04, 6.71149375e04]"/>
@@ -1269,7 +1269,7 @@
 				<pt x="16.268770799999999" y="775.637911272492488" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T9_T10"/>
-			<UserParam type="float" name="FWHM" value="5.798573017120361"/>
+			<UserParam type="float" name="FWHM" value="5.334362983703613"/>
 			<UserParam type="float" name="max_height" value="3.827713125e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[1.98293140625e05, 8.833951171875e04]"/>
@@ -1467,7 +1467,7 @@
 				<pt x="27.960334799999998" y="776.649132794789466" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T7_T17_T20"/>
-			<UserParam type="float" name="FWHM" value="2.205988883972168"/>
+			<UserParam type="float" name="FWHM" value="2.256678581237793"/>
 			<UserParam type="float" name="max_height" value="5.25018625e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[1.9788296875e05, 8.495567578125e04, 7.11002734375e04]"/>
@@ -1609,7 +1609,7 @@
 				<pt x="2.4523587" y="776.674036961457887" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T11"/>
-			<UserParam type="float" name="FWHM" value="1.266600608825684"/>
+			<UserParam type="float" name="FWHM" value="1.817290306091309"/>
 			<UserParam type="float" name="max_height" value="2.46494546875e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[9.979462890624999e04]"/>

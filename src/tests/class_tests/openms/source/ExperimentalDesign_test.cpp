@@ -19,6 +19,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <fstream>
 ///////////////////////////
 
@@ -688,7 +689,7 @@ START_SECTION((Size annotateColumnHeaders(ConsensusMap& cmap) const))
   }
 
   // Both files in fraction group 1, as fractions 1 and 2; one sample per channel.
-  const std::string design_path = File::getTemporaryFile();
+  const std::string design_path = TempFiles::getTemporaryFile();
   {
     std::ofstream os(design_path.c_str());
     os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";
@@ -766,7 +767,7 @@ START_SECTION(([EXTRA] annotateColumnHeaders - headers that collapse onto one de
     cmap.getColumnHeaders()[i] = h;
   }
 
-  const std::string design_path = File::getTemporaryFile();
+  const std::string design_path = TempFiles::getTemporaryFile();
   {
     std::ofstream os(design_path.c_str());
     os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";

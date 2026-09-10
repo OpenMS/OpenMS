@@ -133,7 +133,6 @@ OpenMS/
 - Use `NEW_TMP_FILE` for each output file in tests; avoid side effects in comparison macros.
 - Run with `ctest`, use `-R` for subset, `-V/-VV` for verbosity, `-C` for multi-config generators.
 - Use `FuzzyDiff` for numeric comparisons; keep test data small; use whitelist for unstable lines.
-- Test templates: `tools/create_test.php` (requires `make xml`).
 - `START_SECTION` macro pitfalls: wrap template methods with 2+ arguments in parentheses.
 - Prefer `TEST_TRUE(expr)`/`TEST_FALSE(expr)` over `TEST_EQUAL(expr, true)`/`TEST_EQUAL(expr, false)` when checking boolean results (clearer intent and better failure messages).
 - pyOpenMS tests: `ctest -R pyopenms` or `pytest` with `PYTHONPATH=/path/to/OpenMS-build/pyOpenMS` (run outside the source tree to avoid shadowing).

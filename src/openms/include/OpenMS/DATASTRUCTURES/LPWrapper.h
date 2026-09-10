@@ -467,14 +467,24 @@ public:
       @param[in] solver_param
       @param[in] verbose_level
 
-      @return solver dependent (todo: fix)
+      @return the raw return code of the backend solver (glp_intopt() for GLPK, CbcModel::status() for
+              COIN-OR, HighsStatus for HiGHS). The raw code is solver dependent and a code indicating a
+              completed run does not imply that a solution exists (e.g. COIN-OR reports a completed run
+              for proven infeasibility). Use getStatus() after solving to check - portably across
+              backends - whether an optimal/feasible solution was actually found before reading it
+              via getColumnValue() or getObjectiveValue(). If no feasible solution was produced, a
+              warning is logged.
     */
     Int solve(SolverParam& solver_param, const Size verbose_level = 0);
 
     /**
       @brief Get solution status.
 
-      @return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+      Call this after solve(): only the states OPTIMAL and FEASIBLE indicate that the solver produced
+      a usable solution, i.e. that the values returned by getColumnValue() and getObjectiveValue()
+      are meaningful.
+
+      @return status: 1 - undefined, 2 - integer feasible (no optimality proven), 4 - no integer feasible solution, 5 - integer optimal
      */
     SolverStatus getStatus();
 
@@ -521,6 +531,7 @@ protected:
 #ifdef OPENMS_HAS_COINOR
     CoinModel * model_ = nullptr;      ///< COIN-OR model object for the LP problem
     std::vector<double> solution_;     ///< Solution vector when using COIN-OR
+    SolverStatus solver_status_ = UNDEFINED; ///< Status of the last solve() call (the COIN-OR solver object only lives during solve(), so the status must be stored for getStatus())
 #elif defined(OPENMS_HAS_HIGHS)
     std::unique_ptr<Highs> highs_;     ///< HiGHS solver instance
     std::vector<double> solution_;     ///< Solution vector when using HiGHS

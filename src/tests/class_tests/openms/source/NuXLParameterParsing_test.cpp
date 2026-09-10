@@ -243,8 +243,8 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
   };
 
   TEST_TRUE(fragment_adducts == expected_fragment_adducts);

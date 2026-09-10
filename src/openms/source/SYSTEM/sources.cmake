@@ -14,6 +14,8 @@ PythonInfo.cpp
 RWrapper.cpp
 StopWatch.cpp
 SysInfo.cpp
+SystemSettings.cpp
+TempFiles.cpp
 UpdateCheck.cpp
 )
 
@@ -28,4 +30,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\SYSTEM" FILES ${sources})
-

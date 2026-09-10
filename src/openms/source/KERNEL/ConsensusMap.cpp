@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/DataProcessingUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -707,7 +707,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     std::vector<FeatureMap>fmaps(numbr_exps);
 
     // Check for Isobaric Analyzer
-    bool iso_analyze = QCBase::isLabeledExperiment(*this);
+    bool iso_analyze = DataProcessingUtils::hasIsobaricAnalyzer(getDataProcessing());
 
     for (const auto& cf : *this)
     {

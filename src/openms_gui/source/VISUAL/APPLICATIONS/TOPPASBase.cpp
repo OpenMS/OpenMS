@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
@@ -248,7 +249,7 @@ namespace OpenMS
 
     // set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = toQString(File::getUniqueName(false));
-    QDir qd(toQString(File::getTempDirectory()));
+    QDir qd(toQString(SystemSettings::getTempDirectory()));
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
     tmp_path_ = fromQString(qd.absolutePath());
@@ -279,7 +280,7 @@ namespace OpenMS
     savePreferences();
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
     // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-    if (StringUtils::hasPrefix(StringUtils::substituted(std::string(tmp_path_), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
+    if (StringUtils::hasPrefix(StringUtils::substituted(std::string(tmp_path_), "\\", "/"), StringUtils::substituted(SystemSettings::getTempDirectory(), "\\", "/") + "/"))
     {
       File::removeDirRecursively(tmp_path_);
     }

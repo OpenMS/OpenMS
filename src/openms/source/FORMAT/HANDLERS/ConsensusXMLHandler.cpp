@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -91,6 +92,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "SearchParameters")
     {
+      ModificationDefinitionIO::registerFrom(search_param_); // before any peptide sequence is parsed
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
@@ -657,6 +659,7 @@ namespace OpenMS::Internal
     // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
     checkUniqueIdentifiers_(consensus_map.getProteinIdentifications());
 
+    const auto definitions = ModificationDefinitionIO::collect(consensus_map);
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
       setProgress(++progress_);
@@ -669,7 +672,11 @@ namespace OpenMS::Internal
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
+      ProteinIdentification::SearchParameters search_param = current_prot_id.getSearchParameters();
+      if (const auto d = definitions.find(current_prot_id.getIdentifier()); d != definitions.end())
+      {
+        ModificationDefinitionIO::attach(search_param, d->second);
+      }
       os << "\t\t<SearchParameters " << "db=\"" << search_param.db << "\" " << "db_version=\"" << search_param.db_version << "\" " << "taxonomy=\""
          << search_param.taxonomy << "\" ";
       if (search_param.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)

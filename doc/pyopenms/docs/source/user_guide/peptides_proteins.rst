@@ -277,7 +277,7 @@ peptide "DFPIAMGER" with an oxidized methionine. There are multiple ways to spec
         print(oms.AASequence.fromString("DFPIAM[+16]GER"))
         print(oms.AASequence.fromString("DFPIAM[+15.99]GER"))
         print(oms.AASequence.fromString("DFPIAM[147]GER"))
-        print(oms.AASequence.fromString("DFPIAM[147.035405]GER"))
+        print(oms.AASequence.fromString("DFPIAM[147.0354]GER"))
 
 The above code outputs:
 
@@ -302,6 +302,11 @@ find the first modification matching to a mass difference of :math:`16 \pm 0.5`,
 latter will try to find the closest matching modification to the exact mass.
 The exact mass approach usually gives the intended results while the first
 approach may or may not. In all instances, it is better to use an exact description of the desired modification, such as UniMod, instead of mass differences.
+
+A mass tag is matched with the precision it is written with: ``[+15.99]`` accepts a
+modification within 0.01 Da of it, ``[+15.9949]`` one within 0.0001 Da. Writing more
+decimals than the modification databases store therefore asks for an (almost) exact
+match, and the mass is usually kept as an unknown modification instead.
 
 N- and C-terminal modifications are represented by brackets to the right of the dots
 terminating the sequence. For example, ``".(Dimethyl)DFPIAMGER."`` and

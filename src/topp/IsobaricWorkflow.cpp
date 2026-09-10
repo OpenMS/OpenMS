@@ -1004,11 +1004,34 @@ protected:
 
     if (!greedy_group_resolution && !groups)
     {
+      // Filters for the theoretical uniqueness annotated as the 'protein_references' meta value during
+      // peptide indexing. This tool does not index (it has no '-fasta'), so the identifications passed
+      // to '-in_id' have to come from an indexed search (e.g. through PeptideIndexer).
       for (auto& f : cmap)
       {
         IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
       }
       IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
+
+      // Proteins whose peptides were all shared have no evidence left; drop them before grouping.
+      IDFilter::removeUnreferencedProteins(cmap, true);
+
+      if (proteins.getHits().empty())
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No protein is supported by a strictly unique peptide. Note that 'protein_quantification' = "
+          "'strictly_unique_peptides' requires the theoretical uniqueness annotated during peptide "
+          "indexing (see PeptideIndexer).");
+      }
+
+      // No indistinguishable groups were annotated above (that is what 'no groups' means here), but
+      // quantification and every exporter report abundances on protein groups. Give each remaining
+      // protein its own singleton group so a protein quantified from its strictly unique peptides is
+      // actually reported instead of failing the "no indistinguishable protein groups" check below.
+      proteins.fillIndistinguishableGroupsWithSingletons();
     }
 
 

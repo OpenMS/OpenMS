@@ -362,6 +362,25 @@ START_SECTION(void setModificationByDiffMonoMass(double diffMonoMass))
 }
 END_SECTION
 
+START_SECTION([EXTRA] setModification with a modification that has no mass difference)
+{
+  // Issue #10029: PSI-MOD stores the mass and formula of the residue as it occurs inside a
+  // peptide chain, i.e. without the water that Residue's (free amino acid) mass and formula
+  // include. Adopting those absolute values for a term that describes no difference at all -
+  // e.g. 'MOD:00026 L-threonine residue' - stripped a water from the residue.
+  Residue thr(*db->getResidue("Thr"));
+  const double mono_weight = thr.getMonoWeight();
+  const double average_weight = thr.getAverageWeight();
+  const EmpiricalFormula formula = thr.getFormula();
+
+  thr.setModification("MOD:00026");
+  TEST_EQUAL(thr.isModified(), true)
+  TEST_REAL_SIMILAR(thr.getMonoWeight(), mono_weight)
+  TEST_REAL_SIMILAR(thr.getAverageWeight(), average_weight)
+  TEST_EQUAL(thr.getFormula() == formula, true)
+}
+END_SECTION
+
 START_SECTION(std::string Residue::toString() const)
 {
   auto rr(*db->getResidue("Met"));

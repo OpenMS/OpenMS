@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  ClassTestUtils_test
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
@@ -8,7 +9,6 @@ set(concept_executables_list
   ProgressLogger_test
   RAIICleanup_test
   StreamHandler_test
-  Types_test
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
@@ -151,6 +151,8 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  SystemSettings_test
+  TempFiles_test
   UpdateCheck_test
 )
 
@@ -215,6 +217,7 @@ set(format_executables_list
   FLASHDeconvSpectrumFile_test
   FLASHHelperClasses_test
   FileHandler_test
+  FileNameUtils_test
   FileInfo_test
   FileTypes_test
   GNPSMetaValueFile_test
@@ -245,6 +248,7 @@ set(format_executables_list
   MzIdentMLFile_test
   MzDataValidator_test
   MzIdentMLValidator_test
+  ThermoRawFileMetadata_test
   MzMLFile_test
   ImzMLFile_test
   ImzMLFile_all_modes_test
@@ -348,6 +352,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
   PSMArrowIO_test
+  ModificationDefinitionIO_test
   ArrowSchemaRegistry_test
   ArrowIOHelpers_test
   ParquetTableComparator_test)
@@ -370,6 +375,7 @@ set(math_executables_list
   KernelDensityEstimation_test
   LevelContextInference_test
   LinearInterpolation_test
+  LinearResampling_test
   LinearRegression_test
   LinearRegressionWithoutIntercept_test
   MathFunctions_test
@@ -633,6 +639,7 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLReport_test
   NuXLFragmentAdductDefinition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
@@ -644,6 +651,7 @@ set(analysis_executables_list
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelDefaults_test
   TransformationModelBSpline_test
   TransformationModelLowess_test
   TransformationModelInterpolated_test
@@ -710,6 +718,7 @@ endif(NOT DISABLE_OPENSWATH)
 set(ionmobility_executables_list
   FAIMSHelper_test
   IMDataConverter_test
+  IMDataArrayUtils_test
   IMTypes_test
 )
 

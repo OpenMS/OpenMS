@@ -1649,7 +1649,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
 }
 END_SECTION
 
-START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const))
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&, bool) const))
 {
   // Verify the multi-file in-memory FASTA overload validates input list lengths.
   ProSEAlgorithm algo;
@@ -1671,7 +1671,7 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
 }
 END_SECTION
 
-START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&) const))
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&, bool) const))
 {
   NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
 }

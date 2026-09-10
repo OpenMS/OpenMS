@@ -1638,6 +1638,51 @@ START_SECTION((const MSChromatogram calculateTIC(float rt_bin_size=0) const))
 }
 END_SECTION
 
+START_SECTION([EXTRA] binned TIC preserves duplicate RTs and MS level selection)
+{
+  MSExperiment exp;
+  const std::vector<double> rts {10.0, 10.0, 11.0, 13.0};
+  const std::vector<UInt> levels {1, 1, 2, 1};
+  const std::vector<float> intensities {1.0f, 2.0f, 4.0f, 8.0f};
+  for (Size i = 0; i < rts.size(); ++i)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(rts[i]);
+    spectrum.setMSLevel(levels[i]);
+    Peak1D peak;
+    peak.setMZ(100.0);
+    peak.setIntensity(intensities[i]);
+    spectrum.push_back(peak);
+    exp.addSpectrum(spectrum);
+  }
+
+  const auto ms1 = exp.calculateTIC(2.0f, 1);
+  TEST_EQUAL(ms1.size(), 3)
+  ABORT_IF(ms1.size() != 3)
+  TEST_EQUAL(ms1[0].getRT(), 10.0)
+  TEST_EQUAL(ms1[1].getRT(), 12.0)
+  TEST_EQUAL(ms1[2].getRT(), 14.0)
+  TEST_EQUAL(ms1[0].getIntensity(), 3.0f)
+  TEST_EQUAL(ms1[1].getIntensity(), 4.0f)
+  TEST_EQUAL(ms1[2].getIntensity(), 4.0f)
+
+  const auto all = exp.calculateTIC(2.0f, 0);
+  TEST_EQUAL(all.size(), 3)
+  ABORT_IF(all.size() != 3)
+  TEST_EQUAL(all[0].getIntensity(), 5.0f)
+  TEST_EQUAL(all[1].getIntensity(), 6.0f)
+  TEST_EQUAL(all[2].getIntensity(), 4.0f)
+
+  const auto ms2 = exp.calculateTIC(2.0f, 2);
+  TEST_EQUAL(ms2.size(), 1)
+  ABORT_IF(ms2.size() != 1)
+  TEST_EQUAL(ms2[0].getRT(), 11.0)
+  TEST_EQUAL(ms2[0].getIntensity(), 4.0f)
+  TEST_TRUE(exp.calculateTIC(2.0f, 3).empty())
+  TEST_TRUE(MSExperiment().calculateTIC(2.0f).empty())
+}
+END_SECTION
+
 START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& chrom)) 
 {
   PeakMap tmp;

@@ -22,8 +22,8 @@ endif()
 #------------------------------------------------------------------------------
 
 #TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
-find_dependency(CURL)
-find_dependency(XercesC)
+# CURL and XercesC are implementation dependencies of the shared library.
+# Consumers need their runtime libraries, but not their CMake development packages.
 # Boost::boost (header-only) is part of OpenMS's PUBLIC link interface because
 # the installed public header config.h includes <boost/current_function.hpp>
 # (via Macros.h). Its imported target must therefore exist before the targets
@@ -33,7 +33,7 @@ find_dependency(XercesC)
 # compiled components (date_time/iostreams/regex) stay PRIVATE and are not
 # needed here.
 find_dependency(Boost 1.81.0)
-# Find Eigen
+# Keep Eigen discovery: installed headers such as MatrixEigen.h still use it.
 # Try the version range first (CMake 3.19+ with compatible Eigen config)
 # Use find_package instead of find_dependency so QUIET failures don't abort
 find_package(Eigen3 3.4.0...<6 QUIET)

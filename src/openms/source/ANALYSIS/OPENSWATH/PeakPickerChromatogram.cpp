@@ -35,6 +35,9 @@ namespace OpenMS
     defaults_.setValue("write_sn_log_messages", "false", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
     defaults_.setValidStrings("write_sn_log_messages", {"true","false"});
 
+    defaults_.setValue("report_sn", "false", "Also report the apex signal-to-noise ratio for each picked peak (as an additional 'SN' FloatDataArray on the picked chromatogram). Forces initialization of the S/N estimator even if 'signal_to_noise' is 0.");
+    defaults_.setValidStrings("report_sn", {"true","false"});
+
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
     defaults_.setValidStrings("remove_overlapping_peaks", {"false","true"});
 
@@ -133,16 +136,19 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
     picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
     picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
+    picked_chrom.getFloatDataArrays()[IDX_SN].setName("SN");
     // just copy FWHM from initial peak picking
 
     picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].reserve(picked_chrom.size());
     picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].reserve(picked_chrom.size());
     picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].reserve(picked_chrom.size());
+    picked_chrom.getFloatDataArrays()[IDX_SN].reserve(picked_chrom.size());
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
       picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(integrated_intensities_[i]);
       picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back((float)chromatogram[left_width_[i]].getRT());
       picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back((float)chromatogram[right_width_[i]].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_SN].push_back((float)apex_sn_[i]);
     }
   }
 
@@ -152,11 +158,15 @@ namespace OpenMS
     integrated_intensities_.clear();
     left_width_.clear();
     right_width_.clear();
+    apex_sn_.clear();
     integrated_intensities_.reserve(picked_chrom.size());
     left_width_.reserve(picked_chrom.size());
     right_width_.reserve(picked_chrom.size());
+    apex_sn_.reserve(picked_chrom.size());
 
-    if (signal_to_noise_ > 0.0)
+    // report_sn_ forces initialization even if the boundary-extension threshold is off
+    const bool sn_available = (signal_to_noise_ > 0.0 || report_sn_);
+    if (sn_available)
     {
       snt_.init(chromatogram);
     }
@@ -166,6 +176,9 @@ namespace OpenMS
       const double central_peak_rt = picked_chrom[i].getRT();
       current_peak = findClosestPeak_(chromatogram, central_peak_rt, current_peak);
       const Size min_i = current_peak;
+
+      // record the apex S/N (not used for extension below, purely for reporting)
+      apex_sn_.push_back(sn_available ? snt_.getSignalToNoise(min_i) : -1.0);
 
       // peak core found, now extend it to the left
       Size k = 2;
@@ -374,6 +387,7 @@ namespace OpenMS
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
     write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
+    report_sn_ = (bool)param_.getValue("report_sn").toBool();
     method_ = param_.getValue("method").toString();
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")

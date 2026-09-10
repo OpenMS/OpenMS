@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
@@ -1170,7 +1171,8 @@ bool ConsensusMapArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config))
+          prot_ids, directory + "/search_params.parquet", config,
+          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(cmap))))
   {
     return false;
   }

@@ -130,14 +130,35 @@ jobs:
             )
           fi
 
+          # makensis.exe opens every staged file (including the Doxygen HTML
+          # docs) through the plain Win32 file APIs, which are bound by
+          # MAX_PATH (260 chars). Deeply-mangled template filenames in the
+          # docs (e.g. GridSearch's nested Looper struct) combined with
+          # CPack's default staging path under this already-long build
+          # directory push some files past that limit and abort the NSIS
+          # build. Stage the CPack package build in a short, fixed directory
+          # on Windows instead, so the full staged path stays well under
+          # MAX_PATH; the resulting installer is moved back next to the
+          # other build output below so later steps don't need to know.
+          WIN_CPACK_STAGE_DIR="C:/cpk"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            rm -rf "/c/cpk"
+            mkdir -p "/c/cpk"
+            cmake_options+=("-DCPACK_PACKAGE_DIRECTORY=$WIN_CPACK_STAGE_DIR")
+          fi
+
           cmake "${cmake_options[@]}" ../..
 
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
-              cat _CPack_Packages/win64/NSIS/NSISOutput.log
+              cat /c/cpk/_CPack_Packages/win64/NSIS/NSISOutput.log
             fi
 
             exit 1
+          fi
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv /c/cpk/*.exe .
           fi
 
       # Notarize macOS packages for Gatekeeper approval

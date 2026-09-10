@@ -9,6 +9,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>

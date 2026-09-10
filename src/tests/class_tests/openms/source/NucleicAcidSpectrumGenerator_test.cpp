@@ -37,12 +37,42 @@ END_SECTION
 START_SECTION(NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  NucleicAcidSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  NucleicAcidSpectrumGenerator configured_copy(configured);
+
+  NASequence oligo = NASequence::fromString("[m1A]UCCACAGp");
+  MSSpectrum from_source, from_copy;
+  configured.getSpectrum(from_source, oligo, -1, -1);
+  configured_copy.getSpectrum(from_copy, oligo, -1, -1);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
-START_SECTION(NucleicAcidSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& source))
+START_SECTION(NucleicAcidSpectrumGenerator& operator=(const NucleicAcidSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  NucleicAcidSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  NucleicAcidSpectrumGenerator assigned;
+  assigned = configured;
+
+  NASequence oligo = NASequence::fromString("[m1A]UCCACAGp");
+  MSSpectrum from_source, from_assigned;
+  configured.getSpectrum(from_source, oligo, -1, -1);
+  assigned.getSpectrum(from_assigned, oligo, -1, -1);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 START_SECTION(~NucleicAcidSpectrumGenerator())

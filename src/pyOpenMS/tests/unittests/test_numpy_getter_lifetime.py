@@ -7,7 +7,7 @@ owned by an nb::capsule (delete[]), independent of the C++ source object. They
 are safe by construction today; this pins that contract so a future change to a
 *view*-returning implementation (sharing the source buffer) is caught.
 
-test_spectrum_zerocopy.py already covers get_peaks_struct(); these cover the
+test_spectrum_zerocopy.py already covers peaks_struct(); these cover the
 get_peaks()/get2DPeakData() getters named in the issue. The snapshot is taken
 *before* deleting the source, so the comparison cannot pass vacuously.
 """

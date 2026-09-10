@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
@@ -75,7 +76,7 @@ namespace OpenMS
 
   using namespace Exception;
 
-  std::string TOPPBase::topp_ini_file_ = File::getOpenMSHomePath() + "/.TOPP.ini";
+  std::string TOPPBase::topp_ini_file_ = SystemSettings::getOpenMSHomePath() + "/.TOPP.ini";
   const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
@@ -2269,7 +2270,7 @@ namespace OpenMS
   Param TOPPBase::getToolUserDefaults_(const std::string& tool_name) const
   {
     Param p;
-    std::string ini_name(File::getUserDirectory() + "/" + tool_name + ".ini");
+    std::string ini_name(SystemSettings::getUserDirectory() + "/" + tool_name + ".ini");
     if (File::readable(ini_name))
     {
       ParamXMLFile paramFile;

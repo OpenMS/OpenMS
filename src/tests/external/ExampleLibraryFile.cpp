@@ -11,6 +11,10 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <filesystem>
+#include <stdexcept>
 
 using namespace std;
 using namespace OpenMS;
@@ -25,6 +29,12 @@ namespace OpenMSExternal
 
   void ExampleLibraryFile::loadAndSaveFeatureXML()
   {
+#ifdef OPENMS_EXPECTED_DATA_DIR
+    if (!std::filesystem::equivalent(File::getOpenMSDataPath(), OPENMS_EXPECTED_DATA_DIR))
+    {
+      throw std::runtime_error("OpenMS did not use the installed runtime data directory");
+    }
+#endif
     FeatureMap fm;
     Feature feature;
     fm.push_back(feature);
@@ -32,6 +42,10 @@ namespace OpenMSExternal
     FileHandler().storeFeatures(tmpfilename, fm, {FileTypes::FEATUREXML});
 
     FeatureMap fm2;
-    FileHandler().storeFeatures(tmpfilename, fm2, {FileTypes::FEATUREXML});
+    FileHandler().loadFeatures(tmpfilename, fm2, {FileTypes::FEATUREXML});
+    if (fm2.size() != fm.size())
+    {
+      throw std::runtime_error("Installed consumer featureXML round trip lost features");
+    }
   }
 }

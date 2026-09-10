@@ -105,6 +105,7 @@ XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
+FileNameUtils.h
 MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
@@ -137,6 +138,7 @@ list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
 list(APPEND sources_list_h PSMArrowIO.h)
+list(APPEND sources_list_h ModificationDefinitionIO.h)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)

@@ -97,7 +97,7 @@ namespace OpenMS
       Returns @p db if non-empty, otherwise the value of the
       @c -database parameter. If the resulting path is not directly
       readable, the OpenMS database search paths (see
-      @ref OpenMS::File::findDatabase) are scanned.
+      @ref OpenMS::SystemSettings::findDatabase) are scanned.
 
       @param[in] db Optional explicit database name; used in place of
                     the @c -database parameter when non-empty

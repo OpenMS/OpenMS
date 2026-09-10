@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from . import addon
+from . import addon, register_element_views
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -86,17 +86,19 @@ def get_data_dict(self, columns=None, export_meta_values=True):
 
     if want('ion_mobility') or want('ion_mobility_unit'):
         if self.containsIMData():
-            im_index, drift_time_unit = self.getIMData()
-            im_arrays = self.getFloatDataArrays()
+            _, drift_time_unit = self.getIMData()
             if want('ion_mobility'):
-                if 0 <= im_index < len(im_arrays):
-                    data_dict['ion_mobility'] = np.asarray(
-                        im_arrays[im_index].get_data(), dtype=np.float64
-                    )
+                # get_drift_time_array() resolves the IM index and copies only that one
+                # array, in C++; indexing getFloatDataArrays() materialises every data
+                # array just to read one.
+                im_arr = self.get_drift_time_array()
+                if im_arr is not None:
+                    data_dict['ion_mobility'] = np.asarray(im_arr, dtype=np.float64)
                 else:
                     data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
             if want('ion_mobility_unit'):
-                # from the same getIMData() call that selected the values above, not from
+                # from getIMData(), which is the same selection get_drift_time_array()
+                # uses for the values above, and not from
                 # getDriftTimeUnitAsString(): that reports the spectrum-wide scalar, which a
                 # frame carrying a per-peak array leaves unset, so it read '<NONE>' for
                 # exactly the spectra this column exists to describe
@@ -285,4 +287,12 @@ def get_base_peak(self) -> Tuple[float, float]:
     mz, intensity = self.get_peaks()
     idx = np.argmax(intensity)
     return (mz[idx], intensity[idx])
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSSpectrum", "float_data_array", "_float_data_array_count", "float data arrays")
+register_element_views("MSSpectrum", "integer_data_array", "_integer_data_array_count", "integer data arrays")
+register_element_views("MSSpectrum", "string_data_array", "_string_data_array_count", "string data arrays")
+
 

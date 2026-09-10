@@ -489,6 +489,7 @@ class TestImzMLFile(unittest.TestCase):
             spec = exp.getSpectrum(0)
             spec.setRT(12.34)
             spec.setMSLevel(1)
+            exp[0] = spec
 
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name

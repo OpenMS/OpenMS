@@ -12,8 +12,19 @@
 #include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+
+#include <arrow/api.h>
+#include <arrow/io/api.h>
+#include <parquet/arrow/reader.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -54,6 +65,109 @@ namespace
     hit.addPeptideEvidence(ev);
     pid.getHits().push_back(hit);
     pep_ids.push_back(pid);
+  }
+}
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
+}
+
+namespace
+{
+  std::shared_ptr<arrow::Table> readTable4b(const std::string& path)
+  {
+    arrow::MemoryPool* pool = arrow::default_memory_pool();
+    auto o = arrow::io::ReadableFile::Open(path.c_str());
+    if (!o.ok()) { return nullptr; }
+    auto rr = parquet::arrow::OpenFile(o.ValueOrDie(), pool);
+    if (!rr.ok()) { return nullptr; }
+    auto rd = std::move(rr).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!rd->ReadTable(&t).ok()) { return nullptr; }
+    auto c = t->CombineChunks(pool);
+    return c.ok() ? c.ValueOrDie() : nullptr;
+  }
+
+  // how many sp_metavalues entries of row 0 carry @p key
+  int countSpMetaKey4b(const std::string& search_params_path, const std::string& key)
+  {
+    auto table = readTable4b(search_params_path);
+    if (!table) return -1;
+    auto col = table->GetColumnByName("sp_metavalues");
+    if (!col || col->num_chunks() == 0 || table->num_rows() == 0) return -1;
+    auto list = std::static_pointer_cast<arrow::ListArray>(col->chunk(0));
+    auto structs = std::static_pointer_cast<arrow::StructArray>(list->values());
+    auto names = std::static_pointer_cast<arrow::StringArray>(structs->GetFieldByName("name"));
+    int n = 0;
+    for (int64_t i = list->value_offset(0); i < list->value_offset(1); ++i)
+    {
+      if (names->GetString(i) == key) ++n;
+    }
+    return n;
+  }
+
+  bool columnContains4b(const std::string& path, const std::string& column, const std::string& needle)
+  {
+    auto table = readTable4b(path);
+    if (!table) return false;
+    auto col = table->GetColumnByName(column);
+    if (!col || col->num_chunks() == 0) return false;
+    auto arr = std::static_pointer_cast<arrow::StringArray>(col->chunk(0));
+    for (int64_t i = 0; i < arr->length(); ++i)
+    {
+      if (!arr->IsNull(i) && arr->GetString(i).find(needle) != std::string::npos) return true;
+    }
+    return false;
   }
 }
 
@@ -303,6 +417,66 @@ START_SECTION(([EXTRA] exportToParquet rejects duplicate ProteinIdentification i
 
   // clean up if a regression let the export run instead of throwing
   if (File::exists(dir)) { File::removeDirRecursively(dir); }
+}
+END_SECTION
+
+START_SECTION([EXTRA] export/import - the peptidoform column carries the chemistry and the definition restores the name)
+{
+  TEST_TRUE(defineMod4b("TestPSM:Adduct", 'K', "C9H11N2O8P") != nullptr)
+  std::vector<ProteinIdentification> prots;
+  PeptideIdentificationList peps;
+  buildMinimalIds(prots, peps);
+  peps[0].getHits()[0].setSequence(AASequence::fromString("AEADNLDDK(TestPSM:Adduct)K"));
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  TEST_TRUE(PSMArrowIO::exportToParquet(prots, peps, dir))
+  TEST_TRUE(columnContains4b(dir + "/psms.parquet", "peptidoform", "AEADNLDDK[Formula:C9H11N2O8P1|INFO:TestPSM:Adduct]K"))
+  TEST_EQUAL(countSpMetaKey4b(dir + "/search_params.parquet", Constants::UserParam::MODIFICATION_DEFINITIONS), 1)
+
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(PSMArrowIO::importFromParquet(dir, prots_in, peps_in))
+  TEST_EQUAL(peps_in.size(), 1)
+  if (peps_in.size() == 1 && !peps_in[0].getHits().empty())
+  {
+    const AASequence& back = peps_in[0].getHits()[0].getSequence();
+    TEST_EQUAL(back.toString(), "AEADNLDDK(TestPSM:Adduct)K") // the name, not a mass bracket
+    TEST_EQUAL(back.getFormula(Residue::Full, 0).toString(), "C54H86N15O28P1")
+  }
+  if (prots_in.size() == 1)
+  {
+    TEST_TRUE(prots_in[0].getSearchParameters().metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+  }
+  File::removeDirRecursively(dir);
+
+  // an inbound value (e.g. from an idXML load) is replaced, not duplicated
+  std::string dir2;
+  NEW_TMP_FILE(dir2)
+  TEST_TRUE(PSMArrowIO::exportToParquet(prots_in, peps_in, dir2))
+  TEST_EQUAL(countSpMetaKey4b(dir2 + "/search_params.parquet", Constants::UserParam::MODIFICATION_DEFINITIONS), 1)
+  File::removeDirRecursively(dir2);
+}
+END_SECTION
+
+START_SECTION([EXTRA] import - definitions are registered from search_params.parquet)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestPSM:Fresh"))
+  std::vector<ProteinIdentification> prots;
+  PeptideIdentificationList peps;
+  buildMinimalIds(prots, peps);
+  prots[0].getSearchParameters().setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestPSM:Fresh", 'K', "C2H2O"));
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  TEST_TRUE(PSMArrowIO::exportToParquet(prots, peps, dir))
+  TEST_FALSE(db->hasDefinedModification("TestPSM:Fresh")) // exporting registers nothing
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  TEST_TRUE(PSMArrowIO::importFromParquet(dir, prots_in, peps_in))
+  TEST_TRUE(db->hasDefinedModification("TestPSM:Fresh"))
+  File::removeDirRecursively(dir);
 }
 END_SECTION
 

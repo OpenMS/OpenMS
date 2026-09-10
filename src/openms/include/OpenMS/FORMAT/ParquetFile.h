@@ -10,13 +10,9 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
-#include <arrow/io/file.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/arrow/reader.h>
+#include <arrow/io/interfaces.h>
 
 #include <memory>
 #include <string>

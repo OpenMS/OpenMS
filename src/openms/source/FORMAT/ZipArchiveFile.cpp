@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #ifdef __has_include
 #if __has_include(<zip.h>)
@@ -87,7 +88,7 @@ void ZipArchiveFile::zipDirectory(const std::string& directory_path, const std::
 #endif
 }
 
-std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::unique_ptr<File::TempDir>& temp_dir)
+std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::unique_ptr<TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   if (File::isDirectory(input_path))
@@ -100,7 +101,7 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, input_path);
   }
 
-  temp_dir = std::make_unique<File::TempDir>();
+  temp_dir = std::make_unique<TempDir>();
   const std::string unpack_dir = temp_dir->getPath() + "/parquet_unpacked";
   File::makeDir(unpack_dir);
 
@@ -405,7 +406,7 @@ void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
 #endif
 }
 
-std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
+std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   // If archive_path is actually a directory (tests create a .oswpq directory),
@@ -449,7 +450,7 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
                                   "Failed to open zip entry", entry_name);
   }
 
-  if (!temp_dir) temp_dir = std::make_unique<File::TempDir>();
+  if (!temp_dir) temp_dir = std::make_unique<TempDir>();
   const std::string base = temp_dir->getPath();
 
   // construct output path and create parent dirs

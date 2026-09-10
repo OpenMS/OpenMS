@@ -10,6 +10,8 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <memory>
+
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -17,6 +19,7 @@
 #include <OpenMS/CHEMISTRY/UnimodXMLDataProvider.h>
 #include <OpenMS/CHEMISTRY/OBODataProvider.h>
 
+#include <cmath>
 #include <fstream>
 #include <limits>
 #include <utility>
@@ -49,6 +52,23 @@ namespace OpenMS
            origin != residue );
 
       return !non_matching_user_defined;
+    }
+  }
+
+  namespace
+  {
+    /**
+      @brief Can @p mod explain a mass difference of @p mass?
+
+      Modifications without a mass difference cannot: PSI-MOD contains "residue" terms (e.g.
+      'MOD:00026 L-threonine residue') and similar entries that describe a residue rather than a
+      change to it, and they are loaded as ordinary modifications with a difference mass of 0.
+      Since the mass search minimizes |diff mass - mass|, such an entry would otherwise be
+      returned as the best match for any (small) mass difference within the search tolerance.
+    */
+    inline bool explainsMassDiff_(const ResidueModification* mod, double mass)
+    {
+      return (mod->getDiffMonoMass() != 0.0) || (mass == 0.0);
     }
   }
 
@@ -201,8 +221,14 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getModification(Size index) const
   {
-    OPENMS_PRECONDITION(index < mods_.size(), "Index out of bounds in ModificationsDB::getModification(Size index)." );
-    return mods_[index];
+    // a concurrent addModification() may reallocate mods_
+    const ResidueModification* ret = nullptr;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      OPENMS_PRECONDITION(index < mods_.size(), "Index out of bounds in ModificationsDB::getModification(Size index)." );
+      ret = mods_[index];
+    }
+    return ret;
   }
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods,
@@ -345,6 +371,7 @@ namespace OpenMS
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -365,6 +392,7 @@ namespace OpenMS
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -389,6 +417,7 @@ namespace OpenMS
       {
         diff = fabs(m->getDiffMonoMass() - mass);
         if ((diff <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -417,6 +446,7 @@ namespace OpenMS
       {
         diff = fabs(m->getDiffMonoMass() - mass);
         if ((diff <= max_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -450,6 +480,7 @@ namespace OpenMS
         // first matching UniMod entry)
         double mass_error = fabs(m->getDiffMonoMass() - mass);
         if ((mass_error < min_error) &&
+            explainsMassDiff_(m, mass) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
@@ -489,7 +520,9 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod) const
   {
-    const ResidueModification* ret = new ResidueModification(new_mod);
+    // owned until stored; the duplicate path below must not leak the copy
+    std::unique_ptr<ResidueModification> owned(new ResidueModification(new_mod));
+    const ResidueModification* ret = owned.get();
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       auto it = modification_names_.find(new_mod.getFullId());
@@ -504,13 +537,73 @@ namespace OpenMS
         modification_names_[ret->getId()].insert(ret);
         modification_names_[ret->getFullName()].insert(ret);
         modification_names_[ret->getUniModAccession()].insert(ret);
-        mods_.push_back(const_cast<ResidueModification*>(ret));
+        mods_.push_back(owned.release());
         ret = mods_.back();
       }
     }
     return ret;
   }
 
+  namespace
+  {
+    // the mono mass is compared even when the formulas agree: it is what a modified residue weighs
+    bool sameChemistry_(const ResidueModification& a, const ResidueModification& b)
+    {
+      if (!a.getDiffFormula().isEmpty() && !b.getDiffFormula().isEmpty() && a.getDiffFormula() != b.getDiffFormula())
+      {
+        return false;
+      }
+      return std::fabs(a.getDiffMonoMass() - b.getDiffMonoMass()) <= 1e-6;
+    }
+  } // namespace
+
+  const ResidueModification* ModificationsDB::registerDefinition(const ResidueModification& definition) const
+  {
+    if (definition.getId().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot register a modification definition without an Id.");
+    }
+    // no critical section here: has(), searchModificationsFast() and addModification() each take the
+    // (non-reentrant) OpenMS_ModificationsDB critical; addModification re-checks the FullId under it
+    if (has(definition.getFullId()))
+    {
+      bool multiple_matches = false;
+      const ResidueModification* existing = searchModificationsFast(definition.getFullId(), multiple_matches);
+      if (existing != nullptr)
+      {
+        if (!sameChemistry_(*existing, definition))
+        {
+          OPENMS_LOG_WARN << "Modification definition '" << definition.getFullId()
+                          << "' disagrees with the one already registered (registered: "
+                          << existing->getDiffFormula().toString() << " / " << existing->getDiffMonoMass()
+                          << " Da; new: " << definition.getDiffFormula().toString() << " / "
+                          << definition.getDiffMonoMass() << " Da). Keeping the registered one." << std::endl;
+        }
+        return existing;
+      }
+    }
+    std::unique_ptr<ResidueModification> copy(new ResidueModification(definition));
+    copy->setProvenance(ResidueModification::DEFINED);
+    return addModification(std::move(copy));
+  }
+
+  bool ModificationsDB::hasDefinedModification(const std::string& name) const
+  {
+    bool found = false;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      auto it = modification_names_.find(name);
+      if (it != modification_names_.end())
+      {
+        for (const ResidueModification* m : it->second)
+        {
+          if (m->getProvenance() == ResidueModification::DEFINED) { found = true; break; }
+        }
+      }
+    }
+    return found;
+  }
   const ResidueModification* ModificationsDB::addNewModification_(const ResidueModification& new_mod) const
   {
     const ResidueModification* ret = new ResidueModification(new_mod);

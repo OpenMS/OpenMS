@@ -67,7 +67,8 @@ START_SECTION(([EXTRA] ExitCodes runExternalProcess_(const std::string& executab
   const std::vector<std::string> args_broken = {"/C", "doesnotexist"};
 #else
   const std::string exe = "ls";
-  const std::vector<std::string> args = {"-l"};
+  // Inspect the directory itself: parallel tests may delete entries while ls lists them.
+  const std::vector<std::string> args = {"-ld", "."};
   const std::vector<std::string> args_broken = {"-0"};
 #endif //
 
