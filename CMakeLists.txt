@@ -583,13 +583,14 @@ if(UNIX)
   # exists, which is the situation of a developer or a consumer building against
   # it. Relocatable installations come from the packaging targets, which copy
   # the dependencies next to the libraries instead (see package_general.cmake).
+  # The Debug entry is a generator expression so that multi-config generators
+  # (Xcode, Ninja Multi-Config) get it for Debug installs as well.
   if (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
-    set(_vcpkg_lib_dirs "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib")
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-      list(PREPEND _vcpkg_lib_dirs "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib")
-    endif()
-    list(APPEND CMAKE_INSTALL_RPATH ${_vcpkg_lib_dirs})
-    unset(_vcpkg_lib_dirs)
+    set(_vcpkg_triplet_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    list(APPEND CMAKE_INSTALL_RPATH
+      "$<$<CONFIG:Debug>:${_vcpkg_triplet_dir}/debug/lib>"
+      "${_vcpkg_triplet_dir}/lib")
+    unset(_vcpkg_triplet_dir)
   endif()
 endif()
 
