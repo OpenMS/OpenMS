@@ -7,8 +7,6 @@ BuildInfo.cpp
 CurlInit.cpp
 ExternalProcess.cpp
 File.cpp
-FileConfig.cpp
-FileTemp.cpp
 JavaInfo.cpp
 Network.cpp
 NetworkGetRequest.cpp
@@ -16,6 +14,8 @@ PythonInfo.cpp
 RWrapper.cpp
 StopWatch.cpp
 SysInfo.cpp
+SystemSettings.cpp
+TempFiles.cpp
 UpdateCheck.cpp
 )
 

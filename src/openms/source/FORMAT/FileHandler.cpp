@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -961,7 +962,7 @@ namespace OpenMS
       case FileTypes::BRUKER_TDF:
       {
         // If the input is a .d.zip archive, extract to a temp directory first.
-        std::unique_ptr<File::TempDir> temp_dir;
+        std::unique_ptr<TempDir> temp_dir;
         std::string load_path = filename;
         if (!File::isDirectory(filename) && StringUtils::hasSuffix(StringUtils::toLowered(filename), ".zip"))
         {

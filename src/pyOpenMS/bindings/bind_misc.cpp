@@ -187,6 +187,8 @@
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
@@ -935,11 +937,11 @@ FeatureGroupingAlgorithm
         .def_static("fileList", [](const std::string& dir, const std::string& file_pattern, bool full_path) { std::vector<std::string> output; OpenMS::File::fileList(dir, file_pattern, output, full_path); return output; }, "dir"_a, "file_pattern"_a, "full_path"_a = false, "Returns list of files matching @p file_pattern in @p dir (returns filenames without paths unless @p full_path is true)")
         .def_static("findDoc", [](const std::string& filename) { return OpenMS::File::findDoc(filename); }, "filename"_a)
         .def_static("getOpenMSDataPath", []() { return OpenMS::File::getOpenMSDataPath(); })
-        .def_static("getOpenMSHomePath", []() { return OpenMS::File::getOpenMSHomePath(); })
-        .def_static("getSystemParameters", []() { return OpenMS::File::getSystemParameters(); })
-        .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::File::findDatabase(db_name); }, "db_name"_a)
+        .def_static("getOpenMSHomePath", []() { return OpenMS::SystemSettings::getOpenMSHomePath(); })
+        .def_static("getSystemParameters", []() { return OpenMS::SystemSettings::getSystemParameters(); })
+        .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::SystemSettings::findDatabase(db_name); }, "db_name"_a)
         .def_static("findExecutable", [](std::string& exe_filename) { return OpenMS::File::findExecutable(exe_filename); }, "exe_filename"_a)
-        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::File::getTemporaryFile(alternative_file); }, "alternative_file"_a)
+        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::TempFiles::getTemporaryFile(alternative_file); }, "alternative_file"_a = "")
 
         .def_static("exists", [](const std::string& file) {
             return OpenMS::File::exists(file);
@@ -970,11 +972,11 @@ FeatureGroupingAlgorithm
         }, "file"_a, "Get the absolute path")
 
         .def_static("getTempDirectory", []() {
-            return OpenMS::File::getTempDirectory();
+            return OpenMS::SystemSettings::getTempDirectory();
         }, "Get the temp directory")
 
         .def_static("getUserDirectory", []() {
-            return OpenMS::File::getUserDirectory();
+            return OpenMS::SystemSettings::getUserDirectory();
         }, "Get the user home directory")
 
         .def_static("getUniqueName", [](bool include_hostname) {
@@ -983,6 +985,31 @@ FeatureGroupingAlgorithm
         .def_static("getUniqueName", []() {
             return OpenMS::File::getUniqueName();
         }, "Get a unique name")
+        ;
+
+    // -----------------------------------------------------------------------
+    // SystemSettings
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SystemSettings>(m, "SystemSettings", "Per-user OpenMS configuration: the OpenMS.ini parameters and the home, temp and database directories derived from them")
+        .def_static("getOpenMSHomePath", []() { return OpenMS::SystemSettings::getOpenMSHomePath(); }, "Get the OpenMS home path (OPENMS_HOME_PATH overrides the default)")
+        .def_static("getOpenMSConfigDir", []() { return OpenMS::SystemSettings::getOpenMSConfigDir(); }, "Get the per-user configuration directory that holds OpenMS.ini")
+        .def_static("getTempDirectory", []() { return OpenMS::SystemSettings::getTempDirectory(); }, "Get the temp directory (OPENMS_TMPDIR, then OpenMS.ini temp_dir, then the system temp directory)")
+        .def_static("getUserDirectory", []() { return OpenMS::SystemSettings::getUserDirectory(); }, "Get the user data directory (OPENMS_HOME_PATH, then OpenMS.ini home_dir, then the user home)")
+        .def_static("getSystemParameters", []() { return OpenMS::SystemSettings::getSystemParameters(); }, "Get the OpenMS.ini system parameters, completed with defaults where entries are missing")
+        .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::SystemSettings::findDatabase(db_name); }, "db_name"_a, "Resolve a database filename against the OpenMS.ini id_db_dir entries")
+        ;
+
+    // -----------------------------------------------------------------------
+    // TempDir / TempFiles
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TempDir>(m, "TempDir", "A uniquely named temporary directory, removed when the object is destroyed unless keep_dir is set")
+        .def(nb::init<bool>(), "keep_dir"_a = false, "Create a temporary directory below SystemSettings.getTempDirectory()")
+        .def(nb::init<const std::string&, bool>(), "base_dir"_a, "keep_dir"_a = false, "Create a temporary directory below base_dir")
+        .def("getPath", [](const OpenMS::TempDir& self) { return self.getPath(); }, "Path of the temporary directory, with a trailing slash")
+        ;
+
+    nb::class_<OpenMS::TempFiles>(m, "TempFiles", "Temporary files that are removed when the process exits")
+        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::TempFiles::getTemporaryFile(alternative_file); }, "alternative_file"_a = "", "Return a fresh temporary filename that is deleted at exit, or alternative_file unchanged if it is not empty")
         ;
 
     // -----------------------------------------------------------------------
@@ -4781,14 +4808,14 @@ MzMLFile().store("filtered.mzML", exp)
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")
 
-        .def("storeBuffer", [](OpenMS::MzMLFile& self, nb::object output_str, const OpenMS::MSExperiment& exp) {
+        .def("storeBuffer", [](OpenMS::MzMLFile& self, const OpenMS::MSExperiment& exp) {
             std::string buf;
             {
                 nb::gil_scoped_release release;
                 self.storeBuffer(buf, exp);
             }
-            output_str.attr("_value") = nb::cast(buf);
-        }, "output"_a, "exp"_a, "Store an MSExperiment to an in-memory mzML string buffer")
+            return buf;
+        }, "exp"_a, "Store an MSExperiment to an in-memory mzML buffer and return it as str")
 
         .def("loadBuffer", [](OpenMS::MzMLFile& self, const std::string& buffer, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;

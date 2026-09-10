@@ -28,6 +28,8 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <fstream>
 #include <regex>
@@ -589,7 +591,7 @@ protected:
         MSExperiment exp_raw;
         FileHandler fh_raw;
         fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
-        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
         MzMLFile().store(tmp_mzml, exp_raw);
         sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
         f = tmp_mzml;
@@ -609,7 +611,7 @@ protected:
 
     // store config in config_file
     OPENMS_LOG_INFO << "Creating temp file name..." << std::endl;
-    std::string config_file = File::getTempDirectory() + "/" + File::getUniqueName() + ".json";
+    std::string config_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + ".json";
     OPENMS_LOG_INFO << "Creating Sage config file..." << config_file << std::endl;
     ofstream config_stream(config_file.c_str());
     config_stream << config;

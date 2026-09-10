@@ -13,6 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -124,7 +125,7 @@ protected:
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
-    std::string tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
+    std::string tmp_ini_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
 
     ParamXMLFile paramFile;
@@ -238,7 +239,7 @@ protected:
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
-    std::string tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
+    std::string tmp_ini_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
 
     Param p;

@@ -151,6 +151,8 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  SystemSettings_test
+  TempFiles_test
   UpdateCheck_test
 )
 
@@ -373,6 +375,7 @@ set(math_executables_list
   KernelDensityEstimation_test
   LevelContextInference_test
   LinearInterpolation_test
+  LinearResampling_test
   LinearRegression_test
   LinearRegressionWithoutIntercept_test
   MathFunctions_test

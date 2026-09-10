@@ -14,7 +14,6 @@ import copy
 import os
 import logging
 
-from pyopenms import String as s
 import numpy as np
 import pandas as pd
 
@@ -262,10 +261,10 @@ def testAASequence():
     assert seq.size() == 16
 
     # test exception forwarding from C++ to python
-    # classes derived from std::runtime_exception can be caught in python
+    # the binding checks the index and raises IndexError for out-of-range access
     try:
         seq.getResidue(1000) # does not exist
-    except RuntimeError:
+    except IndexError:
         print("Exception successfully triggered.")
     else:
         print("Error: Exception not triggered.")
@@ -335,32 +334,23 @@ def testElement():
     assert not hasattr(ins, "setSymbol")
     assert not hasattr(ins, "setIsotopeDistribution")
 
-    # the constructor accepts str and OpenMS String for name/symbol
-    oms_string = s("blu")
-    e = pyopenms.Element(oms_string, s("Bl"), 998, 1.0, 1.0, iso)
+    # the constructor takes plain str for name/symbol
+    e = pyopenms.Element("blu", "Bl", 998, 1.0, 1.0, iso)
     assert e.getName() == "blu"
     assert e.getSymbol() == "Bl"
-    assert oms_string.toString() == "blu"
 
+    # Element has no mutators (see above), so exercise the string handling
+    # of the constructor instead: str and UTF-8 bytes both come back as str
     evil = u"blü"
     evil8 = evil.encode("utf8")
-    evil1 = evil.encode("latin1")
 
-
-    e.setSymbol(evil.encode("utf8"))
+    e = pyopenms.Element("blu", evil, 998, 1.0, 1.0, iso)
     assert e.getSymbol() == u"blü"
 
-    # nanobind returns str, not bytes; latin1 bytes that aren't valid UTF-8
-    # cannot roundtrip through nanobind's String type caster
-    e.setSymbol(evil8.decode("utf8"))
+    # bytes are accepted as input, but must be valid UTF-8
+    e = pyopenms.Element("blu", evil8, 998, 1.0, 1.0, iso)
     assert e.getSymbol() == u"blü"
-    # OpenMS strings, however, understand the decoding
-    assert s(e.getSymbol()) == s(u"blü")
-    assert s(e.getSymbol()).toString() == u"blü"
-
-    # UTF-8 encoded bytes roundtrip correctly
-    e.setSymbol(evil8)
-    assert e.getSymbol() == u"blü"
+    assert isinstance(e.getSymbol(), str)
 
 @report
 def testResidue():
@@ -390,7 +380,7 @@ def testResidueRepr():
     """
     # Get a residue from the database
     rdb = pyopenms.ResidueDB()
-    glycine = rdb.getResidue(s("Glycine"))
+    glycine = rdb.getResidue("Glycine")
 
     # Test __repr__ method
     repr_str = repr(glycine)
@@ -408,7 +398,7 @@ def testResidueRepr():
     assert str_str == "G"
 
     # Test with modified residue - get oxidized methionine
-    methionine = rdb.getResidue(s("Methionine"))
+    methionine = rdb.getResidue("Methionine")
     str_str = str(methionine)
     assert str_str == "M"
     repr_str = repr(methionine)
@@ -1697,16 +1687,21 @@ def testParamPythonicInterface():
     assert len(p) == 3
     assert len(p) == p.size()
 
-    # Test __iter__()
-    keys_from_iter = list(p)
+    # Test __iter__(): iterating a Param yields owned ParamEntry copies,
+    # in the same order as keys()
+    entries_from_iter = list(p)
     keys_from_method = p.keys()
-    assert keys_from_iter == keys_from_method
-    assert len(keys_from_iter) == 3
+    assert all(isinstance(e, pyopenms.ParamEntry) for e in entries_from_iter)
+    assert [e.name for e in entries_from_iter] == keys_from_method
+    assert len(entries_from_iter) == 3
+    # comparing an entry with a non-entry is False rather than a TypeError
+    assert not (entries_from_iter[0] == "not an entry")
+    assert entries_from_iter[0] != "not an entry"
 
     # Test iteration in for loop
     count = 0
-    for key in p:
-        assert p[key] is not None
+    for entry in p:
+        assert p[entry.name] is not None
         count += 1
     assert count == 3
 
@@ -4977,11 +4972,11 @@ def testMxxxFile():
     fh.load("test.mzML", mse)
     fh.setOptions(fh.getOptions())
 
-    myStr = pyopenms.String()
-    fh.storeBuffer(myStr, mse)
-    assert len(myStr.toString()) == 5269
+    buf = fh.storeBuffer(mse)
+    assert isinstance(buf, str)
+    assert len(buf) == 5269
     mse2 = pyopenms.MSExperiment()
-    fh.loadBuffer(bytes(myStr), mse2)
+    fh.loadBuffer(buf, mse2)
     assert mse2 == mse
     assert mse2.size() == 1
 
@@ -5060,12 +5055,11 @@ def testPeak():
     assert p2.getRT() == 45.0
 
     # Test __repr__ and __str__ methods for Peak1D
+    # __repr__ is the verbose form, __str__ the compact "(mz, intensity)" form
     repr_str = repr(p1)
-    assert "Peak1D(" in repr_str
-    assert "mz=" in repr_str
-    assert "intensity=" in repr_str
+    assert repr_str == "Peak1D(mz=13.0000, intensity=12.00)"
     str_str = str(p1)
-    assert str_str == repr_str
+    assert str_str == "(13.0000, 12.00)"
 
     # Test __repr__ and __str__ methods for Peak2D
     repr_str = repr(p2)
@@ -5087,26 +5081,15 @@ def testNumpressCoder():
     nc = pyopenms.NumpressConfig()
     nc.np_compression = np.NumpressCompression.LINEAR
     nc.estimate_fixed_point = True
-    tmp = pyopenms.String()
     out = []
     inp =  [1.0, 2.0, 3.0]
-    np.encodeNP(inp, tmp, True, nc)
+    res = np.encodeNP(inp, True, nc)
 
-    res = tmp.toString()
+    assert isinstance(res, str)
     assert len(res) != 0, len(res)
-    assert res != "", res
     np.decodeNP(res, out, True, nc)
     assert len(out) == 3, (out, res)
     assert out == inp, out
-
-    # Now try to use a simple Python string as input -> in nanobind, this may
-    # silently succeed (creating a temporary copy), or raise TypeError
-    res = ""
-    try:
-        np.encodeNP(inp, res, True, nc)
-        # nanobind may accept this (temporary conversion), verify res unchanged
-    except (AssertionError, TypeError):
-        pass  # expected in some binding implementations
 
 @report
 def testNumpressConfig():
@@ -6165,7 +6148,7 @@ def testIBSpectraFile():
     cmap = pyopenms.ConsensusMap()
     correctError = False
     try:
-        fh.store( pyopenms.String("test.ibspectra.file"), cmap)
+        fh.store("test.ibspectra.file", cmap)
         assert False
     except RuntimeError:
         correctError = True
@@ -6535,9 +6518,9 @@ def testProteaseDB():
     f = pyopenms.EmpiricalFormula()
     synonyms = set(["dummy", "other"])
 
-    assert edb.hasEnzyme(pyopenms.String("Trypsin"))
+    assert edb.hasEnzyme("Trypsin")
 
-    trypsin = edb.getEnzyme(pyopenms.String("Trypsin"))
+    trypsin = edb.getEnzyme("Trypsin")
 
     names = edb.getAllNames()
     assert "Trypsin" in names
@@ -6615,12 +6598,12 @@ def testResidueDB():
 
     assert rdb.getNumberOfResidues() >= 20
     assert len(rdb.getResidueSets() ) >= 1
-    el = rdb.getResidues(pyopenms.String(rdb.getResidueSets().pop()))
+    el = rdb.getResidues(rdb.getResidueSets().pop())
 
     assert len(el) >= 1
 
-    assert rdb.hasResidue(s("Glycine"))
-    glycine = rdb.getResidue(s("Glycine"))
+    assert rdb.hasResidue("Glycine")
+    glycine = rdb.getResidue("Glycine")
 
     nrr = rdb.getNumberOfResidues()
 
@@ -6831,99 +6814,6 @@ def testExperimentalDesign():
     assert fourplex_fractionated_design.isFractionated()
     assert fourplex_fractionated_design.sameNrOfMSFilesPerFraction()
  
-@report
-def testString():
-    pystr = pyopenms.String()
-    pystr = pyopenms.String("blah")
-    assert (pystr.toString() == "blah")
-    pystr = pyopenms.String("blah")
-    assert (pystr.toString() == "blah")
-    pystr = pyopenms.String(u"blah")
-    assert (pystr.toString() == "blah")
-    pystr = pyopenms.String(pystr)
-    assert (pystr.toString() == "blah")
-    assert (len(pystr.toString()) == 4)
-    cstr = pystr.c_str()
-
-    # Printing should work ...
-    print(cstr)
-    print(pystr)
-    print(pystr.toString())
-    assert (pystr.toString() == "blah")
-
-    pystr = pyopenms.String("bläh")
-    assert (pystr.toString() == u"bläh")
-    pystr = pyopenms.String("bläh")
-    pystr = pyopenms.String(u"bläh")
-    assert (pystr.toString() == u"bläh")
-    pystr = pyopenms.String(pystr)
-    assert (pystr.toString() == u"bläh")
-    cstr = pystr.c_str()
-
-    # Printing should work ...
-    print(cstr)
-    print(pystr)
-    print(pystr.toString().encode("utf8"))
-
-    assert len(pystr.toString()) == 4
-    assert len(pystr.c_str()) == 5 # C does not know about Unicode, so be careful with c_str
-    print(pystr) # this prints the C string, due to Py 2/3 compatibility
-    print(pystr.toString().encode("utf8")) # this prints the correct String
-
-    pystr1 = pyopenms.String("bläh")
-    pystr2 = pyopenms.String("bläh")
-    assert(pystr1 == pystr2)
-
-    pystr1 = pyopenms.String(u"bläh")
-    pystr2 = pyopenms.String(u"bläh")
-    assert(pystr1 == pystr2)
-
-    # Handling of different Unicode Strings:
-    # - unicode is natively stored in OpenMS::String
-    # - encoded bytesequences for utf8, utf16 and iso8859 can be stored as
-    #   char arrays in OpenMS::String (and be accessed using c_str())
-    # - encoded bytesequences for anything other than utf8 cannot use
-    #   "toString()" as this function expects utf8
-    ustr = u"bläh"
-    pystr = pyopenms.String(ustr)
-    assert (pystr.toString() == u"bläh")
-    pystr = pyopenms.String(ustr.encode("utf8"))
-    assert (pystr.toString() == u"bläh")
-
-    # nanobind String type caster only accepts valid UTF-8 bytes
-    # Non-UTF-8 encodings (iso8859_15, utf16) cannot roundtrip through nanobind
-    # Verify that non-UTF-8 bytes are rejected
-    didThrow = False
-    try:
-        pystr = pyopenms.String(ustr.encode("iso8859_15"))
-    except UnicodeDecodeError:
-        didThrow = True
-    assert didThrow
-
-    didThrow = False
-    try:
-        pystr = pyopenms.String(ustr.encode("utf16"))
-    except UnicodeDecodeError:
-        didThrow = True
-    assert didThrow
-    
-    # Handling of automatic conversions of String return values
-    #  -- return a native str when utf8 is used
-    #  -- return a OpenMS::String object when encoding with utf8 is not possible
-    ustr = u"bläh"
-    s = pyopenms.MSSpectrum()
-    s.setNativeID(ustr)
-    r = s.getNativeID()
-    # assert( isinstance(r, str) ) # native, returns str
-    assert(r == u"bläh")
-
-    s.setNativeID(ustr.encode("utf8"))
-    r = s.getNativeID()
-    # assert( isinstance(r, str) )
-    assert(r == u"bläh")
-    # Non-UTF-8 encodings are rejected by nanobind's type caster
-    # so we skip the utf16 and iso8859_15 setNativeID tests
-
 @report
 def testGNPSExport():
     cm = pyopenms.ConsensusMap()

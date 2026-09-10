@@ -17,19 +17,27 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Move spectrum-type estimation into KERNEL and share the linear resampling implementation
+    between MSExperiment::calculateTIC and LinearResamplerAlign, removing three dependencies
+    from core code to FORMAT, PROCESSING and APPLICATIONS. Existing APIs, the old estimator
+    include path, numerical behavior and resampling warnings are preserved (see #10083).
   - Share alignment model defaults through TransformationModelDefaults in the analysis layer;
-    tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction.
+    tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction (#10092)
   - Explicitly disable AUTOMOC for OpenMS and OpenSwathAlgo even when Qt is found;
-    GUI libraries retain their own AUTOMOC setting.
+    GUI libraries retain their own AUTOMOC setting (#10099)
   - Move the IsobaricAnalyzer provenance query to DataProcessingUtils so ConsensusMap no longer
-    depends on QCBase; retain the existing QCBase entry point and labeling convention.
+    depends on QCBase; retain the existing QCBase entry point and labeling convention (#10101)
+  - Keep CURL and OpenSwathAlgo's Boost headers private in CMake usage requirements, and stop
+    requiring CURL/Xerces development packages for shared-library consumers. CI now installs
+    OpenMS and builds/runs the external consumer with discovery of those packages disabled
+    (CTest test `TestExternalCode_installed`, enabled by `OPENMS_TEST_INSTALLED_CONSUMER`).
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
-    entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10072)
+    entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
     configurations, MSn/SPS precursor hierarchy and supplemental activation. New reader options expose
     centroid charges, independently sampled noise arrays and auxiliary detector/PDA data for mzML export.
     mzML round trips retain independent noise grids, detector array types/units, precursor intensity units,
-    precise timestamps and UTF-8/whitespace in metadata. Requires openms-thermo-bridge 0.3.0 (#10072)
+    precise timestamps and UTF-8/whitespace in metadata. Requires openms-thermo-bridge 0.3.0 (#10077, #10079)
   - Fix: corrected inconsistent elemental formulas in several NuXL presets, including RNA/DNA UV,
     DEB, NM, and FA fragment adducts (#10031)
   - Qt is no longer needed outside the GUI: the core library and all non-GUI TOPP tools build without
@@ -275,7 +283,11 @@ PyOpenMS:
     on the machine (set DOTNET_ROOT for non-standard locations). Previously Linux and Windows wheels
     were built without the reader and the macOS wheel shipped the bridge without its managed half.
     Linux aarch64 wheels stay without Thermo support (no vendor libraries for that platform). New
-    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set
+    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set (#10070)
+  - New SystemSettings, TempDir and TempFiles classes expose the OpenMS.ini directory policy and
+    temporary directories/files; the Python-level File.getSystemParameters(), File.getTempDirectory(),
+    File.getUserDirectory(), File.findDatabase(), File.getOpenMSHomePath() and File.getTemporaryFile()
+    keep working and now call the new classes (#10083, step 6)
 
 TOPP tools:
   Changes:
@@ -924,6 +936,7 @@ OpenMS Library:
       there, after the new OPENMS_THERMO_MANAGED_DIR environment variable and before the bridge's own
       next-to-the-library default, so relocated layouts such as Python wheels find them. On Windows
       nethost.dll, which openms_thermo_bridge.dll imports, is installed next to the OpenMS libraries
+      (#10070)
     - IMAGING module for imaging mass spectrometry: IonImage (dense WxHxD intensity grid with per-pixel
       validity mask and m/z extraction window), MSImagingGeometry (pixel list with (x,y,z) -> spectrum
       index lookup and pixel-size metadata) and MSImagingExperiment (pixel-based spectrum access and
@@ -1066,6 +1079,11 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - BREAKING: File no longer owns the OpenMS.ini settings and temporary-file policy. SystemSettings
+      holds getSystemParameters(), getTempDirectory(), getUserDirectory(), findDatabase(),
+      getOpenMSHomePath() and getOpenMSConfigDir(); TempDir is a top-level class and
+      TempFiles::getTemporaryFile() replaces File::getTemporaryFile(). The former File entry points and
+      the nested File::TempDir are removed, and File.h no longer depends on Param (#10083, step 6)
     - Fix: AASequence::setModificationByDiffMonoMass (and the four other call sites that write an
       unknown mass-shift modification: three in AASequence, one in Residue, one in PepXMLFile) built
       its ModificationsDB lookup key with a signed bracket but created the modification from an
@@ -1531,6 +1549,7 @@ Build System:
     bridge tag cross-checked against the FetchContent pin), passed to CMake as
     OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR, so no NuGet restore or Thermo package download runs in
     CI. The wheel test suite and a smoke test on fresh runners load PNNL's Angiotensin_AllScans.raw
+    (#10070)
   - Removed the developer script tools/checker.php. Covered by .clang-format now.
   - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
   - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).
