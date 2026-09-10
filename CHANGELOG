@@ -18,18 +18,18 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 General:
   - Share alignment model defaults through TransformationModelDefaults in the analysis layer;
-    tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction.
+    tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction (#10092)
   - Explicitly disable AUTOMOC for OpenMS and OpenSwathAlgo even when Qt is found;
-    GUI libraries retain their own AUTOMOC setting.
+    GUI libraries retain their own AUTOMOC setting (#10099)
   - Move the IsobaricAnalyzer provenance query to DataProcessingUtils so ConsensusMap no longer
-    depends on QCBase; retain the existing QCBase entry point and labeling convention.
+    depends on QCBase; retain the existing QCBase entry point and labeling convention (#10101)
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
-    entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10072)
+    entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
     configurations, MSn/SPS precursor hierarchy and supplemental activation. New reader options expose
     centroid charges, independently sampled noise arrays and auxiliary detector/PDA data for mzML export.
     mzML round trips retain independent noise grids, detector array types/units, precursor intensity units,
-    precise timestamps and UTF-8/whitespace in metadata. Requires openms-thermo-bridge 0.3.0 (#10072)
+    precise timestamps and UTF-8/whitespace in metadata. Requires openms-thermo-bridge 0.3.0 (#10077, #10079)
   - Fix: corrected inconsistent elemental formulas in several NuXL presets, including RNA/DNA UV,
     DEB, NM, and FA fragment adducts (#10031)
   - Qt is no longer needed outside the GUI: the core library and all non-GUI TOPP tools build without
@@ -270,7 +270,7 @@ PyOpenMS:
     on the machine (set DOTNET_ROOT for non-standard locations). Previously Linux and Windows wheels
     were built without the reader and the macOS wheel shipped the bridge without its managed half.
     Linux aarch64 wheels stay without Thermo support (no vendor libraries for that platform). New
-    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set
+    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set (#10070)
 
 TOPP tools:
   Changes:
@@ -919,6 +919,7 @@ OpenMS Library:
       there, after the new OPENMS_THERMO_MANAGED_DIR environment variable and before the bridge's own
       next-to-the-library default, so relocated layouts such as Python wheels find them. On Windows
       nethost.dll, which openms_thermo_bridge.dll imports, is installed next to the OpenMS libraries
+      (#10070)
     - IMAGING module for imaging mass spectrometry: IonImage (dense WxHxD intensity grid with per-pixel
       validity mask and m/z extraction window), MSImagingGeometry (pixel list with (x,y,z) -> spectrum
       index lookup and pixel-size metadata) and MSImagingExperiment (pixel-based spectrum access and
@@ -1526,6 +1527,7 @@ Build System:
     bridge tag cross-checked against the FetchContent pin), passed to CMake as
     OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR, so no NuGet restore or Thermo package download runs in
     CI. The wheel test suite and a smoke test on fresh runners load PNNL's Angiotensin_AllScans.raw
+    (#10070)
   - Removed the developer script tools/checker.php. Covered by .clang-format now.
   - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
   - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).
