@@ -8,6 +8,7 @@
 
 
 project("OpenMS-IsoSpec")
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 
 set(_ISOSPEC_SOURCES
