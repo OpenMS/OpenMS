@@ -41,6 +41,25 @@ def test_repr_mirrors_asDict():
     assert eval(r[len("Param("):-1]) == p.asDict()
 
 
+def test_repr_is_evaluable():
+    # repr() -> Param(dict) reconstructs all keys and values
+    p = _make_param()
+    p2 = eval(repr(p), {"Param": pyopenms.Param})
+    assert isinstance(p2, pyopenms.Param)
+    assert p2.asDict() == p.asDict()
+    assert repr(p2) == repr(p)
+
+
+def test_dict_constructor():
+    d = {"a": 1, "algorithm:threshold": 0.5, "name": "x", "levels": [1, 2]}
+    p = pyopenms.Param(d)
+    assert p.asDict() == d
+    assert p == pyopenms.Param.from_dict(d)
+    assert pyopenms.Param({}) == pyopenms.Param()
+    # the existing constructors are unaffected
+    assert pyopenms.Param(p) == p
+
+
 def test_str_one_line_per_entry():
     p = _make_param()
     lines = str(p).split("\n")

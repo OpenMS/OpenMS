@@ -139,6 +139,17 @@ nb::dict paramToDict(const OpenMS::Param& param)
     return result;
 }
 
+// Fills `param` from a {key: value} dict (the inverse of paramToDict()).
+// Used by Param(dict) and Param.from_dict().
+void paramSetFromDict(OpenMS::Param& param, const nb::dict& d)
+{
+    for (auto [k, v] : d)
+    {
+        std::string key = nb::cast<std::string>(k);
+        param.setValue(key, nb::cast<OpenMS::ParamValue>(v));
+    }
+}
+
 } // namespace
 
 NB_MODULE(_pyopenms_datastructures, m) {
@@ -771,6 +782,10 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Param &>())
+        .def("__init__", [](OpenMS::Param* self, const nb::dict& d) {
+            new (self) OpenMS::Param();
+            paramSetFromDict(*self, d);
+        }, "d"_a, "Create a Param from a {key: value} dict, e.g. Param({'algorithm:threshold': 0.5}). Equivalent to Param.from_dict(d); this is also what repr(param) evaluates to")
         .def("__copy__", [](const OpenMS::Param& self) { return OpenMS::Param(self); })
         .def("__deepcopy__", [](const OpenMS::Param& self, nb::dict) { return OpenMS::Param(self); }, "memo"_a)
         .def(nb::self == nb::self)
@@ -871,6 +886,8 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("asDict", [](const OpenMS::Param& self) { return paramToDict(self); }, "Return dict with str keys")
         .def("to_dict", [](const OpenMS::Param& self) { return paramToDict(self); }, "Return dict with string keys")
         .def("__repr__", [](const OpenMS::Param& self) {
+            // Evaluable: Param(dict) reconstructs the keys and values
+            // (descriptions, tags and restrictions are not part of the repr).
             return "Param(" + nb::cast<std::string>(nb::repr(paramToDict(self))) + ")";
         })
         .def("__str__", [](const OpenMS::Param& self) {
@@ -924,14 +941,11 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
                 }
             }
         }, "source"_a, "flag"_a = nb::none(), "Update parameters from a Param or dict")
-        .def_static("from_dict", [](nb::dict d) {
+        .def_static("from_dict", [](const nb::dict& d) {
             OpenMS::Param p;
-            for (auto [k, v] : d) {
-                std::string key = nb::cast<std::string>(k);
-                p.setValue(key, nb::cast<OpenMS::ParamValue>(v));
-            }
+            paramSetFromDict(p, d);
             return p;
-        }, "d"_a, "Create a Param from a dict")
+        }, "d"_a, "Create a Param from a {key: value} dict (same as Param(d))")
         ;
 
 

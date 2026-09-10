@@ -212,7 +212,8 @@ PyOpenMS:
   - print(param) is now useful: Param.__str__() lists one entry per line as
     "key = value (restrictions) [tags]  # description" (with min/max/valid-string restrictions and
     tags shown where set), Param.__repr__() gives Param({...}) mirroring asDict(), and ParamEntry
-    gained matching __str__()/__repr__() (#10097)
+    gained matching __str__()/__repr__(). Param can now be constructed directly from a dict,
+    Param({'key': value}), so the repr is evaluable (#10097)
   - Strings: functions accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - New wrappers: ProFormaParser (full ProForma v2: parse/serialize with LOSSLESS/CANONICAL modes,
     AASequence conversion policies, mass calculation, JSON round-trip) (#8648); USI (#8684);
