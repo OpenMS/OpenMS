@@ -35,11 +35,13 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ConsensusMapMergerAlgorithm cmerge;
         ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(cmap);
         cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, ed);
-        //without a special experimental design on sample level, runs are treated like replicates
-        // or fractions and all are merged
-        TEST_EQUAL(cmap.getProteinIdentifications().size(), 1)
+        
+        // without a special experimental design on sample level, we now assume uniqueness 
+        // of all samples (N=N) to prevent destructive merging. 
+        // The 3 fraction groups create 3 distinct conditions instead of 1.
+        TEST_EQUAL(cmap.getProteinIdentifications().size(), 3)
         StringList toFill; cmap.getProteinIdentifications()[0].getPrimaryMSRunPath(toFill);
-        TEST_EQUAL(toFill.size(), 6)
+        TEST_EQUAL(toFill.size(), 2)
       }
     END_SECTION
 
