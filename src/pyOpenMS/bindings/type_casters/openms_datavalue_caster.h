@@ -305,19 +305,32 @@ public:
  * Type caster for OpenMS::ParamValue
  *
  * ParamValue is similar to DataValue but used in Param objects.
- * Conversion logic is essentially the same.
+ * Conversion logic is essentially the same, with one addition: a Python bool
+ * is accepted and stored as the OpenMS boolean convention, i.e. the string
+ * "true"/"false" (Param has no boolean type; boolean parameters are string
+ * parameters restricted to 'true'/'false'). The reverse mapping cannot happen
+ * here because it depends on the entry's valid_strings, which only the Param
+ * bindings can see (see bind_datastructures.cpp).
  */
 template <>
 struct type_caster<OpenMS::ParamValue> {
 public:
     NB_TYPE_CASTER(OpenMS::ParamValue,
-                   const_name("None | int | float | str | bytes | "
+                   const_name("None | bool | int | float | str | bytes | "
                              "list[str] | list[int] | list[float]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty ParamValue
         if (src.is_none()) {
             value = OpenMS::ParamValue();
+            return true;
+        }
+
+        // Python bool -> OpenMS boolean convention: ParamValue has no bool type,
+        // flags are STRING_VALUE "true"/"false" (see ParamValue::toBool()).
+        // Must precede the int branch because bool is a subclass of int.
+        if (PyBool_Check(src.ptr())) {
+            value = OpenMS::ParamValue(std::string(src.ptr() == Py_True ? "true" : "false"));
             return true;
         }
 

@@ -26,7 +26,8 @@ class ParamValue:
         elif isinstance(self._value, str):
             return self.STRING_VALUE
         elif isinstance(self._value, bool):
-            return self.INT_VALUE
+            # OpenMS has no boolean ParamValue: flags are the strings "true"/"false"
+            return self.STRING_VALUE
         elif isinstance(self._value, int):
             return self.INT_VALUE
         elif isinstance(self._value, float):
@@ -45,6 +46,8 @@ class ParamValue:
     def toString(self):
         if self._value is None:
             return ""
+        if isinstance(self._value, bool):
+            return "true" if self._value else "false"
         return str(self._value)
 
     def toBool(self):

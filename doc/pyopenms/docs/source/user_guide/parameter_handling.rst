@@ -124,11 +124,11 @@ description by using, for instance, the following simple function.
 
 .. code-block:: output
 
-    Param: b'gaussian_width' Value: 0.2 Description: Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).
-    Param: b'ppm_tolerance' Value: 10.0 Description: Gaussian width, depending on the m/z position.
+    Param: gaussian_width Value: 0.2 Description: Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).
+    Param: ppm_tolerance Value: 10.0 Description: Gaussian width, depending on the m/z position.
     The higher the value, the wider the peak and therefore the wider the gaussian.
-    Param: b'use_ppm_tolerance' Value: false Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
-    Param: b'write_log_messages' Value: false Description: true: Warn if no signal was found by the Gauss filter algorithm.
+    Param: use_ppm_tolerance Value: False Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
+    Param: write_log_messages Value: False Description: true: Warn if no signal was found by the Gauss filter algorithm.
 
 To print a simple key-value list, you can use ``asDict()``, as shown above:
 
@@ -149,7 +149,7 @@ A :py:class:`~.Param` object can hold many parameters of mixed value type. Above
     
     new_p.setValue("param2", 9.0, "This is value 9")
     
-Other possible values include ``int``, ``float``, ``bytes``, ``str``, ``List[int]``, ``List[float]``, ``List[bytes]`` (aka StringList).
+Other possible values include ``int``, ``float``, ``bool``, ``bytes``, ``str``, ``List[int]``, ``List[float]``, ``List[bytes]`` (aka StringList).
 E.g.
 
 .. code-block:: python
@@ -158,12 +158,39 @@ E.g.
     p = oms.Param()
     p.setValue("p_float", 4.0, "This is a float")
     p.setValue("p_int", 5, "This is an integer")
+    p.setValue("p_bool", True, "This is a boolean flag")
     p.setValue("p_string", "myvalue", "This is a string")
     p.setValue("p_stringlist", [b"H:+:0.6", b"Na:+:0.2", b"K:+:0.2"], "This is a StringList")
     p.setValue("p_floatlist", [1.0, 2.0, 3.0], "This is a list of floats")
     p.setValue("p_intlist", [1, 2, 3], "This is a list of integers")
-    
-    
+
+Boolean parameters
+******************
+
+OpenMS itself has no boolean parameter type: a flag is a string parameter holding ``'true'`` or
+``'false'`` that is restricted to exactly these two values (see the next section on restrictions).
+pyOpenMS maps this convention to Python ``bool``: such parameters are returned as ``True``/``False``
+by ``getValue()``, ``[]``, ``get()``, ``items()``, ``values()`` and ``asDict()``, and they accept a
+``bool`` on assignment. Assigning a ``bool`` to a new key creates a boolean parameter.
+
+.. code-block:: python
+    :linenos:
+
+    gf = oms.GaussFilter()
+    gfp = gf.getParameters()
+    gfp["use_ppm_tolerance"]         ## False
+    gfp["use_ppm_tolerance"] = True  ## stored as 'true', valid strings ['true', 'false']
+    gf.setParameters(gfp)
+    gf.getParameters()["use_ppm_tolerance"]  ## True
+
+    p = oms.Param()
+    p["p_bool"] = False
+    p.getValidStrings("p_bool")       ## ['true', 'false']
+
+Assigning the strings ``"true"``/``"false"`` keeps working. Note that a boolean parameter compares
+equal to ``True``/``False``, not to the string ``"true"``.
+
+
 Restrictions(=Validity) of Parameter Values
 ******************************************************* 
     
@@ -186,7 +213,7 @@ E.g.
 
     gf = oms.GaussFilter()
     gfp = gf.getParameters()
-    gfp.getValidStrings("use_ppm_tolerance")  ## yields [b'true', b'false']
+    gfp.getValidStrings("use_ppm_tolerance")  ## yields ['true', 'false']
     
     gfp.setValue(b"use_ppm_tolerance", "maybe") ## is invalid but setValue does not complain
     ##  ... until you actually set the parameters:
@@ -199,7 +226,7 @@ E.g.
     
     nor = oms.Normalizer()
     norp = nor.getParameters()
-    norp.getValidStrings("method")  ## yields [b'to_one', b'to_TIC']
+    norp.getValidStrings("method")  ## yields ['to_one', 'to_TIC']
     norp.setValue("method", "to_TIC") ## pick the 'to_TIC' method
     nor.setParameters(norp)
     # ... now run the Normalizer ...
