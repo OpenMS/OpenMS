@@ -86,7 +86,7 @@
         That writes `build/windows-x64-debug/OpenMS_host.sln`, which you can open in Visual Studio. %OpenMS requires Visual Studio @minMSVC or newer, so adjust the generator name if you are on a later release (<tt>cmake \-\-help</tt> lists the generators your CMake knows about).
         The first configure of a given preset can take a while, since it builds all vcpkg dependencies for that triplet from source; subsequent configures reuse the already-built packages from `build/<preset>/vcpkg_installed/`.
 
-        To build OpenMS and run the tests, invoke this (remember: the debug preset supports both Release and Debug -- this is true for all platforms):
+        To build OpenMS and run the tests with the Visual Studio (multi-configuration) generator, invoke this (the debug preset supports both Release and Debug there). Note that the default Ninja presets are single-configuration: a debug preset then builds only Debug, even though vcpkg still installs both release and debug libraries.
         \code
         cmake --build --preset windows-x64-debug --config Debug
         cmake --build --preset windows-x64-debug --config Release

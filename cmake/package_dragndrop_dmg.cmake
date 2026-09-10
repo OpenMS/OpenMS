@@ -116,7 +116,7 @@ set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slightly smaller images
 ## keychains in the search list (which needs to be unlocked).
 ## Note: The executables/bundles inside should already be signed with hardened runtime and timestamp.
 ## For notarization, SIGNING_EMAIL must also be set.
-if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP AND DEFINED SIGNING_EMAIL)
+if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP AND NOT "${SIGNING_EMAIL}" STREQUAL "")
   add_custom_target(signed_dist
                     COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
                     COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh ${CPACK_PACKAGE_FILE_NAME}.dmg de.openms ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY}
