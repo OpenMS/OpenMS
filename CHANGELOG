@@ -30,7 +30,7 @@ General:
   - Keep CURL and OpenSwathAlgo's Boost headers private in CMake usage requirements, and stop
     requiring CURL/Xerces development packages for shared-library consumers. CI now installs
     OpenMS and builds/runs the external consumer with discovery of those packages disabled
-    (CTest test `TestExternalCode_installed`, enabled by `OPENMS_TEST_INSTALLED_CONSUMER`).
+    (CTest test `TestExternalCode_installed`, enabled by `OPENMS_TEST_INSTALLED_CONSUMER`) (#10103)
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
@@ -283,6 +283,11 @@ PyOpenMS:
     temporary directories/files; the Python-level File.getSystemParameters(), File.getTempDirectory(),
     File.getUserDirectory(), File.findDatabase(), File.getOpenMSHomePath() and File.getTemporaryFile()
     keep working and now call the new classes (#10083, step 6)
+  - BREAKING: removed the pure-Python pyopenms.String Cython-era shim class, which only survived to
+    emulate String& output parameters. MzMLFile.storeBuffer(), MSNumpressCoder.encodeNP() and
+    MSNumpressCoder.encodeNPRaw() now return their result (str/str/bytes) directly instead of writing
+    it into a pyopenms.String output argument; every other API already accepted/returned plain str
+    for OpenMS::String (#10109)
 
 TOPP tools:
   Changes:
