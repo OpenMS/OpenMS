@@ -11,7 +11,6 @@
 # Bindings are hand-maintained nanobind C++ sources in bindings/*.cpp.
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES CXX)
 
 # C++17 is required for nanobind

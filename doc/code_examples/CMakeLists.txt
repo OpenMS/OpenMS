@@ -10,7 +10,6 @@
 # CMake sub-project for OpenMS code examples
 
 project("OpenMS_code_examples")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(EXAMPLES_executables)
 
