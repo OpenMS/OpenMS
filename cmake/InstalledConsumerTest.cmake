@@ -14,6 +14,7 @@
 #   cmake -DBUILD_DIR=<openms build dir> -DSOURCE_DIR=<openms source dir>
 #         -DCONFIG=<Release|Debug|...> -DGENERATOR=<CMAKE_GENERATOR>
 #         -DCTEST_COMMAND=<ctest> -DINSTALL_CMAKE_DIR=... -DINSTALL_LIB_DIR=...
+#         -DINSTALL_DATA_PATH=<compiled-in install data dir>
 #         [-DCMAKE_TOOLCHAIN_FILE=... -DVCPKG_INSTALLED_DIR=... ...]
 #         -P cmake/InstalledConsumerTest.cmake
 #
@@ -31,6 +32,19 @@ endforeach()
 set(scratch  "${BUILD_DIR}/installed-consumer")
 set(prefix   "${scratch}/prefix")
 set(consumer "${scratch}/build")
+
+# On Linux and macOS the library probes the data directory compiled in from
+# CMAKE_INSTALL_PREFIX before anything else. An OpenMS installation already
+# present there would therefore shadow the scratch installation this test
+# makes, and the consumer's installed-data check could not tell the two apart.
+if(NOT CMAKE_HOST_WIN32 AND INSTALL_DATA_PATH
+   AND EXISTS "${INSTALL_DATA_PATH}/CHEMISTRY/unimod.xml"
+   AND NOT INSTALL_DATA_PATH MATCHES "^${prefix}/")
+  message(FATAL_ERROR "InstalledConsumerTest: an OpenMS installation exists at the "
+    "compiled-in install prefix (${INSTALL_DATA_PATH}). It would shadow the "
+    "scratch installation under ${prefix}. Remove or move that installation, "
+    "or configure with a CMAKE_INSTALL_PREFIX that has no OpenMS installed.")
+endif()
 
 # Print a command, run it, and fail the test on a non-zero exit code.
 function(run)

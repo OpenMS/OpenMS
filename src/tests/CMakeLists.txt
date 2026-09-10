@@ -63,7 +63,9 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     "-DGENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}"
     "-DCTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
     "-DINSTALL_CMAKE_DIR=${INSTALL_CMAKE_DIR}"
-    "-DINSTALL_LIB_DIR=${INSTALL_LIB_DIR}")
+    "-DINSTALL_LIB_DIR=${INSTALL_LIB_DIR}"
+    # the data directory compiled into the library (CMAKE_INSTALL_PREFIX based)
+    "-DINSTALL_DATA_PATH=${CF_OPENMS_INSTALL_DATA_PATH}")
   # Forward the toolchain and dependency settings of this build so the consumer
   # compiles with the same compiler against the same vcpkg/contrib installation.
   foreach(_var IN ITEMS
