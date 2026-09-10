@@ -13,6 +13,8 @@ class ParamValue:
     INT_LIST = 4
     DOUBLE_LIST = 5
     EMPTY_VALUE = 6
+    # pyOpenMS only: OpenMS stores boolean parameters as the strings "true"/"false"
+    BOOL_VALUE = 7
 
     def __init__(self, value=None):
         self._value = value
@@ -23,11 +25,11 @@ class ParamValue:
     def valueType(self):
         if self._value is None:
             return self.EMPTY_VALUE
-        elif isinstance(self._value, str):
-            return self.STRING_VALUE
         elif isinstance(self._value, bool):
-            # OpenMS has no boolean ParamValue: flags are the strings "true"/"false"
-            return self.STRING_VALUE
+            # bool before str/int: OpenMS stores flags as the strings "true"/"false"
+            return self.BOOL_VALUE
+        elif isinstance(self._value, str):
+            return self.BOOL_VALUE if self._value in ("true", "false") else self.STRING_VALUE
         elif isinstance(self._value, int):
             return self.INT_VALUE
         elif isinstance(self._value, float):
@@ -53,9 +55,11 @@ class ParamValue:
     def toBool(self):
         if isinstance(self._value, bool):
             return self._value
-        if isinstance(self._value, str):
-            return self._value.lower() in ("true", "1", "yes")
-        return bool(self._value)
+        if self._value == "true":
+            return True
+        if self._value == "false":
+            return False
+        raise ValueError("ParamValue.toBool(): value is not 'true' or 'false': %r" % (self._value,))
 
     def toInt(self):
         return int(self._value)

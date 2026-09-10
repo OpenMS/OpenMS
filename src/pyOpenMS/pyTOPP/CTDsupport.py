@@ -22,7 +22,12 @@ def addParamToCTDopts(defaults, model):
         ctd_type_str = ''
         ctd_list = False
 
-        if isinstance(value, int):
+        if isinstance(value, bool):
+            # bool before int (bool is a subclass of int); pyOpenMS returns
+            # boolean parameters as bool
+            ctd_type = bool
+            ctd_type_str = 'bool'
+        elif isinstance(value, int):
             ctd_type = int
             ctd_type_str = 'int'
         elif isinstance(value, float):

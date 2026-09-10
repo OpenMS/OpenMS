@@ -181,6 +181,10 @@ public:
                         PyErr_Clear();
                         return false;
                     }
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;  // bool is not an int here
+                    }
                     long val = PyLong_AsLong(item);
                     Py_DECREF(item);
                     if (PyErr_Occurred()) {
@@ -203,6 +207,10 @@ public:
                     if (!item) {
                         PyErr_Clear();
                         return false;
+                    }
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;  // bool is not a float here
                     }
                     PyObject* float_item = PyNumber_Float(item);
                     Py_DECREF(item);
@@ -307,10 +315,9 @@ public:
  * ParamValue is similar to DataValue but used in Param objects.
  * Conversion logic is essentially the same, with one addition: a Python bool
  * is accepted and stored as the OpenMS boolean convention, i.e. the string
- * "true"/"false" (Param has no boolean type; boolean parameters are string
- * parameters restricted to 'true'/'false'). The reverse mapping cannot happen
- * here because it depends on the entry's valid_strings, which only the Param
- * bindings can see (see bind_datastructures.cpp).
+ * "true"/"false" (Param has no boolean type). The reverse mapping (string
+ * "true"/"false" -> bool) is not done here because it must respect the entry's
+ * restrictions, which only the Param bindings can see (see param_bool.h).
  */
 template <>
 struct type_caster<OpenMS::ParamValue> {
@@ -441,6 +448,10 @@ public:
                         PyErr_Clear();
                         return false;
                     }
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;  // bool is not an int here
+                    }
                     long val = PyLong_AsLong(item);
                     Py_DECREF(item);
                     if (PyErr_Occurred()) {
@@ -462,6 +473,10 @@ public:
                     if (!item) {
                         PyErr_Clear();
                         return false;
+                    }
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;  // bool is not a float here
                     }
                     PyObject* float_item = PyNumber_Float(item);
                     Py_DECREF(item);

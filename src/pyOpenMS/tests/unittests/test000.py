@@ -1784,18 +1784,20 @@ def testParamBool():
      Param.update
      Param.getEntry
      Param.getValidStrings
+     Param.setValidStrings
+     Param.getValueType
      ParamEntry.value
      ParamEntry.valid_strings
     """
-    # OpenMS stores flags as the strings 'true'/'false' restricted to
-    # ['true', 'false']; pyOpenMS maps that convention to Python bool.
+    # OpenMS stores flags as the strings 'true'/'false'; pyOpenMS reads them
+    # by content (like ParamValue::toBool) and maps them to Python bool.
     p = pyopenms.Param()
     p.setValue("flag", True, "a flag")
     p["other"] = False
     for key, expected in (("flag", True), ("other", False)):
-        assert p.getValueType(key) == pyopenms.ValueType.STRING_VALUE
-        assert p.getValidStrings(key) == ["true", "false"]
-        assert p.getEntry(key).valid_strings == ["true", "false"]
+        assert p.getValueType(key) == pyopenms.ValueType.BOOL_VALUE
+        assert p.getValidStrings(key) == [True, False]
+        assert p.getEntry(key).valid_strings == [True, False]
         assert p.getEntry(key).value is expected
         assert p.getValue(key) is expected
         assert p[key] is expected
@@ -1815,12 +1817,19 @@ def testParamBool():
     r.update(q)
     assert r["flag"] is True
 
-    # plain strings keep working on flag entries and read back as bool
+    # plain strings keep working and read back as bool, restricted or not
     p["flag"] = "false"
     assert p["flag"] is False
-    # a string without restrictions is not converted
     p["s"] = "true"
-    assert p["s"] == "true"
+    assert p["s"] is True
+    assert p.getValidStrings("s") == []
+    p.setValidStrings("s", [True, False])
+    assert p.getValidStrings("s") == [True, False]
+    # a parameter that also allows other strings stays a str
+    p["tri"] = "true"
+    p.setValidStrings("tri", ["auto", "true", "false"])
+    assert p["tri"] == "true"
+    assert p.getValueType("tri") == pyopenms.ValueType.STRING_VALUE
 
     # bools inside lists are not supported (no OpenMS convention for them)
     try:

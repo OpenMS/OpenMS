@@ -9,14 +9,16 @@
 Tests for Python bool support in Param.
 
 OpenMS has no boolean parameter type: a flag is a string parameter holding
-'true'/'false' restricted to valid strings ['true', 'false'] (the convention
-TOPPBase, ParamXMLFile and the INI reader use). pyOpenMS translates between
-that convention and Python bool:
+'true'/'false', usually restricted to exactly these two values. The C++ side
+reads flags by content (ParamValue::toBool) and pyOpenMS does the same, so a
+boolean parameter is a Python bool on every path, whatever its origin:
 
-* assigning True/False stores 'true'/'false' and, for a key without string
-  restrictions, marks the entry as a boolean parameter
-* boolean parameters read back as True/False from getValue(), [], get(),
-  items(), values(), asDict(), to_dict() and ParamEntry.value
+* a string parameter holding 'true'/'false' reads back as True/False from
+  getValue(), [], get(), items(), values(), asDict(), to_dict() and
+  ParamEntry.value, unless its restrictions allow other values as well
+* its restrictions are [True, False] and getValueType() is BOOL_VALUE
+* assigning True/False stores 'true'/'false' and gives a key without
+  restrictions the restriction [True, False] (for INI/CTD rendering)
 """
 
 import os
@@ -26,21 +28,36 @@ import pytest
 
 import pyopenms
 
-BOOL_VALID = ["true", "false"]
+BOOL_VALID = [True, False]
+BOOL_TYPE = pyopenms.ValueType.BOOL_VALUE
+STR_TYPE = pyopenms.ValueType.STRING_VALUE
 
 
-def _assert_flag(p, key, expected):
-    """Assert that key is a boolean parameter of the given value in p."""
-    assert p.getValueType(key) == pyopenms.ValueType.STRING_VALUE
-    assert p.getValidStrings(key) == BOOL_VALID
-    assert p.getEntry(key).valid_strings == BOOL_VALID
+def _assert_flag(p, key, expected, valid=BOOL_VALID):
+    """Assert that key reads as the given bool on every path of p."""
+    assert p.getValueType(key) == BOOL_TYPE
+    assert p.getValidStrings(key) == valid
+    assert p.getEntry(key).valid_strings == valid
     assert p.getValue(key) is expected
     assert p[key] is expected
+    assert p.get(key) is expected
+    assert p.getEntry(key).value is expected
+    assert p.asDict()[key] is expected
+
+
+def _ini_round_trip(p):
+    """Store p as INI and load it back."""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "p.ini")
+        pyopenms.ParamXMLFile().store(path, p)
+        q = pyopenms.Param()
+        pyopenms.ParamXMLFile().load(path, q)
+        return q, open(path).read()
 
 
 class TestParamBoolWrite:
     def test_setValue_bool(self):
-        """setValue(key, True/False) stores a flag string and marks the entry as boolean."""
+        """setValue(key, True/False) stores a flag and marks a new key as boolean."""
         p = pyopenms.Param()
         p.setValue("flag", True, "a flag")
         _assert_flag(p, "flag", True)
@@ -49,7 +66,7 @@ class TestParamBoolWrite:
         _assert_flag(p, "flag", False)
 
     def test_setValue_bool_with_tags(self):
-        """setValue with description and tags keeps them alongside the boolean marker."""
+        """setValue with description and tags keeps them alongside the restriction."""
         p = pyopenms.Param()
         p.setValue("flag", False, "a flag", ["advanced"])
         _assert_flag(p, "flag", False)
@@ -76,8 +93,8 @@ class TestParamBoolWrite:
         p.update({"flag": True})
         _assert_flag(p, "flag", True)
 
-    def test_update_param_copies_bool_marker(self):
-        """Param.update from another Param keeps flags readable as bool."""
+    def test_update_param_copies_restriction(self):
+        """Param.update from another Param keeps the flag restriction."""
         src = pyopenms.Param()
         src["flag"] = True
         dst = pyopenms.Param()
@@ -85,12 +102,12 @@ class TestParamBoolWrite:
         _assert_flag(dst, "flag", True)
 
     def test_param_entry_ctor_bool(self):
-        """ParamEntry(name, True, ...) creates a boolean entry; a string does not."""
+        """ParamEntry(name, True, ...) and ParamEntry(name, 'true', ...) both read as bool."""
         e = pyopenms.ParamEntry("flag", True, "a flag")
         assert e.value is True
         assert e.valid_strings == BOOL_VALID
         e2 = pyopenms.ParamEntry("s", "true", "a string")
-        assert e2.value == "true"
+        assert e2.value is True
         assert e2.valid_strings == []
 
     def test_param_entry_value_setter(self):
@@ -106,15 +123,15 @@ class TestParamBoolWrite:
         assert f.value == "def"
         assert f.valid_strings == []
 
-    def test_existing_restrictions_are_kept(self):
-        """A bool assigned to an entry with other valid strings leaves the restriction alone."""
-        # a bool assigned to an entry with other valid strings does not touch them
+    def test_bool_on_entry_with_other_restrictions(self):
+        """A bool assigned to a tri-state parameter is stored but stays a str (restrictions win)."""
         p = pyopenms.Param()
         p.setValue("mode", "none")
         p.setValidStrings("mode", ["none", "fixed"])
         p["mode"] = True
         assert p.getValidStrings("mode") == ["none", "fixed"]
-        assert p["mode"] == "true"  # not a boolean parameter -> stays a str
+        assert p["mode"] == "true"
+        assert p.getValueType("mode") == STR_TYPE
         # checkDefaults reports it like any other invalid string
         defaults = pyopenms.Param()
         defaults.setValue("mode", "none")
@@ -123,21 +140,123 @@ class TestParamBoolWrite:
             p.checkDefaults("test", defaults)
 
     def test_bool_in_list_rejected(self):
-        """Lists containing bools raise TypeError on every write path."""
+        """Lists containing bools raise TypeError on every write path and at every position."""
         p = pyopenms.Param()
-        with pytest.raises(TypeError):
-            p.setValue("l", [True, False])
-        with pytest.raises(TypeError):
-            p["l"] = [True, False]
-        with pytest.raises(TypeError):
-            pyopenms.Param.from_dict({"l": [True, False]})
+        for bad in ([True, False], [1, True], [1.0, False], [2, 3, True]):
+            with pytest.raises(TypeError):
+                p.setValue("l", bad)
+            with pytest.raises(TypeError):
+                p["l"] = bad
+            with pytest.raises(TypeError):
+                pyopenms.Param.from_dict({"l": bad})
         assert "l" not in p
+        # meta values are out of scope: they take no bool, but the list guard applies there too
+        s = pyopenms.MSSpectrum()
+        with pytest.raises(TypeError):
+            s.setMetaValue("b", True)
+        with pytest.raises(TypeError):
+            s.setMetaValue("l", [1, True])
 
     def test_unsupported_type_message(self):
         """Unsupported value types raise a TypeError naming the accepted types."""
         p = pyopenms.Param()
         with pytest.raises(TypeError, match="bool"):
             p["x"] = object()
+
+
+class TestParamBoolRestrictions:
+    def test_valid_strings_of_flag_are_bools(self):
+        """Restrictions of a boolean parameter are [True, False] in either declared order."""
+        p = pyopenms.Param()
+        p.setValue("a", "true")
+        p.setValidStrings("a", ["true", "false"])
+        p.setValue("b", "true")
+        p.setValidStrings("b", ["false", "true"])
+        for key in ("a", "b"):
+            _assert_flag(p, key, True)
+            assert True in p.getValidStrings(key)
+            assert p[key] in p.getValidStrings(key)
+
+    def test_setValidStrings_accepts_bools(self):
+        """setValidStrings(key, [True, False]) (any order) stores the canonical OpenMS flag restriction."""
+        for order in ([True, False], [False, True]):
+            p = pyopenms.Param()
+            p["s"] = "false"
+            p.setValidStrings("s", order)
+            _assert_flag(p, "s", False)
+            q, ini = _ini_round_trip(p)
+            assert 'type="bool"' in ini
+            _assert_flag(q, "s", False)
+
+    def test_param_entry_valid_strings_setter(self):
+        """ParamEntry.valid_strings accepts bools and reads back as [True, False]."""
+        e = pyopenms.ParamEntry("s", "true", "")
+        e.valid_strings = [False, True]
+        assert e.valid_strings == BOOL_VALID
+        assert e.value is True
+        e.valid_strings = ["x", "y"]
+        assert e.valid_strings == ["x", "y"]
+        assert e.value == "true"
+
+    def test_invalid_restriction_elements(self):
+        """Restriction elements other than str/bytes/bool raise TypeError."""
+        p = pyopenms.Param()
+        p["s"] = "x"
+        with pytest.raises(TypeError):
+            p.setValidStrings("s", [1, 2])
+        e = pyopenms.ParamEntry("s", "x", "")
+        with pytest.raises(TypeError):
+            e.valid_strings = [1.5]
+        # a single string is not a list of valid strings
+        with pytest.raises(TypeError):
+            p.setValidStrings("s", "abc")
+        with pytest.raises(TypeError):
+            e.valid_strings = "abc"
+
+    def test_other_valid_strings_stay_str(self):
+        """String parameters with other valid strings are untouched."""
+        p = pyopenms.Param()
+        p["mode"] = "a"
+        p.setValidStrings("mode", ["a", "b"])
+        assert p["mode"] == "a"
+        assert p.getValidStrings("mode") == ["a", "b"]
+        assert p.getValueType("mode") == STR_TYPE
+
+    def test_tri_state_stays_str_everywhere(self):
+        """'true' on a parameter that also allows 'auto' stays a str on every path."""
+        p = pyopenms.Param()
+        p.setValue("tri", "auto")
+        p.setValidStrings("tri", ["auto", "true", "false"])
+        p["tri"] = "true"
+        assert p["tri"] == "true"
+        assert p.getValue("tri") == "true"
+        assert p.getEntry("tri").value == "true"
+        assert p.asDict()["tri"] == "true"
+        assert p.getValueType("tri") == STR_TYPE
+        assert p.getValidStrings("tri") == ["auto", "true", "false"]
+        p["tri"] = "auto"
+        assert p["tri"] == "auto"
+
+    def test_getValueType(self):
+        """getValueType() is BOOL_VALUE exactly when the value reads back as bool."""
+        p = pyopenms.Param()
+        p["a"] = True
+        p["b"] = "false"
+        p["c"] = "hello"
+        p["d"] = 1
+        assert p.getValueType("a") == BOOL_TYPE
+        assert p.getValueType("b") == BOOL_TYPE
+        assert p.getValueType("c") == STR_TYPE
+        assert p.getValueType("d") == pyopenms.ValueType.INT_VALUE
+        p["a"] = "maybe"
+        assert p.getValueType("a") == STR_TYPE
+        assert p["a"] == "maybe"
+        assert int(BOOL_TYPE) == 7
+        assert BOOL_TYPE not in (
+            pyopenms.ValueType.STRING_VALUE, pyopenms.ValueType.INT_VALUE,
+            pyopenms.ValueType.DOUBLE_VALUE, pyopenms.ValueType.STRING_LIST,
+            pyopenms.ValueType.INT_LIST, pyopenms.ValueType.DOUBLE_LIST,
+            pyopenms.ValueType.EMPTY_VALUE)
 
 
 class TestParamBoolRead:
@@ -167,14 +286,19 @@ class TestParamBoolRead:
         assert p.getEntry("sec:on").value is True
         assert {e.name: e.value for e in p}["on"] is True
 
-    def test_string_true_on_flag_reads_as_bool(self):
-        """Assigning 'true'/'false' strings to a flag keeps it a boolean parameter."""
+    def test_string_true_reads_as_bool(self):
+        """'true'/'false' strings read back as bool, with and without the restriction."""
         p = pyopenms.Param()
         p["flag"] = False
-        p["flag"] = "true"  # plain string keeps the restriction -> still a flag
+        p["flag"] = "true"
         _assert_flag(p, "flag", True)
         p.setValue("flag", "false")
         _assert_flag(p, "flag", False)
+        p["s"] = "true"
+        _assert_flag(p, "s", True, valid=[])
+        p["s"] = "false"
+        _assert_flag(p, "s", False, valid=[])
+        assert pyopenms.Param.from_dict({"f": True}) == pyopenms.Param.from_dict({"f": "true"})
 
     def test_invalid_string_on_flag_is_returned_unchanged(self):
         """An invalid string on a flag reads back unchanged (str)."""
@@ -182,23 +306,8 @@ class TestParamBoolRead:
         p["flag"] = True
         p["flag"] = "maybe"
         assert p["flag"] == "maybe"
+        assert p.getValueType("flag") == STR_TYPE
         assert p.getValidStrings("flag") == BOOL_VALID
-
-    def test_unrestricted_string_is_not_converted(self):
-        """'true' on a key without the flag restriction stays a str."""
-        p = pyopenms.Param()
-        p["s"] = "true"
-        assert p["s"] == "true"
-        assert p.getValidStrings("s") == []
-        p.setValidStrings("s", ["false", "true"])  # reversed order is not the convention
-        assert p["s"] == "true"
-
-    def test_other_valid_strings_stay_str(self):
-        """String parameters with other valid strings are untouched."""
-        p = pyopenms.Param()
-        p["mode"] = "a"
-        p.setValidStrings("mode", ["a", "b"])
-        assert p["mode"] == "a"
 
     def test_round_trip_dict(self):
         """from_dict(to_dict()) preserves boolean parameters."""
@@ -210,16 +319,94 @@ class TestParamBoolRead:
         _assert_flag(q, "sec:off", False)
 
     def test_round_trip_ini(self):
-        """ParamXMLFile store/load preserves boolean parameters."""
+        """ParamXMLFile store/load preserves boolean parameters, restricted or not."""
         p = self._make()
-        with tempfile.TemporaryDirectory() as tmp:
-            path = os.path.join(tmp, "p.ini")
-            pyopenms.ParamXMLFile().store(path, p)
-            q = pyopenms.Param()
-            pyopenms.ParamXMLFile().load(path, q)
+        p["plain"] = "true"  # no restriction: stored as type="string"
+        q, ini = _ini_round_trip(p)
         _assert_flag(q, "sec:on", True)
         _assert_flag(q, "sec:off", False)
+        _assert_flag(q, "plain", True, valid=[])
         assert q["n"] == 3 and q["s"] == "text"
+
+
+class TestParamBoolConsistency:
+    """The same flag must read as bool no matter how the Param was built."""
+
+    def test_reversed_restriction_order_in_cpp_defaults(self):
+        """C++ classes declaring ['false', 'true'] read like those declaring ['true', 'false']."""
+        gf = pyopenms.GaussFilter().getDefaults()
+        _assert_flag(gf, "use_ppm_tolerance", False)
+        ffm = pyopenms.FeatureFindingMetabo().getDefaults()
+        _assert_flag(ffm, "report_convex_hulls", False)
+        _assert_flag(ffm, "enable_RT_filtering", True)
+        _assert_flag(pyopenms.PeakIntegrator().getDefaults(), "fit_EMG", False)
+
+    def test_unrestricted_cpp_default(self):
+        """A C++ default declared as 'true' without restriction reads as bool."""
+        p = pyopenms.MRMFeatureFinderScoring().getDefaults()
+        _assert_flag(p, "use_ms1_ion_mobility", True, valid=[])
+
+    def test_partial_param_setParameters(self):
+        """A partial Param with string- or bool-valued flags reads as bool before and after setParameters."""
+        for value in ("false", False):
+            p = pyopenms.Param()
+            p["use_ppm_tolerance"] = value
+            assert p["use_ppm_tolerance"] is False
+            gf = pyopenms.GaussFilter()
+            gf.setParameters(p)
+            assert gf.getParameters()["use_ppm_tolerance"] is False
+            assert gf.getParameters()["write_log_messages"] is False
+        for value in ("true", True):
+            p = pyopenms.Param()
+            p["use_ppm_tolerance"] = value
+            gf = pyopenms.GaussFilter()
+            gf.setParameters(p)
+            assert gf.getParameters()["use_ppm_tolerance"] is True
+
+    def test_setDefaults(self):
+        """Param.setDefaults on a partial Param leaves every flag readable as bool."""
+        p = pyopenms.Param()
+        p["use_ppm_tolerance"] = "false"
+        p.setDefaults(pyopenms.GaussFilter().getDefaults())
+        assert p["use_ppm_tolerance"] is False
+        assert p["write_log_messages"] is False
+        assert p.getValueType("use_ppm_tolerance") == BOOL_TYPE
+
+    def test_merge_and_insert_both_directions(self):
+        """merge()/insert() give bool whichever side carried the restriction."""
+        a = pyopenms.Param()
+        a["flag"] = "true"
+        b = pyopenms.Param()
+        b["flag"] = True
+        ab = pyopenms.Param(a)
+        ab.merge(b)
+        ba = pyopenms.Param(b)
+        ba.merge(a)
+        assert ab["flag"] is True and ba["flag"] is True
+        c = pyopenms.Param()
+        c.insert("", a)
+        d = pyopenms.Param()
+        d.insert("", b)
+        assert c["flag"] is True and d["flag"] is True
+        assert c.getValueType("flag") == BOOL_TYPE
+
+    def test_ini_round_trip_of_cpp_defaults(self):
+        """INI store/load of defaults gives bool for both restriction orders."""
+        q, _ = _ini_round_trip(pyopenms.FeatureFindingMetabo().getDefaults())
+        _assert_flag(q, "report_convex_hulls", False)
+        q, _ = _ini_round_trip(pyopenms.GaussFilter().getDefaults())
+        _assert_flag(q, "use_ppm_tolerance", False)
+
+    def test_idfilter_like_enum_with_false_member(self):
+        """A parameter whose restrictions are ['false', 'sequence', ...] is a str on every path."""
+        p = pyopenms.Param()
+        p.setValue("best", "false")
+        p.setValidStrings("best", ["false", "sequence", "sequence+charge"])
+        assert p["best"] == "false"
+        assert p.getValueType("best") == STR_TYPE
+        assert p.getValidStrings("best") == ["false", "sequence", "sequence+charge"]
+        p["best"] = "sequence"
+        assert p["best"] == "sequence"
 
 
 class TestParamBoolAlgorithm:
@@ -237,7 +424,7 @@ class TestParamBoolAlgorithm:
         p = gf.getParameters()
         p["use_ppm_tolerance"] = True
         assert p.getValidStrings("use_ppm_tolerance") == BOOL_VALID
-        assert p.getValueType("use_ppm_tolerance") == pyopenms.ValueType.STRING_VALUE
+        assert p.getValueType("use_ppm_tolerance") == BOOL_TYPE
         p.checkDefaults("GaussFilter", gf.getDefaults())
         gf.setParameters(p)
         assert gf.getParameters()["use_ppm_tolerance"] is True

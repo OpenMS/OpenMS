@@ -50,84 +50,8 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
-namespace {
-
-// Python-facing boolean support for Param.
-//
-// OpenMS has no boolean ParamValue. A boolean parameter ("flag") is a
-// STRING_VALUE holding "true"/"false" whose entry is restricted to exactly
-// valid_strings == {"true", "false"} (order-sensitive). This is the same
-// structural test TOPPBase, ParamXMLFile and ParamCWLFile use to recognise
-// flags, and what ParamXMLHandler creates for INI entries of type="bool".
-// The helpers below translate between that convention and Python bool on
-// every Param read/write path.
-
-// Signature string for values accepted by the Param write paths (kept in sync
-// with the ParamValue type caster in type_casters/openms_datavalue_caster.h).
-constexpr const char* kParamValueSig = "None | bool | int | float | str | bytes | list[str] | list[int] | list[float]";
-
-const std::vector<std::string>& paramBoolValidStrings()
-{
-    static const std::vector<std::string> valid{"true", "false"};
-    return valid;
-}
-
-// True if the entry is a boolean parameter by the OpenMS convention.
-bool paramEntryIsBool(const OpenMS::Param::ParamEntry& entry)
-{
-    return entry.value.valueType() == OpenMS::ParamValue::STRING_VALUE
-        && entry.valid_strings == paramBoolValidStrings();
-}
-
-// Read side: Python True/False for a boolean parameter holding "true"/"false",
-// otherwise the plain caster result. Any other string on a flag entry (e.g. an
-// invalid "maybe" that checkDefaults is meant to reject) is returned unchanged.
-nb::object paramEntryValueToPython(const OpenMS::Param::ParamEntry& entry)
-{
-    if (paramEntryIsBool(entry))
-    {
-        const std::string s = entry.value;  // safe: STRING_VALUE
-        if (s == "true") return nb::bool_(true);
-        if (s == "false") return nb::bool_(false);
-    }
-    return nb::cast(entry.value);
-}
-
-// Write side: convert a Python object to ParamValue, remembering whether it
-// was a bool (nanobind overload dispatch on `const ParamValue&` would lose
-// that information, and the caster cannot touch the entry's restrictions).
-OpenMS::ParamValue paramValueFromPython(nb::handle value, bool& was_bool)
-{
-    was_bool = PyBool_Check(value.ptr());
-    OpenMS::ParamValue pv;
-    if (!nb::try_cast(value, pv))
-    {
-        const std::string type_name = nb::cast<std::string>(nb::str(value.type().attr("__name__")));
-        throw nb::type_error(("Param value must be " + std::string(kParamValueSig) + ", got " + type_name).c_str());
-    }
-    return pv;
-}
-
-// Single entry point for every Param write path. Sets the value and, when the
-// source was a Python bool and the entry carries no string restriction yet,
-// marks it as a boolean parameter so it reads back as bool. Existing
-// restrictions are never overwritten (Param::setValue keeps valid_strings of
-// an existing entry, so assigning True to an algorithm flag keeps its marker).
-void paramSetValueFromPython(OpenMS::Param& param, const std::string& key, nb::handle value,
-                             const std::string& description = "",
-                             const std::vector<std::string>& tags = std::vector<std::string>())
-{
-    bool was_bool = false;
-    const OpenMS::ParamValue pv = paramValueFromPython(value, was_bool);
-    param.setValue(key, pv, description, tags);
-    if (was_bool && param.getEntry(key).valid_strings.empty())
-    {
-        // cannot throw: the entry is a STRING_VALUE and the strings contain no comma
-        param.setValidStrings(key, paramBoolValidStrings());
-    }
-}
-
-} // namespace
+#include "param_bool.h"
+using namespace pyopenms_param_bool;
 
 NB_MODULE(_pyopenms_datastructures, m) {
     m.doc() = "pyOpenMS datastructures bindings";
@@ -757,10 +681,12 @@ Hierarchy levels are separated from each other by colons (e.g., 'algorithm:commo
 Each parameter and section has a description. Newline characters in the description are possible.
 Each parameter can be annotated with an arbitrary number of tags (e.g., 'advanced').
 
-Boolean parameters: OpenMS stores flags as the strings 'true'/'false' restricted to
-valid strings ['true', 'false']. In Python such entries are read as bool (True/False)
-and accept bool on assignment, e.g. ``p["use_ppm_tolerance"] = True``. Assigning a bool
-to a new key creates such a boolean parameter.
+Boolean parameters: OpenMS has no boolean type and stores flags as the strings 'true'/'false'
+(usually restricted to exactly these two values). In Python a string parameter holding 'true'/'false'
+is a bool on every read path (getValue(), [], get(), items(), values(), asDict(), ParamEntry.value),
+its restrictions are [True, False], getValueType() reports ValueType.BOOL_VALUE, and it accepts bool
+on assignment, e.g. ``p["use_ppm_tolerance"] = True``. The only exception are string parameters whose
+restrictions allow other values as well (e.g. 'auto', 'true', 'false'); those stay str.
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Param &>())
@@ -770,7 +696,10 @@ to a new key creates such a boolean parameter.
         .def("getValue", [](const OpenMS::Param& self, const std::string& key) -> nb::object {
             return paramEntryValueToPython(self.getEntry(key));
         }, "key"_a, "Returns the value of the parameter specified by key (boolean parameters as bool). Raises exception if not found")
-        .def("getValueType", [](const OpenMS::Param& self, const std::string& key) { return self.getValueType(key); }, "key"_a, "Returns the type of the parameter specified by key. Raises exception if not found")
+        .def("getValueType", [](const OpenMS::Param& self, const std::string& key) {
+            const OpenMS::Param::ParamEntry& entry = self.getEntry(key);
+            return paramEntryReadsAsBool(entry) ? kParamBoolValueType : entry.value.valueType();
+        }, "key"_a, "Returns the type of the parameter specified by key (ValueType.BOOL_VALUE for boolean parameters). Raises exception if not found")
         .def("getEntry", [](const OpenMS::Param& self, const std::string& key) -> OpenMS::Param::ParamEntry { return self.getEntry(key); }, "key"_a, "Returns a copy of the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
         .def("getDescription", [](const OpenMS::Param& self, const std::string& key) { return self.getDescription(key); }, "key"_a, "Returns the description of the parameter specified by key")
         .def("exists", [](const OpenMS::Param& self, const std::string& key) { return self.exists(key); }, "key"_a, "Returns True if the parameter exists, False otherwise")
@@ -804,8 +733,11 @@ Optionally adds a prefix to all keys and prints a message for each default value
 Checks current parameter entries against given defaults.
 Validates types, string restrictions, and numeric ranges. Raises exception on invalid parameters
 )doc")
-        .def("setValidStrings", [](OpenMS::Param& self, const std::string& key, const std::vector<std::basic_string<char>>& strings) { return self.setValidStrings(key, strings); }, "key"_a, "strings"_a, "Sets the list of valid string values for the parameter (checked by checkDefaults)")
-        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, "Returns the list of valid string values for the parameter")
+        .def("setValidStrings", [](OpenMS::Param& self, const std::string& key, nb::sequence strings) { return self.setValidStrings(key, paramValidStringsFromPython(strings)); }, "key"_a, "strings"_a.sig("list[str] | list[bool]"),
+            "Sets the list of valid values for a string parameter (checked by checkDefaults). [True, False] makes it a boolean parameter")
+        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> nb::object { return paramValidStringsToPython(self.getValidStrings(key)); }, "key"_a,
+            nb::sig("def getValidStrings(self, key: str) -> list[str] | list[bool]"),
+            "Returns the list of valid values for a string parameter; [True, False] for a boolean parameter")
         .def("setMinInt", [](OpenMS::Param& self, const std::string& key, int min) { return self.setMinInt(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for an integer parameter")
         .def("setMaxInt", [](OpenMS::Param& self, const std::string& key, int max) { return self.setMaxInt(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for an integer parameter")
         .def("setMinFloat", [](OpenMS::Param& self, const std::string& key, double min) { return self.setMinFloat(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for a float parameter")
@@ -835,8 +767,8 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         }, "key"_a, "value"_a.sig(kParamValueSig), "description"_a = "", "tags"_a = std::vector<std::string>(),
             R"doc(
 Sets a value (None, bool, int, float, str, bytes or a list of str/int/float) with description and tags.
-A bool is stored as the OpenMS flag string 'true'/'false'; a new key assigned a bool becomes a
-boolean parameter (valid strings ['true', 'false']) and reads back as bool
+A bool is stored as the OpenMS flag string 'true'/'false' and reads back as bool; a new key
+assigned a bool additionally gets the restriction [True, False] so that INI/CTD files render it as a flag
 )doc")
 
         // Dict-like API
@@ -903,8 +835,8 @@ boolean parameter (valid strings ['true', 'false']) and reads back as bool
                     if (filter && !self.exists(key)) continue;
                     const OpenMS::Param::ParamEntry& entry = *it;
                     self.setValue(key, entry.value);
-                    // keep boolean parameters readable as bool after the copy
-                    if (paramEntryIsBool(entry) && self.getEntry(key).valid_strings.empty()) {
+                    // copy the flag restriction so INI/CTD writers still render it as a flag
+                    if (paramValidStringsAreBool(entry.valid_strings) && self.getEntry(key).valid_strings.empty()) {
                         self.setValidStrings(key, paramBoolValidStrings());
                     }
                 }
@@ -941,7 +873,7 @@ boolean parameter (valid strings ['true', 'false']) and reads back as bool
             new (self) OpenMS::Param::ParamEntry(name, pv, description, tags);
             if (was_bool) self->valid_strings = paramBoolValidStrings();
         }, "name"_a, "value"_a.sig(kParamValueSig), "description"_a, "tags"_a = std::vector<std::string>(),
-            "Create an entry. A bool value creates a boolean parameter (stored as 'true'/'false' with valid strings ['true', 'false'])")
+            "Create an entry. A bool value is stored as 'true'/'false' with the restriction [True, False] and reads back as bool")
         .def_rw("name", &OpenMS::Param::ParamEntry::name)
         .def_rw("description", &OpenMS::Param::ParamEntry::description)
         .def_prop_rw("value",
@@ -951,9 +883,14 @@ boolean parameter (valid strings ['true', 'false']) and reads back as bool
                 self.value = paramValueFromPython(value, was_bool);
                 if (was_bool && self.valid_strings.empty()) self.valid_strings = paramBoolValidStrings();
             },
-            "Value of the entry. Boolean parameters (valid strings ['true', 'false']) are returned as bool and accept bool")
+            "Value of the entry. Boolean parameters (string 'true'/'false') are returned as bool and accept bool")
         .def_rw("tags", &OpenMS::Param::ParamEntry::tags)
-        .def_rw("valid_strings", &OpenMS::Param::ParamEntry::valid_strings)
+        .def_prop_rw("valid_strings",
+            [](const OpenMS::Param::ParamEntry& self) { return paramValidStringsToPython(self.valid_strings); },
+            [](OpenMS::Param::ParamEntry& self, nb::sequence strings) { self.valid_strings = paramValidStringsFromPython(strings); },
+            nb::for_getter(nb::sig("def valid_strings(self, /) -> list[str] | list[bool]")),
+            nb::for_setter(nb::sig("def valid_strings(self, arg: list[str] | list[bool], /) -> None")),
+            "Valid values of a string parameter; [True, False] for a boolean parameter")
         .def_rw("max_float", &OpenMS::Param::ParamEntry::max_float)
         .def_rw("min_float", &OpenMS::Param::ParamEntry::min_float)
         .def_rw("max_int", &OpenMS::Param::ParamEntry::max_int)
@@ -1290,7 +1227,8 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("INT_LIST", OpenMS::ParamValue::INT_LIST)
         .value("DOUBLE_LIST", OpenMS::ParamValue::DOUBLE_LIST)
         .value("EMPTY_VALUE", OpenMS::ParamValue::EMPTY_VALUE)
-
+        .value("BOOL_VALUE", kParamBoolValueType,
+            "Boolean parameter (pyOpenMS only: OpenMS stores it as the string 'true'/'false')")
         ;
 
     // -----------------------------------------------------------------------

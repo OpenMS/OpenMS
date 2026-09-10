@@ -210,12 +210,19 @@ PyOpenMS:
     .drift_time, .native_id, ...; Peak1D.mz, .intensity) -- purely additive, the get*/set* methods are
     unchanged (#8501, #8503, #8510, #8576, #8631, #9760)
   - Strings: functions accept both str and bytes via libcpp_utf8_string (#8602, #8604)
-  - Param accepts and returns Python bool: assigning True/False stores the OpenMS flag string
-    "true"/"false" and marks a new key as a boolean parameter (valid strings ['true', 'false']);
-    boolean parameters (valid strings exactly ['true', 'false'], the TOPPBase/ParamXMLFile
-    convention) are returned as bool from getValue()/[]/get()/items()/values()/asDict()/to_dict()
-    and ParamEntry.value. String assignments keep working; comparing a flag value with the string
-    "true" no longer holds (compare with True). Bools inside lists are still rejected
+  - Param boolean parameters are Python bool: OpenMS stores flags as the strings "true"/"false",
+    pyOpenMS reads them by content like the C++ side does (ParamValue::toBool), so every string
+    parameter holding "true"/"false" is returned as bool from getValue()/[]/get()/items()/values()/
+    asDict()/to_dict()/ParamEntry.value, whatever its origin (algorithm defaults, INI files,
+    setDefaults()/merge()/insert(), user assignment of True or of the string "true"). Assigning
+    True/False stores "true"/"false" and gives a new key the restriction [True, False] so INI/CTD
+    files render it as a flag. Restrictions of boolean parameters (getValidStrings(),
+    ParamEntry.valid_strings) are [True, False] and accept bools; Param.getValueType() returns the
+    pyOpenMS-only ValueType.BOOL_VALUE for them. String parameters whose restrictions allow other
+    values ("auto,true,false") stay str. Breaking: comparing a flag value with the string "true" no
+    longer holds (use the bool), getValidStrings() of a flag is [True, False] instead of
+    ['true', 'false']. Bools inside lists are rejected (at every list position). Meta values
+    (setMetaValue/getMetaValue) are unchanged and still do not accept bool
   - New wrappers: ProFormaParser (full ProForma v2: parse/serialize with LOSSLESS/CANONICAL modes,
     AASequence conversion policies, mass calculation, JSON round-trip) (#8648); USI (#8684);
     PEFFFile/PEFFEntry/PEFFDatabaseMetadata for PSI Extended FASTA (#8690); XICParquetFile and

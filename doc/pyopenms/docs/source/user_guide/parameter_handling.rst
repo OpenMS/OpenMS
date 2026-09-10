@@ -168,27 +168,44 @@ Boolean parameters
 ******************
 
 OpenMS itself has no boolean parameter type: a flag is a string parameter holding ``'true'`` or
-``'false'`` that is restricted to exactly these two values (see the next section on restrictions).
-pyOpenMS maps this convention to Python ``bool``: such parameters are returned as ``True``/``False``
-by ``getValue()``, ``[]``, ``get()``, ``items()``, ``values()`` and ``asDict()``, and they accept a
-``bool`` on assignment. Assigning a ``bool`` to a new key creates a boolean parameter.
+``'false'`` (usually restricted to exactly these two values, see the next section). The C++ side
+reads such a parameter by content (``ParamValue::toBool()``), and pyOpenMS does the same: from
+Python a boolean parameter is a ``bool`` on every path, whatever its origin (algorithm defaults,
+INI files, ``setDefaults()``/``merge()``/``insert()``, or your own assignment of ``True`` or of
+the string ``"true"``).
+
+* ``getValue()``, ``[]``, ``get()``, ``items()``, ``values()``, ``asDict()`` and
+  ``ParamEntry.value`` return ``True``/``False``
+* ``getValidStrings()`` and ``ParamEntry.valid_strings`` return ``[True, False]``
+* ``getValueType()`` returns ``ValueType.BOOL_VALUE`` (a pyOpenMS-only type tag)
+* assignments accept ``bool``; a new key assigned a ``bool`` gets the restriction ``[True, False]``
+  so that INI/CTD files render it as a flag
 
 .. code-block:: python
     :linenos:
 
     gf = oms.GaussFilter()
     gfp = gf.getParameters()
-    gfp["use_ppm_tolerance"]         ## False
-    gfp["use_ppm_tolerance"] = True  ## stored as 'true', valid strings ['true', 'false']
+    gfp["use_ppm_tolerance"]                    ## False
+    gfp.getValidStrings("use_ppm_tolerance")    ## [True, False]
+    gfp.getValueType("use_ppm_tolerance")       ## ValueType.BOOL_VALUE
+    gfp["use_ppm_tolerance"] = True             ## stored as the string 'true'
     gf.setParameters(gfp)
-    gf.getParameters()["use_ppm_tolerance"]  ## True
+    gf.getParameters()["use_ppm_tolerance"]     ## True
 
     p = oms.Param()
     p["p_bool"] = False
-    p.getValidStrings("p_bool")       ## ['true', 'false']
+    p["p_str"] = "true"                         ## a string holding 'true' ...
+    p["p_str"]                                  ## ... reads back as True as well
+    p.setValidStrings("p_str", [True, False])   ## makes it a flag for INI/CTD files, too
 
-Assigning the strings ``"true"``/``"false"`` keeps working. Note that a boolean parameter compares
-equal to ``True``/``False``, not to the string ``"true"``.
+The only string parameters holding ``'true'``/``'false'`` that stay ``str`` are those whose
+restrictions allow other values as well (e.g. ``['auto', 'true', 'false']``). Note that a boolean
+parameter compares equal to ``True``/``False``, not to the string ``"true"``, and that
+``isinstance(value, bool)`` must be tested before ``isinstance(value, int)`` because ``bool`` is a
+subclass of ``int`` in Python. Lists of bools are not supported (OpenMS has no boolean list type).
+Meta values (``setMetaValue()``/``getMetaValue()``) are not covered: they still take and return
+the strings ``'true'``/``'false'``.
 
 
 Restrictions(=Validity) of Parameter Values
@@ -213,7 +230,7 @@ E.g.
 
     gf = oms.GaussFilter()
     gfp = gf.getParameters()
-    gfp.getValidStrings("use_ppm_tolerance")  ## yields ['true', 'false']
+    gfp.getValidStrings("use_ppm_tolerance")  ## yields [True, False]
     
     gfp.setValue(b"use_ppm_tolerance", "maybe") ## is invalid but setValue does not complain
     ##  ... until you actually set the parameters:
