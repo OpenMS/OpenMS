@@ -1823,10 +1823,15 @@ def testParamBool():
     p["s"] = "true"
     assert p["s"] is True
     assert p.getValidStrings("s") == []
+    # restrictions of a boolean parameter are shown as bools too; the C++
+    # side stores 'true'/'false', so ["true", "false"] would be equivalent
     p.setValidStrings("s", [True, False])
     assert p.getValidStrings("s") == [True, False]
-    # a parameter that also allows other strings stays a str
+    # the type follows the entry's current value and restrictions: while
+    # 'tri' is unrestricted it reads as bool, once 'auto' is allowed as
+    # well it is a str on every path (in whichever order the calls happen)
     p["tri"] = "true"
+    assert p["tri"] is True
     p.setValidStrings("tri", ["auto", "true", "false"])
     assert p["tri"] == "true"
     assert p.getValueType("tri") == pyopenms.ValueType.STRING_VALUE

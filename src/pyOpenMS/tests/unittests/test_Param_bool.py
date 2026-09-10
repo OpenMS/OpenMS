@@ -237,6 +237,32 @@ class TestParamBoolRestrictions:
         p["tri"] = "auto"
         assert p["tri"] == "auto"
 
+    def test_type_follows_current_restrictions_in_any_order(self):
+        """The Python type is derived from the entry's current value and restrictions, whatever the call order."""
+        # value first, restriction later: reads as bool until 'auto' is allowed as well
+        p = pyopenms.Param()
+        p["tri"] = "true"
+        assert p["tri"] is True
+        assert p.getValueType("tri") == BOOL_TYPE
+        p.setValidStrings("tri", ["auto", "true", "false"])
+        assert p["tri"] == "true"
+        assert p.getValueType("tri") == STR_TYPE
+        # restriction first, value later: str from the start
+        q = pyopenms.Param()
+        q.setValue("tri", "auto")
+        q.setValidStrings("tri", ["auto", "true", "false"])
+        q["tri"] = "true"
+        assert q["tri"] == "true"
+        # narrowing the restriction back to the two bool strings makes it a bool again
+        q.setValidStrings("tri", ["true", "false"])
+        assert q["tri"] is True
+        assert q.getValidStrings("tri") == BOOL_VALID
+        # at every point all read paths agree with each other
+        for param in (p, q):
+            v = param["tri"]
+            for other in (param.getValue("tri"), param.getEntry("tri").value, param.asDict()["tri"]):
+                assert other == v and type(other) is type(v)
+
     def test_getValueType(self):
         """getValueType() is BOOL_VALUE exactly when the value reads back as bool."""
         p = pyopenms.Param()
