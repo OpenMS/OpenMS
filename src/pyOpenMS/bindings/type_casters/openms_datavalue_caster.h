@@ -36,6 +36,7 @@ namespace detail {
  *
  * Python -> C++:
  *   - None -> Empty
+ *   - bool -> String "true"/"false" (OpenMS boolean convention, see toBool())
  *   - int -> Int
  *   - float -> Double
  *   - str -> String
@@ -51,13 +52,21 @@ template <>
 struct type_caster<OpenMS::DataValue> {
 public:
     NB_TYPE_CASTER(OpenMS::DataValue,
-                   const_name("None | int | float | str | bytes | "
+                   const_name("None | bool | int | float | str | bytes | "
                              "list[str] | list[int] | list[float]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty DataValue
         if (src.is_none()) {
             value = OpenMS::DataValue();
+            return true;
+        }
+
+        // Python bool -> OpenMS boolean convention: DataValue has no bool type,
+        // flags are the strings "true"/"false" (see DataValue::toBool()).
+        // Must precede the int branch because bool is a subclass of int.
+        if (PyBool_Check(src.ptr())) {
+            value = OpenMS::DataValue(std::string(src.ptr() == Py_True ? "true" : "false"));
             return true;
         }
 
@@ -308,9 +317,8 @@ public:
  * Conversion logic is essentially the same, with one addition: a Python bool
  * is accepted and stored as the OpenMS boolean convention, i.e. the string
  * "true"/"false" (Param has no boolean type; boolean parameters are string
- * parameters restricted to 'true'/'false'). The reverse mapping cannot happen
- * here because it depends on the entry's valid_strings, which only the Param
- * bindings can see (see bind_datastructures.cpp).
+ * parameters restricted to 'true'/'false'). Reading stays a plain str; use
+ * Param.getBool() for an explicit conversion (mirrors ParamValue::toBool()).
  */
 template <>
 struct type_caster<OpenMS::ParamValue> {
