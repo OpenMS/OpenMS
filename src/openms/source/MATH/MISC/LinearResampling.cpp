@@ -1,17 +1,14 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-//
+// 
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
-
-
-using namespace std;
+#include <OpenMS/MATH/MISC/LinearResampling.h>
 
 namespace OpenMS
 {
-
-} // namespace OpenMS
+  std::atomic<bool> suppress_resampling_spacing_warning{false};
+}

@@ -25,7 +25,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>

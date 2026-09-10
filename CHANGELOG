@@ -17,6 +17,10 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Move spectrum-type estimation into KERNEL and share the linear resampling implementation
+    between MSExperiment::calculateTIC and LinearResamplerAlign, removing three dependencies
+    from core code to FORMAT, PROCESSING and APPLICATIONS. Existing APIs, the old estimator
+    include path, numerical behavior and resampling warnings are preserved (see #10083).
   - Share alignment model defaults through TransformationModelDefaults in the analysis layer;
     tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction (#10092)
   - Explicitly disable AUTOMOC for OpenMS and OpenSwathAlgo even when Qt is found;
