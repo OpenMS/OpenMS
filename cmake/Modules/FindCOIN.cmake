@@ -96,6 +96,28 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
       # NAMES_PER_DIR: by default find_library() takes one name at a time and scans
       # every directory for it, so the contrib-style "libCgl" would be preferred over
       # the vcpkg-style "Cgl" regardless of directory order.
+      #
+      # find_library() reuses an existing (non-NOTFOUND) cache entry without looking
+      # at PATHS again, so a build directory that is reconfigured for another triplet
+      # or provider would silently keep the libraries of the previous configuration.
+      # Drop cached values that do not live in the current vcpkg triplet tree.
+      foreach(_cfg RELEASE DEBUG)
+        if(COIN_${_libname}_LIBRARY_${_cfg})
+          cmake_path(IS_PREFIX _VCPKG_INSTALLED_DIR "${COIN_${_libname}_LIBRARY_${_cfg}}" NORMALIZE _coin_in_vcpkg)
+          if(_coin_in_vcpkg)
+            cmake_path(RELATIVE_PATH COIN_${_libname}_LIBRARY_${_cfg} BASE_DIRECTORY "${_VCPKG_INSTALLED_DIR}" OUTPUT_VARIABLE _coin_rel)
+            if(NOT _coin_rel MATCHES "^${VCPKG_TARGET_TRIPLET}/")
+              set(_coin_in_vcpkg FALSE)
+            endif()
+          endif()
+          if(NOT _coin_in_vcpkg)
+            message(STATUS "Discarding stale COIN_${_libname}_LIBRARY_${_cfg}='${COIN_${_libname}_LIBRARY_${_cfg}}' (not in ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})")
+            unset(COIN_${_libname}_LIBRARY_${_cfg} CACHE)
+          endif()
+          unset(_coin_in_vcpkg)
+          unset(_coin_rel)
+        endif()
+      endforeach()
       find_library(COIN_${_libname}_LIBRARY_RELEASE
         NAMES ${_lib_file_names}
         NAMES_PER_DIR
