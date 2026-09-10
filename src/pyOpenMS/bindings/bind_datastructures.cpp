@@ -32,6 +32,7 @@
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
 #include <OpenMS/MATH/STATISTICS/RankData.h>
+#include <cmath>
 #include <iomanip>
 #include <limits>
 #include <nanobind/make_iterator.h>
@@ -52,6 +53,16 @@ namespace nb = nanobind;
 using namespace nb::literals;
 
 namespace {
+
+// Replaces line breaks and tabs so a value stays on one output line.
+std::string flattenToOneLine(std::string text)
+{
+    for (char& c : text)
+    {
+        if (c == '\n' || c == '\r' || c == '\t') c = ' ';
+    }
+    return text;
+}
 
 // Formats a single Param entry as one human-readable line:
 //   key = value (restrictions) [tags]  # description
@@ -108,7 +119,7 @@ std::string paramEntryToString(const std::string& key, const OpenMS::Param::Para
         for (const auto& tag : entry.tags)
         {
             if (!first) line += ", ";
-            line += tag;
+            line += flattenToOneLine(tag);
             first = false;
         }
         line += "]";
@@ -116,15 +127,35 @@ std::string paramEntryToString(const std::string& key, const OpenMS::Param::Para
 
     if (!entry.description.empty())
     {
-        // keep one entry per line: flatten multi-line descriptions
-        std::string desc = entry.description;
-        for (char& c : desc)
-        {
-            if (c == '\n' || c == '\r' || c == '\t') c = ' ';
-        }
-        line += "  # " + desc;
+        line += "  # " + flattenToOneLine(entry.description);
     }
     return line;
+}
+
+// repr() of a Python value that eval() can read back. Python's own repr of
+// non-finite floats ("nan", "inf") is not evaluable, so those are spelled
+// float('nan') / float('inf') / float('-inf'); lists are handled per element.
+std::string evaluableRepr(nb::handle value)
+{
+    if (PyFloat_Check(value.ptr()))
+    {
+        const double d = PyFloat_AsDouble(value.ptr());
+        if (std::isnan(d)) return "float('nan')";
+        if (std::isinf(d)) return d > 0 ? "float('inf')" : "float('-inf')";
+    }
+    else if (PyList_Check(value.ptr()))
+    {
+        std::string out = "[";
+        bool first = true;
+        for (nb::handle item : nb::borrow<nb::list>(value))
+        {
+            if (!first) out += ", ";
+            out += evaluableRepr(item);
+            first = false;
+        }
+        return out + "]";
+    }
+    return nb::cast<std::string>(nb::repr(value));
 }
 
 // Builds the {key: value} dict that Param.asDict()/to_dict() return.
@@ -892,7 +923,16 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("__repr__", [](const OpenMS::Param& self) {
             // Evaluable: Param(dict) reconstructs the keys and values
             // (descriptions, tags and restrictions are not part of the repr).
-            return "Param(" + nb::cast<std::string>(nb::repr(paramToDict(self))) + ")";
+            std::string out = "Param({";
+            bool first = true;
+            for (auto it = self.begin(); it != self.end(); ++it)
+            {
+                if (!first) out += ", ";
+                out += nb::cast<std::string>(nb::repr(nb::str(it.getName().c_str())));
+                out += ": " + evaluableRepr(nb::cast(it->value));
+                first = false;
+            }
+            return out + "})";
         })
         .def("__str__", [](const OpenMS::Param& self) {
             if (self.empty())
@@ -989,7 +1029,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             }
             tags += "]";
             return "ParamEntry(name=" + nb::cast<std::string>(nb::repr(nb::str(self.name.c_str())))
-                 + ", value=" + nb::cast<std::string>(nb::repr(nb::cast(self.value)))
+                 + ", value=" + evaluableRepr(nb::cast(self.value))
                  + ", description=" + nb::cast<std::string>(nb::repr(nb::str(self.description.c_str())))
                  + ", tags=" + tags + ")";
         })
