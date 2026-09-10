@@ -309,6 +309,45 @@ openms_add_library(TARGET_NAME  OpenMS
 # The core library has no QObject classes, including in builds that also find Qt.
 set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
 
+## When an in-tree executable links libOpenMS.so, the linker has to locate the
+## private shared dependencies of libOpenMS by soname. CMake passes -rpath-link
+## for them only when the imported target is typed SHARED; find modules such as
+## FindCURL and FindXercesC create UNKNOWN targets. Without the hint, a library
+## of the same soname earlier on the search path (e.g. a conda environment on
+## CMAKE_PREFIX_PATH) is picked instead of the one libOpenMS was linked against,
+## and its versioned symbols stay unresolved (#10114). Point the linker at the
+## exact directories. BUILD_INTERFACE keeps this out of the installed export;
+## installed consumers resolve these through the install RPATH of libOpenMS.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  foreach(_dep IN LISTS OPENMS_DEP_PRIVATE_LIBRARIES)
+    if(NOT TARGET "${_dep}")
+      continue()
+    endif()
+    get_target_property(_dep_type ${_dep} TYPE)
+    if(NOT _dep_type STREQUAL "UNKNOWN_LIBRARY")
+      continue()
+    endif()
+    get_target_property(_dep_location ${_dep} IMPORTED_LOCATION)
+    if(NOT _dep_location)
+      get_target_property(_dep_configs ${_dep} IMPORTED_CONFIGURATIONS)
+      foreach(_dep_config IN LISTS _dep_configs)
+        get_target_property(_dep_location ${_dep} IMPORTED_LOCATION_${_dep_config})
+        if(_dep_location)
+          break()
+        endif()
+      endforeach()
+    endif()
+    if(_dep_location MATCHES "\\.so(\\.[0-9.]+)?$")
+      get_filename_component(_dep_dir "${_dep_location}" DIRECTORY)
+      target_link_options(OpenMS INTERFACE "$<BUILD_INTERFACE:-Wl,-rpath-link,${_dep_dir}>")
+    endif()
+  endforeach()
+  unset(_dep_type)
+  unset(_dep_location)
+  unset(_dep_configs)
+  unset(_dep_dir)
+endif()
+
 # The vendored percolator headers (#include "X.h", no subdir) are used only by
 # libOpenMS's Percolator pimpl TU. Their directory is made visible via the
 # PUBLIC include dir propagated from the linked OpenMS_Percolator target (see

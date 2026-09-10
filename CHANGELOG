@@ -36,7 +36,9 @@ General:
     they were linked against (contrib, conda, ...) in their RPATH, as they already did on macOS;
     vcpkg builds add the vcpkg library directory of the build tree explicitly on Linux and macOS,
     and macOS libraries add `@loader_path`. Consumers of an installed OpenMS link and run without
-    LD_LIBRARY_PATH; packaging (deb, pkg) is unchanged.
+    LD_LIBRARY_PATH; packaging (deb, pkg) is unchanged. In the build tree, executables now pass
+    the directories of libOpenMS's private shared dependencies to the linker (`-rpath-link`), so a
+    same-named library elsewhere on the search path no longer breaks their link (#10114).
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
