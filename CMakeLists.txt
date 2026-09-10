@@ -535,10 +535,11 @@ if(UNIX)
   endif()
 
   # Installed binaries must find the shared dependencies they were linked against
-  # (vcpkg, contrib, ...) on their own: add the directories of those libraries to
-  # the install RPATH. Consumers of an installed libOpenMS then link and run
-  # without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve the
-  # private dependencies of libOpenMS. System directories are never added.
+  # (contrib, Homebrew, conda, ...) on their own: add the directories of those
+  # libraries to the install RPATH. Consumers of an installed libOpenMS then link
+  # and run without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve
+  # the private dependencies of libOpenMS. System directories and directories
+  # below the build tree are never added by CMake (see the vcpkg case below).
   # On macOS this also covers dependencies built with @rpath install names (e.g.
   # Qt). Packages that relocate dependencies (deb, macOS pkg) skip or override it.
   if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
@@ -574,6 +575,22 @@ if(UNIX)
       SET(CMAKE_INSTALL_RPATH "$ORIGIN/${INSTALL_LIB_PATH_REL_TO_BIN}/")
     endif()
 	endif()
+
+  # vcpkg installs the dependencies below the build tree, and CMake deliberately
+  # keeps build-tree directories out of the install RPATH, so the link path above
+  # does not cover them. Reference the vcpkg library directory explicitly: an
+  # installation made from a vcpkg build tree then works as long as that tree
+  # exists, which is the situation of a developer or a consumer building against
+  # it. Relocatable installations come from the packaging targets, which copy
+  # the dependencies next to the libraries instead (see package_general.cmake).
+  if (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+    set(_vcpkg_lib_dirs "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib")
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+      list(PREPEND _vcpkg_lib_dirs "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib")
+    endif()
+    list(APPEND CMAKE_INSTALL_RPATH ${_vcpkg_lib_dirs})
+    unset(_vcpkg_lib_dirs)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------

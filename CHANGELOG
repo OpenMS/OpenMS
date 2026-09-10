@@ -33,8 +33,9 @@ General:
     the installation with plain `find_package(OpenMS)`; the CTest tests `TestExternalCode_*` are
     enabled by `OPENMS_TEST_INSTALLED_CONSUMER`.
   - Installed libraries and tools on Linux now carry the directories of the shared dependencies
-    they were linked against (vcpkg, contrib) in their RPATH, as they already did on macOS, and
-    macOS libraries add `@loader_path`. Consumers of an installed OpenMS link and run without
+    they were linked against (contrib, conda, ...) in their RPATH, as they already did on macOS;
+    vcpkg builds add the vcpkg library directory of the build tree explicitly on Linux and macOS,
+    and macOS libraries add `@loader_path`. Consumers of an installed OpenMS link and run without
     LD_LIBRARY_PATH; packaging (deb, pkg) is unchanged.
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
