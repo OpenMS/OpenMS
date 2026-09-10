@@ -66,6 +66,9 @@ Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
   - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
   - Boost minimum version requirement raised from 1.78 to 1.81 (#9042, #9095)
+  - Minimum CMake version raised from 3.21 to 3.24; the minimum compiler versions (GCC, Clang,
+    AppleClang, MSVC toolset) are now defined centrally in cmake/min_compiler_versions.cmake and
+    checked at configure time before vcpkg runs (#10063)
   - Qt6::Network replaced with libcurl for all HTTP operations in the core library (#8841)
   - minizip-ng replaced with libzip for ZIP64 archive support (#8808)
   - Qt6 removed from the core library and from all non-GUI TOPP tools (incremental steps, Qt is now
