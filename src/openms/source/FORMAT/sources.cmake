@@ -76,7 +76,6 @@ ParamXMLFile.cpp
 ParquetTableComparator.cpp
 PEFFFile.cpp
 PTMXMLFile.cpp
-PeakTypeEstimator.cpp
 PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp

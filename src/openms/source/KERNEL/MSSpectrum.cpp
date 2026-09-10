@@ -12,7 +12,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 
 namespace OpenMS

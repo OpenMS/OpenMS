@@ -12,7 +12,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/MATH/MISC/LinearResampling.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
@@ -1258,11 +1258,7 @@ namespace OpenMS
     }
     if (rt_bin_size > 0)
     {
-      LinearResamplerAlign lra;
-      Param param = lra.getParameters();
-      param.setValue("spacing", rt_bin_size);
-      lra.setParameters(param);
-      lra.raster(TIC);
+      Internal::LinearResampling(rt_bin_size).raster(TIC);
     }
     return TIC;
   }
