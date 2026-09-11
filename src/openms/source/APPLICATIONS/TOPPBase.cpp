@@ -303,6 +303,10 @@ namespace OpenMS
           param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ":", true);
           writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
           param_common_ = param_inifile_.copy("common:", true);
+          // the tool-specific part of the common section was extracted above (param_common_tool_);
+          // if left here, its entries would be merged as '<ToolName>:<key>', which the tool's parameter
+          // tree does not know, and Param::update() would reject the whole INI file
+          param_common_.removeAll(tool_name_ + ":");
           writeDebug_("Parameters from common section without tool name:", param_common_, 2);
 
           // set type on command line if given in .ini file

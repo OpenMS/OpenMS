@@ -1312,6 +1312,10 @@ OpenMS Library:
     - Iterator patterns, container checks and memory allocation optimized in hot paths (#8656)
 
 Fixes:
+  - Fix: TOPP tools exited with ILLEGAL_PARAMETERS when the INI file given via '-ini' contained a
+    tool-specific common section ('common:<ToolName>:'); the section was merged twice and its entries
+    were rejected as unknown parameters. Values from 'common:<ToolName>:' now override 'common:' as
+    documented, and the tool runs (#10126)
   - Fix: Thermo RAW-to-mzML precursor hierarchy reconstruction mis-assigned reactions when a "Master
     Scan Number" pointed at a sibling scan of the same MS order (Lumos/Tribrid HCD -> EThcD/ETciD
     sequences): the sibling's reaction was consumed instead, so every ETD scan in a mixed-activation
