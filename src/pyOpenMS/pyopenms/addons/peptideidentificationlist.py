@@ -3,7 +3,7 @@
 from __future__ import annotations
 import numpy as np
 import warnings
-from . import addon, register_element_views
+from . import addon, register_element_views, string_dtype
 
 
 @addon("PeptideIdentificationList")
@@ -22,14 +22,14 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     if default_missing_values is None:
         default_missing_values = {bool: False, int: -9999, float: np.nan, str: ''}
 
-    # String columns use the object dtype: fixed-width unicode fields ('U100', 'U1000')
-    # preallocate 4 bytes per character per row regardless of content and silently
-    # truncate longer values; object fields hold a pointer to the Python str instead.
-    switchDict = {bool: '?', int: 'i', float: 'f', str: 'O'}
-
     count = len(self)
     if not export_unidentified:
         count = sum(len(pep.getHits()) > 0 for pep in self.iter_peptide_identification_views())
+
+    # String columns use the object dtype (see string_dtype): fixed-width unicode fields
+    # ('U100', 'U1000') preallocated 4 bytes per character per row and silently truncated.
+    str_dtype = string_dtype(count)
+    switchDict = {bool: '?', int: 'i', float: 'f', str: str_dtype}
 
     # get all possible metavalues
     metavals = []
@@ -61,7 +61,7 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
                         found = True
                         break
             if not found:
-                types.append('O')
+                types.append(str_dtype)
 
     # get default value for each type
     def get_key(val):
@@ -83,7 +83,10 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
         clearMVs = decodedMVs
 
     clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
-    coltypes = ['O', 'f', 'f', 'f', 'i', 'O', 'O', 'O', 'i', 'i'] + types
+    coltypes = [str_dtype, 'f', 'f', 'f', 'i', str_dtype, str_dtype, str_dtype, 'i', 'i'] + types
+    # the fixed-width fields used to coerce every value to str; keep that for string columns
+    # so a meta value whose type differs between hits cannot produce a mixed-type column
+    is_str_col = [t == str_dtype for t in types]
     dt = list(zip(clearcols, coltypes))
 
     def extract(pep, pep_idx):
@@ -109,6 +112,8 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
                         ret.append(True)
                     else:
                         ret.append(False)
+                elif is_str_col[idx] and not isinstance(val, str):
+                    ret.append(str(val))
                 else:
                     ret.append(val)
             else:

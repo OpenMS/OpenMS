@@ -292,8 +292,11 @@ PyOpenMS:
     and the up to 4 KB per row that each such field preallocated regardless of content. Affects
     PeptideIdentificationList.to_df(), ConsensusMap.get_intensity_df()/get_metadata_df(),
     MRMTransitionGroupCP.to_feature_df() and the MSSpectrum, MSChromatogram and Mobilogram
-    exports. The pandas column dtypes are unchanged; missing string values are now null instead
-    of the strings 'None'/'nan' (#8583)
+    exports. The pandas column dtypes are unchanged (empty exports keep a string-typed column).
+    Two missing-value cases change: a consensus feature without peptide identification now gets a
+    null sequence in ConsensusMap.get_metadata_df() instead of the string 'None', and a missing
+    string meta value in MRMTransitionGroupCP.to_feature_df() is null instead of the string 'nan'.
+    FeatureMap.to_df() keeps its explicit 'None'/'unknown' sentinels (#8583)
 
 TOPP tools:
   Changes:

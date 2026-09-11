@@ -1402,3 +1402,132 @@ class TestStringColumnsNotTruncated:
         df = cmap.get_metadata_df()
         assert len(df) == 1
         assert pd.isna(df['sequence'].iloc[0])
+
+    def test_mrm_feature_df_long_strings_and_missing_meta_value(self):
+        """to_feature_df keeps long string meta values and exports a missing one as null."""
+        import pandas as pd
+        tg = pyopenms.MRMTransitionGroupCP()
+        f1 = pyopenms.MRMFeature()
+        f1.setRT(10.0)
+        f1.setIntensity(5.0)
+        f1.setOverallQuality(0.9)
+        f1.setUniqueId(7)
+        f1.setMetaValue('PeptideRef', 'PEP_' + 'x' * 150)
+        f1.setMetaValue('custom', 'c' * 80)
+        tg.addFeature(f1)
+        f2 = pyopenms.MRMFeature()
+        f2.setRT(11.0)
+        f2.setIntensity(6.0)
+        f2.setOverallQuality(0.8)
+        f2.setUniqueId(8)
+        tg.addFeature(f2)
+
+        df = tg.to_feature_df(meta_values=[b'PeptideRef', 'custom'])
+        assert df.loc[7, 'PeptideRef'] == 'PEP_' + 'x' * 150
+        assert df.loc[7, 'custom'] == 'c' * 80
+        assert pd.isna(df.loc[8, 'PeptideRef'])
+        assert pd.isna(df.loc[8, 'custom'])
+
+    def test_consensus_intensity_df_long_file_name(self):
+        """The 'file' column of the labelled long-format export is not cut at 300 characters."""
+        cmap = pyopenms.ConsensusMap()
+        cmap.setExperimentType('labeled_MS1')
+        long_file = '/data/' + 'f' * 350 + '.mzML'
+        headers = cmap.getColumnHeaders()
+        for i, label in enumerate(['light', 'heavy']):
+            h = pyopenms.ColumnHeader()
+            h.filename = long_file
+            h.label = label
+            h.size = 1
+            headers[i] = h
+        cmap.setColumnHeaders(headers)
+        cf = pyopenms.ConsensusFeature()
+        cf.setUniqueId(1)
+        for i, intensity in enumerate([10.0, 20.0]):
+            fh = pyopenms.FeatureHandle()
+            fh.setMapIndex(i)
+            fh.setIntensity(intensity)
+            cf.insert(fh)
+        cmap.push_back(cf)
+
+        df = cmap.get_intensity_df()
+        assert df['file'].iloc[0] == long_file
+
+    def test_mobilogram_drift_time_unit(self):
+        """drift_time_unit is exported as a plain string column."""
+        mob = pyopenms.Mobilogram()
+        mob.setRT(5.0)
+        p = pyopenms.MobilityPeak1D()
+        p.setMobility(1.0)
+        p.setIntensity(2.0)
+        mob.push_back(p)
+        df = mob.to_df()
+        assert isinstance(df['drift_time_unit'].iloc[0], str)
+
+    def test_empty_exports_keep_string_type(self):
+        """Empty spectra/chromatograms still produce string-typed columns, so they concatenate
+        with non-empty ones in pandas and Arrow instead of collapsing to object/null."""
+        import pandas as pd
+        empty = pyopenms.MSSpectrum()
+        empty.setNativeID('scan=1')
+        full = pyopenms.MSSpectrum()
+        full.setNativeID('scan=2')
+        full.set_peaks([np.array([100.0]), np.array([1.0], dtype=np.float32)])
+
+        both = pd.concat([empty.to_df(), full.to_df()])
+        assert both['native_id'].dtype == full.to_df()['native_id'].dtype
+        assert list(both['native_id']) == ['scan=2']
+
+        empty_chrom = pyopenms.MSChromatogram()
+        empty_chrom.setNativeID('c1')
+        assert empty_chrom.to_df(columns=['rt', 'native_id', 'comment']).shape == (0, 3)
+
+        pa = pytest.importorskip('pyarrow')
+        assert empty.to_arrow().schema.field('native_id').type == pa.string()
+        table = pa.concat_tables([empty.to_arrow(), full.to_arrow()])
+        assert table.column('native_id').to_pylist() == ['scan=2']
+
+    def test_mixed_type_meta_value_is_exported_as_str(self):
+        """A meta value that is a str in one hit and an int in another gives a plain string
+        column (as the fixed-width dtype used to), so Arrow export still works."""
+        pep_list = pyopenms.PeptideIdentificationList()
+        for value in ['abc', 7]:
+            pep = pyopenms.PeptideIdentification()
+            pep.setRT(1.0)
+            pep.setMZ(2.0)
+            pep.setScoreType('Mascot')
+            pep.setIdentifier('id')
+            hit = pyopenms.PeptideHit()
+            hit.setScore(1.0)
+            hit.setCharge(2)
+            hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+            hit.setMetaValue('mixed', value)
+            pep.setHits([hit])
+            pep_list.append(pep)
+
+        df = pep_list.to_df()
+        assert list(df['mixed']) == ['abc', '7']
+
+        pa = pytest.importorskip('pyarrow')
+        # pandas 2 (object) maps to string, pandas 3 (str dtype) to large_string
+        mixed_type = pep_list.to_arrow().schema.field('mixed').type
+        assert pa.types.is_string(mixed_type) or pa.types.is_large_string(mixed_type)
+
+    def test_mrm_feature_df_typed_meta_values_by_str_and_bytes_name(self):
+        """Known numeric meta values get their numeric dtype whether requested as str, as bytes
+        or discovered via meta_values='all' (the type table used to match bytes names only)."""
+        tg = pyopenms.MRMTransitionGroupCP()
+        f = pyopenms.MRMFeature()
+        f.setRT(10.0)
+        f.setIntensity(5.0)
+        f.setOverallQuality(0.9)
+        f.setUniqueId(3)
+        f.setMetaValue('FWHM', 3.5)
+        f.setMetaValue('PeptideRef', 'PEP_1')
+        tg.addFeature(f)
+
+        for meta_values in ('all', ['FWHM', 'PeptideRef'], [b'FWHM', b'PeptideRef']):
+            df = tg.to_feature_df(meta_values=meta_values)
+            assert df['FWHM'].dtype == np.float32, meta_values
+            assert df.loc[3, 'FWHM'] == pytest.approx(3.5)
+            assert df.loc[3, 'PeptideRef'] == 'PEP_1'

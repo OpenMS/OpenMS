@@ -1,7 +1,7 @@
 """ConsensusMap addon methods for DataFrame support."""
 import numpy as np
 from collections import defaultdict as _defaultdict
-from . import addon, register_element_views
+from . import addon, register_element_views, string_dtype
 
 
 @addon("ConsensusMap")
@@ -64,10 +64,10 @@ def get_intensity_df(self):
         if len(labels) == 1:
             labels[0] = "intensity"
 
-        dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
-        dtypes.append(('file', 'O'))
-
         total_rows = sum(len(extract_row_blocks_channel_wide_file_long(f)[1]) for f in self.iter_consensus_feature_views())
+        dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
+        dtypes.append(('file', string_dtype(total_rows)))
+
         intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=total_rows)
 
         return pd.DataFrame(intyarr).set_index('id')
@@ -111,7 +111,7 @@ def get_metadata_df(self):
             yield f.getUniqueId(), None, f.getCharge(), f.getRT(), f.getMZ(), f.getQuality()
 
     cnt = self.size()
-    mddtypes = [('id', np.dtype('uint64')), ('sequence', 'O'), ('charge', 'i4'),
+    mddtypes = [('id', np.dtype('uint64')), ('sequence', string_dtype(cnt)), ('charge', 'i4'),
                 ('rt', np.dtype('double')), ('mz', np.dtype('double')), ('quality', 'f')]
     mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 

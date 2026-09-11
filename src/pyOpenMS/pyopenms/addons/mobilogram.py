@@ -1,6 +1,6 @@
 """Mobilogram addon methods for DataFrame support."""
 import numpy as np
-from . import addon
+from . import addon, string_dtype
 
 
 @addon("Mobilogram")
@@ -34,7 +34,7 @@ def get_data_dict(self, columns=None):
     if want('drift_time_unit'):
         unit_str = self.getDriftTimeUnitAsString()
         unit_decoded = unit_str.decode('utf-8') if isinstance(unit_str, bytes) else str(unit_str)
-        data_dict['drift_time_unit'] = np.full(cnt, unit_decoded, dtype=object)
+        data_dict['drift_time_unit'] = np.full(cnt, unit_decoded, dtype=string_dtype(cnt))
 
     return data_dict
 
