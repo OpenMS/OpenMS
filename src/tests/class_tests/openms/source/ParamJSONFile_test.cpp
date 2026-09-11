@@ -113,6 +113,111 @@ START_SECTION((bool ParamJSONFile::load(const std::string& filename, Param& para
 }
 END_SECTION
 
+START_SECTION([EXTRA] bool ParamJSONFile::load() reads every JSON shape of a file parameter)
+{
+  // A CWL runner serializes a 'File[]' input as an array of 'File' objects. That shape used to
+  // throw a json::type_error, which made every TOPP tool with an input file list unusable through
+  // its generated CWL description as soon as the list was set (issue #10121).
+  std::string filename;
+  NEW_TMP_FILE(filename)
+
+  // a fresh parameter tree per shape, so a value can never be left over from a previous load
+  auto makeParam = []() {
+    Param param;
+    param.setValue("test:1:in", std::vector<std::string> {}, "input file list", {"input file"});
+    param.setValue("test:1:out", std::vector<std::string> {}, "output file list", {"output file"});
+    param.setValue("test:1:single", std::string {}, "single input file", {"input file"});
+    param.setValue("test:1:plain_list", std::vector<std::string> {}, "untagged string list");
+    return param;
+  };
+  auto loadJSON = [&filename](const std::string& content, Param& param) {
+    std::ofstream ofs(filename.c_str(), std::ios::out);
+    ofs << content;
+    ofs.close();
+    ParamJSONFile::load(filename.c_str(), param);
+  };
+
+  // (a) array of CWL 'File' objects -- what a CWL runner writes for 'type: File[]'
+  Param param_a = makeParam();
+  loadJSON(R"({"in": [{"class": "File", "path": "a.mzML"}, {"class": "File", "path": "b.mzML"}]})", param_a);
+  std::vector<std::string> files_a = param_a.getValue("test:1:in").toStringVector();
+  TEST_EQUAL(files_a.size(), 2);
+  TEST_STRING_EQUAL(files_a[0], "a.mzML");
+  TEST_STRING_EQUAL(files_a[1], "b.mzML");
+
+  // (b) array of plain path strings
+  Param param_b = makeParam();
+  loadJSON(R"({"in": ["a.mzML", "b.mzML"]})", param_b);
+  std::vector<std::string> files_b = param_b.getValue("test:1:in").toStringVector();
+  TEST_EQUAL(files_b.size(), 2);
+  TEST_STRING_EQUAL(files_b[0], "a.mzML");
+  TEST_STRING_EQUAL(files_b[1], "b.mzML");
+
+  // (c) object with a 'path' array -- what ParamJSONFile::store writes, with and without 'class'
+  Param param_c = makeParam();
+  loadJSON(R"({"in": {"class": "File", "path": ["a.mzML", "b.mzML"]}})", param_c);
+  std::vector<std::string> files_c = param_c.getValue("test:1:in").toStringVector();
+  TEST_EQUAL(files_c.size(), 2);
+  TEST_STRING_EQUAL(files_c[0], "a.mzML");
+  TEST_STRING_EQUAL(files_c[1], "b.mzML");
+
+  Param param_c2 = makeParam();
+  loadJSON(R"({"in": {"path": ["a.mzML", "b.mzML"]}})", param_c2);
+  std::vector<std::string> files_c2 = param_c2.getValue("test:1:in").toStringVector();
+  TEST_EQUAL(files_c2.size(), 2);
+  TEST_STRING_EQUAL(files_c2[0], "a.mzML");
+  TEST_STRING_EQUAL(files_c2[1], "b.mzML");
+
+  // a single file for a list-valued parameter, in both notations
+  Param param_single_as_list = makeParam();
+  loadJSON(R"({"in": {"class": "File", "path": "a.mzML"}})", param_single_as_list);
+  std::vector<std::string> files_single = param_single_as_list.getValue("test:1:in").toStringVector();
+  TEST_EQUAL(files_single.size(), 1);
+  TEST_STRING_EQUAL(files_single[0], "a.mzML");
+
+  // 'Directory' objects carry their path the same way 'File' objects do
+  Param param_dir = makeParam();
+  loadJSON(R"({"in": [{"class": "Directory", "path": "/data/run1.d"}]})", param_dir);
+  std::vector<std::string> dirs = param_dir.getValue("test:1:in").toStringVector();
+  TEST_EQUAL(dirs.size(), 1);
+  TEST_STRING_EQUAL(dirs[0], "/data/run1.d");
+
+  // an empty list stays empty
+  Param param_empty = makeParam();
+  loadJSON(R"({"in": []})", param_empty);
+  TEST_EQUAL(param_empty.getValue("test:1:in").toStringVector().size(), 0);
+
+  // output file lists are CWL strings, but accept the same shapes
+  Param param_out = makeParam();
+  loadJSON(R"({"out": ["a.mzML", "b.mzML"], "in": [{"class": "File", "path": "c.mzML"}]})", param_out);
+  std::vector<std::string> out_files = param_out.getValue("test:1:out").toStringVector();
+  TEST_EQUAL(out_files.size(), 2);
+  TEST_STRING_EQUAL(out_files[0], "a.mzML");
+  TEST_STRING_EQUAL(out_files[1], "b.mzML");
+
+  // a single input file, as an object and as a plain string
+  Param param_scalar = makeParam();
+  loadJSON(R"({"single": {"class": "File", "path": "a.mzML"}})", param_scalar);
+  TEST_STRING_EQUAL(std::string(param_scalar.getValue("test:1:single")), "a.mzML");
+
+  Param param_scalar_str = makeParam();
+  loadJSON(R"({"single": "a.mzML"})", param_scalar_str);
+  TEST_STRING_EQUAL(std::string(param_scalar_str.getValue("test:1:single")), "a.mzML");
+
+  // an untagged string list is unaffected by all of this
+  Param param_plain = makeParam();
+  loadJSON(R"({"plain_list": ["SeqAn", "rocks"]})", param_plain);
+  TEST_EQUAL(param_plain.getValue("test:1:plain_list").toStringVector().size(), 2);
+
+  // shapes that carry no path at all are rejected, rather than read as an empty list
+  Param param_bad = makeParam();
+  TEST_EXCEPTION(Exception::ParseError, loadJSON(R"({"in": 42})", param_bad))
+  TEST_EXCEPTION(Exception::ParseError, loadJSON(R"({"in": [{"class": "File"}]})", param_bad))
+  TEST_EXCEPTION(Exception::ParseError, loadJSON(R"({"in": {"class": "File"}})", param_bad))
+  TEST_EXCEPTION(Exception::ParseError, loadJSON(R"({"single": 42})", param_bad))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

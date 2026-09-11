@@ -33,6 +33,81 @@ static std::string replaceAll(std::string str, const std::string& pattern, const
   return str;
 }
 
+// Reports a JSON value whose shape does not fit a parameter tagged as a file.
+// This method is 'static' so no external linkage occurs
+[[noreturn]] static void raiseFileShapeError(const std::string& key, const std::string& accepted, const json& node)
+{
+  std::string msg = "Parameter '" + key + "' is tagged as a file, but its JSON value is of type '" + std::string(node.type_name())
+                    + "'. Accepted are " + accepted + ".";
+  throw OpenMS::Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
+}
+
+// Extracts a single file (or directory) path from a JSON value.
+// Accepted are a CWL 'File'/'Directory' object ({"class": "File", "path": "in.mzML"}), which is what a
+// CWL runner writes, and a plain path string, which is what hand-written JSON and 'is_executable'
+// parameters (they may name a tool on PATH rather than a file) use.
+// This method is 'static' so no external linkage occurs
+static std::string extractFilePath(const json& node, const std::string& key)
+{
+  if (node.is_string())
+  {
+    return node.get<std::string>();
+  }
+  if (node.is_object())
+  {
+    auto path = node.find("path");
+    if (path != node.end() && path->is_string())
+    {
+      return path->get<std::string>();
+    }
+  }
+  raiseFileShapeError(key, "a path string and an object with a 'path' string", node);
+}
+
+// Extracts a list of file (or directory) paths from a JSON value.
+// A CWL runner serializes a 'File[]' input as an array of 'File' objects, so all of the following
+// shapes have to be understood (see issue #10121):
+//   (a) an array of CWL 'File'/'Directory' objects, written by every CWL runner:
+//       [{"class": "File", "path": "a.mzML"}, {"class": "File", "path": "b.mzML"}]
+//   (b) an array of plain path strings: ["a.mzML", "b.mzML"]
+//   (c) a single object whose 'path' holds the array, which is what ParamJSONFile::store writes:
+//       {"class": "File", "path": ["a.mzML", "b.mzML"]}
+// This method is 'static' so no external linkage occurs
+static std::vector<std::string> extractFilePathList(const json& node, const std::string& key)
+{
+  std::vector<std::string> paths;
+  if (node.is_array()) // (a) and (b)
+  {
+    paths.reserve(node.size());
+    for (const auto& element : node)
+    {
+      paths.push_back(extractFilePath(element, key));
+    }
+    return paths;
+  }
+  if (node.is_object()) // (c)
+  {
+    auto path = node.find("path");
+    if (path != node.end())
+    {
+      if (path->is_array())
+      {
+        paths.reserve(path->size());
+        for (const auto& element : *path)
+        {
+          paths.push_back(extractFilePath(element, key));
+        }
+        return paths;
+      }
+      if (path->is_string()) // a single file for a list-valued parameter
+      {
+        return {path->get<std::string>()};
+      }
+    }
+  }
+  raiseFileShapeError(key, "an array of path strings, an array of objects with a 'path' string, and an object with a 'path' array", node);
+}
+
 namespace OpenMS
 {
   bool ParamJSONFile::load(const std::string& filename, Param& param)
@@ -78,8 +153,11 @@ namespace OpenMS
           {
             continue; // No value given
           }
-          // If class member exists with some string, we assume it is a file type annotation
-          if (node.is_object() && (!node.contains("class") || !node["class"].is_string())) {
+          // An object is a nested parameter section, unless it is the value of a parameter. A CWL
+          // runner passes files as {"class": "File", "path": ...} objects; the parameter tree tells
+          // us about the remaining shapes, because only leaves exist as entries.
+          const bool is_file_annotation = node.contains("class") && node["class"].is_string();
+          if (node.is_object() && !is_file_annotation && !param.exists(key)) {
             traverseJSONTree(key + ":", node);
             continue;
           }
@@ -99,23 +177,9 @@ namespace OpenMS
             }
             else if (entry.tags.contains("input file"))
             {
-              // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
-              if (entry.tags.contains("is_executable"))
-              {
-                if (node.is_object())
-                {
-                  value = node["path"].get<std::string>();
-                }
-                else
-                {
-                  value = node.get<std::string>();
-                }
-              }
-              // Just a normal input file
-              else
-              {
-                value = node["path"].get<std::string>();
-              }
+              // A CWL runner writes a 'class: File' object, hand-written JSON a plain string. An
+              // 'is_executable' parameter uses a string for a tool that is looked up on PATH.
+              value = extractFilePath(node, key);
             }
             else
             {
@@ -132,9 +196,9 @@ namespace OpenMS
           }
           else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
           {
-            if (entry.tags.contains("input file"))
+            if (entry.tags.contains("input file") || entry.tags.contains("output file"))
             {
-              value = node["path"].get<std::vector<std::string>>();
+              value = extractFilePathList(node, key);
             }
             else
             {
