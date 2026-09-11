@@ -3633,6 +3633,13 @@ add_test("TOPP_AssayGeneratorMetabo_6" ${TOPP_BIN_PATH}/TargetedFileConverter -t
 add_test("TOPP_AssayGeneratorMetabo_6_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/AssayGeneratorMetabo_ams_uku_output_consensus_traml.tmp.TraML -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_uku_output_consensus_traml.TraML)
 set_tests_properties("TOPP_AssayGeneratorMetabo_6_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_6")
 
+# SiriusExportAlgorithm parameters must reach the algorithm (#10120): with -feature_only true and
+# -filter_by_num_masstraces 2, 15 of the 24 features (all with a single mass trace) are dropped, so the
+# output must differ from the default-parameter output of TOPP_AssayGeneratorMetabo_1.
+add_test("TOPP_AssayGeneratorMetabo_7" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out ${TESTS_TEMP_DIR}/AssayGeneratorMetabo_ffm_output_filtered.tmp.tsv -min_transitions 1 -max_transitions 3 -feature_only true -filter_by_num_masstraces 2)
+add_test("TOPP_AssayGeneratorMetabo_7_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/AssayGeneratorMetabo_ffm_output_filtered.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output.tsv)
+set_tests_properties("TOPP_AssayGeneratorMetabo_7_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_7" WILL_FAIL TRUE)
+
 # ImageCreator:
 if(WITH_GUI)
   add_test("TOPP_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ${TESTS_TEMP_DIR}/ImageCreator1.bmp -width 20 -height 15)
