@@ -336,6 +336,8 @@ namespace OpenMS
 
 
         finalParam.remove("ini"); // not contained in default params; remove to avoid "unknown param" in update()
+        finalParam.remove("-help"); // dito; only present here when given with an explicit 'false'
+        finalParam.remove("-helphelp");
 
         // finally: augment default values with INI/CLI values
         // note the copy(getIniLocation_(),..) as we want the param tree without instance
