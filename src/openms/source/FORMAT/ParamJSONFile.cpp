@@ -153,11 +153,10 @@ namespace OpenMS
           {
             continue; // No value given
           }
-          // An object is a nested parameter section, unless it is the value of a parameter. A CWL
-          // runner passes files as {"class": "File", "path": ...} objects; the parameter tree tells
-          // us about the remaining shapes, because only leaves exist as entries.
-          const bool is_file_annotation = node.contains("class") && node["class"].is_string();
-          if (node.is_object() && !is_file_annotation && !param.exists(key)) {
+          // An object is a nested parameter section, unless it is the value of a parameter. Only
+          // leaves exist as entries, so the parameter tree answers this for every shape a value
+          // can take, the {"class": "File", "path": ...} objects a CWL runner passes included.
+          if (node.is_object() && !param.exists(key)) {
             traverseJSONTree(key + ":", node);
             continue;
           }

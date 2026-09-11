@@ -128,6 +128,7 @@ START_SECTION([EXTRA] bool ParamJSONFile::load() reads every JSON shape of a fil
     param.setValue("test:1:out", std::vector<std::string> {}, "output file list", {"output file"});
     param.setValue("test:1:single", std::string {}, "single input file", {"input file"});
     param.setValue("test:1:plain_list", std::vector<std::string> {}, "untagged string list");
+    param.setValue("test:1:section:class", std::string {}, "a parameter that happens to be named 'class'");
     return param;
   };
   auto loadJSON = [&filename](const std::string& content, Param& param) {
@@ -208,6 +209,12 @@ START_SECTION([EXTRA] bool ParamJSONFile::load() reads every JSON shape of a fil
   Param param_plain = makeParam();
   loadJSON(R"({"plain_list": ["SeqAn", "rocks"]})", param_plain);
   TEST_EQUAL(param_plain.getValue("test:1:plain_list").toStringVector().size(), 2);
+
+  // whether an object is a value or a nested section is decided by the parameter tree, not by the
+  // presence of a 'class' key: a section holding a parameter named 'class' is still a section
+  Param param_section = makeParam();
+  loadJSON(R"({"section": {"class": "not a CWL file"}})", param_section);
+  TEST_STRING_EQUAL(std::string(param_section.getValue("test:1:section:class")), "not a CWL file");
 
   // shapes that carry no path at all are rejected, rather than read as an empty list
   Param param_bad = makeParam();
