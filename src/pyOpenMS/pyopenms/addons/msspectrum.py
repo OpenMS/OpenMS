@@ -82,7 +82,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
     if want('ms_level'):
         data_dict['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
     if want('native_id'):
-        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype=object)
 
     if want('ion_mobility') or want('ion_mobility_unit'):
         if self.containsIMData():
@@ -104,14 +104,14 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                 # exactly the spectra this column exists to describe
                 from pyopenms import IMTypes
                 data_dict['ion_mobility_unit'] = np.full(
-                    cnt, IMTypes.driftTimeUnitToString(drift_time_unit), dtype='U50'
+                    cnt, IMTypes.driftTimeUnitToString(drift_time_unit), dtype=object
                 )
         else:
             if requested is not None:
                 if want('ion_mobility'):
                     data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
                 if want('ion_mobility_unit'):
-                    data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
+                    data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype=object)
 
     if want('precursor_mz') or want('precursor_charge'):
         precursors = self.getPrecursors()
@@ -129,13 +129,11 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                     data_dict['precursor_charge'] = np.full(cnt, 0, dtype=np.int16)
 
     if want('ion_annotation'):
-        ion_annotations = np.full(cnt, '', dtype='U1')
+        ion_annotations = np.full(cnt, '', dtype=object)
         for sda in self.getStringDataArrays():
             if sda.getName() == 'IonNames':
                 if len(sda) == cnt:
-                    annotations = sda.get_data()
-                    max_len = max((len(s) for s in annotations), default=1)
-                    ion_annotations = np.array(annotations, dtype=f'U{max_len}')
+                    ion_annotations = np.array(sda.get_data(), dtype=object)
                 break
         if requested is not None or any(ion_annotations != ''):
             data_dict['ion_annotation'] = ion_annotations
@@ -157,7 +155,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                 elif isinstance(v, float):
                     data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
                 elif isinstance(v, str):
-                    data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                    data_dict[k_str] = np.full(cnt, v, dtype=object)
                 else:
                     data_dict[k_str] = np.full(cnt, str(v), dtype='object')
             except Exception:
@@ -179,7 +177,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                         elif isinstance(v, float):
                             data_dict[col] = np.full(cnt, v, dtype=np.float64)
                         elif isinstance(v, str):
-                            data_dict[col] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                            data_dict[col] = np.full(cnt, v, dtype=object)
                         else:
                             data_dict[col] = np.full(cnt, str(v), dtype='object')
                     except Exception:
@@ -207,11 +205,9 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             col_name = f'string_array:{sda.getName()}'
             if col_name in requested:
                 if len(sda) == cnt:
-                    strings = sda.get_data()
-                    max_len = max((len(s) for s in strings), default=1)
-                    data_dict[col_name] = np.array(strings, dtype=f'U{max_len}')
+                    data_dict[col_name] = np.array(sda.get_data(), dtype=object)
                 else:
-                    data_dict[col_name] = np.full(cnt, '', dtype='U1')
+                    data_dict[col_name] = np.full(cnt, '', dtype=object)
 
     return data_dict
 

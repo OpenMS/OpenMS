@@ -52,7 +52,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
     if want('product_mz'):
         data_dict['product_mz'] = np.full(cnt, self.getProduct().getMZ(), dtype=np.float64)
     if want('native_id'):
-        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype=object)
 
     if want_explicit('chromatogram_type'):
         chrom_type = self.getChromatogramType()
@@ -65,10 +65,10 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             7: 'ABSORPTION_CHROMATOGRAM', 8: 'EMISSION_CHROMATOGRAM'
         }
         type_name = type_names.get(int(chrom_type), f'UNKNOWN_{chrom_type}')
-        data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype='U100')
+        data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype=object)
 
     if want_explicit('comment'):
-        data_dict['comment'] = np.full(cnt, self.getComment(), dtype='U100')
+        data_dict['comment'] = np.full(cnt, self.getComment(), dtype=object)
 
     # Meta values
     if requested is None and export_meta_values:
@@ -87,7 +87,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                 elif isinstance(v, float):
                     data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
                 elif isinstance(v, str):
-                    data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                    data_dict[k_str] = np.full(cnt, v, dtype=object)
                 else:
                     data_dict[k_str] = np.full(cnt, str(v), dtype='object')
             except Exception:
@@ -109,7 +109,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                         elif isinstance(v, float):
                             data_dict[col] = np.full(cnt, v, dtype=np.float64)
                         elif isinstance(v, str):
-                            data_dict[col] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                            data_dict[col] = np.full(cnt, v, dtype=object)
                         else:
                             data_dict[col] = np.full(cnt, str(v), dtype='object')
                     except Exception:

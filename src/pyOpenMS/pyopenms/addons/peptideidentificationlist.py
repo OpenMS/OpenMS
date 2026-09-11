@@ -22,7 +22,10 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     if default_missing_values is None:
         default_missing_values = {bool: False, int: -9999, float: np.nan, str: ''}
 
-    switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
+    # String columns use the object dtype: fixed-width unicode fields ('U100', 'U1000')
+    # preallocate 4 bytes per character per row regardless of content and silently
+    # truncate longer values; object fields hold a pointer to the Python str instead.
+    switchDict = {bool: '?', int: 'i', float: 'f', str: 'O'}
 
     count = len(self)
     if not export_unidentified:
@@ -58,7 +61,7 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
                         found = True
                         break
             if not found:
-                types.append('U100')
+                types.append('O')
 
     # get default value for each type
     def get_key(val):
@@ -80,7 +83,7 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
         clearMVs = decodedMVs
 
     clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
-    coltypes = ['U100', 'f', 'f', 'f', 'i', 'U1000', 'U1000', 'U1000', 'i', 'i'] + types
+    coltypes = ['O', 'f', 'f', 'f', 'i', 'O', 'O', 'O', 'i', 'i'] + types
     dt = list(zip(clearcols, coltypes))
 
     def extract(pep, pep_idx):

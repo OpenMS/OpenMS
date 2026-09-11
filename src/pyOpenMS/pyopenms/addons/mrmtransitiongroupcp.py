@@ -51,11 +51,11 @@ def to_feature_df(self, columns=None, meta_values=None):
         raise ImportError("pandas is required for to_feature_df(). Install with: pip install pandas")
 
     common_meta_value_types = {
-        b'label': 'U50', b'spectrum_index': 'i', b'score_fit': 'f',
-        b'score_correlation': 'f', b'FWHM': 'f', b'spectrum_native_id': 'U100',
+        b'label': 'O', b'spectrum_index': 'i', b'score_fit': 'f',
+        b'score_correlation': 'f', b'FWHM': 'f', b'spectrum_native_id': 'O',
         b'max_height': 'f', b'num_of_masstraces': 'i', b'masstrace_intensity': 'f',
-        b'Group': 'U50', b'is_ungrouped_monoisotopic': 'i', b'leftWidth': 'f',
-        b'rightWidth': 'f', b'total_xic': 'f', b'PeptideRef': 'U100',
+        b'Group': 'O', b'is_ungrouped_monoisotopic': 'i', b'leftWidth': 'f',
+        b'rightWidth': 'f', b'total_xic': 'f', b'PeptideRef': 'O',
         b'peak_apices_sum': 'f'
     }
 
@@ -85,9 +85,9 @@ def to_feature_df(self, columns=None, meta_values=None):
         for meta_value in meta_values_list:
             if meta_value in common_meta_value_types:
                 mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value,
-                                common_meta_value_types.get(meta_value, 'U50')))
+                                common_meta_value_types.get(meta_value, 'O')))
             else:
-                mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, 'U50'))
+                mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, 'O'))
     else:
         meta_values_list = []
 

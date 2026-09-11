@@ -286,6 +286,14 @@ PyOpenMS:
     temporary directories/files; the Python-level File.getSystemParameters(), File.getTempDirectory(),
     File.getUserDirectory(), File.findDatabase(), File.getOpenMSHomePath() and File.getTemporaryFile()
     keep working and now call the new classes (#10083, step 6)
+  - DataFrame exports no longer build string columns from fixed-width numpy unicode fields
+    ('U50' .. 'U1000') but from object-dtype fields. This removes the silent truncation of long
+    values (e.g. protein accession lists over 1000 characters or native IDs over 100 characters)
+    and the up to 4 KB per row that each such field preallocated regardless of content. Affects
+    PeptideIdentificationList.to_df(), ConsensusMap.get_intensity_df()/get_metadata_df(),
+    MRMTransitionGroupCP.to_feature_df() and the MSSpectrum, MSChromatogram and Mobilogram
+    exports. The pandas column dtypes are unchanged; missing string values are now null instead
+    of the strings 'None'/'nan' (#8583)
 
 TOPP tools:
   Changes:

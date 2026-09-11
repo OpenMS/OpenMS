@@ -1307,3 +1307,98 @@ class TestMSExperimentDFColumnSelection:
         assert 'ms_level' in cols
         assert 'mz_array' in cols
         assert 'intensity_array' in cols
+
+
+class TestStringColumnsNotTruncated:
+    """String columns are exported with the object dtype instead of fixed-width unicode
+    fields ('U100', 'U1000', ...), so long values are no longer silently truncated (#8583)."""
+
+    def test_peptide_identification_list_long_strings(self):
+        """Identifier > 100 chars, accession list > 1000 chars and a long string meta value survive."""
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep = pyopenms.PeptideIdentification()
+        pep.setRT(1.0)
+        pep.setMZ(2.0)
+        pep.setScoreType('Mascot')
+        long_id = 'identifier_' + 'x' * 200
+        pep.setIdentifier(long_id)
+
+        hit = pyopenms.PeptideHit()
+        hit.setScore(1.0)
+        hit.setCharge(2)
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setMetaValue('long_meta', 'm' * 300)
+        evidences = []
+        accessions = []
+        for i in range(60):
+            ev = pyopenms.PeptideEvidence()
+            acc = f'sp|P{i:05d}|PROTEIN_HUMAN'
+            ev.setProteinAccession(acc)
+            ev.setStart(i)
+            ev.setEnd(i + 7)
+            evidences.append(ev)
+            accessions.append(acc)
+        hit.setPeptideEvidences(evidences)
+        pep.setHits([hit])
+        pep_list.append(pep)
+
+        df = pep_list.to_df()
+
+        expected_accessions = ','.join(accessions)
+        assert len(expected_accessions) > 1000
+        assert df.loc[0, 'id'] == long_id
+        assert df.loc[0, 'protein_accession'] == expected_accessions
+        assert df.loc[0, 'start'] == ','.join(str(i) for i in range(60))
+        assert df.loc[0, 'end'] == ','.join(str(i + 7) for i in range(60))
+        assert df.loc[0, 'long_meta'] == 'm' * 300
+
+    def test_spectrum_long_strings(self):
+        """native_id, string meta values and string data arrays keep their full length."""
+        spec = pyopenms.MSSpectrum()
+        long_native_id = 'controllerType=0 controllerNumber=1 scan=' + '9' * 200
+        spec.setNativeID(long_native_id)
+        spec.setMetaValue('long_meta', 'm' * 300)
+        spec.set_peaks([np.array([100.0, 200.0]), np.array([1.0, 2.0], dtype=np.float32)])
+        sda = pyopenms.StringDataArray()
+        sda.setName('IonNames')
+        sda.push_back('b' * 150)
+        sda.push_back('y2+')
+        spec.setStringDataArrays([sda])
+
+        df = spec.to_df()
+        assert df.loc[0, 'native_id'] == long_native_id
+        assert df.loc[0, 'long_meta'] == 'm' * 300
+        assert df.loc[0, 'ion_annotation'] == 'b' * 150
+        assert df.loc[1, 'ion_annotation'] == 'y2+'
+
+        df = spec.to_df(columns=['mz', 'string_array:IonNames'])
+        assert df.loc[0, 'string_array:IonNames'] == 'b' * 150
+
+    def test_chromatogram_long_strings(self):
+        """native_id and comment keep their full length."""
+        chrom = pyopenms.MSChromatogram()
+        long_native_id = 'chrom_' + 'c' * 200
+        chrom.setNativeID(long_native_id)
+        chrom.setComment('comment ' * 50)
+        chrom.setMetaValue('long_meta', 'm' * 300)
+        chrom.set_peaks([np.array([1.0, 2.0]), np.array([1.0, 2.0], dtype=np.float32)])
+
+        df = chrom.to_df(columns=['rt', 'native_id', 'comment', 'long_meta'])
+        assert df.loc[0, 'native_id'] == long_native_id
+        assert df.loc[0, 'comment'] == 'comment ' * 50
+        assert df.loc[0, 'long_meta'] == 'm' * 300
+
+    def test_consensus_map_missing_sequence_is_null(self):
+        """A consensus feature without peptide identification exports a null sequence,
+        not the string 'None' that the fixed-width dtype used to produce."""
+        import pandas as pd
+        cmap = pyopenms.ConsensusMap()
+        cf = pyopenms.ConsensusFeature()
+        cf.setRT(1.0)
+        cf.setMZ(2.0)
+        cf.setCharge(2)
+        cmap.push_back(cf)
+
+        df = cmap.get_metadata_df()
+        assert len(df) == 1
+        assert pd.isna(df['sequence'].iloc[0])
