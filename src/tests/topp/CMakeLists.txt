@@ -3633,6 +3633,19 @@ add_test("TOPP_AssayGeneratorMetabo_6" ${TOPP_BIN_PATH}/TargetedFileConverter -t
 add_test("TOPP_AssayGeneratorMetabo_6_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/AssayGeneratorMetabo_ams_uku_output_consensus_traml.tmp.TraML -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_uku_output_consensus_traml.TraML)
 set_tests_properties("TOPP_AssayGeneratorMetabo_6_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_6")
 
+# SiriusExportAlgorithm parameters must reach the algorithm (#10120). -feature_only true enables the
+# mass-trace filter (otherwise filter_by_num_masstraces is reset to 1) and -filter_by_num_masstraces 2
+# drops the 15 of 24 input features that have a single mass trace. Compared to the default output of
+# TOPP_AssayGeneratorMetabo_1: the compounds at RT 437.423 and 438.351 (single-trace features only) must
+# be gone, the compounds of the 2-, 4- and 7-trace features at RT 446.172, 448.028 and 461.815 must remain.
+add_test("TOPP_AssayGeneratorMetabo_7" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out ${TESTS_TEMP_DIR}/AssayGeneratorMetabo_ffm_output_filtered.tmp.tsv -min_transitions 1 -max_transitions 3 -feature_only true -filter_by_num_masstraces 2)
+add_test("TOPP_AssayGeneratorMetabo_7_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/AssayGeneratorMetabo_ffm_output_filtered.tmp.tsv
+  "-DEXPECTED=446.172000000000025;448.027999999980011;461.815000000020007"
+  "-DFORBIDDEN=437.422999999979993;438.350999999999999"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_AssayGeneratorMetabo_7_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_7")
+
 # ImageCreator:
 if(WITH_GUI)
   add_test("TOPP_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ${TESTS_TEMP_DIR}/ImageCreator1.bmp -width 20 -height 15)

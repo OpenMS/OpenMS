@@ -320,6 +320,10 @@ PyOpenMS:
 
 TOPP tools:
   Changes:
+    AssayGeneratorMetabo:
+      - The SiriusExportAlgorithm options (-feature_only, -filter_by_num_masstraces, -precursor_mz_tolerance,
+        -precursor_mz_tolerance_unit, -precursor_rt_tolerance) were registered but never applied to the
+        algorithm and therefore silently ignored; they are now effective (#10120)
     all:
       - BREAKING: when a parameter is given several times on the command line, the LAST occurrence now
         wins (previously the first); a warning is issued when duplicates are detected. This enables the
