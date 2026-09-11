@@ -1,6 +1,6 @@
 """MRMTransitionGroupCP addon methods for DataFrame support."""
 import numpy as np
-from . import addon, register_element_views
+from . import addon, register_element_views, string_dtype
 
 
 @addon("MRMTransitionGroupCP")
@@ -50,13 +50,16 @@ def to_feature_df(self, columns=None, meta_values=None):
     except ImportError:
         raise ImportError("pandas is required for to_feature_df(). Install with: pip install pandas")
 
+    features = self.feature_views()  # zero-copy read; the generators below only read
+    str_dtype = string_dtype(len(features))
+    # keyed by the decoded (str) name: getKeys() and user-supplied meta_values may be str or bytes
     common_meta_value_types = {
-        b'label': 'U50', b'spectrum_index': 'i', b'score_fit': 'f',
-        b'score_correlation': 'f', b'FWHM': 'f', b'spectrum_native_id': 'U100',
-        b'max_height': 'f', b'num_of_masstraces': 'i', b'masstrace_intensity': 'f',
-        b'Group': 'U50', b'is_ungrouped_monoisotopic': 'i', b'leftWidth': 'f',
-        b'rightWidth': 'f', b'total_xic': 'f', b'PeptideRef': 'U100',
-        b'peak_apices_sum': 'f'
+        'label': str_dtype, 'spectrum_index': 'i', 'score_fit': 'f',
+        'score_correlation': 'f', 'FWHM': 'f', 'spectrum_native_id': str_dtype,
+        'max_height': 'f', 'num_of_masstraces': 'i', 'masstrace_intensity': 'f',
+        'Group': str_dtype, 'is_ungrouped_monoisotopic': 'i', 'leftWidth': 'f',
+        'rightWidth': 'f', 'total_xic': 'f', 'PeptideRef': str_dtype,
+        'peak_apices_sum': 'f'
     }
 
     def gen(features, fun):
@@ -67,7 +70,6 @@ def to_feature_df(self, columns=None, meta_values=None):
         vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values_list]
         yield tuple((f.getUniqueId(), f.getRT(), f.getIntensity(), f.getOverallQuality(), *vals))
 
-    features = self.feature_views()  # zero-copy read; the generators below only read
     mddtypes = [('feature_id', np.dtype('uint64')), ('rt', 'f'), ('intensity', 'f'), ('quality', 'f')]
 
     if meta_values is not None:
@@ -83,11 +85,13 @@ def to_feature_df(self, columns=None, meta_values=None):
             meta_values_list = list(meta_values)
 
         for meta_value in meta_values_list:
-            if meta_value in common_meta_value_types:
-                mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value,
-                                common_meta_value_types.get(meta_value, 'U50')))
-            else:
-                mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, 'U50'))
+            name = meta_value.decode() if isinstance(meta_value, bytes) else meta_value
+            dtype = common_meta_value_types.get(name, str_dtype)
+            if dtype == 'i' and not all(f.metaValueExists(meta_value) for f in features):
+                # an integer field cannot hold NaN for the missing values; promote to float64
+                # (what pandas does for an integer column with missing entries)
+                dtype = 'd'
+            mddtypes.append((name, dtype))
     else:
         meta_values_list = []
 

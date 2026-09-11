@@ -19,6 +19,17 @@ from typing import Any, Callable, Dict, Type
 _addon_registry: Dict[str, Dict[str, Callable]] = {}
 
 
+def string_dtype(count: int):
+    """numpy dtype for a string column with ``count`` rows in a DataFrame export.
+
+    Object arrays store one pointer per row and impose no length limit, unlike the
+    fixed-width ``'U<n>'`` fields that preallocated 4*n bytes per row and silently
+    truncated longer values (#8583). An empty column gets a zero-cost ``'U1'`` instead,
+    so pandas and Arrow still infer a string type rather than object/null.
+    """
+    return object if count else 'U1'
+
+
 def addon(class_name: str, method_name: str | None = None):
     """
     Decorator to register an addon method for a class.

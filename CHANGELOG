@@ -299,6 +299,21 @@ PyOpenMS:
     temporary directories/files; the Python-level File.getSystemParameters(), File.getTempDirectory(),
     File.getUserDirectory(), File.findDatabase(), File.getOpenMSHomePath() and File.getTemporaryFile()
     keep working and now call the new classes (#10083, step 6)
+  - DataFrame exports no longer build string columns from fixed-width numpy unicode fields
+    ('U50' .. 'U1000') but from object-dtype fields. This removes the silent truncation of long
+    values (e.g. protein accession lists over 1000 characters or native IDs over 100 characters)
+    and the up to 4 KB per row that each such field preallocated regardless of content. Affects
+    PeptideIdentificationList.to_df(), ConsensusMap.get_intensity_df()/get_metadata_df(),
+    MRMTransitionGroupCP.to_feature_df() and the MSSpectrum, MSChromatogram and Mobilogram
+    exports. The pandas column dtypes are unchanged (empty exports keep a string-typed column).
+    Missing string values are now null throughout instead of placeholder strings: the sequence
+    of a consensus feature without peptide identification in ConsensusMap.get_metadata_df()
+    (was 'None'), a missing string meta value in MRMTransitionGroupCP.to_feature_df() (was 'nan'),
+    and ID_native_id / ID_filename in FeatureMap.to_df() (were 'None' / 'unknown').
+    MRMTransitionGroupCP.to_feature_df() also matches its known meta value names whether given
+    as str or bytes (FWHM etc. were exported as strings when discovered via meta_values='all'),
+    and an integer meta value missing on some feature now yields a float column with NaN instead
+    of raising (#8583)
 
 TOPP tools:
   Changes:
