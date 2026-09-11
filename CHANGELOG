@@ -293,10 +293,14 @@ PyOpenMS:
     PeptideIdentificationList.to_df(), ConsensusMap.get_intensity_df()/get_metadata_df(),
     MRMTransitionGroupCP.to_feature_df() and the MSSpectrum, MSChromatogram and Mobilogram
     exports. The pandas column dtypes are unchanged (empty exports keep a string-typed column).
-    Two missing-value cases change: a consensus feature without peptide identification now gets a
-    null sequence in ConsensusMap.get_metadata_df() instead of the string 'None', and a missing
-    string meta value in MRMTransitionGroupCP.to_feature_df() is null instead of the string 'nan'.
-    FeatureMap.to_df() keeps its explicit 'None'/'unknown' sentinels (#8583)
+    Missing string values are now null throughout instead of placeholder strings: the sequence
+    of a consensus feature without peptide identification in ConsensusMap.get_metadata_df()
+    (was 'None'), a missing string meta value in MRMTransitionGroupCP.to_feature_df() (was 'nan'),
+    and ID_native_id / ID_filename in FeatureMap.to_df() (were 'None' / 'unknown').
+    MRMTransitionGroupCP.to_feature_df() also matches its known meta value names whether given
+    as str or bytes (FWHM etc. were exported as strings when discovered via meta_values='all'),
+    and an integer meta value missing on some feature now yields a float column with NaN instead
+    of raising (#8583)
 
 TOPP tools:
   Changes:

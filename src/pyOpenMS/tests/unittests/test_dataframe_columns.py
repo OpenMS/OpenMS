@@ -1150,8 +1150,9 @@ class TestBugFixes:
         assert len(df) == 2
         # First feature should have the native_id
         assert df.iloc[0]['ID_native_id'] == 'scan=100'
-        # Second feature should have 'None' string (numpy converts None to string due to U100 dtype)
-        assert df.iloc[1]['ID_native_id'] == 'None'
+        # Second feature has no spectrum_native_id meta value: exported as null
+        import pandas as pd
+        assert pd.isna(df.iloc[1]['ID_native_id'])
 
 
 class TestFeatureMapColumnSelection:
@@ -1531,3 +1532,62 @@ class TestStringColumnsNotTruncated:
             assert df['FWHM'].dtype == np.float32, meta_values
             assert df.loc[3, 'FWHM'] == pytest.approx(3.5)
             assert df.loc[3, 'PeptideRef'] == 'PEP_1'
+
+    def test_feature_map_missing_id_columns_are_null(self):
+        """A feature whose peptide identification has no matching ProteinIdentification and no
+        spectrum_native_id meta value gets null ID_filename / ID_native_id, not 'unknown' / 'None'."""
+        import pandas as pd
+        fmap = pyopenms.FeatureMap()
+        f = pyopenms.Feature()
+        f.setRT(1.0)
+        f.setMZ(2.0)
+        f.setUniqueId(11)
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('run_without_protein_id')
+        hit = pyopenms.PeptideHit()
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setScore(0.5)
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.push_back(pep)
+        f.setPeptideIdentifications(pep_list)
+        fmap.push_back(f)
+
+        df = fmap.to_df()
+        assert df.loc[11, 'peptide_sequence'] == 'PEPTIDE'
+        assert pd.isna(df.loc[11, 'ID_filename'])
+        assert pd.isna(df.loc[11, 'ID_native_id'])
+
+    def test_mrm_feature_df_missing_int_meta_value_promotes_to_float(self):
+        """An integer meta value missing on one feature yields a float column with NaN
+        instead of raising when the NaN is written into an integer field."""
+        import pandas as pd
+        tg = pyopenms.MRMTransitionGroupCP()
+        f1 = pyopenms.MRMFeature()
+        f1.setRT(1.0)
+        f1.setIntensity(1.0)
+        f1.setOverallQuality(0.5)
+        f1.setUniqueId(1)
+        f1.setMetaValue('spectrum_index', 42)
+        tg.addFeature(f1)
+        f2 = pyopenms.MRMFeature()
+        f2.setRT(2.0)
+        f2.setIntensity(2.0)
+        f2.setOverallQuality(0.6)
+        f2.setUniqueId(2)
+        tg.addFeature(f2)
+
+        for meta_values in ('all', ['spectrum_index']):
+            df = tg.to_feature_df(meta_values=meta_values)
+            assert df['spectrum_index'].dtype == np.float64
+            assert df.loc[1, 'spectrum_index'] == 42
+            assert pd.isna(df.loc[2, 'spectrum_index'])
+
+        # present on every feature: stays integer
+        f2.setMetaValue('spectrum_index', 43)
+        tg2 = pyopenms.MRMTransitionGroupCP()
+        tg2.addFeature(f1)
+        tg2.addFeature(f2)
+        df = tg2.to_feature_df(meta_values=['spectrum_index'])
+        assert df['spectrum_index'].dtype == np.int32
+        assert list(df['spectrum_index']) == [42, 43]

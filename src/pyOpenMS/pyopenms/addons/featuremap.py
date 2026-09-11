@@ -33,7 +33,7 @@ def _get_prot_id_filename_from_pep_id(self, pep_id):
             filenames = prot.getPrimaryMSRunPath()
             if filenames and filenames[0] != '':
                 return filenames[0]
-    return 'unknown'
+    return None
 
 
 @addon("FeatureMap")
@@ -82,7 +82,7 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
             pep = f.getPeptideIdentifications()
             if len(pep) > 0:
                 ID_filename = self._get_prot_id_filename_from_pep_id(pep[0])
-                spec_id = 'None'
+                spec_id = None
                 if f.metaValueExists('spectrum_native_id'):
                     spec_id = str(f.getMetaValue('spectrum_native_id'))
                 hits = pep[0].getHits()

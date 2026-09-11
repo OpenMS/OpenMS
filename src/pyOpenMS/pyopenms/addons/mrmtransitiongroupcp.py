@@ -86,7 +86,12 @@ def to_feature_df(self, columns=None, meta_values=None):
 
         for meta_value in meta_values_list:
             name = meta_value.decode() if isinstance(meta_value, bytes) else meta_value
-            mddtypes.append((name, common_meta_value_types.get(name, str_dtype)))
+            dtype = common_meta_value_types.get(name, str_dtype)
+            if dtype == 'i' and not all(f.metaValueExists(meta_value) for f in features):
+                # an integer field cannot hold NaN for the missing values; promote to float64
+                # (what pandas does for an integer column with missing entries)
+                dtype = 'd'
+            mddtypes.append((name, dtype))
     else:
         meta_values_list = []
 
