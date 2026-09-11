@@ -1017,6 +1017,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             bool valid = self.isValid(msg);
             return nb::make_tuple(valid, msg);
         }, "Check if value fulfills restrictions. Returns (valid, message)")
+        .def("isBool", &OpenMS::Param::ParamEntry::isBool, "True if this is a boolean parameter: a scalar string restricted to exactly 'true' and 'false' (either order), independent of the current value")
         .def("__eq__", &OpenMS::Param::ParamEntry::operator==, nb::is_operator())
         .def("__repr__", [](const OpenMS::Param::ParamEntry& self) {
             std::string tags = "[";

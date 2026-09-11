@@ -107,6 +107,65 @@ START_SECTION(([Param::ParamEntry] bool isValid(std::string& message) const))
 
 END_SECTION
 
+START_SECTION(([Param::ParamEntry] bool isBool() const))
+	Param p;
+
+	// canonical flag declaration
+	p.setValue("flag", "false");
+	p.setValidStrings("flag", {"true", "false"});
+	TEST_EQUAL(p.getEntry("flag").isBool(), true)
+
+	// reversed order is boolean as well
+	p.setValue("reversed", "false");
+	p.setValidStrings("reversed", {"false", "true"});
+	TEST_EQUAL(p.getEntry("reversed").isBool(), true)
+
+	// the current value does not matter
+	p.setValue("flag", "true");
+	TEST_EQUAL(p.getEntry("flag").isBool(), true)
+	p.setValue("reversed", "true");
+	TEST_EQUAL(p.getEntry("reversed").isBool(), true)
+
+	// unrestricted "true"/"false" strings are not boolean
+	p.setValue("unrestricted", "true");
+	TEST_EQUAL(p.getEntry("unrestricted").isBool(), false)
+
+	// restrictions with additional values are not boolean
+	p.setValue("tristate", "auto");
+	p.setValidStrings("tristate", {"auto", "true", "false"});
+	TEST_EQUAL(p.getEntry("tristate").isBool(), false)
+
+	// single-value and duplicate restrictions are not boolean
+	p.setValue("single", "true");
+	p.setValidStrings("single", {"true"});
+	TEST_EQUAL(p.getEntry("single").isBool(), false)
+	p.setValue("duplicate", "true");
+	p.setValidStrings("duplicate", {"true", "true"});
+	TEST_EQUAL(p.getEntry("duplicate").isBool(), false)
+
+	// other two-value restrictions are not boolean
+	p.setValue("unit", "ppm");
+	p.setValidStrings("unit", {"ppm", "Da"});
+	TEST_EQUAL(p.getEntry("unit").isBool(), false)
+
+	// string lists are not boolean, even with true/false restrictions
+	p.setValue("list", std::vector<std::string>{"true", "false"});
+	p.setValidStrings("list", {"true", "false"});
+	TEST_EQUAL(p.getEntry("list").isBool(), false)
+
+	// non-string types are not boolean
+	p.setValue("int", 1);
+	TEST_EQUAL(p.getEntry("int").isBool(), false)
+	p.setValue("double", 1.0);
+	TEST_EQUAL(p.getEntry("double").isBool(), false)
+
+	// a freshly constructed entry without restrictions is not boolean
+	Param::ParamEntry pe("n", "false", "d");
+	TEST_EQUAL(pe.isBool(), false)
+	pe.valid_strings = {"true", "false"};
+	TEST_EQUAL(pe.isBool(), true)
+END_SECTION
+
 START_SECTION(([Param::ParamEntry] bool operator==(const ParamEntry& rhs) const))
 	Param::ParamEntry n1("n","d","v",{"advanced"});
 	Param::ParamEntry n2("n","d","v",{"advanced"});

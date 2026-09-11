@@ -165,6 +165,16 @@ namespace OpenMS
     return true;
   }
 
+  bool Param::ParamEntry::isBool() const
+  {
+    if (value.valueType() != ParamValue::STRING_VALUE || valid_strings.size() != 2)
+    {
+      return false;
+    }
+    return (valid_strings[0] == "true" && valid_strings[1] == "false") ||
+           (valid_strings[0] == "false" && valid_strings[1] == "true");
+  }
+
   bool Param::ParamEntry::operator==(const ParamEntry& rhs) const
   {
     return name == rhs.name && value == rhs.value;
