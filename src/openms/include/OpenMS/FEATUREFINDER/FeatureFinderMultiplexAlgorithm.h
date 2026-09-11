@@ -158,22 +158,36 @@ protected:
   /**
    * @brief calculate peptide intensities
    *
+   * In addition to the (corrected) peptide intensities, the per-mass-trace (i.e. per-isotope) quantities
+   * computed on the way are reported via the output parameters. They are indexed as [peptide][isotope]
+   * and reused for the masstrace_* meta values, avoiding a second (costly) integration pass.
+   *
    * @param[in] pattern Isotopic peak pattern
    * @param[in] satellites Satellite peaks
+   * @param[out] mt_intensities integrated intensity of each mass trace, per peptide
+   * @param[out] mt_centroid_rt intensity-weighted centroid RT of each mass trace, per peptide
+   * @param[out] mt_centroid_mz intensity-weighted centroid m/z of each mass trace, per peptide
    *
    * @return vector with intensities for each of the peptides
    */
-  std::vector<double> determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
+  std::vector<double> determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites, std::vector<std::vector<double> >& mt_intensities, std::vector<std::vector<double> >& mt_centroid_rt, std::vector<std::vector<double> >& mt_centroid_mz);
 
   /**
    * @brief calculate peptide intensities
    *
+   * In addition to the (corrected) peptide intensities, the per-mass-trace (i.e. per-isotope) quantities
+   * computed on the way are reported via the output parameters. They are indexed as [peptide][isotope]
+   * and reused for the masstrace_* meta values, avoiding a second (costly) integration pass.
+   *
    * @param[in] pattern Isotopic peak pattern
    * @param[in] satellites Satellite peaks
+   * @param[out] mt_intensities integrated intensity of each mass trace, per peptide
+   * @param[out] mt_centroid_rt intensity-weighted centroid RT of each mass trace, per peptide
+   * @param[out] mt_centroid_mz intensity-weighted centroid m/z of each mass trace, per peptide
    *
    * @return vector with intensities for each of the peptides
    */
-  std::vector<double> determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites);
+  std::vector<double> determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites, std::vector<std::vector<double> >& mt_intensities, std::vector<std::vector<double> >& mt_centroid_rt, std::vector<std::vector<double> >& mt_centroid_mz);
 
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
