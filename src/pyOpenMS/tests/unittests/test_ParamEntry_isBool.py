@@ -1,4 +1,11 @@
-"""Tests for Param.ParamEntry.isBool()."""
+"""
+## ----------------------------------------------------------------------------
+## $Maintainer: $
+## $Authors: $
+## ----------------------------------------------------------------------------
+
+Tests for Param.ParamEntry.isBool().
+"""
 import pyopenms
 
 
@@ -13,6 +20,11 @@ def test_param_entry_isBool():
     p.setValue("flag", "true")
     p.setValidStrings("flag", ["false", "true"])
     assert p.getEntry("flag").isBool()
+
+    # a value outside the restrictions does not change the type (isValid() reports that separately)
+    p.setValue("flag", "auto")
+    assert p.getEntry("flag").isBool()
+    assert not p.getEntry("flag").isValid()[0]
 
     # unrestricted true/false strings are not boolean
     p.setValue("unrestricted", "true")

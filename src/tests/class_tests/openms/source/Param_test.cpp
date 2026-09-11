@@ -126,6 +126,12 @@ START_SECTION(([Param::ParamEntry] bool isBool() const))
 	p.setValue("reversed", "true");
 	TEST_EQUAL(p.getEntry("reversed").isBool(), true)
 
+	// a value outside the restrictions does not change the type (isValid() reports that separately)
+	std::string msg;
+	p.setValue("flag", "auto");
+	TEST_EQUAL(p.getEntry("flag").isBool(), true)
+	TEST_EQUAL(p.getEntry("flag").isValid(msg), false)
+
 	// unrestricted "true"/"false" strings are not boolean
 	p.setValue("unrestricted", "true");
 	TEST_EQUAL(p.getEntry("unrestricted").isBool(), false)
