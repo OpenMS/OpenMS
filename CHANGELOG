@@ -191,6 +191,11 @@ PyOpenMS:
     - PEP 561 type stubs (.pyi), smaller binaries, faster builds and better error messages
     - along the way: ~50 mutable-reference output parameter bugs fixed and ~100 missing default
       arguments restored
+  - BREAKING: the pure Python pyopenms.String wrapper class (addons/string_class.py), a Cython-era
+    shim kept only to emulate String& output parameters, was removed; OpenMS::String parameters are
+    plain Python str in the nanobind bindings and no longer need wrapping. The three bindings that
+    wrote their result into its _value attribute now return it directly instead: MzMLFile.storeBuffer()
+    returns str, MSNumpressCoder.encodeNP() returns str and encodeNPRaw() returns bytes (#10109)
   - BREAKING: getters return owned copies again, restoring the 3.5 (Cython) semantics that the initial
     nanobind port had turned into live aliases (#9792, #9794)
     - element access (spec[i], for peak in spec, exp.getSpectrum(i)), vector getters (getSpectra(),
