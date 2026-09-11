@@ -8,6 +8,11 @@ set -o pipefail
 
 # [installation_documentation]
 choco install -y --no-progress \
+  cmake \
+  ninja
+
+# If you want to install the documentation dependencies:
+choco install -y --no-progress \
   graphviz
 
 # Temporary hack to get doxygen installed:
