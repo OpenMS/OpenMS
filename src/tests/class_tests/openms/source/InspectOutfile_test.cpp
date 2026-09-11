@@ -166,6 +166,19 @@ START_SECTION(std::vector< Size > load(const std::string& result_filename, std::
 	{
 		TEST_EQUAL(file.load(input_file_name2, peptide_identifications, protein_identification, 0.01)[0], 2)
 	}
+
+	// issue #9488 (FORM-60): load() populates fresh results (it clears first), it does not
+	// append. Two loads into the same containers without a manual clear must not accumulate.
+	{
+		PeptideIdentificationList pep_ids_fresh;
+		ProteinIdentification prot_id_fresh;
+		file.load(input_file_name2, pep_ids_fresh, prot_id_fresh, 0.01);
+		Size n_pep = pep_ids_fresh.size();
+		Size n_prot = prot_id_fresh.getHits().size();
+		file.load(input_file_name2, pep_ids_fresh, prot_id_fresh, 0.01);
+		TEST_EQUAL(pep_ids_fresh.size(), n_pep)
+		TEST_EQUAL(prot_id_fresh.getHits().size(), n_prot)
+	}
 END_SECTION
 
 START_SECTION(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = ""))

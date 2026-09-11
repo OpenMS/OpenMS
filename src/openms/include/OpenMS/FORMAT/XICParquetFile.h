@@ -206,6 +206,48 @@ namespace OpenMS
                           const std::string& filter = "") const;
 
     /**
+      @brief Named-field query for getChromatograms().
+
+      Use this struct to avoid confusing the many same-typed positional filter arguments
+      of getChromatograms() (six adjacent Int64 columns, all defaulting to -1, are trivially
+      swappable at a call site). Each field defaults to the "ignore" sentinel (-1 for
+      ids/charges/levels, empty string for text), so only the named fields you set are
+      applied as filters. This is the recommended way to filter on more than one column
+      (issue #9488, FORM-94).
+
+      @code
+      XICParquetFile::XICQuery q;
+      q.precursor_id = 1318;
+      q.transition_id = 7;
+      std::vector<XICParquetFile::XICChromatogram> out;
+      xic.getChromatograms(out, q);
+      @endcode
+    */
+    struct OPENMS_DLLAPI XICQuery
+    {
+      Int64 precursor_id{-1};         ///< Filter on PRECURSOR_ID (-1 to ignore)
+      Int64 transition_id{-1};        ///< Filter on TRANSITION_ID (-1 to ignore)
+      std::string modified_sequence;  ///< Filter on MODIFIED_SEQUENCE (empty to ignore)
+      Int64 precursor_charge{-1};     ///< Filter on PRECURSOR_CHARGE (-1 to ignore)
+      Int64 product_charge{-1};       ///< Filter on PRODUCT_CHARGE (-1 to ignore)
+      Int64 ms_level{-1};             ///< Filter on MS_LEVEL (-1 to ignore)
+      Int64 run_id{-1};               ///< Filter on RUN_ID (-1 to ignore)
+      std::string filter;             ///< Additional free-form filter expression (empty to ignore)
+    };
+
+    /**
+      @brief Return chromatograms using a named-field query.
+
+      Preferred over the positional overload: each filter value is bound to a named field,
+      so the value-to-column mapping is unambiguous and a swapped argument is impossible.
+
+      @param[out] output Output chromatograms
+      @param[in] query Named-field filter query
+    */
+    void getChromatograms(std::vector<XICChromatogram>& output,
+                          const XICQuery& query) const;
+
+    /**
       @brief Return chromatograms using a typed filter expression.
 
       @param[out] output Output chromatograms
