@@ -318,6 +318,11 @@ PyOpenMS:
 TOPP tools:
   Changes:
     all:
+      - BREAKING: the advanced command-line option '-instance <n>' was removed. It selected the numbered
+        section ('ToolName:<n>:') of an INI file and was broken in combination with '-ini' (every tool
+        exited with ILLEGAL_PARAMETERS). Tools now always read and write the 'ToolName:1:' section, which
+        is what all existing INI/CTD/TOPPAS files and their consumers (TOPPAS, KNIME, CWL/JSON export) use;
+        the file format is unchanged. INIUpdater lost its '-instance' option accordingly (fixes #10125)
       - BREAKING: when a parameter is given several times on the command line, the LAST occurrence now
         wins (previously the first); a warning is issued when duplicates are detected. This enables the
         nextflow pattern of appending ${ext.args} to override hardcoded defaults. Error messages for

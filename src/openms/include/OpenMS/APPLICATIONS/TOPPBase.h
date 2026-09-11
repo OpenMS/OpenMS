@@ -117,10 +117,10 @@ public:
 
     /**
       @brief Returns the prefix used to identify the tool
-    
-      This prefix is later found in the INI file for a TOPP tool.
-      f.e.: "FileConverter:1:"
 
+      This prefix is later found in the INI file for a TOPP tool, e.g. "FileConverter:1:".
+      The "1" is a fixed level of the INI/CTD/TOPPAS file format (historically an instance number)
+      and cannot be changed.
     */
     std::string getToolPrefix() const;
 
@@ -137,9 +137,6 @@ public:
     /// Tool description. This is assigned once and for all in the constructor.
     std::string const tool_description_;
 
-    /// Instance number
-    Int const instance_number_;
-
     /// Location in the ini file where to look for parameters.
     std::string const ini_location_;
 
@@ -152,7 +149,7 @@ public:
     /// Parameters from command line
     Param param_cmdline_;
 
-    /// Parameters from instance section
+    /// Parameters from the tool section of the INI file (e.g. "TOPPTool:1:"), see getIniLocation_()
     Param param_instance_;
 
     /// Parameters from common section with tool name.
@@ -281,7 +278,7 @@ public:
 
       Parameters are searched in this order:
       -# command line
-      -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
+      -# tool section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
       -# common section with tool name,  e.g. "common:ToolName:some_key"
       -# common section without tool name,  e.g. "common:some_key"
 
@@ -321,10 +318,9 @@ protected:
 
     /**
       @brief Returns the location of the ini file where parameters are taken
-      from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
-      this will be <code>"TOPPTool:17:"</code>.  Note the ':' at the end.
+      from, i.e. <code>"TOPPTool:1:"</code> for a tool named "TOPPTool". Note the ':' at the end.
 
-      This is assigned during tool startup, depending on the command line but (of course) not depending on ini files.
+      This is assigned during tool startup and does not depend on the command line or on ini files.
     */
     const std::string& getIniLocation_() const
     {
@@ -352,7 +348,7 @@ protected:
     /**
       @brief Sets the valid command line options (with argument) and flags (without argument).
 
-      The options '-ini' '-log' '-instance' '-debug' and the flag '--help' are automatically registered.
+      The options '-ini' '-log' '-debug' and the flag '--help' are automatically registered.
     */
     virtual void registerOptionsAndFlags_() = 0;
 

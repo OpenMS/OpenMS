@@ -82,7 +82,7 @@ protected:
 
   /// Run @p tool_name with '-write_ini' to dump its current default parameters into @p tmp_ini_file.
   /// Returns false if the tool executable could not be found or did not finish successfully.
-  bool runWriteIni_(const std::string& tool_name, const std::string& tmp_ini_file, Int instance)
+  bool runWriteIni_(const std::string& tool_name, const std::string& tmp_ini_file)
   {
     std::string tool_exe;
     try
@@ -97,7 +97,7 @@ protected:
     ExternalProcess proc;
     std::string error_msg;
     ExternalProcess::RETURNSTATE state = proc.run(
-      tool_exe, {"-write_ini", tmp_ini_file, "-instance", std::to_string(instance)}, "", false, error_msg);
+      tool_exe, {"-write_ini", tmp_ini_file}, "", false, error_msg);
     return state == ExternalProcess::RETURNSTATE::SUCCESS;
   }
 
@@ -123,7 +123,6 @@ protected:
 
   void updateTOPPAS(const std::string& infile, const std::string& outfile)
   {
-    Int this_instance = getIntOption_("instance");
     INIUpdater updater;
     std::string tmp_ini_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
@@ -153,7 +152,7 @@ protected:
     for (Int v = 0; v < vertices; ++v)
     {
       std::string sec_inst = "vertices:" + StringUtils::toStr(v) + ":";
-      // check for default instance
+      // check for the vertex section
       if (!p.exists(sec_inst + "toppas_type"))
       {
         writeLogWarn_("Update for file " + infile + " failed because the vertex #" + StringUtils::toStr(v) + " does not have a 'toppas_type' node. Check INI file for corruption!");
@@ -192,7 +191,7 @@ protected:
       p.setValue(sec_inst + "tool_type", "");
 
       // get defaults of new tool by calling it
-      if (!runWriteIni_(new_tool, tmp_ini_file, this_instance))
+      if (!runWriteIni_(new_tool, tmp_ini_file))
       {
         writeLogWarn_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -237,7 +236,6 @@ protected:
 
   void updateINI(const std::string& infile, const std::string& outfile)
   {
-    Int this_instance = getIntOption_("instance");
     INIUpdater updater;
     std::string tmp_ini_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
@@ -275,11 +273,11 @@ protected:
     bool update_success = true;
     for (Size s = 0; s < sections.size(); ++s)
     {
-      std::string sec_inst = sections[s] + ":" + StringUtils::toStr(this_instance) + ":";
-      // check for default instance
+      std::string sec_inst = sections[s] + ":1:";
+      // check for the tool section
       if (!p.exists(sec_inst + "debug"))
       {
-        writeLogWarn_("Update for file '" + infile + "' failed because the instance section '" + sec_inst + "' does not exist. Use -instance or check INI file for corruption!");
+        writeLogWarn_("Update for file '" + infile + "' failed because the tool section '" + sec_inst + "' does not exist. Check INI file for corruption!");
         update_success = false;
         break;
       }
@@ -295,7 +293,7 @@ protected:
         break;
       }
       // get defaults of new tool by calling it
-      if (!runWriteIni_(new_tool, tmp_ini_file, this_instance))
+      if (!runWriteIni_(new_tool, tmp_ini_file))
       {
         writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;

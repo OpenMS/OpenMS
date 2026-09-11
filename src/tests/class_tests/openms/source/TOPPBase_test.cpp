@@ -34,6 +34,9 @@ class TOPPBaseTest
   : public TOPPBase
 {
   public:
+    /// return value of main() for the command line given in the constructor
+    ExitCodes exit_code;
+
     TOPPBaseTest()
       : TOPPBase("TOPPBaseTest", "A test class", false, {}, false)
     {
@@ -43,7 +46,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(0,nullptr);
+      exit_code = main(0,nullptr);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
@@ -55,7 +58,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(argc,argv);
+      exit_code = main(argc,argv);
     }
 
     void registerOptionsAndFlags_() override
@@ -401,7 +404,7 @@ END_SECTION
 //parts to build command lines
 const char* a1 ="TOPPBaseTest";
 const char* a3 ="-ini";
-const char* a5 ="-instance";
+const char* a5 ="-instance"; // removed option; must be rejected as unknown
 const char* a6 ="6";
 // needed to get the correct pathes
 char* a7;
@@ -413,6 +416,11 @@ char* a8;
 std::string temp_a8(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"));
 a8 = new char[temp_a8.size() + 1];
 strcpy(a8, temp_a8.c_str());
+//
+char* a4;
+std::string temp_a4(OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon_only.ini"));
+a4 = new char[temp_a4.size() + 1];
+strcpy(a4, temp_a4.c_str());
 //
 const char* a9 ="5";
 const char* a10 ="-stringoption";
@@ -433,10 +441,11 @@ START_SECTION(([EXTRA]std::string const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
-	//command line
+	//the former '-instance' option is gone: the location is fixed and the option is rejected as unknown
 	const char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPBaseTest -instance 5"
 	TOPPBaseTest tmp2(3,instance_cl);
-	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
+	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:1:")
+	TEST_EQUAL(tmp2.exit_code, TOPPBase::ILLEGAL_PARAMETERS)
 END_SECTION
 
 
@@ -452,24 +461,25 @@ START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) cons
 	//command line (when there is a ini file value too)
 	const char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(5,both_cl);
+	TEST_EQUAL(tmp3.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
 
-	//ini file: instance section
+	//ini file: tool section ("TOPPBaseTest:1:") wins over both common sections
 	const char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp4(3,common_cl);
+	TEST_EQUAL(tmp4.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp4.getStringOption("stringoption"), "instance1");
-	const char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
-	TOPPBaseTest tmp5(5,common5_cl);
-	TEST_EQUAL(tmp5.getStringOption("stringoption"), "instance5");
 
-	//ini file: tool common section
-	const char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
-	TOPPBaseTest tmp6(5,common6_cl);
+	//ini file: tool common section ("common:TOPPBaseTest:") wins over the plain common section
+	const char* common6_cl[3] = {a1, a3, a4}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon_only.ini"
+	TOPPBaseTest tmp6(3,common6_cl);
+	TEST_EQUAL(tmp6.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp6.getStringOption("stringoption"), "toolcommon");
 
 	//ini file: common section
-	const char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
-	TOPPBaseTest tmp7(5,common7_cl);
+	const char* common7_cl[3] = {a1, a3, a8}; //command line: "TOPPBaseTest -ini data/TOPPBase_common.ini"
+	TOPPBaseTest tmp7(3,common7_cl);
+	TEST_EQUAL(tmp7.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp7.getStringOption("stringoption"), "common");
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringOption("doubleoption"));
@@ -493,7 +503,7 @@ START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) cons
 	//remove id pool (the path is dependent on the installation path)
 	p1.remove("TOPPBaseTest:1:id_pool");
 
-	//every parameter except for help,ini.instance, write_ini and write_wsdl
+	//every parameter except for help, ini, write_ini and write_ctd/cwl/json
 	//toolname : TOPPBaseTest
 	p2.setValue("TOPPBaseTest:version",VersionInfo::getVersion());
 	p2.setValue("TOPPBaseTest:1:stringoption","string default","string description");

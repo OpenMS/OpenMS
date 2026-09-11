@@ -100,13 +100,14 @@ namespace OpenMS
 
   std::string TOPPBase::getToolPrefix() const
   {
-    return tool_name_ + ":" + instance_number_ + ":";
+    // The "1" is a fixed level of the INI/CTD/TOPPAS file format (formerly a user-selectable
+    // instance number). It is kept so existing parameter files and their consumers keep working.
+    return tool_name_ + ":1:";
   }
 
   TOPPBase::TOPPBase(const std::string& tool_name, const std::string& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
-    instance_number_(-1),
     official_(official),
     citations_(citations),
     toolhandler_test_(toolhandler_test),
@@ -167,7 +168,6 @@ namespace OpenMS
       addText_("Common UTIL options:");
     registerStringOption_("ini", "<file>", "", "Use the given TOPP INI file", false);
     registerStringOption_("log", "<file>", "", "Name of log file (created only when specified)", false, true);
-    registerIntOption_("instance", "<n>", 1, "Instance number for the TOPP INI file", false, true);
     registerIntOption_("debug", "<n>", 0, "Sets the debug level", false, true);
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
@@ -196,10 +196,6 @@ namespace OpenMS
 
     // for now command line is all we have, final assembly will follow below
     param_ = param_cmdline_;
-
-    // assign instance number
-    *const_cast<int*>(&instance_number_) = getParamAsInt_("instance", 1);
-    writeDebug_("Instance: " + StringUtils::toStr(instance_number_), 1);
 
     // assign ini location
     *const_cast<std::string*>(&ini_location_) = this->getToolPrefix();
@@ -303,7 +299,7 @@ namespace OpenMS
 
           // dissect loaded INI parameters
           param_instance_ = param_inifile_.copy(getIniLocation_(), true);
-          writeDebug_("Parameters from instance section:", param_instance_, 2);
+          writeDebug_("Parameters from tool section:", param_instance_, 2);
           param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ":", true);
           writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
           param_common_ = param_inifile_.copy("common:", true);
@@ -321,8 +317,8 @@ namespace OpenMS
         writeDebug_("Initialize final param with cmd line:", param_cmdline_, 2);
         finalParam = param_cmdline_;
 
-        // 2. the instance values from the ini-file
-        writeDebug_("Merging instance section into param:", param_instance_, 2);
+        // 2. the tool section values from the ini-file
+        writeDebug_("Merging tool section into param:", param_instance_, 2);
         finalParam.merge(param_instance_);
 
         // 3. the tools data from the common section
@@ -337,8 +333,8 @@ namespace OpenMS
         finalParam.remove("ini"); // not contained in default params; remove to avoid "unknown param" in update()
 
         // finally: augment default values with INI/CLI values
-        // note the copy(getIniLocation_(),..) as we want the param tree without instance
-        // information
+        // note the copy(getIniLocation_(),..) as we want the param tree without the
+        // "ToolName:1:" prefix
         param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
         if (!param_.update(finalParam, false, false, true, true, getGlobalLogWarn()))
         {
@@ -2095,7 +2091,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "instance", "write_ini", "write_ctd", "write_cwl", "write_nested_cwl", "write_json", "write_nested_json"}.count(it->name) > 0) // do not store these params in ini file
+      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "write_ini", "write_ctd", "write_cwl", "write_nested_cwl", "write_json", "write_nested_json"}.count(it->name) > 0) // do not store these params in ini file
       {
         continue;
       }
@@ -2226,7 +2222,7 @@ namespace OpenMS
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);
-    tmp.setSectionDescription(tool_name_ + ":" + StringUtils::toStr(instance_number_),"Instance '" + StringUtils::toStr(instance_number_) + "' section for '" + tool_name_ + "'");
+    tmp.setSectionDescription(tool_name_ + ":1", "Instance '1' section for '" + tool_name_ + "'");
 
     // add type (as default type is "", but .ini file should have it)
     if (param_cmdline_.exists("type"))
