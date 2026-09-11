@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 
 using namespace OpenMS;
@@ -147,9 +148,9 @@ START_SECTION((static void storeJSON(const std::string& filename)))
   }
 
   // getChargeDistribution(swath_maps, 10, 0.04);
-  std::string tmp_json = File::getTemporaryFile();
+  std::string tmp_json = TempFiles::getTemporaryFile();
   qc.storeJSON(tmp_json);
-  std::string tmp_expected = File::getTemporaryFile();
+  std::string tmp_expected = TempFiles::getTemporaryFile();
   TextFile tf;
   tf.addLine(R"({
   "ChargeDistributionMS1": [

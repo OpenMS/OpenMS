@@ -58,7 +58,7 @@
 #include <OpenMS/FORMAT/PEFFFile.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParquetFilter.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
@@ -1098,14 +1098,11 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def("__copy__", [](const OpenMS::MSNumpressCoder& self) { return OpenMS::MSNumpressCoder(self); })
         .def("__deepcopy__", [](const OpenMS::MSNumpressCoder& self, nb::dict) { return OpenMS::MSNumpressCoder(self); }, "memo"_a)
 
-        .def("encodeNP", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
+        .def("encodeNP", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string result;
             self.encodeNP(in, result, zlib_compression, config);
-            // Write result back to the output String-like object
-            if (nb::hasattr(out_obj, "_value")) {
-                out_obj.attr("_value") = std::string(result);
-            }
-        }, "in"_a, "result"_a, "zlib_compression"_a, "config"_a, "Encode vector of doubles to Base64 numpress string")
+            return result;
+        }, "in"_a, "zlib_compression"_a, "config"_a, "Encode vector of doubles to a Base64 numpress string and return it")
 
         .def("decodeNP", [](OpenMS::MSNumpressCoder& self, nb::object in_obj, nb::list out, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string in_str;
@@ -1120,14 +1117,12 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
             for (double v : result) out.append(v);
         }, "in"_a, "out"_a, "zlib_compression"_a, "config"_a, "Decode Base64 numpress string to vector of doubles")
 
-        .def("encodeNPRaw", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, OpenMS::MSNumpressCoder::NumpressConfig config) {
+        .def("encodeNPRaw", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string result;
             self.encodeNPRaw(in, result, config);
-            if (nb::hasattr(out_obj, "_value")) {
-                // Raw encoding may contain null bytes - use the full size
-                out_obj.attr("_value") = nb::bytes(result.c_str(), result.size());
-            }
-        }, "in"_a, "result"_a, "config"_a, "Encode vector of doubles to raw numpress byte array")
+            // Raw encoding may contain null bytes - return bytes of the full size
+            return nb::bytes(result.c_str(), result.size());
+        }, "in"_a, "config"_a, "Encode vector of doubles to a raw numpress byte array and return it as bytes")
 
         .def("decodeNPRaw", [](OpenMS::MSNumpressCoder& self, nb::object in_obj, nb::list out, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string in_str;

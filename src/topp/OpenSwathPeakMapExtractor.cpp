@@ -20,6 +20,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cmath>
@@ -127,7 +129,7 @@ protected:
     registerFlag_("split_file_input", "The input files each contain one single SWATH window (alternatively: all SWATHs are in separate files)", true);
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run directly on the input data, cache data to disk first, or load working sets into memory", false, true);
     setValidStrings_("readOptions", ListUtils::create<std::string>("normal,cache,cacheWorkingInMemory,workingInMemory"));
-    registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory used for cached files", false, true);
+    registerStringOption_("tempDirectory", "<tmp>", SystemSettings::getTempDirectory(), "Temporary directory used for cached files", false, true);
     registerFlag_("keep_cached_files", "Do not remove cached files created in tempDirectory", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
@@ -631,11 +633,11 @@ protected:
       const StringList& current_run_files = run_groups[run_index];
       OPENMS_LOG_INFO << "Processing run " << (run_index + 1) << "/" << run_groups.size() << '\n';
 
-      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      std::unique_ptr<TempDir> per_run_temp_dir;
       std::string per_run_tmp = tmp_dir;
       if (readoptions == "cache")
       {
-        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_temp_dir = std::make_unique<TempDir>(tmp_dir, keep_cached_files);
         per_run_tmp = per_run_temp_dir->getPath();
       }
 

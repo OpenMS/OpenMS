@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 using namespace OpenMS;
 
@@ -141,7 +142,7 @@ protected:
       std::string full_db_name;
       try
       {
-        full_db_name = File::findDatabase(db_name);
+        full_db_name = SystemSettings::findDatabase(db_name);
       }
       catch (...)
       {

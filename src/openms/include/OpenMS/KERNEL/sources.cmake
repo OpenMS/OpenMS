@@ -31,6 +31,7 @@ OnDiscImzMLExperiment.h
 Peak1D.h
 Peak2D.h
 PeakIndex.h
+PeakTypeEstimator.h
 RangeManager.h
 RangeUtils.h
 RichPeak2D.h

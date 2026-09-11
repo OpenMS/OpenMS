@@ -17,6 +17,28 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Move spectrum-type estimation into KERNEL and share the linear resampling implementation
+    between MSExperiment::calculateTIC and LinearResamplerAlign, removing three dependencies
+    from core code to FORMAT, PROCESSING and APPLICATIONS. Existing APIs, the old estimator
+    include path, numerical behavior and resampling warnings are preserved (see #10083).
+  - Share alignment model defaults through TransformationModelDefaults in the analysis layer;
+    tree-guided alignment no longer depends on MapAlignerBase/TOPPBase for parameter construction (#10092)
+  - Explicitly disable AUTOMOC for OpenMS and OpenSwathAlgo even when Qt is found;
+    GUI libraries retain their own AUTOMOC setting (#10099)
+  - Move the IsobaricAnalyzer provenance query to DataProcessingUtils so ConsensusMap no longer
+    depends on QCBase; retain the existing QCBase entry point and labeling convention (#10101)
+  - Keep CURL and OpenSwathAlgo's Boost headers private in CMake usage requirements, and stop
+    requiring CURL/Xerces development packages for shared-library consumers (#10103). CI installs
+    OpenMS and configures, builds and runs the external consumer (`src/tests/external`) against
+    the installation with plain `find_package(OpenMS)`; the CTest tests `TestExternalCode_*` are
+    enabled by `OPENMS_TEST_INSTALLED_CONSUMER`.
+  - Installed libraries and tools on Linux now carry the directories of the shared dependencies
+    they were linked against (contrib, conda, ...) in their RPATH, as they already did on macOS;
+    vcpkg builds add the vcpkg library directory of the build tree explicitly on Linux and macOS,
+    and macOS libraries add `@loader_path`. Consumers of an installed OpenMS link and run without
+    LD_LIBRARY_PATH; packaging (deb, pkg) is unchanged. In the build tree, executables now pass
+    the directories of libOpenMS's private shared dependencies to the linker (`-rpath-link`), so a
+    same-named library elsewhere on the search path no longer breaks their link (#10114).
   - Fix: XML metadata decoding now preserves UTF-8, including Latin-1 characters that previously
     entered the ASCII fast path. mzML sample comments and attribute whitespace survive round trips (#10077)
   - Thermo RAW imports preserve sample/method/trailer metadata, SHA-1 provenance, per-scan instrument
@@ -120,6 +142,9 @@ Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
   - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
   - Boost minimum version requirement raised from 1.78 to 1.81 (#9042, #9095)
+  - Minimum CMake version raised from 3.21 to 3.24; the minimum compiler versions (GCC, Clang,
+    AppleClang, MSVC toolset) are now defined centrally in cmake/min_compiler_versions.cmake and
+    checked at configure time before vcpkg runs (#10063)
   - Qt6::Network replaced with libcurl for all HTTP operations in the core library (#8841)
   - minizip-ng replaced with libzip for ZIP64 archive support (#8808)
   - Qt6 removed from the core library and from all non-GUI TOPP tools (incremental steps, Qt is now
@@ -203,6 +228,11 @@ PyOpenMS:
     properties over the scalar getters/setters of the kernel classes (MSSpectrum.rt, .ms_level,
     .drift_time, .native_id, ...; Peak1D.mz, .intensity) -- purely additive, the get*/set* methods are
     unchanged (#8501, #8503, #8510, #8576, #8631, #9760)
+  - print(param) is now useful: Param.__str__() lists one entry per line as
+    "key = value (restrictions) [tags]  # description" (with min/max/valid-string restrictions and
+    tags shown where set), Param.__repr__() gives Param({...}) mirroring asDict(), and ParamEntry
+    gained matching __str__()/__repr__(). Param can now be constructed directly from a dict,
+    Param({'key': value}), so the repr is evaluable (#10097)
   - Strings: functions accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - New wrappers: ProFormaParser (full ProForma v2: parse/serialize with LOSSLESS/CANONICAL modes,
     AASequence conversion policies, mass calculation, JSON round-trip) (#8648); USI (#8684);
@@ -264,7 +294,11 @@ PyOpenMS:
     on the machine (set DOTNET_ROOT for non-standard locations). Previously Linux and Windows wheels
     were built without the reader and the macOS wheel shipped the bridge without its managed half.
     Linux aarch64 wheels stay without Thermo support (no vendor libraries for that platform). New
-    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set
+    test_ThermoRawFile.py exercises a real RAW file when PYOPENMS_THERMO_RAW_TEST_FILE is set (#10070)
+  - New SystemSettings, TempDir and TempFiles classes expose the OpenMS.ini directory policy and
+    temporary directories/files; the Python-level File.getSystemParameters(), File.getTempDirectory(),
+    File.getUserDirectory(), File.findDatabase(), File.getOpenMSHomePath() and File.getTemporaryFile()
+    keep working and now call the new classes (#10083, step 6)
 
 TOPP tools:
   Changes:
@@ -913,6 +947,7 @@ OpenMS Library:
       there, after the new OPENMS_THERMO_MANAGED_DIR environment variable and before the bridge's own
       next-to-the-library default, so relocated layouts such as Python wheels find them. On Windows
       nethost.dll, which openms_thermo_bridge.dll imports, is installed next to the OpenMS libraries
+      (#10070)
     - IMAGING module for imaging mass spectrometry: IonImage (dense WxHxD intensity grid with per-pixel
       validity mask and m/z extraction window), MSImagingGeometry (pixel list with (x,y,z) -> spectrum
       index lookup and pixel-size metadata) and MSImagingExperiment (pixel-based spectrum access and
@@ -1055,6 +1090,11 @@ OpenMS Library:
       -write_* options and log-file initialization refined. No change to tool CLI behavior (#9621)
     - FAIMS-aware adapter for converting pre-loaded MSExperiment/PeakMap data into the existing OpenSWATH SwathMap abstraction (#9932)
   Changes:
+    - BREAKING: File no longer owns the OpenMS.ini settings and temporary-file policy. SystemSettings
+      holds getSystemParameters(), getTempDirectory(), getUserDirectory(), findDatabase(),
+      getOpenMSHomePath() and getOpenMSConfigDir(); TempDir is a top-level class and
+      TempFiles::getTemporaryFile() replaces File::getTemporaryFile(). The former File entry points and
+      the nested File::TempDir are removed, and File.h no longer depends on Param (#10083, step 6)
     - Fix: AASequence::setModificationByDiffMonoMass (and the four other call sites that write an
       unknown mass-shift modification: three in AASequence, one in Residue, one in PepXMLFile) built
       its ModificationsDB lookup key with a signed bracket but created the modification from an
@@ -1508,14 +1548,23 @@ Documentation:
     VCPKG_MANIFEST_FEATURES alongside the corresponding WITH_* CMake flags (#9928)
 
 Build System:
+  - Separated filesystem configuration and temporary-file policy from basic File operations
+    into FileConfig.cpp and FileTemp.cpp, preserving the existing API (#10083, step 5).
+  - Extracted filename recognition into FileNameUtils while retaining FileHandler entry points;
+    filesystem and protein-metadata code no longer depend on the format dispatcher (#10083, step 4).
+  - Removed unused implementation includes and production-only ConstRefVector template-check globals;
+    FeatureMap instantiation coverage now lives in the class test (#10083, step 2).
   - Narrowed selected public headers and moved ToolInfo to DATASTRUCTURES/ToolInfo.h (#10083, step 3).
     Consumers relying on incidental transitive includes must include the used types directly.
+  - Separated ion-mobility array metadata from frame conversion, with IMDataConverter compatibility
+    entry points and unchanged CV lookup, unit handling, and vendor-name fallbacks (#10083, step 6).
   - pyOpenMS wheel workflow: Thermo RAW support is built into the Linux x86_64, macOS arm64 and Windows
     wheels. The managed half of openms-thermo-bridge comes from the bridge's pre-built release zip via
     tools/ci/fetch_thermo_assets.sh (curl with retries, pinned SHA-256, cached with actions/cache,
     bridge tag cross-checked against the FetchContent pin), passed to CMake as
     OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR, so no NuGet restore or Thermo package download runs in
     CI. The wheel test suite and a smoke test on fresh runners load PNNL's Angiotensin_AllScans.raw
+    (#10070)
   - Removed the developer script tools/checker.php. Covered by .clang-format now.
   - Removed the ENABLE_STYLE_TESTING option along with the local cpplint, cppcheck integration and the "potential_for_loop_copies" check.
   - Removed further obsolete local-only developer tooling not run by any CI or build target: tools/pychecker_ignore.yaml (orphaned after the checker.php removal) and the tools/spellcheck Perl spell checker (#9945).

@@ -26,6 +26,7 @@ FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 FileInfo.cpp
 FileTypes.cpp
+FileNameUtils.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
@@ -75,7 +76,6 @@ ParamXMLFile.cpp
 ParquetTableComparator.cpp
 PEFFFile.cpp
 PTMXMLFile.cpp
-PeakTypeEstimator.cpp
 PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp

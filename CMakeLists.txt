@@ -7,7 +7,9 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## Subdirectories pulled
+## in via add_subdirectory() deliberately do NOT declare their own: doing so resets the policy scope
+## for that directory to the older version
 
 # The vcpkg toolchain must be selected before project() initializes compilers.
 # Existing system/contrib dependency discovery remains the default.
@@ -33,6 +35,26 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
+# Early MSVC toolset guard (skipped by non-MSVC compiler)
+#
+# The authoritative compiler version checks live in cmake/min_compiler_versions.cmake
+# and run further down, but they are too late to be useful on Windows: with
+# OPENMS_USE_VCPKG the toolchain builds every dependency from inside project()
+# below, so an unsupported toolset fails while compiling, leaving the user wondering
+# what happened -- before any of our own checks run.
+#
+# We therefore repeat the MSVC check here using %VCToolsVersion%, which vcvars
+# always sets and which is the one piece of toolset information available before
+# a compiler has been detected. Keep the version in sync with
+# cmake/min_compiler_versions.cmake (OPENMS_MIN_MSVC_TOOLSET)
+if(WIN32 AND DEFINED ENV{VCToolsVersion} AND "$ENV{VCToolsVersion}" VERSION_LESS "14.44")
+  message(FATAL_ERROR
+    "OpenMS requires Visual Studio 2022 version 17.14 or later (MSVC toolset 14.44+), but the current "
+    "environment provides toolset $ENV{VCToolsVersion}.\n"
+    "\n" 
+    "Please update Visual Studio.")
+endif()
+
 project("OpenMS_host" LANGUAGES CXX)
 
 # required for cmake < 3.13 if ccache is used
@@ -41,6 +63,12 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
+# FetchContent without a sub-build (CMake >= 3.30).
+# (required to allow changing the Generator in the main project, without deleting the FetchContent sub-build)
+if(POLICY CMP0168)  ## obsolete in CMake 3.30+
+  cmake_policy(SET CMP0168 NEW)
+endif()
+
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -319,6 +347,12 @@ endif()
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
 #------------------------------------------------------------------------------
+# Minimum supported compiler versions (single source of truth; also feeds the
+# version numbers quoted in the doxygen install documentation)
+#------------------------------------------------------------------------------
+include(cmake/min_compiler_versions.cmake)
+
+#------------------------------------------------------------------------------
 # Project specific compiler flags
 #------------------------------------------------------------------------------
 # Fill this with compile flags that external projects should use as well
@@ -327,9 +361,10 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 include(cmake/compiler_flags.cmake)
 
 # Visibility settings
+# (CMP0063, honouring visibility properties for all target types, is from CMake 3.3
+#  and is therefore already NEW by default at our minimum -- no policy set needed.)
 if (NOT CMAKE_CXX_VISIBILITY_PRESET)
   set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
-  cmake_policy(SET CMP0063 NEW)
 endif()
 if (CMAKE_VISIBILITY_INLINES_HIDDEN)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
@@ -534,11 +569,22 @@ if(UNIX)
 		endif()
   endif()
 
-  # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
-  # We need to include all link directories that should be specified by the
-  # dependency target to our RPATH as well.
-  if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
-    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  # Installed binaries must find the shared dependencies they were linked against
+  # (contrib, Homebrew, conda, ...) on their own: add the directories of those
+  # libraries to the install RPATH. Consumers of an installed libOpenMS then link
+  # and run without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve
+  # the private dependencies of libOpenMS. System directories and directories
+  # below the build tree are never added by CMake (see the vcpkg case below).
+  # On macOS this also covers dependencies built with @rpath install names (e.g.
+  # Qt). Packages that relocate dependencies (deb, macOS pkg) skip or override it.
+  if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+    if (APPLE)
+      if (NOT "${PACKAGE_TYPE}" STREQUAL "pkg")
+        SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+      endif()
+    elseif ("${PACKAGE_TYPE}" STREQUAL "none")
+      SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+    endif()
   endif()
 
   #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
@@ -554,7 +600,9 @@ if(UNIX)
         # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
         # Disadvantage: even on the target machine, they will have the build folder baked in.
         # Alternative: copy all our libs first so they do not need to be found.
-        SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+        # @loader_path lets an installed libOpenMS find its sibling libraries
+        # (OpenSwathAlgo, ...) when loaded by an executable outside the prefix.
+        SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/;@loader_path/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
       else()
         SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/")
       endif()
@@ -562,6 +610,25 @@ if(UNIX)
       SET(CMAKE_INSTALL_RPATH "$ORIGIN/${INSTALL_LIB_PATH_REL_TO_BIN}/")
     endif()
 	endif()
+
+  # vcpkg installs the dependencies below the build tree, and CMake deliberately
+  # keeps build-tree directories out of the install RPATH, so the link path above
+  # does not cover them. For plain (non-packaging) builds, reference the vcpkg
+  # library directory explicitly: an installation made from a vcpkg build tree
+  # then works as long as that tree exists, which is the situation of a developer
+  # or a consumer building against it. Packages copy the dependencies next to
+  # the libraries instead (see package_general.cmake) and must not carry a
+  # build-machine path in their RPATH.
+  # The Debug entry is a generator expression so that multi-config generators
+  # (Xcode, Ninja Multi-Config) get it for Debug installs as well.
+  if (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET
+      AND "${PACKAGE_TYPE}" STREQUAL "none")
+    set(_vcpkg_triplet_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    list(APPEND CMAKE_INSTALL_RPATH
+      "$<$<CONFIG:Debug>:${_vcpkg_triplet_dir}/debug/lib>"
+      "${_vcpkg_triplet_dir}/lib")
+    unset(_vcpkg_triplet_dir)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------

@@ -151,6 +151,8 @@ set(system_executables_list
   RWrapper_test
   StopWatch_test
   SysInfo_test
+  SystemSettings_test
+  TempFiles_test
   UpdateCheck_test
 )
 
@@ -215,6 +217,7 @@ set(format_executables_list
   FLASHDeconvSpectrumFile_test
   FLASHHelperClasses_test
   FileHandler_test
+  FileNameUtils_test
   FileInfo_test
   FileTypes_test
   GNPSMetaValueFile_test
@@ -372,6 +375,7 @@ set(math_executables_list
   KernelDensityEstimation_test
   LevelContextInference_test
   LinearInterpolation_test
+  LinearResampling_test
   LinearRegression_test
   LinearRegressionWithoutIntercept_test
   MathFunctions_test
@@ -647,6 +651,7 @@ set(analysis_executables_list
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelDefaults_test
   TransformationModelBSpline_test
   TransformationModelLowess_test
   TransformationModelInterpolated_test
@@ -713,6 +718,7 @@ endif(NOT DISABLE_OPENSWATH)
 set(ionmobility_executables_list
   FAIMSHelper_test
   IMDataConverter_test
+  IMDataArrayUtils_test
   IMTypes_test
 )
 

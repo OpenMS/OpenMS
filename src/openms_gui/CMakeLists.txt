@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_AUTOUIC ON) # convert .ui files to ui_....h files using CMake + Qt's UIC
 set(CMAKE_AUTOMOC ON)

@@ -111,13 +111,11 @@ def apply_addons(namespace: Dict[str, Any]) -> None:
     _import_addon_modules()
 
     # Inject pure Python wrapper classes into the namespace
-    from .string_class import String
     from .datavalue_class import DataValue, DataType
     from .math_class import Math
     from .singletons import make_singleton_callable, SINGLETON_CLASSES
     from .convexhull import WRAP_CLASSES as CONVEXHULL_WRAPS
 
-    namespace["String"] = String
     namespace["DataValue"] = DataValue
     namespace["DataType"] = DataType
     namespace["Math"] = Math

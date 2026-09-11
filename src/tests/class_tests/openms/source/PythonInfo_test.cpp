@@ -14,6 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
             
 #include <fstream>
 #include <filesystem>
@@ -34,7 +35,7 @@ START_SECTION((static bool canRun(std::string& python_executable, std::string& e
   TEST_EQUAL(PythonInfo::canRun(py, error_msg), false)
   TEST_EQUAL(StringUtils::hasSubstring(error_msg, "Python not found at"), true)
 
-  auto tmp_file = File::getTemporaryFile();
+  auto tmp_file = TempFiles::getTemporaryFile();
   ofstream f(tmp_file); // create the file
   f.close(); 
   TEST_EQUAL(PythonInfo::canRun(tmp_file, error_msg), false)

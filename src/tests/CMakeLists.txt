@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_tests")
 
 set(_openms_topp_testing_default ON)
@@ -44,3 +43,77 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
 elseif( ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING)
   message(WARNING "PACKAGE_TYPE specified along with enabled testing. Tests are only enabled when PACKAGE_TYPE is none. Ignoring tests.")
 endif("${PACKAGE_TYPE}" STREQUAL "none")
+
+#------------------------------------------------------------------------------
+# Installed-consumer test: install the development package into a scratch prefix
+# below the build tree, then configure, build and run src/tests/external against
+# it the way an external project does: find_package(OpenMS) with OpenMS_DIR
+# pointing at the installation. Each step is one plain cmake/ctest invocation,
+# chained through CTest fixtures. Off by default because it performs an
+# install; the CI presets enable it.
+option(OPENMS_TEST_INSTALLED_CONSUMER
+  "Install into a scratch prefix and build/run the external CMake consumer against it" OFF)
+
+if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
+  set(_prefix   "${CMAKE_BINARY_DIR}/installed-consumer/prefix")
+  set(_consumer "${CMAKE_BINARY_DIR}/installed-consumer/build")
+
+  # 1. Install the development components (no applications, documentation or
+  #    packaging extras): this is what a library consumer has.
+  set(_install_tests)
+  foreach(_component IN ITEMS library OpenMS_headers OpenSwathAlgo_headers cmake share)
+    add_test(NAME TestExternalCode_install_${_component}
+      COMMAND ${CMAKE_COMMAND} --install "${CMAKE_BINARY_DIR}" --config $<CONFIG>
+              --prefix "${_prefix}" --component ${_component})
+    list(APPEND _install_tests TestExternalCode_install_${_component})
+  endforeach()
+  set_tests_properties(${_install_tests} PROPERTIES FIXTURES_SETUP openms_installed)
+
+  # 2. Configure the consumer against the installation. Only the toolchain of
+  #    this build is forwarded, as a consumer building with the same compiler
+  #    and dependency provider would pass it; everything about OpenMS comes
+  #    from the installed OpenMSConfig.cmake.
+  set(_configure_args)
+  foreach(_var IN ITEMS
+      CMAKE_TOOLCHAIN_FILE VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_HOST_TRIPLET
+      CMAKE_PREFIX_PATH CMAKE_C_COMPILER CMAKE_CXX_COMPILER CMAKE_MAKE_PROGRAM
+      CMAKE_MSVC_RUNTIME_LIBRARY CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET
+      CMAKE_OSX_SYSROOT)
+    if(DEFINED ${_var} AND NOT "${${_var}}" STREQUAL "")
+      # keep list-valued settings such as CMAKE_PREFIX_PATH as one argument
+      string(REPLACE ";" "$<SEMICOLON>" _value "${${_var}}")
+      list(APPEND _configure_args "-D${_var}=${_value}")
+    endif()
+  endforeach()
+  if(CMAKE_GENERATOR_PLATFORM)
+    list(APPEND _configure_args -A "${CMAKE_GENERATOR_PLATFORM}")
+  endif()
+  if(CMAKE_GENERATOR_TOOLSET)
+    list(APPEND _configure_args -T "${CMAKE_GENERATOR_TOOLSET}")
+  endif()
+  add_test(NAME TestExternalCode_configure
+    COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/src/tests/external" -B "${_consumer}"
+            -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
+            "-DOpenMS_DIR=${_prefix}/${INSTALL_CMAKE_DIR}" ${_configure_args})
+  set_tests_properties(TestExternalCode_configure PROPERTIES
+    FIXTURES_REQUIRED openms_installed
+    FIXTURES_SETUP consumer_configured)
+
+  # 3. Build it and run its own tests.
+  add_test(NAME TestExternalCode_build
+    COMMAND ${CMAKE_COMMAND} --build "${_consumer}" --config $<CONFIG>)
+  set_tests_properties(TestExternalCode_build PROPERTIES
+    FIXTURES_REQUIRED consumer_configured
+    FIXTURES_SETUP consumer_built)
+  add_test(NAME TestExternalCode_run
+    COMMAND ${CMAKE_CTEST_COMMAND} --test-dir "${_consumer}" -C $<CONFIG>
+            --output-on-failure --no-tests=error)
+  set_tests_properties(TestExternalCode_run PROPERTIES FIXTURES_REQUIRED consumer_built)
+
+  set_tests_properties(${_install_tests} TestExternalCode_configure TestExternalCode_build
+    TestExternalCode_run PROPERTIES LABELS installed_consumer)
+  unset(_install_tests)
+  unset(_configure_args)
+  unset(_consumer)
+  unset(_prefix)
+endif()

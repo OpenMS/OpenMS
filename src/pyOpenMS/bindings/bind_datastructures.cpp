@@ -32,7 +32,9 @@
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
 #include <OpenMS/MATH/STATISTICS/RankData.h>
+#include <cmath>
 #include <iomanip>
+#include <limits>
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
@@ -49,6 +51,137 @@
 
 namespace nb = nanobind;
 using namespace nb::literals;
+
+namespace {
+
+// Replaces line breaks and tabs so a value stays on one output line.
+std::string flattenToOneLine(std::string text)
+{
+    for (char& c : text)
+    {
+        if (c == '\n' || c == '\r' || c == '\t') c = ' ';
+    }
+    return text;
+}
+
+// Formats a single Param entry as one human-readable line:
+//   key = value (restrictions) [tags]  # description
+// Used by Param.__str__ and ParamEntry.__str__.
+std::string paramEntryToString(const std::string& key, const OpenMS::Param::ParamEntry& entry)
+{
+    std::string line = key + " = " + nb::cast<std::string>(nb::repr(nb::cast(entry.value)));
+
+    // restrictions (only those that differ from the "unrestricted" defaults)
+    std::vector<std::string> restrictions;
+    switch (entry.value.valueType())
+    {
+        case OpenMS::ParamValue::INT_VALUE:
+        case OpenMS::ParamValue::INT_LIST:
+            if (entry.min_int != -std::numeric_limits<int>::max()) restrictions.push_back("min=" + std::to_string(entry.min_int));
+            if (entry.max_int != std::numeric_limits<int>::max()) restrictions.push_back("max=" + std::to_string(entry.max_int));
+            break;
+        case OpenMS::ParamValue::DOUBLE_VALUE:
+        case OpenMS::ParamValue::DOUBLE_LIST:
+            if (entry.min_float != -std::numeric_limits<double>::max()) restrictions.push_back("min=" + nb::cast<std::string>(nb::repr(nb::float_(entry.min_float))));
+            if (entry.max_float != std::numeric_limits<double>::max()) restrictions.push_back("max=" + nb::cast<std::string>(nb::repr(nb::float_(entry.max_float))));
+            break;
+        case OpenMS::ParamValue::STRING_VALUE:
+        case OpenMS::ParamValue::STRING_LIST:
+            if (!entry.valid_strings.empty())
+            {
+                std::string valid = "valid: ";
+                for (size_t i = 0; i < entry.valid_strings.size(); ++i)
+                {
+                    if (i > 0) valid += ", ";
+                    valid += nb::cast<std::string>(nb::repr(nb::str(entry.valid_strings[i].c_str())));
+                }
+                restrictions.push_back(valid);
+            }
+            break;
+        default:
+            break;
+    }
+    if (!restrictions.empty())
+    {
+        line += " (";
+        for (size_t i = 0; i < restrictions.size(); ++i)
+        {
+            if (i > 0) line += ", ";
+            line += restrictions[i];
+        }
+        line += ")";
+    }
+
+    if (!entry.tags.empty())
+    {
+        line += " [";
+        bool first = true;
+        for (const auto& tag : entry.tags)
+        {
+            if (!first) line += ", ";
+            line += flattenToOneLine(tag);
+            first = false;
+        }
+        line += "]";
+    }
+
+    if (!entry.description.empty())
+    {
+        line += "  # " + flattenToOneLine(entry.description);
+    }
+    return line;
+}
+
+// repr() of a Python value that eval() can read back. Python's own repr of
+// non-finite floats ("nan", "inf") is not evaluable, so those are spelled
+// float('nan') / float('inf') / float('-inf'); lists are handled per element.
+std::string evaluableRepr(nb::handle value)
+{
+    if (PyFloat_Check(value.ptr()))
+    {
+        const double d = PyFloat_AsDouble(value.ptr());
+        if (std::isnan(d)) return "float('nan')";
+        if (std::isinf(d)) return d > 0 ? "float('inf')" : "float('-inf')";
+    }
+    else if (PyList_Check(value.ptr()))
+    {
+        std::string out = "[";
+        bool first = true;
+        for (nb::handle item : nb::borrow<nb::list>(value))
+        {
+            if (!first) out += ", ";
+            out += evaluableRepr(item);
+            first = false;
+        }
+        return out + "]";
+    }
+    return nb::cast<std::string>(nb::repr(value));
+}
+
+// Builds the {key: value} dict that Param.asDict()/to_dict() return.
+nb::dict paramToDict(const OpenMS::Param& param)
+{
+    nb::dict result;
+    for (auto it = param.begin(); it != param.end(); ++it)
+    {
+        std::string key = it.getName();
+        result[nb::str(key.c_str())] = nb::cast(param.getValue(key));
+    }
+    return result;
+}
+
+// Fills `param` from a {key: value} dict (the inverse of paramToDict()).
+// Used by Param(dict) and Param.from_dict().
+void paramSetFromDict(OpenMS::Param& param, const nb::dict& d)
+{
+    for (auto [k, v] : d)
+    {
+        std::string key = nb::cast<std::string>(k);
+        param.setValue(key, nb::cast<OpenMS::ParamValue>(v));
+    }
+}
+
+} // namespace
 
 NB_MODULE(_pyopenms_datastructures, m) {
     m.doc() = "pyOpenMS datastructures bindings";
@@ -544,9 +677,13 @@ A classical configuration would contain a list of settings e.g.
         }, "Returns a zero-copy numpy view of the matrix data (F-contiguous). Modifications affect the C++ object. Returns empty array if empty.")
 
         .def("get_matrix", [](const OpenMS::Matrix<double>& self) {
+            // Return an owned copy (writable, independent of this Matrix's
+            // lifetime). Casting an Eigen::Map would alias the C++ storage
+            // as a read-only array; zero-copy access is matrix_view().
             Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
                 eigen_map(self.data(), self.rows(), self.cols());
-            return nb::cast(eigen_map);
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> copy = eigen_map;
+            return nb::cast(std::move(copy));
         }, "Returns a copy of the matrix as a numpy array")
 
         .def("set_matrix", [](OpenMS::Matrix<double>& self, nb::ndarray<double, nb::ndim<2>> arr) {
@@ -680,6 +817,10 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Param &>())
+        .def("__init__", [](OpenMS::Param* self, const nb::dict& d) {
+            new (self) OpenMS::Param();
+            paramSetFromDict(*self, d);
+        }, "d"_a, "Create a Param from a {key: value} dict, e.g. Param({'algorithm:threshold': 0.5}). Equivalent to Param.from_dict(d); this is also what repr(param) evaluates to")
         .def("__copy__", [](const OpenMS::Param& self) { return OpenMS::Param(self); })
         .def("__deepcopy__", [](const OpenMS::Param& self, nb::dict) { return OpenMS::Param(self); }, "memo"_a)
         .def(nb::self == nb::self)
@@ -777,22 +918,36 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             }
             return result;
         }, "Return list of (key, value) tuples")
-        .def("asDict", [](const OpenMS::Param& self) {
-            nb::dict result;
-            for (auto it = self.begin(); it != self.end(); ++it) {
-                std::string key = it.getName();
-                result[nb::str(key.c_str())] = nb::cast(self.getValue(key));
+        .def("asDict", [](const OpenMS::Param& self) { return paramToDict(self); }, "Return dict with str keys")
+        .def("to_dict", [](const OpenMS::Param& self) { return paramToDict(self); }, "Return dict with string keys")
+        .def("__repr__", [](const OpenMS::Param& self) {
+            // Evaluable: Param(dict) reconstructs the keys and values
+            // (descriptions, tags and restrictions are not part of the repr).
+            std::string out = "Param({";
+            bool first = true;
+            for (auto it = self.begin(); it != self.end(); ++it)
+            {
+                if (!first) out += ", ";
+                out += nb::cast<std::string>(nb::repr(nb::str(it.getName().c_str())));
+                out += ": " + evaluableRepr(nb::cast(it->value));
+                first = false;
+            }
+            return out + "})";
+        })
+        .def("__str__", [](const OpenMS::Param& self) {
+            if (self.empty())
+            {
+                return std::string("Param({})");
+            }
+            // One line per entry: key = value (restrictions) [tags]  # description
+            std::string result;
+            for (auto it = self.begin(); it != self.end(); ++it)
+            {
+                if (!result.empty()) result += "\n";
+                result += paramEntryToString(it.getName(), *it);
             }
             return result;
-        }, "Return dict with str keys")
-        .def("to_dict", [](const OpenMS::Param& self) {
-            nb::dict result;
-            for (auto it = self.begin(); it != self.end(); ++it) {
-                std::string key = it.getName();
-                result[nb::str(key.c_str())] = nb::cast(self.getValue(key));
-            }
-            return result;
-        }, "Return dict with string keys")
+        }, "Human-readable listing of all entries (one per line with value, restrictions, tags and description)")
         .def("get", [](const OpenMS::Param& self, const std::string& key, nb::object default_val) -> nb::object {
             if (self.exists(key)) {
                 return nb::cast(self.getValue(key));
@@ -812,10 +967,12 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             return self.exists(key);
         }, "key"_a, "Check if a parameter key exists")
         .def("update", [](OpenMS::Param& self, nb::object source, nb::object flag) {
+            // Evaluate the flag by Python truthiness: nanobind's bool caster
+            // accepts only True/False, but callers pass 0/1 as well.
+            const bool filter = !flag.is_none() && static_cast<bool>(nb::bool_(flag));
             // Check if source is a Param
             try {
                 auto& param_src = nb::cast<const OpenMS::Param&>(source);
-                bool filter = !flag.is_none() && nb::cast<bool>(flag);
                 for (auto it = param_src.begin(); it != param_src.end(); ++it) {
                     std::string key = it.getName();
                     if (filter && !self.exists(key)) continue;
@@ -830,14 +987,11 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
                 }
             }
         }, "source"_a, "flag"_a = nb::none(), "Update parameters from a Param or dict")
-        .def_static("from_dict", [](nb::dict d) {
+        .def_static("from_dict", [](const nb::dict& d) {
             OpenMS::Param p;
-            for (auto [k, v] : d) {
-                std::string key = nb::cast<std::string>(k);
-                p.setValue(key, nb::cast<OpenMS::ParamValue>(v));
-            }
+            paramSetFromDict(p, d);
             return p;
-        }, "d"_a, "Create a Param from a dict")
+        }, "d"_a, "Create a Param from a {key: value} dict (same as Param(d))")
         ;
 
 
@@ -863,7 +1017,23 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             bool valid = self.isValid(msg);
             return nb::make_tuple(valid, msg);
         }, "Check if value fulfills restrictions. Returns (valid, message)")
-        .def("__eq__", &OpenMS::Param::ParamEntry::operator==)
+        .def("__eq__", &OpenMS::Param::ParamEntry::operator==, nb::is_operator())
+        .def("__repr__", [](const OpenMS::Param::ParamEntry& self) {
+            std::string tags = "[";
+            bool first = true;
+            for (const auto& tag : self.tags)
+            {
+                if (!first) tags += ", ";
+                tags += nb::cast<std::string>(nb::repr(nb::str(tag.c_str())));
+                first = false;
+            }
+            tags += "]";
+            return "ParamEntry(name=" + nb::cast<std::string>(nb::repr(nb::str(self.name.c_str())))
+                 + ", value=" + evaluableRepr(nb::cast(self.value))
+                 + ", description=" + nb::cast<std::string>(nb::repr(nb::str(self.description.c_str())))
+                 + ", tags=" + tags + ")";
+        })
+        .def("__str__", [](const OpenMS::Param::ParamEntry& self) { return paramEntryToString(self.name, self); })
         ;
 
 
@@ -881,7 +1051,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def_rw("nodes", &OpenMS::Param::ParamNode::nodes)
         .def("size", &OpenMS::Param::ParamNode::size)
         .def("suffix", &OpenMS::Param::ParamNode::suffix, "key"_a)
-        .def("__eq__", &OpenMS::Param::ParamNode::operator==)
+        .def("__eq__", &OpenMS::Param::ParamNode::operator==, nb::is_operator())
         .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> std::optional<OpenMS::Param::ParamEntry> {
             const OpenMS::Param::ParamEntry* entry = self.findEntryRecursive(name);
             if (entry == nullptr) return std::nullopt;

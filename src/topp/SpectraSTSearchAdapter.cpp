@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <filesystem>
 #include <sstream>
@@ -233,7 +234,7 @@ protected:
          }
      }
 
-     std::string temp_dir = File::getTempDirectory();
+     std::string temp_dir = SystemSettings::getTempDirectory();
      arguments.push_back("-sE" + outputFormat);
      arguments.push_back("-sO" + temp_dir);
 

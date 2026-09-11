@@ -1,8 +1,9 @@
-## Use CMake 3.17 to correctly find OpenMP on macOS
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
+
+include(CTest)
 
 message("Received CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 if (DEFINED OPENMS_CONTRIB_LIBS)
@@ -21,11 +22,10 @@ set(my_sources
 )
 
 ## find OpenMS package and register target "OpenMS" (our library)
-## Note: This is customized to fit the nightly test scenario. In a
-##       regular build find_package(OpenMS) should be sufficient.
-## This will also try to find all dependencies of OpenMS, so make sure
-##  they are findable by e.g. providing CMAKE_PREFIX_PATH
-find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}" NO_CMAKE_PACKAGE_REGISTRY)
+## Select an installation with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
+## (<prefix>/CMake on Windows) or by adding <prefix> to CMAKE_PREFIX_PATH.
+find_package(OpenMS CONFIG REQUIRED)
+message(STATUS "Found OpenMS at ${OpenMS_DIR}")
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
@@ -63,5 +63,16 @@ else(OpenMS_FOUND)
 endif(OpenMS_FOUND)
 
 ## Enable testing - for Nightly Build log
-include(Dart)
 add_test(TestExternalCode TestExternalCode)
+
+## Windows has no RPATH: executables find OpenMS.dll (and the DLLs of the
+## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
+## tells us where the OpenMS libraries were installed.
+if(WIN32)
+  set_property(TEST TestExternalCode APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")
+  if(TARGET TestExternalCodeQt)
+    set_property(TEST TestExternalCodeQt APPEND PROPERTY
+      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")
+  endif()
+endif()

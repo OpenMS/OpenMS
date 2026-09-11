@@ -139,6 +139,8 @@ class TestFileStaticMethods(unittest.TestCase):
         """Test File.getTemporaryFile static method."""
         result = pyopenms.File.getTemporaryFile("")
         self.assertGreater(len(str(result)), 0)
+        # the alternative_file argument is optional
+        self.assertGreater(len(str(pyopenms.File.getTemporaryFile())), 0)
 
 class TestBuildInfoStaticMethods(unittest.TestCase):
     """Test static methods of the OpenMSBuildInfo and OpenMSOSInfo classes."""
@@ -799,6 +801,62 @@ class TestIonDetectorEnumStaticMethods(unittest.TestCase):
         ]:
             name = pyopenms.IonDetector.acquisitionModeToString(mode)
             self.assertEqual(pyopenms.IonDetector.toAcquisitionMode(name), mode)
+
+
+class TestSystemSettingsStaticMethods(unittest.TestCase):
+    """Test static methods of SystemSettings (OpenMS.ini and directory policy)."""
+
+    def test_getTempDirectory(self):
+        result = pyopenms.SystemSettings.getTempDirectory()
+        self.assertGreater(len(str(result)), 0)
+
+    def test_getUserDirectory(self):
+        result = pyopenms.SystemSettings.getUserDirectory()
+        self.assertGreater(len(str(result)), 0)
+
+    def test_getOpenMSHomePath(self):
+        result = pyopenms.SystemSettings.getOpenMSHomePath()
+        self.assertGreater(len(str(result)), 0)
+
+    def test_getOpenMSConfigDir(self):
+        result = str(pyopenms.SystemSettings.getOpenMSConfigDir())
+        self.assertTrue(result.endswith("OpenMS"))
+
+    def test_getSystemParameters(self):
+        p = pyopenms.SystemSettings.getSystemParameters()
+        self.assertTrue(p.exists("version"))
+        self.assertTrue(p.exists("temp_dir"))
+
+    def test_matches_File_static_methods(self):
+        self.assertEqual(str(pyopenms.SystemSettings.getTempDirectory()), str(pyopenms.File.getTempDirectory()))
+        self.assertEqual(str(pyopenms.SystemSettings.getUserDirectory()), str(pyopenms.File.getUserDirectory()))
+
+
+class TestTempFiles(unittest.TestCase):
+    """Test TempDir and TempFiles."""
+
+    def test_getTemporaryFile(self):
+        first = str(pyopenms.TempFiles.getTemporaryFile())
+        second = str(pyopenms.TempFiles.getTemporaryFile())
+        self.assertGreater(len(first), 0)
+        self.assertNotEqual(first, second)
+        self.assertEqual(str(pyopenms.TempFiles.getTemporaryFile("keep-me")), "keep-me")
+
+    def test_TempDir_is_removed_on_destruction(self):
+        d = pyopenms.TempDir()
+        path = str(d.getPath())
+        self.assertTrue(os.path.isdir(path))
+        del d
+        self.assertFalse(os.path.exists(path))
+
+    def test_TempDir_below_base_dir(self):
+        with tempfile.TemporaryDirectory() as base:
+            d = pyopenms.TempDir(base, False)
+            path = str(d.getPath())
+            self.assertTrue(os.path.isdir(path))
+            self.assertTrue(os.path.realpath(path).startswith(os.path.realpath(base)))
+            del d
+            self.assertFalse(os.path.exists(path))
 
 
 if __name__ == '__main__':

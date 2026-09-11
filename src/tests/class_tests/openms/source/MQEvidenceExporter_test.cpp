@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <map>
@@ -27,7 +28,7 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-File::TempDir dir;
+TempDir dir;
 const std::string path = dir.getPath();
 
 START_SECTION(MQEvidence())

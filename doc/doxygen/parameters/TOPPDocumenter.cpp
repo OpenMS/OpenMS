@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -272,7 +273,7 @@ bool generate(const ToolListType& tools, const std::string& prefix, const std::s
     if (it->first != "TOPPView" && // do not support -write_ini
         it->first != "TOPPAS")
     {
-      std::string tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
+      std::string tmp_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
       const std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
 
       ExternalProcess ep([&](const std::string& s) { f << s; }, [&](const std::string& s) { f << s; });
