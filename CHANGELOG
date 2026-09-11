@@ -127,6 +127,11 @@ TOPP tools:
     All tools:
       - Boolean parameters accept flag syntax or explicit true/false, including overriding
         an INI-enabled flag with '-flag false' (#10116).
+      - BREAKING: the advanced option '-instance <n>' was removed. It selected the numbered
+        'ToolName:<n>:' section of an INI file and was broken together with '-ini' (every tool
+        exited with ILLEGAL_PARAMETERS). Tools always read and write the 'ToolName:1:' section
+        used by all existing INI/CTD/TOPPAS files; the file format is unchanged. INIUpdater lost
+        its '-instance' option accordingly (fixes #10125).
       - BREAKING: repeated command-line parameters use the LAST occurrence, with a warning;
         appended workflow arguments can override earlier values (#8670, fixes #5345).
       - Native Parquet I/O is supported by identification converters/filters/search adapters,
