@@ -519,6 +519,10 @@ Fixes:
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
+    - TOPP tools no longer exit with ILLEGAL_PARAMETERS when the file given via '-ini'
+      contains a tool-specific 'common:<ToolName>:' section; it was merged twice and its
+      entries were then rejected as unknown parameters. Those values now override 'common:'
+      as documented (#10126).
     - PQP/sqMass SQL writes use bound parameters, preventing quoted-string failures and SQL
       injection. Parquet writers remove incomplete outputs; OpenSWATH Arrow errors throw
       contextual exceptions instead of aborting. Fixed mixed-IPF target/decoy labeling
