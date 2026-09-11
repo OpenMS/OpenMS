@@ -353,6 +353,10 @@ protected:
       @brief Sets the valid command line options (with argument) and flags (without argument).
 
       The options '-ini' '-log' '-instance' '-debug' and the flag '--help' are automatically registered.
+
+      A string option whose valid strings are exactly 'true' and 'false' (see setValidStrings_()) may be given
+      without a value on the command line, which means 'true'; a flag may be followed by an explicit 'true' or
+      'false' (see registerFlag_()).
     */
     virtual void registerOptionsAndFlags_() = 0;
 
@@ -616,7 +620,13 @@ protected:
      */
     void registerOutputFileList_(const std::string& name, const std::string& argument, const StringList& default_value, const std::string& description, bool required = true, bool advanced = false);
 
-    /// Registers a flag
+    /**
+      @brief Registers a flag
+
+      On the command line a flag is given without a value ('-flag'). It may be followed by exactly one explicit
+      'true' or 'false' ('-flag false'), e.g. to override a flag enabled in an INI file or by an earlier '-flag';
+      any other token after a flag is an error.
+    */
     void registerFlag_(const std::string& name, const std::string& description, bool advanced = false);
 
     /**

@@ -318,6 +318,11 @@ PyOpenMS:
 TOPP tools:
   Changes:
     all:
+      - Boolean command-line parameters accept both syntaxes (#10116): a flag may be followed by an explicit
+        'true' or 'false' (e.g. '-flag false' to override a flag enabled in an INI file or by an earlier
+        '-flag' in appended workflow arguments), and a string option restricted to 'true'/'false' may be
+        given without a value, meaning 'true'. Any other token after a flag is still an error, and
+        '--help false' no longer prints the help.
       - BREAKING: when a parameter is given several times on the command line, the LAST occurrence now
         wins (previously the first); a warning is issued when duplicates are detected. This enables the
         nextflow pattern of appending ${ext.args} to override hardcoded defaults. Error messages for

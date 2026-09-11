@@ -235,8 +235,9 @@ namespace OpenMS
       return ILLEGAL_PARAMETERS;
     }
 
-    // '--help' given
-    if (param_cmdline_.exists("-help") || param_cmdline_.exists("-helphelp"))
+    // '--help' given (a flag may carry an explicit value, so '--help false' must not print the help)
+    auto flag_given = [this](const std::string& name) { return param_cmdline_.exists(name) && param_cmdline_.getValue(name) == "true"; };
+    if (flag_given("-help") || flag_given("-helphelp"))
     {
       printUsage_();
       return EXECUTION_OK;
@@ -2279,6 +2280,18 @@ namespace OpenMS
     return p;
   }
 
+  namespace
+  {
+    /// True if the valid strings are exactly "true" and "false" (either order), i.e. the option is a boolean
+    /// given as a string. Mirrors Param::ParamEntry::isBool() for a registration's restrictions.
+    bool isBoolRestriction_(const StringList& valid_strings)
+    {
+      return valid_strings.size() == 2 &&
+             ((valid_strings[0] == "true" && valid_strings[1] == "false") ||
+              (valid_strings[0] == "false" && valid_strings[1] == "true"));
+    }
+  }
+
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const std::string& misc, const std::string& unknown)
   {
     // current state:
@@ -2327,18 +2340,28 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
-            // Check if there are trailing arguments after the flag - this is an error
             if (!queue.empty())
             {
-              // Collect the trailing arguments for the error message
-              std::string trailing_args;
-              for (list<std::string>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+              // A flag may be followed by exactly one explicit boolean value: '-flag false' is the only way to
+              // override a flag enabled in an INI file or by an earlier '-flag' (e.g. in appended workflow
+              // arguments), see #10116. Anything else after a flag is a user error (see #5345).
+              if (queue.size() == 1 && (queue.front() == "true" || queue.front() == "false"))
               {
-                if (it != queue.begin()) trailing_args += " ";
-                trailing_args += *it;
+                value = queue.front();
+                queue.pop_front();
               }
-              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                std::string("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+              else
+              {
+                // Collect the trailing arguments for the error message
+                std::string trailing_args;
+                for (list<std::string>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+                {
+                  if (it != queue.begin()) trailing_args += " ";
+                  trailing_args += *it;
+                }
+                throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  std::string("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+              }
             }
           }
           else // option with argument(s)
@@ -2351,7 +2374,15 @@ namespace OpenMS
             case ParameterInformation::OUTPUT_PREFIX:
             case ParameterInformation::OUTPUT_DIR:
               if (queue.empty())
-                value = std::string();
+              {
+                // A boolean string option (restricted to 'true'/'false') given without a value means 'true',
+                // like a flag (see #10116). Any other option keeps the empty string and is rejected later if
+                // its restrictions do not allow it.
+                if (pos->second->type == ParameterInformation::STRING && isBoolRestriction_(pos->second->valid_strings))
+                  value = std::string("true");
+                else
+                  value = std::string();
+              }
               else
                 value = queue.front();
               break;
