@@ -7,7 +7,9 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## Subdirectories pulled
+## in via add_subdirectory() deliberately do NOT declare their own: doing so resets the policy scope
+## for that directory to the older version
 
 # The vcpkg toolchain must be selected before project() initializes compilers.
 # Existing system/contrib dependency discovery remains the default.
@@ -33,6 +35,26 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
+# Early MSVC toolset guard (skipped by non-MSVC compiler)
+#
+# The authoritative compiler version checks live in cmake/min_compiler_versions.cmake
+# and run further down, but they are too late to be useful on Windows: with
+# OPENMS_USE_VCPKG the toolchain builds every dependency from inside project()
+# below, so an unsupported toolset fails while compiling, leaving the user wondering
+# what happened -- before any of our own checks run.
+#
+# We therefore repeat the MSVC check here using %VCToolsVersion%, which vcvars
+# always sets and which is the one piece of toolset information available before
+# a compiler has been detected. Keep the version in sync with
+# cmake/min_compiler_versions.cmake (OPENMS_MIN_MSVC_TOOLSET)
+if(WIN32 AND DEFINED ENV{VCToolsVersion} AND "$ENV{VCToolsVersion}" VERSION_LESS "14.44")
+  message(FATAL_ERROR
+    "OpenMS requires Visual Studio 2022 version 17.14 or later (MSVC toolset 14.44+), but the current "
+    "environment provides toolset $ENV{VCToolsVersion}.\n"
+    "\n" 
+    "Please update Visual Studio.")
+endif()
+
 project("OpenMS_host" LANGUAGES CXX)
 
 # required for cmake < 3.13 if ccache is used
@@ -41,6 +63,12 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
+# FetchContent without a sub-build (CMake >= 3.30).
+# (required to allow changing the Generator in the main project, without deleting the FetchContent sub-build)
+if(POLICY CMP0168)  ## obsolete in CMake 3.30+
+  cmake_policy(SET CMP0168 NEW)
+endif()
+
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -319,6 +347,12 @@ endif()
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
 #------------------------------------------------------------------------------
+# Minimum supported compiler versions (single source of truth; also feeds the
+# version numbers quoted in the doxygen install documentation)
+#------------------------------------------------------------------------------
+include(cmake/min_compiler_versions.cmake)
+
+#------------------------------------------------------------------------------
 # Project specific compiler flags
 #------------------------------------------------------------------------------
 # Fill this with compile flags that external projects should use as well
@@ -327,9 +361,10 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 include(cmake/compiler_flags.cmake)
 
 # Visibility settings
+# (CMP0063, honouring visibility properties for all target types, is from CMake 3.3
+#  and is therefore already NEW by default at our minimum -- no policy set needed.)
 if (NOT CMAKE_CXX_VISIBILITY_PRESET)
   set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
-  cmake_policy(SET CMP0063 NEW)
 endif()
 if (CMAKE_VISIBILITY_INLINES_HIDDEN)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
