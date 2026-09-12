@@ -43,9 +43,9 @@ def string_column_names(data) -> list:
     """
     fields = getattr(getattr(data, 'dtype', None), 'names', None)
     if fields is not None:
-        return [name for name in fields if data.dtype[name].kind in 'OUS']
+        return [name for name in fields if data.dtype[name].kind in 'OU']
     return [name for name, column in data.items()
-            if getattr(column, 'dtype', None) is not None and column.dtype.kind in 'OUS']
+            if getattr(column, 'dtype', None) is not None and column.dtype.kind in 'OU']
 
 
 def pin_string_dtype(df, data):
