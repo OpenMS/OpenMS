@@ -957,6 +957,26 @@ START_SECTION(([EXTRA] flags accept an explicit true/false value))
   const char* cl8[5] = {a1, a11, val_true, a12, test}; //command line: "TOPPBaseTest -flag true commandline -test"
   TOPPBaseTest t8;
   TEST_EQUAL(t8.main(5, cl8), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // a value meant for a different parameter is still caught (the mistake fixed in #9850, where a
+  // '-Search:decoys auto' was copied from a tool that registers 'decoys' with a third allowed value)
+  const char* val_auto = "auto";
+  const char* cl9[4] = {a1, a11, val_auto, test}; //command line: "TOPPBaseTest -flag auto -test"
+  TOPPBaseTest t9;
+  TEST_EQUAL(t9.main(4, cl9), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // a negative number is not an option (no letter follows the '-'), so it reaches the flag as a
+  // trailing argument; it must not be mistaken for an explicit boolean
+  const char* val_negative = "-5.5";
+  const char* cl10[4] = {a1, a11, val_negative, test}; //command line: "TOPPBaseTest -flag -5.5 -test"
+  TOPPBaseTest t10;
+  TEST_EQUAL(t10.main(4, cl10), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // two flags in a row: the value belongs to the flag it follows, the preceding one stays bare
+  const char* cl11[4] = {a1, a11, test, val_true}; //command line: "TOPPBaseTest -flag -test true"
+  TOPPBaseTest t11;
+  TEST_EQUAL(t11.main(4, cl11), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t11.getFlag("flag"), true)
 }
 END_SECTION
 
@@ -1006,6 +1026,12 @@ START_SECTION(([EXTRA] boolean string options may be given without a value))
   const char* cl6[3] = {tool, tristate, test}; //command line: "TOPPBaseBoolOptionTest -tristate -test"
   TOPPBaseBoolOptionTest t6;
   TEST_EQUAL(t6.run(3, cl6), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // an explicitly empty value is not the bare form and stays invalid
+  const char* val_empty = "";
+  const char* cl7[4] = {tool, boolopt, val_empty, test}; //command line: "TOPPBaseBoolOptionTest -boolopt '' -test"
+  TOPPBaseBoolOptionTest t7;
+  TEST_EQUAL(t7.run(4, cl7), TOPPBase::ILLEGAL_PARAMETERS)
 }
 END_SECTION
 
