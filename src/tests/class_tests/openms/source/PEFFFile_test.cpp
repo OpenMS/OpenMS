@@ -1661,8 +1661,56 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(e1.simple_variants.size(), 2)
   TEST_EQUAL(e1.complex_variants.size(), 5)
   TEST_EQUAL(e1.processed_regions.size(), 5)
-  // Option A emits no \DisulfideBond (Option C convention).
-  TEST_EQUAL(e1.disulfide_bonds.size(), 0)
+
+  // Default-mode disulfide reporting (issue #9829): the k-th documented intrachain
+  // bond labels its begin half-cystine 2k-1 and its end half-cystine 2k and is
+  // itself labeled k; \DisulfideBond=(k:2k-1,2k) references those ids. These are
+  // entry-local labels (only bonded half-cystines carry them), NOT Option B global
+  // annotation identifiers — hence has_annotation_identifiers stays false above.
+  TEST_EQUAL(e1.disulfide_bonds.size(), 2)
+  TEST_EQUAL(e1.disulfide_bonds[0].annotation_id, 1)
+  TEST_EQUAL(e1.disulfide_bonds[0].id1, "1")
+  TEST_EQUAL(e1.disulfide_bonds[0].id2, "2")
+  TEST_EQUAL(e1.disulfide_bonds[0].optional_tag, "")
+  TEST_EQUAL(e1.disulfide_bonds[1].annotation_id, 2)
+  TEST_EQUAL(e1.disulfide_bonds[1].id1, "3")
+  TEST_EQUAL(e1.disulfide_bonds[1].id2, "4")
+  TEST_EQUAL(e1.disulfide_bonds[1].optional_tag, "")
+  // The half-cystine labels follow BOND order, not position order, so they appear
+  // out of ascending order inside the position-sorted \ModResPsi list. Parse order
+  // of e1.modifications = the 9 ModResPsi tuples first: 45, 50, 55, 58, 80, 90, 95,
+  // ?(phospho), ?(half cystine). Bond 1 = 45<->80 (labels 1, 2); bond 2 = ?<->90
+  // (labels 3, 4); the lone interchain half-cystine at 95 and all regular mods
+  // stay unlabeled.
+  const UInt kNotSet = std::numeric_limits<UInt>::max();
+  TEST_EQUAL(e1.modifications[0].position, 45)
+  TEST_EQUAL(e1.modifications[0].annotation_id, 1)
+  TEST_EQUAL(e1.modifications[1].position, 50)
+  TEST_EQUAL(e1.modifications[1].annotation_id, kNotSet)
+  TEST_EQUAL(e1.modifications[4].position, 80)
+  TEST_EQUAL(e1.modifications[4].annotation_id, 2)
+  TEST_EQUAL(e1.modifications[5].position, 90)
+  TEST_EQUAL(e1.modifications[5].annotation_id, 4)
+  TEST_EQUAL(e1.modifications[6].position, 95)
+  TEST_EQUAL(e1.modifications[6].annotation_id, kNotSet)
+  TEST_EQUAL(e1.modifications[8].position, 0)  // '?' half cystine, begin of bond 2
+  TEST_EQUAL(e1.modifications[8].accession, "MOD:00798")
+  TEST_EQUAL(e1.modifications[8].annotation_id, 3)
+
+  // The mixed labeled/unlabeled form must survive a store -> reload round-trip
+  // through the OpenMS writer (which emits the id: prefix only where set).
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    PEFFFile writer;
+    writer.store(tmp_filename, entries, headers);
+    std::vector<PEFFEntry> reread;
+    std::vector<PEFFDatabaseMetadata> reread_headers;
+    writer.load(tmp_filename, reread, reread_headers);
+    TEST_EQUAL(reread.size(), 2)
+    TEST_TRUE(reread[0].modifications == e1.modifications)
+    TEST_TRUE(reread[0].disulfide_bonds == e1.disulfide_bonds)
+  }
 
   // TrEMBL minimal entry: Q67890 — must be parsed under the second header block.
   const PEFFEntry& e2 = entries[1];
