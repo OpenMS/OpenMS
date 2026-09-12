@@ -350,6 +350,13 @@ TOPP tools:
       - IM_PEAK (per-peak ion mobility) input: PeakPickerHiRes warns and falls back to an
         intensity-weighted mean IM per picked peak; Resampler, FeatureFinderCentroided,
         FeatureFinderMultiplex and MultiplexResolver reject it with INCOMPATIBLE_INPUT_DATA (#9018)
+      - Fix: a JSON INI ('-ini x.json') now reads an input file list in every shape it occurs in.
+        A CWL runner writes a 'File[]' input as an array of File objects, which was rejected with a
+        json type error, so every tool with an input file list failed through its generated CWL
+        description as soon as the list was set. Input and output file lists accept an array of
+        File/Directory objects, an array of plain path strings, and the {"path": [...]} object
+        written by '-write_json'; a single file parameter accepts a path string or an object with
+        a 'path' string (#10121)
     ProteomicsLFQ, IsobaricWorkflow, ProteinQuantifier, ProSE (QPX export):
       - BREAKING: -out_feature_qpx (single file) replaced by -out_qpx (directory), which writes a
         QPX/quantms collection of quantms.psm.parquet, quantms.feature.parquet and quantms.pg.parquet;
