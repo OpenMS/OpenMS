@@ -2,9 +2,12 @@
 <!-- Minimal UniProtKB XML fixture for UniProtXMLFile_test. Exercises the
      parser's main code paths: entry metadata, AltAC, gene primary vs. synonym,
      organism scientific name + NCBI taxonomy, proteinExistence, canonical
-     sequence vs. isoform (length attribute discrimination), and every routed
+     sequence vs. isoform (length attribute discrimination), every routed
      feature type (modified residue, disulfide bond, sequence variant simple
-     and range, signal peptide). -->
+     and range, signal peptide, splice variant with id), and the isoform
+     definitions inside the alternative-products comment (first id / first name
+     capture, displayed vs. described vs. external sequence types, multi-VSP
+     refs). -->
 <uniprot>
   <entry dataset="Swiss-Prot" version="42">
     <accession>P00001</accession>
@@ -26,14 +29,25 @@
     </organism>
     <proteinExistence type="evidence at protein level"/>
     <comment type="alternative products">
+      <event type="alternative splicing"/>
       <isoform>
         <id>P00001-1</id>
+        <name>1</name>
         <sequence type="displayed"/>
       </isoform>
       <isoform>
         <id>P00001-2</id>
-        <sequence type="described" ref="VSP_001"/>
+        <id>P00001-4</id>
+        <name>2</name>
+        <name>Short</name>
+        <sequence type="described" ref="VSP_001 VSP_002"/>
       </isoform>
+      <isoform>
+        <id>P00001-3</id>
+        <name>3</name>
+        <sequence type="external"/>
+      </isoform>
+      <text>Additional isoforms seem to exist.</text>
     </comment>
     <feature type="signal peptide">
       <location>
@@ -57,6 +71,20 @@
       <variation>V</variation>
       <location>
         <position position="30"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_001" description="In isoform 2.">
+      <original>SEQ</original>
+      <variation>T</variation>
+      <location>
+        <begin position="2"/>
+        <end position="4"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_002" description="In isoform 2.">
+      <location>
+        <begin position="26"/>
+        <end position="30"/>
       </location>
     </feature>
     <sequence length="30" mass="3300" version="2">MSEQNCEMTFQIQRIYNCKDISFEAPNAPC</sequence>
