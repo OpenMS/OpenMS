@@ -102,30 +102,66 @@ namespace OpenMS
       return false;
     }
 
-    editor_->store();
+    // refuse to write rather than persist the outdated param when an edit could not be committed
+    // (e.g. the open editor holds a value that violates the parameter's restrictions)
+    if (!editor_->store())
+    {
+      QMessageBox::warning(this, "Not saved", "The file was not saved because the value currently being edited could not be applied. Please correct it and save again.");
+      return false;
+    }
 
     ParamXMLFile paramFile;
-    paramFile.store(filename_.toStdString(), param_);
+    try
+    {
+      paramFile.store(filename_.toStdString(), param_);
+    }
+    catch (Exception::BaseException& e)
+    {
+      // store() now refuses non-atomic writes (read-only target, directory, rename failure) by
+      // throwing. The document is left as-is: editor_->store() commits the edit into the model but
+      // no longer marks it clean, so any unsaved changes are still reflected and closing will still
+      // prompt to save. If there was nothing to save, it correctly stays clean.
+      QMessageBox::critical(this, "Error saving file", ("The file '" + filename_.toStdString() + "' could not be saved: " + e.getMessage()).c_str());
+      return false;
+    }
+    editor_->setModified(false); // persisted successfully -- the document is now clean
     updateWindowTitle(editor_->isModified());
     return true;
   }
 
   bool INIFileEditorWindow::saveFileAs()
   {
-    filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), toQString(current_path_), tr("ini files (*.ini)"));
-    if (!filename_.isEmpty())
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save ini file"), toQString(current_path_), tr("ini files (*.ini)"));
+    if (filename.isEmpty())
     {
-      if (!filename_.endsWith(".ini"))
-        filename_.append(".ini");
-
-      editor_->store();
-
-      ParamXMLFile paramFile;
-      paramFile.store(filename_.toStdString(), param_);
-      updateWindowTitle(editor_->isModified());
-      return true;
+      return false;
     }
-    return false;
+
+    if (!filename.endsWith(".ini"))
+      filename.append(".ini");
+
+    if (!editor_->store())
+    {
+      QMessageBox::warning(this, "Not saved", "The file was not saved because the value currently being edited could not be applied. Please correct it and save again.");
+      return false;
+    }
+
+    ParamXMLFile paramFile;
+    try
+    {
+      paramFile.store(filename.toStdString(), param_);
+    }
+    catch (Exception::BaseException& e)
+    {
+      QMessageBox::critical(this, "Error saving file", ("The file '" + filename.toStdString() + "' could not be saved: " + e.getMessage()).c_str());
+      return false;
+    }
+    // adopt the new name only once the write has actually succeeded, so a cancelled or failed
+    // Save As does not replace the name of the file currently being edited
+    filename_ = filename;
+    editor_->setModified(false); // persisted successfully -- the document is now clean
+    updateWindowTitle(editor_->isModified());
+    return true;
   }
 
   void INIFileEditorWindow::closeEvent(QCloseEvent* event)

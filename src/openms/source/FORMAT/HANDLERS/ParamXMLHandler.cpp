@@ -276,6 +276,8 @@ namespace OpenMS::Internal
       }
       else if (element == "PARAMETERS")
       {
+        parameters_element_seen_ = true;
+
         //check file version against schema version
         std::string file_version;
         optionalAttributeAsString_(file_version, attributes, "version");
