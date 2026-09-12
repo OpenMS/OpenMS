@@ -80,6 +80,7 @@ MRMPairFinder
 MSGFPlusAdapter
 MSFraggerAdapter
 MSstatsConverter
+MS1LabeledWorkflow
 MultiplexResolver
 MzMLSplitter
 MzTabExporter

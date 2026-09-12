@@ -126,6 +126,7 @@ namespace OpenMS
     tools_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", cat_ID_search);
     tools_map["MSGFPlusAdapter"] = Internal::ToolDescription("MSGFPlusAdapter", cat_ID_search);
     tools_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", cat_file_converter);
+    tools_map["MS1LabeledWorkflow"] = Internal::ToolDescription("MS1LabeledWorkflow", cat_quant);
     tools_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", cat_quant);
     tools_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", cat_file_filter_extract_merge);
     tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", cat_file_converter);

@@ -44,6 +44,7 @@ MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h
 MultiplexIsotopicPeakPattern.h
+MultiplexResolverAlgorithm.h
 MultiplexSatelliteCentroided.h
 MultiplexSatelliteProfile.h
 PeakWidthEstimator.h
