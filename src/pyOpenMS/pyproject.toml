@@ -30,7 +30,7 @@ version = "3.6.0"
 description = "Python wrapper for C++ LC-MS library OpenMS"
 readme = "README.rst"
 license = {text = "BSD-3-Clause"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "The OpenMS team", email = "webmaster@openms.de"},
 ]
@@ -50,7 +50,6 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -71,16 +70,18 @@ Documentation = "https://pyopenms.readthedocs.io"
 "Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
 
 [project.optional-dependencies]
-dataframes = ["pandas"]
-# pyarrow 24.0.0 on PyPI only shipped cp310 wheels (no source distribution),
-# breaking uv sync on cp311/cp312/cp313 runners. Pin out of 24.0.0 until a
-# release with complete wheel coverage lands.
-# pyarrow 25.0.0 segfaults on macOS arm64 (cp310) when reading a parquet
-# dataset via pyarrow.dataset/parquet.core.read_table (crashes on import of
-# pyarrow.dataset, see OpenMS test_XIPMParquetFile.py::test_xipm_run_dict).
-# Pin out of 25.0.0 until upstream fixes the crash.
-arrow = ["pyarrow!=24.0.0,!=25.0.0"]
-all = ["pandas", "pyarrow!=24.0.0,!=25.0.0"]
+# pandas 3 is the floor: its native `str` dtype is what the DataFrame exporters
+# produce for string columns (pandas 3 requires Python >= 3.11, see #10119).
+dataframes = ["pandas>=3"]
+# pyarrow 25.0.0 segfaults on macOS arm64 when reading a parquet dataset via
+# pyarrow.dataset/parquet.core.read_table (crashes on import of pyarrow.dataset,
+# see OpenMS test_XIPMParquetFile.py::test_xipm_run_dict). Only ever reproduced on
+# cp310, which is gone, but 25.0.1 supersedes it anyway - keep the exclusion until
+# the crash is confirmed fixed on cp311+.
+# (The former !=24.0.0 exclusion is dropped: 24.0.0 now has cp310-cp314 wheels and
+# an sdist on PyPI, so the incomplete-wheel-coverage rationale no longer applies.)
+arrow = ["pyarrow!=25.0.0"]
+all = ["pandas>=3", "pyarrow!=25.0.0"]
 
 # Dependency groups (PEP 735) - installable with: uv sync --only-group <name>
 [dependency-groups]
@@ -96,8 +97,8 @@ build = [
 test = [
     "pytest",
     "pytest-cov",
-    "pandas",  # tests need pandas for DataFrame functionality
-    "pyarrow!=24.0.0,!=25.0.0",  # see [project.optional-dependencies].arrow for the exclusion rationale
+    "pandas>=3",  # tests need pandas for DataFrame functionality
+    "pyarrow!=25.0.0",  # see [project.optional-dependencies].arrow for the exclusion rationale
 ]
 dev = [
     {include-group = "build"},
@@ -157,13 +158,13 @@ NO_DEPENDENCIES = "ON"
 #------------------------------------------------------------------------------
 
 [tool.cibuildwheel]
-# Build for Python 3.10-3.14 (usually overwritten by GitHub Actions)
-build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+# Build for Python 3.11-3.14 (usually overwritten by GitHub Actions)
+build = "cp311-* cp312-* cp313-* cp314-*"
 # Skip 32-bit and musllinux builds
 skip = "*-win32 *-musllinux_*"
 
 # Test the wheel after building
-test-requires = ["pytest", "numpy", "pandas", "pyarrow!=24.0.0,!=25.0.0"]
+test-requires = ["pytest", "numpy", "pandas>=3", "pyarrow!=25.0.0"]
 test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
 

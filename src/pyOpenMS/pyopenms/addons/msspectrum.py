@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from . import addon, register_element_views, string_dtype
+from . import addon, pin_string_dtype, register_element_views, string_dtype
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -157,7 +157,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                 else:
                     data_dict[k_str] = np.full(cnt, v if isinstance(v, str) else str(v), dtype=string_dtype(cnt))
             except Exception:
-                data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+                data_dict[k_str] = np.full(cnt, str(v), dtype=string_dtype(cnt))
     elif requested is not None:
         mvs = []
         self.getKeys(mvs)
@@ -177,7 +177,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                         else:
                             data_dict[col] = np.full(cnt, v if isinstance(v, str) else str(v), dtype=string_dtype(cnt))
                     except Exception:
-                        data_dict[col] = np.full(cnt, str(v), dtype='object')
+                        data_dict[col] = np.full(cnt, str(v), dtype=string_dtype(cnt))
 
     # Custom data arrays - only when explicitly requested
     if requested is not None:
@@ -213,7 +213,7 @@ def to_df(self, columns=None, export_meta_values=True):
     """Returns a pandas DataFrame representation of the MSSpectrum."""
     import pandas as pd
     data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
-    return pd.DataFrame(data_dict)
+    return pin_string_dtype(pd.DataFrame(data_dict), data_dict)
 
 
 @addon("MSSpectrum")

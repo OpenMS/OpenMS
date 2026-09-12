@@ -110,7 +110,13 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
     for m in meta_values:
         col_names.append(m.decode() if isinstance(m, bytes) else m)
 
-    df = pd.DataFrame(rows, columns=col_names).set_index('feature_id')
+    df = pd.DataFrame(rows, columns=col_names)
+    if need_pep_ids:
+        # pandas types these from their values, so a FeatureMap whose features carry no
+        # identification would give them the object dtype instead of a string one (#10119).
+        # Meta value columns stay inferred - they are not necessarily strings.
+        df = df.astype({'peptide_sequence': 'str', 'ID_filename': 'str', 'ID_native_id': 'str'})
+    df = df.set_index('feature_id')
 
     if columns is not None:
         available_cols = [c for c in columns if c in df.columns]

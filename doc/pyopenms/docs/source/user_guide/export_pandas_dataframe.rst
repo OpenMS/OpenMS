@@ -1,12 +1,25 @@
 Export to pandas DataFrame
 ==========================
 
-**NOTE: This feature is available only if using a version of pyOpenMS >= 3.0, at the time of writing this means using
-the nightly builds as described in the**
-`Installation Instructions <installation.html#nightly-ci-wheels>`_.
+**NOTE: DataFrame export needs pandas >= 3, which is not installed with pyOpenMS by default.
+Install it with** ``pip install pyopenms[dataframes]``.
 
 In pyOpenMS some data structures can be converted to a tabular format as a ``pandas.DataFrame``.
 This allows convenient access to data and meta values of spectra, features and identifications.
+
+Column types
+------------
+
+Numeric columns keep the type of the underlying C++ field, so intensities and scores are
+exported as ``float32`` and charges as ``int32`` rather than being widened to Python floats
+and ints. A numeric meta value that is missing on some rows is promoted to a floating point
+column so the gaps can be represented as ``NaN``.
+
+String columns use pandas' native ``str`` dtype. That dtype is independent of the column's
+content: a column stays string-typed even when it is empty or when every value in it is
+missing, so exports concatenate cleanly and convert to an Arrow string column. Missing
+strings are exported as nulls (``NaN``, matched by ``pandas.isna()``), not as placeholder
+text such as ``'None'`` or ``''``. String values are never truncated, whatever their length.
 
 Required imports for the examples:
 

@@ -142,6 +142,8 @@ General:
     unaffected (#9757)
 
 Dependencies:
+  - PyOpenMS: pandas >= 3 is required for the DataFrame exporters (`dataframes`/`all` extras); the
+    pyarrow != 24.0.0 exclusion was dropped now that 24.0.0 has full wheel coverage on PyPI (#10119)
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
   - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
   - Boost minimum version requirement raised from 1.78 to 1.81 (#9042, #9095)
@@ -183,6 +185,20 @@ Dependencies:
     (#8679, #9196, #9221)
 
 PyOpenMS:
+  - BREAKING: minimum Python version raised from 3.10 to 3.11; wheels are built for Python 3.11 to 3.14.
+    Python 3.10 reaches end of life in October 2026 and is the only version that cannot install pandas 3,
+    so dropping it lets the DataFrame exporters require pandas >= 3 and target its native string dtype
+    instead of staying neutral between two pandas major versions. 3.10 users should stay on the last
+    release that ships a cp310 wheel (#10119)
+  - BREAKING: the `dataframes` and `all` extras now require pandas >= 3 (`pip install pyopenms[dataframes]`).
+    String columns in DataFrame exports are exported with pandas' native `str` dtype rather than `object`,
+    and convert to an Arrow large_string column (#10119)
+  - Fix: a string column whose values are all missing (an empty export, or a string meta value absent on
+    every row) kept its string dtype only by inference from its values, so it silently degraded to `object`
+    in pandas and to a null - or, for NaN fills, double - column in Arrow. String columns are now pinned to
+    the `str` dtype independently of their content (#10119)
+  - Fix: plot_spectrum() raised AttributeError on any spectrum carrying ion annotations. It called
+    .decode() on the StringDataArray entries, which the nanobind bindings return as str, not bytes
   - BREAKING: binding backend replaced from Autowrap/Cython by hand-maintained nanobind bindings (#8699)
     - Python-level API is backward compatible (same class names, signatures, return types)
     - 544 classes wrapped across 10 domain-based modules for parallel compilation

@@ -1,6 +1,6 @@
 """MRMTransitionGroupCP addon methods for DataFrame support."""
 import numpy as np
-from . import addon, register_element_views, string_dtype
+from . import addon, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("MRMTransitionGroupCP")
@@ -97,7 +97,7 @@ def to_feature_df(self, columns=None, meta_values=None):
 
     mdarr = np.fromiter(iter=gen(features, extract_meta_data), dtype=mddtypes, count=len(features))
 
-    df = pd.DataFrame(mdarr).set_index('feature_id')
+    df = pin_string_dtype(pd.DataFrame(mdarr), mdarr).set_index('feature_id')
 
     if columns is not None:
         available_cols = [c for c in columns if c in df.columns or c == 'feature_id']

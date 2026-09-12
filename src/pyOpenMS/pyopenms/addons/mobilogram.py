@@ -1,6 +1,6 @@
 """Mobilogram addon methods for DataFrame support."""
 import numpy as np
-from . import addon, string_dtype
+from . import addon, pin_string_dtype, string_dtype
 
 
 @addon("Mobilogram")
@@ -47,7 +47,7 @@ def to_df(self, columns=None):
     except ImportError:
         raise ImportError("pandas is required for to_df(). Install with: pip install pandas")
     data_dict = self.get_data_dict(columns=columns)
-    return pd.DataFrame(data_dict)
+    return pin_string_dtype(pd.DataFrame(data_dict), data_dict)
 
 
 @addon("Mobilogram")

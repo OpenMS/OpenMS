@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon, register_element_views
+from . import addon, register_element_views, string_dtype
 
 
 @addon("MSExperiment")
@@ -240,7 +240,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
             all_rt.append(np.full(n, rt, dtype=np.float32))
             all_idx.append(np.full(n, spec_idx, dtype=np.uint32))
             all_ms.append(np.full(n, ms_level, dtype=np.uint8))
-            all_nid.append(np.full(n, spec.getNativeID(), dtype=object))
+            all_nid.append(np.full(n, spec.getNativeID(), dtype=string_dtype(n)))
 
             if include_precursor_info:
                 precs = spec.getPrecursors()
@@ -279,7 +279,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
             d['ion_mobility'] = np.concatenate(all_im) if all_im else np.array([], dtype=np.float32)
         d['spectrum_index'] = np.concatenate(all_idx) if all_idx else np.array([], dtype=np.uint32)
         d['ms_level'] = np.concatenate(all_ms) if all_ms else np.array([], dtype=np.uint8)
-        d['native_id'] = np.concatenate(all_nid) if all_nid else np.array([], dtype=object)
+        d['native_id'] = np.concatenate(all_nid) if all_nid else np.array([], dtype=string_dtype(0))
         if include_precursor_info:
             d['precursor_mz'] = pa.array(all_pmz, type=pa.float64())
             d['precursor_charge'] = pa.array(all_pch, type=pa.int16())
@@ -377,7 +377,7 @@ def _build_chrom_arrow(exp, format, columns, min_rt, max_rt, pa):
             all_rt.append(rts)
             all_int.append(intensities)
             all_idx.append(np.full(n, ci, dtype=np.uint32))
-            all_nid.append(np.full(n, chrom.getNativeID(), dtype=object))
+            all_nid.append(np.full(n, chrom.getNativeID(), dtype=string_dtype(n)))
             all_pmz.append(np.full(n, chrom.getPrecursor().getMZ(), dtype=np.float64))
             all_prodmz.append(np.full(n, chrom.getProduct().getMZ(), dtype=np.float64))
 
@@ -385,7 +385,7 @@ def _build_chrom_arrow(exp, format, columns, min_rt, max_rt, pa):
             'rt': np.concatenate(all_rt) if all_rt else np.array([], dtype=np.float64),
             'intensity': np.concatenate(all_int) if all_int else np.array([], dtype=np.float32),
             'chromatogram_index': np.concatenate(all_idx) if all_idx else np.array([], dtype=np.uint32),
-            'native_id': np.concatenate(all_nid) if all_nid else np.array([], dtype=object),
+            'native_id': np.concatenate(all_nid) if all_nid else np.array([], dtype=string_dtype(0)),
             'precursor_mz': np.concatenate(all_pmz) if all_pmz else np.array([], dtype=np.float64),
             'product_mz': np.concatenate(all_prodmz) if all_prodmz else np.array([], dtype=np.float64),
         }

@@ -4371,16 +4371,16 @@ def testMRMTransitionGroup():
 
     df = mrmgroup.get_feature_df(meta_values=[b'leftWidth', b'rightWidth', b'peak_apices_sum'])
     assert df.shape == (2, 6)
-    assert float(df.loc[1, 'leftWidth']) == 0.5
-    assert float(df.loc[1, 'rightWidth']) == 1.5
-    assert float(df.loc[1, 'peak_apices_sum']) == 10.0
+    assert df.loc[1, 'leftWidth'] == 0.5
+    assert df.loc[1, 'rightWidth'] == 1.5
+    assert df.loc[1, 'peak_apices_sum'] == 10.0
     assert df.loc[1, 'intensity'] == 20.0
     assert df.loc[1, 'quality'] == 0.5
     assert df.loc[1, 'rt'] == 1.0
 
-    assert np.isnan(float(df.loc[2, 'leftWidth'])) if isinstance(df.loc[2, 'leftWidth'], str) else np.isnan(df.loc[2, 'leftWidth'])
-    assert np.isnan(float(df.loc[2, 'rightWidth'])) if isinstance(df.loc[2, 'rightWidth'], str) else np.isnan(df.loc[2, 'rightWidth'])
-    assert float(df.loc[2, 'peak_apices_sum']) == 20.0
+    assert np.isnan(df.loc[2, 'leftWidth'])
+    assert np.isnan(df.loc[2, 'rightWidth'])
+    assert df.loc[2, 'peak_apices_sum'] == 20.0
     assert df.loc[2, 'intensity'] == 40.0
     assert df.loc[2, 'quality'] == 1.0
     assert df.loc[2, 'rt'] == 2.0
@@ -4388,16 +4388,16 @@ def testMRMTransitionGroup():
     # If get "all" meta values should get the same result
     df = mrmgroup.get_feature_df(meta_values='all')
     assert df.shape == (2, 6)
-    assert float(df.loc[1, 'leftWidth']) == 0.5
-    assert float(df.loc[1, 'rightWidth']) == 1.5
-    assert float(df.loc[1, 'peak_apices_sum']) == 10.0
+    assert df.loc[1, 'leftWidth'] == 0.5
+    assert df.loc[1, 'rightWidth'] == 1.5
+    assert df.loc[1, 'peak_apices_sum'] == 10.0
     assert df.loc[1, 'intensity'] == 20.0
     assert df.loc[1, 'quality'] == 0.5
     assert df.loc[1, 'rt'] == 1.0
 
-    assert np.isnan(float(df.loc[2, 'leftWidth'])) if isinstance(df.loc[2, 'leftWidth'], str) else np.isnan(df.loc[2, 'leftWidth'])
-    assert np.isnan(float(df.loc[2, 'rightWidth'])) if isinstance(df.loc[2, 'rightWidth'], str) else np.isnan(df.loc[2, 'rightWidth'])
-    assert float(df.loc[2, 'peak_apices_sum']) == 20.0
+    assert np.isnan(df.loc[2, 'leftWidth'])
+    assert np.isnan(df.loc[2, 'rightWidth'])
+    assert df.loc[2, 'peak_apices_sum'] == 20.0
     assert df.loc[2, 'intensity'] == 40.0
     assert df.loc[2, 'quality'] == 1.0
     assert df.loc[2, 'rt'] == 2.0

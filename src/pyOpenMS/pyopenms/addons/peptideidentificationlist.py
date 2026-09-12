@@ -3,7 +3,7 @@
 from __future__ import annotations
 import numpy as np
 import warnings
-from . import addon, register_element_views, string_dtype
+from . import addon, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("PeptideIdentificationList")
@@ -26,8 +26,9 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     if not export_unidentified:
         count = sum(len(pep.getHits()) > 0 for pep in self.iter_peptide_identification_views())
 
-    # String columns use the object dtype (see string_dtype): fixed-width unicode fields
-    # ('U100', 'U1000') preallocated 4 bytes per character per row and silently truncated.
+    # String columns are built as object arrays (see string_dtype) and land on pandas'
+    # native `str` dtype; the fixed-width unicode fields they replaced ('U100', 'U1000')
+    # preallocated 4 bytes per character per row and silently truncated longer values.
     str_dtype = string_dtype(count)
     switchDict = {bool: '?', int: 'i', float: 'f', str: str_dtype}
 
@@ -125,7 +126,8 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     else:
         rows = (extract(pep, pep_idx) for pep_idx, pep in enumerate(self) if pep.getHits())
 
-    df = pd.DataFrame(np.fromiter(rows, dtype=dt, count=count))
+    rowarr = np.fromiter(rows, dtype=dt, count=count)
+    df = pin_string_dtype(pd.DataFrame(rowarr), rowarr)
 
     # Filter columns if specified
     if columns is not None:

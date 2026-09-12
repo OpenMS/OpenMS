@@ -1311,8 +1311,9 @@ class TestMSExperimentDFColumnSelection:
 
 
 class TestStringColumnsNotTruncated:
-    """String columns are exported with the object dtype instead of fixed-width unicode
-    fields ('U100', 'U1000', ...), so long values are no longer silently truncated (#8583)."""
+    """String columns are exported with pandas' native ``str`` dtype instead of fixed-width
+    unicode fields ('U100', 'U1000', ...), so long values are no longer silently truncated
+    (#8583) and the dtype does not depend on the column's content (#10119)."""
 
     def test_peptide_identification_list_long_strings(self):
         """Identifier > 100 chars, accession list > 1000 chars and a long string meta value survive."""
@@ -1404,6 +1405,27 @@ class TestStringColumnsNotTruncated:
         assert len(df) == 1
         assert pd.isna(df['sequence'].iloc[0])
 
+    def test_all_missing_string_column_keeps_string_dtype(self):
+        """A string column whose values are all missing stays string-typed. pandas infers
+        the dtype from the values, so without pinning it falls back to object here - and
+        Arrow then exports the column as null/double instead of a string (#10119)."""
+        pd = pytest.importorskip('pandas')
+        cmap = pyopenms.ConsensusMap()
+        for rt in (1.0, 2.0):
+            cf = pyopenms.ConsensusFeature()
+            cf.setRT(rt)
+            cf.setMZ(2.0)
+            cf.setCharge(2)
+            cmap.push_back(cf)
+
+        df = cmap.get_metadata_df()
+        assert len(df) == 2
+        assert df['sequence'].isna().all()
+        assert df['sequence'].dtype == 'str'
+
+        pa = pytest.importorskip('pyarrow')
+        assert pa.types.is_large_string(pa.Table.from_pandas(df).schema.field('sequence').type)
+
     def test_mrm_feature_df_long_strings_and_missing_meta_value(self):
         """to_feature_df keeps long string meta values and exports a missing one as null."""
         import pandas as pd
@@ -1463,6 +1485,7 @@ class TestStringColumnsNotTruncated:
         p.setIntensity(2.0)
         mob.push_back(p)
         df = mob.to_df()
+        assert df['drift_time_unit'].dtype == 'str'
         assert isinstance(df['drift_time_unit'].iloc[0], str)
 
     def test_empty_exports_keep_string_type(self):
@@ -1476,7 +1499,9 @@ class TestStringColumnsNotTruncated:
         full.set_peaks([np.array([100.0]), np.array([1.0], dtype=np.float32)])
 
         both = pd.concat([empty.to_df(), full.to_df()])
-        assert both['native_id'].dtype == full.to_df()['native_id'].dtype
+        assert empty.to_df()['native_id'].dtype == 'str'
+        assert full.to_df()['native_id'].dtype == 'str'
+        assert both['native_id'].dtype == 'str'
         assert list(both['native_id']) == ['scan=2']
 
         empty_chrom = pyopenms.MSChromatogram()
@@ -1508,11 +1533,12 @@ class TestStringColumnsNotTruncated:
 
         df = pep_list.to_df()
         assert list(df['mixed']) == ['abc', '7']
+        assert df['mixed'].dtype == 'str'
 
         pa = pytest.importorskip('pyarrow')
-        # pandas 2 (object) maps to string, pandas 3 (str dtype) to large_string
+        # pandas' str dtype converts to Arrow large_string
         mixed_type = pep_list.to_arrow().schema.field('mixed').type
-        assert pa.types.is_string(mixed_type) or pa.types.is_large_string(mixed_type)
+        assert pa.types.is_large_string(mixed_type)
 
     def test_mrm_feature_df_typed_meta_values_by_str_and_bytes_name(self):
         """Known numeric meta values get their numeric dtype whether requested as str, as bytes

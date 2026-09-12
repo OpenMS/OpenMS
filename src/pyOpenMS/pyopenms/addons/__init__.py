@@ -26,8 +26,43 @@ def string_dtype(count: int):
     fixed-width ``'U<n>'`` fields that preallocated 4*n bytes per row and silently
     truncated longer values (#8583). An empty column gets a zero-cost ``'U1'`` instead,
     so pandas and Arrow still infer a string type rather than object/null.
+
+    This is the numpy-level dtype, so ``get_data_dict()`` keeps working without pandas.
+    pandas >= 3 turns both forms into its native ``str`` dtype on DataFrame construction;
+    :func:`pin_string_dtype` makes that guarantee hold for all-missing columns too.
     """
     return object if count else 'U1'
+
+
+def string_column_names(data) -> list:
+    """Names of the columns in ``data`` that were built as string columns.
+
+    ``data`` is a column source as handed to ``pandas.DataFrame``: either a
+    ``{name: ndarray}`` mapping or a structured ndarray. A string column is one whose
+    numpy dtype came from :func:`string_dtype`, i.e. object or fixed-width unicode.
+    """
+    fields = getattr(getattr(data, 'dtype', None), 'names', None)
+    if fields is not None:
+        return [name for name in fields if data.dtype[name].kind in 'OUS']
+    return [name for name, column in data.items()
+            if getattr(column, 'dtype', None) is not None and column.dtype.kind in 'OUS']
+
+
+def pin_string_dtype(df, data):
+    """Give the string columns of ``df`` pandas' native ``str`` dtype.
+
+    pandas >= 3 infers ``str`` for a column built with :func:`string_dtype` on its own,
+    except when *every* value in it is missing - then it falls back to ``object``, and
+    Arrow conversion turns that into a ``null`` (or, for NaN fills, ``double``) column
+    rather than a string one. Casting the columns that were built as strings pins the
+    dtype regardless of content; for columns pandas already inferred as ``str`` it is a
+    copy-on-write no-op.
+
+    ``data`` is the column source ``df`` was built from (see :func:`string_column_names`).
+    Returns ``df`` so it can wrap a ``pandas.DataFrame(...)`` call directly.
+    """
+    names = [name for name in string_column_names(data) if name in df.columns]
+    return df.astype({name: 'str' for name in names}) if names else df
 
 
 def addon(class_name: str, method_name: str | None = None):

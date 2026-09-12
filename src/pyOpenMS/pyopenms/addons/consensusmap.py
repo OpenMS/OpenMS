@@ -1,7 +1,7 @@
 """ConsensusMap addon methods for DataFrame support."""
 import numpy as np
 from collections import defaultdict as _defaultdict
-from . import addon, register_element_views, string_dtype
+from . import addon, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("ConsensusMap")
@@ -70,7 +70,7 @@ def get_intensity_df(self):
 
         intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=total_rows)
 
-        return pd.DataFrame(intyarr).set_index('id')
+        return pin_string_dtype(pd.DataFrame(intyarr), intyarr).set_index('id')
     else:
         def extract_row_blocks_channel_long_file_wide_LF(f):
             subfeatures = f.getFeatureList()
@@ -83,7 +83,7 @@ def get_intensity_df(self):
         dtypes = [('id', np.dtype('uint64'))] + list(zip(files, ['f'] * len(files)))
         intyarr = np.fromiter(iter=gen(self, extract_row_blocks_channel_long_file_wide_LF), dtype=dtypes, count=self.size())
 
-        return pd.DataFrame(intyarr).set_index('id')
+        return pin_string_dtype(pd.DataFrame(intyarr), intyarr).set_index('id')
 
 
 @addon("ConsensusMap")
@@ -115,7 +115,7 @@ def get_metadata_df(self):
                 ('rt', np.dtype('double')), ('mz', np.dtype('double')), ('quality', 'f')]
     mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 
-    return pd.DataFrame(mdarr).set_index('id')
+    return pin_string_dtype(pd.DataFrame(mdarr), mdarr).set_index('id')
 
 
 @addon("ConsensusMap")

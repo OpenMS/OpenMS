@@ -344,8 +344,10 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
 
     max_intensity = intensity.max()
     if max_intensity == 0: max_intensity = 1
-    if len(spectrum.getStringDataArrays()) > 0 and len(list(spectrum.getStringDataArrays()[0])) == len(mz):
-        annotations = [ion.decode() for ion in spectrum.getStringDataArrays()[0]]
+    if len(spectrum.getStringDataArrays()) > 0 and len(spectrum.getStringDataArrays()[0]) == len(mz):
+        # StringDataArray yields str; the .decode() here was a Cython-era leftover that
+        # raised AttributeError for every annotated spectrum
+        annotations = spectrum.getStringDataArrays()[0].get_data()
     else:
         annotations = itertools.repeat(None)
     annotation_kws = {
