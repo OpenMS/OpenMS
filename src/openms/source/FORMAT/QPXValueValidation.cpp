@@ -645,10 +645,17 @@ namespace OpenMS
 
         const bool has_label = !label->IsNull(row);
         const bool has_intensity = !intensity->IsNull(row);
-        if (has_label != has_intensity)
+        // Only one direction of the old "both or neither" rule survives. A label with a null
+        // intensity is legal: the group has evidence in this quantification unit but no quantity
+        // for this label, which the QPX schema expresses with a null (both fields are nullable)
+        // and which is what an absent measurement means. An intensity with no label is not: the
+        // label is what joins the value to a sample and is a component of the pg_id identity, so
+        // an unlabelled value cannot be attributed to anything.
+        if (has_intensity && !has_label)
         {
           addError(result, "row " + std::to_string(row)
-                           + " must set label and intensity together, or leave both null");
+                           + " has an intensity but no label, so the value cannot be joined to a "
+                             "sample");
         }
         std::optional<std::string> label_value;
         if (has_label)
