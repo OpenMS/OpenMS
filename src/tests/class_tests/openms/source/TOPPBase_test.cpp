@@ -972,11 +972,15 @@ START_SECTION(([EXTRA] flags accept an explicit true/false value))
   TOPPBaseTest t10;
   TEST_EQUAL(t10.main(4, cl10), TOPPBase::ILLEGAL_PARAMETERS)
 
-  // two flags in a row: the value belongs to the flag it follows, the preceding one stays bare
-  const char* cl11[4] = {a1, a11, test, val_true}; //command line: "TOPPBaseTest -flag -test true"
+  // two flags in a row: the value belongs to the flag it follows, the preceding one stays bare.
+  // The two flags must end up with different values, otherwise the assertion would also hold for a
+  // parser that wrongly gave the value to '-flag'.
+  const char* no_progress = "-no_progress";
+  const char* cl11[5] = {a1, a11, no_progress, val_false, test}; //command line: "TOPPBaseTest -flag -no_progress false -test"
   TOPPBaseTest t11;
-  TEST_EQUAL(t11.main(4, cl11), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t11.main(5, cl11), TOPPBase::EXECUTION_OK)
   TEST_EQUAL(t11.getFlag("flag"), true)
+  TEST_EQUAL(t11.getFlag("no_progress"), false)
 }
 END_SECTION
 
