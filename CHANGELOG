@@ -1622,6 +1622,11 @@ Build System:
       applied as an overlay port too), and macOS overlay triplets that pass -isysroot explicitly so the
       SDK sysroot is no longer left empty. Release-only overlay triplets are also provided, cutting vcpkg
       configure time roughly in half by skipping the debug variant of every port (#9800)
+    - Windows static builds pull in clapack (the LAPACK backend vcpkg selects for the static/MSVC
+      triplet, via CoinUtils) from netlib.org, a single non-CDN host that intermittently times out on CI
+      runners. Added a clapack overlay port that lists the Software Heritage archive's checksum-verified
+      copy of the same tarball as a second download URL, so a netlib.org outage falls back automatically
+      instead of failing the build
     - Main CI build/test workflow switched from contrib/system dependencies to vcpkg, using the same
       vcpkg-aware CMakePresets.json presets and binary cache as the dedicated vcpkg CI workflow (#9927)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric
