@@ -302,23 +302,23 @@
   class Test
   {
     public:
-      const vector<String>& getMember() const
+      const vector<std::string>& getMember() const
       {
         return member_;
       }
 
-      void setMember(const vector<String>& name)
+      void setMember(const vector<std::string>& name)
       {
         member_ = name;
       }
 
       // if absolutely necessary implement a mutable get-method
-      vector<String>& getMember()
+      vector<std::string>& getMember()
       {
         return member_;
       }
     protected:
-      vector<String> member_;
+      vector<std::string> member_;
   };
 
   @endcode
