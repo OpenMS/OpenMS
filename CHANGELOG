@@ -140,6 +140,12 @@ General:
     codebase calls) now throws NotImplemented rather than a file-not-found error, i.e. semantic
     schema validation stays unavailable for these two formats. Normal file reading/writing is
     unaffected (#9757)
+  - Fix: FragmentIndex fragment sorting now honors the tool's -threads option (and
+    OMP_NUM_THREADS). boost::sort::block_indirect_sort defaulted to
+    std::thread::hardware_concurrency() threads, so the sort spawned one thread per logical
+    core -- 384 threads on a 384-core node -- even for the default single-threaded run,
+    ignoring omp_set_num_threads() and the process CPU affinity. The sort now uses the same
+    OpenMP thread budget as the rest of the index build (#10129)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
