@@ -57,6 +57,11 @@ public:
             @throw FileNotFound is thrown if the given file could not be found
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
+
+            @note Any pre-existing content of @p peptide_identifications and the hits of
+                  @p protein_identification is cleared at the start of a successful parse;
+                  results are populated fresh, not appended (other metadata of
+                  @p protein_identification, e.g. the search engine, is preserved).
     */
     std::vector<Size> load(const std::string & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const std::string & database_filename = "");
 

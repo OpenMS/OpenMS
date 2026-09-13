@@ -78,6 +78,15 @@ namespace OpenMS
       }
     }
 
+    // Populate fresh results: clear any pre-existing peptide IDs and protein hits so that
+    // reusing the same output objects across two load() calls does not merge two files'
+    // results (issue #9488, FORM-60). Done only after the argument/file checks above so a
+    // thrown exception leaves the caller's containers untouched. Only the protein *hits*
+    // are cleared (not the whole ProteinIdentification) because caller-set metadata such as
+    // the search engine is read further down.
+    peptide_identifications.clear();
+    protein_identification.setHits(std::vector<ProteinHit>());
+
     std::string line, accession, accession_type, spectrum_file, identifier;
 
     Size
