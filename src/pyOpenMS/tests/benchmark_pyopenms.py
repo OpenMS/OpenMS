@@ -1113,14 +1113,14 @@ def bench_type_casters(suite: BenchmarkSuite):
                 lambda: [spec.getMetaValue("test_dl") for _ in range(500)])
 
     # --- vector<String> conversion (openms_stl_caster.h) ---
-    suite.bench("getKeys() vector<String> conversion", "Type Casters",
-                lambda: spec.getKeys())
+    suite.bench("getKeys() vector<String> conversion (500x)", "Type Casters",
+                lambda: [spec.getKeys() for _ in range(500)])
 
     # --- vector<DPosition<2>> conversion (openms_dposition_caster.h) ---
     hull = pyopenms.ConvexHull2D()
     hull.setHullPoints([(float(i), float(i) * 2.0) for i in range(200)])
-    suite.bench("ConvexHull2D.getHullPoints() [200 DPosition]", "Type Casters",
-                lambda: hull.getHullPoints())
+    suite.bench("ConvexHull2D.getHullPoints() [200 DPosition] (100x)", "Type Casters",
+                lambda: [hull.getHullPoints() for _ in range(100)])
 
     # --- bulk MetaValue read (string + DataValue casters together) ---
     for i in range(20):
@@ -1130,7 +1130,8 @@ def bench_type_casters(suite: BenchmarkSuite):
         keys = spec.getKeys()
         return {k: spec.getMetaValue(k) for k in keys}
 
-    suite.bench("20-key MetaValue bulk read", "Type Casters", get_all_meta)
+    suite.bench("20-key MetaValue bulk read (100x)", "Type Casters",
+                lambda: [get_all_meta() for _ in range(100)])
 
 
 def bench_param_handling(suite: BenchmarkSuite):
@@ -1152,8 +1153,8 @@ def bench_param_handling(suite: BenchmarkSuite):
                 lambda: [p.getValue("sl_v") for _ in range(500)])
 
     ff = pyopenms.GaussFilter()
-    suite.bench("DefaultParamHandler.getParameters()", "Param Handling",
-                lambda: ff.getParameters())
+    suite.bench("DefaultParamHandler.getParameters() (200x)", "Param Handling",
+                lambda: [ff.getParameters() for _ in range(200)])
 
 
 # ---------------------------------------------------------------------------

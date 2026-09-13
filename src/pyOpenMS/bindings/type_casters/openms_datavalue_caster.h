@@ -252,7 +252,7 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    PyList_SetItem(list, i, item);
                 }
                 return list;
             }
@@ -267,7 +267,7 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    PyList_SetItem(list, i, item);
                 }
                 return list;
             }
@@ -282,7 +282,7 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    PyList_SetItem(list, i, item);
                 }
                 return list;
             }
@@ -497,7 +497,7 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    PyList_SetItem(list, i, item);
                 }
                 return list;
             }
@@ -512,7 +512,7 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    PyList_SetItem(list, i, item);
                 }
                 return list;
             }
@@ -527,7 +527,7 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    PyList_SetItem(list, i, item);
                 }
                 return list;
             }

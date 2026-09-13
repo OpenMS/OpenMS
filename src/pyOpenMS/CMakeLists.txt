@@ -32,6 +32,12 @@ option(NO_SHARE "Do not bundle share data into wheel" OFF)
 option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
 option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
 
+# Build the extension modules against the Python Limited API ("stable ABI",
+# abi3) so that a single wheel per platform serves every supported Python
+# version (issue #8185). Requires CPython >= 3.12; OFF by default because it
+# raises the minimum Python version and costs some per-call dispatch speed.
+option(PYOPENMS_STABLE_ABI "Build pyOpenMS against the Python Limited/Stable ABI (abi3, needs Python >= 3.12)" OFF)
+
 set(PYOPENMS_DOMAINS
     kernel metadata chemistry analysis featurefinder
     format processing datastructures ml misc
@@ -126,7 +132,13 @@ else()
     endif()
   endif()
 
-  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  if(PYOPENMS_STABLE_ABI)
+    # Development.SABIModule provides the Python::SABIModule target that
+    # nanobind's STABLE_ABI mode links against.
+    find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.SABIModule NumPy)
+  else()
+    find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  endif()
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
@@ -218,6 +230,15 @@ else()
   # --------------------------------------------------------------------------
   # Hand-maintained nanobind binding sources
   # --------------------------------------------------------------------------
+  # Extra nanobind_add_module() arguments shared by every module. nanobind
+  # silently ignores STABLE_ABI when Python::SABIModule is missing, so the
+  # ".abi3.so" suffix on the built modules is the thing to check.
+  set(PYOPENMS_NB_EXTRA_ARGS "")
+  if(PYOPENMS_STABLE_ABI)
+    list(APPEND PYOPENMS_NB_EXTRA_ARGS STABLE_ABI)
+    message(STATUS "pyOpenMS: building against the Python Limited/Stable ABI (abi3)")
+  endif()
+
   set(PYOPENMS_BINDINGS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
 
   set(PYOPENMS_BINDING_SOURCES "${PYOPENMS_BINDINGS_DIR}/main_module.cpp")
@@ -292,6 +313,7 @@ else()
     nanobind_add_module(${MODULE_NAME}
       NB_DOMAIN pyopenms  # Share types across modules
       NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
+      ${PYOPENMS_NB_EXTRA_ARGS}
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
     _pyopenms_module_props(${MODULE_NAME})
@@ -301,6 +323,7 @@ else()
   nanobind_add_module(_pyopenms
     NB_DOMAIN pyopenms
     NOMINSIZE
+    ${PYOPENMS_NB_EXTRA_ARGS}
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
   _pyopenms_module_props(_pyopenms)
@@ -336,6 +359,7 @@ else()
   nanobind_add_module(_arrow_zerocopy
     NB_DOMAIN pyopenms
     NOMINSIZE
+    ${PYOPENMS_NB_EXTRA_ARGS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
   )
   _pyopenms_module_props(_arrow_zerocopy)
