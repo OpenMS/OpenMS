@@ -21,6 +21,14 @@ missing, so exports concatenate cleanly and convert to an Arrow string column. M
 strings are exported as nulls (``NaN``, matched by ``pandas.isna()``), not as placeholder
 text such as ``'None'`` or ``''``. String values are never truncated, whatever their length.
 
+The matching ``to_arrow()`` methods give string columns Arrow's ``large_string`` type
+(64-bit offsets), including inside lists and structs. That is the type pandas' ``str`` dtype
+is backed by, so ``to_arrow()`` and ``pyarrow.Table.from_pandas(to_df())`` agree, tables from
+different classes concatenate without ``promote_options='permissive'``, and conversion
+between pandas and Arrow shares the character data instead of copying it. Compared with
+32-bit ``string`` this costs 4 bytes per row of offsets and nothing on disk - Parquet files
+are byte-identical either way.
+
 Required imports for the examples:
 
 .. code-block:: python

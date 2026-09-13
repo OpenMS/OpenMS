@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon, register_element_views
+from . import addon, pin_arrow_string_type, register_element_views
 
 
 @addon("FeatureMap")
@@ -160,7 +160,7 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
     import pyarrow as pa
     df = self.to_df(columns=columns, meta_values=meta_values,
                     export_peptide_identifications=export_peptide_identifications)
-    return pa.Table.from_pandas(df)
+    return pin_arrow_string_type(pa.Table.from_pandas(df))
 
 
 # The plural/iterator view families are generated from one template so the

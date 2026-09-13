@@ -1,7 +1,7 @@
 """ConsensusMap addon methods for DataFrame support."""
 import numpy as np
 from collections import defaultdict as _defaultdict
-from . import addon, pin_string_dtype, register_element_views, string_dtype
+from . import addon, pin_arrow_string_type, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("ConsensusMap")
@@ -173,7 +173,7 @@ def to_arrow(self, columns=None):
     except ImportError:
         raise ImportError("pyarrow is required for to_arrow(). Install with: pip install pyarrow")
     df = self.to_df(columns=columns)
-    return pa.Table.from_pandas(df)
+    return pin_arrow_string_type(pa.Table.from_pandas(df))
 
 
 @addon("ConsensusMap")
@@ -251,7 +251,20 @@ def feature_columns(self):
 def to_feature_arrow(self, reference_file_name=None, columns=None,
                      include_modifications=True, scan_format='native_id'):
     """
-    Export consensus features as Apache Arrow Table following QPX feature schema.
+    Export consensus features as Apache Arrow Table, loosely following the QPX feature schema.
+
+    .. warning::
+       This exporter does **not** produce a QPX-conformant table. It diverges from the
+       canonical ``OpenMS::QPXFeatureSchema`` (see ``ArrowSchemaRegistry.h``) in several
+       ways: it omits the mandatory ``feature_id`` primary key as well as ``psm_ids``,
+       ``mass_error_ppm``, ``missed_cleavages`` and ``pg_positions``; it names four columns
+       differently (``precursor_charge``/``reference_file_name``/``start_ion_mobility``/
+       ``stop_ion_mobility`` vs ``charge``/``run_file_name``/``ion_mobility_start``/
+       ``ion_mobility_stop``); it adds five columns QPX does not define (``score``,
+       ``score_type``, ``quality``, ``spectrum_reference``, ``feature_metavalues``); and it
+       builds no schema, so column types are inferred from the values - several columns this
+       exporter never fills therefore arrive as Arrow ``null``. Use the C++
+       ``ConsensusMapArrowExport::exportToArrow()`` when you need QPX conformance (#10119).
 
     Parameters
     ----------
@@ -423,7 +436,14 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
     if columns:
         data = {k: v for k, v in data.items() if k in columns}
 
-    table = pa.table(data)
+    # This table is built from Python lists with no schema, so every column's type is
+    # inferred from its values: a string column in which every value is missing arrives as
+    # Arrow `null` rather than a string column. Name the scalar string columns so they keep
+    # their type. The columns that this exporter never fills are left inferred on purpose -
+    # see the QPX schema divergence noted in to_feature_arrow's docstring (#10119).
+    table = pin_arrow_string_type(pa.table(data), string_columns=(
+        'sequence', 'peptidoform', 'score_type', 'anchor_protein',
+        'reference_file_name', 'scan_reference_file_name', 'spectrum_reference'))
 
     # Sort by RT for consistent ordering
     if 'rt' in table.column_names and table.num_rows > 0:

@@ -1509,9 +1509,56 @@ class TestStringColumnsNotTruncated:
         assert empty_chrom.to_df(columns=['rt', 'native_id', 'comment']).shape == (0, 3)
 
         pa = pytest.importorskip('pyarrow')
-        assert empty.to_arrow().schema.field('native_id').type == pa.string()
+        # to_arrow() normalises string columns to large_string, so it agrees with the Arrow
+        # conversion of to_df() and concatenates across exporters (#10119)
+        assert empty.to_arrow().schema.field('native_id').type == pa.large_string()
+        assert pa.Table.from_pandas(full.to_df()).schema.field('native_id').type == pa.large_string()
         table = pa.concat_tables([empty.to_arrow(), full.to_arrow()])
         assert table.column('native_id').to_pylist() == ['scan=2']
+
+    def test_to_arrow_string_type_is_consistent_across_exporters(self):
+        """Every to_arrow() gives string columns the same Arrow type, so tables from different
+        exporters concatenate and agree with the Arrow conversion of to_df(). They used to
+        differ: exports built from numpy arrays gave 32-bit string, those routed through
+        pandas gave large_string (#10119)."""
+        pa = pytest.importorskip('pyarrow')
+
+        spec = pyopenms.MSSpectrum()
+        spec.setNativeID('scan=1')
+        spec.set_peaks([np.array([100.0]), np.array([1.0], dtype=np.float32)])
+        chrom = pyopenms.MSChromatogram()
+        chrom.setNativeID('c1')
+        chrom.set_peaks([np.array([1.0]), np.array([2.0], dtype=np.float32)])
+        exp = pyopenms.MSExperiment()
+        exp.addSpectrum(spec)
+
+        for name, table, column in [('MSSpectrum', spec.to_arrow(), 'native_id'),
+                                    ('MSChromatogram', chrom.to_arrow(), 'native_id'),
+                                    ('MSExperiment', exp.to_arrow(), 'native_id')]:
+            assert table.schema.field(column).type == pa.large_string(), name
+
+        # the numpy-built and the pandas-mediated route now agree
+        assert (spec.to_arrow().schema.field('native_id').type
+                == pa.Table.from_pandas(spec.to_df()).schema.field('native_id').type)
+
+        # and tables from different exporters concatenate without promote_options
+        pa.concat_tables([spec.to_arrow().select(['native_id']),
+                          exp.to_arrow().select(['native_id'])])
+
+    def test_consensus_feature_arrow_string_columns_keep_type(self):
+        """to_feature_arrow builds its table from Python lists with no schema, so a string
+        column in which every value is missing used to arrive as Arrow null (#10119)."""
+        pa = pytest.importorskip('pyarrow')
+        cmap = pyopenms.ConsensusMap()
+        cf = pyopenms.ConsensusFeature()
+        cf.setRT(1.0)
+        cf.setMZ(500.0)
+        cf.setCharge(2)
+        cmap.push_back(cf)
+
+        schema = cmap.to_feature_arrow().schema
+        for column in ('sequence', 'peptidoform', 'anchor_protein', 'score_type'):
+            assert schema.field(column).type == pa.large_string(), column
 
     def test_mixed_type_meta_value_is_exported_as_str(self):
         """A meta value that is a str in one hit and an int in another gives a plain string

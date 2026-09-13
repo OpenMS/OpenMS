@@ -65,6 +65,58 @@ def pin_string_dtype(df, data):
     return df.astype({name: 'str' for name in names}) if names else df
 
 
+def _as_large_string_type(dtype, pa):
+    """``dtype`` with every nested string type replaced by ``large_string``."""
+    if pa.types.is_large_string(dtype):
+        return dtype
+    if pa.types.is_string(dtype) or pa.types.is_string_view(dtype):
+        return pa.large_string()
+    if pa.types.is_list(dtype) or pa.types.is_large_list(dtype):
+        value = _as_large_string_type(dtype.value_type, pa)
+        if value is not dtype.value_type:
+            return (pa.large_list(value) if pa.types.is_large_list(dtype) else pa.list_(value))
+        return dtype
+    if pa.types.is_struct(dtype):
+        children = [f.with_type(_as_large_string_type(f.type, pa)) for f in dtype]
+        if any(n.type is not o.type for n, o in zip(children, dtype)):
+            return pa.struct(children)
+        return dtype
+    return dtype
+
+
+def pin_arrow_string_type(table, string_columns=()):
+    """Give the string columns of an Arrow ``table`` the ``large_string`` type.
+
+    pandas' ``str`` dtype is backed by ``large_string``, so normalising here makes
+    ``to_arrow()`` agree with the Arrow conversion of ``to_df()`` - they disagreed
+    before, depending on whether the export was built from numpy arrays (32-bit
+    ``string``) or routed through pandas (``large_string``) - and lets tables from
+    different exporters concatenate without ``promote_options='permissive'``. The cast
+    rewrites only the offset buffer, so it costs a fraction of building the column.
+
+    Names listed in ``string_columns`` are additionally promoted when they arrived as
+    Arrow ``null``, which is what an inferred column becomes when every value in it is
+    missing. Other ``null`` columns are left alone: their intended type is not knowable
+    from the data (#10119).
+    """
+    import pyarrow as pa
+
+    fields = []
+    changed = False
+    for field in table.schema:
+        if pa.types.is_null(field.type) and field.name in string_columns:
+            fields.append(field.with_type(pa.large_string()))
+            changed = True
+            continue
+        dtype = _as_large_string_type(field.type, pa)
+        if dtype is not field.type:
+            fields.append(field.with_type(dtype))
+            changed = True
+        else:
+            fields.append(field)
+    return table.cast(pa.schema(fields)) if changed else table
+
+
 def addon(class_name: str, method_name: str | None = None):
     """
     Decorator to register an addon method for a class.

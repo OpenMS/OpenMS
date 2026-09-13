@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from . import addon, pin_string_dtype, register_element_views, string_dtype
+from . import addon, pin_arrow_string_type, pin_string_dtype, register_element_views, string_dtype
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -221,7 +221,7 @@ def to_arrow(self, columns=None, export_meta_values=True):
     """Returns an Apache Arrow Table representation of the MSSpectrum."""
     import pyarrow as pa
     data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
-    return pa.Table.from_pydict(data_dict)
+    return pin_arrow_string_type(pa.Table.from_pydict(data_dict))
 
 
 @addon("MSSpectrum")

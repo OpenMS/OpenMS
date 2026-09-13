@@ -1,6 +1,6 @@
 """XIPMParquetFile addon methods for DataFrame support."""
 
-from . import addon
+from . import addon, pin_arrow_string_type
 
 
 _ANALYTE_COLUMN_MAP = {
@@ -503,7 +503,7 @@ def to_arrow(self, explode=False):
         raise ImportError(
             "pyarrow is required for to_arrow(). Install with `pip install pyarrow`."
         ) from e
-    return pa.Table.from_pydict(self.get_data_dict(explode=explode))
+    return pin_arrow_string_type(pa.Table.from_pydict(self.get_data_dict(explode=explode)))
 
 
 @addon("XIPMParquetFile")

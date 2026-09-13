@@ -3,7 +3,7 @@
 from __future__ import annotations
 import numpy as np
 import warnings
-from . import addon, pin_string_dtype, register_element_views, string_dtype
+from . import addon, pin_arrow_string_type, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("PeptideIdentificationList")
@@ -210,9 +210,9 @@ def to_arrow(self, decode_ontology=True, default_missing_values=None, export_uni
             # Only include columns that are in the DataFrame
             core_schema = [f for f in core_schema if f.name in df.columns]
         schema = pa.schema(core_schema)
-        return pa.Table.from_pandas(df, schema=schema)
+        return pin_arrow_string_type(pa.Table.from_pandas(df, schema=schema))
 
-    return pa.Table.from_pandas(df)
+    return pin_arrow_string_type(pa.Table.from_pandas(df))
 
 
 @addon("PeptideIdentificationList")
@@ -726,7 +726,7 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
         ]
         data_dict["spectrum_metavalues"] = pa.array(all_spectrum_metavalues_str, type=pa.list_(metavalue_type))
 
-    table = pa.Table.from_pydict(data_dict)
+    table = pin_arrow_string_type(pa.Table.from_pydict(data_dict))
 
     if columns_set is not None:
         unknown = [c for c in columns if c not in data_dict]

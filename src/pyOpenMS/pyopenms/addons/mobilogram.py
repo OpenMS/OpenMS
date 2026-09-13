@@ -1,6 +1,6 @@
 """Mobilogram addon methods for DataFrame support."""
 import numpy as np
-from . import addon, pin_string_dtype, string_dtype
+from . import addon, pin_arrow_string_type, pin_string_dtype, string_dtype
 
 
 @addon("Mobilogram")
@@ -58,7 +58,7 @@ def to_arrow(self, columns=None):
     except ImportError:
         raise ImportError("pyarrow is required for to_arrow(). Install with: pip install pyarrow")
     data_dict = self.get_data_dict(columns=columns)
-    return pa.Table.from_pydict(data_dict)
+    return pin_arrow_string_type(pa.Table.from_pydict(data_dict))
 
 
 @addon("Mobilogram")

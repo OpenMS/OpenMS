@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon, pin_string_dtype, register_element_views, string_dtype
+from . import addon, pin_arrow_string_type, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("MSChromatogram")
@@ -144,7 +144,8 @@ def get_df_columns(self, *args, **kwargs):
 def to_arrow(self, columns=None, export_meta_values=True):
     """Returns an Apache Arrow Table representation."""
     import pyarrow as pa
-    return pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
+    return pin_arrow_string_type(
+        pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values)))
 
 
 # The plural/iterator view families are generated from one template so the

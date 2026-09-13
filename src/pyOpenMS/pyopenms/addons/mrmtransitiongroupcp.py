@@ -1,6 +1,6 @@
 """MRMTransitionGroupCP addon methods for DataFrame support."""
 import numpy as np
-from . import addon, pin_string_dtype, register_element_views, string_dtype
+from . import addon, pin_arrow_string_type, pin_string_dtype, register_element_views, string_dtype
 
 
 @addon("MRMTransitionGroupCP")
@@ -116,7 +116,7 @@ def to_arrow(self, columns=None, export_meta_values=True):
     except ImportError:
         raise ImportError("pyarrow is required for to_arrow(). Install with: pip install pyarrow")
     df = self.to_chromatogram_df(columns=columns, export_meta_values=export_meta_values)
-    return pa.Table.from_pandas(df)
+    return pin_arrow_string_type(pa.Table.from_pandas(df))
 
 
 @addon("MRMTransitionGroupCP")

@@ -985,7 +985,7 @@ def test_to_arrow_column_types():
     assert schema.field("mz").type == pa.float32()
     assert schema.field("charge").type == pa.int32()
     assert schema.field("P_ID").type == pa.int32()
-    assert schema.field("id").type in (pa.utf8(), pa.large_utf8())
+    assert schema.field("id").type == pa.large_utf8()
 
 
 def test_to_arrow_column_filter():
@@ -1018,7 +1018,7 @@ def test_to_arrow_empty_list():
         assert col in table.schema.names, f"Missing column {col} in empty table schema"
 
     # Verify types are correct
-    assert table.schema.field("id").type == pa.utf8()
+    assert table.schema.field("id").type == pa.large_utf8()
     assert table.schema.field("rt").type == pa.float32()
     assert table.schema.field("charge").type == pa.int32()
 
@@ -1033,7 +1033,7 @@ def test_to_psm_arrow_schema_types():
     schema = table.schema
 
     # Check scalar types
-    assert schema.field("sequence").type == pa.utf8()
+    assert schema.field("sequence").type == pa.large_utf8()
     assert schema.field("precursor_charge").type == pa.int32()
     assert schema.field("observed_mz").type == pa.float64()
     assert schema.field("rt").type == pa.float64()

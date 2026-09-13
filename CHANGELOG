@@ -197,6 +197,17 @@ PyOpenMS:
     every row) kept its string dtype only by inference from its values, so it silently degraded to `object`
     in pandas and to a null - or, for NaN fills, double - column in Arrow. String columns are now pinned to
     the `str` dtype independently of their content (#10119)
+  - BREAKING: to_arrow() now gives string columns Arrow's `large_string` type (64-bit offsets),
+    nested ones inside lists and structs included. The type used to depend on how the export was
+    built - exports assembled from numpy arrays gave 32-bit `string`, those routed through pandas
+    gave `large_string` - so tables from different classes could not be concatenated without
+    `promote_options='permissive'`, and to_arrow() disagreed with the Arrow conversion of to_df().
+    `large_string` is what pandas' `str` dtype is backed by, so the two now match and pandas/Arrow
+    conversion shares the character data. Costs 4 bytes per row of offsets; Parquet output is
+    unchanged. Note that OpenMS' own Parquet readers accept both widths (#10119)
+  - Fix: ConsensusMap.to_feature_arrow() built its table from Python lists without a schema, so a
+    string column in which every value was missing (a map without identifications) arrived as an
+    Arrow `null` column. The scalar string columns now keep their type (#10119)
   - Fix: plot_spectrum() raised AttributeError on any spectrum carrying ion annotations. It called
     .decode() on the StringDataArray entries, which the nanobind bindings return as str, not bytes
   - BREAKING: binding backend replaced from Autowrap/Cython by hand-maintained nanobind bindings (#8699)

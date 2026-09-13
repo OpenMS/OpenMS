@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon, register_element_views, string_dtype
+from . import addon, pin_arrow_string_type, register_element_views, string_dtype
 
 
 @addon("MSExperiment")
@@ -168,16 +168,20 @@ def to_arrow(self, data='spectra', format='long', columns=None,
         )
 
     if _use_zerocopy:
+        # The C++ builders use arrow::utf8(); normalising to large_string keeps to_arrow()
+        # consistent with the Python paths and with to_df(). The cast rebuilds only the
+        # offset buffer - the character data stays shared, so the zero-copy peak arrays and
+        # the string payload are not copied (#10119).
         result = {}
         if data in ('spectra', 'both'):
-            result['spectra'] = spectra_to_arrow(
+            result['spectra'] = pin_arrow_string_type(spectra_to_arrow(
                 self, format=format, ms_levels=ms_levels,
                 min_rt=min_rt, max_rt=max_rt, min_mz=min_mz, max_mz=max_mz,
                 columns=columns, include_precursor_info=include_precursor_info,
-                include_ion_mobility=include_ion_mobility)
+                include_ion_mobility=include_ion_mobility))
         if data in ('chromatograms', 'both'):
-            result['chromatograms'] = chromatograms_to_arrow(
-                self, format=format, min_rt=min_rt, max_rt=max_rt, columns=columns)
+            result['chromatograms'] = pin_arrow_string_type(chromatograms_to_arrow(
+                self, format=format, min_rt=min_rt, max_rt=max_rt, columns=columns))
         if data == 'both':
             return result
         elif data == 'spectra':
@@ -353,7 +357,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
 
     if columns is not None:
         d = {k: v for k, v in d.items() if k in columns}
-    return pa.Table.from_pydict(d)
+    return pin_arrow_string_type(pa.Table.from_pydict(d))
 
 
 def _build_chrom_arrow(exp, format, columns, min_rt, max_rt, pa):
@@ -420,7 +424,7 @@ def _build_chrom_arrow(exp, format, columns, min_rt, max_rt, pa):
 
     if columns is not None:
         d = {k: v for k, v in d.items() if k in columns}
-    return pa.Table.from_pydict(d)
+    return pin_arrow_string_type(pa.Table.from_pydict(d))
 
 
 @addon("MSExperiment")
