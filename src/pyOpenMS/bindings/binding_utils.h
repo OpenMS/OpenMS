@@ -12,6 +12,8 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
+#include <vector>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
@@ -132,14 +134,45 @@ void def_DocumentIdentifier(Class& cls)
         ;
 }
 
+/// Restore the algorithm's own string restrictions on a Param before applying it.
+///
+/// Param::setDefaults copies restrictions only for keys the target does NOT already have,
+/// and Param::checkDefaults validates the given value against the DEFAULTS' entry -- so a
+/// Param built or edited in Python can carry restrictions that contradict the algorithm's
+/// and nothing ever corrects them. That matters since assigning a Python bool to a new key
+/// stamps {"true","false"} on it: without this, a partial Param that sets a tri-state
+/// parameter (e.g. OpenPepXL's algorithm:deisotope) with True would make getParameters()
+/// report it as a boolean parameter from then on.
+inline OpenMS::Param withDefaultRestrictions(const OpenMS::Param& param, const OpenMS::Param& defaults)
+{
+    OpenMS::Param result(param);
+    std::vector<std::pair<std::string, std::vector<std::string>>> fixes;
+    for (auto it = result.begin(); it != result.end(); ++it)
+    {
+        const std::string key = it.getName();
+        if (!defaults.exists(key)) continue;
+        const OpenMS::Param::ParamEntry& expected = defaults.getEntry(key);
+        const auto is_stringy = [](OpenMS::ParamValue::ValueType t) {
+            return t == OpenMS::ParamValue::STRING_VALUE || t == OpenMS::ParamValue::STRING_LIST;
+        };
+        // setValidStrings() only accepts string-typed entries; a genuine type mismatch is
+        // checkDefaults' job to report, not ours to paper over.
+        if (!is_stringy(it->value.valueType()) || !is_stringy(expected.value.valueType())) continue;
+        if (it->valid_strings == expected.valid_strings) continue;
+        fixes.emplace_back(key, expected.valid_strings);
+    }
+    for (const auto& fix : fixes) result.setValidStrings(fix.first, fix.second);
+    return result;
+}
+
 /// Bind DefaultParamHandler methods (6 methods) onto a nanobind class.
 template <typename T, typename Class>
 void def_DefaultParamHandler(Class& cls)
 {
     cls
         .def("setParameters", [](T& self, const OpenMS::Param& param) {
-            return self.setParameters(param);
-        }, "param"_a, "Sets the parameters")
+            return self.setParameters(withDefaultRestrictions(param, self.getDefaults()));
+        }, "param"_a, "Sets the parameters. String restrictions declared by this class win over any carried by the given Param")
         .def("getParameters", [](const T& self) -> OpenMS::Param {
             return self.getParameters();
         }, "Returns a copy of the parameters")

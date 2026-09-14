@@ -40,9 +40,12 @@ class DataValue:
             self._value = None
             self._type = DataType.EMPTY_VALUE
         elif isinstance(value, bool):
-            # bool before int since bool is a subclass of int
-            self._value = int(value)
-            self._type = DataType.INT_VALUE
+            # bool before int since bool is a subclass of int. OpenMS has no boolean type:
+            # C++ writes flag-like meta values as the strings 'true'/'false' (see
+            # DefaultParamHandler::writeParametersToMetaValues and DataValue::toBool), and
+            # the DataValue type caster stores a Python bool the same way.
+            self._value = "true" if value else "false"
+            self._type = DataType.STRING_VALUE
         elif isinstance(value, int):
             self._value = value
             self._type = DataType.INT_VALUE
@@ -97,10 +100,17 @@ class DataValue:
         return str(self._value)
 
     def toBool(self):
-        """Return value as bool."""
-        if isinstance(self._value, str):
-            return self._value.lower() in ("true", "1")
-        return bool(self._value)
+        """Return value as bool.
+
+        Same rule as C++ DataValue::toBool(): exactly 'true' or 'false', nothing else.
+        """
+        if self._value == "true":
+            return True
+        if self._value == "false":
+            return False
+        raise ValueError(
+            "Could not convert %r to bool. Valid strings are 'true' and 'false'." % (self._value,)
+        )
 
     def toStringList(self):
         """Return value as list of strings."""

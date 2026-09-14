@@ -260,7 +260,7 @@ NB_MODULE(_pyopenms_misc, m) {
         .def(nb::init<std::string>())
         .def("__copy__", [](const OpenMS::DefaultParamHandler& self) { return OpenMS::DefaultParamHandler(self); })
         .def("__deepcopy__", [](const OpenMS::DefaultParamHandler& self, nb::dict) { return OpenMS::DefaultParamHandler(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::DefaultParamHandler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
+        .def("setParameters", [](OpenMS::DefaultParamHandler& self, const OpenMS::Param& param) { return self.setParameters(withDefaultRestrictions(param, self.getDefaults())); }, "param"_a, "Sets the parameters. String restrictions declared by this class win over any carried by the given Param")
         .def("getParameters", [](const OpenMS::DefaultParamHandler& self) -> OpenMS::Param { return self.getParameters(); }, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::DefaultParamHandler& self) -> OpenMS::Param { return self.getDefaults(); }, "Returns the default parameters")
         .def("getName", [](const OpenMS::DefaultParamHandler& self) { return self.getName(); }, "Returns the name")

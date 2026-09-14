@@ -61,6 +61,18 @@ public:
             return true;
         }
 
+        // Python bool -> the canonical OpenMS flag spelling.
+        // OpenMS has no boolean value type: DefaultParamHandler::writeParametersToMetaValues
+        // copies a flag's ParamValue straight into a DataValue, so "true"/"false" is already
+        // what C++ stores for flag-like meta values, and DataValue::toBool() is the reader.
+        // The round trip is deliberately asymmetric -- DataValue carries no restrictions, so
+        // getMetaValue() hands the string back (and note that 'false' is truthy in Python).
+        // Must come before the int branch: bool is a subclass of int.
+        if (PyBool_Check(src.ptr())) {
+            value = OpenMS::DataValue(std::string(src.ptr() == Py_True ? "true" : "false"));
+            return true;
+        }
+
         // Try int (but not bool, which is a subclass of int in Python)
         if (PyLong_Check(src.ptr()) && !PyBool_Check(src.ptr())) {
             long long val = PyLong_AsLongLong(src.ptr());
@@ -181,6 +193,13 @@ public:
                         PyErr_Clear();
                         return false;
                     }
+                    // bool is a subclass of int: reject it at every position, not just
+                    // the first one the list type was sniffed from ([1, True] must not
+                    // silently become [1, 1]).
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;
+                    }
                     long val = PyLong_AsLong(item);
                     Py_DECREF(item);
                     if (PyErr_Occurred()) {
@@ -202,6 +221,11 @@ public:
                     PyObject* item = PySequence_GetItem(src.ptr(), i);
                     if (!item) {
                         PyErr_Clear();
+                        return false;
+                    }
+                    // see the int loop: a bool must not slip in as 0.0/1.0
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
                         return false;
                     }
                     PyObject* float_item = PyNumber_Float(item);
@@ -302,10 +326,95 @@ public:
 };
 
 /**
- * Type caster for OpenMS::ParamValue
+ * C++ -> Python conversion for OpenMS::ParamValue.
  *
- * ParamValue is similar to DataValue but used in Param objects.
- * Conversion logic is essentially the same.
+ * This is deliberately NOT `type_caster<OpenMS::ParamValue>::from_cpp`. Whether a
+ * parameter is boolean lives on the Param::ParamEntry (in its valid_strings), not on the
+ * value, so a value-scoped caster cannot know whether "false" should reach Python as the
+ * string 'false' or as False. Every Param read therefore has to go through the entry --
+ * see paramEntryValueToPython() in bind_datastructures.cpp, the ONLY caller of this
+ * function. Removing the caster's C++ -> Python direction turns "someone adds a .def that
+ * returns a ParamValue directly" from a silently wrong Python type into a compile error.
+ *
+ * Returns a NEW reference, or an invalid handle with a Python error already set (only
+ * possible on allocation failure). Callers wrap the result in nb::steal().
+ */
+inline handle paramValueToPython(const OpenMS::ParamValue& src) noexcept {
+    using ValueType = OpenMS::ParamValue::ValueType;
+
+    switch (src.valueType()) {
+        case ValueType::EMPTY_VALUE:
+            return none().release();
+
+        case ValueType::INT_VALUE:
+            return PyLong_FromLongLong(static_cast<long long>(static_cast<int>(src)));  // ParamValue stores int
+
+        case ValueType::DOUBLE_VALUE:
+            return PyFloat_FromDouble(static_cast<double>(src));
+
+        case ValueType::STRING_VALUE: {
+            const std::string s = src;
+            return PyUnicode_FromStringAndSize(s.c_str(), s.size());
+        }
+
+        case ValueType::STRING_LIST: {
+            const std::vector<std::string> sl = src;
+            PyObject* list = PyList_New(sl.size());
+            if (!list) return handle();
+            for (size_t i = 0; i < sl.size(); ++i) {
+                PyObject* item = PyUnicode_FromStringAndSize(sl[i].c_str(), sl[i].size());
+                if (!item) {
+                    Py_DECREF(list);
+                    return handle();
+                }
+                PyList_SET_ITEM(list, i, item);
+            }
+            return list;
+        }
+
+        case ValueType::INT_LIST: {
+            const std::vector<int> il = src;
+            PyObject* list = PyList_New(il.size());
+            if (!list) return handle();
+            for (size_t i = 0; i < il.size(); ++i) {
+                PyObject* item = PyLong_FromLong(il[i]);
+                if (!item) {
+                    Py_DECREF(list);
+                    return handle();
+                }
+                PyList_SET_ITEM(list, i, item);
+            }
+            return list;
+        }
+
+        case ValueType::DOUBLE_LIST: {
+            const std::vector<double> dl = src;
+            PyObject* list = PyList_New(dl.size());
+            if (!list) return handle();
+            for (size_t i = 0; i < dl.size(); ++i) {
+                PyObject* item = PyFloat_FromDouble(dl[i]);
+                if (!item) {
+                    Py_DECREF(list);
+                    return handle();
+                }
+                PyList_SET_ITEM(list, i, item);
+            }
+            return list;
+        }
+
+        default:
+            return none().release();
+    }
+}
+
+/**
+ * Type caster for OpenMS::ParamValue -- Python -> C++ ONLY.
+ *
+ * ParamValue is similar to DataValue but used in Param objects. The reverse direction
+ * lives in paramValueToPython() above rather than in from_cpp(); see the comment there.
+ * A Python bool is NOT accepted here on purpose: booleans are a property of the
+ * Param::ParamEntry, so the whole rule lives in bind_datastructures.cpp's write helper
+ * and there is no second path that could store 'true' around it.
  */
 template <>
 struct type_caster<OpenMS::ParamValue> {
@@ -428,6 +537,13 @@ public:
                         PyErr_Clear();
                         return false;
                     }
+                    // bool is a subclass of int: reject it at every position, not just
+                    // the first one the list type was sniffed from ([1, True] must not
+                    // silently become [1, 1]).
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;
+                    }
                     long val = PyLong_AsLong(item);
                     Py_DECREF(item);
                     if (PyErr_Occurred()) {
@@ -450,6 +566,11 @@ public:
                         PyErr_Clear();
                         return false;
                     }
+                    // see the int loop: a bool must not slip in as 0.0/1.0
+                    if (PyBool_Check(item)) {
+                        Py_DECREF(item);
+                        return false;
+                    }
                     PyObject* float_item = PyNumber_Float(item);
                     Py_DECREF(item);
                     if (!float_item) {
@@ -468,82 +589,10 @@ public:
         return false;
     }
 
-    static handle from_cpp(const OpenMS::ParamValue& src, rv_policy policy,
-                          cleanup_list* cleanup) noexcept {
-        using ValueType = OpenMS::ParamValue::ValueType;
-
-        switch (src.valueType()) {
-            case ValueType::EMPTY_VALUE:
-                return none().release();
-
-            case ValueType::INT_VALUE:
-                return PyLong_FromLongLong(static_cast<long long>(static_cast<int>(src)));  // ParamValue stores int
-
-            case ValueType::DOUBLE_VALUE:
-                return PyFloat_FromDouble(static_cast<double>(src));
-
-            case ValueType::STRING_VALUE: {
-                const std::string s = src;
-                return PyUnicode_FromStringAndSize(s.c_str(), s.size());
-            }
-
-            case ValueType::STRING_LIST: {
-                const std::vector<std::string> sl = src;
-                PyObject* list = PyList_New(sl.size());
-                if (!list) return handle();
-                for (size_t i = 0; i < sl.size(); ++i) {
-                    PyObject* item = PyUnicode_FromStringAndSize(sl[i].c_str(), sl[i].size());
-                    if (!item) {
-                        Py_DECREF(list);
-                        return handle();
-                    }
-                    PyList_SET_ITEM(list, i, item);
-                }
-                return list;
-            }
-
-            case ValueType::INT_LIST: {
-                const std::vector<int> il = src;
-                PyObject* list = PyList_New(il.size());
-                if (!list) return handle();
-                for (size_t i = 0; i < il.size(); ++i) {
-                    PyObject* item = PyLong_FromLong(il[i]);
-                    if (!item) {
-                        Py_DECREF(list);
-                        return handle();
-                    }
-                    PyList_SET_ITEM(list, i, item);
-                }
-                return list;
-            }
-
-            case ValueType::DOUBLE_LIST: {
-                const std::vector<double> dl = src;
-                PyObject* list = PyList_New(dl.size());
-                if (!list) return handle();
-                for (size_t i = 0; i < dl.size(); ++i) {
-                    PyObject* item = PyFloat_FromDouble(dl[i]);
-                    if (!item) {
-                        Py_DECREF(list);
-                        return handle();
-                    }
-                    PyList_SET_ITEM(list, i, item);
-                }
-                return list;
-            }
-
-            default:
-                return none().release();
-        }
-    }
-
-    static handle from_cpp(OpenMS::ParamValue& src, rv_policy policy, cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const OpenMS::ParamValue&>(src), policy, cleanup);
-    }
-
-    static handle from_cpp(OpenMS::ParamValue&& src, rv_policy policy, cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const OpenMS::ParamValue&>(src), policy, cleanup);
-    }
+    // No from_cpp: this caster is Python -> C++ only, on purpose. See
+    // paramValueToPython() above for why, and bind_datastructures.cpp for the read gate.
+    // NB_TYPE_CASTER still declares a from_cpp(T_*) template, but its body is dependent
+    // and is never instantiated because no binding returns a ParamValue*.
 };
 
 }  // namespace detail

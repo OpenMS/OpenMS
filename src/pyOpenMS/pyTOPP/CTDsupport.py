@@ -22,7 +22,12 @@ def addParamToCTDopts(defaults, model):
         ctd_type_str = ''
         ctd_list = False
 
-        if isinstance(value, int):
+        # bool before int: bool is a subclass of int, and a boolean parameter
+        # (Param.isBool) now reaches Python as a real bool. CTDopts maps bool -> "bool".
+        if isinstance(value, bool):
+            ctd_type = bool
+            ctd_type_str = 'bool'
+        elif isinstance(value, int):
             ctd_type = int
             ctd_type_str = 'int'
         elif isinstance(value, float):
@@ -49,7 +54,8 @@ def addParamToCTDopts(defaults, model):
         print('        required: {0} \t tags: {1} \t type: {2}.'.format(ctd_required, ctd_tags, ctd_type_str))
 
         model.add(
-            key.decode(),
+            # Param.keys() yields native str since the String wrapper removal (#10109).
+            key,
             required=ctd_required,
             type=ctd_type,
             default=value,

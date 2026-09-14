@@ -127,8 +127,8 @@ description by using, for instance, the following simple function.
     Param: b'gaussian_width' Value: 0.2 Description: Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).
     Param: b'ppm_tolerance' Value: 10.0 Description: Gaussian width, depending on the m/z position.
     The higher the value, the wider the peak and therefore the wider the gaussian.
-    Param: b'use_ppm_tolerance' Value: false Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
-    Param: b'write_log_messages' Value: false Description: true: Warn if no signal was found by the Gauss filter algorithm.
+    Param: b'use_ppm_tolerance' Value: False Description: If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.
+    Param: b'write_log_messages' Value: False Description: true: Warn if no signal was found by the Gauss filter algorithm.
 
 To print a simple key-value list, you can use ``asDict()``, as shown above:
 
@@ -167,6 +167,63 @@ E.g.
 Restrictions(=Validity) of Parameter Values
 ******************************************************* 
     
+Boolean parameters
+------------------
+
+OpenMS has no boolean value type. A *boolean parameter* is a string parameter restricted
+to exactly the two values ``'true'`` and ``'false'``; :py:meth:`~.ParamEntry.isBool`
+is the definition, and it does not care about the order of the two restrictions or about
+the current value. From Python such a parameter is a plain ``bool`` everywhere:
+
+.. code-block:: pycon
+
+    >>> gf = oms.GaussFilter()
+    >>> p = gf.getParameters()
+    >>> p["use_ppm_tolerance"]
+    False
+    >>> if not p["use_ppm_tolerance"]:      # works as you would expect
+    ...     p["use_ppm_tolerance"] = True
+    >>> p["use_ppm_tolerance"]
+    True
+    >>> gf.setParameters(p)
+
+Assigning a ``bool`` to a key that does not exist yet *defines* a boolean parameter -- it
+stores the value and the ``true``/``false`` restrictions -- so the parameter survives
+``to_dict()``/``from_dict()``, ``repr()`` and INI round trips as a boolean, and is written
+as a flag to INI and CTD files:
+
+.. code-block:: pycon
+
+    >>> p = oms.Param()
+    >>> p["flag"] = True
+    >>> p.isBool("flag"), p["flag"]
+    (True, True)
+    >>> oms.Param(p.to_dict())["flag"]
+    True
+
+Nothing is guessed from a value's content, which means two things worth knowing:
+
+* A plain string that happens to read ``'true'`` is **not** a boolean parameter, and
+  neither is a parameter that allows further values (``auto,true,false``, as used by
+  ``OpenPepXLAlgorithm``'s ``algorithm:deisotope``). Those stay ``str`` on every path.
+  Use :py:meth:`~.Param.isBool` or ``isinstance(value, bool)`` to tell them apart.
+* Assigning a ``bool`` to an existing parameter that is *not* boolean raises a
+  ``TypeError`` rather than silently redefining its type. Call
+  ``setValidStrings(key, ["true", "false"])`` first if that is really what you want.
+
+Because the value is a ``bool``, a boolean parameter has no string restrictions to hand
+out: :py:meth:`~.Param.getValidStrings` and ``ParamEntry.valid_strings`` raise a
+``TypeError`` for one. :py:meth:`~.Param.getValueType` still reports ``STRING_VALUE``,
+since that is how the value is stored.
+
+.. note::
+
+   Meta values are a different data structure with no restrictions attached, so the round
+   trip there is asymmetric: ``setMetaValue(key, True)`` stores the canonical string (the
+   same thing OpenMS writes in C++), and ``getMetaValue(key)`` returns ``'true'`` or
+   ``'false'`` as a string. Compare those explicitly -- do not use them in an ``if``,
+   because ``'false'`` is truthy in Python.
+
 For certain types of values, pyOpenMS supports restrictions,
 e.g. for single strings only a restricted set of values may be allowed.
 Also, for floats/ints only a restricted interval of numbers may be valid.
@@ -186,7 +243,8 @@ E.g.
 
     gf = oms.GaussFilter()
     gfp = gf.getParameters()
-    gfp.getValidStrings("use_ppm_tolerance")  ## yields [b'true', b'false']
+    gfp.isBool("use_ppm_tolerance")           ## True -- it is a boolean parameter,
+                                              ## so getValidStrings() raises for it
     
     gfp.setValue(b"use_ppm_tolerance", "maybe") ## is invalid but setValue does not complain
     ##  ... until you actually set the parameters:

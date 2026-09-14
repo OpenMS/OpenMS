@@ -69,6 +69,10 @@ Dependencies:
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
 
 PyOpenMS:
+  - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
+    now uses Python bool for boolean entries; assigning bool to non-boolean
+    parameters raises TypeError; boolean-ness is preserved through Param updates,
+    dict conversion, repr and INI round-trips.
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test

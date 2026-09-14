@@ -1631,8 +1631,12 @@ def _testParam(p):
     assert p == p1
 
     e1 = p1.getEntry(k)
-    for f in ["name", "description", "value", "tags", "valid_strings",
-              "min_float", "max_float", "min_int", "max_int"]:
+    fields = ["name", "description", "value", "tags", "valid_strings",
+              "min_float", "max_float", "min_int", "max_int"]
+    if e1.isBool():
+        # a boolean parameter has no string restrictions from Python (issue #10116)
+        fields.remove("valid_strings")
+    for f in fields:
         assert getattr(e1, f) is not None
 
     assert e1 == e1
