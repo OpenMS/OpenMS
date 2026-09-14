@@ -556,6 +556,19 @@ else()
       if(QT_INSTALL_BINS)
         string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
       endif()
+      # OPENMS_CONTRIB_LIBS and QT_INSTALL_BINS come from the enclosing OpenMS
+      # build; a standalone wheel build (py-build-cmake) has neither, so the list
+      # above would name only OpenMS.dll's own directory. OpenMS.dll would then
+      # fail to load because *its* dependencies -- Qt, contrib -- are elsewhere,
+      # and every module import dies with "DLL load failed while importing ...:
+      # The specified module could not be found". Keep whatever the caller put in
+      # the environment instead of overwriting it: the wheel workflow knows those
+      # directories exactly and passes the same ones to delvewheel.
+      if(NOT "$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
+        # Semicolons separate directories here, not CMake list elements.
+        string(REPLACE ";" "$<SEMICOLON>" _pyopenms_stub_env_dll_dirs "$ENV{PYOPENMS_DLL_PATH}")
+        string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${_pyopenms_stub_env_dll_dirs}")
+      endif()
       set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
     endif()
 
