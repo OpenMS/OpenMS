@@ -16,7 +16,7 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
 - **Visualization tools** (TOPPView) for 1D, 2D, and 3D data
 - **Support for major file formats** (mzML, mzXML, mzIdentML, pepXML, mzTab)
 - **Comprehensive quantitation support** (label-free, SILAC, iTRAQ, TMT, SRM, SWATH)
-- **Integration with workflow systems** (KNIME, Galaxy, nextflow)
+- **Integration with workflow systems** (Galaxy, nextflow)
 
 ### Architecture Components
 
