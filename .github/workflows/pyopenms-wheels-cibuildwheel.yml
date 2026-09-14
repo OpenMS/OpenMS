@@ -71,9 +71,14 @@ jobs:
           # python_versions.json. That file is therefore purely the *test*
           # matrix now; the compiled version comes from the ABI floor declared in
           # pyproject.toml, so the two cannot drift apart.
-          ABI3_MIN=$(grep -E '^abi3_minimum_cpython_version' src/pyOpenMS/pyproject.toml | grep -oE '[0-9]+')
-          if [[ -z "$ABI3_MIN" ]]; then
-            echo "::error::could not read abi3_minimum_cpython_version from src/pyOpenMS/pyproject.toml"
+          # Capture only the value: the key name contains a digit of its own
+          # ("abi3_..."), so matching every number on the line yields "3 311".
+          ABI3_MIN=$(sed -nE 's/^[[:space:]]*abi3_minimum_cpython_version[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' \
+                       src/pyOpenMS/pyproject.toml)
+          # Match the exact shape rather than just "non-empty", so a duplicated
+          # or malformed key fails here instead of producing a broken tag.
+          if [[ ! "$ABI3_MIN" =~ ^[0-9]+$ ]]; then
+            echo "::error::could not read a single numeric abi3_minimum_cpython_version from src/pyOpenMS/pyproject.toml (got '${ABI3_MIN}')"
             exit 1
           fi
           CIBW_PY="cp${ABI3_MIN}"
